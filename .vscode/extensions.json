@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "yoavbls.pretty-ts-errors",
+    "bradlc.vscode-tailwindcss",
+    "usernamehw.errorlens",
+    "wix.vscode-import-cost",
+    "natqe.reload",
+    "Prisma.prisma"
+  ]
+}
