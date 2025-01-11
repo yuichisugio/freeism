@@ -10,7 +10,7 @@
   "editor.rulers": [200],
   "editor.tabSize": 2,
   "editor.quickSuggestions": {
-    "comments": false,
+    "comments": false
   },
   "editor.wordWrap": "off",
   "editor.renderControlCharacters": true,
@@ -26,13 +26,13 @@
   "redhat.telemetry.enabled": false,
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-      "*.ts": "${capture}.js, ${capture}.typegen.ts",
-      "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
-      "*.jsx": "${capture}.js",
-      "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
-      "package.json": "LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs",
-      "*.mts": "${capture}.typegen.ts",
-      "*.cts": "${capture}.typegen.ts"
+    "*.ts": "${capture}.js, ${capture}.typegen.ts",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
+    "package.json": ".cz-config.cjs,commitlint.config.cjs , LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs",
+    "*.mts": "${capture}.typegen.ts",
+    "*.cts": "${capture}.typegen.ts"
   },
   "search.exclude": {
     "**/node_modules": true
