@@ -38,5 +38,16 @@
     "**/node_modules": true
   },
   "tailwind-fold.autoFold": false,
-  "cSpell.words": ["nuqs", "Shadcn", "subcomponents"]
+  "cSpell.words": [
+    "CLIENTVAR",
+    "cuid",
+    "freeism",
+    "ianvs",
+    "lintstagedrc",
+    "nuqs",
+    "Shadcn",
+    "subcomponents",
+    "supabase",
+    "turbopack"
+  ]
 }

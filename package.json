@@ -2,6 +2,7 @@
   "name": "freeism-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -15,12 +16,18 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@apollo/client": "^3.12.11",
+    "@apollo/server": "^4.11.3",
+    "@as-integrations/next": "^3.2.0",
     "@auth/prisma-adapter": "^2.7.4",
+    "@prisma/client": "^6.3.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@reduxjs/toolkit": "^2.5.1",
     "@t3-oss/env-nextjs": "^0.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6",
     "lucide-react": "^0.471.1",
     "next": "15.1.4",
     "next-auth": "5.0.0-beta.25",
@@ -33,6 +40,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@eslint/js": "^9.20.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
     "@types/eslint": "^9.6.1",
     "@types/node": "^20",
@@ -42,14 +50,15 @@
     "@typescript-eslint/parser": "^8.19.1",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-unicorn": "^56.0.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.3.0",
     "postcss": "^8",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
+    "prisma": "^6.3.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  },
-  "type": "module"
+  }
 }

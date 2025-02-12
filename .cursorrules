@@ -7,14 +7,15 @@
   - Prefer iteration and modularization over code duplication.
   - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
   - Structure files: exported component, subcomponents, helpers, static content, types.
+  - Use Next.js App router
+  - Use pnpm as the package manager.
+  - Use GraphQL , Apollo Server(@apollo/server) , Apollo Client(@apollo/client) , @as-integrations/next
 
 - Naming Conventions
 
   - All components should go in src/components and be named like new-component.tsx
   - Use lowercase with dashes for directories (e.g., components/auth-wizard).
   - Favor named exports for components.
-  - Use Next.js App router
-  - Use pnpm as the package manager.
 
 - TypeScript Usage
 
