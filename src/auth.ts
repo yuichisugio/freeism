@@ -1,5 +1,5 @@
-import type { Account as PrismaAccount } from "@prisma/client";
-import type { Session } from "next-auth";
+import type { DefaultSession, Session } from "next-auth";
+import type { Account } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
@@ -10,6 +10,17 @@ type ExtendedSession = Session & {
   access_token?: string;
   refresh_token?: string;
 };
+
+// OAuthアカウントの型を拡張
+type OAuthAccountType = {
+  access_token: string | undefined;
+  token_type: string | undefined;
+  id_token: string | undefined;
+  refresh_token: string | undefined;
+  scope: string | undefined;
+  session_state: string | undefined;
+  expires_at: number | undefined;
+} & Omit<Account, "expires_at">;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -22,24 +33,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       try {
         // サインイン時にアカウント情報をDBに保存
-        const accountData = {
-          id: account.providerAccountId,
-          userId: user.id,
-          type: account.type ?? "oauth",
-          provider: account.provider ?? "",
-          providerAccountId: account.providerAccountId ?? "",
-          access_token: account.access_token?.toString() ?? null,
-          refresh_token: account.refresh_token?.toString() ?? null,
-          expires_at: account.expires_at ?? null,
-          token_type: account.token_type?.toString() ?? null,
-          scope: account.scope?.toString() ?? null,
-          id_token: account.id_token?.toString() ?? null,
-          session_state: account.session_state?.toString() ?? null,
-          //accountData型は、AccountテーブルのカラムからcreatedAtとupdatedAtを除いた型
-        } satisfies Omit<PrismaAccount, "createdAt" | "updatedAt">;
-
+        const oauthAccount = account as OAuthAccountType;
         await prisma.account.create({
-          data: accountData,
+          data: {
+            id: account.providerAccountId,
+            userId: user.id,
+            type: account.type ?? "oauth",
+            provider: account.provider ?? "",
+            providerAccountId: account.providerAccountId ?? "",
+            access_token: oauthAccount.access_token ?? null,
+            refresh_token: oauthAccount.refresh_token ?? null,
+            expires_at: oauthAccount.expires_at ?? null,
+            token_type: oauthAccount.token_type ?? null,
+            scope: oauthAccount.scope ?? null,
+            id_token: oauthAccount.id_token ?? null,
+            session_state: oauthAccount.session_state ?? null,
+          },
         });
         return true;
       } catch (error) {
