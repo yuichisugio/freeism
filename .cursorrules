@@ -31,7 +31,7 @@
 
 - UI and Styling
 
-  - Use Shadcn UI, and Tailwind for components and styling.
+  - Use Shadcn UI, and Tailwind version 4 for components and styling.
   - Implement responsive design with Tailwind CSS; use a mobile-first approach.
 
 - Performance Optimization
