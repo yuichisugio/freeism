@@ -1,5 +1,4 @@
-import type { DefaultSession, Session } from "next-auth";
-import type { Account } from "next-auth";
+import type { Account, DefaultSession, Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
@@ -33,7 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       try {
         // サインイン時にアカウント情報をDBに保存
-        const oauthAccount = account as OAuthAccountType;
+        const oauthAccount = account as unknown as OAuthAccountType;
         await prisma.account.create({
           data: {
             id: account.providerAccountId,

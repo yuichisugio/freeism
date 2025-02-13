@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.11.1",
+    "pnpm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -42,13 +46,14 @@
     "@eslint/eslintrc": "^3",
     "@eslint/js": "^9.20.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
-    "@tailwindcss/postcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.6",
     "@types/eslint": "^9.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.19.1",
     "@typescript-eslint/parser": "^8.19.1",
+    "autoprefixer": "^10.4.18",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",
     "eslint-plugin-import": "^2.31.0",
@@ -59,7 +64,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "prisma": "^6.3.1",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.0.6",
     "typescript": "^5"
   }
 }
