@@ -3,32 +3,32 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-linear-to-b from-blue-50 via-white to-white py-32">
+    <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white py-16 sm:py-24 lg:py-32">
       {/* 装飾的な背景要素 */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/2 -left-4 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-blue-100/50 blur-3xl" />
-        <div className="absolute top-1/2 -right-4 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-blue-100/50 blur-3xl" />
+        <div className="absolute top-1/2 -left-4 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-blue-100/50 blur-3xl sm:h-[500px] sm:w-[500px]" />
+        <div className="absolute top-1/2 -right-4 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-blue-100/50 blur-3xl sm:h-[500px] sm:w-[500px]" />
       </div>
 
       <div className="relative container mx-auto px-4">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="mb-6 bg-linear-to-r from-blue-600 to-blue-800 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-6xl">
+        <div className="mx-auto max-w-[280px] text-center sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
+          <h1 className="mb-4 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl">
             旅行の新しいカタチを
             <br />
             <span className="text-blue-600">発見</span>
             しよう
           </h1>
-          <p className="mb-8 text-lg leading-relaxed text-neutral-600">
+          <p className="mb-6 text-base leading-relaxed text-neutral-600 sm:mb-8 sm:text-lg md:text-xl">
             Freeism-Appは、あなたの旅行をより豊かに、より便利にする
-            <br />
+            <br className="hidden sm:block" />
             新しい旅行プラットフォームです。
-            <br />
+            <br className="hidden sm:block" />
             世界中の魅力的な目的地を発見し、最高の旅行体験を手に入れましょう。
           </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Button
               size="lg"
-              className="min-w-[200px] bg-blue-600 text-white hover:bg-blue-700"
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto sm:min-w-[200px]"
               asChild
             >
               <Link href="/auth/signin">無料で始める</Link>
@@ -36,7 +36,7 @@ export function HeroSection() {
             <Button
               variant="outline"
               size="lg"
-              className="min-w-[200px] border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+              className="w-full border-blue-200 bg-white text-blue-700 hover:bg-blue-50 sm:w-auto sm:min-w-[200px]"
               asChild
             >
               <Link href="#features">詳しく見る</Link>

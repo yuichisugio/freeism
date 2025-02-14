@@ -1,20 +1,30 @@
 import Link from "next/link";
 
+/**
+ * フッターコンポーネント
+ * - サイトの基本情報とリンクを表示
+ * - Legal情報へのリンク（利用規約、プライバシーポリシー）
+ * - SNSリンク（Twitter、GitHub）
+ * - コピーライト表示
+ * - レスポンシブ対応（モバイルでは縦並び、デスクトップでは横並び）
+ */
 export function Footer() {
   return (
-    <footer className="w-full border-t border-blue-100 bg-linear-to-b from-white to-blue-50">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="w-full border-t border-blue-100 bg-gradient-to-b from-white to-blue-50">
+      <div className="container mx-auto px-4 py-8 sm:py-12">
         <div className="flex flex-col items-center">
-          <div className="flex gap-45">
-            <div className="text-center">
-              <h3 className="mb-4 text-lg font-semibold text-blue-900">
+          {/* フッターナビゲーション */}
+          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-2 sm:gap-12 sm:text-left">
+            {/* Legal情報セクション */}
+            <div>
+              <h3 className="mb-3 text-lg font-semibold text-blue-900 sm:mb-4">
                 Legal
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2 sm:space-y-3">
                 <li>
                   <Link
                     href="/terms"
-                    className="text-neutral-600 transition-colors hover:text-blue-600"
+                    className="text-sm text-neutral-600 transition-colors hover:text-blue-600 sm:text-base"
                   >
                     利用規約
                   </Link>
@@ -22,7 +32,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/privacy"
-                    className="text-neutral-600 transition-colors hover:text-blue-600"
+                    className="text-sm text-neutral-600 transition-colors hover:text-blue-600 sm:text-base"
                   >
                     プライバシーポリシー
                   </Link>
@@ -30,11 +40,13 @@ export function Footer() {
               </ul>
             </div>
 
-            <div className="text-center">
-              <h3 className="mb-4 text-lg font-semibold text-blue-900">
+            {/* SNSリンクセクション */}
+            <div>
+              <h3 className="mb-3 text-lg font-semibold text-blue-900 sm:mb-4">
                 About
               </h3>
-              <div className="flex justify-center space-x-4">
+              <div className="flex justify-center space-x-4 sm:justify-start">
+                {/* Twitterリンク */}
                 <a
                   href="https://x.com/sugi_sugi_329"
                   target="_blank"
@@ -42,7 +54,7 @@ export function Footer() {
                   className="text-neutral-600 transition-colors hover:text-blue-600"
                 >
                   <svg
-                    className="h-6 w-6"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
@@ -50,6 +62,7 @@ export function Footer() {
                     <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                   </svg>
                 </a>
+                {/* GitHubリンク */}
                 <a
                   href="https://github.com/yuichisugio"
                   target="_blank"
@@ -57,7 +70,7 @@ export function Footer() {
                   className="text-neutral-600 transition-colors hover:text-blue-600"
                 >
                   <svg
-                    className="h-6 w-6"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
@@ -73,8 +86,9 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="mt-12 w-full border-t border-blue-100 pt-8 text-center">
-            <p className="text-sm text-neutral-600">
+          {/* コピーライト */}
+          <div className="mt-8 w-full border-t border-blue-100 pt-6 text-center sm:mt-12 sm:pt-8">
+            <p className="text-xs text-neutral-600 sm:text-sm">
               © {new Date().getFullYear()} Freeism-App. All rights reserved.
             </p>
           </div>
