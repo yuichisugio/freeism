@@ -13,8 +13,5 @@ import { signIn } from "@/auth";
 これはパフォーマンスの観点から好ましくありません。なので、別ファイルのサーバーコンポーネントを作成して、それを渡す方が良い
  */
 export async function googleSignIn() {
-  await signIn("google", {
-    callbackUrl: "/",
-    redirect: true,
-  });
+  return signIn();
 }

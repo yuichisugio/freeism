@@ -55,30 +55,57 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * - エラー発生時はサインインを中断
      */
     async signIn({ user, account }) {
+      console.log(
+        "----------------------1111111111111111111111111111111----------------------",
+      );
       if (!user.id || !account) return false;
 
       try {
-        // サインイン時にアカウント情報をDBに保存
-        const oauthAccount = account as unknown as OAuthAccountType;
-        await prisma.account.create({
-          data: {
-            id: account.providerAccountId,
-            userId: user.id,
-            type: account.type ?? "oauth",
-            provider: account.provider ?? "",
-            providerAccountId: account.providerAccountId ?? "",
-            access_token: oauthAccount.access_token ?? null,
-            refresh_token: oauthAccount.refresh_token ?? null,
-            expires_at: oauthAccount.expires_at ?? null,
-            token_type: oauthAccount.token_type ?? null,
-            scope: oauthAccount.scope ?? null,
-            id_token: oauthAccount.id_token ?? null,
-            session_state: oauthAccount.session_state ?? null,
-          },
-        });
+        // ここまでは来ている
+
+        // // ユーザーが存在しない場合のみ作成
+        // let userData = await prisma.user.upsert({
+        //   where: {
+        //     email: user.email,
+        //   },
+        //   update: {
+        //     name: user.name ?? null,
+        //     image: user.image ?? null,
+        //   },
+        //   create: {
+        //     email: user.email ?? "",
+        //     name: user.name ?? null,
+        //     image: user.image ?? null,
+        //   },
+        // });
+
+        // アカウント情報を作成または更新
+        // await prisma.account.create({
+        //   data: {
+        //     userId: userData.id,
+        //     type: account.type ?? "oauth",
+        //     provider: account.provider,
+        //     providerAccountId: account.providerAccountId,
+        //     access_token: account.access_token ?? null,
+        //     refresh_token: account.refresh_token ?? null,
+        //     expires_at: account.expires_at ? parseInt(account.expires_at.toString()) : null,
+        //     token_type: account.token_type ?? null,
+        //     scope: account.scope ?? null,
+        //     id_token: account.id_token ?? null,
+        //     session_state: account.session_state ? account.session_state.toString() : null,
+        //   },
+        // });
+
+        console.log(
+          "----------------------22222222222222222222222222222222----------------------",
+        );
+
         return true;
       } catch (error) {
         console.error("Error creating account:", error);
+        console.log(
+          "----------------------33333333333333333333333333333333----------------------",
+        );
         return false;
       }
     },
@@ -107,8 +134,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      */
     async session({ session, user }) {
       // セッション情報をカスタマイズ（データベースから取得）
-      // セッション情報をExtendedSessionの型にキャスト
-      // ExtendedSessionは標準のSessionに加えて、access_token、refresh_token、username、imageなどの追加プロパティを持つ拡張型
       const extendedSession = session as ExtendedSession;
       const account = await prisma.account.findFirst({
         where: { userId: user.id },
