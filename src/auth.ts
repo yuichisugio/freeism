@@ -92,8 +92,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * - アクセストークンとリフレッシュトークンをセッションに追加
      * - ユーザーIDをセッションに追加
      */
+    /**
+     * @param session - セッション情報
+     *   - user: {
+     *       name?: string | null - ユーザー名
+     *       email?: string | null - メールアドレス
+     *       image?: string | null - プロフィール画像URL
+     *     }
+     *   - expires: Date - セッションの有効期限
+     * @param user - データベースのユーザー情報
+     *   - id: string - ユーザーID
+     *   - name?: string | null - ユーザー名
+     *   - email: string - メールアドレス
+     *   - emailVerified?: Date | null - メール確認日時
+     *   - image?: string | null - プロフィール画像URL
+     */
     async session({ session, user }) {
       // セッション情報をカスタマイズ（データベースから取得）
+      // セッション情報をExtendedSessionの型にキャスト
+      // ExtendedSessionは標準のSessionに加えて、access_token、refresh_token、username、imageなどの追加プロパティを持つ拡張型
       const extendedSession = session as ExtendedSession;
       const account = await prisma.account.findFirst({
         where: { userId: user.id },
