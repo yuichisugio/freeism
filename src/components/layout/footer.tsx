@@ -14,7 +14,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-8 sm:py-12">
         <div className="flex flex-col items-center">
           {/* フッターナビゲーション */}
-          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-2 sm:gap-12 sm:text-left">
+          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-2 sm:gap-40 sm:text-left">
             {/* Legal情報セクション */}
             <div>
               <h3 className="mb-3 text-lg font-semibold text-blue-900 sm:mb-4">

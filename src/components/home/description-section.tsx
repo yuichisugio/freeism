@@ -18,7 +18,7 @@ export function DescriptionSection() {
 
       {/* メインコンテンツ */}
       <div className="relative container mx-auto px-4">
-        <div className="mx-auto max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+        <div className="mx-auto max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-5xl">
           {/* セクションタイトル */}
           <div className="mb-8 text-center sm:mb-12">
             <h2 className="mb-3 text-2xl font-bold text-blue-900 sm:mb-4 sm:text-3xl lg:text-4xl">
@@ -32,7 +32,7 @@ export function DescriptionSection() {
           {/* Googleドキュメントの埋め込み */}
           <iframe
             src="https://docs.google.com/document/d/e/2PACX-1vSv2DzoMvPnYK4EQQn2q8jwSch9-YV3LrNUC42CcFxJoM4lWWfw_C6BbCtLxwHVTiw-FITAF1U1rl0u/pub?embedded=true"
-            className="h-[400px] w-full rounded-xl border border-blue-100 bg-white/80 shadow-lg shadow-blue-100 backdrop-blur-sm sm:h-[600px] md:h-[700px] lg:h-[800px]"
+            className="h-[500px] w-full rounded-xl border border-blue-100 bg-white/80 shadow-lg shadow-blue-100 backdrop-blur-sm sm:h-[600px] md:h-[700px] lg:h-[800px]"
             title="サービス説明"
           />
         </div>

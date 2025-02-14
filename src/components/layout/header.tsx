@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { googleSignIn } from "@/app/actions";
 import { auth } from "@/auth";
-import { SignInButton } from "@/components/auth/sign-in-button";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -56,7 +56,14 @@ export async function Header() {
             </Button>
           ) : (
             // 未ログインの場合はサインインボタンを表示
-            <SignInButton />
+            <form action={googleSignIn}>
+              <Button
+                type="submit"
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
+                サインイン
+              </Button>
+            </form>
           )}
         </nav>
       </div>

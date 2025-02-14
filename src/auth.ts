@@ -46,8 +46,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Google],
   // セッション管理の設定（データベースを使用）
   session: { strategy: "database" },
-  // カスタムページの設定
-  pages: { signIn: "/auth/signin" },
   // 認証関連のコールバック設定
   callbacks: {
     /**
