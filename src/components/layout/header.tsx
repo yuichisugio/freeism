@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { googleSignIn } from "@/app/actions";
+import { googleSignIn, googleSignOut } from "@/app/actions";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 
@@ -47,13 +47,23 @@ export async function Header() {
           {/* ログイン状態に応じてボタンを切り替え */}
           {session ? (
             // ログイン済みの場合はダッシュボードへのリンクを表示
-            <Button
-              variant="outline"
-              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
-              asChild
-            >
-              <Link href="/protected/dashboard">Dashboard</Link>
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                asChild
+              >
+                <Link href="/protected/dashboard">Dashboard</Link>
+              </Button>
+              <form action={googleSignOut}>
+                <Button
+                  type="submit"
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  サインアウト
+                </Button>
+              </form>
+            </>
           ) : (
             // 未ログインの場合はサインインボタンを表示
             <form action={googleSignIn}>
@@ -61,7 +71,7 @@ export async function Header() {
                 type="submit"
                 className="bg-blue-600 text-white hover:bg-blue-700"
               >
-                サインイン
+                利用する
               </Button>
             </form>
           )}

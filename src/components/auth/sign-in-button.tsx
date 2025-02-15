@@ -1,7 +1,7 @@
 "use client";
 
-import { signIn } from "@/auth";
-import { Button } from "@/components/ui/button";
+import type { ComponentPropsWithoutRef } from "react";
+import { signIn } from "next-auth/react";
 
 /**
  * サインインボタンコンポーネント
@@ -9,18 +9,28 @@ import { Button } from "@/components/ui/button";
  * - クライアントサイドでの認証処理を実行
  * - サインイン後はトップページにリダイレクト
  */
-export function SignInButton() {
+type SignInButtonProps = {
+  provider: "google";
+} & ComponentPropsWithoutRef<"button">;
+
+/**
+ * サインインボタンコンポーネント
+ * - Googleアカウントでのサインインを提供
+ * - クライアントサイドでの認証処理を実行
+ * - サインイン後はトップページにリダイレクト
+ */
+export async function SignInButton({
+  provider,
+  children,
+  ...props
+}: SignInButtonProps) {
+  async function handleClick() {
+    await signIn(provider, { callbackUrl: "/" });
+  }
+
   return (
-    <Button
-      className="bg-blue-600 text-white hover:bg-blue-700"
-      onClick={async () => {
-        await signIn("google", {
-          callbackUrl: "/",
-          redirect: true,
-        });
-      }}
-    >
-      サインイン
-    </Button>
+    <button type="button" onClick={handleClick} {...props}>
+      {children}
+    </button>
   );
 }

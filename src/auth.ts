@@ -1,4 +1,4 @@
-import type { Account, Session } from "next-auth";
+import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
@@ -17,22 +17,6 @@ type ExtendedSession = Session & {
 };
 
 /**
- * OAuthアカウント情報の型定義
- * - 標準のAccountタイプを拡張
- * - OAuth認証で取得する各種トークンと認証情報を定義
- * - expires_atの型を調整するためにOmitで一度除外して再定義
- */
-type OAuthAccountType = {
-  access_token: string | undefined;
-  token_type: string | undefined;
-  id_token: string | undefined;
-  refresh_token: string | undefined;
-  scope: string | undefined;
-  session_state: string | undefined;
-  expires_at: number | undefined;
-} & Omit<Account, "expires_at">;
-
-/**
  * NextAuth設定のエクスポート
  * - handlers: API routeハンドラー
  * - auth: セッション取得用関数
@@ -46,6 +30,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Google],
   // セッション管理の設定（データベースを使用）
   session: { strategy: "database" },
+  //
+  pages: { signIn: "/auth/signin" },
   // 認証関連のコールバック設定
   callbacks: {
     /**
@@ -55,57 +41,84 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * - エラー発生時はサインインを中断
      */
     async signIn({ user, account }) {
-      console.log(
-        "----------------------1111111111111111111111111111111----------------------",
-      );
-      if (!user.id || !account) return false;
-
       try {
-        // ここまでは来ている
+        if (!user?.email || !account) {
+          console.error("signIn callback: user email or account is missing");
+          return false;
+        }
 
-        // // ユーザーが存在しない場合のみ作成
-        // let userData = await prisma.user.upsert({
-        //   where: {
-        //     email: user.email,
-        //   },
-        //   update: {
-        //     name: user.name ?? null,
-        //     image: user.image ?? null,
-        //   },
-        //   create: {
-        //     email: user.email ?? "",
-        //     name: user.name ?? null,
-        //     image: user.image ?? null,
-        //   },
-        // });
+        // ユーザーが存在しない場合のみ作成
+        const userData = await prisma.user.upsert({
+          where: { email: user.email },
+          update: {
+            name: user.name ?? null,
+            image: user.image ?? null,
+          },
+          create: {
+            email: user.email,
+            name: user.name ?? null,
+            image: user.image ?? null,
+          },
+        });
+
+        if (!userData) {
+          console.error("Failed to create/update user");
+          return false;
+        }
 
         // アカウント情報を作成または更新
-        // await prisma.account.create({
-        //   data: {
-        //     userId: userData.id,
-        //     type: account.type ?? "oauth",
-        //     provider: account.provider,
-        //     providerAccountId: account.providerAccountId,
-        //     access_token: account.access_token ?? null,
-        //     refresh_token: account.refresh_token ?? null,
-        //     expires_at: account.expires_at ? parseInt(account.expires_at.toString()) : null,
-        //     token_type: account.token_type ?? null,
-        //     scope: account.scope ?? null,
-        //     id_token: account.id_token ?? null,
-        //     session_state: account.session_state ? account.session_state.toString() : null,
-        //   },
-        // });
+        const accountData = await prisma.account.upsert({
+          where: {
+            provider_providerAccountId: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+            },
+          },
+          update: {
+            access_token: account.access_token ?? null,
+            refresh_token: account.refresh_token ?? null,
+            expires_at: account.expires_at
+              ? Math.floor(account.expires_at)
+              : null,
+            token_type: account.token_type ?? null,
+            scope: account.scope ?? null,
+            id_token: account.id_token ?? null,
+            session_state: account.session_state?.toString() ?? null,
+          },
+          create: {
+            userId: userData.id,
+            type: account.type ?? "oauth",
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+            access_token: account.access_token ?? null,
+            refresh_token: account.refresh_token ?? null,
+            expires_at: account.expires_at
+              ? Math.floor(account.expires_at)
+              : null,
+            token_type: account.token_type ?? null,
+            scope: account.scope ?? null,
+            id_token: account.id_token ?? null,
+            session_state: account.session_state?.toString() ?? null,
+          },
+        });
 
-        console.log(
-          "----------------------22222222222222222222222222222222----------------------",
-        );
+        if (!accountData) {
+          console.error("Failed to create/update account");
+          return false;
+        }
+
+        // 新規ユーザー or ログインだけして初期設定の入力しなかった方は、初期設定画面へリダイレクト
+        if (
+          userData.lifeGoal === null &&
+          userData.groupName === null &&
+          userData.evaluationMethod === null
+        ) {
+          return "/auth/setup";
+        }
 
         return true;
       } catch (error) {
-        console.error("Error creating account:", error);
-        console.log(
-          "----------------------33333333333333333333333333333333----------------------",
-        );
+        console.error("Error in signIn callback:", error);
         return false;
       }
     },
@@ -133,29 +146,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      *   - image?: string | null - プロフィール画像URL
      */
     async session({ session, user }) {
-      // セッション情報をカスタマイズ（データベースから取得）
-      const extendedSession = session as ExtendedSession;
-      const account = await prisma.account.findFirst({
-        where: { userId: user.id },
-      });
-      const userData = await prisma.user.findFirst({
-        where: { id: user.id },
-      });
+      try {
+        const extendedSession = session as ExtendedSession;
+        const account = await prisma.account.findFirst({
+          where: { userId: user.id },
+        });
+        const userData = await prisma.user.findFirst({
+          where: { id: user.id },
+        });
 
-      // アカウント情報が存在する場合、トークン情報を追加
-      if (account && userData) {
-        extendedSession.access_token = account.access_token ?? undefined;
-        extendedSession.refresh_token = account.refresh_token ?? undefined;
-        extendedSession.username = userData.name ?? undefined;
-        extendedSession.image = userData.image ?? undefined;
+        if (account && userData) {
+          extendedSession.access_token = account.access_token ?? undefined;
+          extendedSession.refresh_token = account.refresh_token ?? undefined;
+          extendedSession.username = userData.name ?? undefined;
+          extendedSession.image = userData.image ?? undefined;
+        }
+
+        if (session.user) {
+          session.user.id = user.id;
+        }
+
+        return extendedSession;
+      } catch (error) {
+        console.error("Error in session callback:", error);
+        return session;
       }
+    },
 
-      // ユーザーIDをセッションに追加
-      if (session.user) {
-        session.user.id = user.id;
+    async jwt({ token, user, account }) {
+      try {
+        if (user) {
+          token.userId = user.id;
+          token.email = user.email;
+        }
+        if (account) {
+          token.accessToken = account.access_token;
+        }
+        return token;
+      } catch (error) {
+        console.error("Error in jwt callback:", error);
+        return token;
       }
-
-      return extendedSession;
     },
   },
 });

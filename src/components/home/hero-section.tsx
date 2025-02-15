@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { googleSignIn } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
@@ -19,13 +20,15 @@ export function HeroSection() {
             Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。
           </p>
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Button
-              size="lg"
-              className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto sm:min-w-[200px]"
-              asChild
-            >
-              <Link href="/auth/signin">無料で始める</Link>
-            </Button>
+            <form action={googleSignIn}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto sm:min-w-[200px]"
+              >
+                利用する
+              </Button>
+            </form>
             <Button
               variant="outline"
               size="lg"

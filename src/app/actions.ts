@@ -1,6 +1,8 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { auth, signIn, signOut } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 /**
  * Googleサインインアクション
@@ -14,4 +16,46 @@ import { signIn } from "@/auth";
  */
 export async function googleSignIn() {
   return signIn();
+}
+
+export async function googleSignOut() {
+  return signOut();
+}
+
+const setupSchema = z.object({
+  username: z.string().min(2).max(30),
+  lifeGoal: z.string().min(10).max(200),
+  groupName: z.string().min(2).max(30),
+  evaluationMethod: z.string().min(10).max(200),
+});
+
+export async function updateUserSetup(formData: unknown) {
+  try {
+    // セッションからユーザー情報を取得
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "認証されていません。" };
+    }
+
+    // バリデーション
+    const validatedData = setupSchema.parse(formData);
+
+    // ユーザー情報を更新
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        name: validatedData.username,
+        lifeGoal: validatedData.lifeGoal,
+        groupName: validatedData.groupName,
+        evaluationMethod: validatedData.evaluationMethod,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: "入力内容が正しくありません。" };
+    }
+    return { error: "予期せぬエラーが発生しました。" };
+  }
 }
