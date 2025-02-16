@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, signIn, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -14,13 +14,6 @@ import { z } from "zod";
 サーバーコンポーネント内で直接フォームアクションを定義すると、そのコンポーネントが再レンダリングされるたびに新しいアクションが作成されます
 これはパフォーマンスの観点から好ましくありません。なので、別ファイルのサーバーコンポーネントを作成して、それを渡す方が良い
  */
-export async function googleSignIn() {
-  return signIn();
-}
-
-export async function googleSignOut() {
-  return signOut();
-}
 
 const setupSchema = z.object({
   username: z.string().min(2).max(30),
@@ -29,37 +22,44 @@ const setupSchema = z.object({
   evaluationMethod: z.string().min(10).max(200),
 });
 
-export async function updateUserSetup(formData: unknown) {
-  console.log("updateUserSetup");
+export async function updateUserSetup(data: {
+  username: string;
+  lifeGoal: string;
+  groupName: string;
+  evaluationMethod: string;
+}) {
   try {
-    // セッションからユーザー情報を取得
     const session = await auth();
-    console.log("session", session);
     if (!session?.user?.id) {
-      console.error("認証されていません。");
-      return { error: "認証されていません。" };
+      return { success: false, error: "ユーザーが認証されていません。" };
     }
 
-    // バリデーション
-    const validatedData = setupSchema.parse(formData);
-
-    // ユーザー情報を更新
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        name: validatedData.username,
-        lifeGoal: validatedData.lifeGoal,
-        groupName: validatedData.groupName,
-        evaluationMethod: validatedData.evaluationMethod,
+    // ユーザー設定を更新または作成
+    await prisma.userSettings.upsert({
+      where: {
+        userId: session.user.id,
+      },
+      update: {
+        username: data.username,
+        lifeGoal: data.lifeGoal,
+        groupName: data.groupName,
+        evaluationMethod: data.evaluationMethod,
+      },
+      create: {
+        userId: session.user.id,
+        username: data.username,
+        lifeGoal: data.lifeGoal,
+        groupName: data.groupName,
+        evaluationMethod: data.evaluationMethod,
       },
     });
 
     return { success: true };
   } catch (error) {
-    console.log("error", error);
-    if (error instanceof z.ZodError) {
-      return { error: "入力内容が正しくありません。" };
-    }
-    return { error: "予期せぬエラーが発生しました。" };
+    console.error("Error updating user setup:", error);
+    return {
+      success: false,
+      error: "設定の更新中にエラーが発生しました。",
+    };
   }
 }

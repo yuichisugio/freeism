@@ -1,6 +1,6 @@
 // カスタムサインインページ
 import type { Metadata } from "next";
-import { SignInButton, SignInLink } from "@/components/auth/sign-in-button";
+import { SignInButton } from "@/components/auth/sign-in-button";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
@@ -17,7 +17,7 @@ export default function SignInPage() {
         <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-blue-900">
-              ログイン
+              新規登録/ログイン
             </h1>
             <p className="mt-2 text-sm text-neutral-600">
               Freeism-Appへようこそ
@@ -54,31 +54,9 @@ export default function SignInPage() {
                       fill="#EA4335"
                     />
                   </svg>
-                  Googleでログイン
+                  Google
                 </SignInButton>
               </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-neutral-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-neutral-500">または</span>
-              </div>
-            </div>
-
-            <div className="text-center text-sm">
-              <p className="text-neutral-600">
-                アカウントをお持ちでない方は、
-                <SignInLink
-                  provider="google"
-                  className="font-medium text-blue-600 hover:text-blue-500"
-                >
-                  新規登録
-                </SignInLink>
-                からご登録ください。
-              </p>
             </div>
           </div>
         </div>

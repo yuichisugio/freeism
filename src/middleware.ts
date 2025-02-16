@@ -8,7 +8,6 @@ export const config = {
 
 export async function middleware(_request: Request) {
   const session = await auth();
-  console.log("middleware session", session);
 
   // 認証されていない場合は、サインインページにリダイレクト
   if (!session) {

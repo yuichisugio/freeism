@@ -16,7 +16,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   // 認証プロバイダーの設定（Googleのみ）
   providers: [Google],
-  debug: process.env.NODE_ENV !== "production",
+  // デバッグモードを有効にする（開発環境でのみ有効）
+  // debug: process.env.NODE_ENV !== "production",
   // セッション管理の設定（jwtを使用）
   session: {
     strategy: "jwt",
@@ -127,15 +128,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  events: {
-    async signIn(message) {
-      console.log("Event: Sign in:", message);
-    },
-    async signOut(message) {
-      console.log("Event: Sign out:", message);
-    },
-    async session(message) {
-      console.log("Event: Session update:", message);
-    },
-  },
+  // events: {
+  //   async signIn(message) {
+  //     console.log("Event: Sign in:", message);
+  //   },
+  //   async signOut(message) {
+  //     console.log("Event: Sign out:", message);
+  //   },
+  //   async session(message) {
+  //     console.log("Event: Session update:", message);
+  //   },
+  // },
 } satisfies NextAuthConfig);
