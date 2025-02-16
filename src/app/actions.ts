@@ -30,10 +30,13 @@ const setupSchema = z.object({
 });
 
 export async function updateUserSetup(formData: unknown) {
+  console.log("updateUserSetup");
   try {
     // セッションからユーザー情報を取得
     const session = await auth();
+    console.log("session", session);
     if (!session?.user?.id) {
+      console.error("認証されていません。");
       return { error: "認証されていません。" };
     }
 
@@ -53,6 +56,7 @@ export async function updateUserSetup(formData: unknown) {
 
     return { success: true };
   } catch (error) {
+    console.log("error", error);
     if (error instanceof z.ZodError) {
       return { error: "入力内容が正しくありません。" };
     }

@@ -28,6 +28,8 @@
   - Use the "function" keyword for pure functions.
   - Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
   - Use declarative JSX.
+  - Use the "function" keyword for pure functions.
+  - Don't use the arrow function for the function component.
 
 - UI and Styling
 

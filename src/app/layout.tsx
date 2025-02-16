@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { auth } from "@/auth";
+import { SessionProvider } from "next-auth/react";
 
 import "../styles/globals.css";
 
@@ -7,12 +9,20 @@ export const metadata: Metadata = {
   description: "Freeism-app by sugio",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth();
+  console.log("RootLayout session：", session);
+
   return (
     <html lang="ja">
-      <body>{children}</body>
+      {/* suppressHydrationWarning={true} を追加することで、ブラウザ拡張機能（Grammarlyなど）が追加する属性によるハイドレーション警告を抑制します */}
+      <body suppressHydrationWarning={true}>
+        <SessionProvider session={session}>{children}</SessionProvider>
+      </body>
     </html>
   );
 }

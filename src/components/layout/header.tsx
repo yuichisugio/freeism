@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { googleSignIn, googleSignOut } from "@/app/actions";
-import { auth } from "@/auth";
+import { googleSignIn } from "@/app/actions";
+import { auth, signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 export async function Header() {
   // 認証状態を取得
   const session = await auth();
+  console.log("heder session：", session);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-all duration-300">
@@ -53,14 +54,19 @@ export async function Header() {
                 className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
                 asChild
               >
-                <Link href="/protected/dashboard">Dashboard</Link>
+                <Link href="/dashboard">Dashboard</Link>
               </Button>
-              <form action={googleSignOut}>
+              <form
+                action={async () => {
+                  "use server";
+                  await signOut();
+                }}
+              >
                 <Button
                   type="submit"
                   className="bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  サインアウト
+                  ログアウト
                 </Button>
               </form>
             </>

@@ -1,6 +1,6 @@
 // カスタムサインインページ
 import type { Metadata } from "next";
-import { SignInButton } from "@/components/auth/sign-in-button";
+import { SignInButton, SignInLink } from "@/components/auth/sign-in-button";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
@@ -71,12 +71,12 @@ export default function SignInPage() {
             <div className="text-center text-sm">
               <p className="text-neutral-600">
                 アカウントをお持ちでない方は、
-                <a
-                  href="#"
+                <SignInLink
+                  provider="google"
                   className="font-medium text-blue-600 hover:text-blue-500"
                 >
                   新規登録
-                </a>
+                </SignInLink>
                 からご登録ください。
               </p>
             </div>
