@@ -10,6 +10,7 @@
   - Use Next.js App router
   - Use pnpm as the package manager.
   - Use GraphQL , Apollo Server(@apollo/server) , Apollo Client(@apollo/client) , @as-integrations/next
+  - できる限り改行しないようにしてください。
 
 - Naming Conventions
 

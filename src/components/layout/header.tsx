@@ -14,20 +14,20 @@ export async function Header() {
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full overflow-auto overscroll-none border-b border-blue-100 bg-white/80 backdrop-blur-lg">
       {/* ヘッダーコンテンツのコンテナ */}
-      <div className="container mx-auto flex h-16 flex-col items-center justify-between gap-4 px-4 py-2 sm:h-20 sm:flex-row sm:gap-0 sm:py-0">
+      <div className="container ml-2 flex h-16 items-center justify-between overscroll-none px-2 sm:h-20">
         {/* ロゴ部分 */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-700 sm:gap-3"
+          className="flex items-center gap-2 overscroll-none text-blue-600 transition-colors hover:text-blue-700 sm:gap-3"
         >
           {/* ロゴアイコン */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="h-6 w-6 sm:h-8 sm:w-8"
+            className="h-6 w-6 overscroll-none sm:h-8 sm:w-8"
           >
             <path d="M15.75 8.25a.75.75 0 01.75.75c0 1.12-.492 2.126-1.27 2.812a.75.75 0 11-.992-1.124A2.243 2.243 0 0015 9a.75.75 0 01.75-.75z" />
             <path
@@ -42,14 +42,14 @@ export async function Header() {
         </Link>
 
         {/* ナビゲーション */}
-        <nav className="flex items-center gap-4 sm:gap-6">
+        <nav className="absolute right-5 flex items-center gap-4 overscroll-none sm:gap-6">
           {/* ログイン状態に応じてボタンを切り替え */}
           {session ? (
             // ログイン済みの場合はダッシュボードへのリンクを表示
             <>
               <Button
                 variant="outline"
-                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                className="overscroll-none border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
                 asChild
               >
                 <Link href="/dashboard">Dashboard</Link>
@@ -62,7 +62,7 @@ export async function Header() {
               >
                 <Button
                   type="submit"
-                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  className="overscroll-none bg-blue-600 text-white hover:bg-blue-700"
                 >
                   ログアウト
                 </Button>
@@ -78,7 +78,7 @@ export async function Header() {
             >
               <Button
                 type="submit"
-                className="bg-blue-600 text-white hover:bg-blue-700"
+                className="overscroll-none bg-blue-600 text-white hover:bg-blue-700"
               >
                 利用する
               </Button>

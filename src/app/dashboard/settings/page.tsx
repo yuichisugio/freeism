@@ -24,72 +24,74 @@ export default async function SettingsPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-white to-blue-50">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <Sidebar />
-      <main className="sm:pl-40">
-        <div className="container mx-auto px-4 py-8 sm:py-10 lg:py-12">
-          {/* ページヘッダー */}
-          <div className="mb-8 sm:mb-12">
-            <h1 className="text-1xl font-bold text-blue-900 sm:text-2xl lg:text-3xl">
-              Settings
-            </h1>
-            <p className="mt-2 text-neutral-900">
-              アカウント設定とプロフィールを管理します
-            </p>
-          </div>
-
-          {/* フォームセクション */}
-          <div className="relative mx-auto max-w-2xl">
-            {/* 装飾的な背景要素 */}
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-              <div className="absolute top-1/2 left-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-100/30 blur-3xl" />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            {/* ページヘッダー */}
+            <div className="mb-8 ml-8 sm:mb-12">
+              <h1 className="text-2xl font-bold text-blue-900 sm:text-3xl">
+                Settings
+              </h1>
+              <p className="mt-2 text-neutral-600">
+                アカウント設定とプロフィールを管理します
+              </p>
             </div>
 
-            {/* 現在の設定情報 */}
-            {userSettings && (
-              <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
-                <h2 className="mb-4 text-lg font-semibold text-blue-900 sm:text-xl">
-                  現在の設定
-                </h2>
-                <dl className="space-y-4">
-                  <div>
-                    <dt className="text-sm font-medium text-neutral-900">
-                      ユーザー名
-                    </dt>
-                    <dd className="mt-1 text-sm text-neutral-900">
-                      {userSettings.username}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-neutral-900">
-                      人生の目標
-                    </dt>
-                    <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900">
-                      {userSettings.lifeGoal}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-neutral-900">
-                      最終更新日
-                    </dt>
-                    <dd className="mt-1 text-sm text-neutral-900">
-                      {new Date(userSettings.updatedAt).toLocaleDateString(
-                        "ja-JP",
-                      )}
-                    </dd>
-                  </div>
-                </dl>
+            {/* フォームセクション */}
+            <div className="relative mx-auto max-w-2xl">
+              {/* 装飾的な背景要素 */}
+              <div className="absolute inset-0 -z-10 overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-100/30 blur-3xl" />
               </div>
-            )}
 
-            {/* フォームコンテナ */}
-            <div className="rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
-              <SetupForm initialData={userSettings} />
+              {/* 現在の設定情報 */}
+              {userSettings && (
+                <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
+                  <h2 className="mb-4 text-lg font-semibold text-blue-900 sm:text-xl">
+                    現在の設定
+                  </h2>
+                  <dl className="space-y-4">
+                    <div>
+                      <dt className="text-sm font-medium text-neutral-900">
+                        ユーザー名
+                      </dt>
+                      <dd className="mt-1 text-sm text-neutral-900">
+                        {userSettings.username}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-neutral-900">
+                        人生の目標
+                      </dt>
+                      <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900">
+                        {userSettings.lifeGoal}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-neutral-900">
+                        最終更新日
+                      </dt>
+                      <dd className="mt-1 text-sm text-neutral-900">
+                        {new Date(userSettings.updatedAt).toLocaleDateString(
+                          "ja-JP",
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              )}
+
+              {/* フォームコンテナ */}
+              <div className="rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
+                <SetupForm initialData={userSettings} />
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
