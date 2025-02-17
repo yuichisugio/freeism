@@ -1,40 +1,24 @@
 "use server";
 
+import type { SetupForm } from "@/components/auth/setup-form";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 
 /**
- * Googleサインインアクション
- * - サーバーサイドで実行される認証アクション
- * - Googleアカウントでのサインインを処理
- * - サインイン後はトップページにリダイレクト
- * - Next.js 14以降では、サーバーコンポーネント内でサーバーアクションを定義・使用することができます。
- * ただし、現在の実装には潜在的な問題があります：
-サーバーコンポーネント内で直接フォームアクションを定義すると、そのコンポーネントが再レンダリングされるたびに新しいアクションが作成されます
-これはパフォーマンスの観点から好ましくありません。なので、別ファイルのサーバーコンポーネントを作成して、それを渡す方が良い
+ * ユーザー設定を更新または作成する関数
+ * @param data - フォームから送信されたデータ
+ * @returns 処理結果を含むオブジェクト
  */
-
-const setupSchema = z.object({
-  username: z.string().min(2).max(30),
-  lifeGoal: z.string().min(10).max(200),
-  groupName: z.string().min(2).max(30),
-  evaluationMethod: z.string().min(10).max(200),
-});
-
-export async function updateUserSetup(data: {
-  username: string;
-  lifeGoal: string;
-  groupName: string;
-  evaluationMethod: string;
-}) {
+export async function updateUserSetup(data: SetupForm) {
   try {
+    // 認証セッションを取得
     const session = await auth();
+    // ユーザーが認証されていない場合
     if (!session?.user?.id) {
       return { success: false, error: "ユーザーが認証されていません。" };
     }
 
-    // ユーザー設定を更新または作成
+    // フォームの回答内容をデータベースに保存する。更新or新規作成
     await prisma.userSettings.upsert({
       where: {
         userId: session.user.id,
@@ -42,24 +26,19 @@ export async function updateUserSetup(data: {
       update: {
         username: data.username,
         lifeGoal: data.lifeGoal,
-        groupName: data.groupName,
-        evaluationMethod: data.evaluationMethod,
       },
       create: {
         userId: session.user.id,
         username: data.username,
         lifeGoal: data.lifeGoal,
-        groupName: data.groupName,
-        evaluationMethod: data.evaluationMethod,
       },
     });
 
-    return { success: true };
+    // 保存が成功した場合
+    return { success: true, redirect: "/dashboard" };
   } catch (error) {
+    // エラーログを出力
     console.error("Error updating user setup:", error);
-    return {
-      success: false,
-      error: "設定の更新中にエラーが発生しました。",
-    };
+    return { success: false, error: "設定の更新中にエラーが発生しました。" };
   }
 }

@@ -24,17 +24,12 @@ model User {
   sessions      Session[]
   settings      UserSettings?
 
-  lifeGoal         String?
-  referralSource   String?
-  groupName        String?
-  evaluationMethod String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -79,8 +74,6 @@ model UserSettings {
   userId           String   @unique
   username         String
   lifeGoal         String   @db.Text
-  groupName        String
-  evaluationMethod String   @db.Text
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)

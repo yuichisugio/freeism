@@ -68,6 +68,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           },
           update: {
             access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            expires_at: account.expires_at,
+            token_type: account.token_type,
+            scope: account.scope?.toString() ?? null,
+            id_token: account.id_token?.toString() ?? null,
+            session_state: account.session_state?.toString() ?? null,
           },
           create: {
             userId: userData.id,
@@ -75,6 +81,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             provider: account.provider,
             providerAccountId: account.providerAccountId,
             access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            expires_at: account.expires_at,
+            token_type: account.token_type,
+            scope: account.scope?.toString() ?? null,
+            id_token: account.id_token?.toString() ?? null,
+            session_state: account.session_state?.toString() ?? null,
           },
         });
 
