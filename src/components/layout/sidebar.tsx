@@ -94,29 +94,33 @@ export function Sidebar() {
 
   return (
     <>
-      {/* モバイル用のハンバーガーメニューボタン */}
+      {/* モバイル用ハンバーガーボタン（sm:hidden） */}
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-[1.2rem] left-4 z-50 sm:hidden"
+        className="sticky top-[1.2rem] left-4 z-50 sm:hidden"
         onClick={toggleSidebar}
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </Button>
 
-      {/* オーバーレイ（モバイル時のみ表示） */}
+      {/* モバイル用オーバーレイ */}
       {isOpen && (
         <div
+          // fixedに変更
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm sm:hidden"
           onClick={toggleSidebar}
         />
       )}
 
-      {/* サイドバー */}
+      {/* Sidebar本体 */}
       <aside
         className={cn(
-          "fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 -translate-x-full border-r border-blue-100 bg-white/80 backdrop-blur-lg transition-transform duration-300 sm:translate-x-0",
-          isOpen && "translate-x-0",
+          // sm以上ではグリッド内で通常表示（幅 16rem）
+          "bg-white-500 border-r border-blue-100 backdrop-blur-lg sm:static sm:translate-x-0",
+          // sm未満(モバイルでは固定（absolute）でオーバーレイ表示、トランスフォームで出し入れ
+          "fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 transition-transform duration-300",
+          isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="space-y-4 py-4">
@@ -135,7 +139,7 @@ export function Sidebar() {
                       "flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900",
                       pathname === item.href
                         ? "bg-blue-100 text-blue-900"
-                        : "text-gray-700",
+                        : "text-gray-900",
                     )}
                   >
                     <item.icon className="mr-2 h-4 w-4" />

@@ -29,18 +29,14 @@ export default async function SettingsPage() {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            {/* ページヘッダー */}
-            <div className="mb-8 ml-8 sm:mb-12">
-              <h1 className="text-2xl font-bold text-blue-900 sm:text-3xl">
-                Settings
-              </h1>
-              <p className="mt-2 text-neutral-600">
-                アカウント設定とプロフィールを管理します
-              </p>
-            </div>
+          <div className="container px-8 py-8">
+            <h1 className="text-2xl font-bold text-blue-600 sm:text-3xl">
+              Settings
+            </h1>
+            <p className="mt-2 text-neutral-600">
+              アカウント設定とプロフィールを管理します
+            </p>
 
-            {/* フォームセクション */}
             <div className="relative mx-auto max-w-2xl">
               {/* 装飾的な背景要素 */}
               <div className="absolute inset-0 -z-10 overflow-hidden">

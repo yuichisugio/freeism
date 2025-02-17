@@ -14,16 +14,18 @@ export default async function DashboardPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      {/* Sidebar (固定位置、sm以上では表示) */}
-      <Sidebar />
-      {/* 画面が小さい場合は pl-0、sm以上の場合は pl-64（Sidebarの幅と同じ） */}
-      <main className="pl-0 sm:pl-64">
-        <div className="px-8 py-8">
-          <h1 className="text-3xl font-bold">dashboard</h1>
-          <h2 className="text-xl">{"name：" + session?.user?.name}</h2>
-          <h2 className="text-xl">{"email：" + session?.user?.email}</h2>
-        </div>
-      </main>
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          <div className="container px-8 py-8">
+            <h1 className="text-2xl font-bold text-blue-600 sm:text-3xl">
+              dashboard
+            </h1>
+            <h2 className="text-xl font-bold">{session?.user?.name}</h2>
+            <h2 className="text-xl font-bold">{session?.user?.email}</h2>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
