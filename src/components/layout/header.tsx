@@ -15,7 +15,7 @@ export async function Header() {
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-blue-100 bg-white/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg">
       {/* ヘッダーコンテンツのコンテナ */}
       <div className="container flex h-16 items-center justify-center pl-4 sm:justify-between">
         {/* ロゴ部分 */}

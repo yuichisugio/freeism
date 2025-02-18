@@ -22,7 +22,7 @@ const sidebarItems = [
     items: [
       {
         title: "Group一覧",
-        href: "/dashboard",
+        href: "/dashboard/grouplist",
         icon: Home,
       },
       {

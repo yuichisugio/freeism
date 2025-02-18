@@ -19,7 +19,7 @@ export default async function DashboardPage() {
         <main className="flex-1 overflow-auto">
           <div className="container px-8 py-8">
             <h1 className="text-2xl font-bold text-blue-600 sm:text-3xl">
-              dashboard
+              Group List
             </h1>
             <h2 className="text-xl font-bold">{session?.user?.name}</h2>
             <h2 className="text-xl font-bold">{session?.user?.email}</h2>

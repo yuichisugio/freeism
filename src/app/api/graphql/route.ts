@@ -1,3 +1,4 @@
+// GraphQLクライアント。クライアントからアクセスするときに使用するが、Next.jsではサーバーコンポーネントから普通にアクセスできるので使用場面が少なさそう
 import { gql } from "@apollo/client/core";
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";

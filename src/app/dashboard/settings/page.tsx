@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
+  // セッションを取得
   const session = await auth();
 
   // ユーザーが認証されていない場合は早期リターン
