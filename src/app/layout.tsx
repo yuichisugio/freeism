@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 import "../styles/globals.css";
 
@@ -23,7 +24,10 @@ export default async function RootLayout({
     <html lang="ja">
       {/* suppressHydrationWarning={true} を追加することで、ブラウザ拡張機能（Grammarlyなど）が追加する属性によるハイドレーション警告を抑制します */}
       <body suppressHydrationWarning={true}>
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProvider session={session}>
+          {children}
+          <Toaster />
+        </SessionProvider>
       </body>
     </html>
   );

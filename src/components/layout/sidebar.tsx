@@ -5,16 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  BarChart3,
-  Home,
-  List,
-  Menu,
-  PlusCircle,
-  Settings,
-  UserCircle,
-  X,
-} from "lucide-react";
+import { Home, Menu, PlusCircle, Settings, UserCircle, X } from "lucide-react";
 
 const sidebarItems = [
   {
@@ -33,16 +24,6 @@ const sidebarItems = [
     ],
   },
   {
-    title: "Join Group",
-    items: [
-      {
-        title: "List",
-        href: "/dashboard/list",
-        icon: List,
-      },
-    ],
-  },
-  {
     title: "My Info",
     items: [
       {
@@ -54,21 +35,6 @@ const sidebarItems = [
         title: "Task入力",
         href: "/dashboard/tasks",
         icon: PlusCircle,
-      },
-    ],
-  },
-  {
-    title: "review Group",
-    items: [
-      {
-        title: "Dashboard",
-        href: "/dashboard/",
-        icon: BarChart3,
-      },
-      {
-        title: "Analytics",
-        href: "/dashboard/analytics",
-        icon: BarChart3,
       },
     ],
   },

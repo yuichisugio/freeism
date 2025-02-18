@@ -45,7 +45,7 @@ export async function HeroSection() {
                 size="lg"
                 className="w-40 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-700 sm:hidden sm:w-auto sm:min-w-[200px]"
               >
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard/grouplist">Dashboard</Link>
               </Button>
             ) : (
               <form

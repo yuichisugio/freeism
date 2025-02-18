@@ -42,7 +42,7 @@ export async function Header() {
                 className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
                 asChild
               >
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard/grouplist">Dashboard</Link>
               </Button>
               <form
                 action={async () => {
