@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createGroup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -39,14 +45,7 @@ type CreateGroupFormProps = {
 };
 
 export function CreateGroupForm({ userId }: CreateGroupFormProps) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CreateGroupFormData>({
+  const form = useForm<CreateGroupFormData>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
       name: "",
@@ -58,93 +57,124 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
 
   async function onSubmit(data: CreateGroupFormData) {
     try {
-      setIsLoading(true);
       const result = await createGroup(data);
 
       if (result.success) {
         toast.success("グループを作成しました");
-        router.push("/dashboard/grouplist");
-        router.refresh();
+      } else if (result.error) {
+        toast.error(result.error);
+        console.error(result.error);
+        form.setError("root", { message: result.error });
       }
-
-      toast.success("グループを作成しました");
-      router.push("/dashboard/grouplist");
-      router.refresh();
     } catch (error) {
       toast.error("エラーが発生しました");
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   }
 
   return (
-    <div className="rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="name">グループ名</Label>
-          <Input
-            id="name"
-            placeholder="グループ名を入力してください"
-            {...register("name")}
-          />
-          {errors.name && (
-            <p className="text-sm text-red-500">{errors.name.message}</p>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+                グループ名
+              </FormLabel>
+              <FormControl>
+                <Input
+                  id="name"
+                  placeholder="グループ名を入力してください"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
+                グループの名前を入力してください
+              </FormDescription>
+              <FormMessage className="text-xs sm:text-sm" />
+            </FormItem>
           )}
-        </div>
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="goal">最終目標</Label>
-          <Textarea
-            id="goal"
-            placeholder="グループの最終目標を入力してください"
-            {...register("goal")}
-          />
-          {errors.goal && (
-            <p className="text-sm text-red-500">{errors.goal.message}</p>
+        <FormField
+          control={form.control}
+          name="goal"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+                最終目標
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  id="goal"
+                  placeholder="グループの最終目標を入力してください"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
+                グループの最終目標を入力してください
+              </FormDescription>
+              <FormMessage className="text-xs sm:text-sm" />
+            </FormItem>
           )}
-        </div>
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="evaluationMethod">
-            最終目標に貢献したか判断する方法
-          </Label>
-          <Textarea
-            id="evaluationMethod"
-            placeholder="目標達成の評価方法を入力してください"
-            {...register("evaluationMethod")}
-          />
-          {errors.evaluationMethod && (
-            <p className="text-sm text-red-500">
-              {errors.evaluationMethod.message}
-            </p>
+        <FormField
+          control={form.control}
+          name="evaluationMethod"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+                最終目標に貢献したか判断する方法
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  id="evaluationMethod"
+                  placeholder="目標達成の評価方法を入力してください"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
+                目標達成の評価方法を入力してください
+              </FormDescription>
+              <FormMessage className="text-xs sm:text-sm" />
+            </FormItem>
           )}
-        </div>
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="maxParticipants">参加上限人数</Label>
-          <Input
-            id="maxParticipants"
-            type="number"
-            min={1}
-            max={1000}
-            {...register("maxParticipants", { valueAsNumber: true })}
-          />
-          {errors.maxParticipants && (
-            <p className="text-sm text-red-500">
-              {errors.maxParticipants.message}
-            </p>
+        <FormField
+          control={form.control}
+          name="maxParticipants"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+                参加上限人数
+              </FormLabel>
+              <FormControl>
+                <Input
+                  id="maxParticipants"
+                  placeholder="参加上限人数を入力してください"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
+                参加上限人数を入力してください
+              </FormDescription>
+              <FormMessage className="text-xs sm:text-sm" />
+            </FormItem>
           )}
-        </div>
+        />
 
         <Button
           type="submit"
           className="w-full bg-blue-600 text-white hover:bg-blue-700"
-          disabled={isLoading}
+          disabled={form.formState.isSubmitting}
         >
-          {isLoading ? "作成中..." : "グループを作成"}
+          {form.formState.isSubmitting ? "作成中..." : "グループを作成"}
         </Button>
       </form>
-    </div>
+    </Form>
   );
 }

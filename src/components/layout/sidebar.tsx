@@ -118,7 +118,7 @@ export function Sidebar() {
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900",
+                    "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900",
                     // 現在の表示されている画面のURL PATH（pathname）は、ホバー時の色と同じ表示を常時行う設定。リンク先（item.href）と一致する場合は、ホバー時の色と同じ表示を常時行う設定。
                     pathname === item.href
                       ? "bg-blue-100 text-blue-900"

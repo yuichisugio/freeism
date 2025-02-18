@@ -27,7 +27,7 @@ export function SignInButton({
   ...props
 }: SignInButtonProps) {
   function handleClick() {
-    signIn(provider, { callbackUrl: "/dashboard" });
+    signIn(provider, { callbackUrl: "/dashboard/grouplist" });
   }
 
   return (

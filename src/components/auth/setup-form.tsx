@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as z from "zod";
 
 /**
@@ -72,13 +73,12 @@ export function SetupForm({ initialData }: SetupFormProps) {
       const result = await updateUserSetup(data);
 
       // Supabaseへのデータの保存が成功した場合
-      if (result.success) {
-        router.push("/dashboard");
-
-        // Supabaseへのデータの保存が失敗した場合
-      } else if (result.error) {
+      if (result.error) {
         console.error(result.error);
         form.setError("root", { message: result.error });
+        toast.error(result.error);
+      } else {
+        toast.success("設定を保存しました");
       }
 
       // 予期せぬエラーが発生した場合
@@ -93,10 +93,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
     // Formコンポーネントは、「RHFのFormProviderタグ」と「HTMLのformタグ」をラップしている。
     // Formコンポーネントに、useFormの戻り値を渡す。各設問のコンポーネントにuseFormの戻り値を渡すために、FormProviderをは、Formコンポーネントのコンテキストを提供する。
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 sm:space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="username"
