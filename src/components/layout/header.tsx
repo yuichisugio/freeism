@@ -16,7 +16,7 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-50 w-full overflow-auto overscroll-none border-b border-blue-100 bg-white/80 backdrop-blur-lg">
       {/* ヘッダーコンテンツのコンテナ */}
-      <div className="container ml-2 flex h-16 items-center justify-between overscroll-none px-2 sm:h-20">
+      <div className="container ml-2 flex h-16 items-center justify-center overscroll-none px-2 sm:justify-between">
         {/* ロゴ部分 */}
         <Link
           href="/"
@@ -49,10 +49,12 @@ export async function Header() {
             <>
               <Button
                 variant="outline"
-                className="overscroll-none border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                className="hidden overscroll-none border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 sm:block"
                 asChild
               >
-                <Link href="/dashboard">Dashboard</Link>
+                <Link className="overscroll-none" href="/dashboard">
+                  Dashboard
+                </Link>
               </Button>
               <form
                 action={async () => {
@@ -62,7 +64,7 @@ export async function Header() {
               >
                 <Button
                   type="submit"
-                  className="overscroll-none bg-blue-600 text-white hover:bg-blue-700"
+                  className="hidden overscroll-none bg-blue-600 text-white hover:bg-blue-700 sm:block"
                 >
                   ログアウト
                 </Button>

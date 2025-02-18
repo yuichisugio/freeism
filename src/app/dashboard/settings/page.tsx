@@ -33,7 +33,7 @@ export default async function SettingsPage() {
             <h1 className="text-2xl font-bold text-blue-600 sm:text-3xl">
               Settings
             </h1>
-            <p className="mt-2 text-neutral-600">
+            <p className="mt-2 mb-5 text-neutral-600">
               アカウント設定とプロフィールを管理します
             </p>
 
