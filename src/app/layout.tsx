@@ -7,6 +7,9 @@ import "../styles/globals.css";
 export const metadata: Metadata = {
   title: "Freeism-app",
   description: "Freeism-app by sugio",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default async function RootLayout({
