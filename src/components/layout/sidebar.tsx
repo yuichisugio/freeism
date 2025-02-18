@@ -128,7 +128,7 @@ export function Sidebar() {
           // sm以上では通常表示（幅16rem）。staticで固定するので、メインContentにシークバーがある場合は固定されないので注意。translate-x-0でtranslate-x-fullをリセット
           "sm:static sm:translate-x-0",
           // sm未満(モバイル端末)fixedでメニュー表示
-          "fixed top-16 left-0 z-10 h-[calc(100vh-4rem)] w-48 border-r border-blue-100 bg-white transition-transform duration-300",
+          "fixed top-16 left-0 z-10 h-[calc(100vh-4rem)] w-48 border-r border-blue-100 bg-white transition-transform duration-50",
           // sm未満のメニュー表示時はtranslate-x-0で表示、非表示時はtranslate-x-fullを横方向にマイナスにして画面外に出すことで、メニューが非表示の場合にメニューの領域を確保しないようにする。
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}

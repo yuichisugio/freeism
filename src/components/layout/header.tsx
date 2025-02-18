@@ -15,9 +15,9 @@ export async function Header() {
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 w-full overflow-auto overscroll-none border-b border-blue-100 bg-white/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-blue-100 bg-white/80 backdrop-blur-lg">
       {/* ヘッダーコンテンツのコンテナ */}
-      <div className="container ml-2 flex h-16 items-center justify-center overscroll-none px-2 sm:justify-between">
+      <div className="container flex h-16 items-center justify-center pl-4 sm:justify-between">
         {/* ロゴ部分 */}
         <Link
           href="/"
@@ -32,19 +32,17 @@ export async function Header() {
         </Link>
 
         {/* ナビゲーション */}
-        <nav className="absolute right-5 flex items-center gap-4 overscroll-none sm:gap-6">
+        <nav className="hidden sm:absolute sm:right-5 sm:flex sm:items-center sm:gap-6">
           {/* ログイン状態に応じてボタンを切り替え */}
           {session ? (
             // ログイン済みの場合はダッシュボードへのリンクを表示
             <>
               <Button
                 variant="outline"
-                className="hidden overscroll-none border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 sm:block"
+                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
                 asChild
               >
-                <Link className="overscroll-none" href="/dashboard">
-                  Dashboard
-                </Link>
+                <Link href="/dashboard">Dashboard</Link>
               </Button>
               <form
                 action={async () => {
@@ -54,7 +52,7 @@ export async function Header() {
               >
                 <Button
                   type="submit"
-                  className="hidden overscroll-none bg-blue-600 text-white hover:bg-blue-700 sm:block"
+                  className="bg-blue-600 text-white hover:bg-blue-700"
                 >
                   ログアウト
                 </Button>
@@ -70,7 +68,7 @@ export async function Header() {
             >
               <Button
                 type="submit"
-                className="overscroll-none bg-blue-600 text-white hover:bg-blue-700"
+                className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 利用する
               </Button>
