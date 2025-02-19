@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { createGroup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,11 +41,8 @@ const createGroupSchema = z.object({
 
 export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
 
-type CreateGroupFormProps = {
-  userId: string;
-};
-
-export function CreateGroupForm({ userId }: CreateGroupFormProps) {
+export function CreateGroupForm() {
+  const router = useRouter();
   const form = useForm<CreateGroupFormData>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
@@ -61,6 +59,7 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
 
       if (result.success) {
         toast.success("グループを作成しました");
+        router.push("/dashboard/grouplist");
       } else if (result.error) {
         toast.error(result.error);
         console.error(result.error);
@@ -80,7 +79,7 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">
                 グループ名
               </FormLabel>
               <FormControl>
@@ -103,7 +102,7 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
           name="goal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">
                 最終目標
               </FormLabel>
               <FormControl>
@@ -126,7 +125,7 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
           name="evaluationMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">
                 最終目標に貢献したか判断する方法
               </FormLabel>
               <FormControl>
@@ -149,14 +148,21 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
           name="maxParticipants"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">
                 参加上限人数
               </FormLabel>
               <FormControl>
                 <Input
                   id="maxParticipants"
+                  type="number"
                   placeholder="参加上限人数を入力してください"
                   {...field}
+                  onChange={(e) => {
+                    // e.target.valueAsNumber は空文字の場合 NaN になるので、チェックを入れる
+                    const value = e.target.value;
+                    // 空文字なら空文字、そうでなければ数値に変換
+                    field.onChange(value === "" ? "" : Number(value));
+                  }}
                 />
               </FormControl>
               <FormDescription className="text-xs text-neutral-600 sm:text-sm">
@@ -169,7 +175,7 @@ export function CreateGroupForm({ userId }: CreateGroupFormProps) {
 
         <Button
           type="submit"
-          className="w-full bg-blue-600 text-white hover:bg-blue-700"
+          className="bg-app hover:bg-app/80 w-full text-white"
           disabled={form.formState.isSubmitting}
         >
           {form.formState.isSubmitting ? "作成中..." : "グループを作成"}

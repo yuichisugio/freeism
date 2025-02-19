@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { updateUserSetup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,8 +54,6 @@ type SetupFormProps = {
  * - レスポンシブデザイン対応
  */
 export function SetupForm({ initialData }: SetupFormProps) {
-  const router = useRouter();
-
   // useForm関数を使用してフォームの状態を管理しています。これにより、フォームの入力値を管理し、エラーメッセージを表示することができます。
   const form = useForm<SetupForm>({
     resolver: zodResolver(setupSchema),
@@ -99,7 +96,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">
                 ユーザー名
               </FormLabel>
               <FormControl>
@@ -122,7 +119,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
           name="lifeGoal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-blue-900 sm:text-base">
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">
                 自分の人生の目標
               </FormLabel>
               <FormControl>
@@ -149,7 +146,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
         <div className="pt-2">
           <Button
             type="submit"
-            className="w-full bg-blue-600 text-white transition-colors hover:bg-blue-700 sm:w-auto sm:min-w-[200px]"
+            className="bg-app hover:bg-app/80 w-full text-white transition-colors sm:w-auto sm:min-w-[200px]"
           >
             設定を保存
           </Button>

@@ -17,9 +17,7 @@ export function MainTemplate({
         <Sidebar />
         <main className="flex-1 overflow-auto">
           <div className="container px-8 py-8">
-            <h1 className="text-2xl font-bold text-blue-600 sm:text-3xl">
-              {title}
-            </h1>
+            <h1 className="text-app text-2xl font-bold sm:text-3xl">{title}</h1>
             <p className="mt-2 mb-5 text-neutral-600">{description}</p>
             {children}
           </div>

@@ -4,7 +4,6 @@ import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 
 /**
  * ユーザー設定を更新または作成する関数
@@ -52,7 +51,7 @@ export async function createGroup(data: CreateGroupFormData) {
       return { success: false, error: "ユーザーが認証されていません。" };
     }
 
-    const group = await prisma.group.create({
+    await prisma.group.create({
       data: {
         name: data.name,
         goal: data.goal,
@@ -62,7 +61,7 @@ export async function createGroup(data: CreateGroupFormData) {
       },
     });
 
-    return { success: true, redirect: "/dashboard/grouplist" };
+    return { success: true };
   } catch (error) {
     console.error("Error creating group:", error);
     return {
