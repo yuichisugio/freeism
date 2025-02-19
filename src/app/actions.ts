@@ -2,8 +2,11 @@
 
 import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import { createGroupSchema } from "@/components/group/create-group-form";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 /**
  * ユーザー設定を更新または作成する関数
@@ -47,26 +50,80 @@ export async function updateUserSetup(data: SetupForm) {
 export async function createGroup(data: CreateGroupFormData) {
   try {
     const session = await auth();
+
     if (!session?.user?.id) {
-      return { success: false, error: "ユーザーが認証されていません。" };
+      return { error: "認証エラーが発生しました" };
     }
+
+    const validatedData = createGroupSchema.parse(data);
 
     await prisma.group.create({
       data: {
-        name: data.name,
-        goal: data.goal,
-        evaluationMethod: data.evaluationMethod,
-        maxParticipants: data.maxParticipants,
+        ...validatedData,
         createdBy: session.user.id,
       },
     });
 
+    revalidatePath("/dashboard/grouplist");
     return { success: true };
   } catch (error) {
-    console.error("Error creating group:", error);
-    return {
-      success: false,
-      error: "グループの作成中にエラーが発生しました。",
-    };
+    if (error instanceof z.ZodError) {
+      return { error: "入力内容に誤りがあります" };
+    }
+    return { error: "エラーが発生しました" };
+  }
+}
+
+export async function joinGroup(groupId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // グループの存在確認
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      include: {
+        members: {
+          where: {
+            userId: session.user.id,
+          },
+        },
+      },
+    });
+
+    if (!group) {
+      return { error: "グループが見つかりません" };
+    }
+
+    // 既に参加済みの場合
+    if (group.members.length > 0) {
+      return { error: "既に参加済みです" };
+    }
+
+    // 参加人数が上限に達している場合
+    const memberCount = await prisma.groupMembership.count({
+      where: { groupId },
+    });
+    if (memberCount >= group.maxParticipants) {
+      return { error: "参加人数が上限に達しています" };
+    }
+
+    // グループに参加
+    await prisma.groupMembership.create({
+      data: {
+        userId: session.user.id,
+        groupId,
+      },
+    });
+
+    revalidatePath("/dashboard/grouplist");
+    revalidatePath("/dashboard/my-groups");
+    return { success: true };
+  } catch (error) {
+    console.error("[JOIN_GROUP]", error);
+    return { error: "エラーが発生しました" };
   }
 }

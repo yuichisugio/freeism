@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 // バリデーションスキーマ
-const createGroupSchema = z.object({
+export const createGroupSchema = z.object({
   name: z
     .string()
     .min(1, "グループ名を入力してください")

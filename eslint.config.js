@@ -17,7 +17,13 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["node_modules/", "dist/", ".next/", ".eslintrc.js"],
+    ignores: [
+      "node_modules/",
+      "dist/",
+      ".next/",
+      ".eslintrc.js",
+      "src/components/ui/",
+    ],
   },
   ...compat.extends("next/core-web-vitals"),
   {

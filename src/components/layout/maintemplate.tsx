@@ -4,10 +4,12 @@ import { Sidebar } from "@/components/layout/sidebar";
 export function MainTemplate({
   title,
   description,
+  component,
   children,
 }: {
   title: string;
   description: string;
+  component?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -16,9 +18,17 @@ export function MainTemplate({
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 overflow-auto">
-          <div className="container px-8 py-8">
-            <h1 className="text-app text-2xl font-bold sm:text-3xl">{title}</h1>
-            <p className="mt-2 mb-5 text-neutral-600">{description}</p>
+          <div className="container px-8 py-5">
+            {/* 説明文の横に並べて表示したいボタンがある場合は、componentを渡す */}
+            <div className="flex flex-col justify-between sm:flex-row sm:items-center">
+              <div>
+                <h1 className="text-app text-2xl font-bold sm:text-3xl">
+                  {title}
+                </h1>
+                <p className="mt-2 mb-5 text-neutral-600">{description}</p>
+              </div>
+              {component && component}
+            </div>
             {children}
           </div>
         </main>

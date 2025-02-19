@@ -24,6 +24,7 @@ model User {
   sessions      Session[]
   settings      UserSettings?
   groups        Group[]
+  memberships   GroupMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -90,6 +91,20 @@ model Group {
   updatedAt         DateTime @updatedAt
   createdBy         String
   user              User     @relation(fields: [createdBy], references: [id])
+  members           GroupMembership[]
 
   @@index([createdBy])
+}
+
+model GroupMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  joinedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
 }
