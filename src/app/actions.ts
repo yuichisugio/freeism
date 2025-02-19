@@ -48,14 +48,19 @@ export async function updateUserSetup(data: SetupForm) {
 }
 
 export async function createGroup(data: CreateGroupFormData) {
+  console.log("createGroup", data);
   try {
     const session = await auth();
+    console.log("createGroup session", session);
 
     if (!session?.user?.id) {
+      console.log("createGroup error", "認証エラーが発生しました");
       return { error: "認証エラーが発生しました" };
     }
 
+    console.log("createGroup data", data);
     const validatedData = createGroupSchema.parse(data);
+    console.log("createGroup validatedData", validatedData);
 
     await prisma.group.create({
       data: {
@@ -64,12 +69,16 @@ export async function createGroup(data: CreateGroupFormData) {
       },
     });
 
+    console.log("createGroup success");
+
     revalidatePath("/dashboard/grouplist");
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("Zod validation error:", error.errors);
       return { error: "入力内容に誤りがあります" };
     }
+    console.error("createGroup unexpected error:", error);
     return { error: "エラーが発生しました" };
   }
 }

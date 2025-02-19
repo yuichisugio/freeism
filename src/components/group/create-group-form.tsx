@@ -56,6 +56,7 @@ export function CreateGroupForm() {
   async function onSubmit(data: CreateGroupFormData) {
     try {
       const result = await createGroup(data);
+      console.log(result);
 
       if (result.success) {
         toast.success("グループを作成しました");
@@ -66,8 +67,8 @@ export function CreateGroupForm() {
         form.setError("root", { message: result.error });
       }
     } catch (error) {
+      console.log(error);
       toast.error("エラーが発生しました");
-      console.error(error);
     }
   }
 
