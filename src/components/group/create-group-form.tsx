@@ -14,30 +14,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
-
-// バリデーションスキーマ
-export const createGroupSchema = z.object({
-  name: z
-    .string()
-    .min(1, "グループ名を入力してください")
-    .max(50, "グループ名は50文字以内で入力してください"),
-  goal: z
-    .string()
-    .min(1, "目標を入力してください")
-    .max(500, "目標は500文字以内で入力してください"),
-  evaluationMethod: z
-    .string()
-    .min(1, "評価方法を入力してください")
-    .max(1000, "評価方法は1000文字以内で入力してください"),
-  maxParticipants: z
-    .number()
-    .min(1, "参加人数上限を入力してください")
-    .max(1000, "参加人数上限は1000人以内で設定してください"),
-});
+import { type z } from "zod";
 
 export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
 
@@ -60,7 +41,6 @@ export function CreateGroupForm() {
   async function onSubmit(data: CreateGroupFormData) {
     try {
       const result = await createGroup(data);
-      console.log(result);
 
       if (result.success) {
         toast.success("グループを作成しました");

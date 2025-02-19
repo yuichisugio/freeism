@@ -67,7 +67,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
   async function onSubmit(data: SetupForm) {
     try {
       // フォームの回答内容をSupabaseに保存する。更新or新規作成。戻り値はreact hook formの形式の成功か失敗かエラーメッセージ
-      const result = await updateUserSetup(data);
+      const result = await updateUserSetup(data, setupSchema);
 
       // Supabaseへのデータの保存が成功した場合
       if (result.error) {

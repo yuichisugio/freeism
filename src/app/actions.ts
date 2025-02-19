@@ -4,8 +4,8 @@ import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { createGroupSchema } from "@/components/group/create-group-form";
 import { prisma } from "@/lib/prisma";
+import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
 /**
@@ -13,7 +13,10 @@ import { z } from "zod";
  * @param data - フォームから送信されたデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function updateUserSetup(data: SetupForm) {
+export async function updateUserSetup(
+  data: SetupForm,
+  setupSchema: z.ZodSchema<SetupForm>,
+) {
   try {
     // 認証セッションを取得
     const session = await auth();
@@ -22,7 +25,7 @@ export async function updateUserSetup(data: SetupForm) {
       return { success: false, error: "ユーザーが認証されていません。" };
     }
 
-    const validatedData = createGroupSchema.parse(data);
+    const validatedData = setupSchema.parse(data);
     console.log("validatedData", validatedData);
 
     // フォームの回答内容をデータベースに保存する。更新or新規作成
@@ -51,20 +54,11 @@ export async function updateUserSetup(data: SetupForm) {
 }
 
 export async function createGroup(data: CreateGroupFormData) {
-  console.log("createGroupSchema", createGroupSchema);
-  console.log("Keys of createGroupSchema:", Object.keys(createGroupSchema));
-  console.log(
-    "typeof createGroupSchema.parse:",
-    typeof createGroupSchema.parse,
-  );
-  console.log(
-    "typeof createGroupSchema.safeParse:",
-    typeof createGroupSchema.safeParse,
-  );
+  // create-group-form.tsxで定義されているバリデーションスキーマと同じ
+  // exportしているが、HMR(ホットリロード)の影響で渡されない状態なので、ここでも定義している
 
   try {
     const session = await auth();
-    console.log("createGroup session", session);
 
     if (!session?.user?.id) {
       console.log("createGroup error", "認証エラーが発生しました");
