@@ -42,6 +42,8 @@ export const createGroupSchema = z.object({
 export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
 
 export function CreateGroupForm() {
+  // ここまでは来ている
+
   const router = useRouter();
   const form = useForm<CreateGroupFormData>({
     resolver: zodResolver(createGroupSchema),
@@ -52,6 +54,8 @@ export function CreateGroupForm() {
       maxParticipants: 100,
     },
   });
+
+  // ここまでは来ている
 
   async function onSubmit(data: CreateGroupFormData) {
     try {

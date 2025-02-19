@@ -22,6 +22,9 @@ export async function updateUserSetup(data: SetupForm) {
       return { success: false, error: "ユーザーが認証されていません。" };
     }
 
+    const validatedData = createGroupSchema.parse(data);
+    console.log("validatedData", validatedData);
+
     // フォームの回答内容をデータベースに保存する。更新or新規作成
     await prisma.userSettings.upsert({
       where: {
@@ -48,7 +51,17 @@ export async function updateUserSetup(data: SetupForm) {
 }
 
 export async function createGroup(data: CreateGroupFormData) {
-  console.log("createGroup", data);
+  console.log("createGroupSchema", createGroupSchema);
+  console.log("Keys of createGroupSchema:", Object.keys(createGroupSchema));
+  console.log(
+    "typeof createGroupSchema.parse:",
+    typeof createGroupSchema.parse,
+  );
+  console.log(
+    "typeof createGroupSchema.safeParse:",
+    typeof createGroupSchema.safeParse,
+  );
+
   try {
     const session = await auth();
     console.log("createGroup session", session);
@@ -58,7 +71,6 @@ export async function createGroup(data: CreateGroupFormData) {
       return { error: "認証エラーが発生しました" };
     }
 
-    console.log("createGroup data", data);
     const validatedData = createGroupSchema.parse(data);
     console.log("createGroup validatedData", validatedData);
 
