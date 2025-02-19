@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { joinGroup } from "@/app/actions";
+import { useRouter } from "next/navigation";
+import { deleteGroup, joinGroup } from "@/app/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, UserPlus } from "lucide-react";
+import { ArrowUpDown, Edit, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 // グループのデータの型を定義
@@ -25,6 +26,7 @@ type Group = {
   evaluationMethod: string;
   maxParticipants: number;
   members: { id: string }[];
+  createdBy: string;
 };
 
 // 各要素がグループのデータの配列を、groupsキーに格納したオブジェクトの型を定義
@@ -34,6 +36,7 @@ type GroupListTableProps = {
 
 // 各要素のデータとしてグループデータが入ったオブジェクトを引数として渡す
 export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
+  const router = useRouter();
   // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
   const [groups, setGroups] = useState(initialGroups);
 
@@ -92,6 +95,24 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                 group,
           ),
         );
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
+    }
+  }
+
+  // 削除処理の関数を追加
+  async function handleDelete(groupId: string) {
+    try {
+      const result = await deleteGroup(groupId); // actionsに実装する必要があります
+
+      if (result.success) {
+        toast.success("グループを削除しました");
+        // 削除したグループを除外
+        setGroups((prev) => prev.filter((group) => group.id !== groupId));
       } else if (result.error) {
         toast.error(result.error);
       }
@@ -161,41 +182,87 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                   className="border-b border-blue-50 hover:bg-blue-50/50"
                 >
                   <td className="px-5 py-3 text-sm whitespace-nowrap">
-                    {/* AlertDialogTrigger を使って、ダイアログを開くトリガーとする */}
-                    <AlertDialogTrigger asChild>
+                    <div className="flex gap-2">
+                      {/* 既存の参加ボタン */}
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-app hover:bg-app/10"
+                          disabled={group.members.length > 0}
+                        >
+                          <UserPlus className="mr-1 h-4 w-4" />
+                          {group.members.length > 0 ? "参加中" : "参加"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader className="text-app">
+                          <AlertDialogTitle>
+                            グループに参加しますか？
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            グループに参加すると、グループのメンバーとして参加できます。
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                          <AlertDialogAction asChild>
+                            <Button
+                              onClick={() => handleJoin(group.id)}
+                              className="bg-app hover:bg-app/90 text-white"
+                            >
+                              参加する
+                            </Button>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+
+                      {/* 編集ボタンを追加 */}
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-app hover:bg-app/10"
-                        // memberは自分のデータしか取得しないようにしているため、0以上でデータが一つあれば参加していることになる。
-                        disabled={group.members.length > 0}
+                        className="text-yellow-500 hover:bg-yellow-50"
+                        onClick={() =>
+                          router.push(`/dashboard/edit-group/${group.id}`)
+                        }
                       >
-                        <UserPlus className="mr-1 h-4 w-4" />
-                        {group.members.length > 0 ? "参加中" : "参加"}
+                        <Edit className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    {/* AlertDialogContent 内で「参加する」アクションに handleJoin を実行 */}
-                    <AlertDialogContent>
-                      <AlertDialogHeader className="text-app">
-                        <AlertDialogTitle>
-                          グループに参加しますか？
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          グループに参加すると、グループのメンバーとして参加できます。
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                        <AlertDialogAction asChild>
+
+                      {/* 削除ボタンを追加 */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
                           <Button
-                            onClick={() => handleJoin(group.id)}
-                            className="bg-app hover:bg-app/90 text-white"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500 hover:bg-red-50"
                           >
-                            参加する
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              グループを削除しますか？
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                            <AlertDialogAction asChild>
+                              <Button
+                                onClick={() => handleDelete(group.id)}
+                                className="bg-red-500 text-white hover:bg-red-600"
+                              >
+                                削除する
+                              </Button>
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </td>
                   <td className="px-5 py-3 text-sm font-medium whitespace-nowrap text-blue-900">
                     {group.name}

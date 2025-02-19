@@ -1,5 +1,6 @@
 "use client";
 
+import type * as z from "zod";
 import { updateUserSetup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,24 +14,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { setupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod";
-
-/**
- * セットアップフォームのバリデーションスキーマ
- */
-const setupSchema = z.object({
-  username: z
-    .string()
-    .min(2, { message: "2文字以上で入力してください" })
-    .max(40, { message: "40文字以内で入力してください" }),
-  lifeGoal: z
-    .string()
-    .min(2, { message: "2文字以上で入力してください" })
-    .max(200, { message: "200文字以内で入力してください" }),
-});
 
 /**
  * フォームの型定義
@@ -67,7 +54,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
   async function onSubmit(data: SetupForm) {
     try {
       // フォームの回答内容をSupabaseに保存する。更新or新規作成。戻り値はreact hook formの形式の成功か失敗かエラーメッセージ
-      const result = await updateUserSetup(data, setupSchema);
+      const result = await updateUserSetup(data);
 
       // Supabaseへのデータの保存が成功した場合
       if (result.error) {

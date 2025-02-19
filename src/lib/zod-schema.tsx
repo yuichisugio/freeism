@@ -20,6 +20,17 @@ export const createGroupSchema = z.object({
     .max(1000, "参加人数上限は1000人以内で設定してください"),
 });
 
+export const setupSchema = z.object({
+  username: z
+    .string()
+    .min(2, { message: "2文字以上で入力してください" })
+    .max(40, { message: "40文字以内で入力してください" }),
+  lifeGoal: z
+    .string()
+    .min(2, { message: "2文字以上で入力してください" })
+    .max(200, { message: "200文字以内で入力してください" }),
+});
+
 /*
 HMR(ホットリロード)の仕組み的に、Client Componentで定義したzodスキーマをexportして、Server Componentsで参照できない時がある
 なので、zod-schemaファイルを専用で作成して、まとめてexportすると使えるようになることがあるらしい

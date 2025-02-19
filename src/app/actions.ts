@@ -5,7 +5,7 @@ import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { createGroupSchema } from "@/lib/zod-schema";
+import { createGroupSchema, setupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
 /**
@@ -13,10 +13,7 @@ import { z } from "zod";
  * @param data - フォームから送信されたデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function updateUserSetup(
-  data: SetupForm,
-  setupSchema: z.ZodSchema<SetupForm>,
-) {
+export async function updateUserSetup(data: SetupForm) {
   try {
     // 認証セッションを取得
     const session = await auth();
@@ -54,9 +51,6 @@ export async function updateUserSetup(
 }
 
 export async function createGroup(data: CreateGroupFormData) {
-  // create-group-form.tsxで定義されているバリデーションスキーマと同じ
-  // exportしているが、HMR(ホットリロード)の影響で渡されない状態なので、ここでも定義している
-
   try {
     const session = await auth();
 
@@ -176,5 +170,156 @@ export async function leaveGroup(groupId: string) {
   } catch (error) {
     console.error("[LEAVE_GROUP]", error);
     return { error: "エラーが発生しました" };
+  }
+}
+
+/**
+ * グループを削除する関数
+ * @param groupId - 削除するグループのID
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function deleteGroup(groupId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // グループの存在確認と作成者チェック
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      return { error: "グループが見つかりません" };
+    }
+
+    // グループの作成者のみが削除可能
+    if (group.createdBy !== session.user.id) {
+      return { error: "グループの削除権限がありません" };
+    }
+
+    // グループを削除
+    await prisma.group.delete({
+      where: { id: groupId },
+    });
+
+    revalidatePath("/dashboard/grouplist");
+    revalidatePath("/dashboard/my-groups");
+    return { success: true };
+  } catch (error) {
+    console.error("[DELETE_GROUP]", error);
+    return { error: "グループの削除中にエラーが発生しました" };
+  }
+}
+
+/**
+ * グループ名の重複をチェックする関数
+ * @param name - チェックするグループ名
+ * @returns 重複している場合はtrue、していない場合はfalse
+ */
+export async function checkGroupNameExists(name: string) {
+  try {
+    const group = await prisma.group.findFirst({
+      where: { name },
+    });
+    return !!group;
+  } catch (error) {
+    console.error("[CHECK_GROUP_NAME]", error);
+    throw error;
+  }
+}
+
+/**
+ * グループを編集する関数
+ * @param groupId - 編集するグループのID
+ * @param data - 編集するグループのデータ
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function updateGroup(groupId: string, data: CreateGroupFormData) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // グループの存在確認と作成者チェック
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      return { error: "グループが見つかりません" };
+    }
+
+    // グループの作成者のみが編集可能
+    if (group.createdBy !== session.user.id) {
+      return { error: "グループの編集権限がありません" };
+    }
+
+    // 同じ名前のグループが存在するかチェック（自分自身は除く）
+    if (data.name !== group.name) {
+      const existingGroup = await prisma.group.findFirst({
+        where: {
+          name: data.name,
+          NOT: {
+            id: groupId,
+          },
+        },
+      });
+
+      if (existingGroup) {
+        return { error: "このグループ名は既に使用されています" };
+      }
+    }
+
+    const validatedData = createGroupSchema.parse(data);
+
+    // グループを更新
+    await prisma.group.update({
+      where: { id: groupId },
+      data: validatedData,
+    });
+
+    revalidatePath("/dashboard/grouplist");
+    revalidatePath("/dashboard/my-groups");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error("Zod validation error:", error.errors);
+      return { error: "入力内容に誤りがあります" };
+    }
+    console.error("[UPDATE_GROUP]", error);
+    return { error: "グループの更新中にエラーが発生しました" };
+  }
+}
+
+/**
+ * グループの詳細を取得する関数
+ * @param groupId - 取得するグループのID
+ * @returns グループの詳細情報
+ */
+export async function getGroup(groupId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("認証エラーが発生しました");
+    }
+
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      return null;
+    }
+
+    return group;
+  } catch (error) {
+    console.error("[GET_GROUP]", error);
+    throw error;
   }
 }

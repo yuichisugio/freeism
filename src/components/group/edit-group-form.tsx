@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { checkGroupNameExists, createGroup } from "@/app/actions";
+import { checkGroupNameExists, updateGroup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,40 +20,47 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
 
-export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
+export type EditGroupFormData = z.infer<typeof createGroupSchema>;
 
-export function CreateGroupForm() {
-  // ここまでは来ている
+type EditGroupFormProps = {
+  group: {
+    id: string;
+    name: string;
+    goal: string;
+    evaluationMethod: string;
+    maxParticipants: number;
+  };
+};
 
+export function EditGroupForm({ group }: EditGroupFormProps) {
   const router = useRouter();
-  const form = useForm<CreateGroupFormData>({
+  const form = useForm<EditGroupFormData>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
-      name: "",
-      goal: "",
-      evaluationMethod: "",
-      maxParticipants: 100,
+      name: group.name,
+      goal: group.goal,
+      evaluationMethod: group.evaluationMethod,
+      maxParticipants: group.maxParticipants,
     },
   });
 
-  // ここまでは来ている
-
-  async function onSubmit(data: CreateGroupFormData) {
+  async function onSubmit(data: EditGroupFormData) {
     try {
-      // グループ名の重複チェック
-      const existingGroup = await checkGroupNameExists(data.name); // actionsに実装する必要があります
-
-      if (existingGroup) {
-        form.setError("name", {
-          message: "このグループ名は既に使用されています",
-        });
-        return;
+      // グループ名の重複チェック（自分自身は除く）
+      if (data.name !== group.name) {
+        const existingGroup = await checkGroupNameExists(data.name);
+        if (existingGroup) {
+          form.setError("name", {
+            message: "このグループ名は既に使用されています",
+          });
+          return;
+        }
       }
 
-      const result = await createGroup(data);
+      const result = await updateGroup(group.id, data);
 
       if (result.success) {
-        toast.success("グループを作成しました");
+        toast.success("グループを更新しました");
         router.push("/dashboard/grouplist");
       } else if (result.error) {
         toast.error(result.error);
@@ -153,9 +160,7 @@ export function CreateGroupForm() {
                   placeholder="参加上限人数を入力してください"
                   {...field}
                   onChange={(e) => {
-                    // e.target.valueAsNumber は空文字の場合 NaN になるので、チェックを入れる
                     const value = e.target.value;
-                    // 空文字なら空文字、そうでなければ数値に変換
                     field.onChange(value === "" ? "" : Number(value));
                   }}
                 />
@@ -168,13 +173,18 @@ export function CreateGroupForm() {
           )}
         />
 
-        <Button
-          type="submit"
-          className="bg-app hover:bg-app/80 text-white"
-          disabled={form.formState.isSubmitting}
-        >
-          {form.formState.isSubmitting ? "作成中..." : "グループを作成"}
-        </Button>
+        <div className="flex gap-4">
+          <Button
+            type="submit"
+            className="bg-app hover:bg-app/80 text-white"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? "更新中..." : "グループを更新"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            キャンセル
+          </Button>
+        </div>
       </form>
     </Form>
   );
