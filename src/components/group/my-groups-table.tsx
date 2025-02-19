@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { joinGroup } from "@/app/actions";
+import { leaveGroup } from "@/app/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,44 +14,36 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, UserPlus } from "lucide-react";
+import { ArrowUpDown, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
-// グループのデータの型を定義
-type Group = {
+type GroupMembership = {
   id: string;
-  name: string;
-  goal: string;
-  evaluationMethod: string;
-  maxParticipants: number;
-  members: { id: string }[];
+  group: {
+    id: string;
+    name: string;
+    goal: string;
+    evaluationMethod: string;
+    maxParticipants: number;
+  };
 };
 
-// 各要素がグループのデータの配列を、groupsキーに格納したオブジェクトの型を定義
-type GroupListTableProps = {
-  groups: Group[];
+type MyGroupsTableProps = {
+  memberships: GroupMembership[];
 };
 
-// 各要素のデータとしてグループデータが入ったオブジェクトを引数として渡す
-export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
-  // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
-  const [groups, setGroups] = useState(initialGroups);
-
-  // ソートの設定を格納。現在のソート設定をオブジェクト(キーは、key:とdirection:)で保持。
-  // key:は、keyofでGroup型のオブジェクトのキー名をリテラルで取得したリテラル型。Group型のどのキーを基準にソートするか
-  // direction:は、ソートの方向で、"asc"（昇順）か "desc"（降順）のどちらかを持ちます。
-  // 初期状態はオブジェクトではなく、 null として設定されています。
+export function MyGroupsTable({
+  memberships: initialMemberships,
+}: MyGroupsTableProps) {
+  const [memberships, setMemberships] = useState(initialMemberships);
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof Group;
+    key: keyof GroupMembership["group"];
     direction: "asc" | "desc";
   } | null>(null);
 
-  // ソート関数。引数はGroup型のキー名のどれかをしか受け付けないリテラル型。
-  // 指定したGroup型の中のキーで、降順/昇順で、sortする
-  function sortData(key: keyof Group) {
-    // 初期値ascで、ソートの並べ方を保存
+  // ソート関数
+  function sortData(key: keyof GroupMembership["group"]) {
     let direction: "asc" | "desc" = "asc";
-    // ソート設定があり、かつキーが同じ、かつ方向が同じ場合は降順にソートする
     if (
       sortConfig &&
       sortConfig.key === key &&
@@ -59,38 +51,27 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     ) {
       direction = "desc";
     }
-    // ソート設定を更新。レンダリングされるたびにdirectionが初期化されるので、渡す必要がない。
     setSortConfig({ key, direction });
-    // ソートしたデータを格納。現在のgroups配列をスプレッド構文でコピーし、元の配列を直接変更しないようにしています。
-    const sortedData = [...groups].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1; // 方向が "asc" なら -1 を返し、"desc" なら 1 を返すことで、正しい順序に並び替えます。
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1; // 方向が "asc" なら 1 を返し、"desc" なら -1 を返すことで、逆の順序に並び替えます。
+
+    const sortedData = [...memberships].sort((a, b) => {
+      if (a.group[key] < b.group[key]) return direction === "asc" ? -1 : 1;
+      if (a.group[key] > b.group[key]) return direction === "asc" ? 1 : -1;
       return 0;
     });
 
-    // ソート後の配列 sortedData を groups 状態にセットします。これにより、UI も再レンダリングされ、新しい順序が反映されます。
-    setGroups(sortedData);
+    setMemberships(sortedData);
   }
 
-  // グループ参加処理
-  async function handleJoin(groupId: string) {
+  // グループ脱退処理
+  async function handleLeave(groupId: string) {
     try {
-      // グループに参加する。
-      const result = await joinGroup(groupId);
+      const result = await leaveGroup(groupId);
 
       if (result.success) {
-        toast.success("グループに参加しました");
-        // 参加状態を更新。prevは現在のstate。
-        setGroups((prev) =>
-          // グループを一つずつチェック。
-          prev.map((group) =>
-            // チェックしたグループのidが、設定したハンドラーのgroupIdと同じ場合は、参加者を追加。
-            group.id === groupId
-              ? // 同じ場合は、参加者を追加。
-                { ...group, members: [{ id: "temp" }] }
-              : // 同じでない場合は、そのままのグループを返す。
-                group,
-          ),
+        toast.success("グループから脱退しました");
+        // 脱退したグループを一覧から削除
+        setMemberships((prev) =>
+          prev.filter((membership) => membership.group.id !== groupId),
         );
       } else if (result.error) {
         toast.error(result.error);
@@ -111,7 +92,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
               <tr className="border-b border-blue-100 bg-blue-50/50">
                 <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
                   <span className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                    参加
+                    脱退
                   </span>
                 </th>
                 <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
@@ -152,62 +133,57 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                 </th>
               </tr>
             </thead>
-
             {/* テーブルボディ */}
             <tbody>
-              {groups.map((group) => (
+              {memberships.map((membership) => (
                 <tr
-                  key={group.id}
+                  key={membership.id}
                   className="border-b border-blue-50 hover:bg-blue-50/50"
                 >
                   <td className="px-5 py-3 text-sm whitespace-nowrap">
-                    {/* AlertDialogTrigger を使って、ダイアログを開くトリガーとする */}
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-app hover:bg-app/10"
-                        // memberは自分のデータしか取得しないようにしているため、0以上でデータが一つあれば参加していることになる。
-                        disabled={group.members.length > 0}
+                        className="text-red-600 hover:bg-red-50"
                       >
-                        <UserPlus className="mr-1 h-4 w-4" />
-                        {group.members.length > 0 ? "参加中" : "参加"}
+                        <LogOut className="mr-1 h-4 w-4" />
+                        脱退
                       </Button>
                     </AlertDialogTrigger>
-                    {/* AlertDialogContent 内で「参加する」アクションに handleJoin を実行 */}
                     <AlertDialogContent>
-                      <AlertDialogHeader className="text-app">
+                      <AlertDialogHeader>
                         <AlertDialogTitle>
-                          グループに参加しますか？
+                          グループから脱退しますか？
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          グループに参加すると、グループのメンバーとして参加できます。
+                          グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>キャンセル</AlertDialogCancel>
                         <AlertDialogAction asChild>
                           <Button
-                            onClick={() => handleJoin(group.id)}
-                            className="bg-app hover:bg-app/90 text-white"
+                            onClick={() => handleLeave(membership.group.id)}
+                            className="bg-red-600 text-white hover:bg-red-700"
                           >
-                            参加する
+                            脱退する
                           </Button>
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </td>
                   <td className="px-5 py-3 text-sm font-medium whitespace-nowrap text-blue-900">
-                    {group.name}
+                    {membership.group.name}
                   </td>
                   <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">
-                    {group.maxParticipants}人
+                    {membership.group.maxParticipants}人
                   </td>
                   <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">
-                    {group.evaluationMethod}
+                    {membership.group.evaluationMethod}
                   </td>
                   <td className="px-5 py-3 text-sm text-neutral-600">
-                    {group.goal}
+                    {membership.group.goal}
                   </td>
                 </tr>
               ))}
@@ -218,7 +194,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
         {/* ページネーション */}
         <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
           <div className="text-sm text-neutral-600">
-            Showing 1-{groups.length} of {groups.length}
+            Showing 1-{memberships.length} of {memberships.length}
           </div>
           <div className="flex items-center space-x-2">
             <Button

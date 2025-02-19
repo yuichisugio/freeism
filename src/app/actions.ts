@@ -127,3 +127,39 @@ export async function joinGroup(groupId: string) {
     return { error: "エラーが発生しました" };
   }
 }
+
+export async function leaveGroup(groupId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // メンバーシップの存在確認
+    const membership = await prisma.groupMembership.findFirst({
+      where: {
+        userId: session.user.id,
+        groupId,
+      },
+    });
+
+    if (!membership) {
+      return { error: "グループに参加していません" };
+    }
+
+    // グループから脱退
+    await prisma.groupMembership.delete({
+      where: {
+        id: membership.id,
+      },
+    });
+
+    revalidatePath("/dashboard/grouplist");
+    revalidatePath("/dashboard/my-groups");
+    return { success: true };
+  } catch (error) {
+    console.error("[LEAVE_GROUP]", error);
+    return { error: "エラーが発生しました" };
+  }
+}

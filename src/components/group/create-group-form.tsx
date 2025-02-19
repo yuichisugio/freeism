@@ -175,7 +175,7 @@ export function CreateGroupForm() {
 
         <Button
           type="submit"
-          className="bg-app hover:bg-app/80 w-full text-white"
+          className="bg-app hover:bg-app/80 text-white"
           disabled={form.formState.isSubmitting}
         >
           {form.formState.isSubmitting ? "作成中..." : "グループを作成"}

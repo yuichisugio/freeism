@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { auth, signIn, signOut } from "@/auth";
+import { auth } from "@/auth";
+import { LoginButton } from "@/components/auth/login-button";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 
@@ -44,35 +46,11 @@ export async function Header() {
               >
                 <Link href="/dashboard/grouplist">Dashboard</Link>
               </Button>
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut();
-                }}
-              >
-                <Button
-                  type="submit"
-                  className="bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  ログアウト
-                </Button>
-              </form>
+              <LogoutButton />
             </>
           ) : (
-            // 未ログインの場合はサインインボタンを表示。Server Actionを使用するため、formタグで囲み、"use server"を指定している
-            <form
-              action={async () => {
-                "use server";
-                await signIn();
-              }}
-            >
-              <Button
-                type="submit"
-                className="bg-blue-600 text-white hover:bg-blue-700"
-              >
-                利用する
-              </Button>
-            </form>
+            // 未ログインの場合はサインインボタンを表示
+            <LoginButton />
           )}
         </nav>
       </div>
