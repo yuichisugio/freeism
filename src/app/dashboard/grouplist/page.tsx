@@ -35,6 +35,7 @@ export default async function GroupListPage() {
           id: true,
         },
       },
+      createdBy: true,
     },
     orderBy: {
       createdAt: "desc",

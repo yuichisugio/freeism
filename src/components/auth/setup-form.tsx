@@ -83,20 +83,22 @@ export function SetupForm({ initialData }: SetupFormProps) {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                ユーザー名
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="ユーザー名を入力"
-                  className="border-blue-100 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                あなたの表示名として使用されます
-              </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">
+                  ユーザー名
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="ユーザー名を入力"
+                    className="border-blue-100 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription className="text-xs text-neutral-600 sm:text-sm">
+                  あなたの表示名として使用されます
+                </FormDescription>
+                <FormMessage className="text-xs sm:text-sm" />
+              </div>
             </FormItem>
           )}
         />
@@ -106,20 +108,23 @@ export function SetupForm({ initialData }: SetupFormProps) {
           name="lifeGoal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                自分の人生の目標
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="自分の人生の目標を入力"
-                  className="min-h-[80px] border-blue-100 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300 sm:min-h-[100px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                自分が達成したい人生の目標を記入してください
-              </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              {/* 設問と入力欄の間を開けるためにdivを入れている */}
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">
+                  自分の人生の目標
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="自分の人生の目標を入力"
+                    className="min-h-[80px] border-blue-100 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300 sm:min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription className="text-xs text-neutral-600 sm:text-sm">
+                  自分が達成したい人生の目標を記入してください
+                </FormDescription>
+                <FormMessage className="text-xs sm:text-sm" />
+              </div>
             </FormItem>
           )}
         />

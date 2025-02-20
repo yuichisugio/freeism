@@ -56,9 +56,16 @@ export function CreateGroupForm() {
         toast.success("グループを作成しました");
         router.push("/dashboard/grouplist");
       } else if (result.error) {
-        toast.error(result.error);
-        console.error(result.error);
-        form.setError("root", { message: result.error });
+        // 重複エラーの場合はフォームにエラーを表示
+        if (result.error === "このグループ名は既に使用されています") {
+          form.setError("name", {
+            message: result.error,
+          });
+        } else {
+          toast.error(result.error);
+          console.error(result.error);
+          form.setError("root", { message: result.error });
+        }
       }
     } catch (error) {
       console.log(error);
@@ -74,20 +81,22 @@ export function CreateGroupForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                グループ名
-              </FormLabel>
-              <FormControl>
-                <Input
-                  id="name"
-                  placeholder="グループ名を入力してください"
-                  {...field}
-                />
-              </FormControl>
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">
+                  グループ名
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    id="name"
+                    placeholder="グループ名を入力してください"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
               <FormDescription className="text-xs text-neutral-600 sm:text-sm">
                 グループの名前を入力してください
               </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
         />
@@ -97,20 +106,22 @@ export function CreateGroupForm() {
           name="goal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                最終目標
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  id="goal"
-                  placeholder="グループの最終目標を入力してください"
-                  {...field}
-                />
-              </FormControl>
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">
+                  最終目標
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    id="goal"
+                    placeholder="グループの最終目標を入力してください"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
               <FormDescription className="text-xs text-neutral-600 sm:text-sm">
                 グループの最終目標を入力してください
               </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
         />
@@ -120,20 +131,22 @@ export function CreateGroupForm() {
           name="evaluationMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                最終目標に貢献したか判断する方法
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  id="evaluationMethod"
-                  placeholder="目標達成の評価方法を入力してください"
-                  {...field}
-                />
-              </FormControl>
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">
+                  最終目標に貢献したか判断する方法
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    id="evaluationMethod"
+                    placeholder="目標達成の評価方法を入力してください"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
               <FormDescription className="text-xs text-neutral-600 sm:text-sm">
                 目標達成の評価方法を入力してください
               </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
         />
@@ -143,27 +156,29 @@ export function CreateGroupForm() {
           name="maxParticipants"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                参加上限人数
-              </FormLabel>
-              <FormControl>
-                <Input
-                  id="maxParticipants"
-                  type="number"
-                  placeholder="参加上限人数を入力してください"
-                  {...field}
-                  onChange={(e) => {
-                    // e.target.valueAsNumber は空文字の場合 NaN になるので、チェックを入れる
-                    const value = e.target.value;
-                    // 空文字なら空文字、そうでなければ数値に変換
-                    field.onChange(value === "" ? "" : Number(value));
-                  }}
-                />
-              </FormControl>
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">
+                  参加上限人数
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    id="maxParticipants"
+                    type="number"
+                    placeholder="参加上限人数を入力してください"
+                    {...field}
+                    onChange={(e) => {
+                      // e.target.valueAsNumber は空文字の場合 NaN になるので、チェックを入れる
+                      const value = e.target.value;
+                      // 空文字なら空文字、そうでなければ数値に変換
+                      field.onChange(value === "" ? "" : Number(value));
+                    }}
+                  />
+                </FormControl>
+              </div>
               <FormDescription className="text-xs text-neutral-600 sm:text-sm">
                 参加上限人数を入力してください
               </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
         />

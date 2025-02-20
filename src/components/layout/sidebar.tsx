@@ -3,9 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Home, Menu, PlusCircle, Settings, UserCircle, X } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 const sidebarItems = [
   {
@@ -48,8 +59,9 @@ const sidebarItems = [
       },
       {
         title: "Logout",
-        href: "/dashboard/logout",
+        href: "#",
         icon: Settings,
+        isLogout: true,
       },
     ],
   },
@@ -64,7 +76,7 @@ export function Sidebar() {
   }
 
   return (
-    <>
+    <AlertDialog>
       {/* モバイル用ハンバーガーボタン（sm:hidden） */}
       <Button
         variant="ghost"
@@ -110,31 +122,66 @@ export function Sidebar() {
                 {section.title}
               </h2>
               {/* セクションのメニュー */}
-              {section.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => {
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900",
-                    // 現在の表示されている画面のURL PATH（pathname）は、ホバー時の色と同じ表示を常時行う設定。リンク先（item.href）と一致する場合は、ホバー時の色と同じ表示を常時行う設定。
-                    pathname === item.href
-                      ? "bg-blue-100 text-blue-900"
-                      : "text-gray-900",
-                  )}
-                >
-                  {/* アイコンを表示 */}
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {/* メニューのタイトル */}
-                  {item.title}
-                </Link>
-              ))}
+              {section.items.map((item) =>
+                item.isLogout ? (
+                  <AlertDialogTrigger key={item.title} asChild>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900",
+                        // 現在の表示されている画面のURL PATH（pathname）は、ホバー時の色と同じ表示を常時行う設定。リンク先（item.href）と一致する場合は、ホバー時の色と同じ表示を常時行う設定。
+                        pathname === item.href
+                          ? "bg-blue-100 text-blue-900"
+                          : "text-gray-900",
+                      )}
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.title}
+                    </Link>
+                  </AlertDialogTrigger>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900",
+                      // 現在の表示されている画面のURL PATH（pathname）は、ホバー時の色と同じ表示を常時行う設定。リンク先（item.href）と一致する場合は、ホバー時の色と同じ表示を常時行う設定。
+                      pathname === item.href
+                        ? "bg-blue-100 text-blue-900"
+                        : "text-gray-900",
+                    )}
+                  >
+                    {/* アイコンを表示 */}
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {/* メニューのタイトル */}
+                    {item.title}
+                  </Link>
+                ),
+              )}
             </div>
           ))}
         </div>
       </aside>
-    </>
+
+      {/* ログアウト確認ダイアログ */}
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>ログアウトしますか？</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              ログアウト
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

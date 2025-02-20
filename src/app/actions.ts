@@ -50,6 +50,11 @@ export async function updateUserSetup(data: SetupForm) {
   }
 }
 
+/**
+ * グループを作成する関数
+ * @param data - 作成するグループのデータ
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function createGroup(data: CreateGroupFormData) {
   try {
     const session = await auth();
@@ -60,7 +65,6 @@ export async function createGroup(data: CreateGroupFormData) {
     }
 
     const validatedData = createGroupSchema.parse(data);
-    console.log("createGroup validatedData", validatedData);
 
     await prisma.group.create({
       data: {
@@ -78,11 +82,16 @@ export async function createGroup(data: CreateGroupFormData) {
       console.error("Zod validation error:", error.errors);
       return { error: "入力内容に誤りがあります" };
     }
-    console.error("createGroup unexpected error:", error);
+    console.error("1111createGroup unexpected error:", error);
     return { error: "エラーが発生しました" };
   }
 }
 
+/**
+ * グループに参加する関数
+ * @param groupId - 参加するグループのID
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function joinGroup(groupId: string) {
   try {
     const session = await auth();
@@ -137,6 +146,11 @@ export async function joinGroup(groupId: string) {
   }
 }
 
+/**
+ * グループを脱退する関数
+ * @param groupId - 脱退するグループのID
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function leaveGroup(groupId: string) {
   try {
     const session = await auth();
@@ -215,7 +229,7 @@ export async function deleteGroup(groupId: string) {
 }
 
 /**
- * グループ名の重複をチェックする関数
+ * グループ名の重複をチェックする関数。Groupテーブル名の重複チェックはユニーク制約があるので、↓は不要。
  * @param name - チェックするグループ名
  * @returns 重複している場合はtrue、していない場合はfalse
  */
