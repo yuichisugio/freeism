@@ -1,6 +1,7 @@
 "use client";
 
 import type * as z from "zod";
+import { useRouter } from "next/navigation";
 import { updateUserSetup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,8 @@ type SetupFormProps = {
  * - レスポンシブデザイン対応
  */
 export function SetupForm({ initialData }: SetupFormProps) {
+  const router = useRouter();
+
   // useForm関数を使用してフォームの状態を管理しています。これにより、フォームの入力値を管理し、エラーメッセージを表示することができます。
   const form = useForm<SetupForm>({
     resolver: zodResolver(setupSchema),
@@ -64,6 +67,9 @@ export function SetupForm({ initialData }: SetupFormProps) {
       } else {
         toast.success("設定を保存しました");
       }
+
+      // 設定を保存した後、リロードする
+      router.refresh();
 
       // 予期せぬエラーが発生した場合
     } catch (error) {
