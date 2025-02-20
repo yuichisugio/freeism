@@ -29,7 +29,6 @@ export default function SignInPage() {
           <div className="mt-8">
             <div className="flex">
               <SignInButton
-                provider="google"
                 // inline-flexは、インライン要素として表示しながら内部はFlexが適用されます。ボタン内にテキストやアイコンが横並びに配置され、かつその要素自体がインラインにするために使用する。ブロック要素のように全幅を取らず、必要なサイズのみを占めるため、隣接する要素との間に隙間ができにくくなります。
                 className="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-neutral-300 bg-white py-3 text-sm font-bold text-neutral-800 transition-colors hover:bg-neutral-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
               >
