@@ -55,6 +55,11 @@ export async function updateUserSetup(data: SetupForm) {
  * @param data - 作成するグループのデータ
  * @returns 処理結果を含むオブジェクト
  */
+/**
+ * グループを作成する関数
+ * @param data - 作成するグループのデータ
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function createGroup(data: CreateGroupFormData) {
   try {
     const session = await auth();
@@ -87,6 +92,11 @@ export async function createGroup(data: CreateGroupFormData) {
   }
 }
 
+/**
+ * グループに参加する関数
+ * @param groupId - 参加するグループのID
+ * @returns 処理結果を含むオブジェクト
+ */
 /**
  * グループに参加する関数
  * @param groupId - 参加するグループのID
@@ -147,7 +157,7 @@ export async function joinGroup(groupId: string) {
 }
 
 /**
- * グループを脱退する関数
+ * グループから脱退する関数
  * @param groupId - 脱退するグループのID
  * @returns 処理結果を含むオブジェクト
  */
