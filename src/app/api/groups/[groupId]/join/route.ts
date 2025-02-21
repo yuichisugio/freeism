@@ -8,7 +8,9 @@ import { prisma } from "@/lib/prisma";
  * @param params - グループのID
  * @returns グループに参加するAPI
  */
-export async function POST(request: Request, { params }: { params: { groupId: string } }) {
+export async function POST(request: Request, context: { params: { groupId: string } }) {
+  const { params } = context;
+
   try {
     const session = await auth();
 
