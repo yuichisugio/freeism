@@ -47,7 +47,9 @@ export default async function GroupListPage() {
       title="Group一覧"
       description="現在参加可能なグループ一覧を表示します"
       component={
-        <Button asChild className="bg-app hover:bg-app/80 w-auto text-white">
+        // Tailwind の self-start クラスは、個々のフレックスアイテムに対して、親コンテナの align-items の stretch を上書きして、自身の内容に基づくサイズ（または自分の望む位置）に合わせるように指示します。
+        // sm:self-center は、画面幅が小さい場合（smクラスが適用される）は、self-startになり、画面幅が大きい場合（smクラスが適用されない）は、self-centerになります。
+        <Button asChild className="bg-app hover:bg-app/80 w-auto self-start text-white sm:self-center">
           <Link href="/dashboard/create-group" className="flex items-center">
             <Plus className="mr-2 h-4 w-4" />
             新規Group作成

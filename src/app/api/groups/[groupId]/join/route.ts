@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { groupId: string } },
-) {
+/**
+ * グループに参加するAPI
+ * @param request - リクエスト
+ * @param params - グループのID
+ * @returns グループに参加するAPI
+ */
+export async function POST(request: Request, { params }: { params: { groupId: string } }) {
   try {
     const session = await auth();
 

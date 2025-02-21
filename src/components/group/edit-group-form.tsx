@@ -3,15 +3,7 @@
 import { useRouter } from "next/navigation";
 import { checkGroupNameExists, updateGroup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createGroupSchema } from "@/lib/zod-schema";
@@ -46,7 +38,7 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
 
   async function onSubmit(data: EditGroupFormData) {
     try {
-      // グループ名の重複チェック（自分自身は除く）
+      // 編集前のグループ名と編集後のグループ名が同じ場合は重複チェックをしない
       if (data.name !== group.name) {
         const existingGroup = await checkGroupNameExists(data.name);
         if (existingGroup) {
@@ -57,11 +49,15 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
         }
       }
 
+      // グループを更新
       const result = await updateGroup(group.id, data);
 
+      // 更新に成功した場合
       if (result.success) {
         toast.success("グループを更新しました");
         router.push("/dashboard/grouplist");
+
+        // 更新に失敗した場合
       } else if (result.error) {
         toast.error(result.error);
         console.error(result.error);
@@ -81,20 +77,14 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                グループ名
-              </FormLabel>
-              <FormControl>
-                <Input
-                  id="name"
-                  placeholder="グループ名を入力してください"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                グループの名前を入力してください
-              </FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <div className="flex flex-col" style={{ gap: "5px" }}>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">グループ名</FormLabel>
+                <FormControl>
+                  <Input id="name" placeholder="グループ名を入力してください" {...field} />
+                </FormControl>
+              </div>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">グループの名前を入力してください</FormDescription>
+              <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
         />
@@ -104,19 +94,11 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="goal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                最終目標
-              </FormLabel>
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">最終目標</FormLabel>
               <FormControl>
-                <Textarea
-                  id="goal"
-                  placeholder="グループの最終目標を入力してください"
-                  {...field}
-                />
+                <Textarea id="goal" placeholder="グループの最終目標を入力してください" {...field} />
               </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                グループの最終目標を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">グループの最終目標を入力してください</FormDescription>
               <FormMessage className="text-xs sm:text-sm" />
             </FormItem>
           )}
@@ -127,19 +109,11 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="evaluationMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                最終目標に貢献したか判断する方法
-              </FormLabel>
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">最終目標に貢献したか判断する方法</FormLabel>
               <FormControl>
-                <Textarea
-                  id="evaluationMethod"
-                  placeholder="目標達成の評価方法を入力してください"
-                  {...field}
-                />
+                <Textarea id="evaluationMethod" placeholder="目標達成の評価方法を入力してください" {...field} />
               </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                目標達成の評価方法を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">目標達成の評価方法を入力してください</FormDescription>
               <FormMessage className="text-xs sm:text-sm" />
             </FormItem>
           )}
@@ -150,9 +124,7 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="maxParticipants"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                参加上限人数
-              </FormLabel>
+              <FormLabel className="text-app text-sm font-semibold sm:text-base">参加上限人数</FormLabel>
               <FormControl>
                 <Input
                   id="maxParticipants"
@@ -165,20 +137,14 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
                   }}
                 />
               </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                参加上限人数を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">参加上限人数を入力してください</FormDescription>
               <FormMessage className="text-xs sm:text-sm" />
             </FormItem>
           )}
         />
 
         <div className="flex gap-4">
-          <Button
-            type="submit"
-            className="bg-app hover:bg-app/80 text-white"
-            disabled={form.formState.isSubmitting}
-          >
+          <Button type="submit" className="bg-app hover:bg-app/80 text-white" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? "更新中..." : "グループを更新"}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>

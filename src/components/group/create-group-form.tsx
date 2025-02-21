@@ -3,15 +3,7 @@
 import { useRouter } from "next/navigation";
 import { checkGroupNameExists, createGroup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createGroupSchema } from "@/lib/zod-schema";
@@ -20,12 +12,21 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
 
+/**
+ * グループを作成するフォームのデータ型
+ * @returns グループを作成するフォームのデータ型
+ */
 export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
 
+/**
+ * グループを作成するフォーム
+ * @returns グループを作成するフォーム
+ */
 export function CreateGroupForm() {
-  // ここまでは来ている
-
+  // ルーティング
   const router = useRouter();
+
+  // フォーム
   const form = useForm<CreateGroupFormData>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
@@ -35,8 +36,6 @@ export function CreateGroupForm() {
       maxParticipants: 100,
     },
   });
-
-  // ここまでは来ている
 
   async function onSubmit(data: CreateGroupFormData) {
     try {
@@ -82,20 +81,12 @@ export function CreateGroupForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                  グループ名
-                </FormLabel>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">グループ名</FormLabel>
                 <FormControl>
-                  <Input
-                    id="name"
-                    placeholder="グループ名を入力してください"
-                    {...field}
-                  />
+                  <Input id="name" placeholder="グループ名を入力してください" {...field} />
                 </FormControl>
               </div>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                グループの名前を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">グループの名前を入力してください</FormDescription>
               <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
@@ -107,20 +98,12 @@ export function CreateGroupForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                  最終目標
-                </FormLabel>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">最終目標</FormLabel>
                 <FormControl>
-                  <Textarea
-                    id="goal"
-                    placeholder="グループの最終目標を入力してください"
-                    {...field}
-                  />
+                  <Textarea id="goal" placeholder="グループの最終目標を入力してください" {...field} />
                 </FormControl>
               </div>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                グループの最終目標を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">グループの最終目標を入力してください</FormDescription>
               <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
@@ -132,20 +115,12 @@ export function CreateGroupForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                  最終目標に貢献したか判断する方法
-                </FormLabel>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">最終目標に貢献したか判断する方法</FormLabel>
                 <FormControl>
-                  <Textarea
-                    id="evaluationMethod"
-                    placeholder="目標達成の評価方法を入力してください"
-                    {...field}
-                  />
+                  <Textarea id="evaluationMethod" placeholder="目標達成の評価方法を入力してください" {...field} />
                 </FormControl>
               </div>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                目標達成の評価方法を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">目標達成の評価方法を入力してください</FormDescription>
               <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
@@ -157,9 +132,7 @@ export function CreateGroupForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                  参加上限人数
-                </FormLabel>
+                <FormLabel className="text-app text-sm font-semibold sm:text-base">参加上限人数</FormLabel>
                 <FormControl>
                   <Input
                     id="maxParticipants"
@@ -175,19 +148,13 @@ export function CreateGroupForm() {
                   />
                 </FormControl>
               </div>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                参加上限人数を入力してください
-              </FormDescription>
+              <FormDescription className="text-xs text-neutral-600 sm:text-sm">参加上限人数を入力してください</FormDescription>
               <FormMessage className="text-xs text-red-500 sm:text-sm" />
             </FormItem>
           )}
         />
 
-        <Button
-          type="submit"
-          className="bg-app hover:bg-app/80 text-white"
-          disabled={form.formState.isSubmitting}
-        >
+        <Button type="submit" className="bg-app hover:bg-app/80 text-white" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "作成中..." : "グループを作成"}
         </Button>
       </form>

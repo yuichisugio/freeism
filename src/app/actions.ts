@@ -329,12 +329,6 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
  */
 export async function getGroup(groupId: string) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証エラーが発生しました");
-    }
-
     const group = await prisma.group.findUnique({
       where: { id: groupId },
     });
