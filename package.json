@@ -17,7 +17,8 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@apollo/client": "^3.12.11",
@@ -25,6 +26,7 @@
     "@as-integrations/next": "^3.2.0",
     "@auth/prisma-adapter": "^2.7.4",
     "@hookform/resolvers": "^4.0.0",
+    "@prisma/nextjs-monorepo-workaround-plugin": "^6.4.1",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.1",
