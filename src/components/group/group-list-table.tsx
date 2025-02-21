@@ -3,17 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteGroup, joinGroup } from "@/app/actions";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Edit, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -36,6 +26,7 @@ type GroupListTableProps = {
 
 // 各要素のデータとしてグループデータが入ったオブジェクトを引数として渡す
 export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
+  // ルーティング
   const router = useRouter();
   // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
   const [groups, setGroups] = useState(initialGroups);
@@ -55,11 +46,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     // 初期値ascで、ソートの並べ方を保存
     let direction: "asc" | "desc" = "asc";
     // ソート設定があり、かつキーが同じ、かつ方向が同じ場合は降順にソートする
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "asc"
-    ) {
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
     }
     // ソート設定を更新。レンダリングされるたびにdirectionが初期化されるので、渡す必要がない。
@@ -123,164 +110,108 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
   }
 
   return (
-    <AlertDialog>
-      <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* テーブルヘッダー */}
-            <thead>
-              <tr className="border-b border-blue-100 bg-blue-50/50">
-                <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                  <span className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                    参加
-                  </span>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                  <button
-                    onClick={() => sortData("name")}
-                    className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
-                  >
-                    GROUP NAME
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                  <button
-                    onClick={() => sortData("maxParticipants")}
-                    className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
-                  >
-                    参加人数
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                  <button
-                    onClick={() => sortData("evaluationMethod")}
-                    className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
-                  >
-                    KPI
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                  <button
-                    onClick={() => sortData("goal")}
-                    className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
-                  >
-                    DESCRIPTION
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-              </tr>
-            </thead>
+    <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          {/* テーブルヘッダー */}
+          <thead>
+            <tr className="border-b border-blue-100 bg-blue-50/50">
+              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+                <span className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">参加</span>
+              </th>
+              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+                <button onClick={() => sortData("name")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                  GROUP NAME
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </button>
+              </th>
+              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+                <button onClick={() => sortData("maxParticipants")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                  参加人数
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </button>
+              </th>
+              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+                <button onClick={() => sortData("evaluationMethod")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                  KPI
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </button>
+              </th>
+              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+                <button onClick={() => sortData("goal")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                  DESCRIPTION
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </button>
+              </th>
+            </tr>
+          </thead>
 
-            {/* テーブルボディ */}
-            <tbody>
-              {groups.map((group) => (
-                <tr
-                  key={group.id}
-                  className="border-b border-blue-50 hover:bg-blue-50/50"
-                >
-                  <td className="px-5 py-3 text-sm whitespace-nowrap">
-                    <div className="flex gap-2">
-                      {/* 既存の参加ボタン */}
+          {/* テーブルボディ */}
+          <tbody>
+            {groups.map((group) => (
+              <tr key={group.id} className="border-b border-blue-50 hover:bg-blue-50/50">
+                <td className="px-5 py-3 text-sm whitespace-nowrap">
+                  <div className="flex gap-2">
+                    <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-app hover:bg-app/10"
-                          disabled={group.members.length > 0}
-                        >
+                        <Button variant="outline" size="sm" className="text-app hover:bg-app/10" disabled={group.members.length > 0}>
                           <UserPlus className="mr-1 h-4 w-4" />
                           {group.members.length > 0 ? "参加中" : "参加"}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader className="text-app">
-                          <AlertDialogTitle>
-                            グループに参加しますか？
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            グループに参加すると、グループのメンバーとして参加できます。
-                          </AlertDialogDescription>
+                          <AlertDialogTitle>グループに参加しますか？</AlertDialogTitle>
+                          <AlertDialogDescription>グループに参加すると、グループのメンバーとして参加できます。</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>キャンセル</AlertDialogCancel>
                           <AlertDialogAction asChild>
-                            <Button
-                              onClick={() => handleJoin(group.id)}
-                              className="bg-app hover:bg-app/90 text-white"
-                            >
+                            <Button onClick={() => handleJoin(group.id)} className="bg-app hover:bg-app/90 text-white">
                               参加する
                             </Button>
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
+                    </AlertDialog>
 
-                      {/* 編集ボタンを追加 */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-yellow-500 hover:bg-yellow-50"
-                        onClick={() =>
-                          router.push(`/dashboard/edit-group/${group.id}`)
-                        }
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                    {/* 編集ボタンを追加 */}
+                    <Button variant="outline" size="sm" className="text-yellow-500 hover:bg-yellow-50" onClick={() => router.push(`/dashboard/edit-group/${group.id}`)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
 
-                      {/* 削除ボタンを追加 */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-500 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              グループを削除しますか？
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                            <AlertDialogAction asChild>
-                              <Button
-                                onClick={() => handleDelete(group.id)}
-                                className="bg-red-500 text-white hover:bg-red-600"
-                              >
-                                削除する
-                              </Button>
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-sm font-medium whitespace-nowrap text-blue-900">
-                    {group.name}
-                  </td>
-                  <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">
-                    {group.maxParticipants}人
-                  </td>
-                  <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">
-                    {group.evaluationMethod}
-                  </td>
-                  <td className="px-5 py-3 text-sm text-neutral-600">
-                    {group.goal}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {/* 削除ボタンを追加 */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-red-500 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>グループを削除しますか？</AlertDialogTitle>
+                          <AlertDialogDescription>この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                          <AlertDialogAction asChild>
+                            <Button onClick={() => handleDelete(group.id)} className="bg-red-500 text-white hover:bg-red-600">
+                              削除する
+                            </Button>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </td>
+                <td className="px-5 py-3 text-sm font-medium whitespace-nowrap text-blue-900">{group.name}</td>
+                <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.maxParticipants}人</td>
+                <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.evaluationMethod}</td>
+                <td className="px-5 py-3 text-sm text-neutral-600">{group.goal}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {/* ページネーション */}
         <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
@@ -288,25 +219,15 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
             Showing 1-{groups.length} of {groups.length}
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-neutral-600"
-              disabled
-            >
+            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
               Previous
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-neutral-600"
-              disabled
-            >
+            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
               Next
             </Button>
           </div>
         </div>
       </div>
-    </AlertDialog>
+    </div>
   );
 }

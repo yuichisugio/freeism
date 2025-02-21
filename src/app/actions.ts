@@ -122,6 +122,8 @@ export async function joinGroup(groupId: string) {
       },
     });
 
+    console.log("group", group);
+
     if (!group) {
       return { error: "グループが見つかりません" };
     }

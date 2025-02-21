@@ -3,30 +3,13 @@
 
 /** @type { PrettierConfig | SortImportsConfig } */
 const config = {
-  plugins: [
-    "@ianvs/prettier-plugin-sort-imports",
-    "prettier-plugin-tailwindcss",
-  ],
+  plugins: ["@ianvs/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
   tailwindFunctions: ["cn", "cva"],
-  importOrder: [
-    "<TYPES>",
-    "^(react/(.*)$)|^(react$)|^(react-native(.*)$)",
-    "^(next/(.*)$)|^(next$)",
-    "^(expo(.*)$)|^(expo$)",
-    "<THIRD_PARTY_MODULES>",
-    "",
-    "<TYPES>^@acme",
-    "^@acme/(.*)$",
-    "",
-    "<TYPES>^[.|..|~]",
-    "^~/",
-    "^[../]",
-    "^[./]",
-  ],
+  importOrder: ["<TYPES>", "^(react/(.*)$)|^(react$)|^(react-native(.*)$)", "^(next/(.*)$)|^(next$)", "^(expo(.*)$)|^(expo$)", "<THIRD_PARTY_MODULES>", "", "<TYPES>^@acme", "^@acme/(.*)$", "", "<TYPES>^[.|..|~]", "^~/", "^[../]", "^[./]"],
   importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"],
   importOrderTypeScriptVersion: "5.0.0",
   arrowParens: "always",
-  printWidth: 80,
+  printWidth: 300,
   singleQuote: false,
   semi: true,
   trailingComma: "all",
