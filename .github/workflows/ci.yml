@@ -9,7 +9,7 @@ on:
       - main
 
 env:
-  NODE_VERSION: "20.0.0"
+  NODE_VERSION: "21.11.1"
   PNPM_VERSION: "9.15.0"
 
 jobs:
