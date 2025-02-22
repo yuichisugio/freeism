@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getGroupDetails, joinGroup } from "@/app/actions";
+import { exportGroupTask, getGroupDetails, joinGroup } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Download, Upload, UserPlus } from "lucide-react";
+import Papa from "papaparse";
 import { toast } from "sonner";
 
 type Task = {
@@ -81,6 +82,32 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     }
   }
 
+  async function onExport(groupId: string) {
+    try {
+      // タスク情報を取得(タスクごとにオブジェクトの要素を配列として取得)
+      const tasks = await exportGroupTask(groupId);
+
+      // Papaparse を利用して、JavaScript のオブジェクト配列を CSV 形式の文字列に変換する
+      const csv = Papa.unparse(tasks);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${group.name}_tasks.csv`;
+      a.click();
+
+      // 少し待ってから 一時的なURLを解放する（ダウンロード完了前に削除してしまうとバグになるため。）
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error(error);
+      toast.error("エラーが発生しました");
+    }
+  }
+
+  async function onUpload() {
+    console.log("Upload");
+  }
+
   return (
     <div className="space-y-6">
       {/* グループ情報 */}
@@ -89,7 +116,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
         <p className="page-description-custom">{group.goal}</p>
         <div className="flex items-center gap-2">
           <p className="text-sm text-neutral-600">
-            参加人数: {group.maxParticipants}人 | KPI: {group.evaluationMethod}
+            参加上限人数: {group.maxParticipants}人 | Group目標: {group.evaluationMethod}
           </p>
         </div>
       </div>
@@ -123,16 +150,16 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       {/* アクションボタン */}
       <div className="flex flex-wrap gap-2">
         <Button className="button-default-custom" onClick={() => router.push(`/dashboard/group/${group.id}/task/new`)}>
-          貢献タスク入力
+          貢献入力
         </Button>
         <Button className="button-default-custom">貢献評価</Button>
-        <Button className="button-default-custom">
-          <Download className="mr-2 h-4 w-4" />
-          CSVエクスポート
+        <Button className="button-default-custom" onClick={() => onExport(group.id)}>
+          <Download />
+          Export
         </Button>
-        <Button className="button-default-custom">
-          <Upload className="mr-2 h-4 w-4" />
-          CSVアップロード
+        <Button className="button-default-custom" onClick={() => onUpload()}>
+          <Upload />
+          Upload
         </Button>
       </div>
 
@@ -179,7 +206,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
               <tbody>
                 {group.tasks.map((task) => (
                   <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="px-5 py-3 text-sm whitespace-nowrap">{task.user.name || "-"}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.user.name || "-"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.task}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint ? `${task.contributionPoint}p` : "評価待ち"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.evaluator || "-"}</td>
@@ -223,7 +250,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
               <tbody>
                 {group.supplies.map((supply) => (
                   <tr key={supply.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="px-5 py-3 text-sm whitespace-nowrap">{supply.name}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.name}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.user.name || "-"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.currentPoint}p</td>
                   </tr>

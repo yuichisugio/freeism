@@ -18,7 +18,7 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
-  /* 標準のクリック可能な要素に対してポインターカーソルを設定 */
+  /* 標準のクリック可能な要素に対して指カーソルに変化させる設定 */
   button,a {
     @apply cursor-pointer;
   }

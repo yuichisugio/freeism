@@ -445,3 +445,27 @@ export async function getGroupDetails(groupId: string) {
     throw new Error("グループ情報の取得中にエラーが発生しました");
   }
 }
+
+/**
+ * グループのTask情報をCSV形式でエクスポートする関数
+ * @param groupId - グループID
+ * @returns CSVデータ
+ */
+export async function exportGroupTask(groupId: string) {
+  try {
+    const tasks = await prisma.task.findMany({
+      where: { groupId },
+    });
+
+    console.log("tasks", tasks);
+
+    if (!tasks) {
+      throw new Error("タスクが見つかりません");
+    }
+
+    return tasks;
+  } catch (error) {
+    console.error("[EXPORT_GROUP_TASK]", error);
+    throw new Error("グループのTask情報のエクスポート中にエラーが発生しました");
+  }
+}
