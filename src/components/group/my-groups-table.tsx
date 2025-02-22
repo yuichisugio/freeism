@@ -101,26 +101,27 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
                 </th>
               </tr>
             </thead>
+
             {/* テーブルボディ */}
             <tbody>
               {memberships.map((membership) => (
                 <tr key={membership.id} className="border-b border-blue-50 hover:bg-blue-50/50">
                   <td className="px-5 py-3 text-sm whitespace-nowrap">
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50">
+                      <Button variant="outline" size="sm" className="button-danger-custom">
                         <LogOut className="mr-1 h-4 w-4" />
                         脱退
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>グループから脱退しますか？</AlertDialogTitle>
-                        <AlertDialogDescription>グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。</AlertDialogDescription>
+                        <AlertDialogTitle className="text-app">グループから脱退しますか？</AlertDialogTitle>
+                        <AlertDialogDescription className="text-app">グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。</AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                        <AlertDialogCancel className="text-app">キャンセル</AlertDialogCancel>
                         <AlertDialogAction asChild>
-                          <Button onClick={() => handleLeave(membership.group.id)} className="bg-red-600 text-white hover:bg-red-700">
+                          <Button onClick={() => handleLeave(membership.group.id)} className="button-default-custom">
                             脱退する
                           </Button>
                         </AlertDialogAction>

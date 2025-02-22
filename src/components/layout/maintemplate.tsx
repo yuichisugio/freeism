@@ -3,7 +3,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 
 export function MainTemplate({ title, description, component, children }: { title: string; description: string; component?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col">
+      <div className="absolute inset-0 -translate-x-1/2 overflow-hidden rounded-full bg-blue-100/30 blur-3xl dark:bg-blue-900/30" />
       <Header />
       <div className="flex flex-1">
         <Sidebar />
@@ -12,8 +13,8 @@ export function MainTemplate({ title, description, component, children }: { titl
             {/* 説明文の横に並べて表示したいボタンがある場合は、componentを渡す */}
             <div className="flex flex-col justify-between sm:flex-row">
               <div>
-                <h1 className="text-app text-2xl font-bold sm:text-3xl">{title}</h1>
-                <p className="mt-2 mb-5 text-neutral-600">{description}</p>
+                <h1 className="page-title-custom">{title}</h1>
+                <p className="page-description-custom">{description}</p>
               </div>
               {component && component}
             </div>

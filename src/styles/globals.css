@@ -7,6 +7,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
   --color-app: var(--color-blue-700);
+  --color-app-dark: var(--color-blue-400);
 }
 
 /*
@@ -31,4 +32,60 @@
   :root {
     --radius: 0.5rem;
   }
+}
+
+.text-custom {
+  @apply text-app text-sm font-semibold sm:text-base dark:text-app-dark;
+}
+
+.button-outline-custom {
+  @apply border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200;
+}
+
+.button-default-custom {
+  @apply bg-blue-600 text-white hover:bg-blue-700 hover:text-white dark:bg-blue-900 dark:hover:bg-blue-700 dark:hover:text-white;
+}
+
+.button-danger-custom {
+  @apply text-red-600 hover:text-red-700 dark:text-red-300 dark:hover:text-red-400;
+}
+
+.button-edit-custom {
+  @apply text-yellow-500 hover:text-yellow-600 dark:text-yellow-300 dark:hover:text-yellow-600;
+}
+
+.button-join-custom {
+  @apply text-app hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-600;
+}
+
+.page-description-custom {
+  @apply mt-2 mb-5 text-sm text-neutral-600 dark:text-neutral-400;
+}
+
+.page-title-custom {
+  @apply text-app text-2xl font-bold sm:text-3xl dark:text-app-dark;
+}
+
+.form-label-custom {
+  @apply text-app text-sm font-semibold sm:text-base dark:text-app-dark;
+}
+
+.form-description-custom {
+  @apply text-xs text-neutral-600 sm:text-sm dark:text-neutral-400;
+}
+
+.form-message-custom {
+  @apply text-xs text-red-500 sm:text-sm dark:text-red-400;
+}
+
+.form-control-custom {
+  @apply border-blue-200 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300 sm:min-h-[100px];
+}
+
+.alert-dialog-title-custom {
+  @apply text-app;
+}
+
+.alert-dialog-description-custom {
+  @apply text-app;
 }

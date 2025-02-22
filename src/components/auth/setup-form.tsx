@@ -4,15 +4,7 @@ import type * as z from "zod";
 import { useRouter } from "next/navigation";
 import { updateUserSetup } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { setupSchema } from "@/lib/zod-schema";
@@ -82,74 +74,52 @@ export function SetupForm({ initialData }: SetupFormProps) {
   return (
     // Formコンポーネントは、「RHFのFormProviderタグ」と「HTMLのformタグ」をラップしている。
     // Formコンポーネントに、useFormの戻り値を渡す。各設問のコンポーネントにuseFormの戻り値を渡すために、FormProviderをは、Formコンポーネントのコンテキストを提供する。
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                  ユーザー名
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="ユーザー名を入力"
-                    className="border-blue-100 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                  あなたの表示名として使用されます
-                </FormDescription>
-                <FormMessage className="text-xs sm:text-sm" />
-              </div>
-            </FormItem>
-          )}
-        />
+    <>
+      <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">変更内容</h2>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-col" style={{ gap: "5px" }}>
+                  <FormLabel className="form-label-custom">ユーザー名</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ユーザー名を入力" {...field} />
+                  </FormControl>
+                  <FormDescription className="form-description-custom">あなたの表示名として使用されます</FormDescription>
+                  <FormMessage className="form-message-custom" />
+                </div>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="lifeGoal"
-          render={({ field }) => (
-            <FormItem>
-              {/* 設問と入力欄の間を開けるためにdivを入れている */}
-              <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">
-                  自分の人生の目標
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="自分の人生の目標を入力"
-                    className="min-h-[80px] border-blue-100 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300 sm:min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription className="text-xs text-neutral-600 sm:text-sm">
-                  自分が達成したい人生の目標を記入してください
-                </FormDescription>
-                <FormMessage className="text-xs sm:text-sm" />
-              </div>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="lifeGoal"
+            render={({ field }) => (
+              <FormItem>
+                {/* 設問と入力欄の間を開けるためにdivを入れている */}
+                <div className="flex flex-col" style={{ gap: "5px" }}>
+                  <FormLabel className="form-label-custom">自分の人生の目標</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="自分の人生の目標を入力" {...field} />
+                  </FormControl>
+                  <FormDescription className="form-description-custom">自分が達成したい人生の目標を記入してください</FormDescription>
+                  <FormMessage className="form-message-custom" />
+                </div>
+              </FormItem>
+            )}
+          />
 
-        {form.formState.errors.root && (
-          <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">
-            {form.formState.errors.root.message}
-          </div>
-        )}
+          {form.formState.errors.root && <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">{form.formState.errors.root.message}</div>}
 
-        <div className="pt-2">
-          <Button
-            type="submit"
-            className="bg-app hover:bg-app/80 w-full text-white transition-colors sm:w-auto sm:min-w-[200px]"
-          >
+          <Button type="submit" className="button-default-custom">
             設定を保存
           </Button>
-        </div>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </>
   );
 }

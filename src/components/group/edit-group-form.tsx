@@ -78,13 +78,13 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           render={({ field }) => (
             <FormItem>
               <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="text-app text-sm font-semibold sm:text-base">グループ名</FormLabel>
+                <FormLabel className="form-label-custom">グループ名</FormLabel>
                 <FormControl>
                   <Input id="name" placeholder="グループ名を入力してください" {...field} />
                 </FormControl>
               </div>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">グループの名前を入力してください</FormDescription>
-              <FormMessage className="text-xs text-red-500 sm:text-sm" />
+              <FormDescription className="form-description-custom">グループの名前を入力してください</FormDescription>
+              <FormMessage className="form-message-custom" />
             </FormItem>
           )}
         />
@@ -94,12 +94,12 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="goal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">最終目標</FormLabel>
+              <FormLabel className="form-label-custom">最終目標</FormLabel>
               <FormControl>
                 <Textarea id="goal" placeholder="グループの最終目標を入力してください" {...field} />
               </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">グループの最終目標を入力してください</FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormDescription className="form-description-custom">グループの最終目標を入力してください</FormDescription>
+              <FormMessage className="form-message-custom" />
             </FormItem>
           )}
         />
@@ -109,12 +109,12 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="evaluationMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">最終目標に貢献したか判断する方法</FormLabel>
+              <FormLabel className="form-label-custom">最終目標に貢献したか判断する方法</FormLabel>
               <FormControl>
                 <Textarea id="evaluationMethod" placeholder="目標達成の評価方法を入力してください" {...field} />
               </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">目標達成の評価方法を入力してください</FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormDescription className="form-description-custom">目標達成の評価方法を入力してください</FormDescription>
+              <FormMessage className="form-message-custom" />
             </FormItem>
           )}
         />
@@ -124,7 +124,7 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
           name="maxParticipants"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-app text-sm font-semibold sm:text-base">参加上限人数</FormLabel>
+              <FormLabel className="form-label-custom">参加上限人数</FormLabel>
               <FormControl>
                 <Input
                   id="maxParticipants"
@@ -137,14 +137,14 @@ export function EditGroupForm({ group }: EditGroupFormProps) {
                   }}
                 />
               </FormControl>
-              <FormDescription className="text-xs text-neutral-600 sm:text-sm">参加上限人数を入力してください</FormDescription>
-              <FormMessage className="text-xs sm:text-sm" />
+              <FormDescription className="form-description-custom">参加上限人数を入力してください</FormDescription>
+              <FormMessage className="form-message-custom" />
             </FormItem>
           )}
         />
 
         <div className="flex gap-4">
-          <Button type="submit" className="bg-app hover:bg-app/80 text-white" disabled={form.formState.isSubmitting}>
+          <Button type="submit" className="button-default-custom" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? "更新中..." : "グループを更新"}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>

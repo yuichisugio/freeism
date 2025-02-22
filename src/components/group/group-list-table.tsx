@@ -154,7 +154,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                   <div className="flex gap-2">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-app hover:bg-app/10" disabled={group.members.length > 0}>
+                        <Button variant="outline" size="sm" className="button-join-custom" disabled={group.members.length > 0}>
                           <UserPlus className="mr-1 h-4 w-4" />
                           {group.members.length > 0 ? "参加中" : "参加"}
                         </Button>
@@ -167,7 +167,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                         <AlertDialogFooter>
                           <AlertDialogCancel>キャンセル</AlertDialogCancel>
                           <AlertDialogAction asChild>
-                            <Button onClick={() => handleJoin(group.id)} className="bg-app hover:bg-app/90 text-white">
+                            <Button onClick={() => handleJoin(group.id)} className="button-default-custom">
                               参加する
                             </Button>
                           </AlertDialogAction>
@@ -176,14 +176,14 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                     </AlertDialog>
 
                     {/* 編集ボタンを追加 */}
-                    <Button variant="outline" size="sm" className="text-yellow-500 hover:bg-yellow-50" onClick={() => router.push(`/dashboard/edit-group/${group.id}`)}>
+                    <Button variant="outline" size="sm" className="button-edit-custom" onClick={() => router.push(`/dashboard/edit-group/${group.id}`)}>
                       <Edit className="h-4 w-4" />
                     </Button>
 
                     {/* 削除ボタンを追加 */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-red-500 hover:bg-red-50">
+                        <Button variant="outline" size="sm" className="button-danger-custom">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>

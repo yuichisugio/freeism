@@ -8,7 +8,7 @@ export function LogoutButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button type="button" variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200">
+        <Button type="button" variant="outline" className="button-outline-custom">
           ログアウト
         </Button>
       </AlertDialogTrigger>
@@ -19,7 +19,7 @@ export function LogoutButton() {
         <AlertDialogFooter>
           <AlertDialogCancel>キャンセル</AlertDialogCancel>
           <AlertDialogAction asChild>
-            <Button onClick={() => signOut({ callbackUrl: "/" })} className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white">
+            <Button onClick={() => signOut({ callbackUrl: "/" })} className="button-default-custom">
               ログアウト
             </Button>
           </AlertDialogAction>

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Settings - Freeism App",
@@ -27,27 +28,27 @@ export default async function SettingsPage() {
     <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
       {/* 現在の設定情報 */}
       {userSettings && (
-        <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
-          <h2 className="text-app mb-4 text-lg font-semibold sm:text-xl">現在の設定</h2>
+        <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
+          <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">現在の設定</h2>
           <dl className="space-y-4">
             <div>
-              <dt className="text-app text-sm font-semibold">ユーザー名</dt>
-              <dd className="mt-1 text-sm text-neutral-900">{userSettings.username}</dd>
+              <dt className="form-label-custom">ユーザー名</dt>
+              <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{userSettings.username}</dd>
             </div>
             <div>
-              <dt className="text-app text-sm font-semibold">人生の目標</dt>
-              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900">{userSettings.lifeGoal}</dd>
+              <dt className="form-label-custom">人生の目標</dt>
+              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">{userSettings.lifeGoal}</dd>
             </div>
             <div>
-              <dt className="text-app text-sm font-semibold">最終更新日</dt>
-              <dd className="mt-1 text-sm text-neutral-900">{new Date(userSettings.updatedAt).toLocaleDateString("ja-JP")}</dd>
+              <dt className="form-label-custom">最終更新日</dt>
+              <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{new Date(userSettings.updatedAt).toLocaleDateString("ja-JP")}</dd>
             </div>
           </dl>
         </div>
       )}
 
       {/* フォームコンテナ */}
-      <div className="rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
+      <div className="rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
         <SetupForm initialData={userSettings} />
       </div>
     </MainTemplate>

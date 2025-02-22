@@ -15,7 +15,7 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
-  // mounted になる前は何もレンダリングしない
+  // mounted になる前は何もレンダリングしない。それによりクライアントとサーバーコンポーネントのテーマのハイドレーションのエラーを防ぐ
   if (!mounted) {
     return null;
   }
@@ -59,7 +59,7 @@ export function ThemeToggle() {
   };
 
   return (
-    <Button variant="outline" size="default" onClick={toggleTheme} className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200" aria-label="テーマ切り替え">
+    <Button variant="outline" size="default" onClick={toggleTheme} className="button-outline-custom" aria-label="テーマ切り替え">
       <ThemeIcon />
     </Button>
   );

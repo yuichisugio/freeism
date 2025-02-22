@@ -125,7 +125,7 @@ export function Sidebar() {
         <AlertDialogFooter>
           <AlertDialogCancel>キャンセル</AlertDialogCancel>
           <AlertDialogAction asChild>
-            <Button onClick={() => signOut({ callbackUrl: "/" })} className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+            <Button onClick={() => signOut({ callbackUrl: "/" })} className="button-default-custom">
               ログアウト
             </Button>
           </AlertDialogAction>

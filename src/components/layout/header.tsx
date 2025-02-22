@@ -37,7 +37,7 @@ export async function Header() {
           {session ? (
             // ログイン済みの場合はダッシュボードへのリンクを表示
             <>
-              <Button variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200" asChild>
+              <Button variant="outline" asChild className="button-outline-custom">
                 <Link href="/dashboard/grouplist">Dashboard</Link>
               </Button>
               <LogoutButton />
