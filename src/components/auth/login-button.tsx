@@ -6,10 +6,7 @@ import { signIn } from "next-auth/react";
 // ログインボタンの引数は入れない。カスタムログインページに遷移させたいため。
 export function LoginButton() {
   return (
-    <Button
-      onClick={() => signIn()}
-      className="bg-blue-600 text-white hover:bg-blue-700"
-    >
+    <Button variant="outline" onClick={() => signIn()} className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white">
       利用する
     </Button>
   );
