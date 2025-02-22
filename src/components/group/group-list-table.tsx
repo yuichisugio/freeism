@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteGroup, joinGroup } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -204,7 +205,11 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                     </AlertDialog>
                   </div>
                 </td>
-                <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{group.name}</td>
+                <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">
+                  <Link href={`/dashboard/group/${group.id}`} className="hover:underline">
+                    {group.name}
+                  </Link>
+                </td>
                 <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.maxParticipants}人</td>
                 <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.evaluationMethod}</td>
                 <td className="px-5 py-3 text-sm text-neutral-600">{group.goal}</td>

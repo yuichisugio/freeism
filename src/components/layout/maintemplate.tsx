@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 export function MainTemplate({ title, description, component, children }: { title: string; description: string; component?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen flex-col">
-      <div className="absolute inset-0 -translate-x-1/2 overflow-hidden rounded-full bg-blue-100/30 blur-3xl dark:bg-blue-900/30" />
+      <div className="absolute inset-0 translate-x-1/2 overflow-hidden rounded-full bg-blue-100/30 blur-3xl dark:bg-blue-900/30" />
       <Header />
       <div className="flex flex-1">
         <Sidebar />

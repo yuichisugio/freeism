@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { leaveGroup } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -128,7 +129,11 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </td>
-                  <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{membership.group.name}</td>
+                  <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">
+                    <Link href={`/dashboard/group/${membership.group.id}`} className="hover:underline">
+                      {membership.group.name}
+                    </Link>
+                  </td>
                   <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{membership.group.maxParticipants}人</td>
                   <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{membership.group.evaluationMethod}</td>
                   <td className="px-5 py-3 text-sm text-neutral-600">{membership.group.goal}</td>
