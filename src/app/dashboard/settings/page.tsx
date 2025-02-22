@@ -24,40 +24,23 @@ export default async function SettingsPage() {
   });
 
   return (
-    <MainTemplate
-      title="Settings"
-      description="アカウント設定とプロフィールを管理します"
-    >
+    <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
       {/* 現在の設定情報 */}
       {userSettings && (
         <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8">
-          <h2 className="mb-4 text-lg font-semibold text-blue-900 sm:text-xl">
-            現在の設定
-          </h2>
+          <h2 className="text-app mb-4 text-lg font-semibold sm:text-xl">現在の設定</h2>
           <dl className="space-y-4">
             <div>
-              <dt className="text-sm font-medium text-neutral-900">
-                ユーザー名
-              </dt>
-              <dd className="mt-1 text-sm text-neutral-900">
-                {userSettings.username}
-              </dd>
+              <dt className="text-app text-sm font-semibold">ユーザー名</dt>
+              <dd className="mt-1 text-sm text-neutral-900">{userSettings.username}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-neutral-900">
-                人生の目標
-              </dt>
-              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900">
-                {userSettings.lifeGoal}
-              </dd>
+              <dt className="text-app text-sm font-semibold">人生の目標</dt>
+              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900">{userSettings.lifeGoal}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-neutral-900">
-                最終更新日
-              </dt>
-              <dd className="mt-1 text-sm text-neutral-900">
-                {new Date(userSettings.updatedAt).toLocaleDateString("ja-JP")}
-              </dd>
+              <dt className="text-app text-sm font-semibold">最終更新日</dt>
+              <dd className="mt-1 text-sm text-neutral-900">{new Date(userSettings.updatedAt).toLocaleDateString("ja-JP")}</dd>
             </div>
           </dl>
         </div>

@@ -116,29 +116,29 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
           {/* テーブルヘッダー */}
           <thead>
             <tr className="border-b border-blue-100 bg-blue-50/50">
-              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+              <th className="text-app px-5 py-3 text-left text-sm font-medium">
                 <span className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">参加</span>
               </th>
-              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
+              <th className="text-app px-5 py-3 text-left text-sm font-medium">
                 <button onClick={() => sortData("name")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                   GROUP NAME
                   <ArrowUpDown className="ml-1 h-4 w-4" />
                 </button>
               </th>
-              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                <button onClick={() => sortData("maxParticipants")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+              <th className="text-app px-5 py-3 text-left text-sm font-medium">
+                <button onClick={() => sortData("maxParticipants")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                   参加人数
                   <ArrowUpDown className="ml-1 h-4 w-4" />
                 </button>
               </th>
-              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                <button onClick={() => sortData("evaluationMethod")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+              <th className="text-app px-5 py-3 text-left text-sm font-medium">
+                <button onClick={() => sortData("evaluationMethod")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                   KPI
                   <ArrowUpDown className="ml-1 h-4 w-4" />
                 </button>
               </th>
-              <th className="px-5 py-3 text-left text-sm font-medium text-blue-900">
-                <button onClick={() => sortData("goal")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+              <th className="text-app px-5 py-3 text-left text-sm font-medium">
+                <button onClick={() => sortData("goal")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                   DESCRIPTION
                   <ArrowUpDown className="ml-1 h-4 w-4" />
                 </button>
@@ -204,7 +204,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
                     </AlertDialog>
                   </div>
                 </td>
-                <td className="px-5 py-3 text-sm font-medium whitespace-nowrap text-blue-900">{group.name}</td>
+                <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{group.name}</td>
                 <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.maxParticipants}人</td>
                 <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.evaluationMethod}</td>
                 <td className="px-5 py-3 text-sm text-neutral-600">{group.goal}</td>

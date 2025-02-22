@@ -1,11 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // クライアント側でのみマウントされたことを検知する
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // mounted になる前は何もレンダリングしない
+  if (!mounted) {
+    return null;
+  }
 
   // テーマを順番に切り替える関数
   const toggleTheme = () => {
