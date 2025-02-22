@@ -81,7 +81,7 @@ export function Sidebar() {
         <div className="space-y-4 py-4">
           {sidebarItems.map((section) => (
             <div key={section.title} className="px-3 py-3">
-              <h2 className="px-3 text-lg font-semibold tracking-tight dark:text-gray-200">{section.title}</h2>
+              <h2 className="text-app px-3 text-lg font-semibold tracking-tight dark:text-gray-200">{section.title}</h2>
               {section.items.map((item) =>
                 item.isLogout ? (
                   <AlertDialogTrigger key={item.title} asChild>

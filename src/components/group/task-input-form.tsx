@@ -38,6 +38,7 @@ export function TaskInputForm({ groupId }: TaskInputFormProps) {
       reference: "",
       contributionType: "REWARD",
     },
+    mode: "onSubmit",
   });
 
   // フォーム送信時の処理
@@ -127,12 +128,12 @@ export function TaskInputForm({ groupId }: TaskInputFormProps) {
           )}
         />
 
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-start gap-4">
+          <Button type="submit" className="button-default-custom" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "保存中..." : "保存"}
+          </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
             キャンセル
-          </Button>
-          <Button type="submit" className="button-default-custom">
-            {form.formState.isSubmitting ? "保存中..." : "保存"}
           </Button>
         </div>
       </form>

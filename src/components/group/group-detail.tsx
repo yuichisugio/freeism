@@ -179,7 +179,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
               <tbody>
                 {group.tasks.map((task) => (
                   <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{task.user.name || "-"}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap">{task.user.name || "-"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.task}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint ? `${task.contributionPoint}p` : "評価待ち"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.evaluator || "-"}</td>
@@ -223,7 +223,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
               <tbody>
                 {group.supplies.map((supply) => (
                   <tr key={supply.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{supply.name}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap">{supply.name}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.user.name || "-"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.currentPoint}p</td>
                   </tr>

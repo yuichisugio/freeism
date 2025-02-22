@@ -11,7 +11,6 @@ type MainTemplateProps = {
 export function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   return (
     <div className="relative flex min-h-screen flex-col">
-      <div className="absolute inset-0 translate-x-1/2 overflow-hidden rounded-full bg-blue-100/30 blur-3xl dark:bg-blue-900/30" />
       <Header />
       <div className="flex flex-1">
         <Sidebar />
