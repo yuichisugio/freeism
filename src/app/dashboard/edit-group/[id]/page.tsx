@@ -20,9 +20,7 @@ export const metadata: Metadata = {
  * EditGroupPageProps の params をプレーンオブジェクトではなく、Promiseとして扱うように変更します。
  */
 type EditGroupPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
 /**

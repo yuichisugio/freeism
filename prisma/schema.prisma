@@ -27,6 +27,8 @@ model User {
   settings      UserSettings?
   groups        Group[]
   memberships   GroupMembership[]
+  tasks         Task[]
+  supplies      Supply[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,6 +96,8 @@ model Group {
   createdBy         String
   user              User     @relation(fields: [createdBy], references: [id])
   members           GroupMembership[]
+  tasks             Task[]
+  supplies          Supply[]
 
   @@index([createdBy])
 }
@@ -107,6 +111,44 @@ model GroupMembership {
   group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+model Task {
+  id               String    @id @default(cuid())
+  task            String
+  reference       String?
+  status          String    @default("PENDING") // PENDING, EVALUATED
+  contributionPoint Int?
+  evaluator       String?
+  evaluationLogic String?
+  contributionType String    @default("NON_REWARD") // "REWARD" or "NON_REWARD"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  group           Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId         String
+  supply          Supply?
+
+  @@index([userId])
+  @@index([groupId])
+}
+
+model Supply {
+  id              String    @id @default(cuid())
+  name            String
+  currentPoint    Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  group           Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId         String
+
   @@index([userId])
   @@index([groupId])
 }

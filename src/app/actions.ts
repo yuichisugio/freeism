@@ -2,10 +2,11 @@
 
 import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
+import type { TaskFormValues } from "@/components/group/task-input-form";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { createGroupSchema, setupSchema } from "@/lib/zod-schema";
+import { createGroupSchema, setupSchema, taskFormSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
 /**
@@ -341,5 +342,106 @@ export async function getGroup(groupId: string) {
   } catch (error) {
     console.error("[GET_GROUP]", error);
     throw error;
+  }
+}
+
+/**
+ * タスクを作成する関数
+ * @param data - タスクのデータ
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function createTaskAndSupply(data: TaskFormValues, groupId: string) {
+  try {
+    // 認証セッションを取得
+    const session = await auth();
+
+    // 認証セッションが取得できない場合
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // バリデーション
+    if (!data || !groupId) {
+      return { error: "必須項目が入力されていません" };
+    }
+
+    // タスクを作成
+    const newTask = await prisma.task.create({
+      data: {
+        task: data.task,
+        reference: data.reference,
+        contributionType: data.contributionType,
+        userId: session.user.id,
+        groupId: groupId,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // 報酬になる貢献の場合は、報酬も作成
+    if (data.contributionType === "REWARD") {
+      await prisma.supply.create({
+        data: {
+          name: data.task,
+          taskId: newTask.id,
+          userId: session.user.id,
+          groupId: groupId,
+        },
+      });
+    }
+
+    revalidatePath(`/dashboard/group/${groupId}`);
+    return { success: true, task: newTask };
+  } catch (error) {
+    console.error("[CREATE_TASK]", error);
+    return { error: "タスクの作成中にエラーが発生しました" };
+  }
+}
+
+/**
+ * グループの詳細情報を取得する関数
+ * @param groupId - グループID
+ * @returns グループの詳細情報
+ */
+export async function getGroupDetails(groupId: string) {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      include: {
+        members: true,
+        tasks: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        supplies: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!group) {
+      throw new Error("グループが見つかりません");
+    }
+
+    return group;
+  } catch (error) {
+    console.error("[GET_GROUP_DETAILS]", error);
+    throw new Error("グループ情報の取得中にエラーが発生しました");
   }
 }

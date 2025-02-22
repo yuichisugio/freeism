@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { joinGroup } from "@/app/actions";
+import { getGroupDetails, joinGroup } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Download, Upload, UserPlus } from "lucide-react";
@@ -10,18 +10,24 @@ import { toast } from "sonner";
 
 type Task = {
   id: string;
-  name: string;
   task: string;
-  contributionPoint: number;
-  evaluator: string;
-  evaluationLogic: string;
+  reference: string | null;
+  status: string;
+  contributionPoint: number | null;
+  evaluator: string | null;
+  evaluationLogic: string | null;
+  user: {
+    name: string | null;
+  };
 };
 
 type Supply = {
   id: string;
   name: string;
-  provider: string;
   currentPoint: number;
+  user: {
+    name: string | null;
+  };
 };
 
 type Group = {
@@ -36,110 +42,26 @@ type Group = {
 };
 
 type GroupDetailProps = {
-  groupId: string;
+  groupInfo: Group;
 };
 
-export function GroupDetail({ groupId }: GroupDetailProps) {
+export function GroupDetail({ groupInfo }: GroupDetailProps) {
   const router = useRouter();
-
-  // グループ情報を取得
-  const [group, setGroup] = useState<Group>({
-    id: groupId,
-    name: "幸福度は天下一",
-    goal: "幸福度を最大化することを目指したグループです。初心者の方も大歓迎なのでぜひ気軽にご参加ください！",
-    evaluationMethod: "幸福度の向上",
-    maxParticipants: 140,
-    members: [],
-    tasks: [
-      {
-        id: "1",
-        name: "杉尾優一",
-        task: "〇〇を行った",
-        contributionPoint: 150,
-        evaluator: "トム・クルーズ",
-        evaluationLogic: "100+55-5=150p",
-      },
-      {
-        id: "2",
-        name: "杉尾優一",
-        task: "〇〇を行った",
-        contributionPoint: 150,
-        evaluator: "トム・クルーズ",
-        evaluationLogic: "100+55-5=150p",
-      },
-      {
-        id: "3",
-        name: "杉尾優一",
-        task: "〇〇を行った",
-        contributionPoint: 150,
-        evaluator: "トム・クルーズ",
-        evaluationLogic: "100+55-5=150p",
-      },
-    ],
-    supplies: [
-      {
-        id: "1",
-        name: "ご飯",
-        provider: "杉尾",
-        currentPoint: 150,
-      },
-      {
-        id: "2",
-        name: "家",
-        provider: "杉尾",
-        currentPoint: 150,
-      },
-      {
-        id: "3",
-        name: "服",
-        provider: "杉尾",
-        currentPoint: 150,
-      },
-    ],
-  });
-
-  const [sortTaskConfig, setSortTaskConfig] = useState<{
-    key: keyof Task;
-    direction: "asc" | "desc";
-  } | null>(null);
-
-  const [sortSupplyConfig, setSortSupplyConfig] = useState<{
-    key: keyof Supply;
-    direction: "asc" | "desc";
-  } | null>(null);
+  const [group, setGroup] = useState<Group>(groupInfo);
 
   // タスクのソート関数
   function sortTaskData(key: keyof Task) {
-    let direction: "asc" | "desc" = "asc";
-    if (sortTaskConfig && sortTaskConfig.key === key && sortTaskConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortTaskConfig({ key, direction });
-
     const sortedTasks = [...group.tasks].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-      return 0;
+      const aValue = a[key];
+      const bValue = b[key];
+
+      if (aValue === null || bValue === null) return 0;
+      if (typeof aValue === "object" || typeof bValue === "object") return 0;
+
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
     });
 
-    setGroup((prev) => ({ ...prev, tasks: sortedTasks }));
-  }
-
-  // 報酬のソート関数
-  function sortSupplyData(key: keyof Supply) {
-    let direction: "asc" | "desc" = "asc";
-    if (sortSupplyConfig && sortSupplyConfig.key === key && sortSupplyConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortSupplyConfig({ key, direction });
-
-    const sortedSupplies = [...group.supplies].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setGroup((prev) => ({ ...prev, supplies: sortedSupplies }));
+    setGroup({ ...group, tasks: sortedTasks });
   }
 
   // グループ参加処理
@@ -149,10 +71,7 @@ export function GroupDetail({ groupId }: GroupDetailProps) {
 
       if (result.success) {
         toast.success("グループに参加しました");
-        setGroup((prev) => ({
-          ...prev,
-          members: [...prev.members, { id: "temp" }],
-        }));
+        router.refresh();
       } else if (result.error) {
         toast.error(result.error);
       }
@@ -203,7 +122,9 @@ export function GroupDetail({ groupId }: GroupDetailProps) {
 
       {/* アクションボタン */}
       <div className="flex flex-wrap gap-2">
-        <Button className="button-default-custom">貢献タスク入力</Button>
+        <Button className="button-default-custom" onClick={() => router.push(`/dashboard/group/${group.id}/task/new`)}>
+          貢献タスク入力
+        </Button>
         <Button className="button-default-custom">貢献評価</Button>
         <Button className="button-default-custom">
           <Download className="mr-2 h-4 w-4" />
@@ -224,7 +145,7 @@ export function GroupDetail({ groupId }: GroupDetailProps) {
               <thead>
                 <tr className="border-b border-blue-100 bg-blue-50/50">
                   <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("name")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                    <button onClick={() => sortTaskData("task")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                       NAME
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
@@ -258,11 +179,11 @@ export function GroupDetail({ groupId }: GroupDetailProps) {
               <tbody>
                 {group.tasks.map((task) => (
                   <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{task.name}</td>
+                    <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{task.user.name || "-"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.task}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint}p</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.evaluator}</td>
-                    <td className="px-5 py-3 text-sm text-neutral-600">{task.evaluationLogic}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint ? `${task.contributionPoint}p` : "評価待ち"}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.evaluator || "-"}</td>
+                    <td className="px-5 py-3 text-sm text-neutral-600">{task.evaluationLogic || "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -280,19 +201,19 @@ export function GroupDetail({ groupId }: GroupDetailProps) {
               <thead>
                 <tr className="border-b border-blue-100 bg-blue-50/50">
                   <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortSupplyData("name")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                    <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                       NAME
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
                   </th>
                   <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortSupplyData("provider")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                    <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                       提供者
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
                   </th>
                   <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortSupplyData("currentPoint")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                    <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                       現在の入札額 Point
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
@@ -303,7 +224,7 @@ export function GroupDetail({ groupId }: GroupDetailProps) {
                 {group.supplies.map((supply) => (
                   <tr key={supply.id} className="border-b border-blue-50 hover:bg-blue-50/50">
                     <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">{supply.name}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.provider}</td>
+                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.user.name || "-"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.currentPoint}p</td>
                   </tr>
                 ))}

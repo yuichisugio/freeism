@@ -1,7 +1,14 @@
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 
-export function MainTemplate({ title, description, component, children }: { title: string; description: string; component?: React.ReactNode; children: React.ReactNode }) {
+type MainTemplateProps = {
+  title: string | boolean;
+  description: string | boolean;
+  component?: React.ReactNode;
+  children: React.ReactNode;
+};
+
+export function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   return (
     <div className="relative flex min-h-screen flex-col">
       <div className="absolute inset-0 translate-x-1/2 overflow-hidden rounded-full bg-blue-100/30 blur-3xl dark:bg-blue-900/30" />
@@ -12,10 +19,12 @@ export function MainTemplate({ title, description, component, children }: { titl
           <div className="container space-y-5 px-8 py-5 sm:space-y-0">
             {/* 説明文の横に並べて表示したいボタンがある場合は、componentを渡す */}
             <div className="flex flex-col justify-between sm:flex-row">
-              <div>
-                <h1 className="page-title-custom">{title}</h1>
-                <p className="page-description-custom">{description}</p>
-              </div>
+              {title && description && (
+                <div>
+                  <h1 className="page-title-custom">{title}</h1>
+                  <p className="page-description-custom">{description}</p>
+                </div>
+              )}
               {component && component}
             </div>
             {children}

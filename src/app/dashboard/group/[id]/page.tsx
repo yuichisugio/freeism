@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { getGroupDetails } from "@/app/actions";
 import { GroupDetail } from "@/components/group/group-detail";
 import { GroupDetailSkeleton } from "@/components/group/group-detail-skeleton";
 import { MainTemplate } from "@/components/layout/maintemplate";
+
+export const metadata: Metadata = {
+  title: "グループ詳細 - Freeism App",
+  description: "グループの詳細を表示します",
+};
 
 type GroupDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -11,13 +19,19 @@ export default async function GroupDetailPage({ params }: GroupDetailPageProps) 
   // パラメータを取得
   const { id } = await params;
 
+  // グループの詳細を取得
+  const group = await getGroupDetails(id);
+
+  // グループが見つからない場合は404エラーを返す
+  if (!group) {
+    notFound();
+  }
+
   return (
-    <MainTemplate title="グループ詳細" description="グループの詳細を表示します">
-      <div className="container py-6">
-        <Suspense fallback={<GroupDetailSkeleton />}>
-          <GroupDetail groupId={id} />
-        </Suspense>
-      </div>
+    <MainTemplate title={false} description={false}>
+      <Suspense fallback={<GroupDetailSkeleton />}>
+        <GroupDetail groupInfo={group} />
+      </Suspense>
     </MainTemplate>
   );
 }
