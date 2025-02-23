@@ -30,6 +30,7 @@ type GroupListTableProps = {
 export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
   // ルーティング
   const router = useRouter();
+
   // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
   const [groups, setGroups] = useState(initialGroups);
 
@@ -84,7 +85,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     {
       key: "id" as keyof Group,
       header: "参加",
-      sortable: false,
+      sortable: true,
       cell: (row: Group) => (
         <div className="flex gap-2">
           <AlertDialog>

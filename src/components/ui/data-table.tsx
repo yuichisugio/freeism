@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ArrowUpDown } from "lucide-react";
 
+// 列の型定義
 type Column<T extends Record<string, unknown>> = {
   key: keyof T;
   header: string;
@@ -10,6 +12,7 @@ type Column<T extends Record<string, unknown>> = {
   className?: string;
 };
 
+// テーブル全体の型定義
 type DataTableProps<T extends Record<string, unknown>> = {
   data: T[];
   columns: Column<T>[];
@@ -23,7 +26,9 @@ type DataTableProps<T extends Record<string, unknown>> = {
   cellClassName?: string;
 };
 
+// DataTableコンポーネント
 export function DataTable<T extends Record<string, unknown>>({
+  // コンポーネントの引数
   data: initialData,
   columns,
   className = "",
@@ -34,8 +39,13 @@ export function DataTable<T extends Record<string, unknown>>({
   rowClassName = "border-b border-blue-50 hover:bg-blue-50/50",
   headerClassName = "border-b border-blue-100 bg-blue-50/50",
   cellClassName = "px-5 py-3 text-sm whitespace-nowrap text-neutral-600",
+
+  // コンポーネントの型定義
 }: DataTableProps<T>) {
+  // データの状態管理
   const [data, setData] = useState(initialData);
+
+  // ソートの状態管理
   const [sortConfig, setSortConfig] = useState<{
     key: keyof T;
     direction: "asc" | "desc";
@@ -99,14 +109,14 @@ export function DataTable<T extends Record<string, unknown>>({
   }
 
   return (
-    <div className={`rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm ${className}`}>
-      <div className={`${maxHeight || (pagination ? "h-[calc(100vh-16rem)]" : "")} overflow-y-auto`}>
+    <div className={cn("rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
+      <div className={cn(maxHeight || (pagination ? "h-[calc(100vh-16rem)]" : ""), "overflow-y-auto")}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="sticky top-0 bg-white">
               <tr className={headerClassName}>
                 {columns.map((column, index) => (
-                  <th key={index} className={`px-5 py-3 text-left text-sm font-medium ${column.className || ""}`}>
+                  <th key={index} className={cn("px-5 py-3 text-left text-sm font-medium", column.className)}>
                     {column.sortable ? (
                       <button onClick={() => handleSort(column.key)} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                         {column.header}
@@ -123,7 +133,7 @@ export function DataTable<T extends Record<string, unknown>>({
               {data.map((row, rowIndex) => (
                 <tr key={rowIndex} className={rowClassName}>
                   {columns.map((column, colIndex) => (
-                    <td key={colIndex} className={`${cellClassName} ${column.className || ""}`}>
+                    <td key={colIndex} className={cn(cellClassName, column.className)}>
                       {column.cell(row)}
                     </td>
                   ))}
