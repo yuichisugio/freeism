@@ -17,13 +17,7 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: [
-      "node_modules/",
-      "dist/",
-      ".next/",
-      ".eslintrc.js",
-      "src/components/ui/",
-    ],
+    ignores: ["node_modules/", "dist/", ".next/", ".eslintrc.js", "src/components/ui/"],
   },
   ...compat.extends("next/core-web-vitals"),
   {
@@ -45,10 +39,7 @@ export default [
           fixStyle: "inline-type-imports",
         },
       ],
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-misused-promises": [
@@ -57,18 +48,12 @@ export default [
           checksVoidReturn: { attributes: false },
         },
       ],
-      "func-style": ["error", "declaration", { allowArrowFunctions: false }],
-      "prefer-arrow-callback": ["error", { allowNamedFunctions: false }],
+      "func-style": ["error", "declaration", { allowArrowFunctions: true }],
+      "prefer-arrow-callback": ["error", { allowNamedFunctions: true }],
     },
   },
   {
-    files: [
-      "**/page.tsx",
-      "**/layout.tsx",
-      "next.config.js",
-      "postcss.config.js",
-      "tailwind.config.ts",
-    ],
+    files: ["**/page.tsx", "**/layout.tsx", "next.config.js", "postcss.config.js", "tailwind.config.ts"],
     rules: {
       "import/no-default-export": "off",
       "import/prefer-default-export": "error",

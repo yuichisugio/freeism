@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { exportGroupTask, getGroupDetails, joinGroup } from "@/app/actions";
+import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Download, Upload, UserPlus } from "lucide-react";
@@ -49,6 +50,7 @@ type GroupDetailProps = {
 export function GroupDetail({ groupInfo }: GroupDetailProps) {
   const router = useRouter();
   const [group, setGroup] = useState<Group>(groupInfo);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // タスクのソート関数
   function sortTaskData(key: keyof Task) {
@@ -104,10 +106,6 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     }
   }
 
-  async function onUpload() {
-    console.log("Upload");
-  }
-
   return (
     <div className="space-y-6">
       {/* グループ情報 */}
@@ -157,7 +155,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
           <Download />
           Export
         </Button>
-        <Button className="button-default-custom" onClick={() => onUpload()}>
+        <Button className="button-default-custom" onClick={() => setIsUploadModalOpen(true)}>
           <Upload />
           Upload
         </Button>
@@ -260,6 +258,9 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* CSVアップロードモーダル */}
+      {isUploadModalOpen && <CsvUploadModal isOpen={isUploadModalOpen} onCloseAction={setIsUploadModalOpen} groupId={group.id} />}
     </div>
   );
 }

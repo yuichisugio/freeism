@@ -469,3 +469,89 @@ export async function exportGroupTask(groupId: string) {
     throw new Error("グループのTask情報のエクスポート中にエラーが発生しました");
   }
 }
+
+/**
+ * CSVからタスクを一括登録する関数
+ * @param data - CSVから読み込んだタスクデータ
+ * @param groupId - グループID
+ * @param userId - ユーザーID
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function bulkCreateTasks(data: any[], groupId: string, userId: string) {
+  try {
+    // トランザクションを使用してデータを一括登録
+    const result = await prisma.$transaction(async (tx) => {
+      const tasks = await Promise.all(
+        data.map(async (row) => {
+          // タスクを作成
+          const task = await tx.task.create({
+            data: {
+              task: row.task,
+              reference: row.reference,
+              contributionType: "NON_REWARD",
+              userId: userId,
+              groupId: groupId,
+            },
+            include: {
+              user: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          });
+          return task;
+        }),
+      );
+      return tasks;
+    });
+
+    return { success: true, tasks: result };
+  } catch (error) {
+    console.error("[BULK_CREATE_TASKS]", error);
+    return { error: "タスクの一括登録中にエラーが発生しました" };
+  }
+}
+
+/**
+ * CSVから貢献評価を一括登録する関数
+ * @param data - CSVから読み込んだ評価データ
+ * @param groupId - グループID
+ * @param userId - ユーザーID
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function bulkCreateEvaluations(data: any[], groupId: string, userId: string) {
+  try {
+    // トランザクションを使用してデータを一括登録
+    const result = await prisma.$transaction(async (tx) => {
+      const evaluations = await Promise.all(
+        data.map(async (row) => {
+          // タスクを更新
+          const task = await tx.task.update({
+            where: { id: row.taskId },
+            data: {
+              status: "EVALUATED",
+              contributionPoint: parseInt(row.contributionPoint),
+              evaluator: userId,
+              evaluationLogic: row.evaluationLogic,
+            },
+            include: {
+              user: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          });
+          return task;
+        }),
+      );
+      return evaluations;
+    });
+
+    return { success: true, evaluations: result };
+  } catch (error) {
+    console.error("[BULK_CREATE_EVALUATIONS]", error);
+    return { error: "貢献評価の一括登録中にエラーが発生しました" };
+  }
+}
