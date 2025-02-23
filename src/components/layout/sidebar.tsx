@@ -34,8 +34,8 @@ const sidebarItems = [
         icon: UserCircle,
       },
       {
-        title: "Task入力",
-        href: "/dashboard/tasks",
+        title: "My Task一覧",
+        href: "/dashboard/my-tasks",
         icon: PlusCircle,
       },
     ],

@@ -411,15 +411,6 @@ export async function getGroupDetails(groupId: string) {
             },
           },
         },
-        supplies: {
-          include: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
       },
     });
 

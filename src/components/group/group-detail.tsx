@@ -6,7 +6,7 @@ import { exportGroupTask, getGroupDetails, joinGroup, updateTaskStatus } from "@
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { ArrowUpDown, Check, ChevronsUpDown, Download, Upload, UserPlus } from "lucide-react";
@@ -27,15 +27,6 @@ type Task = {
   };
 };
 
-type Supply = {
-  id: string;
-  name: string;
-  currentPoint: number;
-  user: {
-    name: string | null;
-  };
-};
-
 type Group = {
   id: string;
   name: string;
@@ -44,7 +35,6 @@ type Group = {
   maxParticipants: number;
   members: { id: string }[];
   tasks: Task[];
-  supplies: Supply[];
 };
 
 type GroupDetailProps = {
@@ -60,7 +50,7 @@ const taskStatuses = [
   { label: "Group外レビュー完了", value: "EXTERNAL_REVIEW_COMPLETED" },
   { label: "ポイント付与完了", value: "POINTS_AWARDED" },
   { label: "アーカイブ", value: "ARCHIVED" },
-];
+] as const;
 
 export function GroupDetail({ groupInfo }: GroupDetailProps) {
   const router = useRouter();
@@ -132,12 +122,18 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
           ...prevGroup,
           tasks: prevGroup.tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)),
         }));
+        toast.success("ステータスを更新しました");
+      } else if (result.error) {
+        toast.error(result.error);
       }
 
-      toast.success("ステータスを更新しました");
+      // ConboBoxを閉じる
+      setOpenStatus(null);
     } catch (error) {
       console.error(error);
       toast.error("ステータスの更新に失敗しました");
+      // ConboBoxを閉じる
+      setOpenStatus(null);
     }
   }
 
@@ -195,7 +191,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       {/* タスク一覧 */}
       <div>
         <h2 className="text-app mb-4 text-xl font-semibold">Task一覧</h2>
-        <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
+        <div className="h-[500px] overflow-y-auto rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -230,9 +226,15 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
                   </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">ステータス</th>
+                  <th className="text-app px-5 py-3 text-left text-sm font-medium">
+                    <button onClick={() => sortTaskData("status")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                      ステータス
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
+                    </button>
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
                 {group.tasks.map((task) => (
                   <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
@@ -243,33 +245,31 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
                     <td className="px-5 py-3 text-sm text-neutral-600">{task.evaluationLogic || "-"}</td>
 
                     {/* ステータス変更ポップオーバー */}
-                    <td className="px-5 py-3 text-sm text-neutral-600">
-                      <Popover open={openStatus === task.id} onOpenChange={(isOpen) => setOpenStatus(isOpen ? task.id : null)}>
+                    <td className="py-3 text-sm text-neutral-600">
+                      {/* open属性は、現在ポップオーバーが開いているかどうかを管理します。ここでは、openStatus という状態がタスクの ID と一致する場合に、そのタスクのポップオーバーを開く仕組みになっています。つまり、複数のタスクがある中で、どのタスクのステータス変更ポップオーバーが現在開かれているかを判断しています。 */}
+                      {/* onOpenChangeは、ポップオーバーの開閉状態が変化した際に呼び出されるコールバック関数。isOpenがtrueの場合はそのタスクのIDを入れ、falseの場合はnullを設定。これにより、開いているポップオーバーが一つだけであることを保証します。 */}
+                      <Popover open={openStatus === task.id} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? task.id : null)}>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" role="combobox" aria-expanded={openStatus === task.id} className="w-[200px] justify-between">
+                          <Button variant="outline" role="combobox" className="mr-3">
                             {task.status ? taskStatuses.find((status) => status.value === task.status)?.label : "ステータスを選択"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronsUpDown />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[200px] p-0">
                           <Command>
                             <CommandInput placeholder="ステータスを検索..." />
-                            <CommandEmpty>ステータスが見つかりません</CommandEmpty>
-                            <CommandGroup>
-                              {taskStatuses.map((status) => (
-                                <CommandItem
-                                  key={status.value}
-                                  value={status.value}
-                                  onSelect={() => {
-                                    handleStatusChange(task.id, status.value);
-                                    setOpenStatus(null);
-                                  }}
-                                >
-                                  <Check className={cn("mr-2 h-4 w-4", task.status === status.value ? "opacity-100" : "opacity-0")} />
-                                  {status.label}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
+                            <CommandList>
+                              <CommandEmpty>ステータスが見つかりません</CommandEmpty>
+                              <CommandGroup>
+                                {taskStatuses.map((status) => (
+                                  // valueにLabelを設定することで、Labelの値で検索に引っ掛かるようにしている
+                                  <CommandItem key={status.value} value={status.label} onSelect={() => handleStatusChange(task.id, status.value)}>
+                                    <Check className={cn("mr-2 h-4 w-4", task.status === status.value ? "opacity-100" : "opacity-0")} />
+                                    {status.label}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
                           </Command>
                         </PopoverContent>
                       </Popover>
