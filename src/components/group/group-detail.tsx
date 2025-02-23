@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { exportGroupTask, getGroupDetails, joinGroup, updateTaskStatus } from "@/app/actions";
+import { exportGroupTask, joinGroup } from "@/app/actions";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { GroupTasksTable } from "@/components/task/group-tasks-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { DataTable } from "@/components/ui/data-table";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { ArrowUpDown, Check, ChevronsUpDown, Download, Upload, UserPlus } from "lucide-react";
+import { Download, Upload, UserPlus } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -183,7 +180,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       </div>
 
       {/* CSVアップロードモーダル */}
-      <CsvUploadModal isOpen={isUploadModalOpen} onClose={setIsUploadModalOpen} groupId={group.id} />
+      <CsvUploadModal isOpen={isUploadModalOpen} groupId={group.id} onCloseAction={() => setIsUploadModalOpen(false)} />
     </div>
   );
 }
