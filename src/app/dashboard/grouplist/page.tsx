@@ -42,6 +42,15 @@ export default async function GroupListPage() {
     },
   });
 
+  // グループがない場合は、グループがない旨を表示
+  if (groups.length === 0) {
+    return (
+      <MainTemplate title="Group一覧" description="現在参加可能なグループ一覧を表示します">
+        <div>グループがありません</div>
+      </MainTemplate>
+    );
+  }
+
   return (
     <MainTemplate
       title="Group一覧"
@@ -51,7 +60,7 @@ export default async function GroupListPage() {
         // sm:self-center は、画面幅が小さい場合（smクラスが適用される）は、self-startになり、画面幅が大きい場合（smクラスが適用されない）は、self-centerになります。
         <Button asChild className="button-default-custom w-auto self-start text-white sm:self-center">
           <Link href="/dashboard/create-group" className="flex items-center">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4" />
             新規Group作成
           </Link>
         </Button>

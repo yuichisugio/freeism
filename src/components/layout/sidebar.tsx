@@ -38,6 +38,11 @@ const sidebarItems = [
         href: "/dashboard/my-tasks",
         icon: PlusCircle,
       },
+      {
+        title: "新規Task作成",
+        href: "/dashboard/my-tasks/new",
+        icon: PlusCircle,
+      },
     ],
   },
   {

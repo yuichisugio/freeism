@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 
@@ -24,7 +25,7 @@ export function MainTemplate({ title, description, component, children }: MainTe
                   <p className="page-description-custom">{description}</p>
                 </div>
               )}
-              {component && component}
+              <Suspense fallback={<div>Loading...</div>}>{component && component}</Suspense>
             </div>
             {children}
           </div>

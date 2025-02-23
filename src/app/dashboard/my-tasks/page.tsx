@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   description: "自分のタスク一覧を表示します",
 };
 
+/**
+ * ログインしているユーザーのタスク一覧を表示するページ
+ */
 export default async function MyTasksPage() {
+  // ログインしているユーザーの情報を取得
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -42,20 +46,29 @@ export default async function MyTasksPage() {
     },
   });
 
+  // タスクがない場合は、タスクがない旨を表示
+  if (tasks.length === 0) {
+    return (
+      <MainTemplate title="My Task一覧" description="自分のタスク一覧を表示します">
+        <div>タスクがありません</div>
+      </MainTemplate>
+    );
+  }
+
   return (
-    <MainTemplate title={false} description={false}>
-      <Suspense fallback={<div>Loading...</div>}>
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="page-title-custom">My Task一覧</h1>
-          <Link href="/dashboard/my-tasks/new">
-            <Button className="button-default-custom">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              新規Task作成
-            </Button>
+    <MainTemplate
+      title="My Task一覧"
+      description="自分のタスク一覧を表示します"
+      component={
+        <Button asChild className="button-default-custom w-auto self-start text-white sm:self-center">
+          <Link href="/dashboard/my-tasks/new" className="flex items-center">
+            <PlusCircle className="h-4 w-4" />
+            新規Task作成
           </Link>
-        </div>
-        <MyTasksTable tasks={tasks} />
-      </Suspense>
+        </Button>
+      }
+    >
+      <MyTasksTable tasks={tasks} />
     </MainTemplate>
   );
 }
