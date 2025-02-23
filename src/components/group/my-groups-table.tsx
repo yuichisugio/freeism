@@ -5,7 +5,8 @@ import Link from "next/link";
 import { leaveGroup } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, LogOut } from "lucide-react";
+import { DataTable } from "@/components/ui/data-table";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 type GroupMembership = {
@@ -25,27 +26,6 @@ type MyGroupsTableProps = {
 
 export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTableProps) {
   const [memberships, setMemberships] = useState(initialMemberships);
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof GroupMembership["group"];
-    direction: "asc" | "desc";
-  } | null>(null);
-
-  // ソート関数
-  function sortData(key: keyof GroupMembership["group"]) {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-
-    const sortedData = [...memberships].sort((a, b) => {
-      if (a.group[key] < b.group[key]) return direction === "asc" ? -1 : 1;
-      if (a.group[key] > b.group[key]) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setMemberships(sortedData);
-  }
 
   // グループ脱退処理
   async function handleLeave(groupId: string) {
@@ -65,99 +45,68 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
     }
   }
 
+  const columns = [
+    {
+      key: "id" as keyof GroupMembership,
+      header: "脱退",
+      sortable: false,
+      cell: (row: GroupMembership) => (
+        <AlertDialogTrigger asChild>
+          <Button variant="outline" size="sm" className="button-danger-custom">
+            <LogOut className="mr-1 h-4 w-4" />
+            脱退
+          </Button>
+        </AlertDialogTrigger>
+      ),
+    },
+    {
+      key: "group" as keyof GroupMembership,
+      header: "GROUP NAME",
+      sortable: true,
+      cell: (row: GroupMembership) => (
+        <Link href={`/dashboard/group/${row.group.id}`} className="text-app hover:underline">
+          {row.group.name}
+        </Link>
+      ),
+    },
+    {
+      key: "group" as keyof GroupMembership,
+      header: "参加人数",
+      sortable: true,
+      cell: (row: GroupMembership) => `${row.group.maxParticipants}人`,
+    },
+    {
+      key: "group" as keyof GroupMembership,
+      header: "KPI",
+      sortable: true,
+      cell: (row: GroupMembership) => row.group.evaluationMethod,
+    },
+    {
+      key: "group" as keyof GroupMembership,
+      header: "DESCRIPTION",
+      sortable: true,
+      cell: (row: GroupMembership) => row.group.goal,
+    },
+  ];
+
   return (
     <AlertDialog>
-      <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* テーブルヘッダー */}
-            <thead>
-              <tr className="border-b border-blue-100 bg-blue-50/50">
-                <th className="px-5 py-3 text-left text-sm font-medium">
-                  <span className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">脱退</span>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium">
-                  <button onClick={() => sortData("name")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                    GROUP NAME
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium">
-                  <button onClick={() => sortData("maxParticipants")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                    参加人数
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium">
-                  <button onClick={() => sortData("evaluationMethod")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                    KPI
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-                <th className="px-5 py-3 text-left text-sm font-medium">
-                  <button onClick={() => sortData("goal")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                    DESCRIPTION
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </button>
-                </th>
-              </tr>
-            </thead>
+      <DataTable data={memberships} columns={columns} pagination onDataChange={setMemberships} />
 
-            {/* テーブルボディ */}
-            <tbody>
-              {memberships.map((membership) => (
-                <tr key={membership.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                  <td className="px-5 py-3 text-sm whitespace-nowrap">
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="button-danger-custom">
-                        <LogOut className="mr-1 h-4 w-4" />
-                        脱退
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-app">グループから脱退しますか？</AlertDialogTitle>
-                        <AlertDialogDescription className="text-app">グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="text-app">キャンセル</AlertDialogCancel>
-                        <AlertDialogAction asChild>
-                          <Button onClick={() => handleLeave(membership.group.id)} className="button-default-custom">
-                            脱退する
-                          </Button>
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </td>
-                  <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">
-                    <Link href={`/dashboard/group/${membership.group.id}`} className="hover:underline">
-                      {membership.group.name}
-                    </Link>
-                  </td>
-                  <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{membership.group.maxParticipants}人</td>
-                  <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{membership.group.evaluationMethod}</td>
-                  <td className="px-5 py-3 text-sm text-neutral-600">{membership.group.goal}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ページネーション */}
-        <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
-          <div className="text-sm text-neutral-600">
-            Showing 1-{memberships.length} of {memberships.length}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-              Previous
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-app">グループから脱退しますか？</AlertDialogTitle>
+          <AlertDialogDescription className="text-app">グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="text-app">キャンセル</AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button onClick={() => handleLeave(memberships[0]?.group.id)} className="button-default-custom">
+              脱退する
             </Button>
-            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-              Next
-            </Button>
-          </div>
-        </div>
-      </div>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
     </AlertDialog>
   );
 }

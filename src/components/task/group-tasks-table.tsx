@@ -22,12 +22,9 @@ type Task = {
   user: {
     name: string | null;
   };
-  group: {
-    name: string;
-  };
 };
 
-type MyTasksTableProps = {
+type GroupTasksTableProps = {
   tasks: Task[];
 };
 
@@ -42,7 +39,7 @@ const taskStatuses = [
   { label: "アーカイブ", value: "ARCHIVED" },
 ] as const;
 
-export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
+export function GroupTasksTable({ tasks: initialTasks }: GroupTasksTableProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [openStatus, setOpenStatus] = useState<string | null>(null);
 
@@ -68,10 +65,10 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
 
   const columns = [
     {
-      key: "group" as keyof Task,
-      header: "GROUP NAME",
+      key: "user" as keyof Task,
+      header: "NAME",
       sortable: true,
-      cell: (row: Task) => row.group.name,
+      cell: (row: Task) => row.user.name || "-",
     },
     {
       key: "task" as keyof Task,
@@ -128,5 +125,5 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
     },
   ];
 
-  return <DataTable data={tasks} columns={columns} pagination onDataChange={setTasks} />;
+  return <DataTable data={tasks} columns={columns} onDataChange={setTasks} />;
 }

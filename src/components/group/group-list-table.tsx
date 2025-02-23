@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { deleteGroup, joinGroup } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Edit, Trash2, UserPlus } from "lucide-react";
+import { DataTable } from "@/components/ui/data-table";
+import { Edit, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 // グループのデータの型を定義
@@ -31,37 +32,6 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
   const router = useRouter();
   // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
   const [groups, setGroups] = useState(initialGroups);
-
-  // ソートの設定を格納。現在のソート設定をオブジェクト(キーは、key:とdirection:)で保持。
-  // key:は、keyofでGroup型のオブジェクトのキー名をリテラルで取得したリテラル型。Group型のどのキーを基準にソートするか
-  // direction:は、ソートの方向で、"asc"（昇順）か "desc"（降順）のどちらかを持ちます。
-  // 初期状態はオブジェクトではなく、 null として設定されています。
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Group;
-    direction: "asc" | "desc";
-  } | null>(null);
-
-  // ソート関数。引数はGroup型のキー名のどれかをしか受け付けないリテラル型。
-  // 指定したGroup型の中のキーで、降順/昇順で、sortする
-  function sortData(key: keyof Group) {
-    // 初期値ascで、ソートの並べ方を保存
-    let direction: "asc" | "desc" = "asc";
-    // ソート設定があり、かつキーが同じ、かつ方向が同じ場合は降順にソートする
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    // ソート設定を更新。レンダリングされるたびにdirectionが初期化されるので、渡す必要がない。
-    setSortConfig({ key, direction });
-    // ソートしたデータを格納。現在のgroups配列をスプレッド構文でコピーし、元の配列を直接変更しないようにしています。
-    const sortedData = [...groups].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1; // 方向が "asc" なら -1 を返し、"desc" なら 1 を返すことで、正しい順序に並び替えます。
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1; // 方向が "asc" なら 1 を返し、"desc" なら -1 を返すことで、逆の順序に並び替えます。
-      return 0;
-    });
-
-    // ソート後の配列 sortedData を groups 状態にセットします。これにより、UI も再レンダリングされ、新しい順序が反映されます。
-    setGroups(sortedData);
-  }
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -95,7 +65,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
   // 削除処理の関数を追加
   async function handleDelete(groupId: string) {
     try {
-      const result = await deleteGroup(groupId); // actionsに実装する必要があります
+      const result = await deleteGroup(groupId);
 
       if (result.success) {
         toast.success("グループを削除しました");
@@ -110,129 +80,95 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     }
   }
 
-  return (
-    <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          {/* テーブルヘッダー */}
-          <thead>
-            <tr className="border-b border-blue-100 bg-blue-50/50">
-              <th className="text-app px-5 py-3 text-left text-sm font-medium">
-                <span className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">参加</span>
-              </th>
-              <th className="text-app px-5 py-3 text-left text-sm font-medium">
-                <button onClick={() => sortData("name")} className="inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                  GROUP NAME
-                  <ArrowUpDown className="ml-1 h-4 w-4" />
-                </button>
-              </th>
-              <th className="text-app px-5 py-3 text-left text-sm font-medium">
-                <button onClick={() => sortData("maxParticipants")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                  参加人数
-                  <ArrowUpDown className="ml-1 h-4 w-4" />
-                </button>
-              </th>
-              <th className="text-app px-5 py-3 text-left text-sm font-medium">
-                <button onClick={() => sortData("evaluationMethod")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                  KPI
-                  <ArrowUpDown className="ml-1 h-4 w-4" />
-                </button>
-              </th>
-              <th className="text-app px-5 py-3 text-left text-sm font-medium">
-                <button onClick={() => sortData("goal")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                  DESCRIPTION
-                  <ArrowUpDown className="ml-1 h-4 w-4" />
-                </button>
-              </th>
-            </tr>
-          </thead>
+  const columns = [
+    {
+      key: "id" as keyof Group,
+      header: "参加",
+      sortable: false,
+      cell: (row: Group) => (
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="button-join-custom" disabled={row.members.length > 0}>
+                <UserPlus className="mr-1 h-4 w-4" />
+                {row.members.length > 0 ? "参加中" : "参加"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader className="text-app">
+                <AlertDialogTitle>グループに参加しますか？</AlertDialogTitle>
+                <AlertDialogDescription>グループに参加すると、グループのメンバーとして参加できます。</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button onClick={() => handleJoin(row.id)} className="button-default-custom">
+                    参加する
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-          {/* テーブルボディ */}
-          <tbody>
-            {groups.map((group) => (
-              <tr key={group.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                <td className="px-5 py-3 text-sm whitespace-nowrap">
-                  <div className="flex gap-2">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="button-join-custom" disabled={group.members.length > 0}>
-                          <UserPlus className="mr-1 h-4 w-4" />
-                          {group.members.length > 0 ? "参加中" : "参加"}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader className="text-app">
-                          <AlertDialogTitle>グループに参加しますか？</AlertDialogTitle>
-                          <AlertDialogDescription>グループに参加すると、グループのメンバーとして参加できます。</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                          <AlertDialogAction asChild>
-                            <Button onClick={() => handleJoin(group.id)} className="button-default-custom">
-                              参加する
-                            </Button>
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+          {/* 編集ボタン */}
+          <Button variant="outline" size="sm" className="button-edit-custom" onClick={() => router.push(`/dashboard/edit-group/${row.id}`)}>
+            <Edit className="h-4 w-4" />
+          </Button>
 
-                    {/* 編集ボタンを追加 */}
-                    <Button variant="outline" size="sm" className="button-edit-custom" onClick={() => router.push(`/dashboard/edit-group/${group.id}`)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-
-                    {/* 削除ボタンを追加 */}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="button-danger-custom">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>グループを削除しますか？</AlertDialogTitle>
-                          <AlertDialogDescription>この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                          <AlertDialogAction asChild>
-                            <Button onClick={() => handleDelete(group.id)} className="bg-red-500 text-white hover:bg-red-600">
-                              削除する
-                            </Button>
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </td>
-                <td className="text-app px-5 py-3 text-sm font-medium whitespace-nowrap">
-                  <Link href={`/dashboard/group/${group.id}`} className="hover:underline">
-                    {group.name}
-                  </Link>
-                </td>
-                <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.maxParticipants}人</td>
-                <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{group.evaluationMethod}</td>
-                <td className="px-5 py-3 text-sm text-neutral-600">{group.goal}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* ページネーション */}
-        <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
-          <div className="text-sm text-neutral-600">
-            Showing 1-{groups.length} of {groups.length}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-              Previous
-            </Button>
-            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-              Next
-            </Button>
-          </div>
+          {/* 削除ボタン */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="button-danger-custom">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>グループを削除しますか？</AlertDialogTitle>
+                <AlertDialogDescription>この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button onClick={() => handleDelete(row.id)} className="bg-red-500 text-white hover:bg-red-600">
+                    削除する
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-      </div>
-    </div>
-  );
+      ),
+    },
+    {
+      key: "name" as keyof Group,
+      header: "GROUP NAME",
+      sortable: true,
+      cell: (row: Group) => (
+        <Link href={`/dashboard/group/${row.id}`} className="text-app hover:underline">
+          {row.name}
+        </Link>
+      ),
+    },
+    {
+      key: "maxParticipants" as keyof Group,
+      header: "参加人数",
+      sortable: true,
+      cell: (row: Group) => `${row.maxParticipants}人`,
+    },
+    {
+      key: "evaluationMethod" as keyof Group,
+      header: "KPI",
+      sortable: true,
+      cell: (row: Group) => row.evaluationMethod,
+    },
+    {
+      key: "goal" as keyof Group,
+      header: "DESCRIPTION",
+      sortable: true,
+      cell: (row: Group) => row.goal,
+    },
+  ];
+
+  return <DataTable data={groups} columns={columns} pagination onDataChange={setGroups} />;
 }

@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { exportGroupTask, getGroupDetails, joinGroup, updateTaskStatus } from "@/app/actions";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
+import { GroupTasksTable } from "@/components/task/group-tasks-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { DataTable } from "@/components/ui/data-table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { ArrowUpDown, Check, ChevronsUpDown, Download, Upload, UserPlus } from "lucide-react";
@@ -56,22 +58,6 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
   const router = useRouter();
   const [group, setGroup] = useState<Group>(groupInfo);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [openStatus, setOpenStatus] = useState<string | null>(null);
-
-  // タスクのソート関数
-  function sortTaskData(key: keyof Task) {
-    const sortedTasks = [...group.tasks].sort((a, b) => {
-      const aValue = a[key];
-      const bValue = b[key];
-
-      if (aValue === null || bValue === null) return 0;
-      if (typeof aValue === "object" || typeof bValue === "object") return 0;
-
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-    });
-
-    setGroup({ ...group, tasks: sortedTasks });
-  }
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -112,30 +98,26 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     }
   }
 
-  // ステータス変更処理
-  async function handleStatusChange(taskId: string, newStatus: string) {
-    try {
-      const result = await updateTaskStatus(taskId, newStatus);
-
-      if (result.success) {
-        setGroup((prevGroup) => ({
-          ...prevGroup,
-          tasks: prevGroup.tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)),
-        }));
-        toast.success("ステータスを更新しました");
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-
-      // ConboBoxを閉じる
-      setOpenStatus(null);
-    } catch (error) {
-      console.error(error);
-      toast.error("ステータスの更新に失敗しました");
-      // ConboBoxを閉じる
-      setOpenStatus(null);
-    }
-  }
+  const rewardColumns = [
+    {
+      key: "user" as keyof Task,
+      header: "NAME",
+      sortable: true,
+      cell: (row: Task) => row.user.name || "-",
+    },
+    {
+      key: "task" as keyof Task,
+      header: "TASK",
+      sortable: true,
+      cell: (row: Task) => row.task,
+    },
+    {
+      key: "contributionPoint" as keyof Task,
+      header: "現在の入札額 Point",
+      sortable: true,
+      cell: (row: Task) => `${row.contributionPoint || 0}p`,
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -191,143 +173,17 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       {/* タスク一覧 */}
       <div>
         <h2 className="text-app mb-4 text-xl font-semibold">Task一覧</h2>
-        <div className="h-[500px] overflow-y-auto rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-blue-100 bg-blue-50/50">
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("task")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      NAME
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("task")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      TASK
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("contributionPoint")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      Contribution Point
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("evaluator")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      算出者
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("evaluationLogic")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      算出ロジック
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="text-app px-5 py-3 text-left text-sm font-medium">
-                    <button onClick={() => sortTaskData("status")} className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      ステータス
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {group.tasks.map((task) => (
-                  <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.user.name || "-"}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.task}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint ? `${task.contributionPoint}p` : "評価待ち"}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.evaluator || "-"}</td>
-                    <td className="px-5 py-3 text-sm text-neutral-600">{task.evaluationLogic || "-"}</td>
-
-                    {/* ステータス変更ポップオーバー */}
-                    <td className="py-3 text-sm text-neutral-600">
-                      {/* open属性は、現在ポップオーバーが開いているかどうかを管理します。ここでは、openStatus という状態がタスクの ID と一致する場合に、そのタスクのポップオーバーを開く仕組みになっています。つまり、複数のタスクがある中で、どのタスクのステータス変更ポップオーバーが現在開かれているかを判断しています。 */}
-                      {/* onOpenChangeは、ポップオーバーの開閉状態が変化した際に呼び出されるコールバック関数。isOpenがtrueの場合はそのタスクのIDを入れ、falseの場合はnullを設定。これにより、開いているポップオーバーが一つだけであることを保証します。 */}
-                      <Popover open={openStatus === task.id} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? task.id : null)}>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" role="combobox" className="mr-3">
-                            {task.status ? taskStatuses.find((status) => status.value === task.status)?.label : "ステータスを選択"}
-                            <ChevronsUpDown />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[200px] p-0">
-                          <Command>
-                            <CommandInput placeholder="ステータスを検索..." />
-                            <CommandList>
-                              <CommandEmpty>ステータスが見つかりません</CommandEmpty>
-                              <CommandGroup>
-                                {taskStatuses.map((status) => (
-                                  // valueにLabelを設定することで、Labelの値で検索に引っ掛かるようにしている
-                                  <CommandItem key={status.value} value={status.label} onSelect={() => handleStatusChange(task.id, status.value)}>
-                                    <Check className={cn("mr-2 h-4 w-4", task.status === status.value ? "opacity-100" : "opacity-0")} />
-                                    {status.label}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <GroupTasksTable tasks={group.tasks} />
       </div>
 
       {/* 報酬一覧（REWARDタイプのタスクのみ表示） */}
       <div>
         <h2 className="text-app mb-4 text-xl font-semibold">報酬一覧</h2>
-        <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-blue-100 bg-blue-50/50">
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      NAME
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      TASK
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                  <th className="px-5 py-3 text-left text-sm font-medium">
-                    <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      現在の入札額 Point
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {group.tasks
-                  .filter((task) => task.contributionType === "REWARD")
-                  .map((task) => (
-                    <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                      <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.user.name || "-"}</td>
-                      <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.task}</td>
-                      <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint || 0}p</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DataTable data={group.tasks.filter((task) => task.contributionType === "REWARD")} columns={rewardColumns} />
       </div>
 
       {/* CSVアップロードモーダル */}
-      {isUploadModalOpen && <CsvUploadModal isOpen={isUploadModalOpen} onCloseAction={setIsUploadModalOpen} groupId={group.id} />}
+      <CsvUploadModal isOpen={isUploadModalOpen} onClose={setIsUploadModalOpen} groupId={group.id} />
     </div>
   );
 }
