@@ -52,9 +52,13 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
   // ドラッグ&ドロップの設定
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    // 受け付けるファイルの種類
     accept: ACCEPTED_FILE_TYPES,
+    // 最大ファイルサイズ
     maxSize: MAX_FILE_SIZE,
+    // ドロップされたときに呼び出される処理
     onDrop: (acceptedFiles) => {
+      // ファイルのサイズが大きすぎる場合はエラーを表示
       const validFiles = acceptedFiles.filter((file) => {
         if (file.size > MAX_FILE_SIZE) {
           toast.error(`${file.name}のサイズが大きすぎます（上限: 5MB）`);
@@ -62,19 +66,27 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
         }
         return true;
       });
+      // ファイルをstateに追加
       setCurrentFiles((prev) => [...prev, ...validFiles]);
     },
+    // ドロップされたファイルが拒否されたときに呼び出される処理
     onDropRejected: (rejectedFiles) => {
+      // ファイルのサイズが大きすぎる場合はエラーを表示
       rejectedFiles.forEach((rejection) => {
+        // ファイルのサイズが大きすぎる場合はエラーを表示
         if (rejection.errors[0]?.code === "file-too-large") {
           toast.error(`${rejection.file.name}のサイズが大きすぎます（上限: 5MB）`);
         } else {
+          // ファイルの形式が無効な場合はエラーを表示
           toast.error(`${rejection.file.name}は無効なファイル形式です`);
         }
       });
     },
-    noClick: true,
+    // noClickをfalseでクリックでファイルを添付できるようにする
+    noClick: false,
+    // キーボードが押されたときに呼び出される処理
     noKeyboard: true,
+    // ドロップされたときに呼び出される処理
     preventDropOnDocument: false,
   });
 
@@ -99,11 +111,13 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
   // ファイルを削除
   const handleRemoveFile = useCallback((fileToRemove: File) => {
+    // ファイルを削除
     setCurrentFiles((prev) => prev.filter((file) => file !== fileToRemove));
   }, []);
 
   // 全てのファイルを削除
   const handleRemoveAll = useCallback(() => {
+    // ファイルを削除
     setCurrentFiles([]);
   }, []);
 
@@ -124,9 +138,13 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
   const parseAndValidateCSV = async (file: File): Promise<any[]> => {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
+        // 1行目をヘッダーとして扱う
         header: true,
+        // 空行をスキップ
         skipEmptyLines: true,
+        // パースが完了したときに呼び出される処理。パースしたデータを返す
         complete: (results) => resolve(results.data),
+        // パースが失敗したときに呼び出される処理。エラーを返す
         error: (error) => reject(error),
       });
     });
@@ -134,37 +152,45 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
   // アップロード処理
   async function handleUpload() {
+    // ファイルが選択されていない場合はエラーを表示
     if (currentFiles.length === 0) {
       toast.error("ファイルを選択してください");
       return;
     }
 
+    // アップロード中にする
     setIsUploading(true);
+    // アップロードの進捗を0にする
     setUploadProgress(0);
 
     try {
-      const session = await auth();
-      if (!session?.user?.id) {
-        throw new Error("認証エラーが発生しました");
-      }
-
+      // アップロードするファイルの総数を取得
       const totalFiles = currentFiles.length;
+      // アップロードしたファイルの数。初期値は０
       let processedFiles = 0;
 
+      // アップロードするファイルを一つずつ処理
       for (const file of currentFiles) {
+        // ファイルをパースしてデータを検証
         const data = await parseAndValidateCSV(file);
+        // 必要なカラムを取得。タスク報告の場合はtaskとreference、貢献評価の場合はtaskId、contributionPoint、evaluationLogicを渡す必要があることを定義
         const requiredColumns = uploadType === "TASK_REPORT" ? ["task", "reference"] : ["taskId", "contributionPoint", "evaluationLogic"];
 
-        // データの検証
+        // データの検証。reduceの第一引数にはreduceの繰り返した分の合算が入るエラーの配列、第二引数にはデータの配列、第三引数には行数を渡す
         const missingData = data.reduce((errors: string[], row: any, index: number) => {
+          // 必要なカラムを取得
           requiredColumns.forEach((column) => {
+            // データが不足している場合はエラーを表示
             if (!row[column]) {
               errors.push(`「${column}」の「${index + 1}行目」のデータが不足しています。`);
             }
           });
           return errors;
+
+          // reduceの初期値は空の配列
         }, []);
 
+        // データが不足している場合はtoastでエラーを表示
         if (missingData.length > 0) {
           toast.error(
             <div className="space-y-2">
@@ -177,22 +203,29 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
           continue;
         }
 
-        // データの保存
-        const result = uploadType === "TASK_REPORT" ? await bulkCreateTasks(data, groupId, session.user.id) : await bulkCreateEvaluations(data, groupId, session.user.id);
+        // データの保存。タスク報告の場合はbulkCreateTasks、貢献評価の場合はbulkCreateEvaluationsを呼び出す
+        const result = uploadType === "TASK_REPORT" ? await bulkCreateTasks(data, groupId) : await bulkCreateEvaluations(data, groupId);
 
+        // エラーが発生した場合はエラーを表示
         if (result.error) {
           toast.error(result.error);
           continue;
         }
 
+        // アップロードしたファイルの数をインクリメント
         processedFiles++;
+        // アップロードの進捗を更新
         setUploadProgress((processedFiles / totalFiles) * 100);
       }
 
+      // アップロードが完了したらエラーを表示
       toast.success("CSVファイルのアップロードが完了しました");
+      // モーダーを閉じる
       onCancel();
-      router.refresh();
+      // ページを更新
+      router.push(`/dashboard/group/${groupId}`);
     } catch (error) {
+      // エラーが発生した場合はエラーを表示
       console.error(error);
       if (error instanceof Error) {
         toast.error(error.message);
@@ -209,41 +242,41 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-app">CSVファイルのアップロード</DialogTitle>
-          <DialogDescription className="text-neutral-500">タスク報告または貢献評価のCSVファイルをアップロードしてください。</DialogDescription>
+          <DialogDescription className="text-neutral-900">タスク報告または貢献評価のCSVファイルをアップロードしてください。</DialogDescription>
         </DialogHeader>
 
-        <div {...getRootProps()}>
-          <div className="grid gap-6 py-6">
-            <div className="space-y-6">
-              <Label className="form-label-custom">1.アップロードの種類</Label>
-              <RadioGroup defaultValue="TASK_REPORT" value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="grid grid-cols-2 gap-4">
-                <div>
-                  <RadioGroupItem value="TASK_REPORT" id="task_report" className="peer sr-only" />
-                  <Label htmlFor="task_report" className="flex flex-col items-center justify-between rounded-md border-2 border-blue-200 bg-white p-4 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-blue-50 [&:has([data-state=checked])]:border-blue-600">
-                    <File className="mb-2 h-6 w-6 text-blue-600" />
-                    タスク報告
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem value="CONTRIBUTION_EVALUATION" id="contribution_evaluation" className="peer sr-only" />
-                  <Label htmlFor="contribution_evaluation" className="flex flex-col items-center justify-between rounded-md border-2 border-blue-200 bg-white p-4 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-blue-50 [&:has([data-state=checked])]:border-blue-600">
-                    <File className="mb-2 h-6 w-6 text-blue-600" />
-                    貢献評価
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="form-label-custom">2.CSVファイル</Label>
-                {currentFiles.length > 0 && (
-                  <Button type="button" variant="outline" size="sm" onClick={handleRemoveAll} className="text-neutral-500 hover:text-neutral-700">
-                    全て削除
-                  </Button>
-                )}
+        <div className="grid gap-6 py-6">
+          <div className="space-y-6">
+            <Label className="form-label-custom">1.アップロードの種類</Label>
+            <RadioGroup value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="grid grid-cols-2 gap-4">
+              <div>
+                <RadioGroupItem value="TASK_REPORT" id="task_report" className="peer sr-only" />
+                <Label htmlFor="task_report" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4", uploadType === "TASK_REPORT" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white")}>
+                  <File className="mb-2 h-6 w-6 text-blue-600" />
+                  タスク報告
+                </Label>
               </div>
-              {currentFiles.length > 0 && <div className="grid gap-2">{fileCards}</div>}
+              <div>
+                <RadioGroupItem value="CONTRIBUTION_EVALUATION" id="contribution_evaluation" className="peer sr-only" />
+                <Label htmlFor="contribution_evaluation" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4", uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white")}>
+                  <File className="mb-2 h-6 w-6 text-blue-600" />
+                  貢献評価
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="form-label-custom">2.CSVファイル</Label>
+              {currentFiles.length > 0 && (
+                <Button type="button" variant="outline" size="sm" onClick={handleRemoveAll} className="text-neutral-500 hover:text-neutral-700">
+                  全て削除
+                </Button>
+              )}
+            </div>
+            {currentFiles.length > 0 && <div className="grid gap-2">{fileCards}</div>}
+            <div {...getRootProps()}>
               <div
                 className={cn(
                   "relative flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue-200 bg-white/50 px-5 py-5 text-center transition-colors hover:bg-blue-50",

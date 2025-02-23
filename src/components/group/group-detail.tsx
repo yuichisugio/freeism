@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { exportGroupTask, getGroupDetails, joinGroup } from "@/app/actions";
+import { exportGroupTask, getGroupDetails, joinGroup, updateTaskStatus } from "@/app/actions";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Download, Upload, UserPlus } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { ArrowUpDown, Check, ChevronsUpDown, Download, Upload, UserPlus } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -18,6 +21,7 @@ type Task = {
   contributionPoint: number | null;
   evaluator: string | null;
   evaluationLogic: string | null;
+  contributionType: string;
   user: {
     name: string | null;
   };
@@ -47,10 +51,22 @@ type GroupDetailProps = {
   groupInfo: Group;
 };
 
+const taskStatuses = [
+  { label: "タスク実施予定", value: "PENDING" },
+  { label: "落札済み", value: "BIDDED" },
+  { label: "ポイント預け済み", value: "POINTS_DEPOSITED" },
+  { label: "タスク完了", value: "TASK_COMPLETED" },
+  { label: "Group内レビュー完了", value: "GROUP_REVIEW_COMPLETED" },
+  { label: "Group外レビュー完了", value: "EXTERNAL_REVIEW_COMPLETED" },
+  { label: "ポイント付与完了", value: "POINTS_AWARDED" },
+  { label: "アーカイブ", value: "ARCHIVED" },
+];
+
 export function GroupDetail({ groupInfo }: GroupDetailProps) {
   const router = useRouter();
   const [group, setGroup] = useState<Group>(groupInfo);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [openStatus, setOpenStatus] = useState<string | null>(null);
 
   // タスクのソート関数
   function sortTaskData(key: keyof Task) {
@@ -106,17 +122,33 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     }
   }
 
+  // ステータス変更処理
+  async function handleStatusChange(taskId: string, newStatus: string) {
+    try {
+      const result = await updateTaskStatus(taskId, newStatus);
+
+      if (result.success) {
+        setGroup((prevGroup) => ({
+          ...prevGroup,
+          tasks: prevGroup.tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)),
+        }));
+      }
+
+      toast.success("ステータスを更新しました");
+    } catch (error) {
+      console.error(error);
+      toast.error("ステータスの更新に失敗しました");
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* グループ情報 */}
       <div>
         <h1 className="page-title-custom">{group.name}</h1>
-        <p className="page-description-custom">{group.goal}</p>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-neutral-600">
-            参加上限人数: {group.maxParticipants}人 | Group目標: {group.evaluationMethod}
-          </p>
-        </div>
+        <p className="text-neutral-900">参加上限人数: {group.maxParticipants}人</p>
+        <p className="text-neutral-900">Group目標: {group.goal}</p>
+        <p className="text-neutral-900">評価方法: {group.evaluationMethod}</p>
       </div>
 
       {/* 参加ボタン（未参加の場合のみ表示） */}
@@ -150,7 +182,6 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
         <Button className="button-default-custom" onClick={() => router.push(`/dashboard/group/${group.id}/task/new`)}>
           貢献入力
         </Button>
-        <Button className="button-default-custom">貢献評価</Button>
         <Button className="button-default-custom" onClick={() => onExport(group.id)}>
           <Download />
           Export
@@ -199,6 +230,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
                   </th>
+                  <th className="px-5 py-3 text-left text-sm font-medium">ステータス</th>
                 </tr>
               </thead>
               <tbody>
@@ -209,6 +241,39 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint ? `${task.contributionPoint}p` : "評価待ち"}</td>
                     <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.evaluator || "-"}</td>
                     <td className="px-5 py-3 text-sm text-neutral-600">{task.evaluationLogic || "-"}</td>
+
+                    {/* ステータス変更ポップオーバー */}
+                    <td className="px-5 py-3 text-sm text-neutral-600">
+                      <Popover open={openStatus === task.id} onOpenChange={(isOpen) => setOpenStatus(isOpen ? task.id : null)}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" role="combobox" aria-expanded={openStatus === task.id} className="w-[200px] justify-between">
+                            {task.status ? taskStatuses.find((status) => status.value === task.status)?.label : "ステータスを選択"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0">
+                          <Command>
+                            <CommandInput placeholder="ステータスを検索..." />
+                            <CommandEmpty>ステータスが見つかりません</CommandEmpty>
+                            <CommandGroup>
+                              {taskStatuses.map((status) => (
+                                <CommandItem
+                                  key={status.value}
+                                  value={status.value}
+                                  onSelect={() => {
+                                    handleStatusChange(task.id, status.value);
+                                    setOpenStatus(null);
+                                  }}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", task.status === status.value ? "opacity-100" : "opacity-0")} />
+                                  {status.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -217,7 +282,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
         </div>
       </div>
 
-      {/* 報酬一覧 */}
+      {/* 報酬一覧（REWARDタイプのタスクのみ表示） */}
       <div>
         <h2 className="text-app mb-4 text-xl font-semibold">報酬一覧</h2>
         <div className="rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm">
@@ -233,7 +298,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
                   </th>
                   <th className="px-5 py-3 text-left text-sm font-medium">
                     <button className="text-app inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
-                      提供者
+                      TASK
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
                   </th>
@@ -246,13 +311,15 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
                 </tr>
               </thead>
               <tbody>
-                {group.supplies.map((supply) => (
-                  <tr key={supply.id} className="border-b border-blue-50 hover:bg-blue-50/50">
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.name}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.user.name || "-"}</td>
-                    <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{supply.currentPoint}p</td>
-                  </tr>
-                ))}
+                {group.tasks
+                  .filter((task) => task.contributionType === "REWARD")
+                  .map((task) => (
+                    <tr key={task.id} className="border-b border-blue-50 hover:bg-blue-50/50">
+                      <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.user.name || "-"}</td>
+                      <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.task}</td>
+                      <td className="px-5 py-3 text-sm whitespace-nowrap text-neutral-600">{task.contributionPoint || 0}p</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

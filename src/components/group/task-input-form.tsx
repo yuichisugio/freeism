@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { revalidatePath } from "next/cache";
 import { useRouter } from "next/navigation";
-import { createTaskAndSupply } from "@/app/actions";
-import { auth } from "@/auth";
+import { createTask } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { prisma } from "@/lib/prisma";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -44,7 +40,7 @@ export function TaskInputForm({ groupId }: TaskInputFormProps) {
   // フォーム送信時の処理
   async function onSubmit(data: TaskFormValues) {
     try {
-      const result = await createTaskAndSupply(
+      const result = await createTask(
         {
           task: data.task,
           reference: data.reference,

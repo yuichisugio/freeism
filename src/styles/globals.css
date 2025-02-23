@@ -19,7 +19,7 @@
     border-color: var(--color-gray-200, currentColor);
   }
   /* 標準のクリック可能な要素に対して指カーソルに変化させる設定 */
-  button,a {
+  button,a,label {
     @apply cursor-pointer;
   }
 }

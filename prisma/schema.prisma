@@ -28,7 +28,6 @@ model User {
   groups        Group[]
   memberships   GroupMembership[]
   tasks         Task[]
-  supplies      Supply[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -97,7 +96,6 @@ model Group {
   user              User     @relation(fields: [createdBy], references: [id])
   members           GroupMembership[]
   tasks             Task[]
-  supplies          Supply[]
 
   @@index([createdBy])
 }
@@ -119,7 +117,7 @@ model Task {
   id               String    @id @default(cuid())
   task            String
   reference       String?
-  status          String    @default("PENDING") // PENDING, EVALUATED
+  status          TaskStatus @default(PENDING)
   contributionPoint Int?
   evaluator       String?
   evaluationLogic String?
@@ -130,25 +128,18 @@ model Task {
   userId          String
   group           Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId         String
-  supply          Supply?
 
   @@index([userId])
   @@index([groupId])
 }
 
-model Supply {
-  id              String    @id @default(cuid())
-  name            String
-  currentPoint    Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId          String    @unique
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String
-  group           Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId         String
-
-  @@index([userId])
-  @@index([groupId])
+enum TaskStatus {
+  PENDING                 // タスク実施予定
+  BIDDED                  // 落札済み
+  POINTS_DEPOSITED        // ポイント預け済み
+  TASK_COMPLETED         // タスク完了
+  GROUP_REVIEW_COMPLETED // Group内レビュー完了
+  EXTERNAL_REVIEW_COMPLETED // Group外レビュー完了
+  POINTS_AWARDED         // ポイント付与完了
+  ARCHIVED              // アーカイブ
 }

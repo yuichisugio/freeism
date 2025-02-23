@@ -350,7 +350,7 @@ export async function getGroup(groupId: string) {
  * @param data - タスクのデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function createTaskAndSupply(data: TaskFormValues, groupId: string) {
+export async function createTask(data: TaskFormValues, groupId: string) {
   try {
     // 認証セッションを取得
     const session = await auth();
@@ -382,18 +382,6 @@ export async function createTaskAndSupply(data: TaskFormValues, groupId: string)
         },
       },
     });
-
-    // 報酬になる貢献の場合は、報酬も作成
-    if (data.contributionType === "REWARD") {
-      await prisma.supply.create({
-        data: {
-          name: data.task,
-          taskId: newTask.id,
-          userId: session.user.id,
-          groupId: groupId,
-        },
-      });
-    }
 
     revalidatePath(`/dashboard/group/${groupId}`);
     return { success: true, task: newTask };
@@ -455,15 +443,26 @@ export async function exportGroupTask(groupId: string) {
   try {
     const tasks = await prisma.task.findMany({
       where: { groupId },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
-
-    console.log("tasks", tasks);
 
     if (!tasks) {
       throw new Error("タスクが見つかりません");
     }
 
-    return tasks;
+    // タスクのユーザー名を取得。taskひとつが要素の配列なので、全部を.mapで繰り返して加工している
+    const formattedTasks = tasks.map((task) => ({
+      ...task,
+      user: task.user.name,
+    }));
+
+    return formattedTasks;
   } catch (error) {
     console.error("[EXPORT_GROUP_TASK]", error);
     throw new Error("グループのTask情報のエクスポート中にエラーが発生しました");
@@ -477,10 +476,19 @@ export async function exportGroupTask(groupId: string) {
  * @param userId - ユーザーID
  * @returns 処理結果を含むオブジェクト
  */
-export async function bulkCreateTasks(data: any[], groupId: string, userId: string) {
+export async function bulkCreateTasks(data: any[], groupId: string) {
   try {
+    // 認証セッションを取得
+    const session = await auth();
+
+    // 認証セッションが取得できない場合
+    if (!session?.user?.id) {
+      throw new Error("認証エラーが発生しました");
+    }
+
     // トランザクションを使用してデータを一括登録
     const result = await prisma.$transaction(async (tx) => {
+      // タスクを作成
       const tasks = await Promise.all(
         data.map(async (row) => {
           // タスクを作成
@@ -489,9 +497,10 @@ export async function bulkCreateTasks(data: any[], groupId: string, userId: stri
               task: row.task,
               reference: row.reference,
               contributionType: "NON_REWARD",
-              userId: userId,
+              userId: session.user?.id || "",
               groupId: groupId,
             },
+            // 、関連するuserオブジェクトから、ユーザーのnameのみを選択して取得しています。これにより、後続の処理でタスク作成後にユーザー名を利用したい場合に、余分なデータを省いて効率的にアクセスすることができます。
             include: {
               user: {
                 select: {
@@ -517,11 +526,18 @@ export async function bulkCreateTasks(data: any[], groupId: string, userId: stri
  * CSVから貢献評価を一括登録する関数
  * @param data - CSVから読み込んだ評価データ
  * @param groupId - グループID
- * @param userId - ユーザーID
  * @returns 処理結果を含むオブジェクト
  */
-export async function bulkCreateEvaluations(data: any[], groupId: string, userId: string) {
+export async function bulkCreateEvaluations(data: any[], groupId: string) {
   try {
+    // 認証セッションを取得
+    const session = await auth();
+
+    // 認証セッションが取得できない場合
+    if (!session?.user?.id) {
+      throw new Error("認証エラーが発生しました");
+    }
+
     // トランザクションを使用してデータを一括登録
     const result = await prisma.$transaction(async (tx) => {
       const evaluations = await Promise.all(
@@ -532,7 +548,7 @@ export async function bulkCreateEvaluations(data: any[], groupId: string, userId
             data: {
               status: "EVALUATED",
               contributionPoint: parseInt(row.contributionPoint),
-              evaluator: userId,
+              evaluator: session.user?.id || "",
               evaluationLogic: row.evaluationLogic,
             },
             include: {
@@ -553,5 +569,39 @@ export async function bulkCreateEvaluations(data: any[], groupId: string, userId
   } catch (error) {
     console.error("[BULK_CREATE_EVALUATIONS]", error);
     return { error: "貢献評価の一括登録中にエラーが発生しました" };
+  }
+}
+
+/**
+ * タスクのステータスを更新する関数
+ * @param taskId - 更新するタスクのID
+ * @param status - 新しいステータス
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function updateTaskStatus(taskId: string, status: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("認証エラーが発生しました");
+    }
+
+    const updatedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: { status },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    revalidatePath(`/dashboard/group/${updatedTask.groupId}`);
+    return { success: true, task: updatedTask };
+  } catch (error) {
+    console.error("[UPDATE_TASK_STATUS]", error);
+    return { error: "タスクのステータスの更新中にエラーが発生しました" };
   }
 }
