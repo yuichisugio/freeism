@@ -1,5 +1,6 @@
 "use client";
 
+import type { Column } from "@/components/ui/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,7 +33,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
   const router = useRouter();
 
   // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
-  const [groups, setGroups] = useState(initialGroups);
+  const [groups, setGroups] = useState<Group[]>(initialGroups);
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -81,7 +82,7 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     }
   }
 
-  const columns = [
+  const columns: Column<Group>[] = [
     {
       key: "id" as keyof Group,
       header: "参加",
@@ -171,5 +172,6 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     },
   ];
 
+  // DataTableコンポーネントを返す。onDataChangeは、データが更新されたときに呼び出される関数で、DataTable内でデータ更新したらsetGroupsをDataTable内で呼び出し、↑のgroupsのStateを使用している部分も更新できるようにする。
   return <DataTable data={groups} columns={columns} pagination onDataChange={setGroups} />;
 }
