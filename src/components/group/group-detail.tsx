@@ -1,10 +1,11 @@
 "use client";
 
+import type { DataTableProps } from "@/components/ui/data-table";
+import type { Column } from "@/components/ui/data-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { exportGroupTask, joinGroup } from "@/app/actions";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
-import { GroupTasksTable } from "@/components/task/group-tasks-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -95,7 +96,52 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     }
   }
 
-  const rewardColumns = [
+  const taskColumns: Column<Task>[] = [
+    {
+      key: "name" as keyof Task,
+      header: "NAME",
+      cell: (row: Task) => row.user.name || "-",
+    },
+    {
+      key: "task" as keyof Task,
+      header: "TASK",
+      cell: (row: Task) => row.task,
+    },
+    {
+      key: "contributionPoint" as keyof Task,
+      header: "POINT",
+      cell: (row: Task) => `${row.contributionPoint || 0}p`,
+    },
+    {
+      key: "contributionType" as keyof Task,
+      header: "TYPE",
+      cell: (row: Task) => row.contributionType,
+    },
+    {
+      key: "evaluator" as keyof Task,
+      header: "EVALUATOR",
+      cell: (row: Task) => row.evaluator || "-",
+    },
+    {
+      key: "evaluationLogic" as keyof Task,
+      header: "EVALUATION LOGIC",
+      cell: (row: Task) => row.evaluationLogic || "-",
+    },
+    {
+      key: "status" as keyof Task,
+      header: "STATUS",
+      cell: (row: Task) => row.status,
+    },
+  ];
+
+  const taskDataTableProps: DataTableProps<Task> = {
+    data: group.tasks,
+    columns: taskColumns,
+    pagination: true,
+    onDataChange: setGroup,
+  };
+
+  const rewardColumns: Column<Task>[] = [
     {
       key: "user" as keyof Task,
       header: "NAME",
@@ -114,7 +160,34 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       sortable: true,
       cell: (row: Task) => `${row.contributionPoint || 0}p`,
     },
+    {
+      key: "contributionType" as keyof Task,
+      header: "TYPE",
+      cell: (row: Task) => row.contributionType,
+    },
+    {
+      key: "evaluator" as keyof Task,
+      header: "EVALUATOR",
+      cell: (row: Task) => row.evaluator || "-",
+    },
+    {
+      key: "evaluationLogic" as keyof Task,
+      header: "EVALUATION LOGIC",
+      cell: (row: Task) => row.evaluationLogic || "-",
+    },
+    {
+      key: "status" as keyof Task,
+      header: "STATUS",
+      cell: (row: Task) => row.status,
+    },
   ];
+
+  const rewardDataTableProps: DataTableProps<Task> = {
+    data: group.tasks,
+    columns: rewardColumns,
+    pagination: true,
+    onDataChange: setGroup,
+  };
 
   return (
     <div className="space-y-6">
@@ -170,13 +243,13 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       {/* タスク一覧 */}
       <div>
         <h2 className="text-app mb-4 text-xl font-semibold">Task一覧</h2>
-        <GroupTasksTable tasks={group.tasks} />
+        <DataTable dataTableProps={taskDataTableProps} />
       </div>
 
       {/* 報酬一覧（REWARDタイプのタスクのみ表示） */}
       <div>
         <h2 className="text-app mb-4 text-xl font-semibold">報酬一覧</h2>
-        <DataTable data={group.tasks.filter((task) => task.contributionType === "REWARD")} columns={rewardColumns} />
+        <DataTable dataTableProps={rewardDataTableProps} />
       </div>
 
       {/* CSVアップロードモーダル */}

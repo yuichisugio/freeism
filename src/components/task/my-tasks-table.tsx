@@ -1,5 +1,7 @@
 "use client";
 
+import type { DataTableProps } from "@/components/ui/data-table";
+import type { Column } from "@/components/ui/data-table";
 import { useState } from "react";
 import { updateTaskStatus } from "@/app/actions";
 import { Button } from "@/components/ui/button";
@@ -31,7 +33,12 @@ type MyTasksTableProps = {
   tasks: Task[];
 };
 
-const taskStatuses = [
+type TaskStatus = {
+  label: string;
+  value: string;
+};
+
+const taskStatuses: TaskStatus[] = [
   { label: "タスク実施予定", value: "PENDING" },
   { label: "落札済み", value: "BIDDED" },
   { label: "ポイント預け済み", value: "POINTS_DEPOSITED" },
@@ -40,7 +47,7 @@ const taskStatuses = [
   { label: "Group外レビュー完了", value: "EXTERNAL_REVIEW_COMPLETED" },
   { label: "ポイント付与完了", value: "POINTS_AWARDED" },
   { label: "アーカイブ", value: "ARCHIVED" },
-] as const;
+];
 
 export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
   const [tasks, setTasks] = useState(initialTasks);
@@ -66,7 +73,7 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
     }
   }
 
-  const columns = [
+  const columns: Column<Task>[] = [
     {
       key: "group" as keyof Task,
       header: "GROUP NAME",
@@ -101,32 +108,22 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       key: "status" as keyof Task,
       header: "ステータス",
       sortable: true,
-      cell: (row: Task) => (
-        <Popover open={openStatus === row.id} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? row.id : null)}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" role="combobox" className="mr-3">
-              {row.status ? taskStatuses.find((status) => status.value === row.status)?.label : "ステータスを選択"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="ステータスを検索..." />
-              <CommandEmpty>ステータスが見つかりません</CommandEmpty>
-              <CommandGroup>
-                {taskStatuses.map((status) => (
-                  <CommandItem key={status.value} value={status.label} onSelect={() => handleStatusChange(row.id, status.value)}>
-                    <Check className={cn("mr-2 h-4 w-4", row.status === status.value ? "opacity-100" : "opacity-0")} />
-                    {status.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      ),
+      combobox: {
+        openStatus: openStatus, //開いている場合はrow.idを、閉じている場合はnullを返す
+        setOpenStatus: setOpenStatus, //開いている場合はrow.idを、閉じている場合はnullを返す
+        list: taskStatuses, //ステータスのリスト
+        onChange: handleStatusChange, //ステータスを変更する
+      },
     },
   ];
 
-  return <DataTable data={tasks} columns={columns} pagination onDataChange={setTasks} />;
+  const dataTableProps: DataTableProps<Task> = {
+    data: tasks,
+    columns: columns,
+    pagination: true,
+    onDataChange: setTasks,
+    stickyHeader: true,
+  };
+
+  return <DataTable dataTableProps={dataTableProps} />;
 }

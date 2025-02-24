@@ -3,6 +3,7 @@
 import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import type { TaskFormValues } from "@/components/group/task-input-form";
+import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -537,7 +538,7 @@ export async function bulkCreateEvaluations(data: any[], groupId: string) {
           const task = await tx.task.update({
             where: { id: row.taskId },
             data: {
-              status: "EVALUATED",
+              status: "TASK_COMPLETED",
               contributionPoint: parseInt(row.contributionPoint),
               evaluator: session.user?.id || "",
               evaluationLogic: row.evaluationLogic,
@@ -579,7 +580,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
 
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
-      data: { status },
+      data: { status: status as TaskStatus },
       include: {
         user: {
           select: {

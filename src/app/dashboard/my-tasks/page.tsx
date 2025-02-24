@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";

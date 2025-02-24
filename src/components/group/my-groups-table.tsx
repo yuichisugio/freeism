@@ -1,5 +1,7 @@
 "use client";
 
+import type { DataTableProps } from "@/components/ui/data-table";
+import type { Column } from "@/components/ui/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { leaveGroup } from "@/app/actions";
@@ -45,19 +47,22 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
     }
   }
 
-  const columns = [
+  const columns: Column<GroupMembership>[] = [
     {
       key: "id" as keyof GroupMembership,
-      header: "脱退",
-      sortable: false,
-      cell: (row: GroupMembership) => (
-        <AlertDialogTrigger asChild>
-          <Button variant="outline" size="sm" className="button-danger-custom">
-            <LogOut className="mr-1 h-4 w-4" />
-            脱退
-          </Button>
-        </AlertDialogTrigger>
-      ),
+      header: "操作",
+      sortable: true,
+      modalList: [
+        {
+          title: "グループから脱退しますか？",
+          description: "グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。",
+          action: handleLeave,
+          actionLabel: "脱退する",
+          triggerClassName: "button-danger-custom",
+          triggerIcon: <LogOut className="h-4 w-4" />,
+          triggerContent: ["脱退"],
+        },
+      ],
     },
     {
       key: "group" as keyof GroupMembership,
@@ -89,24 +94,12 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
     },
   ];
 
-  return (
-    <AlertDialog>
-      <DataTable data={memberships} columns={columns} pagination onDataChange={setMemberships} />
+  const dataTableProps: DataTableProps<GroupMembership> = {
+    data: memberships,
+    columns: columns,
+    pagination: true,
+    onDataChange: setMemberships,
+  };
 
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-app">グループから脱退しますか？</AlertDialogTitle>
-          <AlertDialogDescription className="text-app">グループから脱退すると、再度参加するまでグループの活動に参加できなくなります。</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="text-app">キャンセル</AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button onClick={() => handleLeave(memberships[0]?.group.id)} className="button-default-custom">
-              脱退する
-            </Button>
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+  return <DataTable dataTableProps={dataTableProps} />;
 }

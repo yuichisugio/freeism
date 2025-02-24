@@ -1,6 +1,6 @@
 "use client";
 
-import type { Column } from "@/components/ui/data-table";
+import type { Column, DataTableProps } from "@/components/ui/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -64,6 +64,11 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     }
   }
 
+  // 編集処理の関数を追加
+  async function handleEdit(groupId: string) {
+    router.push(`/dashboard/edit-group/${groupId}`);
+  }
+
   // 削除処理の関数を追加
   async function handleDelete(groupId: string) {
     try {
@@ -82,65 +87,42 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     }
   }
 
+  // グループリストのテーブルの列を定義
   const columns: Column<Group>[] = [
     {
       key: "id" as keyof Group,
-      header: "参加",
+      header: "Group操作",
       sortable: true,
-      cell: (row: Group) => (
-        <div className="flex gap-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="button-join-custom" disabled={row.members.length > 0}>
-                <UserPlus className="mr-1 h-4 w-4" />
-                {row.members.length > 0 ? "参加中" : "参加"}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader className="text-app">
-                <AlertDialogTitle>グループに参加しますか？</AlertDialogTitle>
-                <AlertDialogDescription>グループに参加すると、グループのメンバーとして参加できます。</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                  <Button onClick={() => handleJoin(row.id)} className="button-default-custom">
-                    参加する
-                  </Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          {/* 編集ボタン */}
-          <Button variant="outline" size="sm" className="button-edit-custom" onClick={() => router.push(`/dashboard/edit-group/${row.id}`)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-
-          {/* 削除ボタン */}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="button-danger-custom">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>グループを削除しますか？</AlertDialogTitle>
-                <AlertDialogDescription>この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                  <Button onClick={() => handleDelete(row.id)} className="bg-red-500 text-white hover:bg-red-600">
-                    削除する
-                  </Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      ),
+      modalList: [
+        {
+          title: "グループに参加しますか？",
+          description: "グループに参加すると、グループのメンバーとして参加できます。",
+          action: handleJoin,
+          actionLabel: "参加する",
+          triggerClassName: "button-join-custom",
+          triggerContent: ["参加中", "参加"],
+          triggerIcon: <UserPlus className="h-4 w-4" />,
+          joinModal: true,
+        },
+        {
+          title: "グループを編集しますか？",
+          description: "グループを編集すると、グループの名前や目標などを変更できます。",
+          action: handleEdit,
+          actionLabel: "編集する",
+          triggerClassName: "button-edit-custom",
+          triggerContent: ["編集"],
+          triggerIcon: <Edit className="h-4 w-4" />,
+        },
+        {
+          title: "グループを削除しますか？",
+          description: "この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。",
+          action: handleDelete,
+          actionLabel: "削除する",
+          triggerClassName: "button-danger-custom",
+          triggerIcon: <Trash2 className="h-4 w-4" />,
+          triggerContent: ["削除"],
+        },
+      ],
     },
     {
       key: "name" as keyof Group,
@@ -172,6 +154,13 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     },
   ];
 
+  const dataTableProps: DataTableProps<Group> = {
+    data: groups,
+    columns: columns,
+    pagination: true,
+    onDataChange: setGroups,
+  };
+
   // DataTableコンポーネントを返す。onDataChangeは、データが更新されたときに呼び出される関数で、DataTable内でデータ更新したらsetGroupsをDataTable内で呼び出し、↑のgroupsのStateを使用している部分も更新できるようにする。
-  return <DataTable data={groups} columns={columns} pagination onDataChange={setGroups} />;
+  return <DataTable dataTableProps={dataTableProps} />;
 }
