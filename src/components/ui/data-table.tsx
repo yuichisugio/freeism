@@ -1,10 +1,28 @@
 import { useEffect, useState } from "react";
+import { updateTaskStatus } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
+import { toast } from "sonner";
+
+export type TaskStatus = {
+  label: string;
+  value: string;
+};
+
+export const taskStatuses: TaskStatus[] = [
+  { label: "タスク実施予定", value: "PENDING" },
+  { label: "落札済み", value: "BIDDED" },
+  { label: "ポイント預け済み", value: "POINTS_DEPOSITED" },
+  { label: "タスク完了", value: "TASK_COMPLETED" },
+  { label: "Group内レビュー完了", value: "GROUP_REVIEW_COMPLETED" },
+  { label: "Group外レビュー完了", value: "EXTERNAL_REVIEW_COMPLETED" },
+  { label: "ポイント付与完了", value: "POINTS_AWARDED" },
+  { label: "アーカイブ", value: "ARCHIVED" },
+];
 
 // 列の型定義。
 export type Column<T extends Record<string, unknown>> = {
@@ -13,13 +31,8 @@ export type Column<T extends Record<string, unknown>> = {
   cell?: (row: T) => React.ReactNode;
   sortable?: boolean;
   className?: string;
-  // コンボボックスの設定
-  combobox?: {
-    openStatus: string | null;
-    setOpenStatus: (status: string | null) => void;
-    list: { label: string; value: string }[];
-    onChange: (taskId: string, newStatus: string) => Promise<void>;
-  };
+  // Statusのコンボボックスの設定
+  statusCombobox?: boolean;
   // モーダルの設定
   modalList?: {
     title: string;
@@ -60,13 +73,38 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
     onDataChange,
     maxHeight = "h-[calc(100vh-16rem)]",
     rowClassName = "border-b border-blue-50 hover:bg-blue-50/50",
-    headerClassName = "border-b border-blue-100 bg-blue-50/50",
+    headerClassName = "border-b border-blue-100 bg-blue-50",
     cellClassName = "px-5 py-3 text-sm whitespace-nowrap text-neutral-600",
     stickyHeader = true,
   } = props.dataTableProps;
 
   // データの状態管理
   const [data, setData] = useState(initialData);
+
+  // コンボボックスの状態管理
+  const [openStatus, setOpenStatus] = useState<string | null>(null);
+
+  // ステータス変更処理
+  async function handleStatusChange(taskId: string, newStatus: string) {
+    try {
+      const result = await updateTaskStatus(taskId, newStatus);
+      if (result.success) {
+        if (onDataChange) {
+          // データが変更されたときにコールバックを呼び出す
+          onDataChange(data.map((row) => (row.id === taskId ? { ...row, status: newStatus } : row)));
+        }
+        toast.success("ステータスを更新しました");
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+
+      setOpenStatus(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("ステータスの更新に失敗しました");
+      setOpenStatus(null);
+    }
+  }
 
   // データが変更されたときにコールバックを呼び出す
   useEffect(() => {
@@ -190,13 +228,13 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
   }
 
   return (
-    <div className={cn("rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
+    <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
       <div className={cn(maxHeight || (pagination ? "h-[calc(100vh-16rem)]" : ""), "relative w-full table-auto overflow-x-auto overflow-y-auto")}>
         <table>
           <thead className={cn(headerClassName, "bg-white")}>
-            <tr className={headerClassName}>
+            <tr>
               {columns.map((column, index) => (
-                <th key={index} className={cn("px-5 py-3 text-left text-sm font-medium", column.className, stickyHeader && "sticky top-0 z-20")}>
+                <th key={index} className={cn("w-full px-5 py-3 text-left text-sm font-medium", headerClassName, stickyHeader && "sticky top-0 z-20 border-b border-blue-100 shadow-md")}>
                   {column.sortable ? (
                     <button onClick={() => handleSort(column.key)} className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                       {column.header}
@@ -215,14 +253,9 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
               <tr key={rowIndex} className={rowClassName}>
                 {columns.map((column, colIndex) => (
                   <td key={colIndex} className={cn(cellClassName, column.className)}>
-                    {column.combobox
+                    {column.statusCombobox
                       ? (() => {
-                          function isValidArray<T>(arr: unknown): arr is T[] {
-                            return Array.isArray(arr);
-                          }
-                          // combobox 部分は、型安全のために各プロパティを分割して取得
-                          const { openStatus, setOpenStatus, list = [], onChange } = column.combobox;
-                          const safeList = isValidArray(list) ? list : [];
+                          const safeList = Array.isArray(taskStatuses) ? taskStatuses : [];
                           const selectedLabel = safeList.find((option) => option.value === String(row[column.key]))?.label || "ステータスを選択";
 
                           return (
@@ -244,7 +277,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                                           key={option.value}
                                           value={option.label}
                                           onSelect={() => {
-                                            onChange(row.id as string, option.value)
+                                            handleStatusChange(row.id as string, option.value)
                                               .catch((error) => {
                                                 console.error(error);
                                               })
@@ -263,6 +296,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                               </PopoverContent>
                             </Popover>
                           );
+
                           // combobox ブロックは 即時実行関数(IIFE)を用いて、ブロック内の変数定義と JSX をひとまとめにすることで、可読性と局所的な変数管理を向上させています。
                         })()
                       : column.modalList

@@ -1,14 +1,13 @@
 "use client";
 
-import type { DataTableProps } from "@/components/ui/data-table";
-import type { Column } from "@/components/ui/data-table";
+import type { Column, DataTableProps } from "@/components/ui/data-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { exportGroupTask, joinGroup } from "@/app/actions";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, taskStatuses } from "@/components/ui/data-table";
 import { Download, Upload, UserPlus } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
@@ -25,36 +24,27 @@ type Task = {
   user: {
     name: string | null;
   };
-};
-
-type Group = {
-  id: string;
-  name: string;
-  goal: string;
-  evaluationMethod: string;
-  maxParticipants: number;
-  members: { id: string }[];
-  tasks: Task[];
+  group: {
+    id: string;
+    name: string;
+    maxParticipants: number;
+    goal: string;
+    evaluationMethod: string;
+    members: {
+      id: string;
+      userId: string;
+    }[];
+  };
 };
 
 type GroupDetailProps = {
-  groupInfo: Group;
+  tasks: Task[];
 };
 
-const taskStatuses = [
-  { label: "タスク実施予定", value: "PENDING" },
-  { label: "落札済み", value: "BIDDED" },
-  { label: "ポイント預け済み", value: "POINTS_DEPOSITED" },
-  { label: "タスク完了", value: "TASK_COMPLETED" },
-  { label: "Group内レビュー完了", value: "GROUP_REVIEW_COMPLETED" },
-  { label: "Group外レビュー完了", value: "EXTERNAL_REVIEW_COMPLETED" },
-  { label: "ポイント付与完了", value: "POINTS_AWARDED" },
-  { label: "アーカイブ", value: "ARCHIVED" },
-] as const;
-
-export function GroupDetail({ groupInfo }: GroupDetailProps) {
+export function GroupDetail({ tasks }: GroupDetailProps) {
   const router = useRouter();
-  const [group, setGroup] = useState<Group>(groupInfo);
+  const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(tasks);
+  const [rewardTasks, setRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === "REWARD"));
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // グループ参加処理
@@ -74,6 +64,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     }
   }
 
+  // グループのタスク情報をCSV形式でエクスポートする関数
   async function onExport(groupId: string) {
     try {
       // タスク情報を取得(タスクごとにオブジェクトの要素を配列として取得)
@@ -85,7 +76,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${group.name}_tasks.csv`;
+      a.download = `${tasks[0].group.name}_tasks.csv`;
       a.click();
 
       // 少し待ってから 一時的なURLを解放する（ダウンロード完了前に削除してしまうとバグになるため。）
@@ -130,15 +121,20 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
     {
       key: "status" as keyof Task,
       header: "STATUS",
-      cell: (row: Task) => row.status,
+      combobox: {
+        openStatus: openStatus, //開いている場合はrow.idを、閉じている場合はnullを返す
+        setOpenStatus: setOpenStatus, //開いている場合はrow.idを、閉じている場合はnullを返す
+        list: taskStatuses, //ステータスのリスト
+        onChange: handleStatusChange, //ステータスを変更する
+      },
     },
   ];
 
   const taskDataTableProps: DataTableProps<Task> = {
-    data: group.tasks,
+    data: nonRewardTasks,
     columns: taskColumns,
     pagination: true,
-    onDataChange: setGroup,
+    onDataChange: setNonRewardTasks,
   };
 
   const rewardColumns: Column<Task>[] = [
@@ -183,24 +179,24 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
   ];
 
   const rewardDataTableProps: DataTableProps<Task> = {
-    data: group.tasks,
+    data: rewardTasks,
     columns: rewardColumns,
     pagination: true,
-    onDataChange: setGroup,
+    onDataChange: setRewardTasks,
   };
 
   return (
     <div className="space-y-6">
       {/* グループ情報 */}
       <div>
-        <h1 className="page-title-custom">{group.name}</h1>
-        <p className="text-neutral-900">参加上限人数: {group.maxParticipants}人</p>
-        <p className="text-neutral-900">Group目標: {group.goal}</p>
-        <p className="text-neutral-900">評価方法: {group.evaluationMethod}</p>
+        <h1 className="page-title-custom">{tasks[0].group.name}</h1>
+        <p className="text-neutral-900">参加上限人数: {tasks[0].group.maxParticipants}人</p>
+        <p className="text-neutral-900">Group目標: {tasks[0].group.goal}</p>
+        <p className="text-neutral-900">評価方法: {tasks[0].group.evaluationMethod}</p>
       </div>
 
       {/* 参加ボタン（未参加の場合のみ表示） */}
-      {group.members.length === 0 && (
+      {tasks[0].group.members.length === 0 && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button className="button-default-custom">
@@ -216,7 +212,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
             <AlertDialogFooter>
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Button onClick={() => handleJoin(group.id)} className="button-default-custom">
+                <Button onClick={() => handleJoin(tasks[0].group.id)} className="button-default-custom">
                   参加する
                 </Button>
               </AlertDialogAction>
@@ -227,10 +223,10 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
 
       {/* アクションボタン */}
       <div className="flex flex-wrap gap-2">
-        <Button className="button-default-custom" onClick={() => router.push(`/dashboard/group/${group.id}/task/new`)}>
+        <Button className="button-default-custom" onClick={() => router.push(`/dashboard/group/${tasks[0].group.id}/task/new`)}>
           貢献入力
         </Button>
-        <Button className="button-default-custom" onClick={() => onExport(group.id)}>
+        <Button className="button-default-custom" onClick={() => onExport(tasks[0].group.id)}>
           <Download />
           Export
         </Button>
@@ -253,7 +249,7 @@ export function GroupDetail({ groupInfo }: GroupDetailProps) {
       </div>
 
       {/* CSVアップロードモーダル */}
-      <CsvUploadModal isOpen={isUploadModalOpen} groupId={group.id} onCloseAction={() => setIsUploadModalOpen(false)} />
+      <CsvUploadModal isOpen={isUploadModalOpen} groupId={tasks[0].group.id} onCloseAction={() => setIsUploadModalOpen(false)} />
     </div>
   );
 }

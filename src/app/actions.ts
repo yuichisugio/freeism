@@ -397,17 +397,27 @@ export async function createTask(data: TaskFormValues, groupId: string) {
  * @param groupId - グループID
  * @returns グループの詳細情報
  */
-export async function getGroupDetails(groupId: string) {
+export async function getTasksByGroupId(groupId: string) {
   try {
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
+    const tasks = await prisma.task.findMany({
+      where: { groupId },
       include: {
-        members: true,
-        tasks: {
-          include: {
-            user: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+            maxParticipants: true,
+            goal: true,
+            evaluationMethod: true,
+            members: {
               select: {
-                name: true,
+                id: true,
+                userId: true,
               },
             },
           },
@@ -415,14 +425,14 @@ export async function getGroupDetails(groupId: string) {
       },
     });
 
-    if (!group) {
-      throw new Error("グループが見つかりません");
+    if (!tasks) {
+      throw new Error("タスクが見つかりません");
     }
 
-    return group;
+    return tasks;
   } catch (error) {
-    console.error("[GET_GROUP_DETAILS]", error);
-    throw new Error("グループ情報の取得中にエラーが発生しました");
+    console.error("[GET_TASKS_BY_GROUP_ID]", error);
+    throw new Error("タスク情報の取得中にエラーが発生しました");
   }
 }
 
@@ -437,6 +447,11 @@ export async function exportGroupTask(groupId: string) {
       where: { groupId },
       include: {
         user: {
+          select: {
+            name: true,
+          },
+        },
+        group: {
           select: {
             name: true,
           },
