@@ -30,6 +30,14 @@ export default async function MyGroupsPage() {
           goal: true,
           evaluationMethod: true,
           maxParticipants: true,
+          tasks: {
+            where: {
+              userId: session.user.id,
+            },
+            select: {
+              contributionPoint: true,
+            },
+          },
         },
       },
     },
@@ -39,10 +47,7 @@ export default async function MyGroupsPage() {
   });
 
   return (
-    <MainTemplate
-      title="参加Group一覧"
-      description="参加しているグループ一覧を表示します"
-    >
+    <MainTemplate title="参加Group一覧" description="参加しているグループ一覧を表示します">
       <MyGroupsTable memberships={memberships} />
     </MainTemplate>
   );

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { checkGroupNameExists, createGroup } from "@/app/actions";
+import { CommonFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -75,84 +76,13 @@ export function CreateGroupForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="form-label-custom">グループ名</FormLabel>
-                <FormControl>
-                  <Input id="name" placeholder="グループ名を入力してください" {...field} />
-                </FormControl>
-              </div>
-              <FormDescription className="form-description-custom">グループの名前を入力してください</FormDescription>
-              <FormMessage className="form-message-custom" />
-            </FormItem>
-          )}
-        />
+        <CommonFormField control={form.control} name="name" label="グループ名" placeholder="グループ名を入力してください" description="グループの名前を入力してください" />
 
-        <FormField
-          control={form.control}
-          name="goal"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="form-label-custom">最終目標</FormLabel>
-                <FormControl>
-                  <Textarea id="goal" placeholder="グループの最終目標を入力してください" {...field} />
-                </FormControl>
-              </div>
-              <FormDescription className="form-description-custom">グループの最終目標を入力してください</FormDescription>
-              <FormMessage className="form-message-custom" />
-            </FormItem>
-          )}
-        />
+        <CommonFormField control={form.control} name="goal" label="最終目標" placeholder="グループの最終目標を入力してください" description="グループの最終目標を入力してください" isTextarea />
 
-        <FormField
-          control={form.control}
-          name="evaluationMethod"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="form-label-custom">最終目標に貢献したか判断する方法</FormLabel>
-                <FormControl>
-                  <Textarea id="evaluationMethod" placeholder="目標達成の評価方法を入力してください" {...field} />
-                </FormControl>
-              </div>
-              <FormDescription className="form-description-custom">目標達成の評価方法を入力してください</FormDescription>
-              <FormMessage className="form-message-custom" />
-            </FormItem>
-          )}
-        />
+        <CommonFormField control={form.control} name="evaluationMethod" label="最終目標に貢献したか判断する方法" placeholder="目標達成の評価方法を入力してください" description="目標達成の評価方法を入力してください" isTextarea />
 
-        <FormField
-          control={form.control}
-          name="maxParticipants"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex flex-col" style={{ gap: "5px" }}>
-                <FormLabel className="form-label-custom">参加上限人数</FormLabel>
-                <FormControl>
-                  <Input
-                    id="maxParticipants"
-                    type="number"
-                    placeholder="参加上限人数を入力してください"
-                    {...field}
-                    onChange={(e) => {
-                      // e.target.valueAsNumber は空文字の場合 NaN になるので、チェックを入れる
-                      const value = e.target.value;
-                      // 空文字なら空文字、そうでなければ数値に変換
-                      field.onChange(value === "" ? "" : Number(value));
-                    }}
-                  />
-                </FormControl>
-              </div>
-              <FormDescription className="form-description-custom">参加上限人数を入力してください</FormDescription>
-              <FormMessage className="form-message-custom" />
-            </FormItem>
-          )}
-        />
+        <CommonFormField control={form.control} name="maxParticipants" label="参加上限人数" placeholder="参加上限人数を入力してください" description="参加上限人数を入力してください" type="number" />
 
         <Button type="submit" className="button-default-custom" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "作成中..." : "グループを作成"}

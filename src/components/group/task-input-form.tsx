@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createTask } from "@/app/actions";
+import { CommonFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -94,35 +95,9 @@ export function TaskInputForm({ groupId }: TaskInputFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="task"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="form-label-custom">実行したタスク内容</FormLabel>
-              <FormControl>
-                <Textarea placeholder="タスクの内容を入力してください" className="form-control-custom" {...field} />
-              </FormControl>
-              <FormDescription className="form-description-custom">具体的な行動内容を記載してください</FormDescription>
-              <FormMessage className="form-message-custom" />
-            </FormItem>
-          )}
-        />
+        <CommonFormField control={form.control} name="task" label="実行したタスク内容" placeholder="タスクの内容を入力してください" description="具体的な行動内容を記載してください" isTextarea />
 
-        <FormField
-          control={form.control}
-          name="reference"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="form-label-custom">参考にした内容</FormLabel>
-              <FormControl>
-                <Textarea placeholder="参考にした内容を入力してください" className="form-control-custom" {...field} />
-              </FormControl>
-              <FormDescription className="form-description-custom">タスクを実行する際に参考にした情報があれば記載してください</FormDescription>
-              <FormMessage className="form-message-custom" />
-            </FormItem>
-          )}
-        />
+        <CommonFormField control={form.control} name="reference" label="参考にした内容" placeholder="参考にした内容を入力してください" description="タスクを実行する際に参考にした情報があれば記載してください" isTextarea />
 
         <div className="flex justify-start gap-4">
           <Button type="submit" className="button-default-custom" disabled={form.formState.isSubmitting}>

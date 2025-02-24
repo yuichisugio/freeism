@@ -1,13 +1,13 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/ui/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { exportGroupTask, joinGroup } from "@/app/actions";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
+import { DataTable, taskStatuses } from "@/components/share/data-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { DataTable, taskStatuses } from "@/components/ui/data-table";
 import { Download, Upload, UserPlus } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
@@ -139,6 +139,16 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   };
 
   const rewardColumns: Column<Task>[] = [
+    {
+      key: "task" as keyof Task,
+      header: "アクション",
+      cell: (row: Task) => (
+        <Button onClick={() => router.push(`/dashboard/group/${row.group.id}/auction/${row.id}`)} className="button-default-custom" size="sm">
+          オークションに参加
+        </Button>
+      ),
+      className: "w-32",
+    },
     {
       key: "user" as keyof Task,
       header: "NAME",

@@ -3,6 +3,7 @@
 import type * as z from "zod";
 import { useRouter } from "next/navigation";
 import { updateUserSetup } from "@/app/actions";
+import { CommonFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -78,40 +79,9 @@ export function SetupForm({ initialData }: SetupFormProps) {
       <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">変更内容</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex flex-col" style={{ gap: "5px" }}>
-                  <FormLabel className="form-label-custom">ユーザー名</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ユーザー名を入力" {...field} />
-                  </FormControl>
-                  <FormDescription className="form-description-custom">あなたの表示名として使用されます</FormDescription>
-                  <FormMessage className="form-message-custom" />
-                </div>
-              </FormItem>
-            )}
-          />
+          <CommonFormField control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" />
 
-          <FormField
-            control={form.control}
-            name="lifeGoal"
-            render={({ field }) => (
-              <FormItem>
-                {/* 設問と入力欄の間を開けるためにdivを入れている */}
-                <div className="flex flex-col" style={{ gap: "5px" }}>
-                  <FormLabel className="form-label-custom">自分の人生の目標</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="自分の人生の目標を入力" {...field} />
-                  </FormControl>
-                  <FormDescription className="form-description-custom">自分が達成したい人生の目標を記入してください</FormDescription>
-                  <FormMessage className="form-message-custom" />
-                </div>
-              </FormItem>
-            )}
-          />
+          <CommonFormField control={form.control} name="lifeGoal" label="自分の人生の目標" placeholder="自分の人生の目標を入力" description="自分が達成したい人生の目標を記入してください" isTextarea />
 
           {form.formState.errors.root && <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">{form.formState.errors.root.message}</div>}
 

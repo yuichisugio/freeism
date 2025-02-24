@@ -1,13 +1,12 @@
 "use client";
 
-import type { DataTableProps } from "@/components/ui/data-table";
-import type { Column } from "@/components/ui/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { leaveGroup } from "@/app/actions";
+import { DataTable } from "@/components/share/data-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +18,9 @@ type GroupMembership = {
     goal: string;
     evaluationMethod: string;
     maxParticipants: number;
+    tasks: {
+      contributionPoint: number | null;
+    }[];
   };
 };
 
@@ -27,7 +29,19 @@ type MyGroupsTableProps = {
 };
 
 export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTableProps) {
+  // グループ一覧を取得
   const [memberships, setMemberships] = useState(initialMemberships);
+
+  // グループごとの自分の保有ポイントを計算。グループごとに保有ポイントを計算して、グループIDをキーとして保有ポイントをオブジェクトに格納する。
+  const totalContributionPointsByGroup = memberships.reduce(
+    (acc, membership) => {
+      const groupId = membership.group.id;
+      const groupContributionPoints = membership.group.tasks.reduce((sum, task) => sum + (task.contributionPoint || 0), 0);
+      acc[groupId] = groupContributionPoints;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   // グループ脱退処理
   async function handleLeave(groupId: string) {
@@ -73,6 +87,12 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
           {row.group.name}
         </Link>
       ),
+    },
+    {
+      key: "group" as keyof GroupMembership,
+      header: "保有ポイント",
+      sortable: true,
+      cell: (row: GroupMembership) => totalContributionPointsByGroup[row.group.id],
     },
     {
       key: "group" as keyof GroupMembership,

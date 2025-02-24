@@ -537,44 +537,85 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
  */
 export async function bulkCreateEvaluations(data: any[], groupId: string) {
   try {
-    // 認証セッションを取得
     const session = await auth();
 
-    // 認証セッションが取得できない場合
     if (!session?.user?.id) {
       throw new Error("認証エラーが発生しました");
     }
 
+    // 必須項目の検証
+    const missingFields = data.reduce((errors: string[], row: any, index: number) => {
+      if (!row.taskId) errors.push(`${index + 1}行目: タスクIDが未入力です`);
+      if (!row.task) errors.push(`${index + 1}行目: タスク名が未入力です`);
+      if (!row.contributionPoint) errors.push(`${index + 1}行目: 貢献度が未入力です`);
+      if (!row.evaluationLogic) errors.push(`${index + 1}行目: 評価ロジックが未入力です`);
+      return errors;
+    }, []);
+
+    if (missingFields.length > 0) {
+      return { error: `CSVデータに不備があります:\n${missingFields.join("\n")}` };
+    }
+
     // トランザクションを使用してデータを一括登録
     const result = await prisma.$transaction(async (tx) => {
-      const evaluations = await Promise.all(
+      const analyses = await Promise.all(
         data.map(async (row) => {
-          // タスクを更新
-          const task = await tx.task.update({
+          // タスクの存在確認
+          const existingTask = await tx.task.findUnique({
             where: { id: row.taskId },
+          });
+
+          if (!existingTask) {
+            throw new Error(`タスクID: ${row.taskId} が見つかりません`);
+          }
+
+          // 分析データを作成
+          const analysis = await tx.analysis.create({
             data: {
-              status: "TASK_COMPLETED",
+              groupId,
+              taskId: row.taskId,
               contributionPoint: parseInt(row.contributionPoint),
-              evaluator: session.user?.id || "",
               evaluationLogic: row.evaluationLogic,
+              evaluator: session.user.id,
             },
             include: {
-              user: {
+              task: {
                 select: {
-                  name: true,
+                  task: true,
+                  user: {
+                    select: {
+                      name: true,
+                    },
+                  },
                 },
               },
             },
           });
-          return task;
+
+          // タスクのステータスと最新の評価を更新
+          await tx.task.update({
+            where: { id: row.taskId },
+            data: {
+              status: "TASK_COMPLETED",
+              contributionPoint: parseInt(row.contributionPoint),
+              evaluator: session.user.id,
+              evaluationLogic: row.evaluationLogic,
+            },
+          });
+
+          return analysis;
         }),
       );
-      return evaluations;
+      return analyses;
     });
 
-    return { success: true, evaluations: result };
+    revalidatePath(`/dashboard/group/${groupId}`);
+    return { success: true, analyses: result };
   } catch (error) {
     console.error("[BULK_CREATE_EVALUATIONS]", error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
     return { error: "貢献評価の一括登録中にエラーが発生しました" };
   }
 }

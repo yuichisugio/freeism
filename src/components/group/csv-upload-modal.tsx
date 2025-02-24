@@ -242,7 +242,20 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-app">CSVファイルのアップロード</DialogTitle>
-          <DialogDescription className="text-neutral-900">タスク報告または貢献評価のCSVファイルをアップロードしてください。</DialogDescription>
+          <DialogDescription className="text-neutral-900">
+            {uploadType === "TASK_REPORT" ? (
+              "タスク報告のCSVファイルをアップロードしてください。"
+            ) : (
+              <>
+                貢献評価のCSVファイルをアップロードしてください。
+                <ul className="mt-2 list-disc pl-5 text-sm">
+                  <li>必須項目: タスクID、タスク名、貢献度、評価ロジック</li>
+                  <li>貢献度は数値で入力してください</li>
+                  <li>評価ロジックは具体的な評価基準を記入してください</li>
+                </ul>
+              </>
+            )}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-6">

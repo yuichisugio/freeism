@@ -38,6 +38,11 @@ export default async function MyTasksPage() {
         select: {
           name: true,
           id: true,
+          tasks: {
+            select: {
+              contributionPoint: true,
+            },
+          },
         },
       },
     },

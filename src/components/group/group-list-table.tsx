@@ -1,13 +1,13 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/ui/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteGroup, joinGroup } from "@/app/actions";
+import { DataTable } from "@/components/share/data-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
 import { Edit, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
