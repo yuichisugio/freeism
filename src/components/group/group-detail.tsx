@@ -92,41 +92,42 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       key: "name" as keyof Task,
       header: "NAME",
       cell: (row: Task) => row.user.name || "-",
+      sortable: true,
     },
     {
       key: "task" as keyof Task,
       header: "TASK",
       cell: (row: Task) => row.task,
+      sortable: true,
     },
     {
       key: "contributionPoint" as keyof Task,
       header: "POINT",
       cell: (row: Task) => `${row.contributionPoint || 0}p`,
+      sortable: true,
     },
     {
       key: "contributionType" as keyof Task,
       header: "TYPE",
       cell: (row: Task) => row.contributionType,
+      sortable: true,
     },
     {
       key: "evaluator" as keyof Task,
       header: "EVALUATOR",
       cell: (row: Task) => row.evaluator || "-",
+      sortable: true,
     },
     {
       key: "evaluationLogic" as keyof Task,
       header: "EVALUATION LOGIC",
       cell: (row: Task) => row.evaluationLogic || "-",
+      sortable: true,
     },
     {
       key: "status" as keyof Task,
       header: "STATUS",
-      combobox: {
-        openStatus: openStatus, //開いている場合はrow.idを、閉じている場合はnullを返す
-        setOpenStatus: setOpenStatus, //開いている場合はrow.idを、閉じている場合はnullを返す
-        list: taskStatuses, //ステータスのリスト
-        onChange: handleStatusChange, //ステータスを変更する
-      },
+      statusCombobox: true,
     },
   ];
 
@@ -159,21 +160,26 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "contributionType" as keyof Task,
       header: "TYPE",
+      sortable: true,
       cell: (row: Task) => row.contributionType,
     },
     {
       key: "evaluator" as keyof Task,
       header: "EVALUATOR",
+      sortable: true,
       cell: (row: Task) => row.evaluator || "-",
     },
     {
       key: "evaluationLogic" as keyof Task,
       header: "EVALUATION LOGIC",
+      sortable: true,
       cell: (row: Task) => row.evaluationLogic || "-",
     },
     {
       key: "status" as keyof Task,
       header: "STATUS",
+      statusCombobox: true,
+      sortable: true,
       cell: (row: Task) => row.status,
     },
   ];

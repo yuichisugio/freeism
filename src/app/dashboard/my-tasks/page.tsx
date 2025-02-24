@@ -37,6 +37,7 @@ export default async function MyTasksPage() {
       group: {
         select: {
           name: true,
+          id: true,
         },
       },
     },

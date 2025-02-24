@@ -2,6 +2,7 @@
 
 import type { Column, DataTableProps } from "@/components/ui/data-table";
 import { useState } from "react";
+import Link from "next/link";
 import { DataTable } from "@/components/ui/data-table";
 
 type Task = {
@@ -18,6 +19,7 @@ type Task = {
   };
   group: {
     name: string;
+    id: string;
   };
 };
 
@@ -33,7 +35,11 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       key: "group" as keyof Task,
       header: "GROUP NAME",
       sortable: true,
-      cell: (row: Task) => row.group.name,
+      cell: (row: Task) => (
+        <Link href={`/dashboard/group/${row.group.id}`} className="text-app hover:underline">
+          {row.group.name}
+        </Link>
+      ),
     },
     {
       key: "task" as keyof Task,
