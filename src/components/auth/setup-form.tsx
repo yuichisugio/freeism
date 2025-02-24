@@ -3,11 +3,8 @@
 import type * as z from "zod";
 import { useRouter } from "next/navigation";
 import { updateUserSetup } from "@/app/actions";
+import { FormLayout } from "@/components/share/form";
 import { CommonFormField } from "@/components/share/form-field";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { setupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -77,19 +74,11 @@ export function SetupForm({ initialData }: SetupFormProps) {
     // Formコンポーネントに、useFormの戻り値を渡す。各設問のコンポーネントにuseFormの戻り値を渡すために、FormProviderをは、Formコンポーネントのコンテキストを提供する。
     <>
       <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">変更内容</h2>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <CommonFormField control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" />
+      <FormLayout form={form} onSubmit={onSubmit} submitLabel="設定を保存">
+        <CommonFormField<SetupForm> control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" />
 
-          <CommonFormField control={form.control} name="lifeGoal" label="自分の人生の目標" placeholder="自分の人生の目標を入力" description="自分が達成したい人生の目標を記入してください" isTextarea />
-
-          {form.formState.errors.root && <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">{form.formState.errors.root.message}</div>}
-
-          <Button type="submit" className="button-default-custom">
-            設定を保存
-          </Button>
-        </form>
-      </Form>
+        <CommonFormField<SetupForm> control={form.control} name="lifeGoal" label="自分の人生の目標" placeholder="自分の人生の目標を入力" description="自分が達成したい人生の目標を記入してください" isTextarea />
+      </FormLayout>
     </>
   );
 }
