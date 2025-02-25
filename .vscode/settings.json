@@ -1,49 +1,17 @@
 {
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
   },
-  "editor.formatOnSave": false,
-  "editor.rulers": [200],
-  "editor.tabSize": 2,
-  "editor.quickSuggestions": {
-    "comments": false
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "editor.wordWrap": "off",
-  "editor.renderControlCharacters": true,
-  "eslint.runtime": "node",
-  "prettier.ignorePath": ".gitignore",
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-  ],
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "css.lint.unknownAtRules": "ignore",
-  "redhat.telemetry.enabled": false,
-  "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.patterns": {
-    "*.ts": "${capture}.js, ${capture}.typegen.ts",
-    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
-    "*.jsx": "${capture}.js",
-    "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
-    "package.json": ".nvmrc,.env.local,eslint.config.js, .cursorrules,components.json ,.cz-config.cjs,commitlint.config.cjs , LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs",
-    "*.mts": "${capture}.typegen.ts",
-    "*.cts": "${capture}.typegen.ts"
-  },
-  "search.exclude": {
-    "**/node_modules": true
-  },
-  "tailwind-fold.autoFold": false,
   "cSpell.words": [
     "aspromise",
     "autoprefixer",
     "browserslist",
     "CLIENTVAR",
     "clsx",
+    "cmdk",
     "createhash",
     "cuid",
     "DCJW",
@@ -64,6 +32,7 @@
     "nodemailer",
     "nuqs",
     "nwfvlbapwguryuhstois",
+    "papaparse",
     "pgbouncer",
     "pooler",
     "printwithreducedwhitespace",
@@ -78,5 +47,44 @@
     "turbopack",
     "vercel",
     "yuichisugio"
-  ]
+  ],
+  "css.lint.unknownAtRules": "ignore",
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": ["bare-node-builtins", "byonm", "sloppy-imports", "unsafe-proto", "webgpu", "broadcast-channel", "worker-options", "cron", "kv", "ffi", "fs", "http", "net"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": false,
+  "editor.quickSuggestions": {
+    "comments": false
+  },
+  "editor.renderControlCharacters": true,
+  "editor.rulers": [200],
+  "editor.tabSize": 2,
+  "editor.wordWrap": "off",
+  "eslint.runtime": "node",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.cts": "${capture}.typegen.ts",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.mts": "${capture}.typegen.ts",
+    "*.ts": "${capture}.js, ${capture}.typegen.ts",
+    "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
+    "package.json": ".nvmrc,.env.local,eslint.config.js, .cursorrules,components.json ,.cz-config.cjs,commitlint.config.cjs , LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs"
+  },
+  "prettier.ignorePath": ".gitignore",
+  "redhat.telemetry.enabled": false,
+  "search.exclude": {
+    "**/node_modules": true
+  },
+  "tailwind-fold.autoFold": false,
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
