@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Settings - Freeism App",

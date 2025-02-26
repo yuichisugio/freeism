@@ -5,8 +5,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { leaveGroup } from "@/app/actions";
 import { DataTable } from "@/components/share/data-table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 

@@ -7,7 +7,7 @@ import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { createGroupSchema, setupSchema, taskFormSchema } from "@/lib/zod-schema";
+import { createGroupSchema, setupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
 /**

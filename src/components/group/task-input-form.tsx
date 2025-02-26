@@ -1,5 +1,6 @@
 "use client";
 
+import type { z } from "zod";
 import { useRouter } from "next/navigation";
 import { createTask } from "@/app/actions";
 import { FormLayout } from "@/components/share/form";
@@ -10,17 +11,12 @@ import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 type TaskInputFormProps = {
   groupId: string;
 };
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
-
-const formSchema = taskFormSchema.extend({
-  groupId: z.string(),
-});
 
 export function TaskInputForm({ groupId }: TaskInputFormProps) {
   const router = useRouter();
