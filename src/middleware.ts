@@ -10,7 +10,7 @@ export async function middleware(request: Request) {
   // JWTトークンを直接取得（Prismaアダプターを使わない）
   const token = await getToken({
     req: request as any,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET,
   });
 
   // 認証されていない場合は、サインインページにリダイレクト
