@@ -96,6 +96,7 @@ model Group {
   user             User              @relation(fields: [createdBy], references: [id])
   members          GroupMembership[]
   tasks            Task[]
+  analytics        Analytics[]
 
   @@index([createdBy])
 }
@@ -114,22 +115,39 @@ model GroupMembership {
 }
 
 model Task {
-  id                String     @id @default(cuid())
-  task              String
-  reference         String?
-  status            TaskStatus @default(PENDING)
-  contributionPoint Int?
-  evaluator         String?
-  evaluationLogic   String?
-  contributionType  String     @default("NON_REWARD") // "REWARD" or "NON_REWARD"
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String
-  group             Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId           String
+  id                     String      @id @default(cuid())
+  task                   String
+  reference              String?
+  status                 TaskStatus  @default(PENDING)
+  fixedContributionPoint Int?
+  evaluator              String?
+  evaluationLogic        String?
+  contributionType       String      @default("NON_REWARD") // "REWARD" or "NON_REWARD"
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String
+  group                  Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId                String
+  analytics              Analytics[]
 
   @@index([userId])
+  @@index([groupId])
+}
+
+model Analytics {
+  id                String   @id @default(cuid())
+  taskId            String
+  contributionPoint Int
+  evaluationLogic   String
+  evaluator         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId           String
+
+  @@index([taskId])
   @@index([groupId])
 }
 

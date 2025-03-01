@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { bulkCreateEvaluations, bulkCreateTasks } from "@/app/actions";
+import { bulkCreateEvaluations } from "@/app/actions/evaluation";
+import { bulkCreateTasks } from "@/app/actions/task";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -22,12 +23,28 @@ type CsvUploadModalProps = {
   groupId: string; // グループのID
 };
 
-// アップロードの種類
-type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION";
 // 最大ファイルサイズ.今回は５MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 // 受け付けるファイルの種類
 const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
+// 型定義
+type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION";
+
+type ValidationError = string;
+
+type FileValidationResult = {
+  file: File;
+  data: any[];
+  errors: ValidationError[];
+};
+
+// CSVアップロード結果の型定義（bulkCreateEvaluationsと互換性を持たせる）
+type UploadResult = {
+  success: boolean;
+  error?: string;
+  analyses?: any[];
+  details?: Record<string, unknown>;
+};
 
 /**
  * モーダルのコンポーネント
@@ -149,7 +166,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
     });
   };
 
-  // アップロード処理
+  // アップロード処理。一つでも無効な項目があれば、何もデータと登録せずに処理を中断
   async function handleUpload() {
     // ファイルが選択されていない場合はエラーを表示
     if (currentFiles.length === 0) {
@@ -163,74 +180,92 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
     setUploadProgress(0);
 
     try {
-      // アップロードするファイルの総数を取得
-      const totalFiles = currentFiles.length;
-      // アップロードしたファイルの数。初期値は０
-      let processedFiles = 0;
+      // 必要なカラムを取得。タスク報告の場合はtaskとreference、貢献評価の場合はtaskId、contributionPoint、evaluationLogicを渡す必要があることを定義
+      const requiredColumns = uploadType === "TASK_REPORT" ? ["task", "reference"] : ["taskId", "contributionPoint", "evaluationLogic"];
+      // 必要なカラムを取得 - 型に基づいて明示的に定義
 
-      // アップロードするファイルを一つずつ処理
+      // すべてのファイルのデータと検証エラーを収集
+      const allFilesData: { file: File; data: any[] }[] = [];
+      const allValidationErrors: string[] = [];
+
+      // まず、すべてのファイルをパースして検証
       for (const file of currentFiles) {
-        // ファイルをパースしてデータを検証
-        const data = await parseAndValidateCSV(file);
-        // 必要なカラムを取得。タスク報告の場合はtaskとreference、貢献評価の場合はtaskId、contributionPoint、evaluationLogicを渡す必要があることを定義
-        const requiredColumns = uploadType === "TASK_REPORT" ? ["task", "reference"] : ["taskId", "contributionPoint", "evaluationLogic"];
+        try {
+          // ファイルをパースしてデータを検証
+          const data = await parseAndValidateCSV(file);
 
-        // データの検証。reduceの第一引数にはreduceの繰り返した分の合算が入るエラーの配列、第二引数にはデータの配列、第三引数には行数を渡す
-        const missingData = data.reduce((errors: string[], row: any, index: number) => {
-          // 必要なカラムを取得
-          requiredColumns.forEach((column) => {
-            // データが不足している場合はエラーを表示
-            if (!row[column]) {
-              errors.push(`「${column}」の「${index + 1}行目」のデータが不足しています。`);
+          // 各行のすべての必須フィールドが入力されているか検証。reduceの第一引数にはreduceの繰り返した分の合算が入るエラーの配列、第二引数にはデータの配列、第三引数には行数を渡す
+          const missingData = data.reduce((errors: string[], row: any, index: number) => {
+            // すべての必須カラムを確認
+            const missingColumns = requiredColumns.filter((column) => row[column] === undefined || row[column] === null || row[column] === "");
+
+            // 不足している項目がある場合はエラーメッセージを追加
+            if (missingColumns.length > 0) {
+              errors.push(`「${file.name}」の「${index + 1}行目」で以下の項目が未入力です: ${missingColumns.join(", ")}`);
             }
-          });
-          return errors;
 
-          // reduceの初期値は空の配列
-        }, []);
+            return errors;
+          }, []);
 
-        // データが不足している場合はtoastでエラーを表示
-        if (missingData.length > 0) {
-          toast.error(
-            <div className="space-y-2">
-              <p className="font-semibold">データが不足しています：</p>
-              {missingData.map((error, index) => (
-                <p key={index}>{error}</p>
-              ))}
-            </div>,
-          );
-          continue;
+          // 検証エラーがある場合はエラーリストに追加、なければデータを追加
+          if (missingData.length > 0) {
+            allValidationErrors.push(...missingData);
+          } else {
+            allFilesData.push({ file, data });
+          }
+        } catch (error) {
+          // パースに失敗した場合はエラーを表示
+          allValidationErrors.push(`「${file.name}」のパースに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
         }
+      }
 
+      // 検証エラーがある場合は処理を中断
+      if (allValidationErrors.length > 0) {
+        toast.error(
+          <div className="space-y-2">
+            <p className="font-semibold">データ検証エラー:</p>
+            {allValidationErrors.map((error, index) => (
+              <p key={index}>{error}</p>
+            ))}
+          </div>,
+        );
+        setIsUploading(false);
+        return;
+      }
+
+      // 検証が成功した場合、すべてのファイルのデータを保存
+      const totalFiles = allFilesData.length;
+      let processedFiles = 0;
+      let hasErrors = false;
+
+      // すべてのファイルのデータを保存
+      for (const { data } of allFilesData) {
         // データの保存。タスク報告の場合はbulkCreateTasks、貢献評価の場合はbulkCreateEvaluationsを呼び出す
+        // アップロードタイプに応じた関数を呼び出し
         const result = uploadType === "TASK_REPORT" ? await bulkCreateTasks(data, groupId) : await bulkCreateEvaluations(data, groupId);
 
-        // エラーが発生した場合はエラーを表示
-        if (result.error) {
-          toast.error(result.error);
-          continue;
+        // エラーがある場合は表示して処理を中断
+        if (!result.success) {
+          toast.error(result.error || "データの保存中にエラーが発生しました");
+          hasErrors = true;
+          break;
         }
 
-        // アップロードしたファイルの数をインクリメント
+        // 進捗を更新
         processedFiles++;
         // アップロードの進捗を更新
         setUploadProgress((processedFiles / totalFiles) * 100);
       }
 
-      // アップロードが完了したらエラーを表示
-      toast.success("CSVファイルのアップロードが完了しました");
-      // モーダーを閉じる
-      onCancel();
-      // ページを更新
-      router.push(`/dashboard/group/${groupId}`);
-    } catch (error) {
-      // エラーが発生した場合はエラーを表示
-      console.error(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("CSVファイルの処理中にエラーが発生しました");
+      // 全て成功した場合のみ成功メッセージを表示
+      if (!hasErrors) {
+        toast.success("CSVファイルのアップロードが完了しました");
+        onCancel(); // モーダルを閉じる
+        router.refresh(); // データを最新化
       }
+    } catch (error) {
+      console.error("アップロード処理エラー:", error);
+      toast.error(error instanceof Error ? error.message : "CSVファイルの処理中に予期しないエラーが発生しました");
     } finally {
       setIsUploading(false);
     }
