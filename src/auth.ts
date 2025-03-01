@@ -1,13 +1,64 @@
 import type { NextAuthConfig } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+
+// 設定値の集約
+const AUTH_CONFIG = {
+  SESSION: {
+    MAX_AGE: 30 * 24 * 60 * 60, // 30日
+    UPDATE_AGE: 24 * 60 * 60, // 24時間
+  },
+  TRANSACTION_TIMEOUT: 10000, // 10秒
+};
 
 // ログ用ユーティリティ
 const logError = (message: string, error: unknown, context?: Record<string, unknown>) => {
   console.error(message, error, context);
 };
+
+// アカウントデータ準備関数
+function prepareAccountData(userId: string, account: any): Prisma.AccountCreateInput {
+  return {
+    user: {
+      connect: {
+        id: userId,
+      },
+    },
+    type: account.type,
+    provider: account.provider,
+    providerAccountId: account.providerAccountId,
+    access_token: account.access_token ?? null,
+    refresh_token: account.refresh_token ?? null,
+    expires_at: account.expires_at ?? null,
+    token_type: account.token_type ?? null,
+    scope: account.scope?.toString() ?? null,
+    id_token: account.id_token?.toString() ?? null,
+    session_state: account.session_state?.toString() ?? null,
+  };
+}
+
+// エラーハンドリング関数
+function handleAuthError(error: unknown, context?: Record<string, unknown>): boolean {
+  if (error instanceof PrismaClientKnownRequestError) {
+    // ここで型が安全になります
+    logError(`Prismaエラー: ${error.code}`, error, {
+      ...context,
+      meta: error.meta,
+    });
+  } else if (error instanceof Error) {
+    logError("認証処理中にエラーが発生しました", error, {
+      ...context,
+      message: error.message,
+      stack: error.stack,
+    });
+  } else {
+    logError("予期せぬエラーが発生しました", error, context);
+  }
+  return false;
+}
 
 /**
  * NextAuth設定のエクスポート
@@ -24,8 +75,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // セッション管理の設定（jwtを使用）
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30日
-    updateAge: 24 * 60 * 60, // 24時間
+    maxAge: AUTH_CONFIG.SESSION.MAX_AGE,
+    updateAge: AUTH_CONFIG.SESSION.UPDATE_AGE,
   },
   // データベース接続情報
   pages: {
@@ -42,108 +93,93 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      */
     async signIn({ user, account }) {
       if (!user?.email || !account) {
-        logError("認証に必要なデータが不足しています", null, { user, account });
+        logError("認証に必要なデータが不足しています", null, {
+          hasUser: !!user,
+          hasEmail: !!user?.email,
+          hasAccount: !!account,
+        });
         return false;
       }
 
       try {
         // トランザクション化して、途中までデータ保存して、エラーやアプリ削除で不整合がない状態にする
-        return await prisma.$transaction(async (tx) => {
-          // 1. まず、provider+providerAccountIdで既存アカウントを検索。
-          // emailではなく、ProviderIDとProviderAccountIDの結合結果が合致する場合はログインできるようにしたい
-          const existingAccount = await tx.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
+        return await prisma.$transaction(
+          async (tx) => {
+            // 1. まず、provider+providerAccountIdで既存アカウントを検索。
+            // emailではなく、ProviderIDとProviderAccountIDの結合結果が合致する場合はログインできるようにしたい
+            const existingAccount = await tx.account.findUnique({
+              where: {
+                provider_providerAccountId: {
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                },
               },
-            },
-            include: { user: true },
-          });
+              include: { user: true },
+            });
 
-          // 2. 既存アカウントがある場合（既存ユーザー）
-          if (existingAccount) {
-            // アカウント情報を更新
-            await tx.account.update({
-              where: { id: existingAccount.id },
+            // 2. 既存アカウントがある場合（既存ユーザー）
+            if (existingAccount) {
+              // アカウント情報を更新
+              await tx.account.update({
+                where: { id: existingAccount.id },
+                data: {
+                  access_token: account.access_token,
+                  refresh_token: account.refresh_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope?.toString() ?? null,
+                  id_token: account.id_token?.toString() ?? null,
+                  session_state: account.session_state?.toString() ?? null,
+                },
+              });
+
+              // ユーザー情報を更新
+              await tx.user.update({
+                where: { id: existingAccount.user.id },
+                data: {
+                  // nullやundefinedの場合は既存のメールアドレスを使用
+                  email: user.email || existingAccount.user.email,
+                  name: user.name ?? existingAccount.user.name,
+                  image: user.image ?? existingAccount.user.image,
+                },
+              });
+
+              return true;
+            }
+
+            // 3. メールアドレスで既存ユーザーを検索（同じメールの別アカウントの場合）
+            const existingUserByEmail = user.email ? await tx.user.findUnique({ where: { email: user.email } }) : null;
+
+            // 4A. メールアドレスで見つかった場合は、新しいアカウントを既存ユーザーに紐づける
+            if (existingUserByEmail) {
+              await tx.account.create({
+                data: prepareAccountData(existingUserByEmail.id, account),
+              });
+
+              return true;
+            }
+
+            // 4B. 完全に新規ユーザーの場合は、ユーザーとアカウントを両方作成
+            const newUser = await tx.user.create({
               data: {
-                access_token: account.access_token,
-                refresh_token: account.refresh_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope?.toString() ?? null,
-                id_token: account.id_token?.toString() ?? null,
-                session_state: account.session_state?.toString() ?? null,
+                email: user.email!, // 非nullアサーション演算子を使用
+                name: user.name ?? null,
+                image: user.image ?? null,
               },
             });
 
-            // ユーザー情報を更新
-            await tx.user.update({
-              where: { id: existingAccount.user.id },
-              data: {
-                // nullやundefinedの場合は既存のメールアドレスを使用
-                email: user.email || existingAccount.user.email,
-                name: user.name ?? existingAccount.user.name,
-                image: user.image ?? existingAccount.user.image,
-              },
-            });
-
-            return true;
-          }
-
-          // 3. メールアドレスで既存ユーザーを検索（同じメールの別アカウントの場合）
-          const existingUserByEmail = await tx.user.findUnique({
-            where: { email: user.email },
-          });
-
-          // 4A. メールアドレスで見つかった場合は、新しいアカウントを既存ユーザーに紐づける
-          if (existingUserByEmail) {
+            // 新規アカウント作成
             await tx.account.create({
-              data: {
-                userId: existingUserByEmail.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token,
-                refresh_token: account.refresh_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope?.toString() ?? null,
-                id_token: account.id_token?.toString() ?? null,
-                session_state: account.session_state?.toString() ?? null,
-              },
+              data: prepareAccountData(newUser.id, account),
             });
 
             return true;
-          }
-
-          // 4B. 完全に新規ユーザーの場合は、ユーザーとアカウントを両方作成
-          const newUser = await tx.user.create({
-            data: {
-              email: user.email,
-              name: user.name ?? null,
-              image: user.image ?? null,
-            },
-          });
-
-          await tx.account.create({
-            data: {
-              userId: newUser.id,
-              type: account.type,
-              provider: account.provider,
-              providerAccountId: account.providerAccountId,
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              expires_at: account.expires_at,
-              token_type: account.token_type,
-              scope: account.scope?.toString() ?? null,
-              id_token: account.id_token?.toString() ?? null,
-              session_state: account.session_state?.toString() ?? null,
-            },
-          });
-
-          return true;
-        });
+          },
+          {
+            timeout: AUTH_CONFIG.TRANSACTION_TIMEOUT,
+            isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+          },
+        );
       } catch (error) {
         console.error("Error in signIn callback:", error);
         return false;
