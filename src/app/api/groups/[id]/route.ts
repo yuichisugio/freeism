@@ -1,16 +1,17 @@
-import type { NextRequest } from "next/server";
+// src/app/api/groups/[id]/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// 専用の型定義なし - 直接インラインで定義
+export async function GET(req: Request, context: { params: { id: string } }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = context.params;
     if (!id) {
       return new NextResponse("Group ID is required", { status: 400 });
     }
