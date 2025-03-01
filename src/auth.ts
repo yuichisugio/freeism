@@ -1,7 +1,13 @@
 import type { NextAuthConfig } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+
+// ログ用ユーティリティ
+const logError = (message: string, error: unknown, context?: Record<string, unknown>) => {
+  console.error(message, error, context);
+};
 
 /**
  * NextAuth設定のエクスポート
@@ -36,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      */
     async signIn({ user, account }) {
       if (!user?.email || !account) {
+        logError("認証に必要なデータが不足しています", null, { user, account });
         return false;
       }
 
@@ -74,7 +81,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             await tx.user.update({
               where: { id: existingAccount.user.id },
               data: {
-                email: user.email, // メールアドレスも最新のものに更新
+                // nullやundefinedの場合は既存のメールアドレスを使用
+                email: user.email || existingAccount.user.email,
                 name: user.name ?? existingAccount.user.name,
                 image: user.image ?? existingAccount.user.image,
               },
