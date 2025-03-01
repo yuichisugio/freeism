@@ -1,1 +1,2 @@
-pnpm lint-staged --concurrent false
+pnpm run test || true
+pnpm dlx lint-staged

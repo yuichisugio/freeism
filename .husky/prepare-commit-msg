@@ -1,8 +1,1 @@
-#!/bin/sh
-exec < /dev/tty && node_modules/.bin/cz --hook || true
-
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# ここを修正：czへの直接参照を避け、npxを使用する
-npx commitizen --hook || true
+exec < /dev/tty && npx commitizen --hook || true
