@@ -266,7 +266,7 @@ async function createTasks(count: number, memberships: any[], users: any[]) {
         task: faker.lorem.sentence(),
         reference: faker.datatype.boolean() ? faker.internet.url() : null,
         status: faker.helpers.arrayElement(taskStatuses),
-        contributionPoint: faker.number.int({ min: 1, max: 100 }),
+        fixedContributionPoint: faker.number.int({ min: 1, max: 100 }),
         evaluator: faker.datatype.boolean() ? faker.helpers.arrayElement(users).id : null,
         evaluationLogic: faker.datatype.boolean() ? faker.lorem.paragraph(1) : null,
         contributionType: faker.helpers.arrayElement(contributionTypes),

@@ -3,7 +3,8 @@
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { exportGroupTask, joinGroup } from "@/app/actions";
+import { joinGroup } from "@/app/actions/group";
+import { exportGroupTask } from "@/app/actions/task";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { DataTable } from "@/components/share/data-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -17,7 +18,7 @@ type Task = {
   task: string;
   reference: string | null;
   status: string;
-  contributionPoint: number | null;
+  fixedContributionPoint: number | null;
   evaluator: string | null;
   evaluationLogic: string | null;
   contributionType: string;
@@ -103,7 +104,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "contributionPoint" as keyof Task,
       header: "POINT",
-      cell: (row: Task) => `${row.contributionPoint || 0}p`,
+      cell: (row: Task) => `${row.fixedContributionPoint || 0}p`,
       sortable: true,
     },
     {
@@ -165,7 +166,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       key: "contributionPoint" as keyof Task,
       header: "現在の入札額 Point",
       sortable: true,
-      cell: (row: Task) => `${row.contributionPoint || 0}p`,
+      cell: (row: Task) => `${row.fixedContributionPoint || 0}p`,
     },
     {
       key: "contributionType" as keyof Task,

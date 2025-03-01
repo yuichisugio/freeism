@@ -30,22 +30,6 @@ const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
 // 型定義
 type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION";
 
-type ValidationError = string;
-
-type FileValidationResult = {
-  file: File;
-  data: any[];
-  errors: ValidationError[];
-};
-
-// CSVアップロード結果の型定義（bulkCreateEvaluationsと互換性を持たせる）
-type UploadResult = {
-  success: boolean;
-  error?: string;
-  analyses?: any[];
-  details?: Record<string, unknown>;
-};
-
 /**
  * モーダルのコンポーネント
  * @param {CsvUploadModalProps} props - モーダルのprops

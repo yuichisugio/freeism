@@ -31,7 +31,6 @@ export async function GET(req: Request, { params }: GroupRouteContext) {
             },
           },
         },
-        supplies: true,
       },
     });
 

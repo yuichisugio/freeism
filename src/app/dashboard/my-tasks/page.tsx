@@ -40,7 +40,7 @@ export default async function MyTasksPage() {
           id: true,
           tasks: {
             select: {
-              contributionPoint: true,
+              fixedContributionPoint: true,
             },
           },
         },

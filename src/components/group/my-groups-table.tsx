@@ -3,7 +3,7 @@
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
-import { leaveGroup } from "@/app/actions";
+import { leaveGroup } from "@/app/actions/group";
 import { DataTable } from "@/components/share/data-table";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ type GroupMembership = {
     evaluationMethod: string;
     maxParticipants: number;
     tasks: {
-      contributionPoint: number | null;
+      fixedContributionPoint: number | null;
     }[];
   };
 };
@@ -34,7 +34,7 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
   const totalContributionPointsByGroup = memberships.reduce(
     (acc, membership) => {
       const groupId = membership.group.id;
-      const groupContributionPoints = membership.group.tasks.reduce((sum, task) => sum + (task.contributionPoint || 0), 0);
+      const groupContributionPoints = membership.group.tasks.reduce((sum, task) => sum + (task.fixedContributionPoint || 0), 0);
       acc[groupId] = groupContributionPoints;
       return acc;
     },

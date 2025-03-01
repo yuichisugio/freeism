@@ -35,7 +35,7 @@ export default async function MyGroupsPage() {
               userId: session.user.id,
             },
             select: {
-              contributionPoint: true,
+              fixedContributionPoint: true,
             },
           },
         },

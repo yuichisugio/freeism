@@ -10,7 +10,7 @@ type Task = {
   task: string;
   reference: string | null;
   status: string;
-  contributionPoint: number | null;
+  fixedContributionPoint: number | null;
   evaluator: string | null;
   evaluationLogic: string | null;
   contributionType: string;
@@ -51,7 +51,7 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       key: "contributionPoint" as keyof Task,
       header: "Contribution Point",
       sortable: true,
-      cell: (row: Task) => (row.contributionPoint ? `${row.contributionPoint}p` : "評価待ち"),
+      cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
     },
     {
       key: "evaluator" as keyof Task,
