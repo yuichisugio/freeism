@@ -9,13 +9,13 @@ export const config = {
 export async function middleware(_request: Request) {
   // JWTトークンを直接取得（Prismaアダプターを使わない）
   const token = await getToken({
-    req: request as any,
+    req: _request as any,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
   // 認証されていない場合は、サインインページにリダイレクト
   if (!token) {
-    const url = new URL("/auth/signin", request.url);
+    const url = new URL("/auth/signin", _request.url);
     return NextResponse.redirect(url);
   }
 
