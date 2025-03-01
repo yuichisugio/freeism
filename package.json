@@ -53,6 +53,7 @@
     "@apollo/client": "^3.12.11",
     "@apollo/server": "^4.11.3",
     "@as-integrations/next": "^3.2.0",
+    "@auth/nextjs": "0.0.0-380f8d56",
     "@auth/prisma-adapter": "^2.7.4",
     "@hookform/resolvers": "^4.0.0",
     "@prisma/nextjs-monorepo-workaround-plugin": "^6.4.1",

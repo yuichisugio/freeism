@@ -1,84 +1,51 @@
+// middleware.ts
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 // 認証が必要なパスを設定
+// 認証が必要なパスを設定
 export const config = {
-  matcher: ["/dashboard/:path*", "/protected/:path*"],
+  matcher: [
+    // 特定の保護されたルート
+    "/dashboard/:path*",
+    "/protected/user/:path*",
+    // 特定のパターンにのみマッチ（ルートパスを除外）
+    "/((?!^/$|api|_next/static|_next/image|favicon.ico|auth).+)",
+  ],
 };
 
-export async function middleware(request: Request) {
-  console.log("middleware");
+export default auth((req) => {
+  try {
+    // 現在のパスを取得
+    const pathname = new URL(req.url).pathname;
 
-  // Cookieヘッダーを取得
-  const cookieHeader = request.headers.get("cookie") || "";
-  console.log("cookieHeader: ", cookieHeader);
-
-  // Auth.js/NextAuth.jsの可能性のあるすべてのセッションCookie名をチェック
-  const possibleCookieNames = [
-    "next-auth.session-token",
-    "__Secure-next-auth.session-token",
-    "__Host-next-auth.session-token",
-    "next-auth.callback-url",
-    "__Secure-next-auth.callback-url",
-    "next-auth.csrf-token",
-    "__Host-next-auth.csrf-token",
-    // Auth.js v5での可能性のある名前
-    "authjs.session-token",
-    "__Secure-authjs.session-token",
-    "__Host-authjs.session-token",
-  ];
-
-  // 個別の各Cookieを抽出して確認（より正確な方法）
-  const cookies = parseCookies(cookieHeader);
-  console.log("Parsed cookies:", cookies);
-
-  // いずれかのセッションCookieが存在するか確認
-  let hasSession = false;
-  for (const name of possibleCookieNames) {
-    if (cookies[name]) {
-      console.log(`Found session cookie: ${name}`);
-      hasSession = true;
-      break;
+    // ルートパス「/」の場合は認証をスキップ
+    if (pathname === "/") {
+      return NextResponse.next();
     }
-  }
 
-  // もしCookieのパースができなかった場合のバックアップとして、単純な文字列検索も行う
-  if (!hasSession) {
-    for (const name of possibleCookieNames) {
-      if (cookieHeader.includes(`${name}=`)) {
-        console.log(`Found session cookie via string search: ${name}`);
-        hasSession = true;
-        break;
-      }
+    const isLoggedIn = !!req.auth;
+
+    if (!isLoggedIn) {
+      const url = new URL("/auth/signin", req.url);
+      // 相対パスを使用してURLエンコーディングを簡略化
+      url.searchParams.set("callbackUrl", new URL(req.url).pathname);
+      return NextResponse.redirect(url);
     }
+    // 認証済みの場合は次の処理に進む
+    const response = NextResponse.next();
+
+    // セキュリティとキャッシュのヘッダーを設定。キャッシュ制御。クリックジャッキング防止。コンテンツタイプスニッフィング防止。HTTPS強制。リファラーポリシー設定
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+    return response;
+  } catch (error) {
+    console.error("Error in middleware:", error);
+    return NextResponse.redirect(new URL("/error", req.url));
   }
-
-  console.log("hasSession: ", hasSession);
-
-  // セッションCookieが存在しない場合はログインページにリダイレクト
-  if (!hasSession) {
-    const url = new URL("/auth/signin", request.url);
-    url.searchParams.set("callbackUrl", request.url);
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
-}
-
-// Cookie文字列をパースするヘルパー関数
-function parseCookies(cookieHeader: string) {
-  const cookies: Record<string, string> = {};
-
-  if (!cookieHeader) return cookies;
-
-  const cookiePairs = cookieHeader.split(";");
-  for (const cookiePair of cookiePairs) {
-    const [name, ...valueParts] = cookiePair.trim().split("=");
-    // valuePartsは「=」で分割された後の部分すべてを結合（値に「=」が含まれる可能性があるため）
-    const value = valueParts.join("=");
-    if (name) {
-      cookies[name] = value;
-    }
-  }
-
-  return cookies;
-}
+});

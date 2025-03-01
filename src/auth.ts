@@ -1,6 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
@@ -12,8 +11,6 @@ import Google from "next-auth/providers/google";
  * - signOut: サインアウト関数
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Prismaアダプターの設定（データベースとの連携）
-  adapter: PrismaAdapter(prisma),
   // 認証プロバイダーの設定（Googleのみ）
   providers: [Google],
   // デバッグモードを有効にする（開発環境でのみ有効）
@@ -24,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30日
     updateAge: 24 * 60 * 60, // 24時間
   },
-  //
+  // データベース接続情報
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
@@ -41,60 +38,104 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!user?.email || !account) {
         return false;
       }
+
       try {
-        const userData = await prisma.user.upsert({
-          where: { email: user.email },
-          update: {
-            name: user.name ?? null,
-            image: user.image ?? null,
-          },
-          create: {
-            email: user.email,
-            name: user.name ?? null,
-            image: user.image ?? null,
-          },
-        });
+        // トランザクション化して、途中までデータ保存して、エラーやアプリ削除で不整合がない状態にする
+        return await prisma.$transaction(async (tx) => {
+          // 1. まず、provider+providerAccountIdで既存アカウントを検索。
+          // emailではなく、ProviderIDとProviderAccountIDの結合結果が合致する場合はログインできるようにしたい
+          const existingAccount = await tx.account.findUnique({
+            where: {
+              provider_providerAccountId: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            include: { user: true },
+          });
 
-        if (!userData) {
-          return false;
-        }
+          // 2. 既存アカウントがある場合（既存ユーザー）
+          if (existingAccount) {
+            // アカウント情報を更新
+            await tx.account.update({
+              where: { id: existingAccount.id },
+              data: {
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope?.toString() ?? null,
+                id_token: account.id_token?.toString() ?? null,
+                session_state: account.session_state?.toString() ?? null,
+              },
+            });
 
-        const accountData = await prisma.account.upsert({
-          where: {
-            provider_providerAccountId: {
+            // ユーザー情報を更新
+            await tx.user.update({
+              where: { id: existingAccount.user.id },
+              data: {
+                email: user.email, // メールアドレスも最新のものに更新
+                name: user.name ?? existingAccount.user.name,
+                image: user.image ?? existingAccount.user.image,
+              },
+            });
+
+            return true;
+          }
+
+          // 3. メールアドレスで既存ユーザーを検索（同じメールの別アカウントの場合）
+          const existingUserByEmail = await tx.user.findUnique({
+            where: { email: user.email },
+          });
+
+          // 4A. メールアドレスで見つかった場合は、新しいアカウントを既存ユーザーに紐づける
+          if (existingUserByEmail) {
+            await tx.account.create({
+              data: {
+                userId: existingUserByEmail.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope?.toString() ?? null,
+                id_token: account.id_token?.toString() ?? null,
+                session_state: account.session_state?.toString() ?? null,
+              },
+            });
+
+            return true;
+          }
+
+          // 4B. 完全に新規ユーザーの場合は、ユーザーとアカウントを両方作成
+          const newUser = await tx.user.create({
+            data: {
+              email: user.email,
+              name: user.name ?? null,
+              image: user.image ?? null,
+            },
+          });
+
+          await tx.account.create({
+            data: {
+              userId: newUser.id,
+              type: account.type,
               provider: account.provider,
               providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope?.toString() ?? null,
+              id_token: account.id_token?.toString() ?? null,
+              session_state: account.session_state?.toString() ?? null,
             },
-          },
-          update: {
-            access_token: account.access_token,
-            refresh_token: account.refresh_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope?.toString() ?? null,
-            id_token: account.id_token?.toString() ?? null,
-            session_state: account.session_state?.toString() ?? null,
-          },
-          create: {
-            userId: userData.id,
-            type: account.type,
-            provider: account.provider,
-            providerAccountId: account.providerAccountId,
-            access_token: account.access_token,
-            refresh_token: account.refresh_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope?.toString() ?? null,
-            id_token: account.id_token?.toString() ?? null,
-            session_state: account.session_state?.toString() ?? null,
-          },
+          });
+
+          return true;
         });
-
-        if (!accountData) {
-          return false;
-        }
-
-        return true;
       } catch (error) {
         console.error("Error in signIn callback:", error);
         return false;
@@ -140,15 +181,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  // events: {
-  //   async signIn(message) {
-  //     console.log("Event: Sign in:", message);
-  //   },
-  //   async signOut(message) {
-  //     console.log("Event: Sign out:", message);
-  //   },
-  //   async session(message) {
-  //     console.log("Event: Session update:", message);
-  //   },
-  // },
 } satisfies NextAuthConfig);
