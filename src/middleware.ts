@@ -6,16 +6,16 @@ export const config = {
   matcher: ["/dashboard/:path*", "/protected/:path*"],
 };
 
-export async function middleware(_request: Request) {
+export async function middleware(request: Request) {
   // JWTトークンを直接取得（Prismaアダプターを使わない）
   const token = await getToken({
-    req: _request as any,
+    req: request as any,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
   // 認証されていない場合は、サインインページにリダイレクト
   if (!token) {
-    const url = new URL("/auth/signin", _request.url);
+    const url = new URL("/auth/signin", request.url);
     return NextResponse.redirect(url);
   }
 
