@@ -1,7 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
@@ -38,26 +37,6 @@ function prepareAccountData(userId: string, account: any): Prisma.AccountCreateI
     id_token: account.id_token?.toString() ?? null,
     session_state: account.session_state?.toString() ?? null,
   };
-}
-
-// エラーハンドリング関数
-function handleAuthError(error: unknown, context?: Record<string, unknown>): boolean {
-  if (error instanceof PrismaClientKnownRequestError) {
-    // ここで型が安全になります
-    logError(`Prismaエラー: ${error.code}`, error, {
-      ...context,
-      meta: error.meta,
-    });
-  } else if (error instanceof Error) {
-    logError("認証処理中にエラーが発生しました", error, {
-      ...context,
-      message: error.message,
-      stack: error.stack,
-    });
-  } else {
-    logError("予期せぬエラーが発生しました", error, context);
-  }
-  return false;
 }
 
 /**
