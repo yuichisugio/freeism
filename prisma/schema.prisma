@@ -5,21 +5,21 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
-  plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
+  provider      = "prisma-client-js"
+  plugin        = "@prisma/nextjs-monorepo-workaround-plugin"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 model User {
-  id            String          @id @default(cuid())
+  id            String            @id @default(cuid())
   name          String?
-  email         String          @unique
+  email         String            @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
@@ -34,7 +34,7 @@ model User {
 }
 
 model Account {
-  id                String @id @default(cuid())
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -62,8 +62,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -75,38 +75,38 @@ model VerificationToken {
 }
 
 model UserSettings {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  username         String
-  lifeGoal         String   @db.Text
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  username  String
+  lifeGoal  String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {
-  id                String   @id @default(cuid())
-  name              String   @unique
-  goal              String
-  evaluationMethod  String
-  maxParticipants   Int
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  createdBy         String
-  user              User     @relation(fields: [createdBy], references: [id])
-  members           GroupMembership[]
-  tasks             Task[]
+  id               String            @id @default(cuid())
+  name             String            @unique
+  goal             String
+  evaluationMethod String
+  maxParticipants  Int
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  createdBy        String
+  user             User              @relation(fields: [createdBy], references: [id])
+  members          GroupMembership[]
+  tasks            Task[]
 
   @@index([createdBy])
 }
 
 model GroupMembership {
-  id        String   @id @default(cuid())
-  userId    String
-  groupId   String
-  joinedAt  DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  userId   String
+  groupId  String
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
   @@index([userId])
@@ -114,32 +114,32 @@ model GroupMembership {
 }
 
 model Task {
-  id               String    @id @default(cuid())
-  task            String
-  reference       String?
-  status          TaskStatus @default(PENDING)
+  id                String     @id @default(cuid())
+  task              String
+  reference         String?
+  status            TaskStatus @default(PENDING)
   contributionPoint Int?
-  evaluator       String?
-  evaluationLogic String?
-  contributionType String    @default("NON_REWARD") // "REWARD" or "NON_REWARD"
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String
-  group           Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId         String
+  evaluator         String?
+  evaluationLogic   String?
+  contributionType  String     @default("NON_REWARD") // "REWARD" or "NON_REWARD"
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String
+  group             Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId           String
 
   @@index([userId])
   @@index([groupId])
 }
 
 enum TaskStatus {
-  PENDING                 // タスク実施予定
-  BIDDED                  // 落札済み
-  POINTS_DEPOSITED        // ポイント預け済み
-  TASK_COMPLETED         // タスク完了
+  PENDING // タスク実施予定
+  BIDDED // 落札済み
+  POINTS_DEPOSITED // ポイント預け済み
+  TASK_COMPLETED // タスク完了
   GROUP_REVIEW_COMPLETED // Group内レビュー完了
   EXTERNAL_REVIEW_COMPLETED // Group外レビュー完了
-  POINTS_AWARDED         // ポイント付与完了
-  ARCHIVED              // アーカイブ
+  POINTS_AWARDED // ポイント付与完了
+  ARCHIVED // アーカイブ
 }

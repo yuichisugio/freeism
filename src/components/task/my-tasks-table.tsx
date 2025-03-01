@@ -30,9 +30,6 @@ type MyTasksTableProps = {
 export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
   const [tasks, setTasks] = useState(initialTasks);
 
-  // かくぐの保有ポイントの合計を計算
-  const totalContributionPoint = tasks.reduce((acc, task) => acc + (task.contributionPoint || 0), 0);
-
   const columns: Column<Task>[] = [
     {
       key: "group" as keyof Task,

@@ -11,9 +11,7 @@ export async function middleware(_request: Request) {
 
   // 認証されていない場合は、サインインページにリダイレクト
   if (!session) {
-    return NextResponse.redirect(
-      new URL("/auth/signin", "http://localhost:3000"),
-    );
+    return NextResponse.redirect(new URL("/auth/signin", "http://localhost:3000"));
   }
 
   return NextResponse.next();

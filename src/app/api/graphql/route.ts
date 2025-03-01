@@ -8,12 +8,7 @@ import { type DocumentNode, type GraphQLResolveInfo } from "graphql";
 type ResolverContext = Record<string, never>;
 
 type QueryResolvers = {
-  hello: (
-    parent: unknown,
-    args: unknown,
-    context: ResolverContext,
-    info: GraphQLResolveInfo,
-  ) => string;
+  hello: (parent: unknown, args: unknown, context: ResolverContext, info: GraphQLResolveInfo) => string;
 };
 
 // GraphQLスキーマの定義
@@ -26,8 +21,7 @@ const typeDefs = gql`
 // リゾルバーの定義
 const resolvers = {
   Query: {
-    hello: (_: unknown, __: unknown, ___: ResolverContext): string =>
-      "Hello World!",
+    hello: (_: unknown, __: unknown, ___: ResolverContext): string => "Hello World!",
   },
 } satisfies {
   Query: QueryResolvers;
