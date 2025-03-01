@@ -27,6 +27,11 @@
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"
   },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
