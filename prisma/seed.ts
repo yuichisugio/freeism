@@ -161,7 +161,7 @@ async function createUserSettings(users: any[]) {
     const userSetting = await prisma.userSettings.create({
       data: {
         userId: user.id,
-        username: faker.internet.userName(),
+        username: faker.internet.username(),
         lifeGoal: faker.lorem.paragraph(),
       },
     });
