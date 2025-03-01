@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getToken } from "next-auth/jwt";
 
 // 認証が必要なパスを設定
 export const config = {
@@ -7,11 +7,16 @@ export const config = {
 };
 
 export async function middleware(_request: Request) {
-  const session = await auth();
+  // JWTトークンを直接取得（Prismaアダプターを使わない）
+  const token = await getToken({
+    req: request as any,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
   // 認証されていない場合は、サインインページにリダイレクト
-  if (!session) {
-    return NextResponse.redirect(new URL("/auth/signin", "http://localhost:3000"));
+  if (!token) {
+    const url = new URL("/auth/signin", request.url);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
