@@ -309,129 +309,124 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ヘッダー部分 - 未読数と全て既読にするボタン */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{unreadCount > 0 ? `${unreadCount}件の未読通知` : "未読通知はありません"}</span>
-        {unreadCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
-            すべて既読にする
-          </Button>
-        )}
-      </div>
-
-      {/* フィルターとソートのコントロール */}
-      <div className="flex flex-col justify-between gap-2 sm:flex-row">
-        {/* フィルタータブ */}
-        <Tabs
-          defaultValue="all"
-          value={activeFilter}
-          onValueChange={(value) => setActiveFilter(value as FilterType)}
-          className="w-full sm:max-w-[70%]"
-        >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">すべて</TabsTrigger>
-            <TabsTrigger value="unread">未読</TabsTrigger>
-            <TabsTrigger value="read">既読</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* ソート選択 */}
-        <div className="flex items-center gap-2">
-          <SortAsc className="h-4 w-4 text-gray-500" />
-          <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
-            <SelectTrigger className="h-9 w-[140px]">
-              <SelectValue placeholder="ソート方法" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date">日付順</SelectItem>
-              <SelectItem value="priority">優先度順</SelectItem>
-              <SelectItem value="type">種類別</SelectItem>
-            </SelectContent>
-          </Select>
+      <Tabs defaultValue="all" value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)} className="w-full sm:max-w-[70%]">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">すべて</TabsTrigger>
+          <TabsTrigger value="unread">未読</TabsTrigger>
+          <TabsTrigger value="read">既読</TabsTrigger>
+        </TabsList>
+        {/* ヘッダー部分 - 未読数と全て既読にするボタン */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">{unreadCount > 0 ? `${unreadCount}件の未読通知` : "未読通知はありません"}</span>
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
+              すべて既読にする
+            </Button>
+          )}
         </div>
-      </div>
 
-      {/* 通知リスト */}
-      <TabsContent value={activeFilter}>
-        {/* ローディング状態の表示 */}
-        {isLoading ? (
-          <div className="flex h-[300px] items-center justify-center">
-            <div className="text-center">
-              <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              <p className="text-sm text-gray-500">通知を読み込み中...</p>
-            </div>
+        {/* フィルターとソートのコントロール */}
+        <div className="flex flex-col justify-between gap-2 sm:flex-row">
+          {/* フィルタータブ */}
+
+          {/* ソート選択 */}
+          <div className="flex items-center gap-2">
+            <SortAsc className="h-4 w-4 text-gray-500" />
+            <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
+              <SelectTrigger className="h-9 w-[140px]">
+                <SelectValue placeholder="ソート方法" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">日付順</SelectItem>
+                <SelectItem value="priority">優先度順</SelectItem>
+                <SelectItem value="type">種類別</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        ) : error ? (
-          // エラー状態の表示
-          <div className="flex h-[300px] items-center justify-center">
-            <div className="text-center text-red-500">
-              <AlertCircle className="mx-auto mb-2 h-6 w-6" />
-              <p className="text-sm">{error}</p>
-            </div>
-          </div>
-        ) : (
-          // 通知リスト
-          <ScrollArea className={cn("h-[300px]", "pr-4")}>
-            {filteredNotifications.length > 0 ? (
-              <ul className="space-y-3">
-                {filteredNotifications.map((notification) => (
-                  <li
-                    key={notification.id}
-                    className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                      notification.isRead ? "bg-background" : "bg-muted/50 dark:bg-blue-950/20"
-                    } ${notification.actionUrl ? "hover:bg-muted/70 cursor-pointer" : ""}`}
-                    onClick={() => handleNotificationClick(notification)}
-                  >
-                    {/* 通知アイコン */}
-                    <div className="mt-1">
-                      <NotificationIcon type={notification.type} />
-                    </div>
+        </div>
 
-                    {/* 通知内容 */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h4 className="font-semibold">{notification.title}</h4>
-                          {notification.priority && <PriorityStars priority={notification.priority} />}
-                        </div>
-                        <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
-                          {formatDistanceToNow(notification.sentAt, {
-                            addSuffix: true,
-                            locale: ja,
-                          })}
-                        </time>
-                      </div>
-                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{notification.message}</p>
-
-                      {/* 未読/既読切り替えボタン */}
-                      <div className="mt-2 flex justify-end">
-                        {notification.isRead ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs text-gray-500"
-                            onClick={(e) => markAsUnread(notification.id, e)}
-                          >
-                            <RefreshCw className="mr-1 h-3 w-3" />
-                            未読にする
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    {/* 未読バッジ */}
-                    {!notification.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-500">
-                {activeFilter === "all" ? "通知はありません" : activeFilter === "unread" ? "未読の通知はありません" : "既読の通知はありません"}
+        {/* 通知リスト */}
+        <TabsContent value={activeFilter}>
+          {/* ローディング状態の表示 */}
+          {isLoading ? (
+            <div className="flex h-[300px] items-center justify-center">
+              <div className="text-center">
+                <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+                <p className="text-sm text-gray-500">通知を読み込み中...</p>
               </div>
-            )}
-          </ScrollArea>
-        )}
-      </TabsContent>
+            </div>
+          ) : error ? (
+            // エラー状態の表示
+            <div className="flex h-[300px] items-center justify-center">
+              <div className="text-center text-red-500">
+                <AlertCircle className="mx-auto mb-2 h-6 w-6" />
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
+          ) : (
+            // 通知リスト
+            <ScrollArea className={cn("h-[300px]", "pr-4")}>
+              {filteredNotifications.length > 0 ? (
+                <ul className="space-y-3">
+                  {filteredNotifications.map((notification) => (
+                    <li
+                      key={notification.id}
+                      className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
+                        notification.isRead ? "bg-background" : "bg-muted/50 dark:bg-blue-950/20"
+                      } ${notification.actionUrl ? "hover:bg-muted/70 cursor-pointer" : ""}`}
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      {/* 通知アイコン */}
+                      <div className="mt-1">
+                        <NotificationIcon type={notification.type} />
+                      </div>
+
+                      {/* 通知内容 */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="font-semibold">{notification.title}</h4>
+                            {notification.priority && <PriorityStars priority={notification.priority} />}
+                          </div>
+                          <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
+                            {formatDistanceToNow(notification.sentAt, {
+                              addSuffix: true,
+                              locale: ja,
+                            })}
+                          </time>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{notification.message}</p>
+
+                        {/* 未読/既読切り替えボタン */}
+                        <div className="mt-2 flex justify-end">
+                          {notification.isRead ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-gray-500"
+                              onClick={(e) => markAsUnread(notification.id, e)}
+                            >
+                              <RefreshCw className="mr-1 h-3 w-3" />
+                              未読にする
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* 未読バッジ */}
+                      {!notification.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  {activeFilter === "all" ? "通知はありません" : activeFilter === "unread" ? "未読の通知はありません" : "既読の通知はありません"}
+                </div>
+              )}
+            </ScrollArea>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
