@@ -46,11 +46,17 @@ importers:
       "@radix-ui/react-radio-group":
         specifier: ^1.2.3
         version: 1.2.3(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-scroll-area":
+        specifier: 1.2.3
+        version: 1.2.3(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       "@radix-ui/react-slot":
         specifier: ^1.1.1
         version: 1.1.2(@types/react@18.2.55)(react@18.2.0)
       "@radix-ui/react-switch":
         specifier: ^1.1.3
+        version: 1.1.3(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-tabs":
+        specifier: 1.1.3
         version: 1.1.3(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       "@radix-ui/react-toggle":
         specifier: ^1.1.2
@@ -73,6 +79,9 @@ importers:
       cmdk:
         specifier: 1.0.0
         version: 1.0.0(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
       graphql:
         specifier: ^16.10.0
         version: 16.10.0
@@ -80,7 +89,7 @@ importers:
         specifier: ^2.12.6
         version: 2.12.6(graphql@16.10.0)
       lucide-react:
-        specifier: ^0.471.1
+        specifier: ^0.471.2
         version: 0.471.2(react@18.2.0)
       next:
         specifier: 15.1.4
@@ -1018,6 +1027,9 @@ packages:
   "@protobufjs/utf8@1.1.0":
     resolution: { integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw== }
 
+  "@radix-ui/number@1.1.0":
+    resolution: { integrity: sha512-V3gRzhVNU1ldS5XhAPTom1fOIo4ccrjjJgmE+LI2h/WaFpHmx0MQApT+KZHnx8abG6Avtfcz4WoEciMnpFT3HQ== }
+
   "@radix-ui/primitive@1.0.1":
     resolution: { integrity: sha512-yQ8oGX2GVsEYMWGxcovu1uGWPCxV5BFfeeYxqPmuAzUyLT9qmaMXSAhXpb0WrspIeqYzdJpkh2vHModJPgRIaw== }
 
@@ -1378,6 +1390,19 @@ packages:
       "@types/react-dom":
         optional: true
 
+  "@radix-ui/react-scroll-area@1.2.3":
+    resolution: { integrity: sha512-l7+NNBfBYYJa9tNqVcP2AGvxdE3lmE6kFTBXdvHgUaZuy+4wGCL1Cl2AfaR7RKyimj7lZURGLwFO59k4eBnDJQ== }
+    peerDependencies:
+      "@types/react": "*"
+      "@types/react-dom": "*"
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+      "@types/react-dom":
+        optional: true
+
   "@radix-ui/react-slot@1.0.2":
     resolution: { integrity: sha512-YeTpuq4deV+6DusvVUW4ivBgnkHwECUu0BiN43L5UCDFgdhsRUWAghhTF5MbvNTPzmiFOx90asDSUjWuCNapwg== }
     peerDependencies:
@@ -1398,6 +1423,19 @@ packages:
 
   "@radix-ui/react-switch@1.1.3":
     resolution: { integrity: sha512-1nc+vjEOQkJVsJtWPSiISGT6OKm4SiOdjMo+/icLxo2G4vxz1GntC5MzfL4v8ey9OEfw787QCD1y3mUv0NiFEQ== }
+    peerDependencies:
+      "@types/react": "*"
+      "@types/react-dom": "*"
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+      "@types/react-dom":
+        optional: true
+
+  "@radix-ui/react-tabs@1.1.3":
+    resolution: { integrity: sha512-9mFyI30cuRDImbmFF6O2KUJdgEOsGh9Vmx9x/Dh9tOhL7BngmQPQfwW4aejKm5OHpfWIdmeV6ySyuxoOGjtNng== }
     peerDependencies:
       "@types/react": "*"
       "@types/react-dom": "*"
@@ -2334,6 +2372,9 @@ packages:
     resolution: { integrity: sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ== }
     engines: { node: ">= 0.4" }
 
+  date-fns@4.1.0:
+    resolution: { integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg== }
+
   debug@2.6.9:
     resolution: { integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA== }
     peerDependencies:
@@ -2988,7 +3029,9 @@ packages:
 
   inflight@1.0.6:
     resolution: { integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA== }
-    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+    deprecated:
+      This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests
+      by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: { integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ== }
@@ -5458,6 +5501,8 @@ snapshots:
 
   "@protobufjs/utf8@1.1.0": {}
 
+  "@radix-ui/number@1.1.0": {}
+
   "@radix-ui/primitive@1.0.1":
     dependencies:
       "@babel/runtime": 7.26.9
@@ -5809,6 +5854,23 @@ snapshots:
       "@types/react": 18.2.55
       "@types/react-dom": 18.2.19
 
+  "@radix-ui/react-scroll-area@1.2.3(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)":
+    dependencies:
+      "@radix-ui/number": 1.1.0
+      "@radix-ui/primitive": 1.1.1
+      "@radix-ui/react-compose-refs": 1.1.1(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-context": 1.1.1(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-direction": 1.1.0(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-presence": 1.1.2(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-primitive": 2.0.2(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-use-callback-ref": 1.1.0(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-use-layout-effect": 1.1.0(@types/react@18.2.55)(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    optionalDependencies:
+      "@types/react": 18.2.55
+      "@types/react-dom": 18.2.19
+
   "@radix-ui/react-slot@1.0.2(@types/react@18.2.55)(react@18.2.0)":
     dependencies:
       "@babel/runtime": 7.26.9
@@ -5833,6 +5895,22 @@ snapshots:
       "@radix-ui/react-use-controllable-state": 1.1.0(@types/react@18.2.55)(react@18.2.0)
       "@radix-ui/react-use-previous": 1.1.0(@types/react@18.2.55)(react@18.2.0)
       "@radix-ui/react-use-size": 1.1.0(@types/react@18.2.55)(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    optionalDependencies:
+      "@types/react": 18.2.55
+      "@types/react-dom": 18.2.19
+
+  "@radix-ui/react-tabs@1.1.3(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)":
+    dependencies:
+      "@radix-ui/primitive": 1.1.1
+      "@radix-ui/react-context": 1.1.1(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-direction": 1.1.0(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-id": 1.1.0(@types/react@18.2.55)(react@18.2.0)
+      "@radix-ui/react-presence": 1.1.2(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-primitive": 2.0.2(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-roving-focus": 1.1.2(@types/react-dom@18.2.19)(@types/react@18.2.55)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      "@radix-ui/react-use-controllable-state": 1.1.0(@types/react@18.2.55)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     optionalDependencies:
@@ -6790,6 +6868,8 @@ snapshots:
       call-bound: 1.0.3
       es-errors: 1.3.0
       is-data-view: 1.0.2
+
+  date-fns@4.1.0: {}
 
   debug@2.6.9:
     dependencies:

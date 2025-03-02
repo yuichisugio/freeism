@@ -3,10 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Home, Menu, PlusCircle, Settings, UserCircle, X } from "lucide-react";
+import { Bell, Home, Menu, PlusCircle, Settings, UserCircle, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const sidebarItems = [
@@ -40,8 +49,13 @@ const sidebarItems = [
       },
       {
         title: "新規Task作成",
-        href: "/dashboard/my-tasks/new",
+        href: "/dashboard/new-task",
         icon: PlusCircle,
+      },
+      {
+        title: "通知一覧",
+        href: "/dashboard/notifications",
+        icon: Bell,
       },
     ],
   },
@@ -82,7 +96,13 @@ export function Sidebar() {
       {isOpen && <div className="fixed top-0 right-0 bottom-0 left-48 z-40 bg-transparent backdrop-blur-sm sm:hidden" onClick={toggleSidebar} />}
 
       {/* Sidebar本体 */}
-      <aside className={cn("sm:static sm:translate-x-0", "fixed top-16 left-0 z-10 h-[calc(100vh-4rem)] w-48 border-r border-blue-100 bg-white transition-transform duration-50 dark:border-blue-900 dark:bg-gray-950", isOpen ? "translate-x-0" : "-translate-x-full")}>
+      <aside
+        className={cn(
+          "sm:static sm:translate-x-0",
+          "fixed top-16 left-0 z-10 h-[calc(100vh-4rem)] w-48 border-r border-blue-100 bg-white transition-transform duration-50 dark:border-blue-900 dark:bg-gray-950",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
         <div className="space-y-4 py-4">
           {sidebarItems.map((section) => (
             <div key={section.title} className="px-3 py-3">

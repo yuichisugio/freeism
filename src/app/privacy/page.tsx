@@ -41,7 +41,10 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-blue-800">3. 個人情報の管理</h2>
-              <p>当サービスは、個人情報の漏洩、滅失、毀損等を防ぐため、必要な安全管理措置を講じます。 個人情報は、アクセス制限や暗号化等の技術的措置を用いて適切に管理されます。</p>
+              <p>
+                当サービスは、個人情報の漏洩、滅失、毀損等を防ぐため、必要な安全管理措置を講じます。
+                個人情報は、アクセス制限や暗号化等の技術的措置を用いて適切に管理されます。
+              </p>
             </section>
 
             <section>
@@ -57,12 +60,18 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-blue-800">5. Cookieの使用</h2>
-              <p>当サービスは、ユーザーの利便性向上のためにCookieを使用することがあります。 ユーザーはブラウザの設定によりCookieの使用を制限することができます。</p>
+              <p>
+                当サービスは、ユーザーの利便性向上のためにCookieを使用することがあります。
+                ユーザーはブラウザの設定によりCookieの使用を制限することができます。
+              </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-blue-800">6. プライバシーポリシーの変更</h2>
-              <p>当サービスは、必要に応じて本プライバシーポリシーを変更することがあります。 変更後のプライバシーポリシーは、当サービス上に掲載した時点から効力を生じるものとします。</p>
+              <p>
+                当サービスは、必要に応じて本プライバシーポリシーを変更することがあります。
+                変更後のプライバシーポリシーは、当サービス上に掲載した時点から効力を生じるものとします。
+              </p>
             </section>
 
             <section>

@@ -67,7 +67,12 @@ export async function bulkCreateEvaluations(rawData: EvaluationImportData[], gro
         return { success: true as const, data: validData, rowIndex: index + 1 };
       } catch (err) {
         // 検証エラーの詳細を取得
-        const errorMessage = err instanceof z.ZodError ? err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ") : err instanceof Error ? err.message : "不明な検証エラー";
+        const errorMessage =
+          err instanceof z.ZodError
+            ? err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ")
+            : err instanceof Error
+              ? err.message
+              : "不明な検証エラー";
 
         return {
           success: false as const,
@@ -89,7 +94,9 @@ export async function bulkCreateEvaluations(rawData: EvaluationImportData[], gro
     }
 
     // 検証済みデータを抽出
-    const validatedData = validationResults.filter((result): result is { success: true; data: EvaluationImportData; rowIndex: number } => result.success).map((result) => result.data);
+    const validatedData = validationResults
+      .filter((result): result is { success: true; data: EvaluationImportData; rowIndex: number } => result.success)
+      .map((result) => result.data);
 
     // タスクIDの一覧を取得
     const taskIds = [...new Set(validatedData.map((item) => item.taskId))];

@@ -123,7 +123,9 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
   // アップロードしたファイルをカードとして表示
   const fileCards = useMemo(() => {
-    return currentFiles.map((file, i) => <SelectedFileCard key={`${file.name}-${i}`} name={file.name} fileSize={file.size} onRemove={() => handleRemoveFile(file)} />);
+    return currentFiles.map((file, i) => (
+      <SelectedFileCard key={`${file.name}-${i}`} name={file.name} fileSize={file.size} onRemove={() => handleRemoveFile(file)} />
+    ));
   }, [currentFiles, handleRemoveFile]);
 
   // キャンセル処理
@@ -282,14 +284,26 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
             <RadioGroup value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="grid grid-cols-2 gap-4">
               <div>
                 <RadioGroupItem value="TASK_REPORT" id="task_report" className="peer sr-only" />
-                <Label htmlFor="task_report" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4", uploadType === "TASK_REPORT" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white")}>
+                <Label
+                  htmlFor="task_report"
+                  className={cn(
+                    "flex flex-col items-center justify-between rounded-md border-2 p-4",
+                    uploadType === "TASK_REPORT" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white",
+                  )}
+                >
                   <File className="mb-2 h-6 w-6 text-blue-600" />
                   タスク報告
                 </Label>
               </div>
               <div>
                 <RadioGroupItem value="CONTRIBUTION_EVALUATION" id="contribution_evaluation" className="peer sr-only" />
-                <Label htmlFor="contribution_evaluation" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4", uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white")}>
+                <Label
+                  htmlFor="contribution_evaluation"
+                  className={cn(
+                    "flex flex-col items-center justify-between rounded-md border-2 p-4",
+                    uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white",
+                  )}
+                >
                   <File className="mb-2 h-6 w-6 text-blue-600" />
                   貢献評価
                 </Label>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { LoginButton } from "@/components/auth/login-button";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { Sidebar } from "@/components/layout/sidebar";
+import { NotificationButton } from "@/components/notification/notification-button";
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -11,42 +13,73 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
  * - スティッキーヘッダーとして画面上部に固定
  * - ロゴとナビゲーションを表示
  * - ログイン状態に応じてボタンを切り替え
- * - レスポンシブ対応（モバイルでは縦並び、デスクトップでは横並び）
+ * - レスポンシブ対応
+ *   - スマホ: ハンバーガーメニュー(左) + ロゴ(中央) + 通知(右)
+ *   - タブレット/PC: ロゴ(左) + ナビゲーション要素(右)
  */
 export async function Header() {
   // 認証状態を取得
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg dark:border-blue-900 dark:bg-gray-950/80">
+    <header className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-colors duration-200 dark:border-blue-900 dark:bg-gray-950/80">
       {/* ヘッダーコンテンツのコンテナ */}
-      <div className="container flex h-16 items-center justify-center pl-4 sm:justify-between">
-        {/* ロゴ部分 */}
-        <Link href="/" className="flex items-center gap-2 overscroll-none text-blue-600 transition-colors hover:text-blue-700 sm:gap-3 dark:text-blue-400 dark:hover:text-blue-300">
-          {/* ロゴアイコン */}
-          <AppLogoSvg />
-          {/* サイト名 */}
-          <span className="text-xl font-bold tracking-tight sm:text-2xl">Freeism-App</span>
-        </Link>
+      <div className="h-16 w-full px-4">
+        {/* スマホ表示用レイアウト (sm未満) */}
+        <div className="flex h-full items-center justify-between sm:hidden">
+          {/* 左: ハンバーガーメニュー */}
+          <div className="flex w-16 items-center justify-start">
+            <Sidebar />
+          </div>
 
-        {/* ナビゲーション */}
-        <nav className="hidden sm:absolute sm:right-5 sm:flex sm:items-center sm:gap-6">
-          {/* テーマ切り替えボタン */}
-          <ThemeToggle />
-          {/* ログイン状態に応じてボタンを切り替え */}
-          {session ? (
-            // ログイン済みの場合はダッシュボードへのリンクを表示
-            <>
-              <Button variant="outline" asChild className="button-outline-custom">
-                <Link href="/dashboard/grouplist">Dashboard</Link>
-              </Button>
-              <LogoutButton />
-            </>
-          ) : (
-            // 未ログインの場合はサインインボタンを表示
-            <LoginButton />
-          )}
-        </nav>
+          {/* 中央: ロゴ (固定幅で中央配置) */}
+          <div className="flex flex-1 items-center justify-center">
+            <Link
+              href="/"
+              className="flex items-center gap-2 overscroll-none text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              <AppLogoSvg />
+              <span className="text-xl font-bold tracking-tight">Freeism-App</span>
+            </Link>
+          </div>
+
+          {/* 右: 通知ボタン */}
+          <div className="mr-5 flex w-16 items-center justify-end">
+            <NotificationButton />
+          </div>
+        </div>
+
+        {/* タブレット/PC表示用レイアウト (sm以上) */}
+        <div className="hidden h-full items-center justify-between sm:flex">
+          {/* 左: ロゴ */}
+          <div className="flex-shrink-0">
+            <Link
+              href="/"
+              className="flex items-center gap-3 overscroll-none text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              <AppLogoSvg />
+              <span className="text-2xl font-bold tracking-tight">Freeism-App</span>
+            </Link>
+          </div>
+
+          {/* 右: ナビゲーション要素をまとめる */}
+          <nav className="flex items-center gap-6 pr-4">
+            <NotificationButton />
+            <ThemeToggle />
+
+            {/* ログイン状態に応じてボタンを切り替え */}
+            {session ? (
+              <>
+                <Button variant="outline" asChild className="button-outline-custom">
+                  <Link href="/dashboard/grouplist">Dashboard</Link>
+                </Button>
+                <LogoutButton />
+              </>
+            ) : (
+              <LoginButton />
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   );
