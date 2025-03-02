@@ -1,6 +1,6 @@
 "use server";
 
-import type { TaskFormValues } from "@/components/group/task-input-form";
+import type { TaskFormValuesAndGroupId } from "@/components/task/task-input-form";
 import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
  * @param data - タスクのデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function createTask(data: TaskFormValues, groupId: string) {
+export async function createTask(data: TaskFormValuesAndGroupId) {
   try {
     // 認証セッションを取得
     const session = await auth();
@@ -22,7 +22,7 @@ export async function createTask(data: TaskFormValues, groupId: string) {
     }
 
     // バリデーション
-    if (!data || !groupId) {
+    if (!data || !data.groupId) {
       return { error: "必須項目が入力されていません" };
     }
 
@@ -33,7 +33,7 @@ export async function createTask(data: TaskFormValues, groupId: string) {
         reference: data.reference,
         contributionType: data.contributionType,
         userId: session.user.id,
-        groupId: groupId,
+        groupId: data.groupId,
       },
       include: {
         user: {
@@ -44,7 +44,7 @@ export async function createTask(data: TaskFormValues, groupId: string) {
       },
     });
 
-    revalidatePath(`/dashboard/group/${groupId}`);
+    revalidatePath(`/dashboard/group/${data.groupId}`);
     return { success: true, task: newTask };
   } catch (error) {
     console.error("[CREATE_TASK]", error);

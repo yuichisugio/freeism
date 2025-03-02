@@ -3,8 +3,8 @@
 import type * as z from "zod";
 import { useRouter } from "next/navigation";
 import { updateUserSetup } from "@/app/actions";
-import { FormLayout } from "@/components/share/form";
-import { CommonFormField } from "@/components/share/form-field";
+import { CustomFormField } from "@/components/share/form-field";
+import { FormLayout } from "@/components/share/form-layout";
 import { setupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -75,9 +75,24 @@ export function SetupForm({ initialData }: SetupFormProps) {
     <>
       <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">変更内容</h2>
       <FormLayout form={form} onSubmit={onSubmit} submitLabel="設定を保存">
-        <CommonFormField<SetupForm> control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" />
+        <CustomFormField
+          fieldType="input"
+          control={form.control}
+          name="username"
+          label="ユーザー名"
+          placeholder="ユーザー名を入力"
+          description="あなたの表示名として使用されます"
+          type="text"
+        />
 
-        <CommonFormField<SetupForm> control={form.control} name="lifeGoal" label="自分の人生の目標" placeholder="自分の人生の目標を入力" description="自分が達成したい人生の目標を記入してください" isTextarea />
+        <CustomFormField
+          fieldType="textarea"
+          control={form.control}
+          name="lifeGoal"
+          label="自分の人生の目標"
+          placeholder="自分の人生の目標を入力"
+          description="自分が達成したい人生の目標を記入してください"
+        />
       </FormLayout>
     </>
   );

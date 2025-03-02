@@ -165,18 +165,52 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     },
     async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.image = user.image;
+      // 初回サインイン時のみuserとaccountが存在する
+      if (user && account) {
+        try {
+          // providerとproviderAccountIdでデータベースからアカウント情報を取得
+          const dbAccount = await prisma.account.findUnique({
+            where: {
+              provider_providerAccountId: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            include: { user: true },
+          });
+
+          if (dbAccount) {
+            // データベースのユーザーIDを使用
+            token.id = dbAccount.user.id;
+            token.email = dbAccount.user.email;
+            token.name = dbAccount.user.name;
+            token.image = dbAccount.user.image;
+          } else {
+            // 最悪、ユーザーのメールアドレスでデータベースからユーザー情報を取得
+            const dbUser = await prisma.user.findUnique({
+              where: { email: user.email! },
+            });
+
+            if (dbUser) {
+              token.id = dbUser.id;
+              token.email = dbUser.email;
+              token.name = dbUser.name;
+              token.image = dbUser.image;
+            }
+          }
+        } catch (error) {
+          console.error("Error in jwt callback:", error);
+          // エラーが発生した場合でも認証プロセスを続行するために
+          // ここではエラーをスローせず、デフォルトのtokenを返す
+        }
       }
+      // アカウント情報のアクセストークンを保存
       if (account) {
         token.accessToken = account.access_token;
       }
+
       return token;
     },
-
     /**
      * セッションコールバック
      * - セッション情報が要求されるたびに実行

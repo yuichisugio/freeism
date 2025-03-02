@@ -7,7 +7,17 @@ import { joinGroup } from "@/app/actions/group";
 import { exportGroupTask } from "@/app/actions/task";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { DataTable } from "@/components/share/data-table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, UserPlus } from "lucide-react";
 import Papa from "papaparse";
@@ -224,7 +234,9 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="alert-dialog-title-custom">グループに参加しますか？</AlertDialogTitle>
-              <AlertDialogDescription className="alert-dialog-description-custom">グループに参加すると、グループのメンバーとして参加できます。</AlertDialogDescription>
+              <AlertDialogDescription className="alert-dialog-description-custom">
+                グループに参加すると、グループのメンバーとして参加できます。
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
@@ -240,7 +252,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
 
       {/* アクションボタン */}
       <div className="flex flex-wrap gap-2">
-        <Button className="button-default-custom" onClick={() => router.push(`/dashboard/group/${tasks[0].group.id}/task/new`)}>
+        <Button className="button-default-custom" onClick={() => router.push(`/dashboard/new-task?groupId=${tasks[0].group.id}`)}>
           貢献入力
         </Button>
         <Button className="button-default-custom" onClick={() => onExport(tasks[0].group.id)}>

@@ -16,18 +16,26 @@ type FormLayoutProps<T extends FieldValues> = {
   className?: string;
 };
 
-export function FormLayout<T extends FieldValues>({ form, onSubmit, submitLabel, submittingLabel, children, showCancelButton = false, onCancel, className = "space-y-6" }: FormLayoutProps<T>) {
-  // 送信中のラベルのデフォルト値を設定
-  const currentSubmittingLabel = submittingLabel ?? "送信中...";
-
+export function FormLayout<T extends FieldValues>({
+  form,
+  onSubmit,
+  submitLabel,
+  submittingLabel = "送信中...",
+  children,
+  showCancelButton = false,
+  onCancel,
+  className = "space-y-6",
+}: FormLayoutProps<T>) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
         {children}
-        {form.formState.errors.root && <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">{form.formState.errors.root.message}</div>}
+        {form.formState.errors.root && (
+          <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">{form.formState.errors.root.message}</div>
+        )}
         <div className="flex gap-4">
           <Button type="submit" className="button-default-custom" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? currentSubmittingLabel : submitLabel}
+            {form.formState.isSubmitting ? submittingLabel : submitLabel}
           </Button>
           {showCancelButton && onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
