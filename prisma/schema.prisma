@@ -28,6 +28,7 @@ model User {
   groups        Group[]
   memberships   GroupMembership[]
   tasks         Task[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -97,6 +98,7 @@ model Group {
   members          GroupMembership[]
   tasks            Task[]
   analytics        Analytics[]
+  notifications    Notification[]
 
   @@index([createdBy])
 }
@@ -115,21 +117,22 @@ model GroupMembership {
 }
 
 model Task {
-  id                     String      @id @default(cuid())
+  id                     String         @id @default(cuid())
   task                   String
   reference              String?
-  status                 TaskStatus  @default(PENDING)
+  status                 TaskStatus     @default(PENDING)
   fixedContributionPoint Int?
   evaluator              String?
   evaluationLogic        String?
-  contributionType       String      @default("NON_REWARD") // "REWARD" or "NON_REWARD"
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
-  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributionType       String         @default("NON_REWARD") // "REWARD" or "NON_REWARD"
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  user                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                 String
-  group                  Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group                  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId                String
   analytics              Analytics[]
+  notifications          Notification[]
 
   @@index([userId])
   @@index([groupId])
@@ -160,4 +163,56 @@ enum TaskStatus {
   EXTERNAL_REVIEW_COMPLETED // Group外レビュー完了
   POINTS_AWARDED // ポイント付与完了
   ARCHIVED // アーカイブ
+}
+
+// 通知タイプの列挙型
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+}
+
+// 通知対象の種類を定義
+enum NotificationTargetType {
+  SYSTEM // システム全体の通知
+  USER // 特定ユーザーへの通知
+  GROUP // 特定グループへの通知
+  TASK // 特定タスクに関する通知
+}
+
+// 通知テーブル
+model Notification {
+  id         String                 @id @default(cuid())
+  title      String // 通知タイトル
+  message    String                 @db.Text // 通知メッセージ内容
+  type       NotificationType // 通知の重要度/種類
+  targetType NotificationTargetType // 通知対象の種類
+  isRead     Boolean                @default(false) // 既読状態
+  sentAt     DateTime               @default(now()) // 送付時間
+  readAt     DateTime? // 既読時間（nullの場合は未読）
+  expiresAt  DateTime? // 通知の有効期限（オプション）
+  actionUrl  String? // クリック時の遷移先URL（オプション）
+  priority   Float                  @default(1.0) // 通知の優先度 (1-5, 5が最高)
+
+  // 関連付け
+  userId String // 通知の受信者
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // グループ関連（オプション）
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  // タスク関連（オプション）
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([taskId])
+  @@index([isRead]) // 未読/既読フィルタリングのためのインデックス
+  @@index([sentAt]) // 時系列でのソート用インデックス
+  @@index([priority]) // 優先度でのソート用インデックス
 }

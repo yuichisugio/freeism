@@ -62,6 +62,7 @@
     - It adheres to the principle of separation of concerns, where different aspects of the application are handled by different directories.
 
 ## Components Organization
+- Prismaにアクセスする場合は、Actionsフォルダにまとめて下さい。
 
 Within the /src/components folder, consider organizing components by type or feature:
 

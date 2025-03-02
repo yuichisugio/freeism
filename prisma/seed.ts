@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker/locale/ja";
-import { PrismaClient, TaskStatus } from "@prisma/client";
+import { NotificationTargetType, NotificationType, PrismaClient, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -19,6 +19,7 @@ const SEED_CONFIG = {
   MIN_MEMBERS_PER_GROUP: 3, // グループごとの最小メンバー数
   MAX_MEMBERS_PER_GROUP: 7, // グループごとの最大メンバー数
   TASKS_COUNT: 30, // タスク数
+  NOTIFICATIONS_PER_USER: 10, // ユーザーごとの通知数
 };
 
 // プロバイダータイプの定義
@@ -35,6 +36,8 @@ const prisma = new PrismaClient();
  */
 async function cleanupDatabase() {
   // 依存関係の順序に注意してクリーンアップ
+  await prisma.notification.deleteMany(); // 通知を先に削除
+  await prisma.analytics.deleteMany();
   await prisma.task.deleteMany();
   await prisma.groupMembership.deleteMany();
   await prisma.group.deleteMany();
@@ -282,6 +285,125 @@ async function createTasks(count: number, memberships: any[], users: any[]) {
 }
 
 /**
+ * 通知データを生成する関数
+ * @param users ユーザーの配列
+ * @param groups グループの配列
+ * @param tasks タスクの配列
+ * @returns 生成された通知の配列
+ */
+async function createNotifications(users: any[], groups: any[], tasks: any[]) {
+  const notifications = [];
+  const notificationTypes = Object.values(NotificationType);
+  const targetTypes = Object.values(NotificationTargetType);
+
+  // 各ユーザーに対して通知を生成
+  for (const user of users) {
+    // ユーザーごとの通知数を決定
+    const notificationCount = faker.number.int({
+      min: 1,
+      max: SEED_CONFIG.NOTIFICATIONS_PER_USER,
+    });
+
+    for (let i = 0; i < notificationCount; i++) {
+      // 通知の基本情報を生成
+      const notificationType = faker.helpers.arrayElement(notificationTypes);
+      const targetType = faker.helpers.arrayElement(targetTypes);
+
+      // 生成から現在までの時間をランダムに設定（過去の通知を表現）
+      const daysPast = faker.number.int({ min: 0, max: 30 });
+      const hoursPast = faker.number.int({ min: 0, max: 23 });
+      const minutesPast = faker.number.int({ min: 0, max: 59 });
+
+      const sentAt = new Date();
+      sentAt.setDate(sentAt.getDate() - daysPast);
+      sentAt.setHours(sentAt.getHours() - hoursPast);
+      sentAt.setMinutes(sentAt.getMinutes() - minutesPast);
+
+      // 一部の通知を既読にする
+      const isRead = faker.datatype.boolean(0.6); // 60%の確率で既読
+      let readAt = null;
+
+      if (isRead) {
+        // 送信時間から現在までの間のランダムな時間を既読時間とする
+        const readDate = new Date(sentAt);
+        const minutesAfterSent = faker.number.int({ min: 1, max: 60 * 24 * 3 }); // 最大3日後
+        readDate.setMinutes(readDate.getMinutes() + minutesAfterSent);
+        readAt = readDate;
+      }
+
+      // 通知タイプに応じたタイトルとメッセージを生成
+      let title, message, actionUrl;
+      let groupId = null;
+      let taskId = null;
+
+      switch (targetType) {
+        case "SYSTEM":
+          title = faker.helpers.arrayElement(["システムメンテナンス情報", "重要なお知らせ", "アップデート情報", "サービス改善のお知らせ"]);
+          message = faker.lorem.paragraph();
+          break;
+
+        case "USER":
+          title = faker.helpers.arrayElement(["アカウント情報の更新", "プロフィール確認のお願い", "個人設定の変更", "ログイン情報の確認"]);
+          message = `${user.name}様、${faker.lorem.sentence()}`;
+          break;
+
+        case "GROUP":
+          // ランダムにグループを選択
+          const randomGroup = faker.helpers.arrayElement(groups);
+          groupId = randomGroup.id;
+          title = faker.helpers.arrayElement([
+            `「${randomGroup.name}」の新着情報`,
+            `「${randomGroup.name}」からのお知らせ`,
+            `「${randomGroup.name}」メンバー募集`,
+            `「${randomGroup.name}」活動報告`,
+          ]);
+          message = faker.lorem.paragraph();
+          actionUrl = `/dashboard/groups/${randomGroup.id}`;
+          break;
+
+        case "TASK":
+          // ランダムにタスクを選択
+          const randomTask = faker.helpers.arrayElement(tasks);
+          taskId = randomTask.id;
+          groupId = randomTask.groupId;
+          title = faker.helpers.arrayElement([
+            `タスク「${randomTask.task.substring(0, 20)}...」の更新`,
+            `タスク期限のお知らせ`,
+            `タスク評価の完了`,
+            `タスク状態の変化`,
+          ]);
+          message = faker.lorem.paragraph();
+          actionUrl = `/dashboard/tasks/${randomTask.id}`;
+          break;
+      }
+
+      // 通知をデータベースに追加
+      const notification = await prisma.notification.create({
+        data: {
+          title,
+          message,
+          type: notificationType,
+          targetType,
+          isRead,
+          sentAt,
+          readAt,
+          actionUrl,
+          userId: user.id,
+          groupId,
+          taskId,
+          expiresAt: faker.datatype.boolean(0.3) ? faker.date.future() : null, // 30%の確率で有効期限あり
+        },
+      });
+
+      notifications.push(notification);
+    }
+  }
+
+  console.log(`${notifications.length}件の通知を作成しました`);
+  return notifications;
+}
+
+/**
  * メイン関数
  * シードデータを生成する全体の流れを制御します
  */
@@ -304,7 +426,10 @@ async function main() {
     // 4. タスクデータの作成
     const tasks = await createTasks(SEED_CONFIG.TASKS_COUNT, memberships, users);
 
-    // 5. 統計情報の表示
+    // 5. 通知データの作成
+    const notifications = await createNotifications(users, groups, tasks);
+
+    // 6. 統計情報の表示
     console.log("\n--- データベースシード完了 ---");
     console.log(`ユーザー: ${users.length}件`);
     console.log(`アカウント: ${accounts.length}件`);
@@ -314,6 +439,7 @@ async function main() {
     console.log(`グループ: ${groups.length}件`);
     console.log(`グループメンバーシップ: ${memberships.length}件`);
     console.log(`タスク: ${tasks.length}件`);
+    console.log(`通知: ${notifications.length}件`);
   } catch (e) {
     console.error("シード処理中にエラーが発生しました:", e);
     process.exit(1);

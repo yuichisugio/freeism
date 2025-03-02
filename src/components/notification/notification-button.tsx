@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getUnreadNotificationsCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Bell } from "lucide-react";
@@ -17,34 +18,27 @@ export function NotificationButton() {
   // モーダルの開閉状態を管理
   const [isOpen, setIsOpen] = useState(false);
 
-  // 画面幅を監視するためのstate
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  // 未読通知の有無。Actionを名前につけないと、CLからサーバーに渡せないらしい。普通は、JSONに変換して渡すが、Actionの場合は、そのまま渡せる。
+  const [hasUnreadNotifications, setHasUnreadNotificationsAction] = useState(false);
 
-  // 未読通知があるかどうかの状態
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-
-  // 画面サイズの変更を監視
+  // 初期ロード時に未読通知を確認
   useEffect(() => {
-    // 初期値を設定
-    setIsSmallScreen(window.innerWidth < 640);
+    function checkNotifications() {
+      getUnreadNotificationsCount().then((unreadCount) => {
+        setHasUnreadNotificationsAction(unreadCount > 0);
+      });
+    }
 
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth < 640);
+    // アプリ起動時に確認。。useEffectの中では、非同期関数を使用できないので、promiseを返さないthenを記載する
+    checkNotifications();
+
+    // 定期的に未読通知の状態を更新（オプション）。オーバーヘッドと利便性のバランスを考慮して設定
+    const intervalId = setInterval(checkNotifications, 30 * 60 * 1000); // 30分ごと
+
+    return () => {
+      clearInterval(intervalId);
     };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // 未読通知の状態が変更されたときのハンドラー
-  const handleUnreadStatusChange = (hasUnread: boolean) => {
-    setHasUnreadNotifications(hasUnread);
-  };
-
-  // レスポンシブに対応したモーダルのスタイル
-  const modalStyle = isSmallScreen
-    ? "h-[80vh] sm:max-w-md" // モバイル向け（高さを制限）
-    : "sm:max-w-md"; // デスクトップ向け
 
   return (
     <>
@@ -56,11 +50,11 @@ export function NotificationButton() {
 
       {/* 通知モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className={modalStyle}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>通知</DialogTitle>
           </DialogHeader>
-          <NotificationList onUnreadStatusChange={handleUnreadStatusChange} />
+          <NotificationList onUnreadStatusChangeAction={setHasUnreadNotificationsAction} />
         </DialogContent>
       </Dialog>
     </>

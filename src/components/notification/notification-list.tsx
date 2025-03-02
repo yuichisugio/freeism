@@ -1,65 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { NotificationFilter, NotificationSortType } from "@/app/actions/notification";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getNotificationsAndUnreadCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, Bell, CheckCircle2, Info, RefreshCw } from "lucide-react";
+import { AlertCircle, Bell, CheckCircle2, Info, RefreshCw, SortAsc } from "lucide-react";
 
 // 通知タイプの定義
-type NotificationType = "info" | "success" | "warning";
+type NotificationType = "INFO" | "SUCCESS" | "WARNING";
 
 // フィルタータイプの定義
 type FilterType = "all" | "unread" | "read";
 
-// 通知アイテムの型定義
-type Notification = {
+// ソートタイプの定義
+type SortType = "date" | "priority" | "type";
+
+export type AppNotification = {
   id: string;
   type: NotificationType;
   title: string;
   message: string;
-  date: Date;
   isRead: boolean;
+  sentAt: Date;
+  actionUrl: string | null;
+  priority: number;
 };
-
-// モック通知データ
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "info",
-    title: "新機能追加",
-    message: "ダッシュボードに新しい機能が追加されました。確認してみましょう！",
-    date: new Date(Date.now() - 1000 * 60 * 30), // 30分前
-    isRead: false,
-  },
-  {
-    id: "2",
-    type: "success",
-    title: "登録完了",
-    message: "グループへの登録が完了しました。",
-    date: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2時間前
-    isRead: false,
-  },
-  {
-    id: "3",
-    type: "warning",
-    title: "タスク期限",
-    message: "明日までのタスクがあります。忘れずに完了させましょう。",
-    date: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1日前
-    isRead: true,
-  },
-  {
-    id: "4",
-    type: "info",
-    title: "メンテナンス情報",
-    message: "明日午前2時から4時までメンテナンスを実施します。",
-    date: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2日前
-    isRead: true,
-  },
-];
 
 /**
  * 通知アイコンを表示するコンポーネント
@@ -67,11 +38,11 @@ const mockNotifications: Notification[] = [
  */
 function NotificationIcon({ type }: { type: NotificationType }) {
   switch (type) {
-    case "info":
+    case "INFO":
       return <Info className="h-4 w-4 text-blue-500" />;
-    case "success":
+    case "SUCCESS":
       return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    case "warning":
+    case "WARNING":
       return <AlertCircle className="h-4 w-4 text-yellow-500" />;
     default:
       return <Bell className="h-4 w-4" />;
@@ -79,54 +50,252 @@ function NotificationIcon({ type }: { type: NotificationType }) {
 }
 
 /**
+ * 優先度を星で表示するコンポーネント
+ */
+function PriorityStars({ priority }: { priority: number }) {
+  // 優先度を1-5の範囲内に制限
+  const normalizedPriority = Math.min(5, Math.max(1, priority));
+
+  // 星の数を計算（小数点以下を四捨五入）
+  const stars = Math.round(normalizedPriority);
+
+  return (
+    <div className="mt-0.5 flex items-center gap-0.5" title={`優先度: ${normalizedPriority}`}>
+      {[...Array(5)].map((_, i) => (
+        <span key={i} className={`text-xs ${i < stars ? "text-yellow-500" : "text-gray-300"}`}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// コンポーネント定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 通知リストコンポーネント
  * - フィルタータブで「すべて」「未読」「既読」を切り替え
+ * - ソート機能で「日付順」「優先度順」「種類別」に並べ替え
  * - スクロール可能なエリアに通知を表示
  * - 未読/既読状態を管理
  * - 既読状態を未読に戻す機能
  */
-export function NotificationList({
-  fullPage = false,
-  onUnreadStatusChange,
-}: {
-  fullPage?: boolean;
-  onUnreadStatusChange?: (hasUnread: boolean) => void;
-}) {
-  // 通知リストの状態を管理（実際の実装ではAPIからデータを取得）
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
+  // State定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 通知リストの状態
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  // ローディング状態
+  const [isLoading, setIsLoading] = useState(true);
+
+  // エラー状態
+  const [error, setError] = useState<string | null>(null);
+
+  // 未読通知の数
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // 現在選択されているフィルター
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
-  // 通知を既読にする処理
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map((notification) => (notification.id === id ? { ...notification, isRead: true } : notification)));
+  // 現在選択されているソート方法
+  const [sortBy, setSortBy] = useState<SortType>("date");
+
+  // 通知の状態変更を一括処理するための状態
+  const pendingUpdates = useRef<Map<string, boolean>>(new Map());
+
+  // 定期更新のタイマーID
+  const updateTimerId = useRef<NodeJS.Timeout | null>(null);
+
+  // 関数定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 親コンポーネントのState関数の定義内容が変わるまでは、画面更新されても同じ関数の定義のまま
+  const memoizedGetNotifications = useCallback(
+    async function getNotifications(filter: NotificationFilter = "all", limit: number = 200, sort: NotificationSortType = "date") {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const notifications = await getNotificationsAndUnreadCount(filter, limit, sort);
+        setNotifications(notifications.notifications);
+        setUnreadCount(notifications.unreadCount);
+
+        // 未読通知の数が0より大きい場合は、親コンポーネントに通知
+        if (onUnreadStatusChangeAction && notifications.unreadCount > 0) {
+          onUnreadStatusChangeAction(true);
+        }
+      } catch (err) {
+        console.error("通知取得エラー:", err);
+        setError("通知の取得中にエラーが発生しました");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [onUnreadStatusChangeAction],
+  );
+
+  // 通知の既読/未読状態を更新する関数
+  const memoizedUpdateNotificationStatus = useCallback(
+    async function updateNotificationStatus(id: string | null, isRead: boolean) {
+      try {
+        // すべての通知を更新する場合はnull、それ以外は特定のIDを指定
+        await updateNotificationStatus(id, isRead);
+
+        // 更新成功後、現在のフィルターに基づいて通知を再取得
+        await memoizedGetNotifications(activeFilter, 200, sortBy);
+      } catch (err) {
+        console.error("通知更新エラー:", err);
+        throw err;
+      }
+    },
+    [activeFilter, memoizedGetNotifications, sortBy],
+  );
+
+  // 一括更新処理を行う関数
+  const memoizedProcessPendingUpdates = useCallback(
+    async function processPendingUpdates() {
+      // 保留中の更新がない場合は処理しない
+      if (pendingUpdates.current.size === 0) return;
+
+      // 保留中の更新をコピーして、参照をクリア
+      const updates = new Map(pendingUpdates.current);
+      pendingUpdates.current.clear();
+
+      // 各通知のIDごとに状態更新を行う
+      for (const [id, isRead] of updates.entries()) {
+        try {
+          await memoizedUpdateNotificationStatus(id, isRead);
+        } catch (err) {
+          console.error(`ID: ${id}の通知更新に失敗しました`, err);
+        }
+      }
+    },
+    [memoizedUpdateNotificationStatus],
+  );
+
+  // ソート方法が変更されたときの処理
+  const handleSortChange = (value: SortType) => {
+    setSortBy(value);
+    memoizedGetNotifications(activeFilter, 200, sortBy);
   };
+
+  // 通知を既読にする処理
+  const memoizedMarkAsRead = useCallback(
+    (id: string) => {
+      // ローカルの状態を即座に更新（UI応答性を向上）
+      setNotifications((current) => current.map((notification) => (notification.id === id ? { ...notification, isRead: true } : notification)));
+
+      // 一括処理用に保留中の更新に追加
+      pendingUpdates.current.set(id, true);
+
+      // 未読カウントを更新
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // 親コンポーネントに通知
+      if (onUnreadStatusChangeAction && unreadCount <= 1) {
+        onUnreadStatusChangeAction(false);
+      }
+    },
+    [unreadCount, onUnreadStatusChangeAction],
+  );
 
   // 通知を未読に戻す処理
-  const markAsUnread = (id: string, event?: React.MouseEvent) => {
-    // イベントの伝播を停止（クリックイベントが親要素に伝わるのを防ぐ）
-    if (event) {
-      event.stopPropagation();
-    }
+  const markAsUnread = useCallback(
+    (id: string, event?: React.MouseEvent) => {
+      // イベントの伝播を停止（クリックイベントが親要素に伝わるのを防ぐ）
+      if (event) {
+        event.stopPropagation();
+      }
 
-    setNotifications(notifications.map((notification) => (notification.id === id ? { ...notification, isRead: false } : notification)));
-  };
+      // ローカルの状態を即座に更新
+      setNotifications((current) => current.map((notification) => (notification.id === id ? { ...notification, isRead: false } : notification)));
+
+      // 一括処理用に保留中の更新に追加
+      pendingUpdates.current.set(id, false);
+
+      // 未読カウントを更新
+      setUnreadCount((prev) => prev + 1);
+
+      // 親コンポーネントに通知
+      if (onUnreadStatusChangeAction && unreadCount === 0) {
+        onUnreadStatusChangeAction(true);
+      }
+    },
+    [unreadCount, onUnreadStatusChangeAction],
+  );
 
   // すべての通知を既読にする処理
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((notification) => ({ ...notification, isRead: true })));
-  };
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await memoizedUpdateNotificationStatus(null, true);
 
-  // 未読通知の数を計算
-  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+      // 未読カウントをリセット
+      setUnreadCount(0);
 
-  // 通知の既読状態が変わるたびに親コンポーネントに通知
-  useEffect(() => {
-    if (onUnreadStatusChange) {
-      onUnreadStatusChange(unreadCount > 0);
+      // 親コンポーネントに通知
+      if (onUnreadStatusChangeAction) {
+        onUnreadStatusChangeAction(false);
+      }
+    } catch (err) {
+      console.error("全通知の既読化に失敗しました", err);
     }
-  }, [unreadCount, onUnreadStatusChange]);
+  }, [memoizedUpdateNotificationStatus, onUnreadStatusChangeAction]);
+
+  // 通知アイテムをクリックした時の処理
+  const handleNotificationClick = useCallback(
+    (notification: AppNotification) => {
+      // 既読にする処理
+      if (!notification.isRead) {
+        memoizedMarkAsRead(notification.id);
+      }
+
+      // 通知にアクションURLがある場合、そのURLに遷移
+      if (notification.actionUrl) {
+        window.location.href = notification.actionUrl;
+      }
+    },
+    [memoizedMarkAsRead],
+  );
+
+  // useEffect定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // コンポーネントのマウント時に通知を取得
+  useEffect(() => {
+    memoizedGetNotifications(activeFilter, 200, sortBy);
+
+    // 定期的に通知を更新するタイマーをセット（オプション）
+    // 例: 1分ごとに更新する場合
+    const timerId = setInterval(() => {
+      memoizedGetNotifications(activeFilter, 200, sortBy);
+    }, 600000); // 600秒 = 10分
+
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [memoizedGetNotifications, activeFilter, sortBy]);
+
+  // フィルターを変更したときに通知を再取得
+  useEffect(() => {
+    memoizedGetNotifications(activeFilter, 200, sortBy);
+  }, [memoizedGetNotifications, activeFilter, sortBy]);
+
+  // 状態更新を一定間隔で処理するタイマー
+  useEffect(() => {
+    // コンポーネントのマウント時にタイマーを設定
+    updateTimerId.current = setInterval(() => {
+      memoizedProcessPendingUpdates();
+    }, 3000); // 3秒ごとに一括処理
+
+    return () => {
+      // クリーンアップ時にタイマーをクリア
+      if (updateTimerId.current) {
+        clearInterval(updateTimerId.current);
+      }
+
+      // アンマウント時に保留中の更新を処理
+      memoizedProcessPendingUpdates();
+    };
+  }, [memoizedProcessPendingUpdates]);
 
   // フィルターに基づいて通知をフィルタリング
   const filteredNotifications = notifications.filter((notification) => {
@@ -135,6 +304,8 @@ export function NotificationList({
     if (activeFilter === "read") return notification.isRead;
     return true;
   });
+
+  // コンポーネント定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex flex-col gap-4">
@@ -148,17 +319,59 @@ export function NotificationList({
         )}
       </div>
 
-      {/* フィルタータブ */}
-      <Tabs defaultValue="all" value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">すべて</TabsTrigger>
-          <TabsTrigger value="unread">未読</TabsTrigger>
-          <TabsTrigger value="read">既読</TabsTrigger>
-        </TabsList>
+      {/* フィルターとソートのコントロール */}
+      <div className="flex flex-col justify-between gap-2 sm:flex-row">
+        {/* フィルタータブ */}
+        <Tabs
+          defaultValue="all"
+          value={activeFilter}
+          onValueChange={(value) => setActiveFilter(value as FilterType)}
+          className="w-full sm:max-w-[70%]"
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">すべて</TabsTrigger>
+            <TabsTrigger value="unread">未読</TabsTrigger>
+            <TabsTrigger value="read">既読</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        <TabsContent value={activeFilter}>
-          {/* 通知リスト */}
-          <ScrollArea className={cn(fullPage ? "h-[calc(100vh-250px)]" : "h-[300px]", "pr-4")}>
+        {/* ソート選択 */}
+        <div className="flex items-center gap-2">
+          <SortAsc className="h-4 w-4 text-gray-500" />
+          <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
+            <SelectTrigger className="h-9 w-[140px]">
+              <SelectValue placeholder="ソート方法" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date">日付順</SelectItem>
+              <SelectItem value="priority">優先度順</SelectItem>
+              <SelectItem value="type">種類別</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* 通知リスト */}
+      <TabsContent value={activeFilter}>
+        {/* ローディング状態の表示 */}
+        {isLoading ? (
+          <div className="flex h-[300px] items-center justify-center">
+            <div className="text-center">
+              <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+              <p className="text-sm text-gray-500">通知を読み込み中...</p>
+            </div>
+          </div>
+        ) : error ? (
+          // エラー状態の表示
+          <div className="flex h-[300px] items-center justify-center">
+            <div className="text-center text-red-500">
+              <AlertCircle className="mx-auto mb-2 h-6 w-6" />
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        ) : (
+          // 通知リスト
+          <ScrollArea className={cn("h-[300px]", "pr-4")}>
             {filteredNotifications.length > 0 ? (
               <ul className="space-y-3">
                 {filteredNotifications.map((notification) => (
@@ -166,8 +379,8 @@ export function NotificationList({
                     key={notification.id}
                     className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
                       notification.isRead ? "bg-background" : "bg-muted/50 dark:bg-blue-950/20"
-                    }`}
-                    onClick={() => markAsRead(notification.id)}
+                    } ${notification.actionUrl ? "hover:bg-muted/70 cursor-pointer" : ""}`}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     {/* 通知アイコン */}
                     <div className="mt-1">
@@ -176,10 +389,13 @@ export function NotificationList({
 
                     {/* 通知内容 */}
                     <div className="flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="font-semibold">{notification.title}</h4>
-                        <time className="text-xs text-gray-500" dateTime={notification.date.toISOString()}>
-                          {formatDistanceToNow(notification.date, {
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-semibold">{notification.title}</h4>
+                          {notification.priority && <PriorityStars priority={notification.priority} />}
+                        </div>
+                        <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
+                          {formatDistanceToNow(notification.sentAt, {
                             addSuffix: true,
                             locale: ja,
                           })}
@@ -214,8 +430,8 @@ export function NotificationList({
               </div>
             )}
           </ScrollArea>
-        </TabsContent>
-      </Tabs>
+        )}
+      </TabsContent>
     </div>
   );
 }
