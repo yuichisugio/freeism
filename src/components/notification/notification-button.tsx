@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getUnreadNotificationsCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,6 +23,11 @@ export function NotificationButton() {
 
   // 未読通知の有無。Actionを名前につけないと、CLからサーバーに渡せないらしい。普通は、JSONに変換して渡すが、Actionの場合は、そのまま渡せる。
   const [hasUnreadNotifications, setHasUnreadNotificationsAction] = useState(false);
+
+  // 通知リストからの未読状態更新を処理する関数
+  const handleUnreadStatusChange = useCallback((hasUnread: boolean) => {
+    setHasUnreadNotificationsAction(hasUnread);
+  }, []);
 
   // 初期ロード時に未読通知を確認
   // すべてのレンダリングパスで同じ順序でフックを呼び出す
@@ -50,6 +55,16 @@ export function NotificationButton() {
     }
   }, [status, session]); // statusとsessionを依存配列に追加
 
+  // モーダルが開かれたときに最新の通知を取得
+  useEffect(() => {
+    if (isOpen && status === "authenticated") {
+      // モーダルを開いたときに最新の状態を取得
+      getUnreadNotificationsCount().then((unreadCount) => {
+        setHasUnreadNotificationsAction(unreadCount > 0);
+      });
+    }
+  }, [isOpen, status]);
+
   // 未認証の場合は何も表示しない
   if (status === "unauthenticated" || status === "loading") {
     return null;
@@ -70,7 +85,7 @@ export function NotificationButton() {
             <DialogTitle>通知</DialogTitle>
           </DialogHeader>
           <div className="rounded-lg border p-6 shadow-sm">
-            <NotificationList onUnreadStatusChangeAction={setHasUnreadNotificationsAction} />
+            <NotificationList onUnreadStatusChangeAction={handleUnreadStatusChange} />
           </div>
         </DialogContent>
       </Dialog>

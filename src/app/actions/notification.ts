@@ -39,18 +39,65 @@ export type NotificationData = {
  */
 export async function getUnreadNotificationsCount(take: number = 5) {
   try {
+    console.log("getUnreadNotificationsCount");
     const session = await auth();
 
     if (!session?.user?.id) {
       throw new Error("認証が必要です");
     }
 
-    // 通知の数を取得
-    const unreadCount = await prisma.notification.count({
+    // ユーザーが所属するグループのIDリストを取得
+    const userGroupList = await prisma.groupMembership.findMany({
       where: {
         userId: session.user.id,
-        isRead: false,
       },
+      select: {
+        groupId: true,
+      },
+    });
+    const userGroupIds = userGroupList.map((group) => group.groupId);
+
+    // ユーザーが担当するタスクのIDリストを取得
+    const userTaskList = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    const userTaskIds = userTaskList.map((task) => task.id);
+
+    // TargetTypeに基づいた条件を構築
+    let targetTypeConditions = [
+      // SYSTEM: すべてのユーザーに表示
+      { targetType: "SYSTEM" as NotificationTargetType },
+
+      // USER: 特定のユーザー向け
+      {
+        targetType: "USER" as NotificationTargetType,
+        userId: session.user.id,
+      },
+
+      // GROUP: ユーザーが所属するグループ向け
+      {
+        targetType: "GROUP" as NotificationTargetType,
+        groupId: { in: userGroupIds.length > 0 ? userGroupIds : [""] },
+      },
+
+      // TASK: ユーザーが担当するタスク向け
+      {
+        targetType: "TASK" as NotificationTargetType,
+        taskId: { in: userTaskIds.length > 0 ? userTaskIds : [""] },
+      },
+    ];
+
+    // 最終的なクエリ条件を構築
+    const notificationWhere: Prisma.NotificationWhereInput = { OR: targetTypeConditions };
+
+    // 通知の数を取得
+    const unreadCount = await prisma.notification.count({
+      where: notificationWhere,
       take: take,
     });
 
