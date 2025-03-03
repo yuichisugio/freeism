@@ -5,6 +5,7 @@ import { getUnreadNotificationsCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Bell } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import { NotificationList } from "./notification-list";
 
@@ -18,27 +19,41 @@ export function NotificationButton() {
   // モーダルの開閉状態を管理
   const [isOpen, setIsOpen] = useState(false);
 
+  const { data: session, status } = useSession();
+
   // 未読通知の有無。Actionを名前につけないと、CLからサーバーに渡せないらしい。普通は、JSONに変換して渡すが、Actionの場合は、そのまま渡せる。
   const [hasUnreadNotifications, setHasUnreadNotificationsAction] = useState(false);
 
   // 初期ロード時に未読通知を確認
+  // すべてのレンダリングパスで同じ順序でフックを呼び出す
   useEffect(() => {
-    function checkNotifications() {
-      getUnreadNotificationsCount().then((unreadCount) => {
-        setHasUnreadNotificationsAction(unreadCount > 0);
-      });
+    // セッションがある場合のみ通知取得処理を実行
+    if (status === "authenticated" && session?.user?.id) {
+      function checkNotifications() {
+        try {
+          // useEffectの中では、非同期関数を使用できないので、promiseを返さないthenを記載する
+          getUnreadNotificationsCount().then((unreadCount) => {
+            setHasUnreadNotificationsAction(unreadCount > 0);
+          });
+        } catch (error) {
+          console.error("通知取得エラー:", error);
+        }
+      }
+
+      // 初回実行
+      checkNotifications();
+
+      // 定期実行の設定
+      const intervalId = setInterval(checkNotifications, 30 * 60 * 1000); // 30分ごと
+
+      return () => clearInterval(intervalId);
     }
+  }, [status, session]); // statusとsessionを依存配列に追加
 
-    // アプリ起動時に確認。。useEffectの中では、非同期関数を使用できないので、promiseを返さないthenを記載する
-    checkNotifications();
-
-    // 定期的に未読通知の状態を更新（オプション）。オーバーヘッドと利便性のバランスを考慮して設定
-    const intervalId = setInterval(checkNotifications, 30 * 60 * 1000); // 30分ごと
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+  // 未認証の場合は何も表示しない
+  if (status === "unauthenticated" || status === "loading") {
+    return null;
+  }
 
   return (
     <>

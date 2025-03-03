@@ -93,7 +93,7 @@ export function Sidebar() {
       </Button>
 
       {/* モバイル用オーバーレイ */}
-      {isOpen && <div className="fixed top-0 right-0 bottom-0 left-48 z-40 bg-transparent backdrop-blur-sm sm:hidden" onClick={toggleSidebar} />}
+      {isOpen && <div className="fixed top-0 right-0 bottom-0 left-48 z-80 bg-transparent backdrop-blur-sm sm:hidden" onClick={toggleSidebar} />}
 
       {/* Sidebar本体 */}
       <aside

@@ -291,7 +291,7 @@ export async function updateNotificationStatus(id: string | null, isRead: boolea
 
     // 指定IDがある場合（一つだけ通知を未読or既読）にする場合
     if (id) {
-      const result = await prisma.notification.updateMany({
+      await prisma.notification.updateMany({
         where: notificationWhere,
         data: {
           isRead,
@@ -301,7 +301,7 @@ export async function updateNotificationStatus(id: string | null, isRead: boolea
 
       // すべての通知の既読状態を更新する場合
     } else {
-      const result = await prisma.notification.updateMany({
+      await prisma.notification.updateMany({
         where: notificationWhere,
         data: {
           isRead,

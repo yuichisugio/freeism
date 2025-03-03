@@ -309,7 +309,13 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
   return (
     <div className="flex flex-col gap-4">
-      <Tabs defaultValue="all" value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)} className="w-full sm:max-w-[70%]">
+      {/* 通知のタブ、フィルター内容をstateで管理して、タブ切り替えすると、State関数が実行されて、切り替わる */}
+      <Tabs
+        defaultValue="unread"
+        value={activeFilter}
+        onValueChange={(value) => setActiveFilter(value as FilterType)}
+        className="w-full sm:max-w-[70%]"
+      >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">すべて</TabsTrigger>
           <TabsTrigger value="unread">未読</TabsTrigger>
@@ -365,7 +371,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
             </div>
           ) : (
             // 通知リスト
-            <ScrollArea className={cn("h-[300px]", "pr-4")}>
+            <ScrollArea className={cn("h-[300px] pr-4")}>
               {filteredNotifications.length > 0 ? (
                 <ul className="space-y-3">
                   {filteredNotifications.map((notification) => (

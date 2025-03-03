@@ -64,7 +64,8 @@ export async function Header() {
 
           {/* 右: ナビゲーション要素をまとめる */}
           <nav className="flex items-center gap-6 pr-4">
-            <NotificationButton />
+            {/* ログインしている場合のみ通知ボタンを表示 */}
+            {session && <NotificationButton />}
             <ThemeToggle />
 
             {/* ログイン状態に応じてボタンを切り替え */}
