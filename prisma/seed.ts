@@ -59,12 +59,16 @@ async function createUsers(count: number) {
   const users = [];
 
   for (let i = 0; i < count; i++) {
+    // 10%の確率でアプリオーナー権限を付与
+    const isAppOwner = faker.datatype.boolean(0.1);
+
     const user = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         image: faker.image.avatar(),
         emailVerified: faker.date.past(),
+        isAppOwner, // アプリオーナー権限を設定
       },
     });
     users.push(user);
@@ -232,11 +236,16 @@ async function createGroupMemberships(groups: any[], users: any[], minMembersPer
       // 重複チェック
       if (!membershipSet.has(membershipKey)) {
         membershipSet.add(membershipKey);
+
+        // グループ作成者はグループオーナーとして設定
+        const isGroupOwner = group.createdBy === user.id;
+
         const membership = await prisma.groupMembership.create({
           data: {
             userId: user.id,
             groupId: group.id,
             joinedAt: faker.date.recent(),
+            isGroupOwner, // グループオーナー権限を設定
           },
         });
         memberships.push(membership);

@@ -101,6 +101,8 @@ export async function getUnreadNotificationsCount(take: number = 5) {
       take: take,
     });
 
+    console.log("getUnreadNotificationsCount 完了", unreadCount);
+
     return unreadCount;
   } catch (error) {
     console.error("未読通知カウントエラー:", error);
