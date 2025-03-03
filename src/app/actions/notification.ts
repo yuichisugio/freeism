@@ -69,9 +69,16 @@ export async function getUnreadNotificationsCount(take: number = 5) {
  * TergetTypeがTASKの場合は、userIdがタスクの担当者の通知を取得
  * @param filter フィルタリング条件 ("all" | "unread" | "read")
  * @param limit 取得する通知の最大数
+ * @param sortBy 並び順 ("date" | "priority" | "type")
+ * @param skip スキップする通知の数（ページネーション用）
  * @returns 通知の配列と未読数
  */
-export async function getNotificationsAndUnreadCount(filter: NotificationFilter = "all", limit: number = 50, sortBy: NotificationSortType = "date") {
+export async function getNotificationsAndUnreadCount(
+  filter: NotificationFilter = "all",
+  limit: number = 10,
+  sortBy: NotificationSortType = "date",
+  skip: number = 0,
+) {
   try {
     const session = await auth();
 
@@ -96,7 +103,7 @@ export async function getNotificationsAndUnreadCount(filter: NotificationFilter 
         userId: session.user.id,
       },
       select: {
-        id: true, // id を選択（元のコードでは userId を選択していましたが修正）
+        id: true,
       },
     });
     const userTaskIds = userTaskList.map((task) => task.id);
@@ -153,7 +160,7 @@ export async function getNotificationsAndUnreadCount(filter: NotificationFilter 
         break;
     }
 
-    // 通知を取得
+    // 通知を取得（ページネーション対応）
     const notifications = await prisma.notification.findMany({
       where: notificationWhere,
       orderBy: notificationOrderBy,
@@ -166,8 +173,9 @@ export async function getNotificationsAndUnreadCount(filter: NotificationFilter 
         isRead: true,
         actionUrl: true,
         priority: true,
-        targetType: true, // 返却データにtargetTypeも含める
+        targetType: true,
       },
+      skip: skip,
       take: limit,
     });
 
@@ -185,16 +193,14 @@ export async function getNotificationsAndUnreadCount(filter: NotificationFilter 
   }
 }
 
-// フィルタータイプの定義
-export type NotificationFilterType = "all" | "unread" | "read";
-
 /**
  * 通知の既読/未読状態を更新
  * @param id 通知ID（nullの場合はすべての通知）
  * @param isRead 既読状態
  * @returns 更新された通知の数
  */
-export async function apiUpdateNotificationStatus(id: string | null, isRead: boolean) {
+export async function apiUpdateNotificationStatus(id: string, isRead: boolean) {
+  console.log("apiUpdateNotificationStatus", id, isRead);
   try {
     const session = await auth();
 
@@ -202,34 +208,18 @@ export async function apiUpdateNotificationStatus(id: string | null, isRead: boo
       throw new Error("認証が必要です");
     }
 
-    let notificationWhere: Prisma.NotificationWhereInput = {
-      userId: session.user.id,
-    };
+    // whereにuserIdを指定してはダメ。そのidがある通知しか変更できなくなる。
+    const result = await prisma.notification.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isRead,
+        readAt: isRead ? new Date() : null,
+      },
+    });
 
-    if (id) {
-      notificationWhere.id = id;
-    }
-
-    // 指定IDがある場合（一つだけ通知を未読or既読）にする場合
-    if (id) {
-      await prisma.notification.updateMany({
-        where: notificationWhere,
-        data: {
-          isRead,
-          readAt: isRead ? new Date() : null,
-        },
-      });
-
-      // すべての通知の既読状態を更新する場合
-    } else {
-      await prisma.notification.updateMany({
-        where: notificationWhere,
-        data: {
-          isRead,
-          readAt: isRead ? new Date() : null,
-        },
-      });
-    }
+    console.log("apiUpdateNotificationStatus 完了", result);
 
     // キャッシュをクリア
     revalidatePath("/dashboard");
