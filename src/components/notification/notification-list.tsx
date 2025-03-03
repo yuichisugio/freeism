@@ -2,7 +2,7 @@
 
 import type { NotificationFilter, NotificationSortType } from "@/app/actions/notification";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getNotificationsAndUnreadCount } from "@/app/actions/notification";
+import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, Bell, CheckCircle2, Info, RefreshCw, SortAsc } from "lucide-react";
+import { AlertCircle, Bell, CheckCircle2, Info, RefreshCw } from "lucide-react";
 
 // 通知タイプの定義
 type NotificationType = "INFO" | "SUCCESS" | "WARNING";
@@ -136,10 +136,10 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
   // 通知の既読/未読状態を更新する関数
   const memoizedUpdateNotificationStatus = useCallback(
-    async function updateNotificationStatus(id: string | null, isRead: boolean) {
+    async function updateNotificationsStatus(id: string | null, isRead: boolean) {
       try {
         // すべての通知を更新する場合はnull、それ以外は特定のIDを指定
-        await updateNotificationStatus(id, isRead);
+        await apiUpdateNotificationStatus(id, isRead);
 
         // 更新成功後、現在のフィルターに基づいて通知を再取得
         await memoizedGetNotifications(activeFilter, 200, sortBy);
@@ -241,37 +241,29 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
     }
   }, [memoizedUpdateNotificationStatus, onUnreadStatusChangeAction]);
 
-  // 通知アイテムをクリックした時の処理
-  const handleNotificationClick = useCallback(
-    (notification: AppNotification) => {
-      // 既読にする処理
-      if (!notification.isRead) {
-        memoizedMarkAsRead(notification.id);
-      }
-
-      // 通知にアクションURLがある場合、そのURLに遷移
-      if (notification.actionUrl) {
-        window.location.href = notification.actionUrl;
-      }
-    },
-    [memoizedMarkAsRead],
-  );
-
   // useEffect定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // コンポーネントのマウント時に通知を取得
+  // 初回マウント時のみ実行。引数に参照値の更新後も更新するよう入れないと警告が出るけど、初回のみにしたいため。
+  const isFirstRenderForMemoizedGetNotifications = useRef(true);
+
   useEffect(() => {
-    memoizedGetNotifications(activeFilter, 200, sortBy);
+    if (isFirstRenderForMemoizedGetNotifications.current) {
+      console.log("初回マウント時のみ実行");
 
-    // 定期的に通知を更新するタイマーをセット（オプション）
-    // 例: 1分ごとに更新する場合
-    const timerId = setInterval(() => {
+      // 初回実行時の処理
       memoizedGetNotifications(activeFilter, 200, sortBy);
-    }, 600000); // 600秒 = 10分
 
-    return () => {
-      if (timerId) clearInterval(timerId);
-    };
+      // 定期更新の設定。600秒 = 10分
+      const timerId = setInterval(() => {
+        memoizedGetNotifications(activeFilter, 200, sortBy);
+      }, 600000);
+
+      isFirstRenderForMemoizedGetNotifications.current = false;
+
+      return () => {
+        if (timerId) clearInterval(timerId);
+      };
+    }
   }, [memoizedGetNotifications, activeFilter, sortBy]);
 
   // フィルターを変更したときに通知を再取得
@@ -279,22 +271,25 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
     memoizedGetNotifications(activeFilter, 200, sortBy);
   }, [memoizedGetNotifications, activeFilter, sortBy]);
 
+  const isFirstRenderForMemoizedProcessPendingUpdates = useRef(true);
   // 状態更新を一定間隔で処理するタイマー
   useEffect(() => {
-    // コンポーネントのマウント時にタイマーを設定
-    updateTimerId.current = setInterval(() => {
-      memoizedProcessPendingUpdates();
-    }, 3000); // 3秒ごとに一括処理
+    if (isFirstRenderForMemoizedProcessPendingUpdates.current) {
+      // コンポーネントのマウント時にタイマーを設定
+      updateTimerId.current = setInterval(() => {
+        memoizedProcessPendingUpdates();
+      }, 300000); // 30秒ごとに一括処理
 
-    return () => {
-      // クリーンアップ時にタイマーをクリア
-      if (updateTimerId.current) {
-        clearInterval(updateTimerId.current);
-      }
+      return () => {
+        // クリーンアップ時にタイマーをクリア
+        if (updateTimerId.current) {
+          clearInterval(updateTimerId.current);
+        }
 
-      // アンマウント時に保留中の更新を処理
-      memoizedProcessPendingUpdates();
-    };
+        // アンマウント時に保留中の更新を処理
+        memoizedProcessPendingUpdates();
+      };
+    }
   }, [memoizedProcessPendingUpdates]);
 
   // フィルターに基づいて通知をフィルタリング
@@ -309,50 +304,39 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
   return (
     <div className="flex flex-col gap-4">
+      {/* ヘッダー部分 - 未読数と全て既読にするボタン */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-800">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
+        {unreadCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={markAllAsRead} className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300">
+            すべて既読にする
+          </Button>
+        )}
+      </div>
+
       {/* 通知のタブ、フィルター内容をstateで管理して、タブ切り替えすると、State関数が実行されて、切り替わる */}
-      <Tabs
-        defaultValue="unread"
-        value={activeFilter}
-        onValueChange={(value) => setActiveFilter(value as FilterType)}
-        className="w-full sm:max-w-[70%]"
-      >
+      <Tabs defaultValue="all" value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)} className="w-full">
+        {/* タブの表示 */}
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">すべて</TabsTrigger>
           <TabsTrigger value="unread">未読</TabsTrigger>
           <TabsTrigger value="read">既読</TabsTrigger>
         </TabsList>
-        {/* ヘッダー部分 - 未読数と全て既読にするボタン */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">{unreadCount > 0 ? `${unreadCount}件の未読通知` : "未読通知はありません"}</span>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
-              すべて既読にする
-            </Button>
-          )}
-        </div>
 
-        {/* フィルターとソートのコントロール */}
-        <div className="flex flex-col justify-between gap-2 sm:flex-row">
-          {/* フィルタータブ */}
-
-          {/* ソート選択 */}
-          <div className="flex items-center gap-2">
-            <SortAsc className="h-4 w-4 text-gray-500" />
-            <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
-              <SelectTrigger className="h-9 w-[140px]">
-                <SelectValue placeholder="ソート方法" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">日付順</SelectItem>
-                <SelectItem value="priority">優先度順</SelectItem>
-                <SelectItem value="type">種類別</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        {/* ソート選択 */}
+        <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
+          <SelectTrigger className="my-2 h-9 w-[140px]">
+            <SelectValue placeholder="ソート方法" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date">日付順</SelectItem>
+            <SelectItem value="priority">優先度順</SelectItem>
+            <SelectItem value="type">種類別</SelectItem>
+          </SelectContent>
+        </Select>
 
         {/* 通知リスト */}
-        <TabsContent value={activeFilter}>
+        <TabsContent value={activeFilter} className="mt-4 w-full">
           {/* ローディング状態の表示 */}
           {isLoading ? (
             <div className="flex h-[300px] items-center justify-center">
@@ -371,57 +355,16 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
             </div>
           ) : (
             // 通知リスト
-            <ScrollArea className={cn("h-[300px] pr-4")}>
+            <ScrollArea className={cn("pr-4")}>
               {filteredNotifications.length > 0 ? (
                 <ul className="space-y-3">
                   {filteredNotifications.map((notification) => (
-                    <li
+                    <NotificationItem
                       key={notification.id}
-                      className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                        notification.isRead ? "bg-background" : "bg-muted/50 dark:bg-blue-950/20"
-                      } ${notification.actionUrl ? "hover:bg-muted/70 cursor-pointer" : ""}`}
-                      onClick={() => handleNotificationClick(notification)}
-                    >
-                      {/* 通知アイコン */}
-                      <div className="mt-1">
-                        <NotificationIcon type={notification.type} />
-                      </div>
-
-                      {/* 通知内容 */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h4 className="font-semibold">{notification.title}</h4>
-                            {notification.priority && <PriorityStars priority={notification.priority} />}
-                          </div>
-                          <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
-                            {formatDistanceToNow(notification.sentAt, {
-                              addSuffix: true,
-                              locale: ja,
-                            })}
-                          </time>
-                        </div>
-                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{notification.message}</p>
-
-                        {/* 未読/既読切り替えボタン */}
-                        <div className="mt-2 flex justify-end">
-                          {notification.isRead ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs text-gray-500"
-                              onClick={(e) => markAsUnread(notification.id, e)}
-                            >
-                              <RefreshCw className="mr-1 h-3 w-3" />
-                              未読にする
-                            </Button>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      {/* 未読バッジ */}
-                      {!notification.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}
-                    </li>
+                      notification={notification}
+                      memoizedMarkAsRead={memoizedMarkAsRead}
+                      markAsUnread={markAsUnread}
+                    />
                   ))}
                 </ul>
               ) : (
@@ -434,5 +377,115 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function NotificationItem({
+  notification,
+  memoizedMarkAsRead,
+  markAsUnread,
+}: {
+  notification: AppNotification;
+  memoizedMarkAsRead: (id: string) => void;
+  markAsUnread: (id: string, event?: React.MouseEvent) => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // メッセージを省略するための関数
+  const truncateMessage = (message: string, maxLength: number = 50) => {
+    if (message.length <= maxLength) return message;
+
+    // 最大長さまでのテキストを取得し、単語の途中で切れないように調整
+    const truncated = message.substring(0, maxLength).replace(/\s\S*$/, "");
+    return `${truncated}...`;
+  };
+
+  return (
+    <li
+      className={`flex flex-col rounded-lg border transition-colors ${notification.isRead ? "bg-background" : "bg-muted/50 dark:bg-blue-950/20"} ${isExpanded ? "p-0" : "p-3"}`}
+    >
+      {/* 通知ヘッダー部分 - クリックで展開/折りたたみ */}
+      <div
+        className={`flex cursor-pointer items-start gap-3 ${isExpanded ? "p-3" : ""}`}
+        onClick={() => {
+          if (!notification.isRead) {
+            memoizedMarkAsRead(notification.id);
+          }
+          setIsExpanded(!isExpanded);
+        }}
+      >
+        {/* 通知タイプのアイコン */}
+        <div className="mt-1">
+          <NotificationIcon type={notification.type} />
+        </div>
+
+        {/* 通知内容 */}
+        <div className="flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h4 className="font-semibold">{notification.title}</h4>
+              {notification.priority && <PriorityStars priority={notification.priority} />}
+            </div>
+            <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
+              {formatDistanceToNow(notification.sentAt, {
+                addSuffix: true,
+                locale: ja,
+              })}
+            </time>
+          </div>
+
+          {/* メッセージ表示 - 展開時は全文、折りたたみ時は省略表示 */}
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{isExpanded ? notification.message : truncateMessage(notification.message)}</p>
+
+          {/* 操作ボタン - 展開時も折りたたみ時も同じ位置に配置 */}
+          <div className="mt-2 flex items-center justify-between">
+            {/* 詳細ボタン用のコンテナ - 常に同じ幅を確保 */}
+            <div className="flex-1">
+              {isExpanded && notification.actionUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (notification.actionUrl) {
+                      window.open(notification.actionUrl, "_blank");
+                    }
+                  }}
+                >
+                  詳細を確認
+                </Button>
+              )}
+            </div>
+
+            {/* 未読/既読切り替えボタン - 右寄せで固定位置 */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300"
+              onClick={(e) => {
+                e.stopPropagation();
+                notification.isRead ? markAsUnread(notification.id, e) : memoizedMarkAsRead(notification.id);
+              }}
+            >
+              {notification.isRead ? (
+                <>
+                  <RefreshCw className="mr-1 h-3 w-3" />
+                  未読にする
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                  既読にする
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* 未読バッジ */}
+        {notification.isRead ? <span className="invisible mt-1 h-2 w-2" /> : <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}
+      </div>
+    </li>
   );
 }

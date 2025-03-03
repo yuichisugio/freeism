@@ -65,11 +65,13 @@ export function NotificationButton() {
 
       {/* 通知モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[85vh] overflow-y-auto p-4 sm:max-w-[600px] md:max-w-[700px] lg:max-w-[80%] xl:max-w-[900px]">
           <DialogHeader>
             <DialogTitle>通知</DialogTitle>
           </DialogHeader>
-          <NotificationList onUnreadStatusChangeAction={setHasUnreadNotificationsAction} />
+          <div className="rounded-lg border p-6 shadow-sm">
+            <NotificationList onUnreadStatusChangeAction={setHasUnreadNotificationsAction} />
+          </div>
         </DialogContent>
       </Dialog>
     </>

@@ -63,6 +63,10 @@ export async function getUnreadNotificationsCount(take: number = 5) {
 
 /**
  * 現在のユーザーの通知を取得する
+ * TergetTypeがSYSTEMの場合は、無条件で取得
+ * TergetTypeがUSERの場合は、userIdが合致する通知を取得
+ * TergetTypeがGROUPの場合は、userIdが所属するグループの通知を取得
+ * TergetTypeがTASKの場合は、userIdがタスクの担当者の通知を取得
  * @param filter フィルタリング条件 ("all" | "unread" | "read")
  * @param limit 取得する通知の最大数
  * @returns 通知の配列と未読数
@@ -75,32 +79,76 @@ export async function getNotificationsAndUnreadCount(filter: NotificationFilter 
       throw new Error("認証が必要です");
     }
 
-    let notificationWhere: Prisma.NotificationWhereInput = {
-      userId: session.user.id,
-    };
+    // ユーザーが所属するグループのIDリストを取得
+    const userGroupList = await prisma.groupMembership.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        groupId: true,
+      },
+    });
+    const userGroupIds = userGroupList.map((group) => group.groupId);
 
-    // 未読/既読フィルタリング
+    // ユーザーが担当するタスクのIDリストを取得
+    const userTaskList = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        id: true, // id を選択（元のコードでは userId を選択していましたが修正）
+      },
+    });
+    const userTaskIds = userTaskList.map((task) => task.id);
+
+    // TargetTypeに基づいた条件を構築
+    let targetTypeConditions = [
+      // SYSTEM: すべてのユーザーに表示
+      { targetType: "SYSTEM" as NotificationTargetType },
+
+      // USER: 特定のユーザー向け
+      {
+        targetType: "USER" as NotificationTargetType,
+        userId: session.user.id,
+      },
+
+      // GROUP: ユーザーが所属するグループ向け
+      {
+        targetType: "GROUP" as NotificationTargetType,
+        groupId: { in: userGroupIds.length > 0 ? userGroupIds : [""] },
+      },
+
+      // TASK: ユーザーが担当するタスク向け
+      {
+        targetType: "TASK" as NotificationTargetType,
+        taskId: { in: userTaskIds.length > 0 ? userTaskIds : [""] },
+      },
+    ];
+
+    // 未読/既読フィルタリング条件
+    let readCondition = {};
     if (filter === "unread") {
-      notificationWhere.isRead = false;
+      readCondition = { isRead: false };
     } else if (filter === "read") {
-      notificationWhere.isRead = true;
+      readCondition = { isRead: true };
     }
+
+    // 最終的なクエリ条件を構築
+    const notificationWhere: Prisma.NotificationWhereInput = {
+      AND: [{ OR: targetTypeConditions }, readCondition],
+    };
 
     // ソート条件の設定
     let notificationOrderBy: Prisma.NotificationOrderByWithRelationInput[] = [];
-
     switch (sortBy) {
       case "priority":
-        // 優先度の高い順（降順）、同じ優先度なら日付の新しい順
         notificationOrderBy = [{ priority: "desc" }, { sentAt: "desc" }];
         break;
       case "type":
-        // タイプ順、同じタイプなら日付の新しい順
         notificationOrderBy = [{ type: "asc" }, { sentAt: "desc" }];
         break;
       case "date":
       default:
-        // 日付の新しい順
         notificationOrderBy = [{ sentAt: "desc" }];
         break;
     }
@@ -118,21 +166,76 @@ export async function getNotificationsAndUnreadCount(filter: NotificationFilter 
         isRead: true,
         actionUrl: true,
         priority: true,
+        targetType: true, // 返却データにtargetTypeも含める
       },
       take: limit,
     });
 
-    // 未読通知の数を取得
+    // 未読通知の数を取得（TargetTypeの条件も適用）
     const unreadCount = await prisma.notification.count({
       where: {
-        userId: session.user.id,
-        isRead: false,
+        AND: [{ OR: targetTypeConditions }, { isRead: false }],
       },
     });
 
     return { notifications, unreadCount };
   } catch (error) {
     console.error("通知取得エラー:", error);
+    throw error;
+  }
+}
+
+// フィルタータイプの定義
+export type NotificationFilterType = "all" | "unread" | "read";
+
+/**
+ * 通知の既読/未読状態を更新
+ * @param id 通知ID（nullの場合はすべての通知）
+ * @param isRead 既読状態
+ * @returns 更新された通知の数
+ */
+export async function apiUpdateNotificationStatus(id: string | null, isRead: boolean) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("認証が必要です");
+    }
+
+    let notificationWhere: Prisma.NotificationWhereInput = {
+      userId: session.user.id,
+    };
+
+    if (id) {
+      notificationWhere.id = id;
+    }
+
+    // 指定IDがある場合（一つだけ通知を未読or既読）にする場合
+    if (id) {
+      await prisma.notification.updateMany({
+        where: notificationWhere,
+        data: {
+          isRead,
+          readAt: isRead ? new Date() : null,
+        },
+      });
+
+      // すべての通知の既読状態を更新する場合
+    } else {
+      await prisma.notification.updateMany({
+        where: notificationWhere,
+        data: {
+          isRead,
+          readAt: isRead ? new Date() : null,
+        },
+      });
+    }
+
+    // キャッシュをクリア
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/notifications");
+  } catch (error) {
+    console.error("通知状態更新エラー:", error);
     throw error;
   }
 }
@@ -260,61 +363,6 @@ export async function createTestNotifications() {
     return { success: true, count: testNotifications.length };
   } catch (error) {
     console.error("テスト通知作成エラー:", error);
-    throw error;
-  }
-}
-
-// フィルタータイプの定義
-export type NotificationFilterType = "all" | "unread" | "read";
-
-/**
- * 通知の既読/未読状態を更新
- * @param id 通知ID（nullの場合はすべての通知）
- * @param isRead 既読状態
- * @returns 更新された通知の数
- */
-export async function updateNotificationStatus(id: string | null, isRead: boolean) {
-  try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
-
-    let notificationWhere: Prisma.NotificationWhereInput = {
-      userId: session.user.id,
-    };
-
-    if (id) {
-      notificationWhere.id = id;
-    }
-
-    // 指定IDがある場合（一つだけ通知を未読or既読）にする場合
-    if (id) {
-      await prisma.notification.updateMany({
-        where: notificationWhere,
-        data: {
-          isRead,
-          readAt: isRead ? new Date() : null,
-        },
-      });
-
-      // すべての通知の既読状態を更新する場合
-    } else {
-      await prisma.notification.updateMany({
-        where: notificationWhere,
-        data: {
-          isRead,
-          readAt: isRead ? new Date() : null,
-        },
-      });
-    }
-
-    // キャッシュをクリア
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/notifications");
-  } catch (error) {
-    console.error("通知状態更新エラー:", error);
     throw error;
   }
 }
