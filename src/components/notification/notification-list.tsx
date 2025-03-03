@@ -100,18 +100,54 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         isLoadingMore: !!action.payload?.append,
         error: null,
       };
-    case "FETCH_SUCCESS":
-      // 通知の追加または置き換え
-      const mergedNotifications = action.payload.append ? [...state.notifications, ...action.payload.notifications] : action.payload.notifications;
+    case "FETCH_SUCCESS": {
+      // デバッグログ
+      console.log(`FETCH_SUCCESS: append=${action.payload.append}, 通知数=${action.payload.notifications.length}件`);
 
-      // 重複排除
-      const uniqueNotifications = action.payload.append
-        ? Array.from(new Map(mergedNotifications.map((item) => [item.id, item])).values())
-        : mergedNotifications;
+      // 更新通知の配列
+      let updatedNotifications;
 
+      if (action.payload.append) {
+        console.log("追加モードで処理");
+        // 既存通知のIDをログ出力
+        console.log(
+          "既存通知ID:",
+          state.notifications.map((n) => n.id),
+        );
+        // 新規通知のIDをログ出力
+        console.log(
+          "新規通知ID:",
+          action.payload.notifications.map((n) => n.id),
+        );
+
+        // 追加モード: 既存の通知に新しい通知を追加
+        updatedNotifications = [...state.notifications, ...action.payload.notifications];
+
+        // 重複排除: IDに基づいて一意の通知を保持
+        const uniqueMap = new Map();
+
+        // 重要: 後に来た通知を優先するため、逆順でマップに追加
+        updatedNotifications
+          .slice()
+          .reverse()
+          .forEach((item) => {
+            uniqueMap.set(item.id, item);
+          });
+
+        // マップから値を取り出し、最初の順序を保持
+        updatedNotifications = Array.from(uniqueMap.values()).reverse();
+
+        console.log(`重複排除後: ${updatedNotifications.length}件`);
+      } else {
+        console.log("置換モード: 新しい通知で完全に置き換え");
+        // 置き換えモード: 新しい通知のみを使用
+        updatedNotifications = action.payload.notifications;
+      }
+
+      // 新しい状態を返す
       return {
         ...state,
-        notifications: uniqueNotifications,
+        notifications: updatedNotifications,
         unreadCount: action.payload.unreadCount,
         hasMore: action.payload.hasMore,
         currentPage: action.payload.currentPage,
@@ -120,6 +156,7 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         error: null,
         lastUpdated: Date.now(),
       };
+    }
     case "FETCH_ERROR":
       return {
         ...state,
@@ -388,49 +425,113 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
   // 開発環境用にモックデータを使用するかどうか
   const useMockData = process.env.NODE_ENV === "development" && localStorage.getItem("useNotificationMock") === "true";
 
+  // 循環参照を避けるための関数レファレンス
+  const loadMoreRef = useRef<() => void>(() => {});
+
   // API呼び出し関数
   const fetchNotifications = useCallback(
-    async (filter = activeFilter, page = 1, sort = sortBy, append = false) => {
-      // 重複リクエスト防止
-      if (isRequestInProgressRef.current) return;
+    async (filter = activeFilter, page = 1, sort = sortBy, append = false): Promise<void> => {
+      // ログ出力を強化
+      console.log(`fetchNotifications 開始: filter=${filter}, page=${page}, sort=${sort}, append=${append}`);
 
       try {
+        // リクエスト進行中フラグを設定（競合防止）
+        if (isRequestInProgressRef.current && !append) {
+          console.log("別のリクエストが処理中のため、このリクエストはスキップします");
+          return;
+        }
+
         isRequestInProgressRef.current = true;
 
-        // ローディング状態設定
+        // ローディング状態を設定
         dispatch({ type: "FETCH_START", payload: { append } });
 
-        // データ取得のパラメータ
+        // 明示的にページネーションパラメータを計算
         const skip = (page - 1) * ITEMS_PER_PAGE;
         const limit = ITEMS_PER_PAGE + 1; // 1つ余分に取得して次ページ判定用
+
+        console.log(`API呼び出し準備: skip=${skip}, limit=${limit}, currentPage=${currentPage}`);
+
+        // 特別な状況で未読通知を優先的に取得するフラグ
+        // 1. 初回ロード時の「すべて」タブ表示
+        // 2. 「未読」タブの表示
+        const fetchUnreadFirst = (page === 1 && filter === "all") || filter === "unread";
 
         // APIまたはモックデータからデータ取得
         let result;
         if (useMockData) {
-          // モックデータ（開発時のみ）
-          await new Promise((resolve) => setTimeout(resolve, 800)); // 遅延シミュレーション
+          console.log("モックデータを使用します");
+          await new Promise((resolve) => setTimeout(resolve, 500));
           result = {
             notifications: createMockNotifications(limit),
             unreadCount: 3,
           };
         } else {
-          // 実際のAPI呼び出し
-          result = await getNotificationsAndUnreadCount(filter, limit, sort, skip);
+          // 未読優先フラグを追加して通知を取得
+          console.log(`API呼び出し: fetchUnreadFirst=${fetchUnreadFirst}`);
+          result = await getNotificationsAndUnreadCount(filter, limit, sort, skip, fetchUnreadFirst);
         }
 
         // コンポーネントがアンマウントされていたら処理を中止
-        if (!isMountedRef.current) return;
+        if (!isMountedRef.current) {
+          console.log("コンポーネントがアンマウントされているため処理中止");
+          return;
+        }
 
         // レスポンス検証
         if (!result || !Array.isArray(result.notifications)) {
+          console.error("無効なレスポンス:", result);
           throw new Error("APIからの応答が無効です");
         }
 
-        // 次ページの有無確認
+        // 結果のログ出力
+        console.log(`取得成功: ${result.notifications.length}件, 未読=${result.unreadCount}件`);
+        if (result.notifications.length > 0) {
+          console.log("最初の通知:", {
+            id: result.notifications[0].id,
+            title: result.notifications[0].title,
+            isRead: result.notifications[0].isRead,
+          });
+        }
+
+        // 通知が0件の場合の特別処理
+        if (result.notifications.length === 0) {
+          console.log("取得結果が0件のため、hasMore=falseに設定");
+
+          // フィルターが「未読」または「既読」で結果がない場合の処理
+          if (filter !== "all" && page === 1) {
+            console.log(`${filter}フィルターで結果がないため通知`);
+          }
+
+          dispatch({
+            type: "FETCH_SUCCESS",
+            payload: {
+              notifications: [],
+              unreadCount: result.unreadCount || 0,
+              hasMore: false,
+              append: false,
+              currentPage: page,
+            },
+          });
+
+          // 親コンポーネントに未読状態を通知
+          if (onUnreadStatusChangeAction) {
+            onUnreadStatusChangeAction(result.unreadCount > 0);
+          }
+
+          return;
+        }
+
+        // 次ページの有無を確認
         const hasMoreNotifications = result.notifications.length > ITEMS_PER_PAGE;
 
         // 余分に取得した通知を除外
         const fetchedNotifications = hasMoreNotifications ? result.notifications.slice(0, ITEMS_PER_PAGE) : result.notifications;
+
+        // 追加モードの判定（結果がある場合のみ追加モードを有効にする）
+        const shouldAppend = append && fetchedNotifications.length > 0;
+
+        console.log(`処理: shouldAppend=${shouldAppend}, hasMore=${hasMoreNotifications}`);
 
         // 日付文字列をDateオブジェクトに変換
         const processedNotifications = fetchedNotifications.map((notification) => ({
@@ -445,7 +546,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
             notifications: processedNotifications,
             unreadCount: result.unreadCount || 0,
             hasMore: hasMoreNotifications,
-            append,
+            append: shouldAppend,
             currentPage: page,
           },
         });
@@ -454,24 +555,137 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
         if (onUnreadStatusChangeAction) {
           onUnreadStatusChangeAction(result.unreadCount > 0);
         }
+
+        // 初回読み込み時に未読通知があり次のページも存在する場合、自動的に読み込み
+        if (result.unreadCount > 0 && page === 1 && filter === "all" && hasMoreNotifications) {
+          console.log(`未読通知が${result.unreadCount}件あるため、次ページを自動読み込みします`);
+          setTimeout(() => {
+            if (isMountedRef.current && !isRequestInProgressRef.current) {
+              // レファレンス経由で呼び出し
+              loadMoreRef.current();
+            }
+          }, 200);
+        }
+
+        // 「すべて」タブ表示時に未読通知がある場合、「未読」タブのデータも先読み
+        if (result.unreadCount > 0 && page === 1 && filter === "all") {
+          setTimeout(() => {
+            // async キーワードを削除
+            if (isMountedRef.current && !isRequestInProgressRef.current) {
+              console.log("「未読」タブのデータを先読みします");
+              const tempInProgress = isRequestInProgressRef.current;
+              isRequestInProgressRef.current = true;
+
+              // await を削除し、Promise チェーンを使用
+              getNotificationsAndUnreadCount("unread", ITEMS_PER_PAGE, sort, 0, true)
+                .then(() => {
+                  if (isMountedRef.current) {
+                    isRequestInProgressRef.current = tempInProgress;
+                  }
+                })
+                .catch((e) => {
+                  console.error("「未読」タブの先読み中にエラー:", e);
+                  if (isMountedRef.current) {
+                    isRequestInProgressRef.current = tempInProgress;
+                  }
+                });
+            }
+          }, 300);
+        }
       } catch (err) {
-        // コンポーネントがアンマウントされていたら処理を中止
+        // エラー処理
         if (!isMountedRef.current) return;
 
         console.error("通知取得エラー:", err);
-        const errorMessage = err instanceof Error ? `通知の取得に失敗しました: ${err.message}` : "通知の取得中にエラーが発生しました";
-
-        dispatch({ type: "FETCH_ERROR", payload: errorMessage });
+        dispatch({
+          type: "FETCH_ERROR",
+          payload: err instanceof Error ? `通知の取得に失敗しました: ${err.message}` : "通知の取得中にエラーが発生しました",
+        });
       } finally {
-        isRequestInProgressRef.current = false;
+        // 少し遅延してからフラグをリセット（UI更新との競合防止）
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            isRequestInProgressRef.current = false;
+            console.log("リクエスト進行中フラグをリセットしました");
+          }
+        }, 100);
       }
     },
-    [activeFilter, sortBy, onUnreadStatusChangeAction, useMockData],
+    [activeFilter, sortBy, onUnreadStatusChangeAction, useMockData, ITEMS_PER_PAGE, currentPage, dispatch],
   );
+
+  // 表示する通知をフィルタリング
+  const displayedNotifications = useMemo(() => {
+    return notifications.filter((notification) => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "unread") return !notification.isRead;
+      return notification.isRead; // "read" フィルター
+    });
+  }, [notifications, activeFilter]);
+
+  // 続きのページ読み込み
+  // loadMoreNotifications 関数の改良版
+  const loadMoreNotifications = useCallback(() => {
+    if (isLoadingMore) return;
+
+    // 現在表示されている未読通知の数をカウント
+    const displayedUnreadCount = notifications.filter((n) => !n.isRead).length;
+
+    // 表示されている未読数が全体の未読数より少ない場合は、完全リロードを実行
+    if (unreadCount > displayedUnreadCount) {
+      console.log(`未読通知が完全に表示されていません（表示中: ${displayedUnreadCount}件, 全体: ${unreadCount}件）`);
+      console.log("通知を完全リロードします");
+
+      // 一旦フィルターを「すべて」に戻して最初から読み込む（未読表示中の場合も考慮）
+      return fetchNotifications("all", 1, sortBy, false);
+    }
+
+    // 通常のページネーション処理
+    if (!hasMore) return;
+
+    const nextPage = currentPage + 1;
+    console.log(`通常のページ読み込み: 次ページ=${nextPage}`);
+
+    // 少し遅延させて状態更新の競合を避ける
+    setTimeout(() => {
+      if (isMountedRef.current && !isRequestInProgressRef.current) {
+        fetchNotifications(activeFilter, nextPage, sortBy, true);
+      }
+    }, 100);
+  }, [activeFilter, currentPage, fetchNotifications, hasMore, isLoadingMore, sortBy, notifications, unreadCount]);
+
+  // 通知リスト表示部分の「もっと読み込む」ボタンの改良版 - JSX部分
+  {
+    /* もっと読み込むボタン */
+  }
+  {
+    (hasMore || unreadCount > displayedNotifications.filter((n) => !n.isRead).length) && (
+      <div className="mt-auto flex justify-center py-2">
+        <Button variant="outline" size="sm" onClick={loadMoreNotifications} disabled={isLoadingMore} className="w-full text-sm">
+          {isLoadingMore ? (
+            <>
+              <LoadingIndicator />
+              読み込み中...
+            </>
+          ) : unreadCount > displayedNotifications.filter((n) => !n.isRead).length ? (
+            <>
+              <RefreshCw className="mr-1 h-4 w-4" />
+              すべての通知を読み込む ({unreadCount - displayedNotifications.filter((n) => !n.isRead).length}件の未読を表示)
+            </>
+          ) : (
+            <>
+              <MoreHorizontal className="mr-1 h-4 w-4" />
+              もっと読み込む
+            </>
+          )}
+        </Button>
+      </div>
+    );
+  }
 
   // 通知の既読/未読状態の切り替え
   const toggleReadStatus = useCallback(
-    async (id: string, isRead: boolean) => {
+    (id: string, isRead: boolean) => {
       // ローカル状態を先に更新
       dispatch({ type: "TOGGLE_READ", payload: { id, isRead } });
 
@@ -482,14 +696,14 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
         onUnreadStatusChangeAction(updatedUnreadCount > 0);
       }
 
-      try {
-        // APIで状態を更新
-        await apiUpdateNotificationStatus(id, isRead);
-        dispatch({ type: "UPDATE_STATUS_SUCCESS" });
-      } catch (err) {
-        console.error("通知状態の更新に失敗しました:", err);
-        // エラー時は状態を戻すこともできるが、今回は簡略化のため省略
-      }
+      // void を使用して Promise を直接処理
+      void apiUpdateNotificationStatus(id, isRead)
+        .then(() => {
+          dispatch({ type: "UPDATE_STATUS_SUCCESS" });
+        })
+        .catch((err) => {
+          console.error("通知状態の更新に失敗しました:", err);
+        });
     },
     [unreadCount, onUnreadStatusChangeAction],
   );
@@ -516,14 +730,6 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
       console.error("全通知の既読化に失敗しました:", err);
     }
   }, [notifications, onUnreadStatusChangeAction]);
-
-  // 次のページを読み込む
-  const loadMoreNotifications = useCallback(() => {
-    if (isLoadingMore || isRequestInProgressRef.current) return;
-
-    const nextPage = currentPage + 1;
-    fetchNotifications(activeFilter, nextPage, sortBy, true);
-  }, [activeFilter, currentPage, fetchNotifications, isLoadingMore, sortBy]);
 
   // タブ切り替え
   const handleTabChange = useCallback(
@@ -582,15 +788,6 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [activeFilter, fetchNotifications, sortBy]);
-
-  // 表示する通知をフィルタリング
-  const displayedNotifications = useMemo(() => {
-    return notifications.filter((notification) => {
-      if (activeFilter === "all") return true;
-      if (activeFilter === "unread") return !notification.isRead;
-      return notification.isRead; // "read" フィルター
-    });
-  }, [notifications, activeFilter]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">

@@ -37,7 +37,7 @@ export function NotificationButton() {
       function checkNotifications() {
         try {
           // useEffectの中では、非同期関数を使用できないので、promiseを返さないthenを記載する
-          getUnreadNotificationsCount().then((unreadCount) => {
+          getUnreadNotificationsCount().then((unreadCount: number) => {
             setHasUnreadNotificationsAction(unreadCount > 0);
           });
         } catch (error) {
@@ -59,7 +59,7 @@ export function NotificationButton() {
   useEffect(() => {
     if (isOpen && status === "authenticated") {
       // モーダルを開いたときに最新の状態を取得
-      getUnreadNotificationsCount().then((unreadCount) => {
+      getUnreadNotificationsCount().then((unreadCount: number) => {
         setHasUnreadNotificationsAction(unreadCount > 0);
       });
     }

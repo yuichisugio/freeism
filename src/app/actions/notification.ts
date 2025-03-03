@@ -37,9 +37,13 @@ export type NotificationData = {
  * 未読通知の数のみを取得（軽量版）
  * @returns 未読通知の数
  */
-export async function getUnreadNotificationsCount(take: number = 5) {
+/**
+ * 未読通知の数のみを取得（軽量版）
+ * @returns 未読通知の数
+ */
+export async function getUnreadNotificationsCount() {
   try {
-    console.log("getUnreadNotificationsCount");
+    console.log("getUnreadNotificationsCount 開始");
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -92,13 +96,15 @@ export async function getUnreadNotificationsCount(take: number = 5) {
       },
     ];
 
-    // 最終的なクエリ条件を構築
-    const notificationWhere: Prisma.NotificationWhereInput = { OR: targetTypeConditions };
+    // 最終的なクエリ条件を構築（未読の通知のみを対象とする）
+    const notificationWhere: Prisma.NotificationWhereInput = {
+      OR: targetTypeConditions,
+      isRead: false,
+    };
 
-    // 通知の数を取得
+    // 未読通知の数を取得（takeパラメータは使用しない）
     const unreadCount = await prisma.notification.count({
       where: notificationWhere,
-      take: take,
     });
 
     console.log("getUnreadNotificationsCount 完了", unreadCount);
@@ -120,6 +126,7 @@ export async function getUnreadNotificationsCount(take: number = 5) {
  * @param limit 取得する通知の最大数
  * @param sortBy 並び順 ("date" | "priority" | "type")
  * @param skip スキップする通知の数（ページネーション用）
+ * @param fetchUnreadFirst 未読通知を優先的に取得するかどうか (trueの場合、未読を最優先で取得)
  * @returns 通知の配列と未読数
  */
 export async function getNotificationsAndUnreadCount(
@@ -127,8 +134,11 @@ export async function getNotificationsAndUnreadCount(
   limit: number = 10,
   sortBy: NotificationSortType = "date",
   skip: number = 0,
+  fetchUnreadFirst: boolean = false, // 未読通知を優先的に取得するフラグ（新規追加）
 ) {
   try {
+    console.log(`getNotificationsAndUnreadCount: filter=${filter}, limit=${limit}, skip=${skip}, fetchUnreadFirst=${fetchUnreadFirst}`);
+
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -181,17 +191,17 @@ export async function getNotificationsAndUnreadCount(
       },
     ];
 
-    // 未読/既読フィルタリング条件
-    let readCondition = {};
-    if (filter === "unread") {
-      readCondition = { isRead: false };
-    } else if (filter === "read") {
-      readCondition = { isRead: true };
-    }
-
-    // 最終的なクエリ条件を構築
-    const notificationWhere: Prisma.NotificationWhereInput = {
-      AND: [{ OR: targetTypeConditions }, readCondition],
+    // 通知選択項目の定義（再利用のため）
+    const notificationSelect = {
+      id: true,
+      type: true,
+      title: true,
+      message: true,
+      sentAt: true,
+      isRead: true,
+      actionUrl: true,
+      priority: true,
+      targetType: true,
     };
 
     // ソート条件の設定
@@ -209,21 +219,56 @@ export async function getNotificationsAndUnreadCount(
         break;
     }
 
+    // 未読優先モードが有効で、フィルターが「すべて」の場合
+    if (fetchUnreadFirst && filter === "all") {
+      console.log("未読通知を優先的に取得します");
+
+      // まず未読通知を取得
+      const unreadNotifications = await prisma.notification.findMany({
+        where: {
+          AND: [{ OR: targetTypeConditions }, { isRead: false }],
+        },
+        orderBy: notificationOrderBy,
+        select: notificationSelect,
+        take: limit, // limitの数だけ取得
+      });
+
+      // 未読通知の数
+      const unreadCount = await prisma.notification.count({
+        where: {
+          AND: [{ OR: targetTypeConditions }, { isRead: false }],
+        },
+      });
+
+      console.log(`未読優先モード: ${unreadNotifications.length}件の未読通知を取得, 合計${unreadCount}件の未読あり`);
+
+      // 未読通知があれば、それを返す
+      if (unreadNotifications.length > 0) {
+        return { notifications: unreadNotifications, unreadCount };
+      }
+
+      // 未読がない場合は通常の処理に進む
+      console.log("未読通知がないため、通常の取得処理に進みます");
+    }
+
+    // 未読/既読フィルタリング条件
+    let readCondition = {};
+    if (filter === "unread") {
+      readCondition = { isRead: false };
+    } else if (filter === "read") {
+      readCondition = { isRead: true };
+    }
+
+    // 最終的なクエリ条件を構築
+    const notificationWhere: Prisma.NotificationWhereInput = {
+      AND: [{ OR: targetTypeConditions }, readCondition],
+    };
+
     // 通知を取得（ページネーション対応）
     const notifications = await prisma.notification.findMany({
       where: notificationWhere,
       orderBy: notificationOrderBy,
-      select: {
-        id: true,
-        type: true,
-        title: true,
-        message: true,
-        sentAt: true,
-        isRead: true,
-        actionUrl: true,
-        priority: true,
-        targetType: true,
-      },
+      select: notificationSelect,
       skip: skip,
       take: limit,
     });
@@ -234,6 +279,8 @@ export async function getNotificationsAndUnreadCount(
         AND: [{ OR: targetTypeConditions }, { isRead: false }],
       },
     });
+
+    console.log(`通常モード: ${notifications.length}件の通知を取得, 未読カウント=${unreadCount}`);
 
     return { notifications, unreadCount };
   } catch (error) {

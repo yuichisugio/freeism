@@ -27,10 +27,15 @@ export async function createGroup(data: CreateGroupFormData) {
       data: {
         ...validatedData,
         createdBy: session.user.id,
+        members: {
+          //一緒にGroupMembershipのレコードも作成して、デフォで参加して、デフォでGroupを作成したユーザーをオーナーにする
+          create: {
+            userId: session.user.id,
+            isGroupOwner: true,
+          },
+        },
       },
     });
-
-    console.log("createGroup success");
 
     revalidatePath("/dashboard/grouplist");
     return { success: true };
@@ -39,7 +44,7 @@ export async function createGroup(data: CreateGroupFormData) {
       console.error("Zod validation error:", error.errors);
       return { error: "入力内容に誤りがあります" };
     }
-    console.error("1111createGroup unexpected error:", error);
+    console.error("createGroup unexpected error:", error);
     return { error: "エラーが発生しました" };
   }
 }
