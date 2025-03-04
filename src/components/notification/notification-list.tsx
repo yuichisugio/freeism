@@ -540,12 +540,6 @@ function NotificationItem({
   // 通知クリック時
   function handleItemClick() {
     setIsExpanded((prev) => !prev);
-
-    // 未読の場合は既読にする
-    if (!localIsRead) {
-      setLocalIsRead(true);
-      onToggleReadStatus(notification.id, true);
-    }
   }
 
   // 既読/未読切り替え

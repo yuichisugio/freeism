@@ -211,14 +211,24 @@ async function createUserSettings(users: any[]) {
   const userSettings = [];
 
   for (const user of users) {
-    const userSetting = await prisma.userSettings.create({
-      data: {
-        userId: user.id,
-        username: faker.internet.username(),
-        lifeGoal: faker.lorem.paragraph(),
-      },
+    // ユーザー設定が既に存在するかチェック
+    const existingSettings = await prisma.userSettings.findUnique({
+      where: { userId: user.id },
     });
-    userSettings.push(userSetting);
+
+    // 存在しない場合のみ作成
+    if (!existingSettings) {
+      const userSetting = await prisma.userSettings.create({
+        data: {
+          userId: user.id,
+          username: faker.internet.username(),
+          lifeGoal: faker.lorem.paragraph(),
+        },
+      });
+      userSettings.push(userSetting);
+    } else {
+      console.log(`ユーザーID ${user.id} の設定は既に存在するためスキップします`);
+    }
   }
 
   console.log(`${userSettings.length}件のユーザー設定を作成しました`);
@@ -485,7 +495,7 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
             `「${randomGroup.name}」活動報告`,
           ]);
           message = faker.lorem.paragraph();
-          actionUrl = `/dashboard/groups/${randomGroup.id}`;
+          actionUrl = `/dashboard/group/${randomGroup.id}`;
           break;
 
         case "TASK":
