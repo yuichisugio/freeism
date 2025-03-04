@@ -26,12 +26,6 @@ export type AppNotification = {
   priority: number;
 };
 
-// 保留中の状態変更を追跡するための型
-type PendingStatusChange = {
-  id: string;
-  isRead: boolean;
-};
-
 // Reducerのためのアクション型定義
 type NotificationAction =
   | { type: "FETCH_START"; payload?: { append: boolean } }
@@ -753,29 +747,31 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
     [activeFilter, fetchNotifications, sortBy],
   );
 
+  const ifFirstMount = useRef(true);
   // 初回マウント時の処理
   useEffect(() => {
-    isMountedRef.current = true;
-
-    // 初回データ取得
-    const initialFetchTimeout = setTimeout(() => {
-      fetchNotifications(activeFilter, 1, sortBy, false);
-    }, 100);
-
-    // 定期更新タイマー
-    const refreshInterval = setInterval(() => {
-      // アクティブなタブの場合のみ自動更新
-      if (document.visibilityState === "visible" && !isRequestInProgressRef.current) {
-        fetchNotifications(activeFilter, 1, sortBy, false);
-      }
-    }, REFRESH_INTERVAL);
-
-    return () => {
+    if (ifFirstMount.current) {
       isMountedRef.current = false;
-      clearTimeout(initialFetchTimeout);
-      clearInterval(refreshInterval);
-    };
-  }, []); // 初回マウント時のみ実行
+      // 初回データ取得
+      const initialFetchTimeout = setTimeout(() => {
+        fetchNotifications(activeFilter, 1, sortBy, false);
+      }, 100);
+
+      // 定期更新タイマー
+      const refreshInterval = setInterval(() => {
+        // アクティブなタブの場合のみ自動更新
+        if (document.visibilityState === "visible" && !isRequestInProgressRef.current) {
+          fetchNotifications(activeFilter, 1, sortBy, false);
+        }
+      }, REFRESH_INTERVAL);
+
+      return () => {
+        isMountedRef.current = false;
+        clearTimeout(initialFetchTimeout);
+        clearInterval(refreshInterval);
+      };
+    }
+  }, [activeFilter, fetchNotifications, sortBy]); // 初回マウント時のみ実行
 
   // 表示領域の変更検出（タブが非表示/表示された時）
   useEffect(() => {

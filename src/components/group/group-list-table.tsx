@@ -4,7 +4,7 @@ import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteGroup, joinGroup } from "@/app/actions";
+import { deleteGroup, joinGroup } from "@/app/actions/group";
 import { DataTable } from "@/components/share/data-table";
 import { Edit, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { updateTaskStatus } from "@/app/actions";
+import { updateTaskStatus } from "@/app/actions/task";
 import {
   AlertDialog,
   AlertDialogAction,
