@@ -91,21 +91,31 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
     if (!session?.user?.id) {
       throw new Error("認証が必要です");
     }
-
     const userId = session.user.id;
-    const skip = (page - 1) * limit;
 
     // アクセス可能なグループIDを取得
     const userGroupList = await prisma.groupMembership.findMany({
       where: { userId },
       select: { groupId: true },
     });
+    // グループIDを配列に格納
     const groupIds = userGroupList.map((g) => g.groupId);
 
     // 空のグループリストの場合の処理
     if (groupIds.length === 0) {
       groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
     }
+
+    // 取得したGroupに紐づくタスクを取得
+    const taskList = await prisma.task.findMany({
+      where: {
+        groupId: { in: groupIds },
+      },
+      select: { id: true },
+    });
+
+    // タスクIDを配列に格納
+    const taskIds = taskList.map((t) => t.id);
 
     // クライアントから指定されたIDを除外するためのパラメータを追加
     const excludeIds = new Set<string>();
@@ -116,10 +126,11 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       const previousNotifications = await prisma.$queryRaw`
         SELECT n.id
         FROM "Notification" n
-        WHERE 
+        WHERE
           (n."targetType" = 'SYSTEM') OR
           (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
+          (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
         ORDER BY n."sentAt" DESC
         LIMIT ${(page - 1) * limit}
       `;
@@ -132,25 +143,26 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
     // JSONB演算子を使用して直接DBレベルで既読状態を計算
     // 修正：SQL関数をPrisma.sql関数に置き換え
     const notificationsRaw = await prisma.$queryRaw`
-      SELECT 
-        n.id, 
-        n.title, 
-        n.message, 
-        n.type as "type", 
-        n."targetType" as "targetType", 
-        n.priority,
-        n."sentAt" as "sentAt", 
-        n."expiresAt" as "expiresAt", 
-        n."actionUrl" as "actionUrl", 
-        n."userId" as "userId", 
-        n."groupId" as "groupId", 
+      SELECT
+        n.id,
+        n.title,
+        n.message,
+        n.type as "type",
+        n."targetType" as "targetType",
         n."taskId" as "taskId",
-        CASE 
-          WHEN n."isRead" ? ${userId} AND (n."isRead" -> ${userId} ->> 'isRead')::boolean = TRUE 
-          THEN TRUE 
-          ELSE FALSE 
+        n.priority,
+        n."sentAt" as "sentAt",
+        n."expiresAt" as "expiresAt",
+        n."actionUrl" as "actionUrl",
+        n."userId" as "userId",
+        n."groupId" as "groupId",
+        n."taskId" as "taskId",
+        CASE
+          WHEN n."isRead" ? ${userId} AND (n."isRead" -> ${userId} ->> 'isRead')::boolean = TRUE
+          THEN TRUE
+          ELSE FALSE
         END as "isRead",
-        CASE 
+        CASE
           WHEN n."isRead" ? ${userId} THEN (n."isRead" -> ${userId} ->> 'readAt')::timestamp 
           ELSE NULL 
         END as "readAt"
@@ -159,12 +171,14 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         (
           (n."targetType" = 'SYSTEM') OR
           (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
+          (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
         )
         ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.empty}
       ORDER BY n."sentAt" DESC
-      LIMIT ${limit}
+      LIMIT ${page * limit}
     `;
+    // 上記で、limitのみになっていたので修正した
 
     // 以下のコードは変更なし
     const notifications = Array.isArray(notificationsRaw)
@@ -190,11 +204,12 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
     const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Notification" n
-      WHERE 
+      WHERE
         (
           (n."targetType" = 'SYSTEM') OR
           (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
+          (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
         )
         AND
         (
@@ -210,10 +225,11 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
     const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Notification" n
-      WHERE 
+      WHERE
         (n."targetType" = 'SYSTEM') OR
         (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-        (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+        (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
+        (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
     `;
 
     const totalCount = Number(totalCountResult[0]?.count || 0);

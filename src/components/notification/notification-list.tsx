@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount, markAllNotificationsAsRead } from "@/app/actions/notification";
+import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
@@ -31,10 +31,7 @@ export type NotificationData = {
 };
 
 // 定数の定義（コンポーネント外で定義）
-const ITEMS_PER_PAGE = 10;
-const SERVER_SYNC_DEBOUNCE = 1000; // 1秒のデバウンス
-const SERVER_SYNC_CHECK_INTERVAL = 1000; // 1秒のチェック間隔
-const SERVER_SYNC_INTERVAL = 60000; // 1分ごとに同期
+const ITEMS_PER_PAGE = 20;
 
 /**
  * 通知管理カスタムフック
@@ -48,8 +45,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
-  const [lastSyncedAt, setLastSyncedAt] = useState(0);
+  const [activeFilter, setActiveFilter] = useState<FilterType>("unread");
 
   // 保留中の更新を追跡
   const [pendingUpdates, setPendingUpdates] = useState<Map<string, boolean>>(new Map());
@@ -60,14 +56,11 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   // 初期読み込みが完了したかどうか
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  // リクエストカウンター（デバッグ用）
-  const [requestCounter, setRequestCounter] = useState(0);
-
   // ルーター
   const router = useRouter();
   const pathname = usePathname();
 
-  // フィルタリングされた通知
+  // タブ変更でフィルター内容が変更された時に呼び出す
   const filteredNotifications = useCallback(() => {
     if (activeFilter === "all") {
       return notifications;
@@ -79,7 +72,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
     return notifications.filter((notification) => notification.isRead);
   }, [notifications, activeFilter]);
 
-  // サーバーとの同期処理
+  // サーバーに、既読/未読の通知のデータを登録する
   const syncWithServer = useCallback(
     async (force = false) => {
       if (pendingUpdates.size === 0) {
@@ -99,11 +92,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
 
         // 同期完了後、保留中の更新をクリア
         setPendingUpdates(new Map());
-        setLastSyncedAt(Date.now());
         console.log("[通知] サーバー同期完了");
-
-        // デバッグ用にリクエストカウンターを増やす
-        setRequestCounter((prev) => prev + 1);
       } catch (error) {
         console.error("[通知] 同期エラー:", error);
       } finally {
@@ -116,7 +105,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   // 通知を取得する関数（初回のみ実行される）
   const fetchNotifications = useCallback(
     async (page = 1, append = false) => {
-      // 初期ロードが完了していて、追加ロードでない場合は無視
+      // 初期ロードが完了していて、追加ロードでない場合は無視。apendは「もっと読み込む」ボタンによるアクセスを示す
       if (initialLoadDone && !append) {
         console.log("[通知] 初期ロード済みのため、通常の再読み込みをスキップ");
         return;
@@ -174,6 +163,8 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
 
           setNotifications(mergedNotifications);
           console.log(`[通知] 読み込み後の通知数: ${mergedNotifications.length} (重複排除後)`);
+
+          // 「もっと読み込む」以外の通知取得
         } else {
           // 置換モード: ただし、ローカルで更新されたものは保持
           const resultMap = new Map(processedNotifications.map((notification) => [notification.id, notification]));
@@ -224,9 +215,6 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
         if (onUnreadStatusChangeAction) {
           onUnreadStatusChangeAction(adjustedUnreadCount > 0);
         }
-
-        // デバッグ用にリクエストカウンターを増やす
-        setRequestCounter((prev) => prev + 1);
       } catch (err) {
         const errorMessage = err instanceof Error ? `通知の取得に失敗しました: ${err.message}` : "通知の取得中にエラーが発生しました";
 
@@ -245,6 +233,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   );
 
   // 追加データの読み込み
+  // 「もっと読み込む」ボタンを押した時に呼び出す関数。追加の通知データを取得するために使用する。pageに+1して、fetchNotificationsを呼び出す
   const loadMoreNotifications = useCallback(() => {
     if (isLoadingMore || !hasMore) {
       return;
@@ -252,7 +241,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
     fetchNotifications(currentPage + 1, true);
   }, [currentPage, fetchNotifications, hasMore, isLoadingMore]);
 
-  // 既読/未読状態の切り替え
+  // 既読/未読状態の切り替え。既読/未読ボタンを押した時に呼ばれる関数で、stateのnotificationsの通知のisReadを更新する
   const toggleReadStatus = useCallback(
     (id: string, isRead: boolean) => {
       console.log(`[通知] 状態変更: ID=${id}, 既読=${isRead}`);
@@ -425,7 +414,6 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
     fetchNotifications,
     handleManualRefresh,
     pendingUpdateCount: pendingUpdates.size,
-    requestCounter,
   };
 }
 
@@ -687,7 +675,6 @@ function NotificationsEmpty({
 
 // メイン通知リストコンポーネント
 export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
-  // カスタムフックを使用して通知関連の状態と関数を取得
   const {
     notifications,
     isLoading,
@@ -703,18 +690,17 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
     fetchNotifications,
     handleManualRefresh,
     pendingUpdateCount,
-    requestCounter,
   } = useNotificationManager(onUnreadStatusChangeAction);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      {/* フィルタータブ */}
+    <div className="flex flex-col overflow-hidden">
+      {/* フィルタータブ - 固定 */}
       <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
 
-      {/* ヘッダー部分 */}
-      <div className="flex items-center justify-between">
+      {/* ヘッダー部分 - 固定 */}
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-800">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
+          <span className="text-sm text-gray-800 dark:text-gray-200">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
           <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新">
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -722,24 +708,29 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={markAllAsRead}
+              className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
               すべて既読にする
             </Button>
           )}
         </div>
       </div>
 
-      {/* 通知リスト表示部分 */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* 通知リスト部分 - スクロール可能エリア */}
+      <div className="overflow-hidden">
         {isLoading ? (
-          <div className="flex h-[300px] items-center justify-center">
+          <div className="flex h-[50vh] items-center justify-center">
             <div className="text-center">
               <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
               <p className="text-sm text-gray-500">通知を読み込み中...</p>
             </div>
           </div>
         ) : error ? (
-          <div className="flex h-[300px] items-center justify-center">
+          <div className="flex h-[50vh] items-center justify-center">
             <div className="text-center text-red-500">
               <AlertCircle className="mx-auto mb-2 h-6 w-6" />
               <p className="text-sm">{error}</p>
@@ -749,8 +740,8 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
             </div>
           </div>
         ) : (
-          <ScrollArea className="h-full max-h-[60vh] pr-4">
-            <div className="flex min-h-full flex-col gap-4">
+          <ScrollArea className="h-[60vh]">
+            <div className="flex flex-col gap-4 pr-4">
               {notifications.length > 0 ? (
                 <>
                   <ul className="space-y-3">
@@ -761,7 +752,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
                   {/* もっと読み込むボタン */}
                   {hasMore && (
-                    <div className="mt-auto flex justify-center py-2">
+                    <div className="mt-4 flex justify-center py-2">
                       <Button variant="outline" size="sm" onClick={loadMoreNotifications} disabled={isLoadingMore} className="w-full text-sm">
                         {isLoadingMore ? (
                           <>

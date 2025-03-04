@@ -80,11 +80,11 @@ export function NotificationButton() {
 
       {/* 通知モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto p-4 sm:max-w-[600px] md:max-w-[700px] lg:max-w-[80%] xl:max-w-[900px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[80%]">
           <DialogHeader>
             <DialogTitle>通知</DialogTitle>
           </DialogHeader>
-          <div className="rounded-lg border p-6 shadow-sm">
+          <div className="rounded-lg border px-6 py-2 shadow-sm">
             <NotificationList onUnreadStatusChangeAction={handleUnreadStatusChange} />
           </div>
         </DialogContent>

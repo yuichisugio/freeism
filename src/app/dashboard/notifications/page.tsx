@@ -14,10 +14,9 @@ export const metadata: Metadata = {
  * - 通知状態をグローバルに反映
  */
 export default function NotificationsPage() {
-  console.log("NotificationsPage");
   return (
     <MainTemplate title="通知一覧" description="すべての通知を確認できます。">
-      <div className="rounded-lg border p-6 shadow-sm">
+      <div className="overflow-hidden rounded-lg border px-6 py-4 shadow-sm">
         <NotificationList />
       </div>
     </MainTemplate>
