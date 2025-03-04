@@ -22,6 +22,9 @@ const SEED_CONFIG = {
   NOTIFICATIONS_PER_USER: 10, // ユーザーごとの通知数
 };
 
+// 保持する固定ユーザーID
+const PRESERVED_USER_IDS = ["cm7u2evy50002mctvfdyg8vk8", "cm7t3sejm0008g5p9whdbwsq2"];
+
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
 type ContributionType = "REWARD" | "NON_REWARD";
@@ -31,23 +34,78 @@ type EvaluationMethod = "360度評価" | "相互評価" | "目標達成度" | "K
 const prisma = new PrismaClient();
 
 /**
+ * 指定されたIDのユーザーが存在するかチェックする関数
+ * @param userId チェックするユーザーID
+ * @returns 存在すればtrue、存在しなければfalse
+ */
+async function userExists(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  return !!user;
+}
+
+/**
  * データベースをクリーンアップする関数
  * 依存関係を考慮した順序でテーブルを空にします
+ * 特定のIDを持つユーザーは削除しません
  */
 async function cleanupDatabase() {
-  // 依存関係の順序に注意してクリーンアップ
-  await prisma.notification.deleteMany(); // 通知を先に削除
-  await prisma.analytics.deleteMany();
-  await prisma.task.deleteMany();
-  await prisma.groupMembership.deleteMany();
-  await prisma.group.deleteMany();
-  await prisma.userSettings.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.verificationToken.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.user.deleteMany();
+  // 通知を削除
+  await prisma.notification.deleteMany();
 
-  console.log("データベースをクリーンアップしました");
+  // 分析データを削除
+  await prisma.analytics.deleteMany();
+
+  // タスクを削除
+  await prisma.task.deleteMany();
+
+  // グループメンバーシップを削除（保持するユーザーのメンバーシップも削除）
+  await prisma.groupMembership.deleteMany();
+
+  // グループを削除
+  await prisma.group.deleteMany();
+
+  // ユーザー設定を削除（保持するユーザー以外）
+  await prisma.userSettings.deleteMany({
+    where: {
+      userId: {
+        notIn: PRESERVED_USER_IDS,
+      },
+    },
+  });
+
+  // セッションを削除（保持するユーザー以外）
+  await prisma.session.deleteMany({
+    where: {
+      userId: {
+        notIn: PRESERVED_USER_IDS,
+      },
+    },
+  });
+
+  // 認証トークンを削除
+  await prisma.verificationToken.deleteMany();
+
+  // アカウントを削除（保持するユーザー以外）
+  await prisma.account.deleteMany({
+    where: {
+      userId: {
+        notIn: PRESERVED_USER_IDS,
+      },
+    },
+  });
+
+  // ユーザーを削除（保持するユーザー以外）
+  await prisma.user.deleteMany({
+    where: {
+      id: {
+        notIn: PRESERVED_USER_IDS,
+      },
+    },
+  });
+
+  console.log("データベースをクリーンアップしました（特定のユーザーは保持しました）");
 }
 
 /**
@@ -58,23 +116,34 @@ async function cleanupDatabase() {
 async function createUsers(count: number) {
   const users = [];
 
-  for (let i = 0; i < count; i++) {
-    // 10%の確率でアプリオーナー権限を付与
-    const isAppOwner = faker.datatype.boolean(0.1);
+  // まず、保持されたユーザーを取得して配列に追加
+  for (const userId of PRESERVED_USER_IDS) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
+    if (existingUser) {
+      users.push(existingUser);
+      console.log(`既存ユーザー「${existingUser.name}」(ID: ${existingUser.id})を保持しました`);
+    }
+  }
+
+  // 残りのユーザーを生成
+  const remainingCount = count - users.length;
+
+  for (let i = 0; i < remainingCount; i++) {
     const user = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         image: faker.image.avatar(),
-        emailVerified: faker.date.past(),
-        isAppOwner, // アプリオーナー権限を設定
+        isAppOwner: faker.datatype.boolean(0.1), // 10%の確率でアプリオーナー
       },
     });
     users.push(user);
   }
 
-  console.log(`${users.length}件のユーザーを作成しました`);
+  console.log(`${users.length}件のユーザーを作成しました（内${users.length - remainingCount}件は既存ユーザー）`);
   return users;
 }
 
@@ -134,29 +203,6 @@ async function createSessions(users: any[]) {
 }
 
 /**
- * 認証トークンを生成する関数
- * @param count 生成するトークン数
- * @returns 生成された認証トークンの配列
- */
-async function createVerificationTokens(count: number) {
-  const verificationTokens = [];
-
-  for (let i = 0; i < count; i++) {
-    const verificationToken = await prisma.verificationToken.create({
-      data: {
-        identifier: faker.internet.email(),
-        token: faker.string.uuid(),
-        expires: faker.date.future(),
-      },
-    });
-    verificationTokens.push(verificationToken);
-  }
-
-  console.log(`${verificationTokens.length}件の認証トークンを作成しました`);
-  return verificationTokens;
-}
-
-/**
  * ユーザー設定を生成する関数
  * @param users ユーザーの配列
  * @returns 生成されたユーザー設定の配列
@@ -180,17 +226,51 @@ async function createUserSettings(users: any[]) {
 }
 
 /**
- * グループを生成する関数
- * @param count 生成するグループ数
- * @param users ユーザーの配列（作成者として使用）
- * @returns 生成されたグループの配列
+ * 認証トークンを生成する関数
+ * @param count 生成するトークン数
+ * @returns 生成された認証トークンの配列
  */
-async function createGroups(count: number, users: any[]) {
+async function createVerificationTokens(count: number) {
+  const tokens = [];
+
+  for (let i = 0; i < count; i++) {
+    const token = await prisma.verificationToken.create({
+      data: {
+        identifier: faker.internet.email(),
+        token: faker.string.uuid(),
+        expires: faker.date.future(),
+      },
+    });
+    tokens.push(token);
+  }
+
+  console.log(`${tokens.length}件の認証トークンを作成しました`);
+  return tokens;
+}
+
+/**
+ * グループを生成する関数
+ * @param users ユーザーの配列（作成者として使用）
+ * @returns 生成されたグループと所属メンバーの配列
+ */
+async function createGroups(users: any[]) {
   const groups = [];
   const evaluationMethods: EvaluationMethod[] = ["360度評価", "相互評価", "目標達成度", "KPI評価", "コンピテンシー評価"];
 
-  for (let i = 0; i < count; i++) {
-    const creatorUser = faker.helpers.arrayElement(users);
+  // グループの数はSEED_CONFIGから取得
+  const groupsCount = Math.min(SEED_CONFIG.GROUPS_COUNT, users.length);
+
+  // 保持されたユーザーをグループ作成者に含める
+  const preservedUsers = users.filter((user) => PRESERVED_USER_IDS.includes(user.id));
+  const otherUsers = users.filter((user) => !PRESERVED_USER_IDS.includes(user.id));
+
+  // 作成者用のユーザーリストを作成（保持ユーザーを先頭に）
+  const creatorUsers = [...preservedUsers, ...faker.helpers.shuffle(otherUsers)];
+
+  for (let i = 0; i < groupsCount; i++) {
+    // 循環的にユーザーを選択（保持されたユーザーが必ず含まれるようにインデックスを調整）
+    const creatorUser = creatorUsers[i % creatorUsers.length];
+
     const group = await prisma.group.create({
       data: {
         name: `${faker.company.name()} グループ ${i + 1}`,
@@ -204,7 +284,11 @@ async function createGroups(count: number, users: any[]) {
   }
 
   console.log(`${groups.length}件のグループを作成しました`);
-  return groups;
+
+  // グループメンバーシップを作成
+  const groupMemberships = await createGroupMemberships(groups, users, SEED_CONFIG.MIN_MEMBERS_PER_GROUP, SEED_CONFIG.MAX_MEMBERS_PER_GROUP);
+
+  return { groups, groupMemberships };
 }
 
 /**
@@ -218,19 +302,33 @@ async function createGroups(count: number, users: any[]) {
 async function createGroupMemberships(groups: any[], users: any[], minMembersPerGroup: number, maxMembersPerGroup: number) {
   const memberships = [];
   const membershipSet = new Set<string>(); // 重複チェック用
+  const preservedUserIds = new Set(PRESERVED_USER_IDS);
 
   // 各グループにランダムな数のメンバーを追加
   for (const group of groups) {
+    // 保持されたユーザーを優先的に追加
+    const preservedUsers = users.filter((user) => preservedUserIds.has(user.id));
+
+    // 保持されたユーザー以外をシャッフル
+    const otherUsers = faker.helpers.shuffle(users.filter((user) => !preservedUserIds.has(user.id)));
+
+    // グループに追加するメンバー数を決定（最小値は保持されたユーザー数+1以上）
     const numMembers = faker.number.int({
-      min: minMembersPerGroup,
+      min: Math.max(minMembersPerGroup, preservedUsers.length),
       max: Math.min(maxMembersPerGroup, users.length),
     });
 
-    // ランダムな順序でユーザーをシャッフル
-    const shuffledUsers = [...users].sort(() => 0.5 - Math.random());
+    // 先に保持されたユーザーをすべて追加
+    const usersToAdd = [...preservedUsers];
 
-    for (let i = 0; i < numMembers; i++) {
-      const user = shuffledUsers[i];
+    // 残りは他のユーザーから追加
+    const remainingCount = numMembers - usersToAdd.length;
+    if (remainingCount > 0) {
+      usersToAdd.push(...otherUsers.slice(0, remainingCount));
+    }
+
+    // メンバーシップを作成
+    for (const user of usersToAdd) {
       const membershipKey = `${user.id}-${group.id}`;
 
       // 重複チェック
@@ -260,30 +358,44 @@ async function createGroupMemberships(groups: any[], users: any[], minMembersPer
 /**
  * タスクを生成する関数
  * @param count 生成するタスク数
- * @param memberships グループメンバーシップの配列
+ * @param groupMemberships グループメンバーシップの配列
  * @param users ユーザーの配列（評価者として使用）
  * @returns 生成されたタスクの配列
  */
-async function createTasks(count: number, memberships: any[], users: any[]) {
+async function createTasks(count: number, groupMemberships: any[], users: any[]) {
   const tasks = [];
   const taskStatuses = Object.values(TaskStatus);
   const contributionTypes: ContributionType[] = ["REWARD", "NON_REWARD"];
 
   for (let i = 0; i < count; i++) {
     // ランダムにメンバーシップを選択
-    const randomMembership = faker.helpers.arrayElement(memberships);
+    const membership = faker.helpers.arrayElement(groupMemberships);
+    const user = users.find((u) => u.id === membership.userId) || faker.helpers.arrayElement(users);
+    const groupId = membership.groupId;
+
+    // タスクの詳細を生成
+    const taskTitle = faker.company.catchPhrase();
+    const taskStatus = faker.helpers.arrayElement(taskStatuses);
+
+    // 評価者と評価ロジック (50%の確率で設定)
+    const hasEvaluator = faker.datatype.boolean(0.5);
+    const evaluator = hasEvaluator ? faker.helpers.arrayElement(users).id : null;
+    const evaluationLogic = hasEvaluator ? faker.lorem.paragraph(1) : null;
+
+    // 固定貢献ポイント (1-100)
+    const fixedPoints = faker.number.int({ min: 1, max: 100 });
 
     const task = await prisma.task.create({
       data: {
-        task: faker.lorem.sentence(),
-        reference: faker.datatype.boolean() ? faker.internet.url() : null,
-        status: faker.helpers.arrayElement(taskStatuses),
-        fixedContributionPoint: faker.number.int({ min: 1, max: 100 }),
-        evaluator: faker.datatype.boolean() ? faker.helpers.arrayElement(users).id : null,
-        evaluationLogic: faker.datatype.boolean() ? faker.lorem.paragraph(1) : null,
+        task: taskTitle,
+        reference: faker.datatype.boolean(0.3) ? faker.internet.url() : null,
+        status: taskStatus,
+        fixedContributionPoint: fixedPoints,
+        evaluator,
+        evaluationLogic,
         contributionType: faker.helpers.arrayElement(contributionTypes),
-        userId: randomMembership.userId,
-        groupId: randomMembership.groupId,
+        userId: user.id,
+        groupId,
       },
     });
     tasks.push(task);
@@ -305,13 +417,23 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
   const notificationTypes = Object.values(NotificationType);
   const targetTypes = Object.values(NotificationTargetType);
 
+  // 保持されたユーザーを取得
+  const preservedUsers = users.filter((user) => PRESERVED_USER_IDS.includes(user.id));
+  const otherUsers = users.filter((user) => !PRESERVED_USER_IDS.includes(user.id));
+
+  // ユーザー配列を作成（保持ユーザーを先頭に）
+  const allUsers = [...preservedUsers, ...otherUsers];
+
   // 各ユーザーに対して通知を生成
-  for (const user of users) {
-    // ユーザーごとの通知数を決定
-    const notificationCount = faker.number.int({
-      min: 1,
-      max: SEED_CONFIG.NOTIFICATIONS_PER_USER,
-    });
+  for (const user of allUsers) {
+    // ユーザーごとの通知数を決定（保持されたユーザーは必ず最大数の通知を生成）
+    const isPreservedUser = PRESERVED_USER_IDS.includes(user.id);
+    const notificationCount = isPreservedUser
+      ? SEED_CONFIG.NOTIFICATIONS_PER_USER
+      : faker.number.int({
+          min: 1,
+          max: SEED_CONFIG.NOTIFICATIONS_PER_USER,
+        });
 
     for (let i = 0; i < notificationCount; i++) {
       // 通知の基本情報を生成
@@ -327,18 +449,6 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
       sentAt.setDate(sentAt.getDate() - daysPast);
       sentAt.setHours(sentAt.getHours() - hoursPast);
       sentAt.setMinutes(sentAt.getMinutes() - minutesPast);
-
-      // 一部の通知を既読にする
-      const isRead = faker.datatype.boolean(0.6); // 60%の確率で既読
-      let readAt = null;
-
-      if (isRead) {
-        // 送信時間から現在までの間のランダムな時間を既読時間とする
-        const readDate = new Date(sentAt);
-        const minutesAfterSent = faker.number.int({ min: 1, max: 60 * 24 * 3 }); // 最大3日後
-        readDate.setMinutes(readDate.getMinutes() + minutesAfterSent);
-        readAt = readDate;
-      }
 
       // 通知タイプに応じたタイトルとメッセージを生成
       let title, message, actionUrl;
@@ -357,8 +467,16 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
           break;
 
         case "GROUP":
-          // ランダムにグループを選択
-          const randomGroup = faker.helpers.arrayElement(groups);
+          // グループを選択（保持されたユーザーが所属するグループを優先）
+          let randomGroup;
+          if (isPreservedUser && i < groups.length) {
+            // 保持されたユーザーが所属するグループを選ぶ
+            const userGroups = groups.filter((g) => g.createdBy === user.id || tasks.some((t) => t.groupId === g.id && t.userId === user.id));
+            randomGroup = userGroups.length > 0 ? faker.helpers.arrayElement(userGroups) : faker.helpers.arrayElement(groups);
+          } else {
+            randomGroup = faker.helpers.arrayElement(groups);
+          }
+
           groupId = randomGroup.id;
           title = faker.helpers.arrayElement([
             `「${randomGroup.name}」の新着情報`,
@@ -371,8 +489,16 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
           break;
 
         case "TASK":
-          // ランダムにタスクを選択
-          const randomTask = faker.helpers.arrayElement(tasks);
+          // タスクを選択（保持されたユーザーのタスクを優先）
+          let randomTask;
+          if (isPreservedUser && tasks.some((t) => t.userId === user.id)) {
+            // 保持されたユーザーのタスクから選ぶ
+            const userTasks = tasks.filter((t) => t.userId === user.id);
+            randomTask = userTasks.length > 0 ? faker.helpers.arrayElement(userTasks) : faker.helpers.arrayElement(tasks);
+          } else {
+            randomTask = faker.helpers.arrayElement(tasks);
+          }
+
           taskId = randomTask.id;
           groupId = randomTask.groupId;
           title = faker.helpers.arrayElement([
@@ -386,30 +512,140 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
           break;
       }
 
-      // 通知をデータベースに追加
-      const notification = await prisma.notification.create({
-        data: {
-          title,
-          message,
-          type: notificationType,
-          targetType,
-          isRead,
-          sentAt,
-          readAt,
-          actionUrl,
-          userId: user.id,
-          groupId,
-          taskId,
-          expiresAt: faker.datatype.boolean(0.3) ? faker.date.future() : null, // 30%の確率で有効期限あり
-        },
-      });
+      // 通知期限（オプション、一部の通知のみ）
+      const hasExpiry = faker.datatype.boolean(0.3); // 30%の確率で期限あり
+      let expiresAt = null;
+      if (hasExpiry) {
+        const daysToExpiry = faker.number.int({ min: 1, max: 60 });
+        expiresAt = new Date(sentAt);
+        expiresAt.setDate(expiresAt.getDate() + daysToExpiry);
+      }
 
-      notifications.push(notification);
+      // 通知の優先度（1-5）
+      const priority = faker.number.int({ min: 1, max: 5 });
+
+      // 既読状態のJSONBデータを生成
+      // 保持されたユーザーは必ず既読状態を持つようにする
+      const isReadJsonb: Record<string, { isRead: boolean; readAt: string | null }> = {};
+
+      // 送信者（user）は常に既読状態を持つようにする
+      const senderIsRead = faker.datatype.boolean(0.8); // 80%の確率で既読
+      let senderReadAt = null;
+      if (senderIsRead) {
+        // 送信時間から現在までの間のランダムな時間を既読時間とする
+        const readDate = new Date(sentAt);
+        const minutesAfterSent = faker.number.int({ min: 1, max: 60 * 24 * 3 }); // 最大3日後
+        readDate.setMinutes(readDate.getMinutes() + minutesAfterSent);
+        senderReadAt = readDate.toISOString();
+      }
+      isReadJsonb[user.id] = { isRead: senderIsRead, readAt: senderReadAt };
+
+      // 保持されたユーザーの既読状態を追加（送信者が保持されたユーザーでない場合）
+      if (!isPreservedUser) {
+        for (const preservedUser of preservedUsers) {
+          // ユーザーIDが異なる場合のみ追加
+          if (preservedUser.id !== user.id) {
+            const isRead = faker.datatype.boolean(0.6); // 60%の確率で既読
+            let readAt = null;
+            if (isRead) {
+              // 送信時間から現在までの間のランダムな時間を既読時間とする
+              const readDate = new Date(sentAt);
+              const minutesAfterSent = faker.number.int({ min: 1, max: 60 * 24 * 3 }); // 最大3日後
+              readDate.setMinutes(readDate.getMinutes() + minutesAfterSent);
+              readAt = readDate.toISOString();
+            }
+            isReadJsonb[preservedUser.id] = { isRead, readAt };
+          }
+        }
+      }
+
+      // 他のランダムなユーザーの既読状態を追加
+      const readStatusCount = faker.number.int({ min: 0, max: 3 });
+      const readStatusUsers = faker.helpers.arrayElements(
+        users.filter((u) => !PRESERVED_USER_IDS.includes(u.id) && u.id !== user.id),
+        readStatusCount,
+      );
+
+      for (const readUser of readStatusUsers) {
+        const isRead = faker.datatype.boolean(0.6); // 60%の確率で既読
+        let readAt = null;
+        if (isRead) {
+          // 送信時間から現在までの間のランダムな時間を既読時間とする
+          const readDate = new Date(sentAt);
+          const minutesAfterSent = faker.number.int({ min: 1, max: 60 * 24 * 3 }); // 最大3日後
+          readDate.setMinutes(readDate.getMinutes() + minutesAfterSent);
+          readAt = readDate.toISOString();
+        }
+
+        isReadJsonb[readUser.id] = { isRead, readAt };
+      }
+
+      // 通知をデータベースに追加
+      try {
+        // JSONB型のカラムはPrismaのJSON型として保存
+        // @ts-ignore - isReadプロパティはスキーマには存在するがTyped Prisma Clientが認識していない場合
+        const notification = await prisma.notification.create({
+          data: {
+            title,
+            message,
+            type: notificationType,
+            targetType,
+            priority,
+            sentAt,
+            expiresAt,
+            actionUrl,
+            userId: user.id,
+            groupId,
+            taskId,
+            isRead: isReadJsonb,
+          },
+        });
+        notifications.push(notification);
+      } catch (error) {
+        console.error("通知作成エラー:", error);
+
+        // JSONB型がサポートされていない場合は、rawクエリで対応
+        if (error instanceof Error && error.message.includes("JsonB")) {
+          const id = faker.string.uuid();
+
+          try {
+            const result = await prisma.$executeRaw`
+              INSERT INTO "Notification" (
+                "id", "title", "message", "type", "targetType", "priority", 
+                "sentAt", "expiresAt", "actionUrl", "userId", "groupId", "taskId", "isRead"
+              ) VALUES (
+                ${id}, ${title}, ${message}, ${notificationType}, ${targetType}, ${priority}, 
+                ${sentAt}, ${expiresAt}, ${actionUrl}, ${user.id}, ${groupId}, ${taskId}, 
+                ${JSON.stringify(isReadJsonb)}::jsonb
+              )
+            `;
+            if (result) {
+              notifications.push({
+                id,
+                title,
+                message,
+                type: notificationType,
+                targetType,
+                priority,
+                sentAt,
+                expiresAt,
+                actionUrl,
+                userId: user.id,
+                groupId,
+                taskId,
+                isRead: isReadJsonb,
+              });
+            }
+          } catch (rawError) {
+            console.error("Raw SQLエラー:", rawError);
+          }
+        }
+      }
     }
   }
 
   console.log(`${notifications.length}件の通知を作成しました`);
-  return notifications;
+  return { notifications, notificationReadStatuses: [] };
 }
 
 /**
@@ -418,7 +654,9 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
  */
 async function main() {
   try {
-    // 1. データベースクリーンアップ
+    console.log("シードデータの作成を開始します...");
+
+    // 1. データベースの初期化
     await cleanupDatabase();
 
     // 2. ユーザー関連データの作成
@@ -429,28 +667,31 @@ async function main() {
     const userSettings = await createUserSettings(users);
 
     // 3. グループ関連データの作成
-    const groups = await createGroups(SEED_CONFIG.GROUPS_COUNT, users);
-    const memberships = await createGroupMemberships(groups, users, SEED_CONFIG.MIN_MEMBERS_PER_GROUP, SEED_CONFIG.MAX_MEMBERS_PER_GROUP);
+    const { groups, groupMemberships } = await createGroups(users);
 
     // 4. タスクデータの作成
-    const tasks = await createTasks(SEED_CONFIG.TASKS_COUNT, memberships, users);
+    const tasks = await createTasks(SEED_CONFIG.TASKS_COUNT, groupMemberships, users);
 
     // 5. 通知データの作成
-    const notifications = await createNotifications(users, groups, tasks);
+    const { notifications, notificationReadStatuses } = await createNotifications(users, groups, tasks);
 
     // 6. 統計情報の表示
-    console.log("\n--- データベースシード完了 ---");
-    console.log(`ユーザー: ${users.length}件`);
+    console.log("-------------------------------------");
+    console.log("シードデータ作成完了！");
+    console.log("-------------------------------------");
+    console.log(`ユーザー: ${users.length}名`);
     console.log(`アカウント: ${accounts.length}件`);
     console.log(`セッション: ${sessions.length}件`);
     console.log(`認証トークン: ${verificationTokens.length}件`);
     console.log(`ユーザー設定: ${userSettings.length}件`);
     console.log(`グループ: ${groups.length}件`);
-    console.log(`グループメンバーシップ: ${memberships.length}件`);
+    console.log(`グループメンバーシップ: ${groupMemberships.length}件`);
     console.log(`タスク: ${tasks.length}件`);
     console.log(`通知: ${notifications.length}件`);
-  } catch (e) {
-    console.error("シード処理中にエラーが発生しました:", e);
+    console.log(`通知既読状態: ${notificationReadStatuses.length}件`);
+    console.log("-------------------------------------");
+  } catch (error) {
+    console.error("シード作成エラー:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

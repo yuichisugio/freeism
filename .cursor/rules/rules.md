@@ -1,0 +1,2 @@
+- JSONB型が、Prisma ORMで使用できない場合は、$queryRawや$executeRawを使用してください。
+- JSONB型の場合は、JSONBフィールドを使った効率的なクエリを書くには、PostgreSQLのJSONB操作関数を使用します。

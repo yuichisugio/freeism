@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getGroup } from "@/app/actions";
+import { getGroup } from "@/app/actions/group";
 import { EditGroupForm } from "@/components/group/edit-group-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 

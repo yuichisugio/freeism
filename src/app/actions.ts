@@ -4,8 +4,8 @@ import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { createGroupSchema } from "@/components/group/create-group-form";
 import { prisma } from "@/lib/prisma";
+import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
 /**

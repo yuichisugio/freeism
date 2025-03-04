@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { checkGroupNameExists, updateGroup } from "@/app/actions";
+import { checkGroupNameExists, updateGroup } from "@/app/actions/group";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { createGroupSchema } from "@/lib/zod-schema";

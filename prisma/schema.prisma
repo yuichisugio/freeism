@@ -189,16 +189,15 @@ model Notification {
   message    String                 @db.Text // 通知メッセージ内容
   type       NotificationType // 通知の重要度/種類
   targetType NotificationTargetType // 通知対象の種類
-  isRead     Boolean                @default(false) // 既読状態
   sentAt     DateTime               @default(now()) // 送付時間
-  readAt     DateTime? // 既読時間（nullの場合は未読）
   expiresAt  DateTime? // 通知の有効期限（オプション）
   actionUrl  String? // クリック時の遷移先URL（オプション）
   priority   Float                  @default(1.0) // 通知の優先度 (1-5, 5が最高)
+  isRead     Json                   @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
-  // 関連付け
-  userId String // 通知の受信者
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // user宛の場合は、userIdを入れる。
+  userId String? // 通知の送信者/作成者
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // グループ関連（オプション）
   groupId String?
@@ -208,13 +207,7 @@ model Notification {
   taskId String?
   task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
   @@index([userId])
   @@index([groupId])
   @@index([taskId])
-  @@index([isRead]) // 未読/既読フィルタリングのためのインデックス
-  @@index([sentAt]) // 時系列でのソート用インデックス
-  @@index([priority]) // 優先度でのソート用インデックス
 }

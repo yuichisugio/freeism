@@ -1,493 +1,342 @@
 "use server";
 
+import type { NotificationType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { type NotificationTargetType, type NotificationType, type Prisma } from "@prisma/client";
+import { NotificationTargetType, Prisma } from "@prisma/client";
 
-//通知の取得フィルタータイプ
-export type NotificationFilter = "all" | "unread" | "read";
-
-//通知のソートタイプ
-export type NotificationSortType = "date" | "priority" | "type";
-
-// 通知のUIタイプ
-export type NotificationUIType = "info" | "success" | "warning";
-
-// 通知型定義
+/**
+ * フロントエンド用の通知データ型定義
+ */
 export type NotificationData = {
   id: string;
   title: string;
   message: string;
   NotificationType: "INFO" | "SUCCESS" | "WARNING";
   NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
-  uiType?: NotificationUIType; // UI表示用のタイプ（オプション）
   isRead: boolean;
   priority: number;
   sentAt: Date;
   readAt: Date | null;
   expiresAt: Date | null;
-  actionUrl: string | null; // 通知をクリックした時に遷移するURL
+  actionUrl: string | null;
   userId: string;
   groupId: string | null;
   taskId: string | null;
 };
 
 /**
- * 未読通知の数のみを取得（軽量版）
- * @returns 未読通知の数
- */
-/**
- * 未読通知の数のみを取得（軽量版）
- * @returns 未読通知の数
+ * 未読通知の数を取得する - JSONB最適化版
  */
 export async function getUnreadNotificationsCount() {
   try {
-    console.log("getUnreadNotificationsCount 開始");
     const session = await auth();
 
     if (!session?.user?.id) {
       throw new Error("認証が必要です");
-    }
-
-    // ユーザーが所属するグループのIDリストを取得
-    const userGroupList = await prisma.groupMembership.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      select: {
-        groupId: true,
-      },
-    });
-    const userGroupIds = userGroupList.map((group) => group.groupId);
-
-    // ユーザーが担当するタスクのIDリストを取得
-    const userTaskList = await prisma.task.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-    const userTaskIds = userTaskList.map((task) => task.id);
-
-    // TargetTypeに基づいた条件を構築
-    let targetTypeConditions = [
-      // SYSTEM: すべてのユーザーに表示
-      { targetType: "SYSTEM" as NotificationTargetType },
-
-      // USER: 特定のユーザー向け
-      {
-        targetType: "USER" as NotificationTargetType,
-        userId: session.user.id,
-      },
-
-      // GROUP: ユーザーが所属するグループ向け
-      {
-        targetType: "GROUP" as NotificationTargetType,
-        groupId: { in: userGroupIds.length > 0 ? userGroupIds : [""] },
-      },
-
-      // TASK: ユーザーが担当するタスク向け
-      {
-        targetType: "TASK" as NotificationTargetType,
-        taskId: { in: userTaskIds.length > 0 ? userTaskIds : [""] },
-      },
-    ];
-
-    // 最終的なクエリ条件を構築（未読の通知のみを対象とする）
-    const notificationWhere: Prisma.NotificationWhereInput = {
-      OR: targetTypeConditions,
-      isRead: false,
-    };
-
-    // 未読通知の数を取得（takeパラメータは使用しない）
-    const unreadCount = await prisma.notification.count({
-      where: notificationWhere,
-    });
-
-    console.log("getUnreadNotificationsCount 完了", unreadCount);
-
-    return unreadCount;
-  } catch (error) {
-    console.error("未読通知カウントエラー:", error);
-    throw error;
-  }
-}
-
-/**
- * 現在のユーザーの通知を取得する
- * TergetTypeがSYSTEMの場合は、無条件で取得
- * TergetTypeがUSERの場合は、userIdが合致する通知を取得
- * TergetTypeがGROUPの場合は、userIdが所属するグループの通知を取得
- * TergetTypeがTASKの場合は、userIdがタスクの担当者の通知を取得
- * @param filter フィルタリング条件 ("all" | "unread" | "read")
- * @param limit 取得する通知の最大数
- * @param sortBy 並び順 ("date" | "priority" | "type")
- * @param skip スキップする通知の数（ページネーション用）
- * @param fetchUnreadFirst 未読通知を優先的に取得するかどうか (trueの場合、未読を最優先で取得)
- * @returns 通知の配列と未読数
- */
-export async function getNotificationsAndUnreadCount(
-  filter: NotificationFilter = "all",
-  limit: number = 10,
-  sortBy: NotificationSortType = "date",
-  skip: number = 0,
-  fetchUnreadFirst: boolean = false, // 未読通知を優先的に取得するフラグ（新規追加）
-) {
-  try {
-    console.log(`getNotificationsAndUnreadCount: filter=${filter}, limit=${limit}, skip=${skip}, fetchUnreadFirst=${fetchUnreadFirst}`);
-
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
-
-    // ユーザーが所属するグループのIDリストを取得
-    const userGroupList = await prisma.groupMembership.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      select: {
-        groupId: true,
-      },
-    });
-    const userGroupIds = userGroupList.map((group) => group.groupId);
-
-    // ユーザーが担当するタスクのIDリストを取得
-    const userTaskList = await prisma.task.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-    const userTaskIds = userTaskList.map((task) => task.id);
-
-    // TargetTypeに基づいた条件を構築
-    let targetTypeConditions = [
-      // SYSTEM: すべてのユーザーに表示
-      { targetType: "SYSTEM" as NotificationTargetType },
-
-      // USER: 特定のユーザー向け
-      {
-        targetType: "USER" as NotificationTargetType,
-        userId: session.user.id,
-      },
-
-      // GROUP: ユーザーが所属するグループ向け
-      {
-        targetType: "GROUP" as NotificationTargetType,
-        groupId: { in: userGroupIds.length > 0 ? userGroupIds : [""] },
-      },
-
-      // TASK: ユーザーが担当するタスク向け
-      {
-        targetType: "TASK" as NotificationTargetType,
-        taskId: { in: userTaskIds.length > 0 ? userTaskIds : [""] },
-      },
-    ];
-
-    // 通知選択項目の定義（再利用のため）
-    const notificationSelect = {
-      id: true,
-      type: true,
-      title: true,
-      message: true,
-      sentAt: true,
-      isRead: true,
-      actionUrl: true,
-      priority: true,
-      targetType: true,
-    };
-
-    // ソート条件の設定
-    let notificationOrderBy: Prisma.NotificationOrderByWithRelationInput[] = [];
-    switch (sortBy) {
-      case "priority":
-        notificationOrderBy = [{ priority: "desc" }, { sentAt: "desc" }];
-        break;
-      case "type":
-        notificationOrderBy = [{ type: "asc" }, { sentAt: "desc" }];
-        break;
-      case "date":
-      default:
-        notificationOrderBy = [{ sentAt: "desc" }];
-        break;
-    }
-
-    // 未読優先モードが有効で、フィルターが「すべて」の場合
-    if (fetchUnreadFirst && filter === "all") {
-      console.log("未読通知を優先的に取得します");
-
-      // まず未読通知を取得
-      const unreadNotifications = await prisma.notification.findMany({
-        where: {
-          AND: [{ OR: targetTypeConditions }, { isRead: false }],
-        },
-        orderBy: notificationOrderBy,
-        select: notificationSelect,
-        take: limit, // limitの数だけ取得
-      });
-
-      // 未読通知の数
-      const unreadCount = await prisma.notification.count({
-        where: {
-          AND: [{ OR: targetTypeConditions }, { isRead: false }],
-        },
-      });
-
-      console.log(`未読優先モード: ${unreadNotifications.length}件の未読通知を取得, 合計${unreadCount}件の未読あり`);
-
-      // 未読通知があれば、それを返す
-      if (unreadNotifications.length > 0) {
-        return { notifications: unreadNotifications, unreadCount };
-      }
-
-      // 未読がない場合は通常の処理に進む
-      console.log("未読通知がないため、通常の取得処理に進みます");
-    }
-
-    // 未読/既読フィルタリング条件
-    let readCondition = {};
-    if (filter === "unread") {
-      readCondition = { isRead: false };
-    } else if (filter === "read") {
-      readCondition = { isRead: true };
-    }
-
-    // 最終的なクエリ条件を構築
-    const notificationWhere: Prisma.NotificationWhereInput = {
-      AND: [{ OR: targetTypeConditions }, readCondition],
-    };
-
-    // 通知を取得（ページネーション対応）
-    const notifications = await prisma.notification.findMany({
-      where: notificationWhere,
-      orderBy: notificationOrderBy,
-      select: notificationSelect,
-      skip: skip,
-      take: limit,
-    });
-
-    // 未読通知の数を取得（TargetTypeの条件も適用）
-    const unreadCount = await prisma.notification.count({
-      where: {
-        AND: [{ OR: targetTypeConditions }, { isRead: false }],
-      },
-    });
-
-    console.log(`通常モード: ${notifications.length}件の通知を取得, 未読カウント=${unreadCount}`);
-
-    return { notifications, unreadCount };
-  } catch (error) {
-    console.error("通知取得エラー:", error);
-    throw error;
-  }
-}
-
-/**
- * 通知の既読/未読状態を更新
- * @param id 通知ID（nullの場合はすべての通知）
- * @param isRead 既読状態
- * @returns 更新された通知の数
- */
-export async function apiUpdateNotificationStatus(id: string, isRead: boolean) {
-  console.log("apiUpdateNotificationStatus", id, isRead);
-  try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
-
-    // whereにuserIdを指定してはダメ。そのidがある通知しか変更できなくなる。
-    const result = await prisma.notification.update({
-      where: {
-        id: id,
-      },
-      data: {
-        isRead,
-        readAt: isRead ? new Date() : null,
-      },
-    });
-
-    console.log("apiUpdateNotificationStatus 完了", result);
-
-    // キャッシュをクリア
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/notifications");
-  } catch (error) {
-    console.error("通知状態更新エラー:", error);
-    throw error;
-  }
-}
-
-/**
- * 通知を作成
- * @param userId 通知を送信するユーザーID
- * @param data 通知データ
- * @returns 作成された通知
- */
-export async function createNotification({
-  userId,
-  title,
-  message,
-  type = "INFO",
-  priority = 3,
-  actionUrl = null,
-  targetType = "USER",
-  groupId = null,
-}: {
-  userId: string;
-  title: string;
-  message: string;
-  type: NotificationType;
-  priority: number;
-  actionUrl: string | null;
-  targetType: NotificationTargetType;
-  groupId: string | null;
-}) {
-  try {
-    // 優先度を1-5の範囲に正規化
-    const normalizedPriority = Math.min(5, Math.max(1, priority));
-
-    // 通知を作成
-    const notification = await prisma.notification.create({
-      data: {
-        userId,
-        title,
-        message,
-        type: type,
-        targetType: targetType,
-        priority: normalizedPriority,
-        actionUrl,
-        sentAt: new Date(),
-        isRead: false,
-        groupId: groupId,
-      },
-    });
-
-    // キャッシュをクリア
-    revalidatePath("/dashboard");
-
-    return notification;
-  } catch (error) {
-    console.error("通知作成エラー:", error);
-    throw error;
-  }
-}
-
-/**
- * テスト用の通知を作成（開発環境のみ）
- */
-export async function createTestNotifications() {
-  try {
-    if (process.env.NODE_ENV !== "development") {
-      throw new Error("この関数は開発環境でのみ使用できます");
-    }
-
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証されていません");
     }
 
     const userId = session.user.id;
 
-    // テスト用の通知データ
-    const testNotifications = [
-      {
-        title: "優先度高: 重要なお知らせ",
-        message: "このメッセージは最高優先度の通知です。至急確認してください。",
-        type: "WARNING" as NotificationType,
-        priority: 5,
-      },
-      {
-        title: "優先度中: 進捗更新",
-        message: "プロジェクトの進捗が更新されました。確認してください。",
-        type: "INFO" as NotificationType,
-        priority: 3,
-      },
-      {
-        title: "優先度低: 情報共有",
-        message: "新しいドキュメントが追加されました。時間があるときに確認してください。",
-        type: "INFO" as NotificationType,
-        priority: 1,
-      },
-      {
-        title: "タスク完了",
-        message: "割り当てられたタスクが完了しました。お疲れ様でした！",
-        type: "INFO" as NotificationType,
-        priority: 2,
-      },
-      {
-        title: "期限間近の通知",
-        message: "明日が期限のタスクがあります。忘れずに完了してください。",
-        type: "WARNING" as NotificationType,
-        priority: 4,
-      },
-    ];
+    // アクセス可能なグループIDを取得
+    const userGroupList = await prisma.groupMembership.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    const groupIds = userGroupList.map((g) => g.groupId);
 
-    // 通知を作成
-    for (const notification of testNotifications) {
-      await createNotification({
-        userId,
-        ...notification,
-        actionUrl: null,
-        targetType: "USER",
-        groupId: null,
-      });
+    // 空のグループリストの場合の処理
+    if (groupIds.length === 0) {
+      groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
     }
 
-    // キャッシュをクリア
-    revalidatePath("/dashboard");
+    // PostgreSQLのJSONB演算子を使用した効率的なクエリ
+    const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(*) as count
+      FROM "Notification" n
+      WHERE 
+        (
+          (n."targetType" = 'SYSTEM') OR
+          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+        )
+        AND
+        (
+          NOT (n."isRead" ? ${userId})
+          OR
+          (n."isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
+        )
+    `;
 
-    return { success: true, count: testNotifications.length };
+    // bigintを安全にnumberに変換
+    const unreadCount = countResult && countResult[0] ? Number(countResult[0].count) : 0;
+
+    return unreadCount;
   } catch (error) {
-    console.error("テスト通知作成エラー:", error);
-    throw error;
+    console.error("未読通知カウントエラー:", error);
+    return 0; // エラー時は0を返す
   }
 }
 
 /**
- * 特定のグループのメンバーに通知を一括送信する
- * @param groupId グループID
- * @param data 通知データ（userIdを除く）
- * @returns 作成された通知の数
+ * 通知とその未読数を取得する - ページング改善版
+ * @param page ページ番号
+ * @param limit 1ページあたりの表示件数
+ * @returns 通知リストと未読数
  */
-export async function notifyGroupMembers(
-  groupId: string,
-  data: {
-    title: string;
-    message: string;
-    type: NotificationType;
-    targetType: NotificationTargetType;
-    taskId?: string;
-    actionUrl?: string;
-    expiresAt?: Date;
-  },
-) {
-  // グループメンバーを取得
-  const members = await prisma.groupMembership.findMany({
-    where: { groupId },
-    select: { userId: true },
-  });
+export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("認証が必要です");
+    }
 
-  // 各メンバーに通知を作成
-  const notificationPromises = members.map((member) =>
-    createNotification({
-      userId: member.userId,
-      ...data,
-      priority: 3,
-      groupId: groupId,
-      actionUrl: data.actionUrl || null,
-    }),
-  );
+    const userId = session.user.id;
+    const skip = (page - 1) * limit;
 
-  const results = await Promise.all(notificationPromises);
-  return results.length;
+    // アクセス可能なグループIDを取得
+    const userGroupList = await prisma.groupMembership.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    const groupIds = userGroupList.map((g) => g.groupId);
+
+    // 空のグループリストの場合の処理
+    if (groupIds.length === 0) {
+      groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
+    }
+
+    // クライアントから指定されたIDを除外するためのパラメータを追加
+    const excludeIds = new Set<string>();
+
+    // ページ番号が2以上の場合は、前回取得した通知IDを除外リストに追加
+    if (page > 1) {
+      // 前のページの通知を取得して除外リストに追加
+      const previousNotifications = await prisma.$queryRaw`
+        SELECT n.id
+        FROM "Notification" n
+        WHERE 
+          (n."targetType" = 'SYSTEM') OR
+          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+        ORDER BY n."sentAt" DESC
+        LIMIT ${(page - 1) * limit}
+      `;
+
+      if (Array.isArray(previousNotifications)) {
+        previousNotifications.forEach((n: any) => excludeIds.add(n.id));
+      }
+    }
+
+    // JSONB演算子を使用して直接DBレベルで既読状態を計算
+    // 修正：SQL関数をPrisma.sql関数に置き換え
+    const notificationsRaw = await prisma.$queryRaw`
+      SELECT 
+        n.id, 
+        n.title, 
+        n.message, 
+        n.type as "type", 
+        n."targetType" as "targetType", 
+        n.priority,
+        n."sentAt" as "sentAt", 
+        n."expiresAt" as "expiresAt", 
+        n."actionUrl" as "actionUrl", 
+        n."userId" as "userId", 
+        n."groupId" as "groupId", 
+        n."taskId" as "taskId",
+        CASE 
+          WHEN n."isRead" ? ${userId} AND (n."isRead" -> ${userId} ->> 'isRead')::boolean = TRUE 
+          THEN TRUE 
+          ELSE FALSE 
+        END as "isRead",
+        CASE 
+          WHEN n."isRead" ? ${userId} THEN (n."isRead" -> ${userId} ->> 'readAt')::timestamp 
+          ELSE NULL 
+        END as "readAt"
+      FROM "Notification" n
+      WHERE 
+        (
+          (n."targetType" = 'SYSTEM') OR
+          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+        )
+        ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.empty}
+      ORDER BY n."sentAt" DESC
+      LIMIT ${limit}
+    `;
+
+    // 以下のコードは変更なし
+    const notifications = Array.isArray(notificationsRaw)
+      ? notificationsRaw.map((n) => ({
+          id: n.id,
+          title: n.title || "",
+          message: n.message || "",
+          NotificationType: n.type,
+          NotificationTargetType: n.targetType,
+          isRead: n.isRead === true,
+          priority: Number(n.priority) || 1.0,
+          sentAt: n.sentAt ? new Date(n.sentAt).toISOString() : new Date().toISOString(),
+          readAt: n.readAt ? new Date(n.readAt).toISOString() : null,
+          expiresAt: n.expiresAt ? new Date(n.expiresAt).toISOString() : null,
+          actionUrl: n.actionUrl || null,
+          userId: n.userId || null,
+          groupId: n.groupId || null,
+          taskId: n.taskId || null,
+        }))
+      : [];
+
+    // 未読カウント取得
+    const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(*) as count
+      FROM "Notification" n
+      WHERE 
+        (
+          (n."targetType" = 'SYSTEM') OR
+          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
+          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+        )
+        AND
+        (
+          NOT (n."isRead" ? ${userId})
+          OR
+          (n."isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
+        )
+    `;
+
+    const unreadCount = Number(unreadCountResult[0]?.count || 0);
+
+    // 合計数取得
+    const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(*) as count
+      FROM "Notification" n
+      WHERE 
+        (n."targetType" = 'SYSTEM') OR
+        (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
+        (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+    `;
+
+    const totalCount = Number(totalCountResult[0]?.count || 0);
+
+    return {
+      notifications,
+      totalCount,
+      unreadCount,
+    };
+  } catch (error) {
+    console.error("通知取得エラー:", error);
+    return {
+      notifications: [],
+      totalCount: 0,
+      unreadCount: 0,
+    };
+  }
+}
+
+/**
+ * 指定された通知の既読状態を更新する - JSONB最適化版
+ * @param notificationId 通知ID
+ * @param isRead 既読状態
+ * @returns 成功したかどうか
+ */
+/**
+ * 指定された通知の既読状態を更新する - JSONB最適化版
+ * @param notificationId 通知ID
+ * @param isRead 既読状態
+ * @returns 成功したかどうか
+ */
+export async function apiUpdateNotificationStatus(notificationId: string, isRead: boolean) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("認証が必要です");
+    }
+
+    const userId = session.user.id;
+
+    // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
+    if (isRead) {
+      // 既読にする場合
+      const readAt = new Date().toISOString();
+      await prisma.$executeRaw`
+        UPDATE "Notification"
+        SET "isRead" = "isRead" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+        WHERE id = ${notificationId}
+      `;
+    } else {
+      // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
+      await prisma.$executeRaw`
+        UPDATE "Notification"
+        SET "isRead" = "isRead" || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
+        WHERE id = ${notificationId}
+      `;
+    }
+
+    revalidatePath("/notifications");
+    return { success: true };
+  } catch (error) {
+    console.error("通知状態更新エラー:", error);
+    return {
+      success: false,
+      error: "通知の更新中にエラーが発生しました。",
+    };
+  }
+}
+
+/**
+ * すべての通知を既読にする - JSONB最適化版
+ * @returns 成功したかどうか
+ */
+export async function markAllNotificationsAsRead() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("認証が必要です");
+    }
+
+    const userId = session.user.id;
+    const readAt = new Date().toISOString();
+
+    // ユーザーがアクセス可能なグループを取得
+    const userGroupList = await prisma.groupMembership.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    const groupIds = userGroupList.map((g) => g.groupId);
+
+    // 空のグループリストの場合の処理
+    if (groupIds.length === 0) {
+      groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
+    }
+
+    // 一括でJSONB更新をSQLレベルで実行
+    await prisma.$executeRaw`
+      UPDATE "Notification"
+      SET "isRead" = 
+        "isRead" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+      WHERE 
+        (
+          ("targetType" = 'SYSTEM') OR
+          ("targetType" = 'USER' AND "userId" = ${userId}) OR
+          ("targetType" = 'GROUP' AND "groupId" = ANY(${groupIds}))
+        )
+        AND
+        (
+          NOT ("isRead" ? ${userId})
+          OR
+          ("isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
+        )
+    `;
+
+    revalidatePath("/notifications");
+    return { success: true };
+  } catch (error) {
+    console.error("全通知既読化エラー:", error);
+    return {
+      success: false,
+      error: "通知の一括既読化に失敗しました。",
+    };
+  }
 }
