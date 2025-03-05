@@ -11,13 +11,19 @@ type MainTemplateProps = {
 
 export function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
+      {/* Fixed header */}
       <Header />
-      <div className="flex flex-1">
+
+      {/* Main content area with fixed sidebar and scrollable children */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Fixed sidebar */}
         <Sidebar />
+
+        {/* Main content area - fully scrollable except header and sidebar */}
         <main className="flex-1 overflow-auto">
-          <div className="container space-y-5 px-8 py-5 sm:space-y-0">
-            {/* 説明文の横に並べて表示したいボタンがある場合は、componentを渡す */}
+          <div className="container h-full overflow-auto px-8 py-5 sm:space-y-0">
+            {/* Title/description and component section - now scrollable */}
             <div className="flex flex-col justify-between sm:flex-row">
               {title && description && (
                 <div>
@@ -27,6 +33,8 @@ export function MainTemplate({ title, description, component, children }: MainTe
               )}
               <Suspense fallback={<div>Loading...</div>}>{component && component}</Suspense>
             </div>
+
+            {/* Children section */}
             {children}
           </div>
         </main>

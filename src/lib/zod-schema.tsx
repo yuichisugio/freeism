@@ -27,6 +27,7 @@ export const createNotificationSchema = z.object({
   type: z.enum(["INFO", "SUCCESS", "WARNING"], {
     errorMap: () => ({ message: "通知タイプを選択してください" }),
   }),
+  priority: z.number().min(1, "重要度は必須です").max(5, "重要度は5以下で入力してください"),
   targetType: z.enum(["SYSTEM", "USER", "GROUP", "TASK"], {
     errorMap: () => ({ message: "通知対象タイプを選択してください" }),
   }),

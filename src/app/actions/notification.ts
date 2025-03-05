@@ -24,6 +24,9 @@ export type NotificationData = {
   userId: string;
   groupId: string | null;
   taskId: string | null;
+  userName: string | null;
+  groupName: string | null;
+  taskName: string | null;
 };
 
 /**
@@ -165,8 +168,14 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         CASE
           WHEN n."isRead" ? ${userId} THEN (n."isRead" -> ${userId} ->> 'readAt')::timestamp 
           ELSE NULL 
-        END as "readAt"
+        END as "readAt",
+        u.name as "userName",
+        g.name as "groupName",
+        t.task as "taskName"
       FROM "Notification" n
+      LEFT JOIN "User" u ON n."userId" = u.id
+      LEFT JOIN "Group" g ON n."groupId" = g.id
+      LEFT JOIN "Task" t ON n."taskId" = t.id
       WHERE 
         (
           (n."targetType" = 'SYSTEM') OR
@@ -197,6 +206,9 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
           userId: n.userId || null,
           groupId: n.groupId || null,
           taskId: n.taskId || null,
+          userName: n.userName || null,
+          groupName: n.groupName || null,
+          taskName: n.taskName || null,
         }))
       : [];
 
@@ -360,7 +372,7 @@ export async function markAllNotificationsAsRead() {
 /**
  * 通知を作成する関数
  */
-export async function createNotification(data: CreateNotificationFormData) {
+export async function createNotification(data: CreateNotificationFormData, isAppOwner: boolean, isGroupOwner: boolean) {
   try {
     const session = await auth();
 
@@ -368,28 +380,13 @@ export async function createNotification(data: CreateNotificationFormData) {
       return { error: "認証が必要です" };
     }
 
-    const userId = session.user.id;
-
-    // 権限チェック
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isAppOwner: true },
-    });
-
-    const isGroupOwner = await prisma.groupMembership.findFirst({
-      where: {
-        userId,
-        isGroupOwner: true,
-      },
-    });
-
     // アプリオーナーかグループオーナーでなければエラー
-    if (!user?.isAppOwner && !isGroupOwner) {
+    if (!isAppOwner && !isGroupOwner) {
       return { error: "通知を作成する権限がありません" };
     }
 
     // グループオーナーのみの場合、SYSTEM/USERは作成不可
-    if (!user?.isAppOwner && (data.targetType === "SYSTEM" || data.targetType === "USER")) {
+    if (!isAppOwner && (data.targetType === "SYSTEM" || data.targetType === "USER")) {
       return { error: "この通知タイプを作成する権限がありません" };
     }
 
@@ -476,6 +473,7 @@ export async function createNotification(data: CreateNotificationFormData) {
         message: data.message,
         type: data.type,
         targetType: data.targetType,
+        priority: data.priority,
         expiresAt: data.expiresAt || undefined,
         actionUrl: data.actionUrl || undefined,
         userId: session.user.id, // 通知作成者

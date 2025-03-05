@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
 import { type FieldValues, type UseFormReturn } from "react-hook-form";
 
 type FormLayoutProps<T extends FieldValues> = {
@@ -28,13 +29,13 @@ export function FormLayout<T extends FieldValues>({
 }: FormLayoutProps<T>) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`${className}`}>
         {children}
         {form.formState.errors.root && (
           <div className="rounded-md bg-red-50 p-3 text-center text-sm text-red-500">{form.formState.errors.root.message}</div>
         )}
         <div className="flex gap-4">
-          <Button type="submit" className="button-default-custom" disabled={form.formState.isSubmitting}>
+          <Button type="submit" className={cn("button-default-custom", "mb-3")} disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? submittingLabel : submitLabel}
           </Button>
           {showCancelButton && onCancel && (

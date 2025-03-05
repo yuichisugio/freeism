@@ -1,9 +1,13 @@
+import type { Locale } from "date-fns/locale";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { type Control, type ControllerRenderProps, type FieldValues, type Path } from "react-hook-form";
 
 import { Button } from "../ui/button";
+import { Calendar } from "../ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
 import { FormControl, FormDescription, FormItem, FormLabel, FormMessage, FormField as RHFFormField } from "../ui/form";
 import { Input } from "../ui/input";
@@ -61,12 +65,21 @@ export type ComboBoxFieldProps<T extends FieldValues> = FormFieldBaseProps<T> & 
   labelProperty?: string;
 };
 
+// カレンダーフィールドのプロパティ
+export type CalendarFieldProps<T extends FieldValues> = FormFieldBaseProps<T> & {
+  placeholder?: string;
+  buttonText?: string;
+  locale?: Locale;
+  dateFormat?: string;
+};
+
 // 判別共用体を使用した型定義
 export type CustomFormFieldProps<T extends FieldValues> =
   | ({ fieldType: "input" } & InputFieldProps<T>)
   | ({ fieldType: "textarea" } & TextareaFieldProps<T>)
   | ({ fieldType: "radio" } & RadioFieldProps<T>)
-  | ({ fieldType: "combobox" } & ComboBoxFieldProps<T>);
+  | ({ fieldType: "combobox" } & ComboBoxFieldProps<T>)
+  | ({ fieldType: "date" } & CalendarFieldProps<T>);
 
 // 共通のフィールドレイアウトコンポーネント
 // すべてのフィールドタイプで共通のUIパターンを抽出
@@ -84,7 +97,7 @@ function FieldLayout({
 }) {
   return (
     <FormItem>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
         <FormLabel className="form-label-custom">{label}</FormLabel>
         <FormControl>{children}</FormControl>
       </div>
@@ -181,6 +194,35 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
   );
 }
 
+function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>, field: ControllerRenderProps<T, Path<T>>) {
+  const placeholder = props.placeholder || "日付を選択";
+  const buttonText = props.buttonText || placeholder;
+  const dateFormat = props.dateFormat || "yyyy年MM月dd日";
+  const locale = props.locale || ja;
+
+  return (
+    <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {field.value ? format(new Date(field.value), dateFormat, { locale }) : buttonText}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={field.value ? new Date(field.value) : undefined}
+            onSelect={(date: Date | undefined) => field.onChange(date || null)}
+            initialFocus
+            locale={locale}
+          />
+        </PopoverContent>
+      </Popover>
+    </FieldLayout>
+  );
+}
+
 // 統合されたフォームフィールドコンポーネント - 名前を変更して衝突を避ける
 export function CustomFormField<T extends FieldValues>(props: CustomFormFieldProps<T>) {
   return (
@@ -197,6 +239,8 @@ export function CustomFormField<T extends FieldValues>(props: CustomFormFieldPro
             return renderRadioField<T>(props, field);
           case "combobox":
             return renderComboBoxField<T>(props, field);
+          case "date":
+            return renderCalendarField<T>(props, field);
           default:
             // この行は型チェックを通すためのもので、正しい型定義であれば実行されません
             const exhaustiveCheck: never = props;

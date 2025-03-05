@@ -3,7 +3,6 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { CreateNotificationForm } from "@/components/notification/create-notification-form";
-import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { ArrowLeft } from "lucide-react";
 
@@ -14,38 +13,34 @@ export const metadata: Metadata = {
 
 export default async function CreateNotificationPage() {
   const session = await auth();
+  const sessionUserId = session?.user?.id;
 
-  if (!session?.user?.id) {
-    return (
-      <MainTemplate title="ログインが必要です" description="このページを利用するにはログインが必要です。">
-        <div className="flex min-h-[70vh] flex-col items-center justify-center">
-          <h1 className="mb-4 text-2xl font-bold">ログインが必要です</h1>
-          <p>このページを利用するにはログインが必要です。</p>
-          <Link href="/auth/signin">
-            <Button className="mt-4">ログイン画面へ</Button>
-          </Link>
-        </div>
-      </MainTemplate>
-    );
+  if (!sessionUserId) {
+    return null;
   }
-
-  // ユーザー情報とグループオーナー情報を取得
+  // ユーザー情報とAppオーナー情報を取得
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: sessionUserId },
     select: {
+      id: true,
       isAppOwner: true,
     },
   });
 
+  // グループオーナー情報を取得
   const userGroupMemberships = await prisma.groupMembership.findMany({
     where: {
-      userId: session.user.id,
+      userId: sessionUserId,
+    },
+    select: {
+      groupId: true,
       isGroupOwner: true,
     },
   });
 
-  const isAppOwner = user?.isAppOwner || false;
-  const isGroupOwner = userGroupMemberships.length > 0;
+  // オーナー権限チェック。someは配列が条件を一つでも満たしていればtrueを返す
+  const isAppOwner = user?.isAppOwner ?? false;
+  const isGroupOwner = userGroupMemberships.some((membership) => membership.isGroupOwner);
 
   // 権限チェック
   const hasPermission = isAppOwner || isGroupOwner;
@@ -67,19 +62,21 @@ export default async function CreateNotificationPage() {
     );
   }
 
-  // データの取得
-  // ユーザー一覧を取得（アプリオーナーの場合のみ）
-  const users = isAppOwner
-    ? await prisma.user.findMany({
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: {
-          name: "asc",
-        },
-      })
-    : [];
+  // データの取得。ユーザー一覧を取得（アプリオーナーの場合のみ）
+  let users: { id: string; name: string | null }[] = [];
+  if (isAppOwner) {
+    users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+  } else {
+    users = [];
+  }
 
   // ユーザーデータを整形（null nameを処理）
   const formattedUsers = users.map((user) => ({
@@ -88,87 +85,78 @@ export default async function CreateNotificationPage() {
   }));
 
   // グループ一覧を取得
-  const groups = isAppOwner
-    ? await prisma.group.findMany({
-        select: {
-          id: true,
-          name: true,
+  let groups: { id: string; name: string }[] = [];
+  // アプリオーナーの場合は全てのグループを取得
+  if (isAppOwner) {
+    groups = await prisma.group.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    // グループオーナーの場合は自分がオーナーのグループを取得
+  } else if (isGroupOwner) {
+    groups = await prisma.group.findMany({
+      where: {
+        members: {
+          some: {
+            userId: sessionUserId,
+            isGroupOwner: true,
+          },
         },
-        orderBy: {
-          name: "asc",
-        },
-      })
-    : await prisma.group.findMany({
-        where: {
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+  }
+
+  // タスク一覧を取得
+  let tasks: { id: string; task: string }[] = [];
+  // アプリオーナーの場合は全てのタスクを取得
+  if (isAppOwner) {
+    tasks = await prisma.task.findMany({
+      select: {
+        id: true,
+        task: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    // グループオーナーの場合は自分がオーナーのグループのタスクを取得
+  } else if (isGroupOwner) {
+    tasks = await prisma.task.findMany({
+      where: {
+        group: {
           members: {
             some: {
-              userId: session.user.id,
+              userId: sessionUserId,
               isGroupOwner: true,
             },
           },
         },
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: {
-          name: "asc",
-        },
-      });
-
-  // タスク一覧を取得
-  const tasks = isAppOwner
-    ? await prisma.task.findMany({
-        select: {
-          id: true,
-          task: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      })
-    : await prisma.task.findMany({
-        where: {
-          group: {
-            members: {
-              some: {
-                userId: session.user.id,
-                isGroupOwner: true,
-              },
-            },
-          },
-        },
-        select: {
-          id: true,
-          task: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+      },
+      select: {
+        id: true,
+        task: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 
   return (
     <MainTemplate title="通知作成" description="アプリ内通知を作成します">
-      <div className="container max-w-4xl py-10">
-        <Link href="/dashboard" className="mb-6 flex items-center text-blue-600 hover:underline">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          ダッシュボードに戻る
-        </Link>
-
-        <div className="space-y-6">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold">通知作成</h1>
-            <p className="text-gray-600">
-              アプリ内の通知を作成します。
-              {isAppOwner ? "アプリオーナー権限" : "グループオーナー権限"}で操作しています。
-            </p>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <CreateNotificationForm isAppOwner={isAppOwner} isGroupOwner={isGroupOwner} users={formattedUsers} groups={groups} tasks={tasks} />
-          </div>
-        </div>
-      </div>
+      <CreateNotificationForm isAppOwner={isAppOwner} isGroupOwner={isGroupOwner} users={formattedUsers} groups={groups} tasks={tasks} />
     </MainTemplate>
   );
 }

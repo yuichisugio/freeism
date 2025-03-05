@@ -28,6 +28,9 @@ export type NotificationData = {
   userId: string | null;
   groupId: string | null;
   taskId: string | null;
+  userName: string | null;
+  groupName: string | null;
+  taskName: string | null;
 };
 
 // 定数の定義（コンポーネント外で定義）
@@ -144,6 +147,9 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
           ...notification,
           sentAt: new Date(notification.sentAt),
           readAt: notification.readAt ? new Date(notification.readAt) : null,
+          userName: notification.userName || null,
+          groupName: notification.groupName || null,
+          taskName: notification.taskName || null,
         }));
 
         // 通知リストの更新
@@ -474,7 +480,7 @@ function FilterTabs({
   unreadCount: number;
 }) {
   return (
-    <div className="mb-3 flex border-b">
+    <div className="sticky top-0 z-10 mb-3 flex border-b bg-white">
       <button
         onClick={() => onFilterChange("all")}
         className={
@@ -584,6 +590,34 @@ function NotificationItem({
             <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
               {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
             </time>
+          </div>
+
+          {/* 通知対象情報を表示 */}
+          <div className="mt-1 flex items-center text-sm text-gray-500">
+            {notification.NotificationTargetType === "USER" && notification.userId && (
+              <>
+                <span className="mr-1">👤</span>
+                <span>ユーザー: {notification.userName || notification.userId}</span>
+              </>
+            )}
+            {notification.NotificationTargetType === "GROUP" && notification.groupId && (
+              <>
+                <span className="mr-1">👥</span>
+                <span>グループ: {notification.groupName || notification.groupId}</span>
+              </>
+            )}
+            {notification.NotificationTargetType === "TASK" && notification.taskId && (
+              <>
+                <span className="mr-1">📋</span>
+                <span>タスク: {notification.taskName || notification.taskId}</span>
+              </>
+            )}
+            {notification.NotificationTargetType === "SYSTEM" && (
+              <>
+                <span className="mr-1">🔔</span>
+                <span>システム全体</span>
+              </>
+            )}
           </div>
 
           <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{isExpanded ? notification.message : truncateMessage(notification.message)}</p>
@@ -753,7 +787,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
             </div>
           </div>
         ) : (
-          <ScrollArea className="h-[60vh]">
+          <ScrollArea className="h-full">
             <div className="flex flex-col gap-4 pr-4">
               {notifications.length > 0 ? (
                 <>

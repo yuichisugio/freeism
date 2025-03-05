@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function NotificationsPage() {
   return (
     <MainTemplate title="通知一覧" description="すべての通知を確認できます。">
-      <div className="overflow-hidden rounded-lg border px-6 py-4 shadow-sm">
+      <div className="overflow-hidden rounded-lg border px-6 py-3 shadow-sm">
         <NotificationList />
       </div>
     </MainTemplate>
