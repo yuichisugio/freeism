@@ -23,7 +23,7 @@ const SEED_CONFIG = {
 };
 
 // 保持する固定ユーザーID
-const PRESERVED_USER_IDS = ["cm7u2evy50002mctvfdyg8vk8", "cm7t3sejm0008g5p9whdbwsq2"];
+const PRESERVED_USER_IDS = ["cm7u2evy50002mctvfdyg8vk8", "cm7t3sejm0008g5p9whdbwsq2", "cm7w0eyon0000g5o8qo6z5vgx"];
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
@@ -276,6 +276,7 @@ async function createGroups(users: any[]) {
         evaluationMethod: faker.helpers.arrayElement(evaluationMethods),
         maxParticipants: faker.number.int({ min: 5, max: 20 }),
         createdBy: creatorUser.id,
+        isBlackList: {}, // 空のJSONオブジェクトとして初期化
       },
     });
     groups.push(group);

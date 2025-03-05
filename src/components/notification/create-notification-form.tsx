@@ -41,11 +41,11 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
       message: "",
       type: "INFO",
       targetType: "SYSTEM",
-      expiresAt: null,
-      actionUrl: null,
-      userId: null,
-      groupId: null,
-      taskId: null,
+      expiresAt: new Date(),
+      actionUrl: "",
+      userId: "",
+      groupId: "",
+      taskId: "",
     },
   });
 
@@ -60,9 +60,9 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
 
   // targetTypeが変わったら、↓の全部の設問をnullにする
   useEffect(() => {
-    setValue("userId", null);
-    setValue("groupId", null);
-    setValue("taskId", null);
+    setValue("userId", "");
+    setValue("groupId", "");
+    setValue("taskId", "");
   }, [targetType, setValue]);
 
   // 通知タイプのオプション

@@ -95,6 +95,7 @@ model Group {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   createdBy        String
+  isBlackList      Json?             @db.JsonB // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
   user             User              @relation(fields: [createdBy], references: [id])
   members          GroupMembership[]
   tasks            Task[]

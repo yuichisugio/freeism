@@ -74,10 +74,14 @@ export async function joinGroup(groupId: string) {
       },
     });
 
-    console.log("group", group);
-
     if (!group) {
       return { error: "グループが見つかりません" };
+    }
+
+    // ブラックリストチェック
+    const blackList = group.isBlackList as Record<string, boolean> | null;
+    if (blackList && blackList[session.user.id]) {
+      return { error: "このグループに参加する権限がありません" };
     }
 
     // 既に参加済みの場合
@@ -153,6 +157,7 @@ export async function leaveGroup(groupId: string) {
 
 /**
  * グループを削除する関数
+ * onDelete: Cascadeの設定により、グループを削除するとそれに関連するデータ（GroupMembership, Task, Analyticsなど）も自動的に削除されます
  * @param groupId - 削除するグループのID
  * @returns 処理結果を含むオブジェクト
  */
@@ -164,7 +169,7 @@ export async function deleteGroup(groupId: string) {
       return { error: "認証エラーが発生しました" };
     }
 
-    // グループの存在確認と作成者チェック
+    // グループの存在確認
     const group = await prisma.group.findUnique({
       where: { id: groupId },
     });
@@ -173,12 +178,23 @@ export async function deleteGroup(groupId: string) {
       return { error: "グループが見つかりません" };
     }
 
-    // グループの作成者のみが削除可能
-    if (group.createdBy !== session.user.id) {
+    // ユーザーがグループオーナーかチェック
+    const membership = await prisma.groupMembership.findFirst({
+      where: {
+        userId: session.user.id,
+        groupId,
+      },
+    });
+
+    if (!membership) {
+      return { error: "グループに参加していません" };
+    }
+
+    if (!membership.isGroupOwner) {
       return { error: "グループの削除権限がありません" };
     }
 
-    // グループを削除
+    // グループを削除 (関連データは自動的に削除される - onDelete: Cascade)
     await prisma.group.delete({
       where: { id: groupId },
     });
@@ -394,5 +410,124 @@ export async function getGroupMembers(groupId: string) {
   } catch (error) {
     console.error("[GET_GROUP_MEMBERS]", error);
     throw error;
+  }
+}
+
+/**
+ * Groupオーナー権限を持っているかチェックする関数
+ * @param groupId - 取得するグループのID
+ * @param userId - 取得するユーザーのID
+ * @returns グループメンバーの配列
+ */
+export async function checkGroupOwner(groupId: string, userId: string) {
+  try {
+    const membership = await prisma.groupMembership.findFirst({
+      where: {
+        groupId,
+        userId,
+        isGroupOwner: true,
+      },
+    });
+
+    return !!membership;
+  } catch (error) {
+    console.error("[CHECK_GROUP_OWNER]", error);
+    throw error;
+  }
+}
+
+/**
+ * グループメンバーを除名する関数
+ * @param groupId - グループのID
+ * @param userId - 除名するユーザーのID
+ * @param addToBlackList - ブラックリストに追加するかどうか
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function removeMember(groupId: string, userId: string, addToBlackList: boolean) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // グループの存在確認
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      return { error: "グループが見つかりません" };
+    }
+
+    // 操作者がグループオーナーかチェック
+    const operatorMembership = await prisma.groupMembership.findFirst({
+      where: {
+        userId: session.user.id,
+        groupId,
+      },
+    });
+
+    if (!operatorMembership) {
+      return { error: "グループに参加していません" };
+    }
+
+    if (!operatorMembership.isGroupOwner) {
+      return { error: "メンバー除名の権限がありません" };
+    }
+
+    // 除名対象メンバーの存在確認
+    const targetMembership = await prisma.groupMembership.findFirst({
+      where: {
+        userId,
+        groupId,
+      },
+    });
+
+    if (!targetMembership) {
+      return { error: "指定されたメンバーはグループに参加していません" };
+    }
+
+    // 操作者自身を除名対象にできないようにする
+    if (userId === session.user.id) {
+      return { error: "自分自身を除名することはできません" };
+    }
+
+    // オーナー権限を持つメンバーは除名できないようにする
+    if (targetMembership.isGroupOwner) {
+      return { error: "グループオーナーを除名することはできません" };
+    }
+
+    // メンバーをグループから除名
+    await prisma.groupMembership.delete({
+      where: {
+        id: targetMembership.id,
+      },
+    });
+
+    // ブラックリストに追加する場合
+    if (addToBlackList) {
+      // 現在のブラックリスト取得
+      const currentBlackList = (group.isBlackList as Record<string, boolean> | null) || {};
+
+      // 新しいブラックリストを作成
+      const newBlackList = {
+        ...currentBlackList,
+        [userId]: true,
+      };
+
+      // RawSQLを使用してJSONBフィールドを更新
+      await prisma.$executeRaw`
+        UPDATE "Group"
+        SET "isBlackList" = ${JSON.stringify(newBlackList)}::jsonb
+        WHERE id = ${groupId}
+      `;
+    }
+
+    revalidatePath(`/dashboard/group/${groupId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[REMOVE_MEMBER]", error);
+    return { error: "メンバー除名中にエラーが発生しました" };
   }
 }

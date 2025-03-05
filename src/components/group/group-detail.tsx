@@ -3,7 +3,7 @@
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getGroupMembers, grantOwnerPermission, joinGroup } from "@/app/actions/group";
+import { checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, removeMember } from "@/app/actions/group";
 import { exportGroupTask } from "@/app/actions/task";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { DataTable } from "@/components/share/data-table";
@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown, Download, ShieldCheck, Upload, UserPlus } from "lucide-react";
@@ -69,6 +70,14 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [groupMembers, setGroupMembers] = useState<any[]>([]);
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
   const [isOperationAuthorized, setIsOperationAuthorized] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [canDeleteGroup, setCanDeleteGroup] = useState(false);
+  const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
+  const [canRemoveMember, setCanRemoveMember] = useState(false);
+  const [selectedMemberForRemoval, setSelectedMemberForRemoval] = useState<string | null>(null);
+  const [selectedMemberNameForRemoval, setSelectedMemberNameForRemoval] = useState<string | null>(null);
+  const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
+  const [addToBlackList, setAddToBlackList] = useState(false);
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -146,6 +155,86 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         setIsComboboxOpen(false);
         setIsOperationAuthorized(false);
         setSelectedUserId(null);
+        router.refresh();
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
+    }
+  }
+
+  // グループ削除処理
+  async function handleDeleteGroup() {
+    try {
+      const result = await deleteGroup(tasks[0].group.id);
+
+      if (result.success) {
+        toast.success("グループを削除しました");
+        router.push("/dashboard/my-groups");
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
+    }
+  }
+
+  // グループ削除ダイアログを開く処理
+  async function handleOpenDeleteDialog() {
+    try {
+      // 現在のユーザーがグループオーナーかチェック
+      const currentUserId = session?.user?.id;
+      if (!currentUserId) {
+        toast.error("ユーザー情報が取得できませんでした");
+        return;
+      }
+      const isGroupOwner = await checkGroupOwner(tasks[0].group.id, currentUserId);
+      setCanDeleteGroup(isGroupOwner);
+      setDeleteDialogOpen(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("グループオーナー権限の取得に失敗しました");
+    }
+  }
+
+  // メンバー除名ダイアログを開く処理
+  async function handleOpenRemoveMemberDialog() {
+    try {
+      const members = await getGroupMembers(tasks[0].group.id);
+      // 現在のユーザーがグループオーナーかチェック
+      const currentUserId = session?.user?.id;
+      const currentUserMembership = members.find((member) => member.userId === currentUserId);
+      setCanRemoveMember(currentUserMembership?.isGroupOwner || false);
+
+      // グループメンバー一覧を設定（オーナー以外のメンバーのみ）
+      setGroupMembers(members.filter((member) => !member.isGroupOwner));
+      setRemoveMemberDialogOpen(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("メンバー情報の取得に失敗しました");
+    }
+  }
+
+  // メンバー除名処理
+  async function handleRemoveMember() {
+    if (!selectedMemberForRemoval) {
+      toast.error("メンバーを選択してください");
+      return;
+    }
+
+    try {
+      const result = await removeMember(tasks[0].group.id, selectedMemberForRemoval, addToBlackList);
+
+      if (result.success) {
+        toast.success("メンバーを除名しました");
+        setRemoveMemberDialogOpen(false);
+        setSelectedMemberForRemoval(null);
+        setSelectedMemberNameForRemoval(null);
+        setIsRemovalComboboxOpen(false);
+        setAddToBlackList(false);
         router.refresh();
       } else if (result.error) {
         toast.error(result.error);
@@ -325,6 +414,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <ShieldCheck />
           権限付与
         </Button>
+        <Button variant="destructive" onClick={handleOpenDeleteDialog}>
+          Group削除
+        </Button>
+        <Button variant="destructive" onClick={handleOpenRemoveMemberDialog}>
+          メンバー除名
+        </Button>
       </div>
 
       {/* 権限付与用ComboBoxダイアログ */}
@@ -383,6 +478,98 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
               <AlertDialogAction asChild>
                 <Button onClick={handleGrantPermission} className="button-default-custom" disabled={!selectedUserId}>
                   権限を付与
+                </Button>
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* グループ削除確認ダイアログ */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="alert-dialog-title-custom">グループを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription className="alert-dialog-description-custom">
+              {canDeleteGroup
+                ? "グループを削除すると、そのグループに関連するデータも全て削除されます。\nこの操作は元に戻せません。"
+                : "グループオーナー権限がないため、グループを削除することができません。"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            {canDeleteGroup && (
+              <AlertDialogAction asChild>
+                <Button variant="destructive" onClick={handleDeleteGroup}>
+                  削除する
+                </Button>
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* メンバー除名ダイアログ */}
+      <AlertDialog open={removeMemberDialogOpen} onOpenChange={setRemoveMemberDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="alert-dialog-title-custom">メンバー除名</AlertDialogTitle>
+            <AlertDialogDescription className="alert-dialog-description-custom">
+              {canRemoveMember
+                ? `除名するメンバーを選択してください。ブラックリストに追加すると、今後このメンバーは、${tasks[0].group.name}に参加できなくなります。`
+                : "グループオーナー権限がないため、メンバーを除名することができません。"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {canRemoveMember && (
+            <div className="space-y-4 py-4">
+              <Popover open={isRemovalComboboxOpen} onOpenChange={setIsRemovalComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={isRemovalComboboxOpen} className="w-full justify-between">
+                    {selectedMemberNameForRemoval || "メンバーを選択"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="メンバーを検索..." />
+                    <CommandList>
+                      <CommandEmpty>メンバーが見つかりません</CommandEmpty>
+                      <CommandGroup>
+                        {groupMembers.map((member) => (
+                          <CommandItem
+                            key={member.user.id}
+                            value={member.user.name}
+                            onSelect={() => {
+                              setSelectedMemberForRemoval(member.user.id);
+                              setSelectedMemberNameForRemoval(member.user.name);
+                              setIsRemovalComboboxOpen(false);
+                            }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.user.id ? "opacity-100" : "opacity-0"}`} />
+                            {member.user.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox id="blacklist" checked={addToBlackList} onCheckedChange={(checked) => setAddToBlackList(checked === true)} />
+                <label htmlFor="blacklist" className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  ブラックリストに追加する（再入会禁止）
+                </label>
+              </div>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            {canRemoveMember && (
+              <AlertDialogAction asChild>
+                <Button variant="destructive" onClick={handleRemoveMember} disabled={!selectedMemberForRemoval}>
+                  除名する
                 </Button>
               </AlertDialogAction>
             )}
