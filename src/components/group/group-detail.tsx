@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, removeMember } from "@/app/actions/group";
 import { exportGroupTask } from "@/app/actions/task";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
+import { EditGroupForm } from "@/components/group/edit-group-form";
 import { DataTable } from "@/components/share/data-table";
 import {
   AlertDialog,
@@ -21,8 +22,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Download, ShieldCheck, Upload, UserPlus } from "lucide-react";
+import { Check, ChevronsUpDown, Download, Edit, ShieldCheck, Upload, UserPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Papa from "papaparse";
 import { toast } from "sonner";
@@ -78,6 +80,8 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [selectedMemberNameForRemoval, setSelectedMemberNameForRemoval] = useState<string | null>(null);
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
   const [addToBlackList, setAddToBlackList] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [canEditGroup, setCanEditGroup] = useState(false);
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -242,6 +246,24 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     } catch (error) {
       toast.error("エラーが発生しました");
       console.error(error);
+    }
+  }
+
+  // グループ情報編集ダイアログを開く処理
+  async function handleOpenEditDialog() {
+    try {
+      // 現在のユーザーがグループオーナーかチェック
+      const currentUserId = session?.user?.id;
+      if (!currentUserId) {
+        toast.error("ユーザー情報が取得できませんでした");
+        return;
+      }
+      const isGroupOwner = await checkGroupOwner(tasks[0].group.id, currentUserId);
+      setCanEditGroup(isGroupOwner);
+      setEditDialogOpen(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("グループオーナー権限の取得に失敗しました");
     }
   }
 
@@ -420,6 +442,10 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         <Button variant="destructive" onClick={handleOpenRemoveMemberDialog}>
           メンバー除名
         </Button>
+        <Button className="button-default-custom" onClick={handleOpenEditDialog}>
+          <Edit className="mr-2 h-4 w-4" />
+          Group情報編集
+        </Button>
       </div>
 
       {/* 権限付与用ComboBoxダイアログ */}
@@ -576,6 +602,27 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* グループ情報編集ダイアログ */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>グループ情報編集</DialogTitle>
+          </DialogHeader>
+          {tasks[0] && tasks[0].group && (
+            <EditGroupForm
+              group={{
+                id: tasks[0].group.id,
+                name: tasks[0].group.name,
+                goal: tasks[0].group.goal,
+                evaluationMethod: tasks[0].group.evaluationMethod,
+                maxParticipants: tasks[0].group.maxParticipants,
+              }}
+              onClose={() => setEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* タスク一覧 */}
       <div>

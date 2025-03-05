@@ -239,7 +239,7 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
       return { error: "認証エラーが発生しました" };
     }
 
-    // グループの存在確認と作成者チェック
+    // グループの存在確認
     const group = await prisma.group.findUnique({
       where: { id: groupId },
     });
@@ -248,8 +248,10 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
       return { error: "グループが見つかりません" };
     }
 
-    // グループの作成者のみが編集可能
-    if (group.createdBy !== session.user.id) {
+    // グループオーナー権限チェック
+    const isGroupOwner = await checkGroupOwner(groupId, session.user.id);
+
+    if (!isGroupOwner) {
       return { error: "グループの編集権限がありません" };
     }
 
@@ -279,6 +281,7 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
 
     revalidatePath("/dashboard/grouplist");
     revalidatePath("/dashboard/my-groups");
+    revalidatePath(`/dashboard/group/${groupId}`); // 特定のグループページも更新
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
