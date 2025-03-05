@@ -322,7 +322,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           Upload
         </Button>
         <Button className="button-default-custom" onClick={handleOpenPermissionDialog}>
-          <ShieldCheck className="mr-2 h-4 w-4" />
+          <ShieldCheck />
           権限付与
         </Button>
       </div>
