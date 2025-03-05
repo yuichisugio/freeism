@@ -34,18 +34,6 @@ type EvaluationMethod = "360度評価" | "相互評価" | "目標達成度" | "K
 const prisma = new PrismaClient();
 
 /**
- * 指定されたIDのユーザーが存在するかチェックする関数
- * @param userId チェックするユーザーID
- * @returns 存在すればtrue、存在しなければfalse
- */
-async function userExists(userId: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-  return !!user;
-}
-
-/**
  * データベースをクリーンアップする関数
  * 依存関係を考慮した順序でテーブルを空にします
  * 特定のIDを持つユーザーは削除しません

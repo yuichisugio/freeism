@@ -20,6 +20,25 @@ export const taskFormSchema = z.object({
   contributionType: z.enum(["REWARD", "NON_REWARD"], { required_error: "貢献の種類を選択してください" }),
 });
 
+// 通知作成フォームのバリデーションスキーマ
+export const createNotificationSchema = z.object({
+  title: z.string().min(1, "タイトルは必須です").max(100, "タイトルは100文字以内で入力してください"),
+  message: z.string().min(1, "メッセージ内容は必須です").max(1000, "メッセージは1000文字以内で入力してください"),
+  type: z.enum(["INFO", "SUCCESS", "WARNING"], {
+    errorMap: () => ({ message: "通知タイプを選択してください" }),
+  }),
+  targetType: z.enum(["SYSTEM", "USER", "GROUP", "TASK"], {
+    errorMap: () => ({ message: "通知対象タイプを選択してください" }),
+  }),
+  expiresAt: z.date().nullable().optional(),
+  actionUrl: z.string().url("有効なURLを入力してください").nullable().optional(),
+  userId: z.string().nullable().optional(),
+  groupId: z.string().nullable().optional(),
+  taskId: z.string().nullable().optional(),
+});
+
+export type CreateNotificationFormData = z.infer<typeof createNotificationSchema>;
+
 /*
 HMR(ホットリロード)の仕組み的に、Client Componentで定義したzodスキーマをexportして、Server Componentsで参照できない時がある
 なので、zod-schemaファイルを専用で作成して、まとめてexportすると使えるようになることがあるらしい

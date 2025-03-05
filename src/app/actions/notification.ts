@@ -1,10 +1,10 @@
 "use server";
 
-import type { NotificationType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { NotificationTargetType, Prisma } from "@prisma/client";
+import { type CreateNotificationFormData } from "@/lib/zod-schema";
+import { Prisma } from "@prisma/client";
 
 /**
  * フロントエンド用の通知データ型定義
@@ -354,5 +354,142 @@ export async function markAllNotificationsAsRead() {
       success: false,
       error: "通知の一括既読化に失敗しました。",
     };
+  }
+}
+
+/**
+ * 通知を作成する関数
+ */
+export async function createNotification(data: CreateNotificationFormData) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証が必要です" };
+    }
+
+    const userId = session.user.id;
+
+    // 権限チェック
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isAppOwner: true },
+    });
+
+    const isGroupOwner = await prisma.groupMembership.findFirst({
+      where: {
+        userId,
+        isGroupOwner: true,
+      },
+    });
+
+    // アプリオーナーかグループオーナーでなければエラー
+    if (!user?.isAppOwner && !isGroupOwner) {
+      return { error: "通知を作成する権限がありません" };
+    }
+
+    // グループオーナーのみの場合、SYSTEM/USERは作成不可
+    if (!user?.isAppOwner && (data.targetType === "SYSTEM" || data.targetType === "USER")) {
+      return { error: "この通知タイプを作成する権限がありません" };
+    }
+
+    // isReadのJSONオブジェクト作成のための対象ユーザーIDを取得
+    let targetUserIds: string[] = [];
+
+    switch (data.targetType) {
+      case "SYSTEM":
+        // システム全体の通知の場合は全ユーザーを対象
+        const allUsers = await prisma.user.findMany({
+          select: { id: true },
+        });
+        targetUserIds = allUsers.map((user) => user.id);
+        break;
+
+      case "USER":
+        // ユーザー向け通知の場合
+        if (!data.userId) {
+          return { error: "ユーザーを選択してください" };
+        }
+        targetUserIds = [data.userId];
+        break;
+
+      case "GROUP":
+        // グループ向け通知の場合
+        if (!data.groupId) {
+          return { error: "グループを選択してください" };
+        }
+
+        // グループメンバー全員を対象に
+        const groupMembers = await prisma.groupMembership.findMany({
+          where: { groupId: data.groupId },
+          select: { userId: true },
+        });
+        targetUserIds = groupMembers.map((member) => member.userId);
+        break;
+
+      case "TASK":
+        // タスク向け通知の場合
+        if (!data.taskId) {
+          return { error: "タスクを選択してください" };
+        }
+
+        // タスクの所有者を対象に
+        const task = await prisma.task.findUnique({
+          where: { id: data.taskId },
+          select: { userId: true, groupId: true },
+        });
+
+        if (task) {
+          // タスク所有者を追加
+          targetUserIds.push(task.userId);
+
+          // タスクが属するグループのメンバーも追加
+          const groupMembers = await prisma.groupMembership.findMany({
+            where: { groupId: task.groupId },
+            select: { userId: true },
+          });
+
+          // 重複を除去しながらタスク所有者以外のグループメンバーを追加
+          groupMembers.forEach((member) => {
+            if (!targetUserIds.includes(member.userId)) {
+              targetUserIds.push(member.userId);
+            }
+          });
+        }
+        break;
+    }
+
+    if (targetUserIds.length === 0) {
+      return { error: "通知の対象者が見つかりません" };
+    }
+
+    // isReadのJSONオブジェクトを構築
+    const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
+    targetUserIds.forEach((targetUserId) => {
+      isReadJsonb[targetUserId] = { isRead: false, readAt: null };
+    });
+
+    // 通知を保存
+    await prisma.notification.create({
+      data: {
+        title: data.title,
+        message: data.message,
+        type: data.type,
+        targetType: data.targetType,
+        expiresAt: data.expiresAt || undefined,
+        actionUrl: data.actionUrl || undefined,
+        userId: session.user.id, // 通知作成者
+        groupId: data.targetType === "GROUP" ? data.groupId : null,
+        taskId: data.targetType === "TASK" ? data.taskId : null,
+        // isReadはPrismaが自動的にJSONB型に変換
+        isRead: isReadJsonb,
+      },
+    });
+
+    revalidatePath("/dashboard/notifications");
+    return { success: true };
+  } catch (error) {
+    console.error("通知作成エラー:", error);
+    return { error: "通知の作成中にエラーが発生しました" };
   }
 }

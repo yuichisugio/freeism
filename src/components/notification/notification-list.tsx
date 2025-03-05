@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,6 +46,8 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>("unread");
+  // APIリクエスト回数のカウンター
+  const [requestCounter, setRequestCounter] = useState(0);
 
   // 保留中の更新を追跡
   const [pendingUpdates, setPendingUpdates] = useState<Map<string, boolean>>(new Map());
@@ -56,8 +58,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   // 初期読み込みが完了したかどうか
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  // ルーター
-  const router = useRouter();
+  // ルーター（パス変更監視用）
   const pathname = usePathname();
 
   // タブ変更でフィルター内容が変更された時に呼び出す
@@ -74,7 +75,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
 
   // サーバーに、既読/未読の通知のデータを登録する
   const syncWithServer = useCallback(
-    async (force = false) => {
+    async (_force = false) => {
       if (pendingUpdates.size === 0) {
         console.log("[通知] 保留中の更新がないため同期スキップ");
         return;
@@ -354,6 +355,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   // 手動更新ハンドラー
   const handleManualRefresh = useCallback(() => {
     console.log("[通知] 手動更新");
+    setRequestCounter((prev) => prev + 1);
 
     // 保留中の更新を同期
     if (pendingUpdates.size > 0) {
@@ -378,7 +380,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
         syncWithServer(true);
       }
     };
-  }, []);
+  }, [fetchNotifications, pendingUpdates.size, syncWithServer]);
 
   // パス変更を検知して保留中の更新を同期
   useEffect(() => {
@@ -399,6 +401,15 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
     // 依存配列にpathname追加
   }, [pathname, pendingUpdates, syncWithServer]);
 
+  // クリーンアップ時に保留中の更新を同期
+  useEffect(() => {
+    return () => {
+      if (pendingUpdates.size > 0) {
+        syncWithServer(true);
+      }
+    };
+  }, [pendingUpdates.size, syncWithServer]);
+
   return {
     notifications: filteredNotifications(),
     isLoading,
@@ -411,8 +422,8 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
     loadMoreNotifications,
     markAllAsRead,
     handleFilterChange,
-    fetchNotifications,
     handleManualRefresh,
+    requestCounter,
     pendingUpdateCount: pendingUpdates.size,
   };
 }
@@ -507,7 +518,8 @@ function NotificationItem({
   notification: NotificationData;
   onToggleReadStatus: (id: string, isRead: boolean) => void;
 }) {
-  const router = useRouter();
+  // アクションURL用に残しておく
+  // const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [localIsRead, setLocalIsRead] = useState(notification.isRead);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -675,6 +687,7 @@ function NotificationsEmpty({
 
 // メイン通知リストコンポーネント
 export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
+  // カスタムフックを使用して通知関連の状態と関数を取得
   const {
     notifications,
     isLoading,
@@ -687,9 +700,8 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
     loadMoreNotifications,
     markAllAsRead,
     handleFilterChange,
-    fetchNotifications,
     handleManualRefresh,
-    pendingUpdateCount,
+    requestCounter,
   } = useNotificationManager(onUnreadStatusChangeAction);
 
   return (
@@ -704,6 +716,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
           <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新">
             <RefreshCw className="h-4 w-4" />
           </Button>
+          {requestCounter > 0 && <span className="text-xs text-gray-500">リクエスト: {requestCounter}回</span>}
         </div>
 
         <div className="flex items-center gap-2">

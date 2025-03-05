@@ -28,8 +28,18 @@ const sidebarItems = [
         icon: Home,
       },
       {
-        title: "新規Group作成",
+        title: "Group作成",
         href: "/dashboard/create-group",
+        icon: PlusCircle,
+      },
+      {
+        title: "通知作成",
+        href: "/dashboard/create-notification",
+        icon: PlusCircle,
+      },
+      {
+        title: "Task作成",
+        href: "/dashboard/new-task",
         icon: PlusCircle,
       },
     ],
@@ -43,13 +53,8 @@ const sidebarItems = [
         icon: UserCircle,
       },
       {
-        title: "My Task一覧",
+        title: "Task一覧",
         href: "/dashboard/my-tasks",
-        icon: PlusCircle,
-      },
-      {
-        title: "新規Task作成",
-        href: "/dashboard/new-task",
         icon: PlusCircle,
       },
       {
