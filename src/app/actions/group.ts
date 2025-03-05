@@ -295,3 +295,104 @@ export async function getGroup(groupId: string) {
     throw error;
   }
 }
+
+/**
+ * グループオーナー権限を付与する関数
+ * @param groupId - 権限を付与するグループのID
+ * @param userId - 権限を付与するユーザーのID
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function grantOwnerPermission(groupId: string, userId: string) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { error: "認証エラーが発生しました" };
+    }
+
+    // 操作者がグループオーナーかチェック
+    const operatorMembership = await prisma.groupMembership.findFirst({
+      where: {
+        userId: session.user.id,
+        groupId,
+        isGroupOwner: true,
+      },
+    });
+
+    if (!operatorMembership) {
+      return { error: "グループオーナー権限がありません" };
+    }
+
+    // 対象ユーザーのグループメンバーシップを取得
+    const targetMembership = await prisma.groupMembership.findFirst({
+      where: {
+        userId,
+        groupId,
+      },
+    });
+
+    if (!targetMembership) {
+      return { error: "指定されたユーザーはグループに参加していません" };
+    }
+
+    // 既にオーナー権限を持っている場合
+    if (targetMembership.isGroupOwner) {
+      return { error: "指定されたユーザーは既にグループオーナーです" };
+    }
+
+    // グループオーナー権限を付与
+    await prisma.groupMembership.update({
+      where: {
+        id: targetMembership.id,
+      },
+      data: {
+        isGroupOwner: true,
+      },
+    });
+
+    revalidatePath(`/dashboard/group/${groupId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[GRANT_OWNER_PERMISSION]", error);
+    return { error: "グループオーナー権限の付与中にエラーが発生しました" };
+  }
+}
+
+type GroupMembership = {
+  id: string;
+  userId: string;
+  groupId: string;
+  isGroupOwner: boolean;
+  joinedAt: Date;
+};
+
+/**
+ * グループのメンバー一覧を取得する関数
+ * @param groupId - 取得するグループのID
+ * @returns グループメンバーの配列
+ */
+export async function getGroupMembers(groupId: string) {
+  try {
+    const members: GroupMembership[] = await prisma.groupMembership.findMany({
+      where: {
+        groupId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: "asc",
+      },
+    });
+
+    return members;
+  } catch (error) {
+    console.error("[GET_GROUP_MEMBERS]", error);
+    throw error;
+  }
+}

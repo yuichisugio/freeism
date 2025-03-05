@@ -83,5 +83,5 @@
 }
 
 .alert-dialog-description-custom {
-  @apply text-app;
+  @apply text-gray-900;
 }

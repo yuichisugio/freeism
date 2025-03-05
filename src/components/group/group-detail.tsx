@@ -3,7 +3,7 @@
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { joinGroup } from "@/app/actions/group";
+import { getGroupMembers, grantOwnerPermission, joinGroup } from "@/app/actions/group";
 import { exportGroupTask } from "@/app/actions/task";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { DataTable } from "@/components/share/data-table";
@@ -19,7 +19,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, UserPlus } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown, Download, ShieldCheck, Upload, UserPlus } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -54,9 +57,18 @@ type GroupDetailProps = {
 
 export function GroupDetail({ tasks }: GroupDetailProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(tasks);
   const [rewardTasks, setRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === "REWARD"));
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // 権限付与関連の状態
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
+  const [groupMembers, setGroupMembers] = useState<any[]>([]);
+  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
+  const [isOperationAuthorized, setIsOperationAuthorized] = useState(true);
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -95,6 +107,52 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     } catch (error) {
       console.error(error);
       toast.error("エラーが発生しました");
+    }
+  }
+
+  // 権限付与ダイアログを開く処理
+  async function handleOpenPermissionDialog() {
+    try {
+      const members = await getGroupMembers(tasks[0].group.id);
+      // 現在のユーザーがグループオーナーかチェック
+      const currentUserId = session?.user?.id;
+      const currentUserMembership = members.find((member) => member.userId === currentUserId);
+      setIsOperationAuthorized(currentUserMembership?.isGroupOwner || false);
+
+      // グループメンバー一覧を設定
+      setGroupMembers(members);
+      setShowPermissionDialog(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("メンバー情報の取得に失敗しました");
+    }
+  }
+
+  // 権限付与処理
+  async function handleGrantPermission() {
+    if (!selectedUserId) {
+      toast.error("ユーザーを選択してください");
+      return;
+    }
+
+    try {
+      const result = await grantOwnerPermission(tasks[0].group.id, selectedUserId);
+
+      if (result.success) {
+        toast.success("グループオーナー権限を付与しました");
+        setShowPermissionDialog(false);
+        setSelectedUserId(null);
+        setSelectedUserName(null);
+        setIsComboboxOpen(false);
+        setIsOperationAuthorized(false);
+        setSelectedUserId(null);
+        router.refresh();
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
     }
   }
 
@@ -263,7 +321,74 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <Upload />
           Upload
         </Button>
+        <Button className="button-default-custom" onClick={handleOpenPermissionDialog}>
+          <ShieldCheck className="mr-2 h-4 w-4" />
+          権限付与
+        </Button>
       </div>
+
+      {/* 権限付与用ComboBoxダイアログ */}
+      <AlertDialog open={showPermissionDialog} onOpenChange={setShowPermissionDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="alert-dialog-title-custom">グループオーナー権限付与</AlertDialogTitle>
+            <AlertDialogDescription className="alert-dialog-description-custom">
+              {isOperationAuthorized
+                ? "グループオーナー権限を付与するユーザーを選択してください。"
+                : "グループオーナー権限がないため、権限を付与することができません。"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {isOperationAuthorized && (
+            <div className="py-4">
+              <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={isComboboxOpen} className="w-full justify-between">
+                    {selectedUserName || "ユーザーを選択"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="ユーザーを検索..." />
+                    <CommandList>
+                      <CommandEmpty>ユーザーが見つかりません</CommandEmpty>
+                      <CommandGroup>
+                        {groupMembers
+                          .filter((member) => !member.isGroupOwner)
+                          .map((member) => (
+                            <CommandItem
+                              key={member.user.id}
+                              value={member.user.name}
+                              onSelect={() => {
+                                setSelectedUserId(member.user.id);
+                                setSelectedUserName(member.user.name);
+                                setIsComboboxOpen(false);
+                              }}
+                            >
+                              <Check className={`mr-2 h-4 w-4 ${selectedUserId === member.user.id ? "opacity-100" : "opacity-0"}`} />
+                              {member.user.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            {isOperationAuthorized && (
+              <AlertDialogAction asChild>
+                <Button onClick={handleGrantPermission} className="button-default-custom" disabled={!selectedUserId}>
+                  権限を付与
+                </Button>
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* タスク一覧 */}
       <div>
