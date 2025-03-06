@@ -79,6 +79,8 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "date-fns": "^4.1.0",
+    "fflate": "^0.8.2",
+    "file-saver": "^2.0.5",
     "framer-motion": "^12.4.10",
     "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",

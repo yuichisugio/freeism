@@ -3,13 +3,12 @@ import { exportGroupTask } from "@/app/actions/task";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { addMonths, endOfDay, format, isAfter, isBefore, startOfDay } from "date-fns";
+import { addMonths, endOfDay, format, isAfter, isBefore, startOfDay, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -164,6 +163,26 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
     return true;
   };
 
+  // 開始日カレンダーの無効日付を定義
+  const isStartDateDisabled = (date: Date): boolean => {
+    // 終了日が設定されている場合、終了日から6ヶ月以上前の日付は選択不可
+    if (endDate) {
+      const minDate = subMonths(endDate, 6);
+      return isBefore(date, minDate);
+    }
+    return false;
+  };
+
+  // 終了日カレンダーの無効日付を定義
+  const isEndDateDisabled = (date: Date): boolean => {
+    // 開始日が設定されている場合、開始日から6ヶ月以上後の日付は選択不可
+    if (startDate) {
+      const maxDate = addMonths(startDate, 6);
+      return isAfter(date, maxDate);
+    }
+    return false;
+  };
+
   // エクスポート処理
   async function handleExport() {
     if (!isDateRangeValid()) return;
@@ -236,7 +255,11 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
 
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
-      <DialogContent className="overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]" closeButton={false}>
+      {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
+      <DialogContent
+        className="translate-y-[-40vh] overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]"
+        closeButton={false}
+      >
         <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
           <button
             onClick={() => onCloseAction(false)}
@@ -424,7 +447,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                             </Button>
                           </motion.div>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="start">
+                        <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="center" side="bottom" sideOffset={5}>
                           <Calendar
                             mode="single"
                             selected={startDate}
@@ -432,6 +455,8 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                               setStartDate(date);
                               setIsStartDateOpen(false);
                             }}
+                            defaultMonth={startDate}
+                            disabled={isStartDateDisabled}
                             initialFocus
                             locale={ja}
                             className="rounded-md border-0"
@@ -462,7 +487,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                             </Button>
                           </motion.div>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="start">
+                        <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="center" side="bottom" sideOffset={5}>
                           <Calendar
                             mode="single"
                             selected={endDate}
@@ -470,6 +495,8 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                               setEndDate(date);
                               setIsEndDateOpen(false);
                             }}
+                            defaultMonth={endDate}
+                            disabled={isEndDateDisabled}
                             initialFocus
                             locale={ja}
                             className="rounded-md border-0"
@@ -483,10 +510,10 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                     {startDate && endDate && (
                       <motion.div
                         className="mt-3 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800"
-                        initial={{ opacity: 0, y: 5, height: 0 }}
-                        animate={{ opacity: 1, y: 0, height: "auto" }}
-                        exit={{ opacity: 0, y: -10, height: 0 }}
-                        transition={{ type: "spring", damping: 25 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
                       >
                         <div className="flex items-start">
                           <CheckIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-blue-500" />
@@ -495,11 +522,6 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                               選択された期間: {format(startDate, "yyyy年MM月dd日", { locale: ja })} 〜{" "}
                               {format(endDate, "yyyy年MM月dd日", { locale: ja })}
                             </p>
-                            {isAfter(endDate, addMonths(startDate, 3)) && (
-                              <p className="mt-1 text-xs text-blue-600">
-                                * 選択された期間のデータ量によっては、エクスポート処理に時間がかかる場合があります
-                              </p>
-                            )}
                           </div>
                         </div>
                       </motion.div>

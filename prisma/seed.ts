@@ -405,6 +405,73 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
 }
 
 /**
+ * 分析データを生成する関数
+ * @param tasks タスクの配列
+ * @param users ユーザーの配列（評価者として使用）
+ * @returns 生成された分析データの配列
+ */
+async function createAnalytics(tasks: any[], users: any[]) {
+  const analytics = [];
+
+  // 完了したタスクのみ分析対象とする（一部のタスクのみ評価対象とする）
+  const completedTasks = tasks.filter((task) =>
+    ["TASK_COMPLETED", "GROUP_REVIEW_COMPLETED", "EXTERNAL_REVIEW_COMPLETED", "POINTS_AWARDED"].includes(task.status),
+  );
+
+  console.log(`${completedTasks.length}件の完了タスクから分析データを作成します`);
+
+  // 完了タスクごとに複数の分析データを作成する可能性があるため、ランダムに評価回数を決定
+  for (const task of completedTasks) {
+    // タスクごとに1〜3件の評価データを作成
+    const evaluationsCount = faker.number.int({ min: 1, max: 3 });
+
+    for (let i = 0; i < evaluationsCount; i++) {
+      // ランダムな評価者を選択（タスク作成者以外から選ぶのが望ましい）
+      const potentialEvaluators = users.filter((user) => user.id !== task.userId);
+      const evaluator = faker.helpers.arrayElement(potentialEvaluators).id;
+
+      // 貢献ポイントは1〜100の範囲でランダムに設定
+      // タスクに固定貢献ポイントがある場合は、その周辺の値を使用
+      const basePoint = task.fixedContributionPoint || faker.number.int({ min: 10, max: 50 });
+      const variation = faker.number.int({ min: -5, max: 10 });
+      const contributionPoint = Math.max(1, Math.min(100, basePoint + variation));
+
+      // 評価ロジックのサンプル文を生成
+      const evaluationReasons = [
+        "期限内に質の高い成果物を提出した",
+        "チームメンバーとの協力が優れていた",
+        "追加の作業を自主的に行った",
+        "問題解決に創造的なアプローチを示した",
+        "技術的に難しい課題を克服した",
+        "リソースを効率的に活用した",
+        "ドキュメントが詳細で分かりやすかった",
+        "フィードバックに基づいて迅速に改善した",
+      ];
+
+      // ランダムな評価理由を2〜3個選択して評価ロジックを作成
+      const selectedReasons = faker.helpers.arrayElements(evaluationReasons, faker.number.int({ min: 2, max: 3 }));
+      const evaluationLogic = selectedReasons.join("。") + "。";
+
+      // 分析データを作成
+      const analytic = await prisma.analytics.create({
+        data: {
+          taskId: task.id,
+          groupId: task.groupId,
+          evaluator,
+          contributionPoint,
+          evaluationLogic,
+        },
+      });
+
+      analytics.push(analytic);
+    }
+  }
+
+  console.log(`${analytics.length}件の分析データを作成しました`);
+  return analytics;
+}
+
+/**
  * 通知データを生成する関数
  * @param users ユーザーの配列
  * @param groups グループの配列
@@ -671,10 +738,13 @@ async function main() {
     // 4. タスクデータの作成
     const tasks = await createTasks(SEED_CONFIG.TASKS_COUNT, groupMemberships, users);
 
-    // 5. 通知データの作成
+    // 5. 分析データの作成
+    const analytics = await createAnalytics(tasks, users);
+
+    // 6. 通知データの作成
     const { notifications, notificationReadStatuses } = await createNotifications(users, groups, tasks);
 
-    // 6. 統計情報の表示
+    // 7. 統計情報の表示
     console.log("-------------------------------------");
     console.log("シードデータ作成完了！");
     console.log("-------------------------------------");
@@ -686,6 +756,7 @@ async function main() {
     console.log(`グループ: ${groups.length}件`);
     console.log(`グループメンバーシップ: ${groupMemberships.length}件`);
     console.log(`タスク: ${tasks.length}件`);
+    console.log(`分析データ: ${analytics.length}件`);
     console.log(`通知: ${notifications.length}件`);
     console.log(`通知既読状態: ${notificationReadStatuses.length}件`);
     console.log("-------------------------------------");
