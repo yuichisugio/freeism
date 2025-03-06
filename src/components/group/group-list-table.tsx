@@ -3,10 +3,9 @@
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { deleteGroup, joinGroup } from "@/app/actions/group";
+import { joinGroup } from "@/app/actions/group";
 import { DataTable } from "@/components/share/data-table";
-import { Edit, Trash2, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 // グループのデータの型を定義
@@ -27,9 +26,6 @@ type GroupListTableProps = {
 
 // 各要素のデータとしてグループデータが入ったオブジェクトを引数として渡す
 export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
-  // ルーティング
-  const router = useRouter();
-
   // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
   const [groups, setGroups] = useState<Group[]>(initialGroups);
 
@@ -62,29 +58,6 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
     }
   }
 
-  // 編集処理の関数を追加
-  async function handleEdit(groupId: string) {
-    router.push(`/dashboard/edit-group/${groupId}`);
-  }
-
-  // 削除処理の関数を追加
-  async function handleDelete(groupId: string) {
-    try {
-      const result = await deleteGroup(groupId);
-
-      if (result.success) {
-        toast.success("グループを削除しました");
-        // 削除したグループを除外
-        setGroups((prev) => prev.filter((group) => group.id !== groupId));
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error("エラーが発生しました");
-      console.error(error);
-    }
-  }
-
   // グループリストのテーブルの列を定義
   const columns: Column<Group>[] = [
     {
@@ -101,24 +74,6 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
           triggerContent: ["参加中", "参加"],
           triggerIcon: <UserPlus className="h-4 w-4" />,
           joinModal: true,
-        },
-        {
-          title: "グループを編集しますか？",
-          description: "グループを編集すると、グループの名前や目標などを変更できます。",
-          action: handleEdit,
-          actionLabel: "編集する",
-          triggerClassName: "button-edit-custom",
-          triggerContent: ["編集"],
-          triggerIcon: <Edit className="h-4 w-4" />,
-        },
-        {
-          title: "グループを削除しますか？",
-          description: "この操作は取り消せません。グループを削除すると、すべてのデータが完全に削除されます。",
-          action: handleDelete,
-          actionLabel: "削除する",
-          triggerClassName: "button-danger-custom",
-          triggerIcon: <Trash2 className="h-4 w-4" />,
-          triggerContent: ["削除"],
         },
       ],
     },

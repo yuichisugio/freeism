@@ -81,7 +81,6 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
   const [addToBlackList, setAddToBlackList] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [canEditGroup, setCanEditGroup] = useState(false);
 
   // グループ参加処理
   async function handleJoin(groupId: string) {
@@ -258,8 +257,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         toast.error("ユーザー情報が取得できませんでした");
         return;
       }
-      const isGroupOwner = await checkGroupOwner(tasks[0].group.id, currentUserId);
-      setCanEditGroup(isGroupOwner);
+      await checkGroupOwner(tasks[0].group.id, currentUserId);
       setEditDialogOpen(true);
     } catch (error) {
       console.error(error);
@@ -443,7 +441,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           メンバー除名
         </Button>
         <Button className="button-default-custom" onClick={handleOpenEditDialog}>
-          <Edit className="mr-2 h-4 w-4" />
+          <Edit />
           Group情報編集
         </Button>
       </div>
