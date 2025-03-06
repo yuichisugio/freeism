@@ -252,10 +252,10 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
 
           {/* ステッププログレス */}
           <div className="mt-5 mb-1 flex items-center">
-            <div className="flex w-full space-x-3">
+            <div className="flex w-full items-center space-x-3">
               <motion.div
                 className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full border border-white text-xs font-medium",
+                  "ml-4 flex h-7 w-7 items-center justify-center rounded-full border border-white text-xs font-medium",
                   step === 1 ? "text-blue-600" : "text-white",
                 )}
                 variants={circleVariants}
@@ -283,20 +283,19 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
               <motion.div
                 className="h-[2px] flex-1 origin-left bg-blue-300"
                 animate={{
-                  scaleX: step > 1 ? 1 : [0.3, 0.5, 0.3],
+                  scaleX: step > 1 ? 1 : 0.5,
                   backgroundColor: step > 1 ? "rgba(255, 255, 255, 0.8)" : "rgba(219, 234, 254, 0.8)",
                 }}
                 transition={{
                   scaleX: {
-                    repeat: step > 1 ? 0 : Infinity,
-                    duration: step > 1 ? 0.5 : 2,
+                    duration: 0.5,
                   },
                   backgroundColor: { duration: 0.3 },
                 }}
               />
               <motion.div
                 className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full border border-white text-xs font-medium",
+                  "mr-3.5 flex h-7 w-7 items-center justify-center rounded-full border border-white text-xs font-medium",
                   step === 2 ? "text-blue-600" : "text-white",
                 )}
                 variants={circleVariants}
@@ -323,9 +322,9 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
               </motion.div>
             </div>
           </div>
-          <div className="flex justify-between px-1 text-sm text-blue-100">
-            <span>データ選択</span>
-            <span>期間指定</span>
+          <div className="flex justify-between text-sm text-blue-100">
+            <span className="pt-2">データ選択</span>
+            <span className="pt-2">期間指定</span>
           </div>
         </div>
 
@@ -484,7 +483,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
                     {startDate && endDate && (
                       <motion.div
                         className="mt-3 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800"
-                        initial={{ opacity: 0, y: 10, height: 0 }}
+                        initial={{ opacity: 0, y: 5, height: 0 }}
                         animate={{ opacity: 1, y: 0, height: "auto" }}
                         exit={{ opacity: 0, y: -10, height: 0 }}
                         transition={{ type: "spring", damping: 25 }}

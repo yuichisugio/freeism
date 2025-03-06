@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/app/actions/evaluation";
 import { bulkCreateTasks } from "@/app/actions/task";
@@ -31,7 +31,7 @@ const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
 // 型定義
 type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION";
 
-// グローバルオーバーレイ用のスタイル
+// framer-motionのグローバルオーバーレイ用のスタイル
 const globalDropOverlay = {
   hidden: { opacity: 0 },
   visible: {
@@ -42,24 +42,6 @@ const globalDropOverlay = {
     opacity: 0,
     transition: { duration: 0.2 },
   },
-};
-
-// ファイルカードアニメーション用バリアント
-const fileCardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      delay: index * 0.05,
-      duration: 0.3,
-      type: "spring",
-      stiffness: 400,
-      damping: 25,
-    },
-  }),
-  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
 };
 
 // コンテナアニメーション用バリアント
@@ -80,7 +62,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, type: "spring" },
+    transition: { duration: 0.4 },
   },
 };
 
@@ -121,7 +103,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
   }, []);
 
   // ドラッグ&ドロップの設定
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     // 受け付けるファイルの種類
     accept: ACCEPTED_FILE_TYPES,
     // 最大ファイルサイズ
@@ -235,17 +217,6 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       setUploadProgress(0);
     }
   }, [isOpen]);
-
-  // グローバルなドロップゾーンオーバーレイのスタイル
-  const globalDropzoneStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100vw",
-    height: "100vh",
-    zIndex: 9999,
-    pointerEvents: isDragActive ? "auto" : "none",
-  };
 
   // ファイルを削除
   const handleRemoveFile = useCallback((fileToRemove: File) => {
@@ -415,7 +386,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
             variants={globalDropOverlay}
           >
             <motion.div
-              className="mx-auto flex max-w-md flex-col items-center rounded-xl border-2 border-dashed border-blue-500 bg-white/95 p-8 shadow-2xl"
+              className="max-screen mx-auto flex flex-col items-center rounded-xl border-2 border-dashed border-blue-500 bg-white/95 p-8 shadow-2xl"
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               transition={{ type: "spring", damping: 20 }}
@@ -423,8 +394,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               <motion.div animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}>
                 <Cloud className="mb-4 h-20 w-20 text-blue-500" />
               </motion.div>
-              <h2 className="mb-2 text-2xl font-bold text-blue-800">ファイルをドロップして追加</h2>
-              <p className="text-center text-gray-600">CSVファイルをこのエリアにドロップするとアップロードできます</p>
+              <h2 className="mb-2 text-2xl font-bold text-blue-500">ファイルをドロップして追加</h2>
             </motion.div>
           </motion.div>
         )}
@@ -433,7 +403,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       {/* アップロードモーダル */}
       <Dialog open={isOpen} onOpenChange={(open) => !isUploading && onCloseAction(open)}>
         <DialogContent
-          className="flex max-h-[90vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]"
+          className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]"
           closeButton={false}
         >
           <div className="relative flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
@@ -464,6 +434,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                   <motion.div
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={() => setUploadType("TASK_REPORT")}
                     className={cn(
                       "relative cursor-pointer rounded-lg border-2 p-4",
                       uploadType === "TASK_REPORT" ? "border-blue-500" : "border-gray-200",
@@ -488,6 +459,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                   <motion.div
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={() => setUploadType("CONTRIBUTION_EVALUATION")}
                     className={cn(
                       "relative cursor-pointer rounded-lg border-2 p-4",
                       uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-500" : "border-gray-200",
@@ -501,7 +473,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                       />
                       <div className="flex-1">
                         <Label htmlFor="contribution_evaluation" className="flex cursor-pointer items-center text-base font-medium">
-                          <Cloud className="mr-2 h-5 w-5 text-purple-500" />
+                          <Cloud className="mr-2 h-5 w-5 text-blue-500" />
                           貢献評価
                         </Label>
                         <p className="mt-1 text-sm text-gray-500">タスクに対する貢献ポイントや評価ロジックを一括で登録します。</p>
@@ -566,14 +538,13 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                       : {}
                   }
                 >
-                  <Cloud className="mb-3 h-10 w-10 text-gray-400" />
+                  <motion.div animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}>
+                    <Cloud className="mb-3 h-10 w-10 text-gray-400" />
+                  </motion.div>
                   <p className="mb-2 font-medium text-gray-700">クリックまたはドラッグ&ドロップでアップロード</p>
+                  <p className="mb-2 text-sm text-gray-500">画面のどこにでもCSVファイルをドラッグ&ドロップできます</p>
                   <p className="text-sm text-gray-500">CSVファイル (.csv) 形式のみサポート、最大5MB</p>
                 </motion.div>
-              </div>
-
-              <div className="mt-1 flex items-center justify-center">
-                <p className="text-sm text-blue-600">画面のどこにでもCSVファイルをドラッグ&ドロップできます</p>
               </div>
 
               {/* アップロード進捗バー */}

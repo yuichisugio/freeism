@@ -52,7 +52,6 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 type Task = {
