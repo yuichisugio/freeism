@@ -99,12 +99,28 @@ export async function getTasksByGroupId(groupId: string) {
 /**
  * グループのTask情報をCSV形式でエクスポートする関数
  * @param groupId - グループID
+ * @param startDate - 開始日（オプション）
+ * @param endDate - 終了日（オプション）
  * @returns CSVデータ
  */
-export async function exportGroupTask(groupId: string) {
+export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date) {
   try {
+    // 期間条件の構築
+    const dateCondition = {};
+    if (startDate && endDate) {
+      Object.assign(dateCondition, {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
+    }
+
     const tasks = await prisma.task.findMany({
-      where: { groupId },
+      where: {
+        groupId,
+        ...dateCondition,
+      },
       include: {
         user: {
           select: {
@@ -117,6 +133,9 @@ export async function exportGroupTask(groupId: string) {
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     if (!tasks) {
@@ -125,14 +144,87 @@ export async function exportGroupTask(groupId: string) {
 
     // タスクのユーザー名を取得。taskひとつが要素の配列なので、全部を.mapで繰り返して加工している
     const formattedTasks = tasks.map((task) => ({
-      ...task,
-      user: task.user.name,
+      タスクID: task.id,
+      タスク内容: task.task,
+      参照: task.reference || "",
+      ステータス: task.status,
+      貢献ポイント: task.fixedContributionPoint || 0,
+      評価者: task.evaluator || "",
+      貢献タイプ: task.contributionType,
+      作成者: task.user.name || "不明",
+      作成日: task.createdAt.toISOString().split("T")[0],
+      更新日: task.updatedAt.toISOString().split("T")[0],
     }));
 
     return formattedTasks;
   } catch (error) {
     console.error("[EXPORT_GROUP_TASK]", error);
     throw new Error("グループのTask情報のエクスポート中にエラーが発生しました");
+  }
+}
+
+/**
+ * グループの分析結果をCSV形式でエクスポートする関数
+ * @param groupId - グループID
+ * @param startDate - 開始日（オプション）
+ * @param endDate - 終了日（オプション）
+ * @returns CSVデータ
+ */
+export async function exportGroupAnalytics(groupId: string, startDate?: Date, endDate?: Date) {
+  try {
+    // 期間条件の構築
+    const dateCondition = {};
+    if (startDate && endDate) {
+      Object.assign(dateCondition, {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
+    }
+
+    // 分析結果データを取得
+    const analytics = await prisma.analytics.findMany({
+      where: {
+        groupId,
+        ...dateCondition,
+      },
+      include: {
+        task: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!analytics || analytics.length === 0) {
+      throw new Error("分析結果が見つかりません");
+    }
+
+    // CSVに適した形式に変換
+    const formattedAnalytics = analytics.map((item) => ({
+      分析ID: item.id,
+      タスクID: item.taskId,
+      貢献ポイント: item.contributionPoint,
+      評価ロジック: item.evaluationLogic,
+      評価者: item.evaluator,
+      タスク内容: item.task.task,
+      作成者: item.task.user.name || "不明",
+      作成日: item.createdAt.toISOString().split("T")[0],
+    }));
+
+    return formattedAnalytics;
+  } catch (error) {
+    console.error("[EXPORT_GROUP_ANALYTICS]", error);
+    throw new Error("グループの分析結果のエクスポート中にエラーが発生しました");
   }
 }
 

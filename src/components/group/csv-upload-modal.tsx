@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectedFileCard } from "@/components/ui/upload-file-card";
 import { cn } from "@/lib/utils";
-import { Cloud, File, Loader2 } from "lucide-react";
+import { Cloud, File, Loader2, X } from "lucide-react";
 import Papa from "papaparse";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -166,9 +166,8 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
     setUploadProgress(0);
 
     try {
-      // 必要なカラムを取得。タスク報告の場合はtaskとreference、貢献評価の場合はtaskId、contributionPoint、evaluationLogicを渡す必要があることを定義
-      const requiredColumns = uploadType === "TASK_REPORT" ? ["task", "reference"] : ["taskId", "contributionPoint", "evaluationLogic"];
-      // 必要なカラムを取得 - 型に基づいて明示的に定義
+      // 必要なカラムを取得。タスク報告の場合はtaskとcontributionType、貢献評価の場合はtaskId、contributionPoint、evaluationLogicを渡す必要があることを定義
+      const requiredColumns = uploadType === "TASK_REPORT" ? ["task", "contributionType"] : ["taskId", "contributionPoint", "evaluationLogic"];
 
       // すべてのファイルのデータと検証エラーを収集
       const allFilesData: { file: File; data: any[] }[] = [];
@@ -258,120 +257,167 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onCloseAction}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="text-app">CSVファイルのアップロード</DialogTitle>
-          <DialogDescription className="text-neutral-900">
-            {uploadType === "TASK_REPORT" ? (
-              "タスク報告のCSVファイルをアップロードしてください。"
-            ) : (
-              <>
-                貢献評価のCSVファイルをアップロードしてください。
-                <ul className="mt-2 list-disc pl-5 text-sm">
-                  <li>必須項目: タスクID、タスク名、貢献度、評価ロジック</li>
-                  <li>貢献度は数値で入力してください</li>
-                  <li>評価ロジックは具体的な評価基準を記入してください</li>
-                </ul>
-              </>
-            )}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      {/* グローバルなドロップゾーンオーバーレイ */}
+      <div
+        {...getRootProps()}
+        style={globalDropzoneStyle}
+        className={cn(
+          "hidden",
+          isDragActive && "flex items-center justify-center bg-black/40 backdrop-blur-sm",
+          "transition-all duration-200 ease-in-out",
+        )}
+      >
+        <div className="border-primary-500 m-4 rounded-lg border-2 border-dashed bg-white p-16 text-center">
+          <Cloud className="mx-auto mb-4 h-10 w-10 text-blue-500" />
+          <h2 className="mb-2 text-xl font-semibold">ファイルをドロップしてアップロード</h2>
+          <p className="text-sm text-gray-500">CSVファイルをドラッグ&ドロップしてください</p>
+        </div>
+      </div>
 
-        <div className="grid gap-6 py-6">
-          <div className="space-y-6">
-            <Label className="form-label-custom">1.アップロードの種類</Label>
-            <RadioGroup value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="grid grid-cols-2 gap-4">
-              <div>
-                <RadioGroupItem value="TASK_REPORT" id="task_report" className="peer sr-only" />
-                <Label
-                  htmlFor="task_report"
-                  className={cn(
-                    "flex flex-col items-center justify-between rounded-md border-2 p-4",
-                    uploadType === "TASK_REPORT" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white",
-                  )}
-                >
-                  <File className="mb-2 h-6 w-6 text-blue-600" />
-                  タスク報告
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="CONTRIBUTION_EVALUATION" id="contribution_evaluation" className="peer sr-only" />
-                <Label
-                  htmlFor="contribution_evaluation"
-                  className={cn(
-                    "flex flex-col items-center justify-between rounded-md border-2 p-4",
-                    uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-600 bg-blue-50" : "border-blue-200 bg-white",
-                  )}
-                >
-                  <File className="mb-2 h-6 w-6 text-blue-600" />
-                  貢献評価
-                </Label>
-              </div>
-            </RadioGroup>
+      {/* アップロードモーダル */}
+      <Dialog open={isOpen} onOpenChange={(open) => !isUploading && onCloseAction(open)}>
+        <DialogContent className="overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]">
+          <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+            <button
+              onClick={() => !isUploading && onCloseAction(false)}
+              className="absolute top-4 right-4 rounded-full p-1 text-blue-100 opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none"
+              disabled={isUploading}
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">閉じる</span>
+            </button>
+
+            <DialogTitle className="text-2xl font-bold tracking-tight">CSVファイルのアップロード</DialogTitle>
+            <p className="mt-1 text-sm text-blue-100">CSVファイルをアップロードして一括でデータを登録します</p>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="form-label-custom">2.CSVファイル</Label>
-              {currentFiles.length > 0 && (
-                <Button type="button" variant="outline" size="sm" onClick={handleRemoveAll} className="text-neutral-500 hover:text-neutral-700">
-                  全て削除
-                </Button>
-              )}
+          <div className="space-y-6 p-6">
+            {/* アップロードタイプ選択 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">アップロードの種類</h3>
+              <RadioGroup value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="pt-2">
+                <div className="grid grid-cols-1 gap-4">
+                  <div
+                    className={cn(
+                      "relative cursor-pointer rounded-lg border-2 p-4",
+                      uploadType === "TASK_REPORT" ? "border-blue-500" : "border-gray-200",
+                    )}
+                  >
+                    <div className="flex items-start">
+                      <RadioGroupItem value="TASK_REPORT" id="task_report" className="mt-1 mr-4 data-[state=checked]:text-blue-500" />
+                      <div className="flex-1">
+                        <Label htmlFor="task_report" className="flex cursor-pointer items-center text-base font-medium">
+                          <File className="mr-2 h-5 w-5 text-blue-500" />
+                          タスク報告
+                        </Label>
+                        <p className="mt-1 text-sm text-gray-500">タスクの内容やタイプを一括で登録します。</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className={cn(
+                      "relative cursor-pointer rounded-lg border-2 p-4",
+                      uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-500" : "border-gray-200",
+                    )}
+                  >
+                    <div className="flex items-start">
+                      <RadioGroupItem
+                        value="CONTRIBUTION_EVALUATION"
+                        id="contribution_evaluation"
+                        className="mt-1 mr-4 data-[state=checked]:text-blue-500"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="contribution_evaluation" className="flex cursor-pointer items-center text-base font-medium">
+                          <Cloud className="mr-2 h-5 w-5 text-purple-500" />
+                          貢献評価
+                        </Label>
+                        <p className="mt-1 text-sm text-gray-500">タスクに対する貢献ポイントや評価ロジックを一括で登録します。</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </RadioGroup>
             </div>
-            {currentFiles.length > 0 && <div className="grid gap-2">{fileCards}</div>}
-            <div {...getRootProps()}>
+
+            {/* ファイルアップロードエリア */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">CSVファイルをアップロード</h3>
               <div
+                {...getRootProps()}
                 className={cn(
-                  "relative flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue-200 bg-white/50 px-5 py-5 text-center transition-colors hover:bg-blue-50",
-                  isDragActive && "border-blue-600 bg-blue-50",
-                  currentFiles.length > 0 && "border-blue-600 bg-blue-50",
+                  "flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors",
+                  isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:bg-gray-50",
+                  "cursor-pointer",
                 )}
               >
                 <input {...getInputProps()} />
-                <div className="flex flex-col items-center gap-2">
-                  <Cloud className="h-8 w-8 text-blue-600" />
-                  <p className="text-sm text-neutral-600">{isDragActive ? "ファイルをドロップしてください" : "ドラッグ＆ドロップでファイルを選択"}</p>
-                  <p className="text-xs text-neutral-500">最大ファイルサイズ: 5MB</p>
+
+                <div className="flex flex-col items-center">
+                  <Cloud className="mb-3 h-10 w-10 text-gray-400" />
+                  <p className="mb-2 font-medium text-gray-700">クリックまたはドラッグ&ドロップでアップロード</p>
+                  <p className="text-sm text-gray-500">CSVファイル (.csv) 形式のみサポート、最大5MB</p>
                 </div>
               </div>
+
+              {/* 選択されたファイル一覧 */}
+              {currentFiles.length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-700">選択されたファイル</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveAll}
+                      disabled={isUploading}
+                      className="text-xs text-gray-500 hover:text-red-500"
+                    >
+                      すべて削除
+                    </Button>
+                  </div>
+                  <div className="max-h-[180px] space-y-2 overflow-y-auto p-1">{fileCards}</div>
+                </div>
+              )}
+
+              {/* アップロード進捗バー */}
+              {isUploading && (
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">アップロード進捗</Label>
+                    <span className="text-sm font-medium">{Math.round(uploadProgress)}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+              )}
             </div>
-
-            {isUploading && (
-              <div className="space-y-2">
-                <Progress value={uploadProgress} className="h-2" />
-                <p className="text-center text-sm text-neutral-600">アップロード中... {Math.round(uploadProgress)}%</p>
-              </div>
-            )}
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel} disabled={isUploading}>
-            キャンセル
-          </Button>
-          <Button onClick={handleUpload} disabled={currentFiles.length === 0 || isUploading} className="button-default-custom">
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                アップロード中...
-              </>
-            ) : (
-              "アップロード"
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-      {/* ドラッグ&ドロップのオーバーレイ。点線の範囲外でもドラッグ&ドロップが可能になるようにしている */}
-      {isDragActive && (
-        <div style={globalDropzoneStyle} {...getRootProps()}>
-          <input {...getInputProps()} />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm">
-            <p className="text-app text-3xl">ファイルをドロップしてください</p>
+          {/* アクションボタン */}
+          <div className="flex items-center justify-between border-t bg-gray-50 px-6 py-4">
+            <Button variant="outline" onClick={onCancel} disabled={isUploading} className="text-gray-700">
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleUpload}
+              disabled={isUploading || currentFiles.length === 0}
+              className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  アップロード中...
+                </>
+              ) : (
+                <>
+                  <Cloud className="mr-2 h-4 w-4" />
+                  アップロード
+                </>
+              )}
+            </Button>
           </div>
-        </div>
-      )}
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
