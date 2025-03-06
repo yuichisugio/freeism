@@ -12,6 +12,7 @@ import {
   getGroupMembers,
   grantOwnerPermission,
   joinGroup,
+  leaveGroup,
   removeMember,
 } from "@/app/actions/group";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
@@ -42,13 +43,16 @@ import {
   ClipboardList,
   Download,
   Edit,
+  LogOut,
   ShieldCheck,
   TargetIcon,
   Trash2,
   Upload,
   UserMinus,
+  UserPlus,
   Users,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 type Task = {
@@ -98,10 +102,13 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMember, setIsMember] = useState(false);
 
   // 権限情報を保持するstate
   const [isAppOwner, setIsAppOwner] = useState(false);
   const [isGroupOwner, setIsGroupOwner] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // コンポーネントマウント時に権限チェックを一度だけ実行
   useEffect(() => {
@@ -113,7 +120,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         const userId = await checkAuth();
 
         if (userId) {
-          setSelectedUserId(userId);
+          setUserId(userId);
 
           // アプリオーナー権限のチェック
           const isOwner = await checkAppOwner(userId);
@@ -122,6 +129,10 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           // グループオーナー権限のチェック
           const isGroupOwnerResult = await checkGroupOwner(userId, groupId);
           setIsGroupOwner(isGroupOwnerResult);
+
+          // ユーザーがグループのメンバーかどうかチェック
+          const memberIds = tasks[0].group.members.map((member) => member.userId);
+          setIsMember(memberIds.includes(userId));
         }
       } catch (error) {
         console.error("権限チェックエラー:", error);
@@ -135,10 +146,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   // グループ参加処理
   async function handleJoin(groupId: string) {
     try {
+      setIsLoading(true);
       const result = await joinGroup(groupId);
 
       if (result.success) {
         toast.success("グループに参加しました");
+        setIsMember(true);
         router.refresh();
       } else if (result.error) {
         toast.error(result.error);
@@ -146,6 +159,36 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     } catch (error) {
       toast.error("エラーが発生しました");
       console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // グループ脱退処理
+  async function handleLeave(groupId: string) {
+    try {
+      if (isGroupOwner) {
+        toast.error("グループオーナーは脱退できません。オーナー権限を他のメンバーに譲渡するか、グループを削除してください。");
+        return;
+      }
+
+      if (confirm("グループから脱退しますか？")) {
+        setIsLoading(true);
+        const result = await leaveGroup(groupId);
+
+        if (result.success) {
+          toast.success("グループから脱退しました");
+          setIsMember(false);
+          router.refresh();
+        } else if (result.error) {
+          toast.error(result.error);
+        }
+      }
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -429,42 +472,67 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         </div>
       </div>
 
+      {/* 参加していないユーザー向けの参加ボタン */}
+      {userId && !isMember && (
+        <div className="flex justify-center">
+          <Button onClick={() => handleJoin(tasks[0].group.id)} disabled={isLoading} className="bg-green-600 text-white hover:bg-green-700">
+            <UserPlus className="mr-2 h-4 w-4" />
+            グループに参加する
+          </Button>
+        </div>
+      )}
+
       {/* 管理操作ボタン（権限のあるユーザーにのみ表示） */}
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Button onClick={() => setIsExportModalOpen(true)} variant="outline" className="bg-white hover:bg-gray-50">
-          <Download className="mr-2 h-4 w-4" />
-          データをエクスポート
-        </Button>
+      {isMember && (
+        <div className="mb-4 flex flex-wrap gap-3">
+          <Button onClick={() => setIsExportModalOpen(true)} variant="outline" className="bg-white hover:bg-gray-50">
+            <Download className="mr-2 h-4 w-4" />
+            データをエクスポート
+          </Button>
 
-        {(isGroupOwner || isAppOwner) && (
-          <>
-            <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenEditDialog}>
-              <Edit className="mr-2 h-4 w-4" />
-              グループを編集
-            </Button>
+          {(isGroupOwner || isAppOwner) && (
+            <>
+              <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenEditDialog}>
+                <Edit className="mr-2 h-4 w-4" />
+                グループを編集
+              </Button>
 
-            <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={() => setIsUploadModalOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              CSVアップロード
-            </Button>
+              <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={() => setIsUploadModalOpen(true)}>
+                <Upload className="mr-2 h-4 w-4" />
+                CSVアップロード
+              </Button>
 
-            <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenPermissionDialog}>
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              権限を付与
-            </Button>
+              <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenPermissionDialog}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                権限を付与
+              </Button>
 
-            <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenRemoveMemberDialog}>
-              <UserMinus className="mr-2 h-4 w-4" />
-              メンバーを除名
-            </Button>
+              <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenRemoveMemberDialog}>
+                <UserMinus className="mr-2 h-4 w-4" />
+                メンバーを除名
+              </Button>
 
-            <Button variant="destructive" onClick={handleOpenDeleteDialog}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              グループを削除
+              <Button variant="destructive" onClick={handleOpenDeleteDialog}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                グループを削除
+              </Button>
+            </>
+          )}
+
+          {/* 脱退ボタン（グループオーナー以外のメンバー向け） */}
+          {isMember && !isGroupOwner && (
+            <Button
+              variant="outline"
+              className="ml-auto border-red-200 bg-white text-red-600 hover:bg-gray-50 hover:text-red-700"
+              onClick={() => handleLeave(tasks[0].group.id)}
+              disabled={isLoading}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              グループを脱退
             </Button>
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* グループ情報編集ダイアログ */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

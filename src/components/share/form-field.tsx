@@ -133,9 +133,11 @@ function renderRadioField<T extends FieldValues>(props: RadioFieldProps<T>, fiel
           {props.options.map((option) => (
             <FormItem key={option.value} className="flex items-center space-y-0 space-x-3">
               <FormControl>
-                <RadioGroupItem value={option.value} className="border-blue-200" />
+                <RadioGroupItem value={option.value} className="absolute border-blue-200 opacity-0" />
               </FormControl>
-              <FormLabel className="font-normal">{option.label}</FormLabel>
+              <FormLabel className="relative flex w-full cursor-pointer items-center pl-6 font-normal before:absolute before:top-0 before:left-0 before:z-10 before:h-full before:w-full before:content-['']">
+                {option.label}
+              </FormLabel>
             </FormItem>
           ))}
         </RadioGroup>
