@@ -378,11 +378,39 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
 
     // 評価者と評価ロジック (50%の確率で設定)
     const hasEvaluator = faker.datatype.boolean(0.5);
-    const evaluator = hasEvaluator ? faker.helpers.arrayElement(users).id : null;
-    const evaluationLogic = hasEvaluator ? faker.lorem.paragraph(1) : null;
+    const fixedEvaluator = hasEvaluator ? faker.helpers.arrayElement(users).id : null;
+    const fixedEvaluationLogic = hasEvaluator ? faker.lorem.paragraph(1) : null;
 
     // 固定貢献ポイント (1-100)
     const fixedPoints = faker.number.int({ min: 1, max: 100 });
+
+    // 証拠・結果・補足情報を生成 (70%の確率で設定)
+    const hasInfo = faker.datatype.boolean(0.7);
+    let info = null;
+    if (hasInfo) {
+      // 情報のタイプをランダムに選択（3種類のうちの1つ）
+      const infoType = faker.helpers.arrayElement(["pullrequest", "achievement", "explanation"]);
+
+      switch (infoType) {
+        case "pullrequest":
+          // GitHub PRのURLを生成
+          const repoName = faker.helpers.arrayElement(["project-x", "web-app", "api-service", "ui-components", "docs"]);
+          const orgName = faker.helpers.arrayElement(["acme", "company", "team", "dev-group", "open-source"]);
+          const prNumber = faker.number.int({ min: 1, max: 999 });
+          info = `プルリクエスト: https://github.com/${orgName}/${repoName}/pull/${prNumber}`;
+          break;
+        case "achievement":
+          // 成果物や達成したことの説明
+          const metric = faker.helpers.arrayElement(["パフォーマンス", "ユーザー数", "処理速度", "コード品質", "テストカバレッジ"]);
+          const improvement = faker.number.int({ min: 5, max: 95 });
+          info = `${metric}が${improvement}%向上しました。詳細: ${faker.internet.url()}`;
+          break;
+        case "explanation":
+          // 補足説明
+          info = faker.lorem.paragraph(2);
+          break;
+      }
+    }
 
     const task = await prisma.task.create({
       data: {
@@ -390,8 +418,9 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
         reference: faker.datatype.boolean(0.3) ? faker.internet.url() : null,
         status: taskStatus,
         fixedContributionPoint: fixedPoints,
-        evaluator,
-        evaluationLogic,
+        fixedEvaluator,
+        fixedEvaluationLogic,
+        info, // 証拠・結果・補足情報を追加
         contributionType: faker.helpers.arrayElement(contributionTypes),
         userId: user.id,
         groupId,

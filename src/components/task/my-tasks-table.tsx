@@ -11,8 +11,8 @@ type Task = {
   reference: string | null;
   status: string;
   fixedContributionPoint: number | null;
-  evaluator: string | null;
-  evaluationLogic: string | null;
+  fixedEvaluator: string | null;
+  fixedEvaluationLogic: string | null;
   contributionType: string;
   user: {
     name: string | null;
@@ -54,16 +54,16 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
     },
     {
-      key: "evaluator" as keyof Task,
+      key: "fixedEvaluator" as keyof Task,
       header: "算出者",
       sortable: true,
-      cell: (row: Task) => row.evaluator || "-",
+      cell: (row: Task) => row.fixedEvaluator || "-",
     },
     {
-      key: "evaluationLogic" as keyof Task,
+      key: "fixedEvaluationLogic" as keyof Task,
       header: "算出ロジック",
       sortable: true,
-      cell: (row: Task) => row.evaluationLogic || "-",
+      cell: (row: Task) => row.fixedEvaluationLogic || "-",
     },
     {
       key: "status" as keyof Task,

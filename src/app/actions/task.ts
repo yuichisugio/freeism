@@ -31,6 +31,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
       data: {
         task: data.task,
         reference: data.reference,
+        info: data.info,
         contributionType: data.contributionType,
         userId: session.user.id,
         groupId: data.groupId,
@@ -147,9 +148,10 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       タスクID: task.id,
       タスク内容: task.task,
       参照: task.reference || "",
+      証拠情報: task.info || "",
       ステータス: task.status,
       貢献ポイント: task.fixedContributionPoint || 0,
-      評価者: task.evaluator || "",
+      評価者: task.fixedEvaluator || "",
       貢献タイプ: task.contributionType,
       作成者: task.user.name || "不明",
       作成日: task.createdAt.toISOString().split("T")[0],
@@ -168,9 +170,11 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
  * @param groupId - グループID
  * @param startDate - 開始日（オプション）
  * @param endDate - 終了日（オプション）
- * @returns CSVデータ
+ * @param page - 取得するページ番号（1ページ200件）
+ * @param onlyFixed - FIX済みの分析結果のみを取得するフラグ
+ * @returns 評価者ごとに分けられたCSVデータ
  */
-export async function exportGroupAnalytics(groupId: string, startDate?: Date, endDate?: Date) {
+export async function exportGroupAnalytics(groupId: string, startDate?: Date, endDate?: Date, page: number = 1, onlyFixed: boolean = false) {
   try {
     // 期間条件の構築
     const dateCondition = {};
@@ -183,11 +187,27 @@ export async function exportGroupAnalytics(groupId: string, startDate?: Date, en
       });
     }
 
+    // FIX済み分析結果のみを取得する条件
+    const fixedCondition = onlyFixed
+      ? {
+          task: {
+            fixedEvaluator: { not: null },
+            fixedContributionPoint: { not: null },
+            fixedEvaluationLogic: { not: null },
+          },
+        }
+      : {};
+
+    // ページネーション用のskipとtake
+    const itemsPerPage = 200;
+    const skip = (page - 1) * itemsPerPage;
+
     // 分析結果データを取得
     const analytics = await prisma.analytics.findMany({
       where: {
         groupId,
         ...dateCondition,
+        ...fixedCondition,
       },
       include: {
         task: {
@@ -197,31 +217,96 @@ export async function exportGroupAnalytics(groupId: string, startDate?: Date, en
                 name: true,
               },
             },
+            group: {
+              select: {
+                goal: true,
+                evaluationMethod: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            id: true,
           },
         },
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
+      skip,
+      take: itemsPerPage,
     });
 
+    // 評価者ごとにデータを分類
+    const evaluatorData: { [key: string]: any[] } = {};
+
+    // データが0件の場合は、空の構造を持つオブジェクトを返す
     if (!analytics || analytics.length === 0) {
-      throw new Error("分析結果が見つかりません");
+      return {
+        データなし: [
+          {
+            分析ID: "",
+            タスクID: "",
+            貢献ポイント: 0,
+            評価ロジック: "",
+            評価者ID: "",
+            評価者名: "",
+            タスク内容: "",
+            参照情報: "",
+            証拠情報: "",
+            ステータス: "",
+            貢献タイプ: "",
+            タスク作成者: "",
+            グループ目標: "",
+            評価方法: "",
+            作成日: "",
+          },
+        ],
+      };
     }
 
-    // CSVに適した形式に変換
-    const formattedAnalytics = analytics.map((item) => ({
-      分析ID: item.id,
-      タスクID: item.taskId,
-      貢献ポイント: item.contributionPoint,
-      評価ロジック: item.evaluationLogic,
-      評価者: item.evaluator,
-      タスク内容: item.task.task,
-      作成者: item.task.user.name || "不明",
-      作成日: item.createdAt.toISOString().split("T")[0],
-    }));
+    for (const item of analytics) {
+      // evaluator関連の情報がnullの場合のフォールバック
+      const evaluatorName = item.user?.name || "不明な評価者";
+      const evaluatorId = item.user?.id || "unknown";
 
-    return formattedAnalytics;
+      if (!evaluatorData[evaluatorName]) {
+        evaluatorData[evaluatorName] = [];
+      }
+
+      // タスク関連の情報がnullの場合のフォールバック
+      const taskContent = item.task?.task || "";
+      const taskReference = item.task?.reference || "";
+      const taskInfo = item.task?.info || "";
+      const taskStatus = item.task?.status || "";
+      const taskContributionType = item.task?.contributionType || "";
+      const taskCreatorName = item.task?.user?.name || "不明";
+      const groupGoal = item.task?.group?.goal || "";
+      const evaluationMethod = item.task?.group?.evaluationMethod || "";
+
+      // CSVに適した形式に変換
+      evaluatorData[evaluatorName].push({
+        分析ID: item.id,
+        タスクID: item.taskId,
+        貢献ポイント: item.contributionPoint,
+        評価ロジック: item.evaluationLogic,
+        評価者ID: evaluatorId,
+        評価者名: evaluatorName,
+        タスク内容: taskContent,
+        参照情報: taskReference,
+        証拠情報: taskInfo,
+        ステータス: taskStatus,
+        貢献タイプ: taskContributionType,
+        タスク作成者: taskCreatorName,
+        グループ目標: groupGoal,
+        評価方法: evaluationMethod,
+        作成日: item.createdAt.toISOString().split("T")[0],
+      });
+    }
+
+    return evaluatorData;
   } catch (error) {
     console.error("[EXPORT_GROUP_ANALYTICS]", error);
     throw new Error("グループの分析結果のエクスポート中にエラーが発生しました");
@@ -254,8 +339,9 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
           const task = await tx.task.create({
             data: {
               task: row.task,
-              reference: row.reference,
-              contributionType: "NON_REWARD",
+              reference: row.reference || null,
+              info: row.info || null,
+              contributionType: row.contributionType || "NON_REWARD",
               userId: session.user?.id || "",
               groupId: groupId,
             },

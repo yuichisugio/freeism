@@ -494,6 +494,39 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
             {/* ファイルアップロードエリア */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">CSVファイルをアップロード</h3>
+              {/* ファイルフォーマットの説明 */}
+              <div className="rounded-lg border bg-gray-50 p-4 text-sm">
+                <h4 className="mb-2 font-medium text-gray-900">CSVファイルのフォーマット</h4>
+                <div className="mb-3 space-y-2">
+                  {uploadType === "TASK_REPORT" ? (
+                    <>
+                      <p className="text-gray-700">
+                        <span className="font-medium text-green-600">必須フィールド:</span> task（タスク内容）, contributionType（貢献タイプ: REWARD
+                        または NON_REWARD）
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="font-medium text-green-600">オプションフィールド:</span> reference（参考にした内容）,
+                        info（証拠・結果・補足情報）
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="italic">
+                          例: Webサイトのデザイン改修,https://example.com/design,REWARD,プルリクURL: https://github.com/org/repo/pull/123
+                        </span>
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-700">
+                        <span className="font-medium text-green-600">必須フィールド:</span> taskId（タスクID）, contributionPoint（貢献ポイント）,
+                        evaluationLogic（評価ロジック）
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="italic">例: clrqz3kp20000n4og9xq9d6mt,80,プロジェクトに大きく貢献した</span>
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
               <div
                 {...getRootProps()}
                 className={cn(

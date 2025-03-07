@@ -43,6 +43,7 @@ import {
   ClipboardList,
   Download,
   Edit,
+  Loader2,
   LogOut,
   ShieldCheck,
   TargetIcon,
@@ -60,8 +61,8 @@ type Task = {
   reference: string | null;
   status: string;
   fixedContributionPoint: number | null;
-  evaluator: string | null;
-  evaluationLogic: string | null;
+  fixedEvaluator: string | null;
+  fixedEvaluationLogic: string | null;
   contributionType: string;
   user: {
     name: string | null;
@@ -94,6 +95,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [selectedMemberForRemoval, setSelectedMemberForRemoval] = useState<string | null>(null);
   const [selectedMemberNameForRemoval, setSelectedMemberNameForRemoval] = useState<string | null>(null);
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
@@ -164,30 +166,39 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   }
 
   // グループ脱退処理
-  async function handleLeave(groupId: string) {
+  async function handleLeave() {
     try {
       if (isGroupOwner) {
         toast.error("グループオーナーは脱退できません。オーナー権限を他のメンバーに譲渡するか、グループを削除してください。");
         return;
       }
 
-      if (confirm("グループから脱退しますか？")) {
-        setIsLoading(true);
-        const result = await leaveGroup(groupId);
+      setLeaveDialogOpen(true);
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
+    }
+  }
 
-        if (result.success) {
-          toast.success("グループから脱退しました");
-          setIsMember(false);
-          router.refresh();
-        } else if (result.error) {
-          toast.error(result.error);
-        }
+  // 実際のグループ脱退処理を実行
+  async function executeLeave(groupId: string) {
+    try {
+      setIsLoading(true);
+      const result = await leaveGroup(groupId);
+
+      if (result.success) {
+        toast.success("グループから脱退しました");
+        setIsMember(false);
+        router.refresh();
+      } else if (result.error) {
+        toast.error(result.error);
       }
     } catch (error) {
       toast.error("エラーが発生しました");
       console.error(error);
     } finally {
       setIsLoading(false);
+      setLeaveDialogOpen(false);
     }
   }
 
@@ -360,15 +371,15 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       sortable: true,
     },
     {
-      key: "evaluator" as keyof Task,
+      key: "fixedEvaluator" as keyof Task,
       header: "EVALUATOR",
-      cell: (row: Task) => row.evaluator || "-",
+      cell: (row: Task) => row.fixedEvaluator || "-",
       sortable: true,
     },
     {
-      key: "evaluationLogic" as keyof Task,
+      key: "fixedEvaluationLogic" as keyof Task,
       header: "EVALUATION LOGIC",
-      cell: (row: Task) => row.evaluationLogic || "-",
+      cell: (row: Task) => row.fixedEvaluationLogic || "-",
       sortable: true,
     },
     {
@@ -421,16 +432,16 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       cell: (row: Task) => row.contributionType,
     },
     {
-      key: "evaluator" as keyof Task,
+      key: "fixedEvaluator" as keyof Task,
       header: "EVALUATOR",
       sortable: true,
-      cell: (row: Task) => row.evaluator || "-",
+      cell: (row: Task) => row.fixedEvaluator || "-",
     },
     {
-      key: "evaluationLogic" as keyof Task,
+      key: "fixedEvaluationLogic" as keyof Task,
       header: "EVALUATION LOGIC",
       sortable: true,
-      cell: (row: Task) => row.evaluationLogic || "-",
+      cell: (row: Task) => row.fixedEvaluationLogic || "-",
     },
     {
       key: "status" as keyof Task,
@@ -523,7 +534,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
             <Button
               variant="outline"
               className="ml-auto border-red-200 bg-white text-red-600 hover:bg-gray-50 hover:text-red-700"
-              onClick={() => handleLeave(tasks[0].group.id)}
+              onClick={() => handleLeave()}
               disabled={isLoading}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -698,6 +709,32 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                 </Button>
               </AlertDialogAction>
             )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* グループ脱退確認ダイアログ */}
+      <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-semibold">グループから脱退しますか？</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              グループから脱退すると、グループのタスクにアクセスできなくなります。 この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                variant="destructive"
+                onClick={() => executeLeave(tasks[0].group.id)}
+                disabled={isLoading}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                脱退する
+              </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -124,7 +124,6 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-app mb-4 text-xl font-bold">グループ情報編集</h2>
       <FormLayout
         form={form}
         onSubmit={onSubmit}
@@ -132,6 +131,7 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
         submittingLabel="保存中..."
         showCancelButton={true}
         onCancel={onClose || (() => {})}
+        className="max-h-[90vh]"
       >
         <CustomFormField
           fieldType="input"

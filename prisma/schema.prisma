@@ -29,6 +29,7 @@ model User {
   memberships   GroupMembership[]
   tasks         Task[]
   notifications Notification[]
+  analytics     Analytics[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -124,8 +125,9 @@ model Task {
   reference              String?
   status                 TaskStatus     @default(PENDING)
   fixedContributionPoint Int?
-  evaluator              String?
-  evaluationLogic        String?
+  fixedEvaluator         String?
+  fixedEvaluationLogic   String?
+  info                   String?
   contributionType       String         @default("NON_REWARD") // "REWARD" or "NON_REWARD"
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
@@ -142,15 +144,16 @@ model Task {
 
 model Analytics {
   id                String   @id @default(cuid())
-  taskId            String
   contributionPoint Int
   evaluationLogic   String
   evaluator         String
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  taskId            String
   task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId           String
+  group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [evaluator], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@index([groupId])

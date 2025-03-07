@@ -40,6 +40,7 @@ export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; 
     defaultValues: {
       task: "",
       reference: "",
+      info: "",
       contributionType: "REWARD",
     },
   });
@@ -53,6 +54,7 @@ export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; 
       const result = await createTask({
         task: data.task,
         reference: data.reference,
+        info: data.info,
         contributionType: data.contributionType,
         groupId: data.groupId,
       });
@@ -116,6 +118,15 @@ export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; 
         label="参考にした内容"
         description="タスクを実行する際に参考にした情報があれば記載してください"
         placeholder="参考にした内容を入力してください"
+      />
+
+      <CustomFormField
+        fieldType="textarea"
+        control={form.control}
+        name="info"
+        label="証拠・結果・補足情報"
+        description="貢献度を評価するための証拠や結果、補足情報（プルリクURL等）を記載してください"
+        placeholder="証拠・結果・補足情報を入力してください"
       />
     </FormLayout>
   );
