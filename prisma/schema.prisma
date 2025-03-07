@@ -11,8 +11,8 @@ datasource db {
 }
 
 generator client {
-  provider      = "prisma-client-js"
-  plugin        = "@prisma/nextjs-monorepo-workaround-plugin"
+  provider = "prisma-client-js"
+  plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
 }
 
 model User {

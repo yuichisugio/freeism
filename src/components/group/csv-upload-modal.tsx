@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/app/actions/evaluation";
 import { bulkCreateTasks } from "@/app/actions/task";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -41,28 +41,6 @@ const globalDropOverlay = {
   exit: {
     opacity: 0,
     transition: { duration: 0.2 },
-  },
-};
-
-// コンテナアニメーション用バリアント
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-// 要素アニメーション用バリアント
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4 },
   },
 };
 
