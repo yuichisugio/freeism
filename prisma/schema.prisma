@@ -27,8 +27,8 @@ model User {
   settings      UserSettings?
   groups        Group[]
   memberships   GroupMembership[]
-  tasks         Task[] @relation("TaskCreator")
-  fixedTasks    Task[] @relation("UserFixedSubmitter")
+  tasks         Task[]            @relation("TaskCreator")
+  fixedTasks    Task[]            @relation("UserFixedSubmitter")
   notifications Notification[]
   analytics     Analytics[]
 
@@ -129,13 +129,13 @@ model Task {
   fixedEvaluator         String?
   fixedEvaluationLogic   String?
   fixedEvaluationDate    DateTime?
-  userFixedSubmitter   User? @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
-  userFixedSubmitterId String?
+  userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
+  userFixedSubmitterId   String?
   info                   String?
   contributionType       String         @default("NON_REWARD") // "REWARD" or "NON_REWARD"
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
-  user                   User           @relation("TaskCreator",fields: [userId], references: [id], onDelete: Cascade)
+  user                   User           @relation("TaskCreator", fields: [userId], references: [id], onDelete: Cascade)
   userId                 String
   group                  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId                String

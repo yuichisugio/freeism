@@ -13,12 +13,12 @@ import { NotificationTargetType, NotificationType, PrismaClient, TaskStatus } fr
  * 設定変更時は相互依存関係に注意してください。
  */
 const SEED_CONFIG = {
-  USERS_COUNT: 15, // ユーザー数
+  USERS_COUNT: 10, // ユーザー数
   VERIFICATION_TOKENS_COUNT: 10, // 認証トークン数
-  GROUPS_COUNT: 12, // グループ数
+  GROUPS_COUNT: 6, // グループ数
   MIN_MEMBERS_PER_GROUP: 3, // グループごとの最小メンバー数
-  MAX_MEMBERS_PER_GROUP: 7, // グループごとの最大メンバー数
-  TASKS_COUNT: 30, // タスク数
+  MAX_MEMBERS_PER_GROUP: 4, // グループごとの最大メンバー数
+  TASKS_COUNT: 60, // タスク数
   NOTIFICATIONS_PER_USER: 10, // ユーザーごとの通知数
 };
 
