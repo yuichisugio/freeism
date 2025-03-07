@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/app/actions/evaluation";
-import { bulkCreateTasks } from "@/app/actions/task";
+import { checkAppOwner, checkGroupOwner } from "@/app/actions/group";
+import { bulkCreateTasks, bulkUpdateFixedEvaluations } from "@/app/actions/task";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectedFileCard } from "@/components/ui/upload-file-card";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Cloud, File, Loader2, X } from "lucide-react";
+import { AlertTriangle, Cloud, File, Loader2, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Papa from "papaparse";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -29,7 +31,49 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 // 受け付けるファイルの種類
 const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
 // 型定義
-type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION";
+type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION" | "FIXED_CONTRIBUTION";
+
+// アップロードタイプごとの必須カラム
+const REQUIRED_COLUMNS: Record<UploadType, string[]> = {
+  TASK_REPORT: ["task", "contributionType"],
+  CONTRIBUTION_EVALUATION: ["taskId", "contributionPoint", "evaluationLogic"],
+  FIXED_CONTRIBUTION: ["id", "fixedContributionPoint", "fixedEvaluator", "fixedEvaluationLogic"],
+};
+
+// アップロードタイプごとの説明テキスト
+const UPLOAD_TYPE_INFO: Record<
+  UploadType,
+  {
+    title: string;
+    description: string;
+    requiredFields: string;
+    optionalFields?: string;
+    note?: string;
+    example: string;
+  }
+> = {
+  TASK_REPORT: {
+    title: "タスク報告",
+    description: "タスクの内容やタイプを一括で登録します。",
+    requiredFields: "task（タスク内容）, contributionType（貢献タイプ: REWARD または NON_REWARD）",
+    optionalFields: "reference（参考にした内容）, info（証拠・結果・補足情報）",
+    example: "Webサイトのデザイン改修,https://example.com/design,REWARD,プルリクURL: https://github.com/org/repo/pull/123",
+  },
+  CONTRIBUTION_EVALUATION: {
+    title: "貢献評価",
+    description: "タスクに対する貢献ポイントや評価ロジックを一括で登録します。",
+    requiredFields: "taskId（タスクID）, contributionPoint（貢献ポイント）, evaluationLogic（評価ロジック）",
+    example: "clrqz3kp20000n4og9xq9d6mt,80,プロジェクトに大きく貢献した",
+  },
+  FIXED_CONTRIBUTION: {
+    title: "FIXした分析結果",
+    description: "分析結果を一括で登録します。",
+    requiredFields: "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluator（評価者ID）, fixedEvaluationLogic（評価ロジック）",
+    optionalFields: "fixedEvaluationDate（評価日, YYYY-MM-DD形式）",
+    note: "ステータスが「タスク完了(TASK_COMPLETED)」のタスクのみが対象です",
+    example: "clrqz3kp20000n4og9xq9d6mt,100,clrq0001,ロジックの説明,2023-04-01",
+  },
+};
 
 // framer-motionのグローバルオーバーレイ用のスタイル
 const globalDropOverlay = {
@@ -61,10 +105,44 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
   const [uploadProgress, setUploadProgress] = useState(0);
   // アップロードしたファイル
   const [currentFiles, setCurrentFiles] = useState<File[]>([]);
+  // 権限関連の状態
+  const [isAppOwner, setIsAppOwner] = useState(false);
+  const [isGroupOwner, setIsGroupOwner] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   // ルーター
   const router = useRouter();
   // ファイルがウィンドウに入っているかどうかの状態
   const [isFileOver, setIsFileOver] = useState(false);
+  // セッション情報をコンポーネントのトップレベルで取得
+  const session = useSession();
+
+  // 権限チェック
+  useEffect(() => {
+    async function checkPermissions() {
+      try {
+        // セッションからユーザーIDを取得
+        if (!session?.data?.user?.id) {
+          setIsAuthorized(false);
+          return;
+        }
+
+        const userId = session.data.user.id;
+
+        const [appOwnerResult, groupOwnerResult] = await Promise.all([checkAppOwner(userId), checkGroupOwner(userId, groupId)]);
+
+        setIsAppOwner(!!appOwnerResult);
+        setIsGroupOwner(!!groupOwnerResult);
+        setIsAuthorized(!!appOwnerResult || !!groupOwnerResult);
+      } catch (error) {
+        console.error("権限チェックエラー:", error);
+        setIsAuthorized(false);
+      }
+    }
+
+    if (isOpen) {
+      checkPermissions();
+    }
+  }, [groupId, isOpen, session]);
 
   // ドロップゾーンの設定
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -241,11 +319,60 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
     });
   };
 
+  // 失敗したデータをCSVとしてエクスポート
+  const exportFailedData = (failedData: any[]) => {
+    if (!failedData.length) return;
+
+    // CSVデータを作成
+    const csv = Papa.unparse(failedData);
+
+    // Blobを作成
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    // ダウンロードURLを作成
+    const url = URL.createObjectURL(blob);
+
+    // 仮想的なリンクを作成してクリック
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `登録失敗データ_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+
+    // クリーンアップ
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 選択されたアップロードタイプに基づいて必要なカラムを取得
+  const getRequiredColumns = useCallback((type: UploadType): string[] => {
+    return REQUIRED_COLUMNS[type] || [];
+  }, []);
+
+  // アップロードタイプに応じた権限チェック
+  const hasPermissionForUploadType = useCallback(
+    (type: UploadType): boolean => {
+      // FIXED_CONTRIBUTIONの場合はグループオーナーまたはアプリオーナーの権限が必要
+      if (type === "FIXED_CONTRIBUTION") {
+        return isGroupOwner || isAppOwner; // isAuthorized ではなく、具体的な権限で判定
+      }
+      // その他のタイプは特別な権限チェックなし（基本的なグループメンバーシップは別途確認）
+      return true;
+    },
+    [isGroupOwner, isAppOwner],
+  );
+
   // アップロード処理。一つでも無効な項目があれば、何もデータと登録せずに処理を中断
   async function handleUpload() {
     // ファイルが選択されていない場合はエラーを表示
     if (currentFiles.length === 0) {
       toast.error("ファイルを選択してください");
+      return;
+    }
+
+    // 選択されたタイプに必要な権限があるかチェック
+    if (!hasPermissionForUploadType(uploadType)) {
+      toast.error(`${UPLOAD_TYPE_INFO[uploadType].title}のアップロードには権限が必要です`);
       return;
     }
 
@@ -255,8 +382,8 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
     setUploadProgress(0);
 
     try {
-      // 必要なカラムを取得。タスク報告の場合はtaskとcontributionType、貢献評価の場合はtaskId、contributionPoint、evaluationLogicを渡す必要があることを定義
-      const requiredColumns = uploadType === "TASK_REPORT" ? ["task", "contributionType"] : ["taskId", "contributionPoint", "evaluationLogic"];
+      // 必要なカラムを取得
+      const requiredColumns = getRequiredColumns(uploadType);
 
       // すべてのファイルのデータと検証エラーを収集
       const allFilesData: { file: File; data: any[] }[] = [];
@@ -268,7 +395,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
           // ファイルをパースしてデータを検証
           const data = await parseAndValidateCSV(file);
 
-          // 各行のすべての必須フィールドが入力されているか検証。reduceの第一引数にはreduceの繰り返した分の合算が入るエラーの配列、第二引数にはデータの配列、第三引数には行数を渡す
+          // 各行のすべての必須フィールドが入力されているか検証
           const missingData = data.reduce((errors: string[], row: any, index: number) => {
             // すべての必須カラムを確認
             const missingColumns = requiredColumns.filter((column) => row[column] === undefined || row[column] === null || row[column] === "");
@@ -314,12 +441,24 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
       // すべてのファイルのデータを保存
       for (const { data } of allFilesData) {
-        // データの保存。タスク報告の場合はbulkCreateTasks、貢献評価の場合はbulkCreateEvaluationsを呼び出す
         // アップロードタイプに応じた関数を呼び出し
-        const result = uploadType === "TASK_REPORT" ? await bulkCreateTasks(data, groupId) : await bulkCreateEvaluations(data, groupId);
+        let result: any; // 汎用的な型定義
+        if (uploadType === "TASK_REPORT") {
+          result = await bulkCreateTasks(data, groupId);
+        } else if (uploadType === "CONTRIBUTION_EVALUATION") {
+          result = await bulkCreateEvaluations(data, groupId);
+        } else if (uploadType === "FIXED_CONTRIBUTION") {
+          result = await bulkUpdateFixedEvaluations(data, groupId);
+
+          // 失敗したデータがある場合はエクスポート
+          if (result.failedData && result.failedData.length > 0) {
+            exportFailedData(result.failedData);
+            toast.info(`${result.failedData.length}件のデータが登録できませんでした。CSVファイルをダウンロードして確認してください。`);
+          }
+        }
 
         // エラーがある場合は表示して処理を中断
-        if (!result.success) {
+        if (result && !result.success) {
           toast.error(result.error || "データの保存中にエラーが発生しました");
           hasErrors = true;
           break;
@@ -344,6 +483,73 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       setIsUploading(false);
     }
   }
+
+  // アップロードタイプのラジオボタンを生成する関数
+  const renderUploadTypeRadio = useCallback(
+    (type: UploadType) => {
+      const info = UPLOAD_TYPE_INFO[type];
+      const canUse = hasPermissionForUploadType(type);
+      const isSelected = uploadType === type;
+
+      return (
+        <motion.div
+          whileHover={{ scale: canUse ? 1.01 : 1 }}
+          whileTap={{ scale: canUse ? 0.98 : 1 }}
+          onClick={() => canUse && setUploadType(type)}
+          className={cn("relative cursor-pointer rounded-lg border-2 p-4", isSelected ? "border-blue-500" : "border-gray-200", !canUse && "cursor-not-allowed opacity-70")}
+        >
+          <div className="flex items-start">
+            <RadioGroupItem value={type} id={type.toLowerCase()} className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" disabled={!canUse} />
+            <div className="flex-1">
+              <Label htmlFor={type.toLowerCase()} className={cn("flex cursor-pointer items-center text-base font-medium", !canUse && "cursor-not-allowed")}>
+                <File className="mr-2 h-5 w-5 text-blue-500" />
+                {info.title}
+              </Label>
+              <p className="mt-1 text-sm text-gray-500">{info.description}</p>
+
+              {/* タイプ固有の警告表示 */}
+              {type === "FIXED_CONTRIBUTION" && !canUse && (
+                <div className="mt-2 flex items-center text-xs text-amber-600">
+                  <AlertTriangle className="mr-1 h-3.5 w-3.5" />
+                  <span>このアップロードにはグループオーナーまたはアプリオーナーの権限が必要です</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      );
+    },
+    [uploadType, hasPermissionForUploadType],
+  );
+
+  // ファイルフォーマット情報を表示
+  const renderFileFormatInfo = useCallback(() => {
+    const info = UPLOAD_TYPE_INFO[uploadType];
+
+    return (
+      <div className="mb-3 space-y-2">
+        <p className="text-gray-700">
+          <span className="font-medium text-green-600">必須フィールド:</span> {info.requiredFields}
+        </p>
+
+        {info.optionalFields && (
+          <p className="text-gray-700">
+            <span className="font-medium text-green-600">オプションフィールド:</span> {info.optionalFields}
+          </p>
+        )}
+
+        {info.note && (
+          <p className="text-gray-700">
+            <span className="font-medium text-red-600">注意:</span> {info.note}
+          </p>
+        )}
+
+        <p className="text-gray-700">
+          <span className="italic">例: {info.example}</span>
+        </p>
+      </div>
+    );
+  }, [uploadType]);
 
   return (
     <>
@@ -389,41 +595,9 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               <h3 className="text-lg font-medium text-gray-900">アップロードの種類</h3>
               <RadioGroup value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="pt-2">
                 <div className="grid grid-cols-1 gap-4">
-                  <motion.div
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setUploadType("TASK_REPORT")}
-                    className={cn("relative cursor-pointer rounded-lg border-2 p-4", uploadType === "TASK_REPORT" ? "border-blue-500" : "border-gray-200")}
-                  >
-                    <div className="flex items-start">
-                      <RadioGroupItem value="TASK_REPORT" id="task_report" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
-                      <div className="flex-1">
-                        <Label htmlFor="task_report" className="flex cursor-pointer items-center text-base font-medium">
-                          <File className="mr-2 h-5 w-5 text-blue-500" />
-                          タスク報告
-                        </Label>
-                        <p className="mt-1 text-sm text-gray-500">タスクの内容やタイプを一括で登録します。</p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setUploadType("CONTRIBUTION_EVALUATION")}
-                    className={cn("relative cursor-pointer rounded-lg border-2 p-4", uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-500" : "border-gray-200")}
-                  >
-                    <div className="flex items-start">
-                      <RadioGroupItem value="CONTRIBUTION_EVALUATION" id="contribution_evaluation" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
-                      <div className="flex-1">
-                        <Label htmlFor="contribution_evaluation" className="flex cursor-pointer items-center text-base font-medium">
-                          <Cloud className="mr-2 h-5 w-5 text-blue-500" />
-                          貢献評価
-                        </Label>
-                        <p className="mt-1 text-sm text-gray-500">タスクに対する貢献ポイントや評価ロジックを一括で登録します。</p>
-                      </div>
-                    </div>
-                  </motion.div>
+                  {renderUploadTypeRadio("TASK_REPORT")}
+                  {renderUploadTypeRadio("CONTRIBUTION_EVALUATION")}
+                  {renderUploadTypeRadio("FIXED_CONTRIBUTION")}
                 </div>
               </RadioGroup>
             </div>
@@ -451,30 +625,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               {/* ファイルフォーマットの説明 */}
               <div className="rounded-lg border bg-gray-50 p-4 text-sm">
                 <h4 className="mb-2 font-medium text-gray-900">CSVファイルのフォーマット</h4>
-                <div className="mb-3 space-y-2">
-                  {uploadType === "TASK_REPORT" ? (
-                    <>
-                      <p className="text-gray-700">
-                        <span className="font-medium text-green-600">必須フィールド:</span> task（タスク内容）, contributionType（貢献タイプ: REWARD または NON_REWARD）
-                      </p>
-                      <p className="text-gray-700">
-                        <span className="font-medium text-green-600">オプションフィールド:</span> reference（参考にした内容）, info（証拠・結果・補足情報）
-                      </p>
-                      <p className="text-gray-700">
-                        <span className="italic">例: Webサイトのデザイン改修,https://example.com/design,REWARD,プルリクURL: https://github.com/org/repo/pull/123</span>
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-gray-700">
-                        <span className="font-medium text-green-600">必須フィールド:</span> taskId（タスクID）, contributionPoint（貢献ポイント）, evaluationLogic（評価ロジック）
-                      </p>
-                      <p className="text-gray-700">
-                        <span className="italic">例: clrqz3kp20000n4og9xq9d6mt,80,プロジェクトに大きく貢献した</span>
-                      </p>
-                    </>
-                  )}
-                </div>
+                {renderFileFormatInfo()}
               </div>
               <div
                 {...getRootProps()}
@@ -526,7 +677,11 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               キャンセル
             </Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button onClick={handleUpload} disabled={isUploading || currentFiles.length === 0} className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}>
+              <Button
+                onClick={handleUpload}
+                disabled={isUploading || currentFiles.length === 0 || !hasPermissionForUploadType(uploadType)}
+                className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}
+              >
                 {isUploading ? (
                   <>
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>

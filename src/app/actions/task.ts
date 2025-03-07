@@ -482,3 +482,148 @@ export async function updateTaskStatus(taskId: string, status: string) {
     return { error: "タスクのステータスの更新中にエラーが発生しました" };
   }
 }
+
+/**
+ * FIXした分析結果データをCSVからアップロードして、タスクを更新する関数
+ * @param data - CSVから読み込んだ評価データ
+ * @param groupId - グループID
+ * @returns 処理結果と成功・失敗データを含むオブジェクト
+ */
+export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
+  try {
+    const session = await auth();
+
+    // 認証セッションが取得できない場合
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "認証エラーが発生しました",
+        successData: [],
+        failedData: data.map((item) => ({ ...item, 失敗理由: "認証エラー" })),
+      };
+    }
+
+    // グループオーナーまたはアプリオーナーかどうかをチェック
+    const isAppOwner = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAppOwner: true },
+    });
+
+    const isGroupOwner = await prisma.groupMembership.findFirst({
+      where: {
+        userId: session.user.id,
+        groupId: groupId,
+        isGroupOwner: true,
+      },
+    });
+
+    // 権限がない場合はエラーを返す
+    if (!isAppOwner?.isAppOwner && !isGroupOwner) {
+      return {
+        success: false,
+        error: "この操作を行う権限がありません",
+        successData: [],
+        failedData: data.map((item) => ({ ...item, 失敗理由: "アクセス権限エラー" })),
+      };
+    }
+
+    // 成功したデータと失敗したデータを保存する配列
+    const successData: any[] = [];
+    const failedData: any[] = [];
+
+    // トランザクションを使用してデータを一括更新
+    await prisma.$transaction(async (tx) => {
+      for (const row of data) {
+        // 必須項目のチェック
+        if (!row.id) {
+          failedData.push({ ...row, 失敗理由: "タスクIDが指定されていません" });
+          continue;
+        }
+
+        // タスクの存在確認
+        const task = await tx.task.findFirst({
+          where: {
+            id: row.id,
+            groupId: groupId,
+          },
+        });
+
+        if (!task) {
+          failedData.push({ ...row, 失敗理由: "指定されたタスクが見つかりません" });
+          continue;
+        }
+
+        // タスクのステータスが TASK_COMPLETED かどうかチェック
+        if (task.status !== "TASK_COMPLETED") {
+          failedData.push({ ...row, 失敗理由: "タスクのステータスが「タスク完了」でないため更新できません" });
+          continue;
+        }
+
+        try {
+          // 評価ポイントが数値かをチェック
+          const contributionPoint = parseInt(row.fixedContributionPoint);
+          if (isNaN(contributionPoint)) {
+            failedData.push({ ...row, 失敗理由: "固定貢献ポイントが数値ではありません" });
+            continue;
+          }
+
+          // 評価者と評価ロジックのチェック
+          if (!row.fixedEvaluator) {
+            failedData.push({ ...row, 失敗理由: "固定評価者が指定されていません" });
+            continue;
+          }
+
+          if (!row.fixedEvaluationLogic) {
+            failedData.push({ ...row, 失敗理由: "固定評価ロジックが指定されていません" });
+            continue;
+          }
+
+          // 評価日の確認（指定がなければ現在の日時）
+          let evaluationDate: Date;
+          if (row.fixedEvaluationDate) {
+            const dateValue = new Date(row.fixedEvaluationDate);
+            evaluationDate = isNaN(dateValue.getTime()) ? new Date() : dateValue;
+          } else {
+            evaluationDate = new Date();
+          }
+
+          // タスクを更新
+          const updatedTask = await tx.task.update({
+            where: { id: row.id },
+            data: {
+              fixedContributionPoint: contributionPoint,
+              fixedEvaluator: row.fixedEvaluator,
+              fixedEvaluationLogic: row.fixedEvaluationLogic,
+              // @ts-ignore - fixedEvaluationDateはスキーマに存在するが型定義にない
+              fixedEvaluationDate: evaluationDate,
+              userFixedSubmitterId: session?.user?.id,
+              status: "POINTS_AWARDED",
+            },
+          });
+
+          successData.push({ ...row, status: updatedTask.status });
+        } catch (error) {
+          console.error(`タスク更新エラー (ID: ${row.id}):`, error);
+          failedData.push({ ...row, 失敗理由: `エラー: ${error instanceof Error ? error.message : "不明なエラー"}` });
+        }
+      }
+    });
+
+    revalidatePath(`/dashboard/group/${groupId}`);
+
+    return {
+      success: true,
+      successData,
+      failedData,
+      message: `${successData.length}件のタスクが正常に更新されました。${failedData.length > 0 ? `${failedData.length}件の更新に失敗しました。` : ""}`,
+    };
+  } catch (error) {
+    console.error("[BULK_UPDATE_FIXED_EVALUATIONS]", error);
+    return {
+      success: false,
+      error: "タスクの一括更新中にエラーが発生しました",
+      successData: [],
+      failedData: data.map((item) => ({ ...item, 失敗理由: "システムエラー" })),
+    };
+  }
+}
