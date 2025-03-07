@@ -211,13 +211,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
   // アップロードしたファイルをカードとして表示
   const fileCards = useMemo(() => {
     return currentFiles.map((file, i) => (
-      <motion.div
-        key={`${file.name}-${i}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2, delay: i * 0.05 }}
-      >
+      <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, delay: i * 0.05 }}>
         <SelectedFileCard name={file.name} fileSize={file.size} onRemove={() => handleRemoveFile(file)} />
       </motion.div>
     ));
@@ -356,13 +350,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       {/* グローバルなドロップゾーンオーバーレイ */}
       <AnimatePresence>
         {isFileOver && (
-          <motion.div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={globalDropOverlay}
-          >
+          <motion.div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]" initial="hidden" animate="visible" exit="exit" variants={globalDropOverlay}>
             <motion.div
               className="max-screen mx-auto flex flex-col items-center rounded-xl border-2 border-dashed border-blue-500 bg-white/95 p-8 shadow-2xl"
               initial={{ scale: 0.9, y: 20 }}
@@ -380,10 +368,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
       {/* アップロードモーダル */}
       <Dialog open={isOpen} onOpenChange={(open) => !isUploading && onCloseAction(open)}>
-        <DialogContent
-          className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]"
-          closeButton={false}
-        >
+        <DialogContent className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]" closeButton={false}>
           <div className="relative flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
             <button
               onClick={() => !isUploading && onCloseAction(false)}
@@ -398,12 +383,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
             <p className="mt-1 text-sm text-blue-100">CSVファイルをアップロードして一括でデータを登録します</p>
           </div>
 
-          <motion.div
-            className="flex-grow space-y-6 overflow-y-auto p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div className="flex-grow space-y-6 overflow-y-auto p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             {/* アップロードタイプ選択 */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">アップロードの種類</h3>
@@ -413,17 +393,10 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setUploadType("TASK_REPORT")}
-                    className={cn(
-                      "relative cursor-pointer rounded-lg border-2 p-4",
-                      uploadType === "TASK_REPORT" ? "border-blue-500" : "border-gray-200",
-                    )}
+                    className={cn("relative cursor-pointer rounded-lg border-2 p-4", uploadType === "TASK_REPORT" ? "border-blue-500" : "border-gray-200")}
                   >
                     <div className="flex items-start">
-                      <RadioGroupItem
-                        value="TASK_REPORT"
-                        id="task_report"
-                        className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500"
-                      />
+                      <RadioGroupItem value="TASK_REPORT" id="task_report" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
                       <div className="flex-1">
                         <Label htmlFor="task_report" className="flex cursor-pointer items-center text-base font-medium">
                           <File className="mr-2 h-5 w-5 text-blue-500" />
@@ -438,17 +411,10 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setUploadType("CONTRIBUTION_EVALUATION")}
-                    className={cn(
-                      "relative cursor-pointer rounded-lg border-2 p-4",
-                      uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-500" : "border-gray-200",
-                    )}
+                    className={cn("relative cursor-pointer rounded-lg border-2 p-4", uploadType === "CONTRIBUTION_EVALUATION" ? "border-blue-500" : "border-gray-200")}
                   >
                     <div className="flex items-start">
-                      <RadioGroupItem
-                        value="CONTRIBUTION_EVALUATION"
-                        id="contribution_evaluation"
-                        className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500"
-                      />
+                      <RadioGroupItem value="CONTRIBUTION_EVALUATION" id="contribution_evaluation" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
                       <div className="flex-1">
                         <Label htmlFor="contribution_evaluation" className="flex cursor-pointer items-center text-base font-medium">
                           <Cloud className="mr-2 h-5 w-5 text-blue-500" />
@@ -465,22 +431,10 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
             {/* 選択されたファイル一覧 */}
             <AnimatePresence>
               {currentFiles.length > 0 && (
-                <motion.div
-                  className="space-y-3"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <motion.div className="space-y-3" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium text-gray-700">選択されたファイル</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRemoveAll}
-                      disabled={isUploading}
-                      className="text-xs text-gray-500 hover:text-red-500"
-                    >
+                    <Button variant="ghost" size="sm" onClick={handleRemoveAll} disabled={isUploading} className="text-xs text-gray-500 hover:text-red-500">
                       すべて削除
                     </Button>
                   </div>
@@ -501,24 +455,19 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                   {uploadType === "TASK_REPORT" ? (
                     <>
                       <p className="text-gray-700">
-                        <span className="font-medium text-green-600">必須フィールド:</span> task（タスク内容）, contributionType（貢献タイプ: REWARD
-                        または NON_REWARD）
+                        <span className="font-medium text-green-600">必須フィールド:</span> task（タスク内容）, contributionType（貢献タイプ: REWARD または NON_REWARD）
                       </p>
                       <p className="text-gray-700">
-                        <span className="font-medium text-green-600">オプションフィールド:</span> reference（参考にした内容）,
-                        info（証拠・結果・補足情報）
+                        <span className="font-medium text-green-600">オプションフィールド:</span> reference（参考にした内容）, info（証拠・結果・補足情報）
                       </p>
                       <p className="text-gray-700">
-                        <span className="italic">
-                          例: Webサイトのデザイン改修,https://example.com/design,REWARD,プルリクURL: https://github.com/org/repo/pull/123
-                        </span>
+                        <span className="italic">例: Webサイトのデザイン改修,https://example.com/design,REWARD,プルリクURL: https://github.com/org/repo/pull/123</span>
                       </p>
                     </>
                   ) : (
                     <>
                       <p className="text-gray-700">
-                        <span className="font-medium text-green-600">必須フィールド:</span> taskId（タスクID）, contributionPoint（貢献ポイント）,
-                        evaluationLogic（評価ロジック）
+                        <span className="font-medium text-green-600">必須フィールド:</span> taskId（タスクID）, contributionPoint（貢献ポイント）, evaluationLogic（評価ロジック）
                       </p>
                       <p className="text-gray-700">
                         <span className="italic">例: clrqz3kp20000n4og9xq9d6mt,80,プロジェクトに大きく貢献した</span>
@@ -531,9 +480,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
                 {...getRootProps()}
                 className={cn(
                   "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-all duration-200",
-                  isDragActive
-                    ? "scale-[1.01] border-blue-500 bg-blue-50 shadow-[0_0_0_2px_rgba(59,130,246,0.3)]"
-                    : "border-gray-300 hover:scale-[1.01] hover:bg-gray-50",
+                  isDragActive ? "scale-[1.01] border-blue-500 bg-blue-50 shadow-[0_0_0_2px_rgba(59,130,246,0.3)]" : "border-gray-300 hover:scale-[1.01] hover:bg-gray-50",
                 )}
               >
                 <input {...getInputProps()} />
@@ -561,13 +508,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               {/* アップロード進捗バー */}
               <AnimatePresence>
                 {isUploading && (
-                  <motion.div
-                    className="mt-4 space-y-2"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  <motion.div className="mt-4 space-y-2" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
                     <div className="flex items-center justify-between">
                       <Label className="text-sm">アップロード進捗</Label>
                       <span className="text-sm font-medium">{Math.round(uploadProgress)}%</span>
@@ -585,11 +526,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               キャンセル
             </Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                onClick={handleUpload}
-                disabled={isUploading || currentFiles.length === 0}
-                className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}
-              >
+              <Button onClick={handleUpload} disabled={isUploading || currentFiles.length === 0} className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}>
                 {isUploading ? (
                   <>
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>

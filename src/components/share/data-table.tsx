@@ -180,14 +180,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
         // セルの値がオブジェクトの場合は、特定のプロパティでソート
         if ((typeof aValue === "object" && aValue !== null) || (typeof bValue === "object" && bValue !== null)) {
           // オブジェクトの場合は、特定のプロパティでソート
-          if (
-            aValue !== null &&
-            bValue !== null &&
-            typeof aValue === "object" &&
-            typeof bValue === "object" &&
-            "name" in aValue &&
-            "name" in bValue
-          ) {
+          if (aValue !== null && bValue !== null && typeof aValue === "object" && typeof bValue === "object" && "name" in aValue && "name" in bValue) {
             const aName = (aValue as { name: string | null }).name;
             const bName = (bValue as { name: string | null }).name;
 
@@ -260,19 +253,9 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
           <thead className={cn(headerClassName, "bg-white")}>
             <tr>
               {columns.map((column, index) => (
-                <th
-                  key={index}
-                  className={cn(
-                    "w-full px-5 py-3 text-left text-sm font-medium",
-                    headerClassName,
-                    stickyHeader && "sticky top-0 z-20 border-b border-blue-100 shadow-md",
-                  )}
-                >
+                <th key={index} className={cn("w-full px-5 py-3 text-left text-sm font-medium", headerClassName, stickyHeader && "sticky top-0 z-20 border-b border-blue-100 shadow-md")}>
                   {column.sortable ? (
-                    <button
-                      onClick={() => handleSort(column.key)}
-                      className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
-                    >
+                    <button onClick={() => handleSort(column.key)} className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
                       {column.header}
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
@@ -295,10 +278,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                           const selectedLabel = safeList.find((option) => option.value === String(row[column.key]))?.label || "ステータスを選択";
 
                           return (
-                            <Popover
-                              open={openStatus === (row.id as string)}
-                              onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? (row.id as string) : null)}
-                            >
+                            <Popover open={openStatus === (row.id as string)} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? (row.id as string) : null)}>
                               <PopoverTrigger asChild>
                                 <Button variant="outline" role="combobox" className="mr-3">
                                   {selectedLabel}
@@ -325,9 +305,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                                               });
                                           }}
                                         >
-                                          <Check
-                                            className={cn("mr-2 h-4 w-4", String(row[column.key]) === option.value ? "opacity-100" : "opacity-0")}
-                                          />
+                                          <Check className={cn("mr-2 h-4 w-4", String(row[column.key]) === option.value ? "opacity-100" : "opacity-0")} />
                                           {option.label}
                                         </CommandItem>
                                       ))}
@@ -345,14 +323,9 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                             // 参加モーダルの場合のみ、ボタンを無効化する。ここでは join モーダルが modalList の最初の要素（modalIndex === 0）であると仮定しています
                             const isJoinModal = modal.joinModal;
                             // row.members が配列で、かつ1件以上あれば「参加中」とみなす
-                            const hasMembers =
-                              row && typeof row === "object" && "members" in row && Array.isArray(row.members) && row.members.length > 0;
+                            const hasMembers = row && typeof row === "object" && "members" in row && Array.isArray(row.members) && row.members.length > 0;
                             // 参加モーダルなら、参加中の場合は [0] を、未参加の場合は [1] を表示。それ以外（編集・削除）の場合は常に [0] を表示する例（必要に応じて変更可）
-                            const buttonText = isJoinModal
-                              ? hasMembers
-                                ? modal.triggerContent[0]
-                                : modal.triggerContent[1]
-                              : modal.triggerContent[0];
+                            const buttonText = isJoinModal ? (hasMembers ? modal.triggerContent[0] : modal.triggerContent[1]) : modal.triggerContent[0];
                             // 参加モーダーの場合、参加中の場合はボタンを無効化する
                             const isDisabled = isJoinModal && hasMembers;
                             return (

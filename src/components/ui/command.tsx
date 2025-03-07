@@ -10,10 +10,7 @@ function Command({ className, ...props }: React.ComponentProps<typeof CommandPri
   return (
     <CommandPrimitive
       data-slot="command"
-      className={cn(
-        "flex h-full w-full flex-col overflow-hidden rounded-md bg-white text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50",
-        className,
-      )}
+      className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-white text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50", className)}
       {...props}
     />
   );
@@ -60,13 +57,7 @@ function CommandInput({ className, ...props }: React.ComponentProps<typeof Comma
 }
 
 function CommandList({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.List>) {
-  return (
-    <CommandPrimitive.List
-      data-slot="command-list"
-      className={cn("max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto", className)}
-      {...props}
-    />
-  );
+  return <CommandPrimitive.List data-slot="command-list" className={cn("max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto", className)} {...props} />;
 }
 
 function CommandEmpty({ ...props }: React.ComponentProps<typeof CommandPrimitive.Empty>) {
@@ -87,9 +78,7 @@ function CommandGroup({ className, ...props }: React.ComponentProps<typeof Comma
 }
 
 function CommandSeparator({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Separator>) {
-  return (
-    <CommandPrimitive.Separator data-slot="command-separator" className={cn("-mx-1 h-px bg-neutral-200 dark:bg-neutral-800", className)} {...props} />
-  );
+  return <CommandPrimitive.Separator data-slot="command-separator" className={cn("-mx-1 h-px bg-neutral-200 dark:bg-neutral-800", className)} {...props} />;
 }
 
 function CommandItem({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Item>) {
@@ -106,13 +95,7 @@ function CommandItem({ className, ...props }: React.ComponentProps<typeof Comman
 }
 
 function CommandShortcut({ className, ...props }: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="command-shortcut"
-      className={cn("ml-auto text-xs tracking-widest text-neutral-500 dark:text-neutral-400", className)}
-      {...props}
-    />
-  );
+  return <span data-slot="command-shortcut" className={cn("ml-auto text-xs tracking-widest text-neutral-500 dark:text-neutral-400", className)} {...props} />;
 }
 
 export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut, CommandSeparator };

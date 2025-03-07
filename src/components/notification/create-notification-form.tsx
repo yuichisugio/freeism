@@ -132,32 +132,11 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
           placeholder="例：2025年3月1日午前2時から5時までシステムメンテナンスを実施します。"
         />
 
-        <CustomFormField
-          control={form.control}
-          name="type"
-          label="通知タイプ"
-          description="通知の種類を選択してください"
-          fieldType="radio"
-          options={notificationTypeOptions}
-        />
+        <CustomFormField control={form.control} name="type" label="通知タイプ" description="通知の種類を選択してください" fieldType="radio" options={notificationTypeOptions} />
 
-        <CustomFormField
-          control={form.control}
-          name="priority"
-          label="重要度"
-          description="通知の重要度を選択してください"
-          fieldType="radio"
-          options={priorityOptions}
-        />
+        <CustomFormField control={form.control} name="priority" label="重要度" description="通知の重要度を選択してください" fieldType="radio" options={priorityOptions} />
 
-        <CustomFormField
-          control={form.control}
-          name="targetType"
-          label="通知単位"
-          description="通知の送信単位を選択してください"
-          fieldType="radio"
-          options={targetTypeOptions}
-        />
+        <CustomFormField control={form.control} name="targetType" label="通知単位" description="通知の送信単位を選択してください" fieldType="radio" options={targetTypeOptions} />
 
         {targetType === "USER" && (
           <CustomFormField
@@ -217,14 +196,7 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
           placeholder="例：https://example.com/page"
         />
 
-        <CustomFormField
-          control={form.control}
-          name="expiresAt"
-          label="有効期限（オプション）"
-          description="通知の有効期限を設定します"
-          fieldType="date"
-          placeholder="日付を選択"
-        />
+        <CustomFormField control={form.control} name="expiresAt" label="有効期限（オプション）" description="通知の有効期限を設定します" fieldType="date" placeholder="日付を選択" />
       </FormLayout>
     </div>
   );

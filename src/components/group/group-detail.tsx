@@ -4,55 +4,19 @@ import type { GroupMemberWithUser } from "@/app/actions/group";
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  checkAppOwner,
-  checkAuth,
-  checkGroupOwner,
-  deleteGroup,
-  getGroupMembers,
-  grantOwnerPermission,
-  joinGroup,
-  leaveGroup,
-  removeMember,
-} from "@/app/actions/group";
+import { checkAppOwner, checkAuth, checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, leaveGroup, removeMember } from "@/app/actions/group";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { EditGroupForm } from "@/components/group/edit-group-form";
 import { ExportDataModal } from "@/components/group/export-data-modal";
 import { DataTable } from "@/components/share/data-table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Award,
-  Check,
-  ChevronsUpDown,
-  ClipboardCheck,
-  ClipboardList,
-  Download,
-  Edit,
-  Loader2,
-  LogOut,
-  ShieldCheck,
-  TargetIcon,
-  Trash2,
-  Upload,
-  UserMinus,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { Award, Check, ChevronsUpDown, ClipboardCheck, ClipboardList, Download, Edit, Loader2, LogOut, ShieldCheck, TargetIcon, Trash2, Upload, UserMinus, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 
 type Task = {
@@ -531,12 +495,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
 
           {/* 脱退ボタン（グループオーナー以外のメンバー向け） */}
           {isMember && !isGroupOwner && (
-            <Button
-              variant="outline"
-              className="ml-auto border-red-200 bg-white text-red-600 hover:bg-gray-50 hover:text-red-700"
-              onClick={() => handleLeave()}
-              disabled={isLoading}
-            >
+            <Button variant="outline" className="ml-auto border-red-200 bg-white text-red-600 hover:bg-gray-50 hover:text-red-700" onClick={() => handleLeave()} disabled={isLoading}>
               <LogOut className="mr-2 h-4 w-4" />
               グループを脱退
             </Button>
@@ -571,9 +530,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">グループオーナー権限付与</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
-              {isGroupOwner || isAppOwner
-                ? "グループオーナー権限を付与するユーザーを選択してください。"
-                : "グループオーナー権限がないため、権限を付与することができません。"}
+              {isGroupOwner || isAppOwner ? "グループオーナー権限を付与するユーザーを選択してください。" : "グループオーナー権限がないため、権限を付与することができません。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {(isGroupOwner || isAppOwner) && (
@@ -718,19 +675,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">グループから脱退しますか？</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
-              グループから脱退すると、グループのタスクにアクセスできなくなります。 この操作は取り消せません。
-            </AlertDialogDescription>
+            <AlertDialogDescription className="text-gray-600">グループから脱退すると、グループのタスクにアクセスできなくなります。 この操作は取り消せません。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button
-                variant="destructive"
-                onClick={() => executeLeave(tasks[0].group.id)}
-                disabled={isLoading}
-                className="bg-red-500 hover:bg-red-600"
-              >
+              <Button variant="destructive" onClick={() => executeLeave(tasks[0].group.id)} disabled={isLoading} className="bg-red-500 hover:bg-red-600">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
                 脱退する
               </Button>

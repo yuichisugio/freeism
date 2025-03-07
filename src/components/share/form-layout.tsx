@@ -64,12 +64,7 @@ export function FormLayout<T extends FieldValues>({
       <motion.form onSubmit={form.handleSubmit(onSubmit)} className={`${className}`} initial="hidden" animate="visible" variants={formVariants}>
         {children}
         {form.formState.errors.root && (
-          <motion.div
-            className="rounded-md border border-red-100 bg-red-50 p-3 text-center text-sm text-red-500 shadow-sm"
-            variants={errorVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div className="rounded-md border border-red-100 bg-red-50 p-3 text-center text-sm text-red-500 shadow-sm" variants={errorVariants} initial="hidden" animate="visible">
             {form.formState.errors.root.message}
           </motion.div>
         )}
@@ -77,21 +72,11 @@ export function FormLayout<T extends FieldValues>({
           <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
             <Button
               type="submit"
-              className={cn(
-                "button-default-custom",
-                "mb-3",
-                "relative overflow-hidden transition-all duration-300",
-                form.formState.isSubmitting && "bg-opacity-80",
-              )}
+              className={cn("button-default-custom", "mb-3", "relative overflow-hidden transition-all duration-300", form.formState.isSubmitting && "bg-opacity-80")}
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting && (
-                <motion.span
-                  className="absolute inset-0 flex items-center justify-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
+                <motion.span className="absolute inset-0 flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
                 </motion.span>
               )}

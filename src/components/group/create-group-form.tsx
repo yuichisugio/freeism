@@ -72,23 +72,8 @@ export function CreateGroupForm() {
 
   return (
     <FormLayout form={form} onSubmit={onSubmit} submitLabel="グループを作成" submittingLabel="作成中...">
-      <CustomFormField
-        fieldType="input"
-        control={form.control}
-        name="name"
-        label="グループ名"
-        placeholder="グループ名を入力してください"
-        description="グループの名前を入力してください"
-        type="text"
-      />
-      <CustomFormField
-        fieldType="textarea"
-        control={form.control}
-        name="goal"
-        label="最終目標"
-        placeholder="グループの最終目標を入力してください"
-        description="グループの最終目標を入力してください"
-      />
+      <CustomFormField fieldType="input" control={form.control} name="name" label="グループ名" placeholder="グループ名を入力してください" description="グループの名前を入力してください" type="text" />
+      <CustomFormField fieldType="textarea" control={form.control} name="goal" label="最終目標" placeholder="グループの最終目標を入力してください" description="グループの最終目標を入力してください" />
       <CustomFormField
         fieldType="textarea"
         control={form.control}

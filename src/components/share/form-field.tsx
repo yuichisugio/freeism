@@ -108,18 +108,7 @@ const formMessageVariants = {
 
 // 共通のフィールドレイアウトコンポーネント
 // すべてのフィールドタイプで共通のUIパターンを抽出
-function FieldLayout({
-  label,
-  description,
-  children,
-  extraChildren,
-}: {
-  label: string;
-  description?: string;
-  error?: string;
-  children: ReactNode;
-  extraChildren?: ReactNode;
-}) {
+function FieldLayout({ label, description, children, extraChildren }: { label: string; description?: string; error?: string; children: ReactNode; extraChildren?: ReactNode }) {
   return (
     <motion.div variants={fieldVariants} initial="hidden" animate="visible" exit="exit">
       <FormItem className="mb-4">
@@ -210,10 +199,7 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
               variant="outline"
               role="combobox"
               aria-expanded={props.open}
-              className={cn(
-                "w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400",
-                !field.value && "text-muted-foreground",
-              )}
+              className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")}
               type="button"
             >
               {field.value ? props.options.find((item) => item[valueProperty] === field.value)?.[labelProperty] || placeholder : placeholder}
@@ -231,13 +217,7 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
               <CommandGroup>
                 <AnimatePresence>
                   {props.options.map((item) => (
-                    <motion.div
-                      key={item[valueProperty]}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
+                    <motion.div key={item[valueProperty]} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
                       <CommandItem
                         key={item[valueProperty]}
                         value={item[labelProperty]}
@@ -281,11 +261,7 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
       <Popover>
         <PopoverTrigger asChild>
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.2 }}>
-            <Button
-              variant="outline"
-              className="w-full justify-start border-gray-300 text-left font-normal transition-all duration-200 hover:border-blue-400"
-              type="button"
-            >
+            <Button variant="outline" className="w-full justify-start border-gray-300 text-left font-normal transition-all duration-200 hover:border-blue-400" type="button">
               <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
               {field.value ? (
                 <motion.span initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>

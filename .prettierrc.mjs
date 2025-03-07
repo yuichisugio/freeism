@@ -23,7 +23,7 @@ const config = {
   importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"],
   importOrderTypeScriptVersion: "5.0.0",
   arrowParens: "always",
-  printWidth: 150,
+  printWidth: 200,
   singleQuote: false,
   semi: true,
   trailingComma: "all",

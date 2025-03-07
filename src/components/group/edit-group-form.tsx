@@ -110,11 +110,7 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
         <h2 className="text-app mb-4 text-xl font-bold">グループ情報編集</h2>
         <p className="text-destructive">グループオーナー権限がないため、グループ情報を編集する権限がありません</p>
         <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onClose || (() => {})}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md px-4 py-2 text-sm font-medium"
-          >
+          <button type="button" onClick={onClose || (() => {})} className="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md px-4 py-2 text-sm font-medium">
             閉じる
           </button>
         </div>
@@ -124,15 +120,7 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
 
   return (
     <div className="space-y-4">
-      <FormLayout
-        form={form}
-        onSubmit={onSubmit}
-        submitLabel="変更を保存"
-        submittingLabel="保存中..."
-        showCancelButton={true}
-        onCancel={onClose || (() => {})}
-        className="max-h-[90vh]"
-      >
+      <FormLayout form={form} onSubmit={onSubmit} submitLabel="変更を保存" submittingLabel="保存中..." showCancelButton={true} onCancel={onClose || (() => {})} className="max-h-[90vh]">
         <CustomFormField
           fieldType="input"
           control={form.control}

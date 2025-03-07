@@ -31,16 +31,9 @@ export default function NotFound() {
           {/* エラータイトル */}
           <h2 className="mb-3 text-xl font-bold text-neutral-900 sm:mb-4 sm:text-2xl lg:text-3xl">ページが見つかりません</h2>
           {/* エラー説明 */}
-          <p className="mb-6 text-sm text-neutral-600 sm:mb-8 sm:text-base lg:text-lg">
-            お探しのページは削除されたか、URLが間違っている可能性があります。
-          </p>
+          <p className="mb-6 text-sm text-neutral-600 sm:mb-8 sm:text-base lg:text-lg">お探しのページは削除されたか、URLが間違っている可能性があります。</p>
           {/* トップページへの戻るボタン */}
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full border-blue-200 bg-white text-blue-700 hover:bg-blue-50 sm:w-auto sm:min-w-[200px]"
-            asChild
-          >
+          <Button variant="outline" size="lg" className="w-full border-blue-200 bg-white text-blue-700 hover:bg-blue-50 sm:w-auto sm:min-w-[200px]" asChild>
             <Link href="/">トップページに戻る</Link>
           </Button>
         </div>

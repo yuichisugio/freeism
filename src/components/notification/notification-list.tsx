@@ -348,8 +348,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
 
       // フィルター変更時、特に「未読のみ」「既読のみ」に切り替えた場合、
       // 表示される通知が少ない場合は追加で読み込む
-      const visibleNotifications =
-        filter === "all" ? notifications : filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications.filter((n) => n.isRead);
+      const visibleNotifications = filter === "all" ? notifications : filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications.filter((n) => n.isRead);
 
       if (visibleNotifications.length < 5 && hasMore && !isLoading && !isLoadingMore) {
         loadMoreNotifications();
@@ -470,45 +469,25 @@ function LoadingIndicator() {
 }
 
 // フィルタータブコンポーネント
-function FilterTabs({
-  activeFilter,
-  onFilterChange,
-  unreadCount,
-}: {
-  activeFilter: FilterType;
-  onFilterChange: (filter: FilterType) => void;
-  unreadCount: number;
-}) {
+function FilterTabs({ activeFilter, onFilterChange, unreadCount }: { activeFilter: FilterType; onFilterChange: (filter: FilterType) => void; unreadCount: number }) {
   return (
     <div className="sticky top-0 z-10 mb-3 flex border-b bg-white">
       <button
         onClick={() => onFilterChange("all")}
-        className={
-          activeFilter === "all"
-            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
-            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
-        }
+        className={activeFilter === "all" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}
       >
         全て
       </button>
       <button
         onClick={() => onFilterChange("unread")}
-        className={
-          activeFilter === "unread"
-            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
-            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
-        }
+        className={activeFilter === "unread" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}
       >
         未読
         {unreadCount > 0 && <span className="ml-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs text-white">{unreadCount}</span>}
       </button>
       <button
         onClick={() => onFilterChange("read")}
-        className={
-          activeFilter === "read"
-            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
-            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
-        }
+        className={activeFilter === "read" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}
       >
         既読
       </button>
@@ -517,13 +496,7 @@ function FilterTabs({
 }
 
 // 通知アイテムコンポーネント
-function NotificationItem({
-  notification,
-  onToggleReadStatus,
-}: {
-  notification: NotificationData;
-  onToggleReadStatus: (id: string, isRead: boolean) => void;
-}) {
+function NotificationItem({ notification, onToggleReadStatus }: { notification: NotificationData; onToggleReadStatus: (id: string, isRead: boolean) => void }) {
   // アクションURL用に残しておく
   // const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -641,13 +614,7 @@ function NotificationItem({
               )}
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300"
-              disabled={isProcessing}
-              onClick={handleStatusButtonClick}
-            >
+            <Button variant="ghost" size="sm" className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300" disabled={isProcessing} onClick={handleStatusButtonClick}>
               {isProcessing ? (
                 <>
                   <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
@@ -675,17 +642,7 @@ function NotificationItem({
 }
 
 // 通知なしコンポーネント
-function NotificationsEmpty({
-  hasMore,
-  onLoadMore,
-  isLoadingMore,
-  activeFilter,
-}: {
-  hasMore: boolean;
-  onLoadMore: () => void;
-  isLoadingMore: boolean;
-  activeFilter: FilterType;
-}) {
+function NotificationsEmpty({ hasMore, onLoadMore, isLoadingMore, activeFilter }: { hasMore: boolean; onLoadMore: () => void; isLoadingMore: boolean; activeFilter: FilterType }) {
   let emptyMessage = "通知はありません";
 
   if (activeFilter === "unread") {
@@ -755,12 +712,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
 
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={markAllAsRead}
-              className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
+            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
               すべて既読にする
             </Button>
           )}

@@ -443,9 +443,7 @@ async function createAnalytics(tasks: any[], users: any[]) {
   const analytics = [];
 
   // 完了したタスクのみ分析対象とする（一部のタスクのみ評価対象とする）
-  const completedTasks = tasks.filter((task) =>
-    ["TASK_COMPLETED", "GROUP_REVIEW_COMPLETED", "EXTERNAL_REVIEW_COMPLETED", "POINTS_AWARDED"].includes(task.status),
-  );
+  const completedTasks = tasks.filter((task) => ["TASK_COMPLETED", "GROUP_REVIEW_COMPLETED", "EXTERNAL_REVIEW_COMPLETED", "POINTS_AWARDED"].includes(task.status));
 
   console.log(`${completedTasks.length}件の完了タスクから分析データを作成します`);
 
@@ -573,12 +571,7 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
           }
 
           groupId = randomGroup.id;
-          title = faker.helpers.arrayElement([
-            `「${randomGroup.name}」の新着情報`,
-            `「${randomGroup.name}」からのお知らせ`,
-            `「${randomGroup.name}」メンバー募集`,
-            `「${randomGroup.name}」活動報告`,
-          ]);
+          title = faker.helpers.arrayElement([`「${randomGroup.name}」の新着情報`, `「${randomGroup.name}」からのお知らせ`, `「${randomGroup.name}」メンバー募集`, `「${randomGroup.name}」活動報告`]);
           message = faker.lorem.paragraph();
           actionUrl = `/dashboard/group/${randomGroup.id}`;
           break;
@@ -596,12 +589,7 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
 
           taskId = randomTask.id;
           groupId = randomTask.groupId;
-          title = faker.helpers.arrayElement([
-            `タスク「${randomTask.task.substring(0, 20)}...」の更新`,
-            `タスク期限のお知らせ`,
-            `タスク評価の完了`,
-            `タスク状態の変化`,
-          ]);
+          title = faker.helpers.arrayElement([`タスク「${randomTask.task.substring(0, 20)}...」の更新`, `タスク期限のお知らせ`, `タスク評価の完了`, `タスク状態の変化`]);
           message = faker.lorem.paragraph();
           actionUrl = `/dashboard/tasks/${randomTask.id}`;
           break;

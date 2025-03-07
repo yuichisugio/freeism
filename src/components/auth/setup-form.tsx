@@ -75,15 +75,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
     <>
       <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">変更内容</h2>
       <FormLayout form={form} onSubmit={onSubmit} submitLabel="設定を保存">
-        <CustomFormField
-          fieldType="input"
-          control={form.control}
-          name="username"
-          label="ユーザー名"
-          placeholder="ユーザー名を入力"
-          description="あなたの表示名として使用されます"
-          type="text"
-        />
+        <CustomFormField fieldType="input" control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" type="text" />
 
         <CustomFormField
           fieldType="textarea"

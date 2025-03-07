@@ -14,16 +14,7 @@ import { ja } from "date-fns/locale";
 import { zip } from "fflate";
 import { saveAs } from "file-saver";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BarChart as BarChartIcon,
-  CalendarIcon,
-  Check as CheckIcon,
-  Download as DownloadIcon,
-  FileIcon,
-  Loader2 as Loader2Icon,
-  PackageCheck,
-  X as XIcon,
-} from "lucide-react";
+import { BarChart as BarChartIcon, CalendarIcon, Check as CheckIcon, Download as DownloadIcon, FileIcon, Loader2 as Loader2Icon, PackageCheck, X as XIcon } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -259,23 +250,28 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   const exportFunctions = {
     // エクスポート処理
     handleExport: async () => {
-      if (!dateUtils.isDateRangeValid()) return;
-
       try {
         updateState({ isExporting: true });
 
-        // 日付範囲の設定（開始日は0時0分、終了日は23時59分59秒）
-        const start = state.startDate ? startOfDay(state.startDate) : undefined;
-        const end = state.endDate ? endOfDay(state.endDate) : undefined;
-
         if (state.exportType === "TASK") {
+          // タスクデータはdateUtilsを使って期間チェック
+          if (!dateUtils.isDateRangeValid()) {
+            updateState({ isExporting: false });
+            return;
+          }
+
+          // 日付範囲の設定（開始日は0時0分、終了日は23時59分59秒）
+          const start = state.startDate ? startOfDay(state.startDate) : undefined;
+          const end = state.endDate ? endOfDay(state.endDate) : undefined;
+
           await exportFunctions.handleTaskExport(start, end);
         } else {
-          await exportFunctions.handleAnalyticsExport(start, end);
+          // 分析結果データは期間指定なし
+          await exportFunctions.handleAnalyticsExport();
         }
       } catch (error) {
         console.error("エクスポートエラー:", error);
-        toast.error("データのエクスポートに失敗しました");
+        toast.error(error instanceof Error ? error.message : "エクスポート中にエラーが発生しました");
       } finally {
         updateState({ isExporting: false });
       }
@@ -296,58 +292,55 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
     },
 
     // 分析結果データのエクスポート
-    handleAnalyticsExport: async (start?: Date, end?: Date) => {
-      const data = (await exportGroupAnalytics(groupId, start, end, state.page, state.onlyFixed)) as AnalyticsData;
+    handleAnalyticsExport: async () => {
+      try {
+        const data = (await exportGroupAnalytics(groupId, state.page, state.onlyFixed)) as AnalyticsData;
 
-      if (!data || Object.keys(data).length === 0) {
-        toast.error("エクスポート可能な分析結果がありません");
-        return;
-      }
+        // データが空の場合はここには到達しない（exportGroupAnalyticsでエラーがスローされる）
 
-      // ファイル名の作成（グループ名、日付、ページ数を含む）
-      const baseFilename = `${groupName}_analytics_page${state.page}_${format(new Date(), "yyyyMMdd")}`;
+        // 各評価者ごとにCSVファイルを作成
+        const zipData: { [key: string]: Uint8Array } = {};
 
-      // 各評価者ごとにCSVファイルを作成
-      const zipData: { [key: string]: Uint8Array } = {};
+        // ファイル名の作成（グループ名、日付、ページ数を含む）
+        const baseFilename = `${groupName}_analytics_page${state.page}_${format(new Date(), "yyyyMMdd")}`;
 
-      // 各評価者のデータをCSV化してZIPに追加
-      for (const [evaluatorName, evaluatorData] of Object.entries<any[]>(data)) {
-        const csv = Papa.unparse(evaluatorData);
-        // CSVファイル名を作成（評価者名とページ番号を含める）
-        const fileName = `${evaluatorName}_${baseFilename}.csv`;
+        // 各評価者のデータをCSV化してZIPに追加
+        for (const [evaluatorName, evaluatorData] of Object.entries<any[]>(data)) {
+          const csv = Papa.unparse(evaluatorData);
+          // CSVファイル名を作成（評価者名とページ番号を含める）
+          const fileName = `${evaluatorName}_${baseFilename}.csv`;
 
-        // CSVデータをUint8Arrayに変換
-        const encoder = new TextEncoder();
-        const csvData = encoder.encode(csv);
+          // CSVデータをUint8Arrayに変換
+          const encoder = new TextEncoder();
+          const csvData = encoder.encode(csv);
 
-        // ZIPファイルに追加
-        zipData[fileName] = csvData;
-      }
-
-      // zipDataが空でないことを確認
-      if (Object.keys(zipData).length === 0) {
-        toast.error("エクスポート可能なデータがありません");
-        return;
-      }
-
-      // ZIPファイル名を作成
-      const zipFilename = `${baseFilename}.zip`;
-
-      // ZIPファイルの作成処理
-      zip(zipData, (err, data) => {
-        if (err) {
-          console.error("ZIPファイル作成エラー:", err);
-          toast.error("ZIPファイルの作成に失敗しました");
-          return;
+          // ZIPファイルに追加
+          zipData[fileName] = csvData;
         }
 
-        // ZIP形式でダウンロード
-        const blob = new Blob([data], { type: "application/zip" });
-        saveAs(blob, zipFilename);
+        // ZIPファイル名を作成
+        const zipFilename = `${baseFilename}.zip`;
 
-        toast.success("分析結果データを正常にエクスポートしました");
-        onCloseAction(false); // モーダルを閉じる
-      });
+        // ZIPファイルの作成処理
+        zip(zipData, (err, data) => {
+          if (err) {
+            console.error("ZIPファイル作成エラー:", err);
+            toast.error("ZIPファイルの作成に失敗しました");
+            return;
+          }
+
+          // ZIP形式でダウンロード
+          const blob = new Blob([data], { type: "application/zip" });
+          saveAs(blob, zipFilename);
+
+          toast.success("分析結果データを正常にエクスポートしました");
+          onCloseAction(false); // モーダルを閉じる
+        });
+      } catch (error) {
+        // エラーの内容をそのままトーストで表示
+        toast.error(error instanceof Error ? error.message : "分析結果のエクスポートに失敗しました");
+        throw error; // 呼び出し元のhandleExportにエラーを再スロー
+      }
     },
   };
 
@@ -355,18 +348,27 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   const navigationFunctions = {
     // 次のステップに進む
     nextStep: () => {
-      const maxStep = state.exportType === "ANALYTICS" ? 3 : 2;
-      if (state.step < maxStep) {
-        updateState({ direction: 1, step: state.step + 1 });
+      if (state.exportType === "TASK") {
+        // タスクデータの場合
+        if (state.step < 2) {
+          updateState({ direction: 1, step: state.step + 1 });
+        } else {
+          exportFunctions.handleExport();
+        }
       } else {
-        exportFunctions.handleExport();
+        // 分析結果データの場合（期間指定ステップをスキップ）
+        if (state.step < 2) {
+          updateState({ direction: 1, step: 2 });
+        } else {
+          exportFunctions.handleExport();
+        }
       }
     },
 
     // 前のステップに戻る
     prevStep: () => {
       if (state.step > 1) {
-        updateState({ direction: -1, step: state.step - 1 });
+        updateState({ direction: -1, step: 1 });
       }
     },
 
@@ -374,7 +376,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
     renderNextButtonText: () => {
       if (state.isExporting) return "処理中...";
 
-      if (state.step === 3 || (state.step === 2 && state.exportType === "TASK")) {
+      if ((state.step === 2 && state.exportType === "TASK") || (state.step === 2 && state.exportType === "ANALYTICS")) {
         return (
           <>
             <DownloadIcon className="mr-2 h-4 w-4" />
@@ -390,33 +392,51 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
     isNextButtonDisabled: () => {
       if (state.isExporting) return true;
 
-      if (state.step === 2) {
+      // タスクデータで期間選択ステップの場合のみ日付チェック
+      if (state.step === 2 && state.exportType === "TASK") {
         if (!state.startDate || !state.endDate) return true;
       }
 
       return false;
     },
+
+    // 現在のステップタイトルを取得
+    getCurrentStepTitle: () => {
+      if (state.step === 1) {
+        return "データ選択";
+      } else if (state.exportType === "TASK") {
+        return "期間指定";
+      } else {
+        return "ページ指定";
+      }
+    },
+
+    // 表示すべきステップコンポーネントを決定
+    getStepComponent: () => {
+      if (state.step === 1) {
+        return <ExportTypeSelectionStep />;
+      } else if (state.exportType === "TASK") {
+        return <DateRangeSelectionStep />;
+      } else {
+        return <PageSelectionStep />;
+      }
+    },
   };
 
   // サブコンポーネント: ステッププログレス
-  const StepProgress = () => (
-    <div className="mt-5 mb-1 flex items-center">
-      <div className="flex w-full items-center space-x-3">
-        <StepCircle step={1} currentStep={state.step} />
-        <StepLine isActive={state.step > 1} />
-        <StepCircle step={2} currentStep={state.step} />
+  const StepProgress = () => {
+    // タスクデータの場合は2ステップ、分析結果データの場合も2ステップ
 
-        {state.exportType === "ANALYTICS" && (
-          <>
-            <StepLine isActive={state.step > 2} />
-            <StepCircle step={3} currentStep={state.step} />
-          </>
-        )}
-
-        {state.exportType !== "ANALYTICS" && <motion.div className="mr-3.5 h-7 w-7" />}
+    return (
+      <div className="mt-5 mb-1 flex items-center">
+        <div className="flex w-full items-center space-x-3">
+          <StepCircle step={1} currentStep={state.step} />
+          <StepLine isActive={state.step > 1} />
+          <StepCircle step={2} currentStep={state.step} />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // サブコンポーネント: ステップサークル
   const StepCircle = ({ step, currentStep }: { step: number; currentStep: number }) => (
@@ -424,7 +444,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       className={cn(
         "flex h-7 w-7 items-center justify-center rounded-full border border-white text-xs font-medium",
         step === currentStep ? "text-blue-600" : "text-white",
-        step === 3 ? "mr-3.5" : step === 1 ? "ml-4" : "",
+        step === 1 ? "ml-4" : "mr-4",
       )}
       variants={ANIMATION_VARIANTS.circle}
       animate={step === currentStep ? "active" : "inactive"}
@@ -469,22 +489,13 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   const StepLabels = () => (
     <div className="flex justify-between text-sm text-blue-100">
       <span className="ml-4 pt-2">データ選択</span>
-      <span className="pt-2">期間指定</span>
-      {state.exportType === "ANALYTICS" && <span className="mr-4 pt-2">ページ指定</span>}
+      <span className="mr-4 pt-2">{state.exportType === "TASK" ? "期間指定" : "ページ指定"}</span>
     </div>
   );
 
   // サブコンポーネント: データ選択ステップ
   const ExportTypeSelectionStep = () => (
-    <motion.div
-      key="step1"
-      custom={state.direction}
-      variants={ANIMATION_VARIANTS.step}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      className="space-y-6"
-    >
+    <motion.div key="step1" custom={state.direction} variants={ANIMATION_VARIANTS.step} initial="enter" animate="center" exit="exit" className="space-y-6">
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-900">エクスポートするデータを選択</h3>
         <p className="text-sm text-gray-500">エクスポートしたいデータの種類を選択してください</p>
@@ -518,6 +529,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
           </div>
           <p className="mt-1 text-sm text-gray-500">
             グループ内のすべてのタスク情報をCSV形式でエクスポートします。タスク内容や貢献ポイントなどが含まれます。
+            <span className="mt-1 block text-gray-400 italic">期間指定が必要です。</span>
           </p>
         </div>
       </div>
@@ -542,8 +554,8 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
             <span className="font-medium text-gray-900">分析結果データ</span>
           </div>
           <p className="mt-1 text-sm text-gray-500">
-            グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。
-            評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。
+            グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。 評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。
+            <span className="mt-1 block text-gray-400 italic">ページ指定のみ必要です。期間指定は不要です。</span>
           </p>
           <div className="mt-2 flex items-center space-x-2">
             <Checkbox id="onlyFixed" checked={state.onlyFixed} onCheckedChange={(checked) => updateState({ onlyFixed: checked as boolean })} />
@@ -558,15 +570,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
 
   // サブコンポーネント: 期間指定ステップ
   const DateRangeSelectionStep = () => (
-    <motion.div
-      key="step2"
-      custom={state.direction}
-      variants={ANIMATION_VARIANTS.step}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      className="space-y-6"
-    >
+    <motion.div key="step2" custom={state.direction} variants={ANIMATION_VARIANTS.step} initial="enter" animate="center" exit="exit" className="space-y-6">
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-900">エクスポート期間を指定</h3>
         <p className="text-sm text-gray-500">エクスポートするデータの期間を指定します（最大6ヶ月間）</p>
@@ -618,27 +622,14 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       <Popover open={isOpen} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              variant="outline"
-              className={cn("w-full justify-start text-left font-normal", !date && "text-gray-400", date && "border-gray-300 text-gray-900")}
-              id={`${label}-date`}
-            >
+            <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !date && "text-gray-400", date && "border-gray-300 text-gray-900")} id={`${label}-date`}>
               <CalendarIcon className="mr-2 h-4 w-4 text-gray-400" />
               {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
             </Button>
           </motion.div>
         </PopoverTrigger>
         <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="center" side="bottom" sideOffset={5}>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={onSelect}
-            defaultMonth={date}
-            disabled={disabled}
-            initialFocus
-            locale={ja}
-            className="rounded-md border-0"
-          />
+          <Calendar mode="single" selected={date} onSelect={onSelect} defaultMonth={date} disabled={disabled} initialFocus locale={ja} className="rounded-md border-0" />
         </PopoverContent>
       </Popover>
     </div>
@@ -659,8 +650,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
             <CheckIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-blue-500" />
             <div>
               <p className="font-medium">
-                選択された期間: {format(state.startDate, "yyyy年MM月dd日", { locale: ja })} 〜{" "}
-                {format(state.endDate, "yyyy年MM月dd日", { locale: ja })}
+                選択された期間: {format(state.startDate, "yyyy年MM月dd日", { locale: ja })} 〜 {format(state.endDate, "yyyy年MM月dd日", { locale: ja })}
               </p>
             </div>
           </div>
@@ -671,15 +661,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
 
   // サブコンポーネント: ページ選択ステップ
   const PageSelectionStep = () => (
-    <motion.div
-      key="step3"
-      custom={state.direction}
-      variants={ANIMATION_VARIANTS.step}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      className="space-y-6"
-    >
+    <motion.div key="step2" custom={state.direction} variants={ANIMATION_VARIANTS.step} initial="enter" animate="center" exit="exit" className="space-y-6">
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-900">ページを指定</h3>
         <p className="text-sm text-gray-500">データは1ページあたり200件ずつ表示されます。取得したいデータのページを選択してください。</p>
@@ -752,10 +734,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
         <Button
           onClick={navigationFunctions.nextStep}
           disabled={navigationFunctions.isNextButtonDisabled()}
-          className={cn(
-            "relative min-w-[120px] text-white",
-            state.step === (state.exportType === "ANALYTICS" ? 3 : 2) ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600",
-          )}
+          className={cn("relative min-w-[120px] text-white", state.step === 2 ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600")}
         >
           {state.isExporting && (
             <motion.div className="mr-2" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
@@ -771,10 +750,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
       {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
-      <DialogContent
-        className="translate-y-[-40vh] overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]"
-        closeButton={false}
-      >
+      <DialogContent className="h-[95vh] overflow-y-auto rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
         <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
           <button
             onClick={() => onCloseAction(false)}
@@ -796,9 +772,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
         {/* コンテンツエリア */}
         <div className="relative overflow-hidden p-6">
           <AnimatePresence custom={state.direction} mode="wait">
-            {state.step === 1 && <ExportTypeSelectionStep />}
-            {state.step === 2 && <DateRangeSelectionStep />}
-            {state.step === 3 && state.exportType === "ANALYTICS" && <PageSelectionStep />}
+            {navigationFunctions.getStepComponent()}
           </AnimatePresence>
         </div>
 

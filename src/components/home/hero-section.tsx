@@ -30,11 +30,7 @@ export async function HeroSection() {
               className="w-40 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-700 sm:w-auto sm:min-w-[200px] dark:border-blue-800 dark:bg-gray-950 dark:text-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-200"
               asChild
             >
-              <Link
-                href="https://docs.google.com/document/d/1ksGHN6jWdwoMZ59-EX3g_CFXY3J3D7Qes4-TluqX7qU/edit?tab=t.0"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Link href="https://docs.google.com/document/d/1ksGHN6jWdwoMZ59-EX3g_CFXY3J3D7Qes4-TluqX7qU/edit?tab=t.0" target="_blank" rel="noopener noreferrer">
                 詳細
               </Link>
             </Button>
@@ -55,11 +51,7 @@ export async function HeroSection() {
                   await signIn();
                 }}
               >
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-40 bg-blue-600 text-white hover:bg-blue-700 hover:text-white sm:w-auto sm:min-w-[200px] dark:bg-blue-700 dark:hover:bg-blue-800"
-                >
+                <Button type="submit" size="lg" className="w-40 bg-blue-600 text-white hover:bg-blue-700 hover:text-white sm:w-auto sm:min-w-[200px] dark:bg-blue-700 dark:hover:bg-blue-800">
                   利用する
                 </Button>
               </form>
