@@ -296,7 +296,11 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       try {
         const data = (await exportGroupAnalytics(groupId, state.page, state.onlyFixed)) as AnalyticsData;
 
-        // データが空の場合はここには到達しない（exportGroupAnalyticsでエラーがスローされる）
+        // データなしの場合の処理を追加
+        if (Object.keys(data).length === 1 && Object.keys(data)[0] === "データなし") {
+          toast.info(`${state.page}ページ目にエクスポート可能な分析結果がありません。別のページを選択してください。`);
+          return; // これ以上処理を続けない
+        }
 
         // 各評価者ごとにCSVファイルを作成
         const zipData: { [key: string]: Uint8Array } = {};
@@ -339,7 +343,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       } catch (error) {
         // エラーの内容をそのままトーストで表示
         toast.error(error instanceof Error ? error.message : "分析結果のエクスポートに失敗しました");
-        throw error; // 呼び出し元のhandleExportにエラーを再スロー
+        // エラーは再スローしない
       }
     },
   };

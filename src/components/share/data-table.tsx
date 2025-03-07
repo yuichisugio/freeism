@@ -28,8 +28,7 @@ export const taskStatuses: TaskStatus[] = [
   { label: "落札済み", value: "BIDDED" },
   { label: "ポイント預け済み", value: "POINTS_DEPOSITED" },
   { label: "タスク完了", value: "TASK_COMPLETED" },
-  { label: "Group内レビュー完了", value: "GROUP_REVIEW_COMPLETED" },
-  { label: "Group外レビュー完了", value: "EXTERNAL_REVIEW_COMPLETED" },
+  { label: "固定評価者による評価完了", value: "FIXED_EVALUATED" },
   { label: "ポイント付与完了", value: "POINTS_AWARDED" },
   { label: "アーカイブ", value: "ARCHIVED" },
 ];

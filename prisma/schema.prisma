@@ -161,13 +161,12 @@ model Analytics {
 
 enum TaskStatus {
   PENDING // タスク実施予定
-  BIDDED // 落札済み
-  POINTS_DEPOSITED // ポイント預け済み
-  TASK_COMPLETED // タスク完了
-  GROUP_REVIEW_COMPLETED // Group内レビュー完了
-  EXTERNAL_REVIEW_COMPLETED // Group外レビュー完了
-  POINTS_AWARDED // ポイント付与完了
-  ARCHIVED // アーカイブ
+  BIDDED // 落札済み。報酬あり専用
+  POINTS_DEPOSITED // ポイント預け済み。報酬あり専用
+  TASK_COMPLETED // タスク完了。報酬の有無関係なしで、タスクが完了した場合に使用
+  FIXED_EVALUATED // ポイント額がFIXED_CONTRIBUTION_POINTによって評価されたときに使用
+  POINTS_AWARDED // ポイントの付与が完了したときに使用
+  ARCHIVED // タスクをアーカイブしたときに使用
 }
 
 // 通知タイプの列挙型

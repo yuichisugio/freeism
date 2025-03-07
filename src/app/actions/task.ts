@@ -186,6 +186,7 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
     });
 
     if (!group) {
+      // グループ自体が存在しない場合はエラー
       throw new Error("グループの分析結果が存在しません");
     }
 
@@ -218,8 +219,29 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
       take: itemsPerPage,
     });
 
+    // データがない場合は空のデータ構造を返す（エラーではなく）
     if (!analyticsBase || analyticsBase.length === 0) {
-      throw new Error(`${page}ページ目にエクスポート可能な分析結果がありません`);
+      return {
+        データなし: [
+          {
+            分析ID: "",
+            タスクID: "",
+            貢献ポイント: 0,
+            評価ロジック: "",
+            評価者ID: "",
+            評価者名: "",
+            タスク内容: "",
+            参照情報: "",
+            証拠情報: "",
+            ステータス: "",
+            貢献タイプ: "",
+            タスク作成者: "",
+            グループ目標: "",
+            評価方法: "",
+            作成日: "",
+          },
+        ],
+      };
     }
 
     // 2. 関連データを個別に取得

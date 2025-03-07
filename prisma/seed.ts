@@ -443,7 +443,7 @@ async function createAnalytics(tasks: any[], users: any[]) {
   const analytics = [];
 
   // 完了したタスクのみ分析対象とする（一部のタスクのみ評価対象とする）
-  const completedTasks = tasks.filter((task) => ["TASK_COMPLETED", "GROUP_REVIEW_COMPLETED", "EXTERNAL_REVIEW_COMPLETED", "POINTS_AWARDED"].includes(task.status));
+  const completedTasks = tasks.filter((task) => ["TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED"].includes(task.status));
 
   console.log(`${completedTasks.length}件の完了タスクから分析データを作成します`);
 
