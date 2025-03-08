@@ -33,6 +33,11 @@ const sidebarItems = [
         href: "/dashboard/new-task",
         icon: PlusCircle,
       },
+      {
+        title: "GitHub API変換",
+        href: "/dashboard/github-api-conversion",
+        icon: PlusCircle,
+      },
     ],
   },
   {

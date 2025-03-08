@@ -460,34 +460,34 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       {isMember && (
         <div className="mb-4 flex flex-wrap gap-3">
           <Button onClick={() => setIsExportModalOpen(true)} variant="outline" className="bg-white hover:bg-gray-50">
-            <Download className="mr-2 h-4 w-4" />
-            データをエクスポート
+            <Download />
+            エクスポート
           </Button>
 
           {(isGroupOwner || isAppOwner) && (
             <>
               <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenEditDialog}>
-                <Edit className="mr-2 h-4 w-4" />
+                <Edit />
                 グループを編集
               </Button>
 
               <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={() => setIsUploadModalOpen(true)}>
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload />
                 CSVアップロード
               </Button>
 
               <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenPermissionDialog}>
-                <ShieldCheck className="mr-2 h-4 w-4" />
+                <ShieldCheck />
                 権限を付与
               </Button>
 
               <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenRemoveMemberDialog}>
-                <UserMinus className="mr-2 h-4 w-4" />
+                <UserMinus />
                 メンバーを除名
               </Button>
 
               <Button variant="destructive" onClick={handleOpenDeleteDialog}>
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2 />
                 グループを削除
               </Button>
             </>
