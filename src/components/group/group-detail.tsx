@@ -19,6 +19,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Award, Check, ChevronsUpDown, ClipboardCheck, ClipboardList, Download, Edit, Loader2, LogOut, ShieldCheck, TargetIcon, Trash2, Upload, UserMinus, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 
+// タスク参加者の型
+type TaskParticipant = {
+  id: string;
+  name: string | null;
+  userId: string | null;
+  user: {
+    id: string;
+    name: string | null;
+  } | null;
+};
+
 type Task = {
   id: string;
   task: string;
@@ -28,9 +39,14 @@ type Task = {
   fixedEvaluator: string | null;
   fixedEvaluationLogic: string | null;
   contributionType: string;
-  user: {
+  // 作成者情報
+  creator: {
+    id: string;
     name: string | null;
   };
+  // 報告者・実行者情報
+  reporters: TaskParticipant[];
+  executors: TaskParticipant[];
   group: {
     id: string;
     name: string;
@@ -309,13 +325,20 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     }
   }
 
-  const taskColumns: Column<Task>[] = [
-    {
-      key: "name" as keyof Task,
-      header: "NAME",
-      cell: (row: Task) => row.user.name || "-",
-      sortable: true,
-    },
+  // 報告者名を連結する関数
+  const getReporterNames = (reporters: TaskParticipant[]): string => {
+    if (!reporters || reporters.length === 0) return "-";
+    return reporters.map((r) => (r.user ? r.user.name : r.name) || "不明").join(", ");
+  };
+
+  // 実行者名を連結する関数
+  const getExecutorNames = (executors: TaskParticipant[]): string => {
+    if (!executors || executors.length === 0) return "-";
+    return executors.map((e) => (e.user ? e.user.name : e.name) || "不明").join(", ");
+  };
+
+  // 共通のテーブル列定義（contributionType列を含まない）
+  const commonColumns: Column<Task>[] = [
     {
       key: "task" as keyof Task,
       header: "TASK",
@@ -323,46 +346,59 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       sortable: true,
     },
     {
-      key: "contributionPoint" as keyof Task,
-      header: "POINT",
-      cell: (row: Task) => `${row.fixedContributionPoint || 0}p`,
+      key: "name" as keyof Task,
+      header: "作成者",
+      cell: (row: Task) => row.creator.name || "-",
       sortable: true,
     },
     {
-      key: "contributionType" as keyof Task,
-      header: "TYPE",
-      cell: (row: Task) => row.contributionType,
-      sortable: true,
+      key: "reporters" as keyof Task,
+      header: "報告者",
+      cell: (row: Task) => getReporterNames(row.reporters),
+      sortable: false,
+    },
+    {
+      key: "executors" as keyof Task,
+      header: "実行者",
+      cell: (row: Task) => getExecutorNames(row.executors),
+      sortable: false,
     },
     {
       key: "fixedEvaluator" as keyof Task,
-      header: "EVALUATOR",
+      header: "評価者",
       cell: (row: Task) => row.fixedEvaluator || "-",
       sortable: true,
     },
     {
       key: "fixedEvaluationLogic" as keyof Task,
-      header: "EVALUATION LOGIC",
+      header: "評価ロジック",
       cell: (row: Task) => row.fixedEvaluationLogic || "-",
       sortable: true,
     },
     {
       key: "status" as keyof Task,
-      header: "STATUS",
+      header: "ステータス",
       statusCombobox: true,
+      sortable: true,
     },
   ];
 
-  const taskDataTableProps: DataTableProps<Task> = {
-    data: nonRewardTasks,
-    columns: taskColumns,
-    pagination: true,
-    onDataChange: setNonRewardTasks,
-  };
+  // 非報酬タスク用のカラム
+  const nonRewardColumns: Column<Task>[] = [
+    ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
+    {
+      key: "contributionPoint" as keyof Task,
+      header: "貢献ポイント",
+      cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
+      sortable: true,
+    },
+    ...commonColumns.slice(4), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+  ];
 
+  // 報酬タスク用のカラム
   const rewardColumns: Column<Task>[] = [
     {
-      key: "task" as keyof Task,
+      key: "action" as keyof Task,
       header: "アクション",
       cell: (row: Task) => (
         <Button onClick={() => router.push(`/dashboard/group/${row.group.id}/auction/${row.id}`)} className="button-default-custom" size="sm">
@@ -371,56 +407,31 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       ),
       className: "w-32",
     },
-    {
-      key: "user" as keyof Task,
-      header: "NAME",
-      sortable: true,
-      cell: (row: Task) => row.user.name || "-",
-    },
-    {
-      key: "task" as keyof Task,
-      header: "TASK",
-      sortable: true,
-      cell: (row: Task) => row.task,
-    },
+    ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
     {
       key: "contributionPoint" as keyof Task,
-      header: "現在の入札額 Point",
-      sortable: true,
+      header: "現在の入札額",
       cell: (row: Task) => `${row.fixedContributionPoint || 0}p`,
-    },
-    {
-      key: "contributionType" as keyof Task,
-      header: "TYPE",
       sortable: true,
-      cell: (row: Task) => row.contributionType,
     },
-    {
-      key: "fixedEvaluator" as keyof Task,
-      header: "EVALUATOR",
-      sortable: true,
-      cell: (row: Task) => row.fixedEvaluator || "-",
-    },
-    {
-      key: "fixedEvaluationLogic" as keyof Task,
-      header: "EVALUATION LOGIC",
-      sortable: true,
-      cell: (row: Task) => row.fixedEvaluationLogic || "-",
-    },
-    {
-      key: "status" as keyof Task,
-      header: "STATUS",
-      statusCombobox: true,
-      sortable: true,
-      cell: (row: Task) => row.status,
-    },
+    ...commonColumns.slice(4), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
   ];
 
-  const rewardDataTableProps: DataTableProps<Task> = {
+  // DataTableコンポーネントのpropsを設定
+  const taskDataTableProps: DataTableProps<Task> = {
+    data: nonRewardTasks,
+    columns: nonRewardColumns,
+    pagination: true,
+    onDataChange: setNonRewardTasks,
+    stickyHeader: true,
+  };
+
+  const rewardTaskDataTableProps: DataTableProps<Task> = {
     data: rewardTasks,
     columns: rewardColumns,
     pagination: true,
     onDataChange: setRewardTasks,
+    stickyHeader: true,
   };
 
   return (
@@ -706,7 +717,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
             <Award className="mr-2 h-5 w-5 text-gray-500" />
             <h2 className="text-xl font-semibold text-gray-900">報酬一覧</h2>
           </div>
-          <DataTable dataTableProps={rewardDataTableProps} />
+          <DataTable dataTableProps={rewardTaskDataTableProps} />
         </div>
       </div>
 

@@ -294,7 +294,15 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
     // 分析結果データのエクスポート
     handleAnalyticsExport: async () => {
       try {
-        const data = (await exportGroupAnalytics(groupId, state.page, state.onlyFixed)) as AnalyticsData;
+        const response = await exportGroupAnalytics(groupId, state.page, state.onlyFixed);
+
+        // エラーチェック
+        if ("error" in response) {
+          toast.error(`エクスポートに失敗しました: ${response.error}`);
+          return;
+        }
+
+        const data = response.data as AnalyticsData;
 
         // データなしの場合の処理を追加
         if (Object.keys(data).length === 1 && Object.keys(data)[0] === "データなし") {

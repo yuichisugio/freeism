@@ -247,7 +247,13 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
 
   return (
     <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
-      <div className={cn(maxHeight || (pagination ? "h-[calc(100vh-16rem)]" : ""), "relative w-full table-auto overflow-x-auto overflow-y-auto")}>
+      <div
+        className={cn(
+          "relative w-full table-auto overflow-x-auto overflow-y-auto",
+          // maxHeightの値をそのままmax-heightに設定。h-[calc(...)]形式をmax-h-[calc(...)]に変換
+          maxHeight ? maxHeight.replace(/^h-/, "max-h-") : pagination ? "max-h-[calc(100vh-16rem)]" : "",
+        )}
+      >
         <table>
           <thead className={cn(headerClassName, "bg-white")}>
             <tr>

@@ -23,26 +23,58 @@ export default async function MyTasksPage() {
     return null;
   }
 
-  // ユーザーのタスクを取得
+  // ユーザーのタスクを取得（作成者、報告者、実行者のいずれかが自分のタスク）
   const tasks = await prisma.task.findMany({
     where: {
-      userId: session.user.id,
+      OR: [
+        // 自分が作成者のタスク
+        { creatorId: session.user.id },
+        // 自分が報告者として含まれるタスク
+        {
+          reporters: {
+            some: {
+              userId: session.user.id,
+            },
+          },
+        },
+        // 自分が実行者として含まれるタスク
+        {
+          executors: {
+            some: {
+              userId: session.user.id,
+            },
+          },
+        },
+      ],
     },
     include: {
-      user: {
+      creator: {
         select: {
           name: true,
+        },
+      },
+      reporters: {
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      executors: {
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
         },
       },
       group: {
         select: {
           name: true,
           id: true,
-          tasks: {
-            select: {
-              fixedContributionPoint: true,
-            },
-          },
         },
       },
     },
@@ -55,7 +87,15 @@ export default async function MyTasksPage() {
   if (tasks.length === 0) {
     return (
       <MainTemplate title="My Task一覧" description="自分のタスク一覧を表示します">
-        <div>タスクがありません</div>
+        <div className="p-8 text-center">
+          <p className="mb-4">タスクがありません</p>
+          <Button asChild className="button-default-custom text-white">
+            <Link href="/dashboard/new-task" className="flex items-center">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              新規Task作成
+            </Link>
+          </Button>
+        </div>
       </MainTemplate>
     );
   }
@@ -66,8 +106,8 @@ export default async function MyTasksPage() {
       description="自分のタスク一覧を表示します"
       component={
         <Button asChild className="button-default-custom w-auto self-start text-white sm:self-center">
-          <Link href="/dashboard/my-tasks/new" className="flex items-center">
-            <PlusCircle className="h-4 w-4" />
+          <Link href="/dashboard/new-task" className="flex items-center">
+            <PlusCircle className="mr-2 h-4 w-4" />
             新規Task作成
           </Link>
         </Button>

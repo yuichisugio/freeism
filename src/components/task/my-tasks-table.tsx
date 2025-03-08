@@ -5,6 +5,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
 
+// 報告者と実行者の型
+type TaskParticipant = {
+  id: string;
+  name: string | null;
+  userId: string | null;
+  user: {
+    name: string | null;
+  } | null;
+};
+
 type Task = {
   id: string;
   task: string;
@@ -14,9 +24,12 @@ type Task = {
   fixedEvaluator: string | null;
   fixedEvaluationLogic: string | null;
   contributionType: string;
-  user: {
+  // 作成者・報告者・実行者情報
+  creator: {
     name: string | null;
   };
+  reporters: TaskParticipant[];
+  executors: TaskParticipant[];
   group: {
     name: string;
     id: string;
@@ -29,6 +42,18 @@ type MyTasksTableProps = {
 
 export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
   const [tasks, setTasks] = useState(initialTasks);
+
+  // 報告者名を連結する関数
+  const getReporterNames = (reporters: TaskParticipant[]): string => {
+    if (!reporters || reporters.length === 0) return "-";
+    return reporters.map((r) => (r.user ? r.user.name : r.name) || "不明").join(", ");
+  };
+
+  // 実行者名を連結する関数
+  const getExecutorNames = (executors: TaskParticipant[]): string => {
+    if (!executors || executors.length === 0) return "-";
+    return executors.map((e) => (e.user ? e.user.name : e.name) || "不明").join(", ");
+  };
 
   const columns: Column<Task>[] = [
     {
@@ -46,6 +71,18 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       header: "TASK",
       sortable: true,
       cell: (row: Task) => row.task,
+    },
+    {
+      key: "reporters" as keyof Task,
+      header: "報告者",
+      sortable: false,
+      cell: (row: Task) => getReporterNames(row.reporters),
+    },
+    {
+      key: "executors" as keyof Task,
+      header: "実行者",
+      sortable: false,
+      cell: (row: Task) => getExecutorNames(row.executors),
     },
     {
       key: "contributionPoint" as keyof Task,

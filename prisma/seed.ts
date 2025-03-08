@@ -369,7 +369,7 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
   for (let i = 0; i < count; i++) {
     // ランダムにメンバーシップを選択
     const membership = faker.helpers.arrayElement(groupMemberships);
-    const user = users.find((u) => u.id === membership.userId) || faker.helpers.arrayElement(users);
+    const creator = users.find((u) => u.id === membership.userId) || faker.helpers.arrayElement(users);
     const groupId = membership.groupId;
 
     // タスクの詳細を生成
@@ -412,6 +412,54 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
       }
     }
 
+    // TaskReporterとTaskExecutorの準備
+    // 報告者の数 (1〜3人)
+    const reportersCount = faker.number.int({ min: 1, max: 3 });
+    const reporters = [];
+
+    for (let j = 0; j < reportersCount; j++) {
+      // 登録ユーザーか非登録ユーザーかを決定 (70%の確率で登録ユーザー)
+      const isRegisteredUser = faker.datatype.boolean(0.7);
+
+      if (isRegisteredUser) {
+        // 登録ユーザーの場合
+        const reporter = faker.helpers.arrayElement(users);
+        reporters.push({
+          name: reporter.name,
+          userId: reporter.id,
+        });
+      } else {
+        // 非登録ユーザーの場合
+        reporters.push({
+          name: faker.person.fullName(),
+        });
+      }
+    }
+
+    // 実行者の数 (1〜3人)
+    const executorsCount = faker.number.int({ min: 1, max: 3 });
+    const executors = [];
+
+    for (let j = 0; j < executorsCount; j++) {
+      // 登録ユーザーか非登録ユーザーかを決定 (70%の確率で登録ユーザー)
+      const isRegisteredUser = faker.datatype.boolean(0.7);
+
+      if (isRegisteredUser) {
+        // 登録ユーザーの場合
+        const executor = faker.helpers.arrayElement(users);
+        executors.push({
+          name: executor.name,
+          userId: executor.id,
+        });
+      } else {
+        // 非登録ユーザーの場合
+        executors.push({
+          name: faker.person.fullName(),
+        });
+      }
+    }
+
+    // タスク作成
     const task = await prisma.task.create({
       data: {
         task: taskTitle,
@@ -422,10 +470,20 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
         fixedEvaluationLogic,
         info, // 証拠・結果・補足情報を追加
         contributionType: faker.helpers.arrayElement(contributionTypes),
-        userId: user.id,
+        creatorId: creator.id, // クリエイターとしてユーザーを設定
+        userFixedSubmitterId: faker.datatype.boolean(0.3) ? faker.helpers.arrayElement(users).id : null, // 30%の確率で固定サブミッターを設定
         groupId,
+        // 報告者を作成
+        reporters: {
+          create: reporters,
+        },
+        // 実行者を作成
+        executors: {
+          create: executors,
+        },
       },
     });
+
     tasks.push(task);
   }
 

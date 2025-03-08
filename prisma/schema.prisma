@@ -27,10 +27,12 @@ model User {
   settings      UserSettings?
   groups        Group[]
   memberships   GroupMembership[]
-  tasks         Task[]            @relation("TaskCreator")
-  fixedTasks    Task[]            @relation("UserFixedSubmitter")
+  taskCreator   Task[]            @relation("TaskCreator")
+  userFixedSubmitter Task[]            @relation("UserFixedSubmitter")
   notifications Notification[]
   analytics     Analytics[]
+  taskReporter  TaskReporter[]
+  taskExecutor  TaskExecutor[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -135,14 +137,16 @@ model Task {
   contributionType       String         @default("NON_REWARD") // "REWARD" or "NON_REWARD"
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
-  user                   User           @relation("TaskCreator", fields: [userId], references: [id], onDelete: Cascade)
-  userId                 String
+  creator                User           @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId              String
+  reporters              TaskReporter[]
+  executors              TaskExecutor[]
   group                  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId                String
   analytics              Analytics[]
   notifications          Notification[]
 
-  @@index([userId])
+  @@index([creatorId])
   @@index([groupId])
 }
 
@@ -215,5 +219,35 @@ model Notification {
 
   @@index([userId])
   @@index([groupId])
+  @@index([taskId])
+}
+
+// 新しく追加: タスク報告者モデル
+model TaskReporter {
+  id        String    @id @default(cuid())
+  name      String?   // 未登録ユーザーの場合は名前のみ
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?   // 登録ユーザーの場合はID紐づけ (オプショナル)
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([taskId])
+}
+
+// 新しく追加: タスク実行者モデル
+model TaskExecutor {
+  id        String    @id @default(cuid())
+  name      String?   // 未登録ユーザーの場合は名前のみ
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?   // 登録ユーザーの場合はID紐づけ (オプショナル)
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
   @@index([taskId])
 }

@@ -14,11 +14,23 @@ export const setupSchema = z.object({
   lifeGoal: z.string().min(2, { message: "2文字以上で入力してください" }).max(200, { message: "200文字以内で入力してください" }),
 });
 
+// 報告者・実行者のスキーマ
+export const taskPersonSchema = z
+  .object({
+    name: z.string().optional(),
+    userId: z.string().optional(),
+  })
+  .refine((data) => data.name || data.userId, {
+    message: "名前またはユーザーIDのいずれかを指定してください",
+  });
+
 export const taskFormSchema = z.object({
   task: z.string().min(1, "タスク内容を入力してください"),
   reference: z.string().optional(),
   info: z.string().optional(),
   contributionType: z.enum(["REWARD", "NON_REWARD"], { required_error: "貢献の種類を選択してください" }),
+  reporters: z.array(taskPersonSchema).optional(),
+  executors: z.array(taskPersonSchema).optional(),
 });
 
 // 通知作成フォームのバリデーションスキーマ

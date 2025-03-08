@@ -16,10 +16,39 @@ type Group = {
   name: string;
 };
 
+type User = {
+  id: string;
+  name: string;
+};
+
+// タスク実行者または報告者の型定義
+type TaskParticipant = {
+  userId?: string;
+  name?: string;
+};
+
 const formSchema = taskFormSchema.extend({
   groupId: z.string({
     required_error: "グループに参加して下さい。",
   }),
+  // 実行者の配列（オプション）
+  executors: z
+    .array(
+      z.object({
+        userId: z.string().optional(),
+        name: z.string().optional(),
+      }),
+    )
+    .optional(),
+  // 報告者の配列（オプション）
+  reporters: z
+    .array(
+      z.object({
+        userId: z.string().optional(),
+        name: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export type TaskFormValues = z.infer<typeof formSchema>;
@@ -28,11 +57,23 @@ export type TaskFormValuesAndGroupId = TaskFormValues & {
   groupId: string;
 };
 
-export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; groupComboBoxFlag: boolean }) {
+export function TaskInputForm({
+  groups,
+  groupComboBoxFlag,
+  users = [], // デフォルト値を空配列に設定
+}: {
+  groups: Group[];
+  groupComboBoxFlag: boolean;
+  users?: User[]; // オプショナルにする
+}) {
   // ルーター
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [executors, setExecutors] = useState<TaskParticipant[]>([]);
+  const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
+  const [reporters, setReporters] = useState<TaskParticipant[]>([]);
+  const [nonRegisteredReporter, setNonRegisteredReporter] = useState("");
 
   // フォーム
   const form = useForm<TaskFormValues>({
@@ -42,8 +83,62 @@ export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; 
       reference: "",
       info: "",
       contributionType: "REWARD",
+      executors: [],
+      reporters: [],
     },
   });
+
+  // 実行者を追加する関数
+  const addExecutor = (userId?: string, name?: string) => {
+    if (userId) {
+      // 登録済みユーザーの場合
+      const user = users.find((u) => u.id === userId);
+      if (user && !executors.some((e) => e.userId === userId)) {
+        const newExecutors = [...executors, { userId, name: user.name }];
+        setExecutors(newExecutors);
+        form.setValue("executors", newExecutors);
+      }
+    } else if (name && name.trim() !== "") {
+      // 未登録ユーザーの場合
+      const newExecutors = [...executors, { name }];
+      setExecutors(newExecutors);
+      form.setValue("executors", newExecutors);
+      setNonRegisteredExecutor("");
+    }
+  };
+
+  // 報告者を追加する関数
+  const addReporter = (userId?: string, name?: string) => {
+    if (userId) {
+      // 登録済みユーザーの場合
+      const user = users.find((u) => u.id === userId);
+      if (user && !reporters.some((r) => r.userId === userId)) {
+        const newReporters = [...reporters, { userId, name: user.name }];
+        setReporters(newReporters);
+        form.setValue("reporters", newReporters);
+      }
+    } else if (name && name.trim() !== "") {
+      // 未登録ユーザーの場合
+      const newReporters = [...reporters, { name }];
+      setReporters(newReporters);
+      form.setValue("reporters", newReporters);
+      setNonRegisteredReporter("");
+    }
+  };
+
+  // 実行者を削除する関数
+  const removeExecutor = (index: number) => {
+    const newExecutors = executors.filter((_, i) => i !== index);
+    setExecutors(newExecutors);
+    form.setValue("executors", newExecutors);
+  };
+
+  // 報告者を削除する関数
+  const removeReporter = (index: number) => {
+    const newReporters = reporters.filter((_, i) => i !== index);
+    setReporters(newReporters);
+    form.setValue("reporters", newReporters);
+  };
 
   // フォーム送信
   async function onSubmit(data: TaskFormValues) {
@@ -57,6 +152,8 @@ export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; 
         info: data.info,
         contributionType: data.contributionType,
         groupId: data.groupId,
+        executors: executors.length > 0 ? executors : undefined,
+        reporters: reporters.length > 0 ? reporters : undefined,
       });
 
       if (result.success) {
@@ -128,6 +225,138 @@ export function TaskInputForm({ groups, groupComboBoxFlag }: { groups: Group[]; 
         description="貢献度を評価するための証拠や結果、補足情報（プルリクURL等）を記載してください"
         placeholder="証拠・結果・補足情報を入力してください"
       />
+
+      {/* タスク実行者セクション */}
+      <div className="space-y-4 rounded-md border p-4">
+        <h3 className="text-lg font-medium">タスク実行者</h3>
+        <p className="text-sm text-gray-500">このタスクを実行した人を選択または入力してください</p>
+
+        {/* 登録済みユーザー選択 */}
+        {users.length > 0 && (
+          <div className="flex gap-2">
+            <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addExecutor(e.target.value)} value="">
+              <option value="">登録済みユーザーから選択...</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="rounded-md bg-blue-500 px-4 py-2 text-white"
+              onClick={() => {
+                const select = document.querySelector("select") as HTMLSelectElement;
+                if (select && select.value) {
+                  addExecutor(select.value);
+                  select.value = "";
+                }
+              }}
+            >
+              追加
+            </button>
+          </div>
+        )}
+
+        {/* 未登録ユーザー入力 */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            className="flex-1 rounded-md border p-2"
+            placeholder="未登録ユーザー名を入力..."
+            value={nonRegisteredExecutor}
+            onChange={(e) => setNonRegisteredExecutor(e.target.value)}
+          />
+          <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addExecutor(undefined, nonRegisteredExecutor)}>
+            追加
+          </button>
+        </div>
+
+        {/* 選択された実行者のリスト */}
+        {executors.length > 0 && (
+          <div className="mt-2">
+            <h4 className="text-sm font-medium">選択された実行者:</h4>
+            <ul className="mt-1 space-y-1">
+              {executors.map((executor, index) => (
+                <li key={index} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
+                  <span>
+                    {executor.name || "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
+                  </span>
+                  <button type="button" className="text-red-500" onClick={() => removeExecutor(index)}>
+                    削除
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* タスク報告者セクション */}
+      <div className="space-y-4 rounded-md border p-4">
+        <h3 className="text-lg font-medium">タスク報告者</h3>
+        <p className="text-sm text-gray-500">このタスクを報告した人を選択または入力してください</p>
+
+        {/* 登録済みユーザー選択 */}
+        {users.length > 0 && (
+          <div className="flex gap-2">
+            <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addReporter(e.target.value)} value="">
+              <option value="">登録済みユーザーから選択...</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="rounded-md bg-blue-500 px-4 py-2 text-white"
+              onClick={() => {
+                const select = document.querySelectorAll("select")[1] as HTMLSelectElement;
+                if (select && select.value) {
+                  addReporter(select.value);
+                  select.value = "";
+                }
+              }}
+            >
+              追加
+            </button>
+          </div>
+        )}
+
+        {/* 未登録ユーザー入力 */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            className="flex-1 rounded-md border p-2"
+            placeholder="未登録ユーザー名を入力..."
+            value={nonRegisteredReporter}
+            onChange={(e) => setNonRegisteredReporter(e.target.value)}
+          />
+          <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addReporter(undefined, nonRegisteredReporter)}>
+            追加
+          </button>
+        </div>
+
+        {/* 選択された報告者のリスト */}
+        {reporters.length > 0 && (
+          <div className="mt-2">
+            <h4 className="text-sm font-medium">選択された報告者:</h4>
+            <ul className="mt-1 space-y-1">
+              {reporters.map((reporter, index) => (
+                <li key={index} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
+                  <span>
+                    {reporter.name || "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
+                  </span>
+                  <button type="button" className="text-red-500" onClick={() => removeReporter(index)}>
+                    削除
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </FormLayout>
   );
 }

@@ -430,28 +430,43 @@ export async function createNotification(data: CreateNotificationFormData, isApp
           return { error: "タスクを選択してください" };
         }
 
-        // タスクの所有者を対象に
+        // タスクの作成者と報告者、実行者を対象に
         const task = await prisma.task.findUnique({
           where: { id: data.taskId },
-          select: { userId: true, groupId: true },
+          select: {
+            creatorId: true,
+            groupId: true,
+            reporters: {
+              select: {
+                userId: true,
+              },
+            },
+            executors: {
+              select: {
+                userId: true,
+              },
+            },
+          },
         });
 
         if (task) {
-          // タスク所有者を追加
-          targetUserIds.push(task.userId);
+          // タスク作成者を追加
+          targetUserIds.push(task.creatorId);
+
+          // タスク報告者を追加 (登録ユーザーのみ)
+          const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId as string);
+          targetUserIds.push(...reporterUserIds);
+
+          // タスク実行者を追加 (登録ユーザーのみ)
+          const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId as string);
+          targetUserIds.push(...executorUserIds);
 
           // タスクが属するグループのメンバーも追加
           const groupMembers = await prisma.groupMembership.findMany({
             where: { groupId: task.groupId },
             select: { userId: true },
           });
-
-          // 重複を除去しながらタスク所有者以外のグループメンバーを追加
-          groupMembers.forEach((member) => {
-            if (!targetUserIds.includes(member.userId)) {
-              targetUserIds.push(member.userId);
-            }
-          });
+          targetUserIds.push(...groupMembers.map((member) => member.userId));
         }
         break;
     }

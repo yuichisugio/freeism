@@ -33,13 +33,55 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
         reference: data.reference,
         info: data.info,
         contributionType: data.contributionType,
-        userId: session.user.id,
+        creatorId: session.user.id,
         groupId: data.groupId,
+        // 報告者の設定
+        reporters: {
+          create:
+            data.reporters && data.reporters.length > 0
+              ? // 報告者が指定されている場合
+                data.reporters.map((reporter) => ({
+                  name: reporter.name,
+                  userId: reporter.userId,
+                }))
+              : // 報告者が指定されていない場合、作成者を報告者として追加
+                [{ userId: session.user.id }],
+        },
+        // 実行者の設定
+        executors: {
+          create:
+            data.executors && data.executors.length > 0
+              ? // 実行者が指定されている場合
+                data.executors.map((executor) => ({
+                  name: executor.name,
+                  userId: executor.userId,
+                }))
+              : // 実行者が指定されていない場合、作成者を実行者として追加
+                [{ userId: session.user.id }],
+        },
       },
       include: {
-        user: {
+        creator: {
           select: {
             name: true,
+          },
+        },
+        reporters: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        executors: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -63,9 +105,30 @@ export async function getTasksByGroupId(groupId: string) {
     const tasks = await prisma.task.findMany({
       where: { groupId },
       include: {
-        user: {
+        creator: {
           select: {
+            id: true,
             name: true,
+          },
+        },
+        reporters: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        executors: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         group: {
@@ -129,9 +192,27 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
         ...dateCondition,
       },
       include: {
-        user: {
+        creator: {
           select: {
             name: true,
+          },
+        },
+        reporters: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        executors: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         group: {
@@ -150,19 +231,27 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
     }
 
     // タスクのユーザー名を取得。taskひとつが要素の配列なので、全部を.mapで繰り返して加工している
-    const formattedTasks = tasks.map((task) => ({
-      タスクID: task.id,
-      タスク内容: task.task,
-      参照: task.reference || "",
-      証拠情報: task.info || "",
-      ステータス: task.status,
-      貢献ポイント: task.fixedContributionPoint || 0,
-      評価者: task.fixedEvaluator || "",
-      貢献タイプ: task.contributionType,
-      作成者: task.user.name || "不明",
-      作成日: task.createdAt.toISOString().split("T")[0],
-      更新日: task.updatedAt.toISOString().split("T")[0],
-    }));
+    const formattedTasks = tasks.map((task) => {
+      // 報告者と実行者の名前をカンマ区切りで連結
+      const reporterNames = task.reporters.map((r) => r.user?.name || r.name || "不明").join(", ");
+      const executorNames = task.executors.map((e) => e.user?.name || e.name || "不明").join(", ");
+
+      return {
+        タスクID: task.id,
+        タスク内容: task.task,
+        参照: task.reference || "",
+        証拠情報: task.info || "",
+        ステータス: task.status,
+        貢献ポイント: task.fixedContributionPoint || 0,
+        評価者: task.fixedEvaluator || "",
+        貢献タイプ: task.contributionType,
+        作成者: task.creator.name || "不明",
+        報告者: reporterNames,
+        実行者: executorNames,
+        作成日: task.createdAt.toISOString().split("T")[0],
+        更新日: task.updatedAt.toISOString().split("T")[0],
+      };
+    });
 
     return formattedTasks;
   } catch (error) {
@@ -180,82 +269,40 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
  */
 export async function exportGroupAnalytics(groupId: string, page: number = 1, onlyFixed: boolean = false) {
   try {
-    // 指定グループのデータの有無を確認
-    const group = await prisma.analytics.findFirst({
-      where: { groupId },
+    // ページごとの件数
+    const limit = 50;
+    const offset = (page - 1) * limit;
+
+    // グループの詳細情報を取得
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      select: { name: true, goal: true, evaluationMethod: true },
     });
 
     if (!group) {
-      // グループ自体が存在しない場合はエラー
-      throw new Error("グループの分析結果が存在しません");
+      return { error: "グループが見つかりません" };
     }
 
-    // ページネーション用のskipとtake
-    const itemsPerPage = 200;
-    const skip = (page - 1) * itemsPerPage;
+    // タスクを取得
+    const tasksQuery = onlyFixed
+      ? {
+          // 固定評価されたタスクのみ
+          AND: [{ groupId }, { fixedContributionPoint: { not: null } }, { fixedEvaluator: { not: null } }, { fixedEvaluationLogic: { not: null } }],
+        }
+      : { groupId };
 
-    // 検索条件を構築
-    let whereCondition: any = { groupId };
-
-    // FIX済み分析結果のみを取得する場合
-    if (onlyFixed) {
-      whereCondition = {
-        ...whereCondition,
-        task: {
-          is: {
-            status: "POINTS_AWARDED" as TaskStatus,
-            fixedEvaluator: { not: null },
-            fixedContributionPoint: { not: null },
-            fixedEvaluationLogic: { not: null },
-          },
-        },
-      };
-    }
-
-    // 分析結果データを取得するために、2段階のクエリに分割
-    // 1. まず基本のAnalyticsデータを取得
-    const analyticsBase = await prisma.analytics.findMany({
-      where: whereCondition,
-      orderBy: { createdAt: "asc" },
-      skip: skip,
-      take: itemsPerPage,
+    // タスクIDのリストを取得
+    const tasksCount = await prisma.task.count({
+      where: tasksQuery,
     });
 
-    // データがない場合は空のデータ構造を返す（エラーではなく）
-    if (!analyticsBase || analyticsBase.length === 0) {
-      return {
-        データなし: [
-          {
-            分析ID: "",
-            タスクID: "",
-            貢献ポイント: 0,
-            評価ロジック: "",
-            評価者ID: "",
-            評価者名: "",
-            タスク内容: "",
-            参照情報: "",
-            証拠情報: "",
-            ステータス: "",
-            貢献タイプ: "",
-            タスク作成者: "",
-            グループ目標: "",
-            評価方法: "",
-            作成日: "",
-          },
-        ],
-      };
-    }
+    const totalPages = Math.ceil(tasksCount / limit);
 
-    // 2. 関連データを個別に取得
-    // 必要なIDのリストを作成
-    const taskIds = analyticsBase.map((item) => item.taskId);
-    const evaluatorIds = analyticsBase.map((item) => item.evaluator);
-
-    // タスク情報を一括取得
+    // タスクを取得
     const tasks = await prisma.task.findMany({
-      where: {
-        id: { in: taskIds },
-      },
+      where: tasksQuery,
+      skip: offset,
+      take: limit,
       select: {
         id: true,
         task: true,
@@ -263,156 +310,174 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
         status: true,
         contributionType: true,
         info: true,
-        userId: true,
         fixedContributionPoint: true,
         fixedEvaluator: true,
         fixedEvaluationLogic: true,
         fixedEvaluationDate: true,
         userFixedSubmitterId: true,
+        // 作成者情報
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        // 報告者情報
+        reporters: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        // 実行者情報
+        executors: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    // 評価者情報を一括取得
-    const users = await prisma.user.findMany({
-      where: {
-        id: { in: [...evaluatorIds, ...tasks.filter((t) => t.userFixedSubmitterId).map((t) => t.userFixedSubmitterId as string)] },
-      },
-      select: {
-        id: true,
-        name: true,
-      },
+    // 関連するユーザーIDを収集
+    const userIds: string[] = [];
+
+    // 固定評価者と固定提出者のIDを追加（nullでないものだけ）
+    tasks.forEach((task) => {
+      if (task.fixedEvaluator) {
+        userIds.push(task.fixedEvaluator);
+      }
+
+      if (task.userFixedSubmitterId) {
+        userIds.push(task.userFixedSubmitterId);
+      }
     });
 
-    // タスク作成者のIDリストを作成
-    const taskCreatorIds = tasks.map((task) => task.userId).filter(Boolean) as string[];
-
-    // タスク作成者情報を一括取得
-    const taskCreators = await prisma.user.findMany({
-      where: {
-        id: { in: taskCreatorIds },
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-    // グループ情報を取得
-    const groupInfo = await prisma.group.findUnique({
-      where: {
-        id: groupId,
-      },
-      select: {
-        goal: true,
-        evaluationMethod: true,
-      },
-    });
+    // 評価者情報を一括取得 - 空の配列の場合は検索しない
+    const users =
+      userIds.length > 0
+        ? await prisma.user.findMany({
+            where: {
+              id: { in: userIds },
+            },
+            select: {
+              id: true,
+              name: true,
+            },
+          })
+        : [];
 
     // 取得したデータをマッピングするためのマップを作成
-    const tasksMap: Record<string, (typeof tasks)[0]> = tasks.reduce(
-      (acc, task) => {
-        acc[task.id] = task;
-        return acc;
-      },
-      {} as Record<string, (typeof tasks)[0]>,
-    );
+    const tasksMap = tasks.reduce<Record<string, any>>((acc, task) => {
+      acc[task.id] = task;
+      return acc;
+    }, {});
 
-    const usersMap: Record<string, (typeof users)[0]> = users.reduce(
-      (acc, user) => {
-        acc[user.id] = user;
-        return acc;
-      },
-      {} as Record<string, (typeof users)[0]>,
-    );
-
-    const taskCreatorsMap: Record<string, (typeof taskCreators)[0]> = taskCreators.reduce(
-      (acc, creator) => {
-        acc[creator.id] = creator;
-        return acc;
-      },
-      {} as Record<string, (typeof taskCreators)[0]>,
-    );
+    const usersMap = users.reduce<Record<string, any>>((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {});
 
     // 最終的なデータを組み立てる
-    const analytics = analyticsBase.map((item) => {
-      const task = tasksMap[item.taskId] || {};
-      const evaluator = usersMap[item.evaluator] || {};
-      const taskCreator = task.userId ? taskCreatorsMap[task.userId] : null;
+    const analytics = tasks.map((task) => {
+      // nullではなくundefinedを返すようにする
+      const evaluator = task.fixedEvaluator && usersMap[task.fixedEvaluator] ? usersMap[task.fixedEvaluator] : undefined;
 
       return {
-        ...item,
-        user: evaluator,
+        id: task.id,
         task: {
-          ...task,
-          user: taskCreator,
+          id: task.id,
+          task: task.task,
+          reference: task.reference,
+          status: task.status,
+          contributionType: task.contributionType,
+          info: task.info,
+          executors: task.executors,
+          reporters: task.reporters,
+          creator: task.creator,
         },
-        group: groupInfo,
+        group: group,
       };
     });
 
-    // 評価者ごとにデータを分類
-    const evaluatorData: { [key: string]: any[] } = {};
+    // 評価者ごとにグループ化
+    const groupedByEvaluator: Record<string, any[]> = {};
 
-    for (const item of analytics) {
-      // 評価者情報 (マップから取得したデータでnullチェック)
-      const evaluatorName = item.user?.name || "不明な評価者";
-      const evaluatorId = item.user?.id || "unknown";
+    analytics.forEach((item) => {
+      const task = tasksMap[item.id];
+      const evaluatorId = task.fixedEvaluator;
 
-      if (!evaluatorData[evaluatorName]) {
-        evaluatorData[evaluatorName] = [];
-      }
+      // nullの安全な処理
+      const evaluator = evaluatorId && usersMap[evaluatorId] ? usersMap[evaluatorId] : undefined;
+      const evaluatorName = evaluator ? evaluator.name : "未割り当て";
+      const taskContent = task.task || "";
+      const referenceContent = task.reference || "";
+      const infoContent = task.info || "";
 
-      // タスク関連情報 (マップから取得したデータでnullチェック)
-      const taskContent = item.task?.task || "";
-      const taskReference = item.task?.reference || "";
-      const taskInfo = item.task?.info || "";
-      const taskStatus = item.task?.status || "";
-      const taskContributionType = item.task?.contributionType || "";
-      const taskCreatorName = item.task?.user?.name || "不明";
+      // 報告者と実行者の名前を抽出
+      const reporterNames = task.reporters
+        .map((r: any) => (r.user ? r.user.name : r.name) || "")
+        .filter((name: string) => name.length > 0)
+        .join(", ");
 
-      // グループ情報 (直接取得したデータでnullチェック)
-      const groupGoal = item.group?.goal || "";
-      const evaluationMethod = item.group?.evaluationMethod || "";
+      const executorNames = task.executors
+        .map((e: any) => (e.user ? e.user.name : e.name) || "")
+        .filter((name: string) => name.length > 0)
+        .join(", ");
 
-      // CSVに適した形式に変換
+      // CSV用のデータ構造を作成
       const csvData: any = {
-        分析ID: item.id,
-        タスクID: item.taskId,
-        貢献ポイント: onlyFixed ? tasksMap[item.taskId]?.fixedContributionPoint || 0 : item.contributionPoint,
-        評価ロジック: onlyFixed ? tasksMap[item.taskId]?.fixedEvaluationLogic || "" : item.evaluationLogic,
-        評価者ID: onlyFixed ? tasksMap[item.taskId]?.fixedEvaluator || "" : evaluatorId,
+        分析ID: task.id,
+        タスクID: task.id,
+        貢献ポイント: task.fixedContributionPoint || 0,
+        評価ロジック: task.fixedEvaluationLogic || "",
+        評価者ID: task.fixedEvaluator || "",
         評価者名: evaluatorName,
         タスク内容: taskContent,
-        参照情報: taskReference,
-        証拠情報: taskInfo,
-        ステータス: taskStatus,
-        貢献タイプ: taskContributionType,
-        タスク作成者: taskCreatorName,
-        グループ目標: groupGoal,
-        評価方法: evaluationMethod,
+        参照情報: referenceContent,
+        証拠情報: infoContent,
+        ステータス: task.status,
+        貢献タイプ: task.contributionType,
+        タスク報告者: reporterNames,
+        タスク実行者: executorNames,
+        タスク作成者: task.creator ? task.creator.name : "",
+        グループ目標: group.goal,
+        評価方法: group.evaluationMethod,
+        作成日: task.fixedEvaluationDate ? new Date(task.fixedEvaluationDate).toISOString().split("T")[0] : "",
       };
 
       // FIX済みの場合は追加情報を含める
       if (onlyFixed) {
-        const currentTask = tasksMap[item.taskId];
         Object.assign(csvData, {
-          評価日: currentTask?.fixedEvaluationDate ? currentTask.fixedEvaluationDate.toISOString().split("T")[0] : "",
-          提出者ID: currentTask?.userFixedSubmitterId || "",
-          提出者名: currentTask?.userFixedSubmitterId ? usersMap[currentTask.userFixedSubmitterId]?.name || "不明" : "",
+          評価日: task.fixedEvaluationDate ? task.fixedEvaluationDate.toISOString().split("T")[0] : "",
         });
       }
 
-      // 作成日は常に含める
-      csvData.作成日 = item.createdAt.toISOString().split("T")[0];
+      // 評価者ごとのグループに追加
+      if (!groupedByEvaluator[evaluatorName]) {
+        groupedByEvaluator[evaluatorName] = [];
+      }
+      groupedByEvaluator[evaluatorName].push(csvData);
+    });
 
-      evaluatorData[evaluatorName].push(csvData);
-    }
-
-    return evaluatorData;
+    // 全体のページ数も返す
+    return {
+      data: groupedByEvaluator,
+      totalPages,
+      currentPage: page,
+    };
   } catch (error) {
     console.error("[EXPORT_GROUP_ANALYTICS]", error);
-    // throw new Errorしたエラーがあれば、それを表示
-    throw new Error(error instanceof Error ? error.message : "グループの分析結果のエクスポート中にエラーが発生しました");
+    // エラーメッセージを含めて返す
+    return { error: "分析データのエクスポート中にエラーが発生しました" };
   }
 }
 
@@ -445,14 +510,47 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
               reference: row.reference || null,
               info: row.info || null,
               contributionType: row.contributionType || "NON_REWARD",
-              userId: session.user?.id || "",
+              creatorId: session.user?.id || "",
               groupId: groupId,
+              // 作成者を報告者としても登録
+              reporters: {
+                create: [
+                  {
+                    userId: session.user?.id || "",
+                  },
+                ],
+              },
+              // 作成者を実行者としても登録
+              executors: {
+                create: [
+                  {
+                    userId: session.user?.id || "",
+                  },
+                ],
+              },
             },
-            // 、関連するuserオブジェクトから、ユーザーのnameのみを選択して取得しています。これにより、後続の処理でタスク作成後にユーザー名を利用したい場合に、余分なデータを省いて効率的にアクセスすることができます。
             include: {
-              user: {
+              creator: {
                 select: {
                   name: true,
+                },
+              },
+              reporters: {
+                include: {
+                  user: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+              executors: {
+                include: {
+                  user: {
+                    select: {
+                      name: true,
+                    },
+                  },
                 },
               },
             },
@@ -488,9 +586,27 @@ export async function updateTaskStatus(taskId: string, status: string) {
       where: { id: taskId },
       data: { status: status as TaskStatus },
       include: {
-        user: {
+        creator: {
           select: {
             name: true,
+          },
+        },
+        reporters: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        executors: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
