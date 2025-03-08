@@ -190,30 +190,32 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
       throw new Error("グループの分析結果が存在しません");
     }
 
-    // FIX済み分析結果のみを取得する条件
-    const fixedCondition = onlyFixed
-      ? {
-          task: {
-            fixedEvaluator: { not: null },
-            fixedContributionPoint: { not: null },
-            fixedEvaluationLogic: { not: null },
-          },
-        }
-      : {};
-
     // ページネーション用のskipとtake
     const itemsPerPage = 200;
     const skip = (page - 1) * itemsPerPage;
 
-    const analyticsWhere = {
-      groupId,
-      ...fixedCondition,
-    };
+    // 検索条件を構築
+    let whereCondition: any = { groupId };
+
+    // FIX済み分析結果のみを取得する場合
+    if (onlyFixed) {
+      whereCondition = {
+        ...whereCondition,
+        task: {
+          is: {
+            status: "POINTS_AWARDED" as TaskStatus,
+            fixedEvaluator: { not: null },
+            fixedContributionPoint: { not: null },
+            fixedEvaluationLogic: { not: null },
+          },
+        },
+      };
+    }
 
     // 分析結果データを取得するために、2段階のクエリに分割
     // 1. まず基本のAnalyticsデータを取得
     const analyticsBase = await prisma.analytics.findMany({
-      where: analyticsWhere,
+      where: whereCondition,
       orderBy: { createdAt: "asc" },
       skip: skip,
       take: itemsPerPage,
@@ -262,13 +264,18 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
         contributionType: true,
         info: true,
         userId: true,
+        fixedContributionPoint: true,
+        fixedEvaluator: true,
+        fixedEvaluationLogic: true,
+        fixedEvaluationDate: true,
+        userFixedSubmitterId: true,
       },
     });
 
     // 評価者情報を一括取得
     const users = await prisma.user.findMany({
       where: {
-        id: { in: evaluatorIds },
+        id: { in: [...evaluatorIds, ...tasks.filter((t) => t.userFixedSubmitterId).map((t) => t.userFixedSubmitterId as string)] },
       },
       select: {
         id: true,
@@ -368,12 +375,12 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
       const evaluationMethod = item.group?.evaluationMethod || "";
 
       // CSVに適した形式に変換
-      evaluatorData[evaluatorName].push({
+      const csvData: any = {
         分析ID: item.id,
         タスクID: item.taskId,
-        貢献ポイント: item.contributionPoint,
-        評価ロジック: item.evaluationLogic,
-        評価者ID: evaluatorId,
+        貢献ポイント: onlyFixed ? tasksMap[item.taskId]?.fixedContributionPoint || 0 : item.contributionPoint,
+        評価ロジック: onlyFixed ? tasksMap[item.taskId]?.fixedEvaluationLogic || "" : item.evaluationLogic,
+        評価者ID: onlyFixed ? tasksMap[item.taskId]?.fixedEvaluator || "" : evaluatorId,
         評価者名: evaluatorName,
         タスク内容: taskContent,
         参照情報: taskReference,
@@ -383,8 +390,22 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
         タスク作成者: taskCreatorName,
         グループ目標: groupGoal,
         評価方法: evaluationMethod,
-        作成日: item.createdAt.toISOString().split("T")[0],
-      });
+      };
+
+      // FIX済みの場合は追加情報を含める
+      if (onlyFixed) {
+        const currentTask = tasksMap[item.taskId];
+        Object.assign(csvData, {
+          評価日: currentTask?.fixedEvaluationDate ? currentTask.fixedEvaluationDate.toISOString().split("T")[0] : "",
+          提出者ID: currentTask?.userFixedSubmitterId || "",
+          提出者名: currentTask?.userFixedSubmitterId ? usersMap[currentTask.userFixedSubmitterId]?.name || "不明" : "",
+        });
+      }
+
+      // 作成日は常に含める
+      csvData.作成日 = item.createdAt.toISOString().split("T")[0];
+
+      evaluatorData[evaluatorName].push(csvData);
     }
 
     return evaluatorData;

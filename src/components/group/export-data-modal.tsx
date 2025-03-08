@@ -74,23 +74,23 @@ const ANIMATION_VARIANTS = {
       scale: 1,
       borderColor: "#3b82f6",
       backgroundColor: "#eff6ff",
-      transition: { type: "spring", stiffness: 300, damping: 15 },
+      transition: { stiffness: 300, damping: 15 },
     },
     unselected: {
       scale: 0.98,
       borderColor: "#e5e7eb",
       backgroundColor: "#ffffff",
-      transition: { type: "spring", stiffness: 300, damping: 15 },
+      transition: { stiffness: 300, damping: 15 },
     },
     hover: {
       scale: 1.02,
       boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-      transition: { type: "spring", stiffness: 400, damping: 10 },
+      transition: { stiffness: 400, damping: 10 },
     },
     tap: {
       scale: 0.98,
       backgroundColor: "#f9fafb",
-      transition: { type: "spring", stiffness: 400, damping: 17 },
+      transition: { stiffness: 400, damping: 17 },
     },
   },
   step: {
@@ -510,6 +510,26 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
             <AnalyticsDataCard />
           </div>
         </RadioGroup>
+
+        {/* 分析結果データが選択されている場合にのみ表示するチェックボックスオプション */}
+        {state.exportType === "ANALYTICS" && (
+          <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.1 }} className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="onlyFixed"
+                checked={state.onlyFixed}
+                onCheckedChange={(checked) => updateState({ onlyFixed: checked as boolean })}
+                className="border-blue-300 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+              />
+              <div>
+                <label htmlFor="onlyFixed">
+                  <p className="cursor-pointer text-sm font-medium text-blue-800">FIX済みの分析結果のみ</p>
+                  <p className="text-xs text-blue-600">チェックを入れると、ステータスが「POINTS_AWARDED」のタスクのみをエクスポートします。</p>
+                </label>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );
@@ -561,12 +581,6 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
             グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。 評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。
             <span className="mt-1 block text-gray-400 italic">ページ指定のみ必要です。期間指定は不要です。</span>
           </p>
-          <div className="mt-2 flex items-center space-x-2">
-            <Checkbox id="onlyFixed" checked={state.onlyFixed} onCheckedChange={(checked) => updateState({ onlyFixed: checked as boolean })} />
-            <label htmlFor="onlyFixed" className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              FIX済みの分析結果のみ
-            </label>
-          </div>
         </div>
       </div>
     </motion.div>
@@ -696,21 +710,28 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   // サブコンポーネント: ページサマリー
   const PageSummary = () => (
     <motion.div
-      className="mt-3 rounded-md border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800"
+      className="mt-3 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-start">
-        <PackageCheck className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-amber-500" />
+        <PackageCheck className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-blue-500" />
         <div>
           <p className="font-medium">
             選択されたページ: {state.page}ページ目 ({(state.page - 1) * 200 + 1}〜{state.page * 200}件)
           </p>
           <p className="mt-1">
             エクスポートされたデータは評価者ごとに分割され、ZIPファイルとしてダウンロードされます。
-            {state.onlyFixed && " FIX済みの分析結果のみがエクスポートされます。"}
+            {state.onlyFixed && (
+              <>
+                <br />
+                <span className="font-medium text-blue-700">
+                  FIX済みの分析結果のみ（ステータス「POINTS_AWARDED」）がエクスポートされます。 各タスクの固定評価情報（貢献ポイント、評価ロジック、評価者、評価日、提出者）が含まれます。
+                </span>
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -774,7 +795,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
         </div>
 
         {/* コンテンツエリア */}
-        <div className="relative overflow-hidden p-6">
+        <div className="relative overflow-y-auto p-6">
           <AnimatePresence custom={state.direction} mode="wait">
             {navigationFunctions.getStepComponent()}
           </AnimatePresence>
