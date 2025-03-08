@@ -5,6 +5,7 @@ import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { endOfDay, startOfDay } from "date-fns";
 
 /**
  * タスクを作成する関数
@@ -161,13 +162,14 @@ export async function getTasksByGroupId(groupId: string) {
 }
 
 /**
- * グループのTask情報をCSV形式でエクスポートする関数
+ * グループのタスク情報をCSV形式でエクスポートする関数
  * @param groupId - グループID
- * @param startDate - 開始日（オプション）
- * @param endDate - 終了日（オプション）
- * @returns CSVデータ
+ * @param startDate - 開始日
+ * @param endDate - 終了日
+ * @param onlyTaskCompleted - TASK_COMPLETEDステータスのタスクのみを取得するフラグ（分析用）
+ * @returns CSV形式のタスク情報
  */
-export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date) {
+export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted: boolean = false) {
   try {
     const session = await auth();
 
@@ -175,22 +177,31 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       throw new Error("認証エラーが発生しました");
     }
 
-    // 期間条件の構築
-    const dateCondition = {};
-    if (startDate && endDate) {
-      Object.assign(dateCondition, {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      });
+    // クエリ条件を構築
+    let whereConditions: any = { groupId };
+
+    // 日付範囲が指定されている場合、条件に追加
+    if (startDate) {
+      whereConditions.createdAt = {
+        ...whereConditions.createdAt,
+        gte: startOfDay(startDate),
+      };
+    }
+
+    if (endDate) {
+      whereConditions.createdAt = {
+        ...whereConditions.createdAt,
+        lte: endOfDay(endDate),
+      };
+    }
+
+    // 分析用の場合はTASK_COMPLETEDのタスクのみ対象にする
+    if (onlyTaskCompleted) {
+      whereConditions.status = "TASK_COMPLETED";
     }
 
     const tasks = await prisma.task.findMany({
-      where: {
-        groupId,
-        ...dateCondition,
-      },
+      where: whereConditions,
       include: {
         creator: {
           select: {
@@ -265,12 +276,13 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
  * @param groupId - グループID
  * @param page - 取得するページ番号（1ページ200件）
  * @param onlyFixed - FIX済みの分析結果のみを取得するフラグ
+ * @param onlyTaskCompleted - TASK_COMPLETEDステータスのタスクのみを取得するフラグ（分析用）
  * @returns 評価者ごとに分けられたCSVデータ
  */
-export async function exportGroupAnalytics(groupId: string, page: number = 1, onlyFixed: boolean = false) {
+export async function exportGroupAnalytics(groupId: string, page: number = 1, onlyFixed: boolean = false, onlyTaskCompleted: boolean = false) {
   try {
-    // ページごとの件数
-    const limit = 50;
+    // ページごとの件数（要件に合わせて200件に変更）
+    const limit = 200;
     const offset = (page - 1) * limit;
 
     // グループの詳細情報を取得
@@ -283,24 +295,29 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
       return { error: "グループが見つかりません" };
     }
 
-    // タスクを取得
-    const tasksQuery = onlyFixed
-      ? {
-          // 固定評価されたタスクのみ
-          AND: [{ groupId }, { fixedContributionPoint: { not: null } }, { fixedEvaluator: { not: null } }, { fixedEvaluationLogic: { not: null } }],
-        }
-      : { groupId };
+    // クエリ条件を構築
+    let whereConditions: any = { groupId };
 
-    // タスクIDのリストを取得
+    // FIX済みのみの条件
+    if (onlyFixed) {
+      whereConditions.AND = [
+        { status: "POINTS_AWARDED" }, // ステータスがPOINTS_AWARDEDのもののみに限定
+      ];
+    } else if (onlyTaskCompleted) {
+      // FIX済み条件がオフで、分析用の場合はTASK_COMPLETEDのみを対象とする
+      whereConditions.AND = [{ status: "TASK_COMPLETED" }];
+    }
+
+    // タスク数を取得
     const tasksCount = await prisma.task.count({
-      where: tasksQuery,
+      where: whereConditions,
     });
 
     const totalPages = Math.ceil(tasksCount / limit);
 
     // タスクを取得
     const tasks = await prisma.task.findMany({
-      where: tasksQuery,
+      where: whereConditions,
       skip: offset,
       take: limit,
       select: {
@@ -388,8 +405,8 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
 
     // 最終的なデータを組み立てる
     const analytics = tasks.map((task) => {
-      // nullではなくundefinedを返すようにする
-      const evaluator = task.fixedEvaluator && usersMap[task.fixedEvaluator] ? usersMap[task.fixedEvaluator] : undefined;
+      // 使用されない変数をコメントアウト
+      // const evaluator = task.fixedEvaluator && usersMap[task.fixedEvaluator] ? usersMap[task.fixedEvaluator] : undefined;
 
       return {
         id: task.id,
