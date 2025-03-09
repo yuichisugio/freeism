@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/app/actions/evaluation";
 import { checkAppOwner, checkGroupOwner } from "@/app/actions/group";
-import { bulkCreateTasks, bulkUpdateFixedEvaluations } from "@/app/actions/task";
+import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/app/actions/task";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -28,7 +28,7 @@ type CsvUploadModalProps = {
   groupId: string;
 };
 
-type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION" | "FIXED_CONTRIBUTION";
+type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION" | "FIXED_CONTRIBUTION" | "TASK_STATUS";
 
 type UseCsvUploadOptions = {
   groupId: string;
@@ -94,6 +94,7 @@ const REQUIRED_COLUMNS: Record<UploadType, string[]> = {
   TASK_REPORT: ["task", "contributionType"],
   CONTRIBUTION_EVALUATION: ["taskId", "contributionPoint", "evaluationLogic"],
   FIXED_CONTRIBUTION: ["id", "fixedContributionPoint", "fixedEvaluator", "fixedEvaluationLogic"],
+  TASK_STATUS: ["taskId", "status"],
 };
 
 const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
@@ -117,6 +118,13 @@ const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
     optionalFields: "fixedEvaluationDate（評価日, YYYY-MM-DD形式）",
     note: "ステータスが「タスク完了(TASK_COMPLETED)」のタスクのみが対象です",
     example: "clrqz3kp20000n4og9xq9d6mt,100,clrq0001,ロジックの説明,2023-04-01",
+  },
+  TASK_STATUS: {
+    title: "タスクステータス",
+    description: "タスクのステータスを一括で更新します。",
+    requiredFields: "taskId（タスクID）, status（ステータス→ PENDING・ BIDDED・ POINTS_DEPOSITED・ TASK_COMPLETED・ FIXED_EVALUATED・ POINTS_AWARDED・ ARCHIVED）",
+    note: "statusに指定できる値は限定されています。大文字小文字を正確に入力してください。",
+    example: "clrqz3kp20000n4og9xq9d6mt,TASK_COMPLETED",
   },
 };
 
@@ -448,6 +456,13 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
             exportFailedData(result.failedData);
             toast.info(`${result.failedData.length}件のデータが登録できませんでした。CSVファイルをダウンロードして確認してください。`);
           }
+        } else if (uploadType === "TASK_STATUS") {
+          result = await bulkUpdateTaskStatuses(data);
+
+          if (result.failedData && result.failedData.length > 0) {
+            exportFailedData(result.failedData);
+            toast.info(`${result.failedData.length}件のデータが更新できませんでした。CSVファイルをダウンロードして確認してください。`);
+          }
         }
 
         if (result && !result.success) {
@@ -477,27 +492,120 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
   const renderFileFormatInfo = useCallback(() => {
     const info = UPLOAD_TYPE_INFO[uploadType];
 
-    return (
-      <div className="mb-3 space-y-2">
-        <p className="text-gray-700">
-          <span className="font-medium text-green-600">必須フィールド:</span> {info.requiredFields}
-        </p>
+    // 必須フィールドとオプションフィールドをキーバリューペアに変換
+    const parseFieldsToObject = (fieldsString: string): { key: string; description: string }[] => {
+      if (!fieldsString) return [];
 
-        {info.optionalFields && (
-          <p className="text-gray-700">
-            <span className="font-medium text-green-600">オプションフィールド:</span> {info.optionalFields}
-          </p>
-        )}
+      return fieldsString
+        .split(",")
+        .map((field) => field.trim())
+        .filter((field) => field)
+        .map((field) => {
+          const match = field.match(/([^（]+)（([^）]+)）/);
+          if (match) {
+            return { key: match[1].trim(), description: match[2].trim() };
+          }
+          return { key: field, description: "" };
+        });
+    };
+
+    const requiredFields = parseFieldsToObject(info.requiredFields);
+    const optionalFields = info.optionalFields ? parseFieldsToObject(info.optionalFields) : [];
+
+    // すべてのフィールドを結合（必須を先に）
+    const allFields = [...requiredFields, ...optionalFields];
+
+    return (
+      <div className="mb-3 space-y-4">
+        {/* テーブル説明 */}
+        <div className="text-sm text-gray-700">
+          <p className="mb-1 font-medium">CSVファイルの形式:</p>
+          <p>以下のカラムをCSVファイルに含めてください。最初の行はヘッダー行として使用してください。</p>
+        </div>
+
+        {/* テーブル形式で表示 */}
+        <div className="overflow-x-auto rounded-md border border-gray-200 shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {requiredFields.map((field, index) => (
+                  <th key={`req-${index}`} className="border-r border-gray-200 bg-green-50 px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-700 uppercase last:border-r-0">
+                    {field.key} <span className="font-normal text-green-600">*</span>
+                  </th>
+                ))}
+                {optionalFields.map((field, index) => (
+                  <th key={`opt-${index}`} className="border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase last:border-r-0">
+                    {field.key}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="bg-white text-sm text-gray-600">
+                {allFields.map((field, index) => {
+                  // アップロードタイプごとにサンプルデータを作成
+                  let sampleValue = "";
+                  const key = field.key;
+
+                  if (key.includes("task")) {
+                    sampleValue = "カスタマーサポート機能の改善";
+                  } else if (key.includes("Id") || key === "id") {
+                    sampleValue = "clrqz3kp20000...";
+                  } else if (key.includes("Point")) {
+                    sampleValue = "100";
+                  } else if (key.includes("status")) {
+                    sampleValue = "TASK_COMPLETED";
+                  } else if (key.includes("contribution") || key.includes("contributionType")) {
+                    sampleValue = "REWARD";
+                  } else if (key.includes("Logic") || key.includes("logic")) {
+                    sampleValue = "作業効率の向上に貢献";
+                  } else if (key.includes("Evaluator") || key.includes("evaluator")) {
+                    sampleValue = "user_abc123";
+                  } else if (key.includes("Date") || key.includes("date")) {
+                    sampleValue = "2023-12-31";
+                  } else if (key.includes("reference")) {
+                    sampleValue = "https://example.com";
+                  } else if (key.includes("info")) {
+                    sampleValue = "PR: #123";
+                  }
+
+                  return (
+                    <td key={`cell-${index}`} className="border-r border-gray-200 px-3 py-2 whitespace-nowrap last:border-r-0">
+                      {sampleValue}
+                    </td>
+                  );
+                })}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* カラム説明 */}
+        <div className="space-y-1.5 text-sm">
+          <p className="font-medium text-gray-700">カラム説明:</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {allFields.map((field, index) => (
+              <li key={`desc-${index}`} className="text-gray-600">
+                <span className="font-medium">{field.key}</span>: {field.description}
+                {index < requiredFields.length && <span className="ml-1 text-red-500">（必須）</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {info.note && (
-          <p className="text-gray-700">
-            <span className="font-medium text-red-600">注意:</span> {info.note}
-          </p>
+          <div className="mt-2 text-sm">
+            <p className="text-gray-700">
+              <span className="font-medium text-red-600">注意:</span> {info.note}
+            </p>
+          </div>
         )}
 
-        <p className="text-gray-700">
-          <span className="italic">例: {info.example}</span>
-        </p>
+        <div className="mt-2 text-sm">
+          <p className="text-gray-700">
+            <span className="font-medium">記入例:</span> <span className="italic">{info.example}</span>
+          </p>
+        </div>
       </div>
     );
   }, [uploadType]);
@@ -736,7 +844,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
 
       {/* アップロードモーダル */}
       <Dialog open={isOpen} onOpenChange={(open) => !isUploading && onCloseAction(open)}>
-        <DialogContent className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[550px]" closeButton={false}>
+        <DialogContent className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[800px]" closeButton={false}>
           {/* ヘッダー */}
           <div className="relative flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
             <button

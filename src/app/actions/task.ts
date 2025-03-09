@@ -3,6 +3,7 @@
 import type { TaskFormValuesAndGroupId } from "@/components/task/task-input-form";
 import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { checkAppOwner, checkGroupOwner } from "@/app/actions/group";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { endOfDay, startOfDay } from "date-fns";
@@ -599,6 +600,69 @@ export async function updateTaskStatus(taskId: string, status: string) {
       throw new Error("認証エラーが発生しました");
     }
 
+    // 更新前にタスクを取得して権限とステータスを確認
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        reporters: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        executors: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        group: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      throw new Error("タスクが見つかりません");
+    }
+
+    // 変更不可のステータスチェック
+    const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+    if (immutableStatuses.includes(task.status)) {
+      return { error: "このステータスのタスクは変更できません" };
+    }
+
+    // 権限チェック
+    const userId = session.user.id;
+    const isCreator = task.creator.id === userId;
+    const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
+    const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
+
+    // アプリオーナーとグループオーナーの確認
+    const isAppOwner = await checkAppOwner(userId);
+    const isGroupOwner = await checkGroupOwner(userId, task.group.id);
+
+    // いずれかの権限がある場合のみ変更可能
+    if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
+      return { error: "このタスクのステータスを変更する権限がありません" };
+    }
+
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
       data: { status: status as TaskStatus },
@@ -778,6 +842,141 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
       error: "タスクの一括更新中にエラーが発生しました",
       successData: [],
       failedData: data.map((item) => ({ ...item, 失敗理由: "システムエラー" })),
+    };
+  }
+}
+
+/**
+ * タスクステータスを一括更新する関数
+ * @param data タスクIDとステータスを含むデータ配列
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function bulkUpdateTaskStatuses(data: any[]) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, error: "認証エラーが発生しました" };
+    }
+
+    const userId = session.user.id;
+    const isAppOwner = await checkAppOwner(userId);
+
+    // 有効なステータスの配列
+    const validStatuses = ["PENDING", "BIDDED", "POINTS_DEPOSITED", "TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+
+    const results = [];
+    const failedResults = [];
+
+    // データごとに処理
+    for (const item of data) {
+      try {
+        // 必須フィールドのチェック
+        if (!item.taskId) {
+          failedResults.push({ ...item, error: "タスクIDが指定されていません" });
+          continue;
+        }
+
+        if (!item.status) {
+          failedResults.push({ ...item, error: "ステータスが指定されていません" });
+          continue;
+        }
+
+        // ステータスの有効性チェック
+        if (!validStatuses.includes(item.status)) {
+          failedResults.push({ ...item, error: `無効なステータスです: ${item.status}` });
+          continue;
+        }
+
+        // タスクの存在チェック
+        const task = await prisma.task.findUnique({
+          where: { id: item.taskId },
+          include: {
+            creator: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            reporters: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            executors: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            group: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        });
+
+        if (!task) {
+          failedResults.push({ ...item, error: "タスクが見つかりません" });
+          continue;
+        }
+
+        // 権限チェック
+        const isCreator = task.creator.id === userId;
+        const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
+        const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
+        const isGroupOwner = await checkGroupOwner(userId, task.group.id);
+
+        // いずれかの権限がある場合のみ変更可能
+        if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
+          failedResults.push({ ...item, error: "このタスクのステータスを変更する権限がありません" });
+          continue;
+        }
+
+        // 変更不可のステータスチェック（特定のステータスからは変更不可）
+        const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+        if (immutableStatuses.includes(task.status)) {
+          failedResults.push({ ...item, error: `このステータス(${task.status})のタスクは変更できません` });
+          continue;
+        }
+
+        // ステータス更新
+        const updatedTask = await prisma.task.update({
+          where: { id: item.taskId },
+          data: { status: item.status as TaskStatus },
+        });
+
+        results.push(updatedTask);
+      } catch (error) {
+        console.error("個別タスクのステータス更新エラー:", error);
+        failedResults.push({
+          ...item,
+          error: error instanceof Error ? error.message : "タスクステータスの更新中にエラーが発生しました",
+        });
+      }
+    }
+
+    return {
+      success: true,
+      updatedCount: results.length,
+      failedCount: failedResults.length,
+      failedData: failedResults.length > 0 ? failedResults : null,
+    };
+  } catch (error) {
+    console.error("一括タスクステータス更新エラー:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "タスクステータスの一括更新中にエラーが発生しました",
     };
   }
 }
