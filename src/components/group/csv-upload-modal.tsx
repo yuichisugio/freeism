@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Cloud, File, Loader2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Papa from "papaparse";
-import { DropzoneOptions, useDropzone } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
 // --------------------------------------------------
@@ -724,8 +724,8 @@ function FileList({ files, isUploading, onRemoveFile, onRemoveAll }: FileListPro
 /**
  * ファイルアップロードエリア
  */
-function FileUploadArea({ uploadType, isUploading, uploadProgress, dropzoneProps, renderFileFormatInfo }: FileUploadAreaProps) {
-  const { getRootProps, getInputProps, isDragActive, open } = dropzoneProps;
+function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFileFormatInfo }: FileUploadAreaProps) {
+  const { getRootProps, getInputProps, isDragActive } = dropzoneProps;
 
   return (
     <div className="space-y-4">
@@ -833,7 +833,6 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
     handleRemoveAll,
     handleUpload,
     onCancel,
-    fileCards,
     renderFileFormatInfo,
   } = useCsvUpload({ groupId, isOpen, onCloseAction });
 
