@@ -7,6 +7,7 @@ import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { contributionType } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -82,7 +83,7 @@ export function TaskInputForm({
       task: "",
       reference: "",
       info: "",
-      contributionType: "REWARD",
+      contributionType: contributionType.REWARD,
       executors: [],
       reporters: [],
     },
@@ -194,8 +195,8 @@ export function TaskInputForm({
         name="contributionType"
         label="貢献の種類"
         options={[
-          { value: "REWARD", label: "報酬になる貢献" },
-          { value: "NON_REWARD", label: "報酬にならない貢献" },
+          { value: contributionType.REWARD, label: "報酬になる貢献" },
+          { value: contributionType.NON_REWARD, label: "報酬にならない貢献" },
         ]}
       />
 

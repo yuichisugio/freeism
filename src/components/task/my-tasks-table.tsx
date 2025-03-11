@@ -4,6 +4,7 @@ import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
+import { type contributionType } from "@prisma/client";
 
 // 報告者と実行者の型
 type TaskParticipant = {
@@ -23,7 +24,7 @@ type Task = {
   fixedContributionPoint: number | null;
   fixedEvaluator: string | null;
   fixedEvaluationLogic: string | null;
-  contributionType: string;
+  contributionType: contributionType;
   // 作成者・報告者・実行者情報
   creator: {
     name: string | null;

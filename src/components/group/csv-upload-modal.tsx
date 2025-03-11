@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectedFileCard } from "@/components/ui/upload-file-card";
 import { cn } from "@/lib/utils";
+import { contributionType } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Cloud, File, Loader2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -101,9 +102,9 @@ const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   TASK_REPORT: {
     title: "タスク報告",
     description: "タスクの内容やタイプを一括で登録します。",
-    requiredFields: "task（タスク内容）, contributionType（貢献タイプ: REWARD または NON_REWARD）",
+    requiredFields: `task（タスク内容）, contributionType（貢献タイプ: ${contributionType.REWARD} または ${contributionType.NON_REWARD}）`,
     optionalFields: "reference（参考にした内容）, info（証拠・結果・補足情報）",
-    example: "Webサイトのデザイン改修,https://example.com/design,REWARD,プルリクURL: https://github.com/org/repo/pull/123",
+    example: `Webサイトのデザイン改修,https://example.com/design,${contributionType.REWARD},プルリクURL: https://github.com/org/repo/pull/123`,
   },
   CONTRIBUTION_EVALUATION: {
     title: "貢献評価",
@@ -556,7 +557,7 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
                   } else if (key.includes("status")) {
                     sampleValue = "TASK_COMPLETED";
                   } else if (key.includes("contribution") || key.includes("contributionType")) {
-                    sampleValue = "REWARD";
+                    sampleValue = contributionType.REWARD;
                   } else if (key.includes("Logic") || key.includes("logic")) {
                     sampleValue = "作業効率の向上に貢献";
                   } else if (key.includes("Evaluator") || key.includes("evaluator")) {

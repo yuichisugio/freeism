@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { checkAppOwner, checkGroupOwner } from "@/app/actions/group";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { contributionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 
 /**
@@ -527,7 +528,7 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
               task: row.task,
               reference: row.reference || null,
               info: row.info || null,
-              contributionType: row.contributionType || "NON_REWARD",
+              contributionType: row.contributionType || contributionType.NON_REWARD,
               creatorId: session.user?.id || "",
               groupId: groupId,
               // 作成者を報告者としても登録

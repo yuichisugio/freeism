@@ -134,7 +134,7 @@ model Task {
   userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
   userFixedSubmitterId   String?
   info                   String?
-  contributionType       String         @default("NON_REWARD") // "REWARD" or "NON_REWARD"
+  contributionType       contributionType @default(NON_REWARD) // "REWARD" or "NON_REWARD"
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
   creator                User           @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
@@ -148,6 +148,11 @@ model Task {
 
   @@index([creatorId])
   @@index([groupId])
+}
+
+enum contributionType {
+  REWARD // 報酬タスク
+  NON_REWARD // 報酬なしタスク
 }
 
 model Analytics {

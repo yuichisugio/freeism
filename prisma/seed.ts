@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker/locale/ja";
-import { NotificationTargetType, NotificationType, PrismaClient, TaskStatus } from "@prisma/client";
+import { contributionType, NotificationTargetType, NotificationType, PrismaClient, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -27,7 +27,7 @@ const PRESERVED_USER_IDS = ["cm7u2evy50002mctvfdyg8vk8", "cm7t3sejm0008g5p9whdbw
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
-type ContributionType = "REWARD" | "NON_REWARD";
+// type ContributionType = "REWARD" | "NON_REWARD";
 type EvaluationMethod = "360度評価" | "相互評価" | "目標達成度" | "KPI評価" | "コンピテンシー評価";
 
 // Prismaクライアントのインスタンス化
@@ -364,7 +364,7 @@ async function createGroupMemberships(groups: any[], users: any[], minMembersPer
 async function createTasks(count: number, groupMemberships: any[], users: any[]) {
   const tasks = [];
   const taskStatuses = Object.values(TaskStatus);
-  const contributionTypes: ContributionType[] = ["REWARD", "NON_REWARD"];
+  const contributionTypes = Object.values(contributionType);
 
   for (let i = 0; i < count; i++) {
     // ランダムにメンバーシップを選択

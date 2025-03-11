@@ -16,6 +16,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { contributionType } from "@prisma/client";
 import { Award, Check, ChevronsUpDown, ClipboardCheck, ClipboardList, Download, Edit, Loader2, LogOut, ShieldCheck, TargetIcon, Trash2, Upload, UserMinus, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,7 +39,7 @@ type Task = {
   fixedContributionPoint: number | null;
   fixedEvaluator: string | null;
   fixedEvaluationLogic: string | null;
-  contributionType: string;
+  contributionType: contributionType;
   // 作成者情報
   creator: {
     id: string;
@@ -66,8 +67,8 @@ type GroupDetailProps = {
 
 export function GroupDetail({ tasks }: GroupDetailProps) {
   const router = useRouter();
-  const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === "NON_REWARD"));
-  const [rewardTasks, setRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === "REWARD"));
+  const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
+  const [rewardTasks, setRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === contributionType.REWARD));
   const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
