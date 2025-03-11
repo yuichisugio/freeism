@@ -5,6 +5,8 @@ import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkAppOwner, checkAuth, checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, leaveGroup, removeMember } from "@/app/actions/group";
+import { getTasksByGroupId } from "@/app/actions/task";
+import { getAllUsers } from "@/app/actions/user";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { EditGroupForm } from "@/components/group/edit-group-form";
 import { ExportDataModal } from "@/components/group/export-data-modal";
@@ -86,11 +88,26 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
 
   // 権限情報を保持するstate
   const [isAppOwner, setIsAppOwner] = useState(false);
   const [isGroupOwner, setIsGroupOwner] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // ユーザー一覧を取得
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
+      } catch (error) {
+        console.error("ユーザー一覧取得エラー:", error);
+      }
+    }
+
+    fetchUsers();
+  }, []);
 
   // コンポーネントマウント時に権限チェックを一度だけ実行
   useEffect(() => {
@@ -382,6 +399,11 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       statusCombobox: true,
       sortable: true,
     },
+    {
+      key: "action" as keyof Task,
+      header: "アクション",
+      editTask: true,
+    },
   ];
 
   // 非報酬タスク用のカラム
@@ -399,8 +421,8 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   // 報酬タスク用のカラム
   const rewardColumns: Column<Task>[] = [
     {
-      key: "action" as keyof Task,
-      header: "アクション",
+      key: "auction" as keyof Task,
+      header: "オークション",
       cell: (row: Task) => (
         <Button onClick={() => router.push(`/dashboard/group/${row.group.id}/auction/${row.id}`)} className="button-default-custom" size="sm">
           オークションに参加
@@ -418,21 +440,84 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     ...commonColumns.slice(4), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
   ];
 
+  // タスク編集可能かどうかの判定
+  const canEditTask = (task: Task): boolean => {
+    // 変更不可のステータスチェック
+    const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+    if (immutableStatuses.includes(task.status)) {
+      return false;
+    }
+
+    // 権限チェック - 報告者、実行者、アプリオーナー、グループオーナーのみ編集可能
+    if (!userId) return false;
+
+    // 報告者チェック
+    const isReporter = task.reporters.some((r) => r.userId === userId);
+
+    // 実行者チェック
+    const isExecutor = task.executors.some((e) => e.userId === userId);
+
+    // アプリオーナーまたはグループオーナーの場合は編集可能
+    return isAppOwner || isGroupOwner || isReporter || isExecutor;
+  };
+
+  // タスク編集後の更新処理
+  const handleTaskEdited = () => {
+    setIsLoading(true);
+
+    // 非同期処理を即時実行関数として実行
+    (async () => {
+      try {
+        // タスクデータを再取得
+        if (tasks.length > 0) {
+          const groupId = tasks[0].group.id;
+          const updatedTasks = await getTasksByGroupId(groupId);
+
+          // 表示用のタスクデータを更新
+          if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
+            const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
+            const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
+
+            setRewardTasks(newRewardTasks);
+            setNonRewardTasks(newNonRewardTasks);
+
+            toast.success("タスクデータを更新しました");
+          }
+        }
+      } catch (error) {
+        console.error("タスクデータ更新エラー:", error);
+      } finally {
+        router.refresh(); // バックアップとしてのrefresh
+        setIsLoading(false);
+      }
+    })();
+  };
+
   // DataTableコンポーネントのpropsを設定
   const taskDataTableProps: DataTableProps<Task> = {
     data: nonRewardTasks,
     columns: nonRewardColumns,
     pagination: true,
-    onDataChange: setNonRewardTasks,
+    onDataChange: (data) => setNonRewardTasks(data as Task[]),
     stickyHeader: true,
+    editTask: {
+      canEdit: canEditTask,
+      onEdit: handleTaskEdited,
+      users: users,
+    },
   };
 
   const rewardTaskDataTableProps: DataTableProps<Task> = {
     data: rewardTasks,
     columns: rewardColumns,
     pagination: true,
-    onDataChange: setRewardTasks,
+    onDataChange: (data) => setRewardTasks(data as Task[]),
     stickyHeader: true,
+    editTask: {
+      canEdit: canEditTask,
+      onEdit: handleTaskEdited,
+      users: users,
+    },
   };
 
   return (
@@ -530,7 +615,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                 evaluationMethod: tasks[0].group.evaluationMethod,
                 maxParticipants: tasks[0].group.maxParticipants,
               }}
-              onClose={() => setEditDialogOpen(false)}
+              onCloseAction={() => setEditDialogOpen(false)}
             />
           )}
         </DialogContent>

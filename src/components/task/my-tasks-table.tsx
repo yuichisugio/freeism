@@ -1,10 +1,15 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
-import { useState } from "react";
+import type { Column } from "@/components/share/data-table";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { checkAppOwner, checkAuth } from "@/app/actions/group";
+import { getMyTasks } from "@/app/actions/task";
+import { getAllUsers } from "@/app/actions/user";
 import { DataTable } from "@/components/share/data-table";
 import { type contributionType } from "@prisma/client";
+import { toast } from "react-hot-toast";
 
 // 報告者と実行者の型
 type TaskParticipant = {
@@ -42,7 +47,43 @@ type MyTasksTableProps = {
 };
 
 export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
+  const router = useRouter();
   const [tasks, setTasks] = useState(initialTasks);
+  const [users, setUsers] = useState<any[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isAppOwner, setIsAppOwner] = useState(false);
+
+  // ユーザー一覧を取得
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
+      } catch (error) {
+        console.error("ユーザー一覧取得エラー:", error);
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
+  // 権限情報を取得
+  useEffect(() => {
+    async function checkPermissions() {
+      try {
+        const currentUserId = await checkAuth();
+        if (currentUserId) {
+          setUserId(currentUserId);
+          const isOwner = await checkAppOwner(currentUserId);
+          setIsAppOwner(isOwner);
+        }
+      } catch (error) {
+        console.error("権限チェックエラー:", error);
+      }
+    }
+
+    checkPermissions();
+  }, []);
 
   // 報告者名を連結する関数
   const getReporterNames = (reporters: TaskParticipant[]): string => {
@@ -54,6 +95,48 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
   const getExecutorNames = (executors: TaskParticipant[]): string => {
     if (!executors || executors.length === 0) return "-";
     return executors.map((e) => (e.user ? e.user.name : e.name) || "不明").join(", ");
+  };
+
+  // タスク編集可能かどうかの判定
+  const canEditTask = (task: Task): boolean => {
+    // 変更不可のステータスチェック
+    const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+    if (immutableStatuses.includes(task.status)) {
+      return false;
+    }
+
+    // 権限チェック - 報告者、実行者、アプリオーナーのみ編集可能
+    if (!userId) return false;
+
+    // 報告者チェック
+    const isReporter = task.reporters.some((r) => r.userId === userId);
+
+    // 実行者チェック
+    const isExecutor = task.executors.some((e) => e.userId === userId);
+
+    // アプリオーナーの場合は編集可能
+    return isAppOwner || isReporter || isExecutor;
+  };
+
+  // タスク編集後の更新処理
+  const handleTaskEdited = () => {
+    // 非同期処理を即時実行関数として実行
+    (async () => {
+      try {
+        // タスクデータを再取得
+        const updatedTasks = await getMyTasks();
+
+        // 表示用のタスクデータを更新
+        if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
+          setTasks(updatedTasks);
+          toast.success("タスクデータを更新しました");
+        }
+      } catch (error) {
+        console.error("タスクデータ更新エラー:", error);
+      } finally {
+        router.refresh(); // バックアップとしてのrefresh
+      }
+    })();
   };
 
   const columns: Column<Task>[] = [
@@ -106,18 +189,28 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
     {
       key: "status" as keyof Task,
       header: "ステータス",
-      sortable: true,
       statusCombobox: true,
+      sortable: true,
+    },
+    {
+      key: "action" as keyof Task,
+      header: "アクション",
+      editTask: true,
     },
   ];
 
-  const dataTableProps: DataTableProps<Task> = {
-    data: tasks,
-    columns: columns,
-    pagination: true,
-    onDataChange: setTasks,
-    stickyHeader: true,
-  };
-
-  return <DataTable dataTableProps={dataTableProps} />;
+  return (
+    <DataTable
+      dataTableProps={{
+        data: tasks,
+        columns,
+        onDataChange: (data) => setTasks(data as Task[]),
+        editTask: {
+          canEdit: canEditTask,
+          onEdit: handleTaskEdited,
+          users: users,
+        },
+      }}
+    />
+  );
 }

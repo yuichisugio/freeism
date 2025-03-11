@@ -243,19 +243,6 @@ export function TaskInputForm({
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              className="rounded-md bg-blue-500 px-4 py-2 text-white"
-              onClick={() => {
-                const select = document.querySelector("select") as HTMLSelectElement;
-                if (select && select.value) {
-                  addExecutor(select.value);
-                  select.value = "";
-                }
-              }}
-            >
-              追加
-            </button>
           </div>
         )}
 
@@ -309,19 +296,6 @@ export function TaskInputForm({
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              className="rounded-md bg-blue-500 px-4 py-2 text-white"
-              onClick={() => {
-                const select = document.querySelectorAll("select")[1] as HTMLSelectElement;
-                if (select && select.value) {
-                  addReporter(select.value);
-                  select.value = "";
-                }
-              }}
-            >
-              追加
-            </button>
           </div>
         )}
 

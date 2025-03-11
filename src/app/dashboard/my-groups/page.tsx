@@ -32,7 +32,11 @@ export default async function MyGroupsPage() {
           maxParticipants: true,
           tasks: {
             where: {
-              userId: session.user.id,
+              executors: {
+                some: {
+                  userId: session.user.id,
+                },
+              },
             },
             select: {
               fixedContributionPoint: true,

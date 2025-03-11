@@ -28,13 +28,13 @@ type EditGroupFormProps = {
     evaluationMethod: string;
     maxParticipants: number;
   };
-  onClose?: () => void;
+  onCloseAction?: () => void;
 };
 
 /**
  * グループを編集するフォーム
  */
-export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
+export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [isGroupOwner, setIsGroupOwner] = useState(false);
@@ -90,7 +90,7 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
       // 更新に成功した場合
       if (result.success) {
         toast.success("グループ情報を更新しました");
-        if (onClose) onClose(); // ダイアログを閉じる
+        if (onCloseAction) onCloseAction(); // ダイアログを閉じる
         router.refresh(); // 画面を更新
       } else if (result.error) {
         toast.error(result.error);
@@ -110,7 +110,7 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
         <h2 className="text-app mb-4 text-xl font-bold">グループ情報編集</h2>
         <p className="text-destructive">グループオーナー権限がないため、グループ情報を編集する権限がありません</p>
         <div className="flex justify-end">
-          <button type="button" onClick={onClose || (() => {})} className="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md px-4 py-2 text-sm font-medium">
+          <button type="button" onClick={onCloseAction || (() => {})} className="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md px-4 py-2 text-sm font-medium">
             閉じる
           </button>
         </div>
@@ -120,7 +120,7 @@ export function EditGroupForm({ group, onClose }: EditGroupFormProps) {
 
   return (
     <div className="space-y-4">
-      <FormLayout form={form} onSubmit={onSubmit} submitLabel="変更を保存" submittingLabel="保存中..." showCancelButton={true} onCancel={onClose || (() => {})} className="max-h-[90vh]">
+      <FormLayout form={form} onSubmit={onSubmit} submitLabel="変更を保存" submittingLabel="保存中..." showCancelButton={true} onCancel={onCloseAction || (() => {})} className="max-h-[90vh]">
         <CustomFormField
           fieldType="input"
           control={form.control}

@@ -15,8 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Check, ChevronsUpDown } from "lucide-react";
+import { type contributionType } from "@prisma/client";
+import { ArrowUpDown, Check, ChevronsUpDown, Edit } from "lucide-react";
 import { toast } from "sonner";
+
+import { TaskEditModal } from "../task/task-edit-modal";
 
 export type TaskStatus = {
   label: string;
@@ -53,6 +56,8 @@ export type Column<T extends Record<string, unknown>> = {
     triggerClassName?: string;
     joinModal?: boolean;
   }[];
+  // タスク編集ボタンの設定
+  editTask?: boolean;
 };
 
 // テーブル全体の型定義。columsに↑のColumn型がカラムの数だけ入った配列を格納する
@@ -68,6 +73,12 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   headerClassName?: string;
   cellClassName?: string;
   stickyHeader?: boolean;
+  // タスク編集用のプロパティ
+  editTask?: {
+    canEdit: (row: T) => boolean;
+    onEdit: (row: T) => void;
+    users?: { id: string; name: string }[]; // ユーザー一覧を追加
+  };
 };
 
 // DataTableコンポーネント
@@ -85,6 +96,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
     headerClassName = "border-b border-blue-100 bg-blue-50",
     cellClassName = "px-5 py-3 text-sm whitespace-nowrap text-neutral-600",
     stickyHeader = true,
+    editTask,
   } = props.dataTableProps;
 
   // データの状態管理
@@ -92,6 +104,27 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
 
   // コンボボックスの状態管理
   const [openStatus, setOpenStatus] = useState<string | null>(null);
+
+  // 現在編集中のタスク
+  const [editingTask, setEditingTask] = useState<T | null>(null);
+
+  // 編集モーダルの状態
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // タスク編集ハンドラ
+  const handleEditTask = (row: T) => {
+    if (editTask?.canEdit(row)) {
+      setEditingTask(row);
+      setEditModalOpen(true);
+    }
+  };
+
+  // タスク更新後のハンドラ
+  const handleTaskUpdated = () => {
+    if (editTask?.onEdit && editingTask) {
+      editTask.onEdit(editingTask);
+    }
+  };
 
   // ステータス変更処理
   async function handleStatusChange(taskId: string, newStatus: string) {
@@ -323,44 +356,62 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
 
                           // combobox ブロックは 即時実行関数(IIFE)を用いて、ブロック内の変数定義と JSX をひとまとめにすることで、可読性と局所的な変数管理を向上させています。
                         })()
-                      : column.modalList
-                        ? column.modalList.map((modal, modalIndex) => {
-                            // 参加モーダルの場合のみ、ボタンを無効化する。ここでは join モーダルが modalList の最初の要素（modalIndex === 0）であると仮定しています
-                            const isJoinModal = modal.joinModal;
-                            // row.members が配列で、かつ1件以上あれば「参加中」とみなす
-                            const hasMembers = row && typeof row === "object" && "members" in row && Array.isArray(row.members) && row.members.length > 0;
-                            // 参加モーダルなら、参加中の場合は [0] を、未参加の場合は [1] を表示。それ以外（編集・削除）の場合は常に [0] を表示する例（必要に応じて変更可）
-                            const buttonText = isJoinModal ? (hasMembers ? modal.triggerContent[0] : modal.triggerContent[1]) : modal.triggerContent[0];
-                            // 参加モーダーの場合、参加中の場合はボタンを無効化する
-                            const isDisabled = isJoinModal && hasMembers;
+                      : column.editTask && editTask
+                        ? (() => {
+                            // 編集可能かどうかを判定
+                            const canEdit = editTask.canEdit(row);
+
                             return (
-                              <AlertDialog key={modalIndex}>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="outline" size="sm" className={`${modal.triggerClassName}`} disabled={isDisabled}>
-                                    {buttonText}
-                                    {modal?.triggerIcon}
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>{modal.title}</AlertDialogTitle>
-                                    <AlertDialogDescription>{modal.description}</AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                                    <AlertDialogAction asChild>
-                                      <Button onClick={() => modal.action(row.id as string)} className="button-default-custom" disabled={isDisabled}>
-                                        {modal.actionLabel}
-                                      </Button>
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditTask(row)}
+                                disabled={!canEdit}
+                                className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}
+                              >
+                                <Edit className="h-4 w-4" />
+                                編集
+                              </Button>
                             );
-                          })
-                        : column.cell
-                          ? column.cell(row)
-                          : null}
+                          })()
+                        : column.modalList
+                          ? column.modalList.map((modal, modalIndex) => {
+                              // 参加モーダルの場合のみ、ボタンを無効化する。ここでは join モーダルが modalList の最初の要素（modalIndex === 0）であると仮定しています
+                              const isJoinModal = modal.joinModal;
+                              // row.members が配列で、かつ1件以上あれば「参加中」とみなす
+                              const hasMembers = row && typeof row === "object" && "members" in row && Array.isArray(row.members) && row.members.length > 0;
+                              // 参加モーダルなら、参加中の場合は [0] を、未参加の場合は [1] を表示。それ以外（編集・削除）の場合は常に [0] を表示する例（必要に応じて変更可）
+                              const buttonText = isJoinModal ? (hasMembers ? modal.triggerContent[0] : modal.triggerContent[1]) : modal.triggerContent[0];
+                              // 参加モーダーの場合、参加中の場合はボタンを無効化する
+                              const isDisabled = isJoinModal && hasMembers;
+                              return (
+                                <AlertDialog key={modalIndex}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className={`${modal.triggerClassName}`} disabled={isDisabled}>
+                                      {buttonText}
+                                      {modal?.triggerIcon}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>{modal.title}</AlertDialogTitle>
+                                      <AlertDialogDescription>{modal.description}</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                      <AlertDialogAction asChild>
+                                        <Button onClick={() => modal.action(row.id as string)} className="button-default-custom" disabled={isDisabled}>
+                                          {modal.actionLabel}
+                                        </Button>
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              );
+                            })
+                          : column.cell
+                            ? column.cell(row)
+                            : null}
                   </td>
                 ))}
               </tr>
@@ -383,6 +434,30 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
             </Button>
           </div>
         </div>
+      )}
+
+      {/* タスク編集モーダル */}
+      {editingTask && (
+        <TaskEditModal
+          open={editModalOpen}
+          onOpenChangeAction={setEditModalOpen}
+          task={{
+            id: editingTask.id as string,
+            task: editingTask.task as string,
+            reference: editingTask.reference as string | null,
+            info: editingTask.info as string | null,
+            status: editingTask.status as string,
+            contributionType: editingTask.contributionType as contributionType,
+            reporters: (editingTask.reporters || []) as any[],
+            executors: (editingTask.executors || []) as any[],
+            group: {
+              id: (editingTask.group as any)?.id || "",
+              name: (editingTask.group as any)?.name || "",
+            },
+          }}
+          users={editTask?.users || []}
+          onTaskUpdated={handleTaskUpdated}
+        />
       )}
     </div>
   );
