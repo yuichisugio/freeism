@@ -811,6 +811,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
         task: data.task,
         reference: data.reference,
         info: data.info,
+        imageUrl: data.imageUrl,
         contributionType: data.contributionType,
         // 報告者の設定
         reporters: {

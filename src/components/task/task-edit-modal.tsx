@@ -7,6 +7,7 @@ import { CustomFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
+import { ImageUploadArea } from "@/components/ui/image-upload-area";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -31,6 +32,7 @@ type Task = {
   task: string;
   reference: string | null;
   info: string | null;
+  imageUrl: string | null;
   status: string;
   contributionType: contributionType;
   reporters: TaskParticipant[];
@@ -60,6 +62,8 @@ const formSchema = taskFormSchema.extend({
       }),
     )
     .optional(),
+  // 画像URL
+  imageUrl: z.string().optional(),
 });
 
 export type TaskFormValues = z.infer<typeof formSchema>;
@@ -91,8 +95,13 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
       contributionType: contributionType.REWARD,
       executors: [],
       reporters: [],
+      imageUrl: "",
     },
   });
+
+  // 現在選択されている貢献タイプを監視
+  const selectedContributionType = form.watch("contributionType");
+  const isRewardType = selectedContributionType === contributionType.REWARD;
 
   // タスクデータが変更されたときにフォームをリセット
   useEffect(() => {
@@ -101,6 +110,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
         task: task.task,
         reference: task.reference || "",
         info: task.info || "",
+        imageUrl: task.imageUrl || "",
         contributionType: task.contributionType,
       });
 
@@ -156,6 +166,16 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     setReporters(newReporters);
   };
 
+  // 画像アップロード完了時のハンドラー
+  const handleImageUploaded = (imageUrl: string) => {
+    form.setValue("imageUrl", imageUrl);
+  };
+
+  // 画像削除時のハンドラー
+  const handleImageRemoved = () => {
+    form.setValue("imageUrl", "");
+  };
+
   // 更新を実行する関数（フォーム送信の代わりに直接呼び出す）
   const handleUpdate = async () => {
     if (!task) {
@@ -184,6 +204,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
         task: formData.task,
         reference: formData.reference,
         info: formData.info,
+        imageUrl: formData.imageUrl,
         contributionType: formData.contributionType,
         executors: executors,
         reporters: reporters,
@@ -261,6 +282,15 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                 { value: contributionType.NON_REWARD, label: "報酬にならない貢献" },
               ]}
             />
+
+            {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
+            {isRewardType && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">報酬画像</label>
+                <p className="text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
+                <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
+              </div>
+            )}
 
             <CustomFormField
               fieldType="textarea"
