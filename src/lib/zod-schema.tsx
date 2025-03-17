@@ -29,6 +29,7 @@ export const taskFormSchema = z.object({
   task: z.string().min(1, "タスク内容を入力してください"),
   reference: z.string().optional(),
   info: z.string().optional(),
+  imageUrl: z.string().optional(),
   contributionType: z.nativeEnum(contributionType, { required_error: "貢献の種類を選択してください" }),
   reporters: z.array(taskPersonSchema).optional(),
   executors: z.array(taskPersonSchema).optional(),

@@ -9,10 +9,18 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: z.string().min(1),
     AUTH_GOOGLE_SECRET: z.string().min(1),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    // Cloudflare R2設定
+    CLOUDFLARE_ACCESS_KEY_ID: z.string().optional(),
+    CLOUDFLARE_SECRET_ACCESS_KEY: z.string().optional(),
+    CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
+    CLOUDFLARE_R2_BUCKET: z.string().optional(),
+    CLOUDFLARE_PUBLIC_URL: z.string().url().optional(),
+    ENABLE_IMAGE_UPLOAD: z.enum(["true", "false"]).default("false"),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
+    NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD: z.enum(["true", "false"]).default("false"),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -23,6 +31,14 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    // Cloudflare R2設定
+    CLOUDFLARE_ACCESS_KEY_ID: process.env.CLOUDFLARE_ACCESS_KEY_ID,
+    CLOUDFLARE_SECRET_ACCESS_KEY: process.env.CLOUDFLARE_SECRET_ACCESS_KEY,
+    CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
+    CLOUDFLARE_R2_BUCKET: process.env.CLOUDFLARE_R2_BUCKET,
+    CLOUDFLARE_PUBLIC_URL: process.env.CLOUDFLARE_PUBLIC_URL,
+    ENABLE_IMAGE_UPLOAD: process.env.ENABLE_IMAGE_UPLOAD,
+    NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD: process.env.NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,

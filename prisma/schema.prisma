@@ -134,6 +134,7 @@ model Task {
   userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
   userFixedSubmitterId   String?
   info                   String?
+  imageUrl               String?        // 報酬画像のURL
   contributionType       contributionType @default(NON_REWARD) // "REWARD" or "NON_REWARD"
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createTask } from "@/app/actions/task";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
+import { ImageUploadArea } from "@/components/ui/image-upload-area";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -50,6 +51,8 @@ const formSchema = taskFormSchema.extend({
       }),
     )
     .optional(),
+  // 画像URL
+  imageUrl: z.string().optional(),
 });
 
 export type TaskFormValues = z.infer<typeof formSchema>;
@@ -86,8 +89,13 @@ export function TaskInputForm({
       contributionType: contributionType.REWARD,
       executors: [],
       reporters: [],
+      imageUrl: "",
     },
   });
+
+  // 現在選択されている貢献タイプ
+  const selectedContributionType = form.watch("contributionType");
+  const isRewardType = selectedContributionType === contributionType.REWARD;
 
   // 実行者を追加する関数
   const addExecutor = (userId?: string, name?: string) => {
@@ -141,6 +149,16 @@ export function TaskInputForm({
     form.setValue("reporters", newReporters);
   };
 
+  // 画像アップロード完了時のハンドラー
+  const handleImageUploaded = (imageUrl: string) => {
+    form.setValue("imageUrl", imageUrl);
+  };
+
+  // 画像削除時のハンドラー
+  const handleImageRemoved = () => {
+    form.setValue("imageUrl", "");
+  };
+
   // フォーム送信
   async function onSubmit(data: TaskFormValues) {
     console.log("フォーム送信データ:", data);
@@ -151,6 +169,7 @@ export function TaskInputForm({
         task: data.task,
         reference: data.reference,
         info: data.info,
+        imageUrl: data.imageUrl,
         contributionType: data.contributionType,
         groupId: data.groupId,
         executors: executors.length > 0 ? executors : undefined,
@@ -199,6 +218,15 @@ export function TaskInputForm({
           { value: contributionType.NON_REWARD, label: "報酬にならない貢献" },
         ]}
       />
+
+      {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
+      {isRewardType && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">報酬画像</label>
+          <p className="text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
+          <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
+        </div>
+      )}
 
       <CustomFormField
         fieldType="textarea"

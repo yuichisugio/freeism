@@ -35,6 +35,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
         task: data.task,
         reference: data.reference,
         info: data.info,
+        imageUrl: data.imageUrl,
         contributionType: data.contributionType,
         creatorId: session.user.id,
         groupId: data.groupId,
