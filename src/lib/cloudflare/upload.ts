@@ -15,7 +15,7 @@ export enum ImageMimeType {
   AVIF = "image/avif",
 }
 
-// 画像拡張子の列挙型
+// 画像拡張子の列挙型。列挙型は、列挙型の名前.プロパティ名でアクセスする。
 export enum ImageExtension {
   JPEG = "jpg",
   JPG = "jpg",
