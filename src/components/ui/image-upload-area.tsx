@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ACCEPTED_IMAGE_TYPES, getSignedUploadUrl, isImageUploadEnabled, MAX_FILE_SIZE } from "@/lib/cloudflare/upload";
+import { isR2Enabled } from "@/lib/cloudflare/r2-client-config";
+import { ACCEPTED_IMAGE_TYPES, getSignedUploadUrl, MAX_FILE_SIZE } from "@/lib/cloudflare/upload";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Image as ImageIcon, Loader2, Trash2, Upload, X } from "lucide-react";
@@ -227,8 +228,8 @@ function useImageUpload({ initialImageUrl, onImageUploaded, onImageRemoved }: { 
 }
 
 export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageUrl, disabled = false }: ImageUploadAreaProps) {
-  // 環境変数は変更されないのでuseStateではなく定数として定義
-  const isEnabled = isImageUploadEnabled();
+  // クライアントサイドで安全に環境変数チェック
+  const isEnabled = isR2Enabled();
 
   const { currentFile, previewUrl, isUploading, uploadProgress, handleFileSelected, handleUpload, handleRemoveImage } = useImageUpload({
     initialImageUrl,

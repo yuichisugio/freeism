@@ -1,9 +1,9 @@
-import { env } from "@/env";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { v4 as uuidv4 } from "uuid";
+"use client";
 
-import { createR2Client, getR2BucketName, getR2PublicUrl } from "./r2-client";
+// サーバーサイド機能は別のファイルにインポートされるため、ここではインポートしない
+// import { createR2Client, getR2BucketName, getR2PublicUrl } from "./r2-client";
+// 代わりにクライアントサイド用の設定をインポート
+import { isR2Enabled } from "./r2-client-config";
 
 // 画像MIMEタイプの列挙型
 export enum ImageMimeType {
@@ -39,15 +39,16 @@ export const logger = {
 };
 
 /**
- * 画像アップロード機能が有効かどうかを確認
+ * 画像アップロード機能が有効かどうかを確認（クライアントサイド用）
  */
 export function isImageUploadEnabled(): boolean {
-  return env.NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD === "true";
+  // process.env.NEXT_PUBLIC_* 形式の環境変数のみクライアントサイドでアクセス可能
+  return isR2Enabled();
 }
 
 /**
- * 署名付きアップロードURLを生成
- * クライアントサイドからR2に直接アップロードするために使用
+ * 署名付きアップロードURLを生成するためのAPIエンドポイントを呼び出す
+ * クライアントサイドから使用するメソッド
  * @param fileType アップロードするファイルのMIMEタイプ
  * @param fileName オプションのファイル名（指定しない場合はUUIDを生成）
  * @returns 署名付きURLと、アップロード後のパブリックURLのオブジェクト
@@ -66,62 +67,29 @@ export async function getSignedUploadUrl(
     return null;
   }
 
-  const r2Client = createR2Client();
-  const bucketName = getR2BucketName();
-  const publicUrl = getR2PublicUrl();
-
-  if (!r2Client || !bucketName) {
-    logger.error("R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません");
-    return null;
-  }
-
-  // MIMEタイプから拡張子を取得
-  const extension = getExtensionFromMimeType(fileType);
-  if (!extension) {
-    logger.warn(`サポートされていないMIMEタイプです: ${fileType}`);
-    return null;
-  }
-
-  // ファイル名が指定されていない場合はUUIDを生成
-  const fileKey = fileName || `${uuidv4()}.${extension}`;
-
   try {
-    // 署名付きURLを生成（有効期限15分）
-    const putCommand = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: fileKey,
-      ContentType: fileType,
+    // APIエンドポイントを呼び出す
+    const response = await fetch("/api/upload/get-signed-url", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fileType,
+        fileName,
+      }),
     });
 
-    const signedUrl = await getSignedUrl(r2Client, putCommand, { expiresIn: 900 });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "署名付きURLの取得に失敗しました");
+    }
 
-    return {
-      signedUrl,
-      publicUrl: publicUrl ? `${publicUrl}/${fileKey}` : null,
-      key: fileKey,
-    };
+    return await response.json();
   } catch (error) {
-    logger.error("署名付きURLの生成中にエラーが発生しました", error);
+    logger.error("署名付きURLの取得中にエラーが発生しました", error);
     return null;
   }
-}
-
-/**
- * MIMEタイプから拡張子を取得するヘルパー関数
- * @param mimeType MIMEタイプ
- * @returns 拡張子（ピリオドなし）
- */
-function getExtensionFromMimeType(mimeType: string): string | null {
-  const mimeTypeMap: Record<string, string> = {
-    [ImageMimeType.JPEG]: ImageExtension.JPEG,
-    [ImageMimeType.JPG]: ImageExtension.JPG,
-    [ImageMimeType.PNG]: ImageExtension.PNG,
-    [ImageMimeType.WEBP]: ImageExtension.WEBP,
-    [ImageMimeType.GIF]: ImageExtension.GIF,
-    [ImageMimeType.AVIF]: ImageExtension.AVIF,
-  };
-
-  return mimeTypeMap[mimeType] || null;
 }
 
 /**
