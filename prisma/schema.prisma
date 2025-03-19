@@ -19,9 +19,9 @@ model User {
   id            String            @id @default(cuid())
   name          String?
   email         String            @unique
-  emailVerified DateTime?
+  emailVerified DateTime? @map("email_verified")
   image         String?
-  isAppOwner    Boolean           @default(false)
+  isAppOwner    Boolean           @default(false) @map("is_app_owner")
   accounts      Account[]
   sessions      Session[]
   settings      UserSettings?
@@ -34,26 +34,26 @@ model User {
   taskReporter  TaskReporter[]
   taskExecutor  TaskExecutor[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 }
 
 model Account {
   id                String  @id @default(cuid())
-  userId            String
+  userId            String  @map("user_id")
   type              String
   provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text @map("refresh_token")
+  access_token      String? @db.Text @map("access_token")
+  expires_at        Int?    @map("expires_at")
+  token_type        String? @map("token_type")
   scope             String?
-  id_token          String? @db.Text
-  session_state     String?
+  id_token          String? @db.Text @map("id_token")
+  session_state     String? @map("session_state")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -63,12 +63,12 @@ model Account {
 
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
+  sessionToken String   @unique @map("session_token")
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 }
 
 model VerificationToken {
@@ -81,11 +81,11 @@ model VerificationToken {
 
 model UserSettings {
   id        String   @id @default(cuid())
-  userId    String   @unique
+  userId    String   @unique @map("user_id")
   username  String
-  lifeGoal  String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lifeGoal  String   @db.Text @map("life_goal")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -93,13 +93,13 @@ model Group {
   id               String            @id @default(cuid())
   name             String            @unique
   goal             String
-  evaluationMethod String
+  evaluationMethod String            @map("evaluation_method")
   depositPeriod    Int               @default(30) @map("deposit_period") // ポイント預け入れ期間
   maxParticipants  Int               @default(100) @map("max_participants") // 最大参加者数
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  createdBy        String
-  isBlackList      Json?             @db.JsonB // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  createdBy        String            @map("created_by")
+  isBlackList      Json?             @db.JsonB @map("is_black_list") // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
   user             User              @relation(fields: [createdBy], references: [id])
   members          GroupMembership[]
   tasks            Task[]
@@ -111,10 +111,10 @@ model Group {
 
 model GroupMembership {
   id           String   @id @default(cuid())
-  userId       String
-  groupId      String
-  joinedAt     DateTime @default(now())
-  isGroupOwner Boolean  @default(false)
+  userId       String   @map("user_id")
+  groupId      String   @map("group_id")
+  joinedAt     DateTime @default(now()) @map("joined_at")
+  isGroupOwner Boolean  @default(false) @map("is_group_owner")
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
@@ -129,19 +129,19 @@ model Task {
   detail                 String? // タスクの詳細
   reference              String? // 参考にした内容
   status                 TaskStatus     @default(PENDING)
-  fixedContributionPoint Int?
-  fixedEvaluator         String?
-  fixedEvaluationLogic   String?
-  fixedEvaluationDate    DateTime?
-  userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
-  userFixedSubmitterId   String?
-  info                   String? // 証拠・結果・補足情報
-  imageUrl               String?        // 報酬画像のURL
-  contributionType       contributionType @default(NON_REWARD) // "REWARD" or "NON_REWARD"
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  fixedContributionPoint Int?           @map("fixed_contribution_point")
+  fixedEvaluator         String?        @map("fixed_evaluator")
+  fixedEvaluationLogic   String?        @map("fixed_evaluation_logic")
+  fixedEvaluationDate    DateTime?      @map("fixed_evaluation_date")
+  userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade) // 固定評価者
+  userFixedSubmitterId   String?        @map("user_fixed_submitter_id")
+  info                   String?       // 証拠・結果・補足情報
+  imageUrl               String?        @map("image_url") // 報酬画像のURL
+  contributionType       contributionType @default(NON_REWARD) @map("contribution_type") // "REWARD" or "NON_REWARD"
+  createdAt              DateTime       @default(now()) @map("created_at")
+  updatedAt              DateTime       @updatedAt @map("updated_at")
   creator                User           @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  creatorId              String
+  creatorId              String         @map("creator_id")
   reporters              TaskReporter[]
   executors              TaskExecutor[]
   group                  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -160,14 +160,14 @@ enum contributionType {
 
 model Analytics {
   id                String   @id @default(cuid())
-  contributionPoint Int
-  evaluationLogic   String
+  contributionPoint Int      @map("contribution_point")
+  evaluationLogic   String   @map("evaluation_logic")
   evaluator         String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  taskId            String
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  taskId            String   @map("task_id")
   task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  groupId           String
+  groupId           String   @map("group_id")
   group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user              User     @relation(fields: [evaluator], references: [id], onDelete: Cascade)
 
@@ -205,24 +205,24 @@ model Notification {
   id         String                 @id @default(cuid())
   title      String // 通知タイトル
   message    String                 @db.Text // 通知メッセージ内容
-  type       NotificationType // 通知の重要度/種類
-  targetType NotificationTargetType // 通知対象の種類
-  sentAt     DateTime               @default(now()) // 送付時間
-  expiresAt  DateTime? // 通知の有効期限（オプション）
-  actionUrl  String? // クリック時の遷移先URL（オプション）
+  type       NotificationType       @map("type") // 通知の重要度/種類
+  targetType NotificationTargetType @map("target_type") // 通知対象の種類
+  sentAt     DateTime               @default(now()) @map("sent_at") // 送付時間
+  expiresAt  DateTime?              @map("expires_at") // 通知の有効期限（オプション）
+  actionUrl  String?                @map("action_url") // クリック時の遷移先URL（オプション）
   priority   Float                  @default(1.0) // 通知の優先度 (1-5, 5が最高)
   isRead     Json                   @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
   // user宛の場合は、userIdを入れる。
-  userId String? // 通知の送信者/作成者
+  userId String? @map("user_id") // 通知の送信者/作成者
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // グループ関連（オプション）
-  groupId String?
+  groupId String? @map("group_id")
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   // タスク関連（オプション）
-  taskId String?
+  taskId String? @map("task_id")
   task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
   @@index([userId])
@@ -235,11 +235,11 @@ model TaskReporter {
   id        String    @id @default(cuid())
   name      String?   // 未登録ユーザーの場合は名前のみ
   user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?   // 登録ユーザーの場合はID紐づけ (オプショナル)
+  userId    String?   @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
   task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId    String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  taskId    String    @map("task_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([taskId])
@@ -250,11 +250,11 @@ model TaskExecutor {
   id        String    @id @default(cuid())
   name      String?   // 未登録ユーザーの場合は名前のみ
   user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?   // 登録ユーザーの場合はID紐づけ (オプショナル)
+  userId    String?   @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
   task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId    String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  taskId    String    @map("task_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([taskId])
