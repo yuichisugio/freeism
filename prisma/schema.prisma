@@ -94,7 +94,8 @@ model Group {
   name             String            @unique
   goal             String
   evaluationMethod String
-  maxParticipants  Int
+  depositPeriod    Int               @default(30) @map("deposit_period") // ポイント預け入れ期間
+  maxParticipants  Int               @default(100) @map("max_participants") // 最大参加者数
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   createdBy        String

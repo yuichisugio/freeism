@@ -8,6 +8,7 @@ export const createGroupSchema = z.object({
   goal: z.string().min(1, "目標を入力してください").max(500, "目標は500文字以内で入力してください").trim(),
   evaluationMethod: z.string().min(1, "評価方法を入力してください").max(1000, "評価方法は1000文字以内で入力してください").trim(),
   maxParticipants: z.number().min(1, "参加人数上限を入力してください").max(1000, "参加人数上限は1000人以内で設定してください"),
+  depositPeriod: z.number().min(1, "ポイント預け入れ期間は最低1日以上必要です").max(9999, "ポイント預け入れ期間は最大9999日以内で設定してください"),
 });
 
 export const setupSchema = z.object({

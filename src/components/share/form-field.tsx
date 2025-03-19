@@ -41,6 +41,8 @@ export type FormFieldBaseProps<T extends FieldValues> = {
 export type InputFieldProps<T extends FieldValues> = FormFieldBaseProps<T> & {
   type: "text" | "email" | "password" | "number" | "tel" | "url" | "date" | "time" | "datetime-local";
   placeholder?: string;
+  min?: number;
+  max?: number;
 };
 
 // テキストエリアのプロパティ
@@ -140,6 +142,8 @@ function renderInputField<T extends FieldValues>(props: InputFieldProps<T>, fiel
         id={props.name}
         type={props.type}
         placeholder={props.placeholder || ""}
+        min={props.min}
+        max={props.max}
         {...field}
         className="w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
       />

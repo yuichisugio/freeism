@@ -32,6 +32,7 @@ export function CreateGroupForm() {
       goal: "",
       evaluationMethod: "",
       maxParticipants: 100,
+      depositPeriod: 30,
     },
   });
 
@@ -91,6 +92,18 @@ export function CreateGroupForm() {
         placeholder="参加上限人数を入力してください"
         description="参加上限人数を入力してください"
         type="number"
+      />
+
+      <CustomFormField
+        fieldType="input"
+        control={form.control}
+        name="depositPeriod"
+        label="ポイント預け入れ期間（日数）"
+        placeholder="ポイント預け入れ期間を入力してください"
+        description="報酬タスクでポイントを預け入れる期間の日数（1〜9999日）"
+        type="number"
+        min={1}
+        max={9999}
       />
     </FormLayout>
   );

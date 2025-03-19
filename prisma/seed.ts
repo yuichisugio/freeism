@@ -269,12 +269,16 @@ async function createGroups(users: any[]) {
     // 循環的にユーザーを選択（保持されたユーザーが必ず含まれるようにインデックスを調整）
     const creatorUser = creatorUsers[i % creatorUsers.length];
 
+    // ポイント預け入れ期間を生成（7〜90日の範囲）
+    const depositPeriod = faker.number.int({ min: 7, max: 90 });
+
     const group = await prisma.group.create({
       data: {
         name: `${faker.company.name()} グループ ${i + 1}`,
         goal: faker.company.catchPhrase(),
         evaluationMethod: faker.helpers.arrayElement(evaluationMethods),
         maxParticipants: faker.number.int({ min: 5, max: 20 }),
+        depositPeriod: depositPeriod, // ポイント預け入れ期間を設定
         createdBy: creatorUser.id,
         isBlackList: {}, // 空のJSONオブジェクトとして初期化
       },

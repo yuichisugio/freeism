@@ -27,6 +27,7 @@ type EditGroupFormProps = {
     goal: string;
     evaluationMethod: string;
     maxParticipants: number;
+    depositPeriod: number;
   };
   onCloseAction?: () => void;
 };
@@ -44,7 +45,7 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
     async function checkOwnerPermission() {
       try {
         if (session?.user?.id) {
-          const hasPermission = await checkGroupOwner(group.id, session.user.id);
+          const hasPermission = await checkGroupOwner(session.user.id, group.id);
           setIsGroupOwner(hasPermission);
         }
       } catch (error) {
@@ -62,6 +63,7 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
       goal: group.goal,
       evaluationMethod: group.evaluationMethod,
       maxParticipants: group.maxParticipants,
+      depositPeriod: group.depositPeriod,
     },
   });
 
@@ -154,6 +156,17 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
           placeholder="参加上限人数を入力してください"
           description="参加上限人数を入力してください"
           type="number"
+        />
+        <CustomFormField
+          fieldType="input"
+          control={form.control}
+          name="depositPeriod"
+          label="ポイント預け入れ期間（日数）"
+          placeholder="ポイント預け入れ期間を入力してください"
+          description="報酬タスクでポイントを預け入れる期間の日数（7〜90日）"
+          type="number"
+          min={7}
+          max={90}
         />
       </FormLayout>
     </div>
