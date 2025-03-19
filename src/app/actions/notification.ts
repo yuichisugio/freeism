@@ -42,6 +42,8 @@ export async function getUnreadNotificationsCount() {
 
     const userId = session.user.id;
 
+    console.log("userId", userId);
+
     // アクセス可能なグループIDを取得
     const userGroupList = await prisma.groupMembership.findMany({
       where: { userId },
@@ -49,10 +51,14 @@ export async function getUnreadNotificationsCount() {
     });
     const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
 
+    console.log("groupIds", groupIds);
+
     // 空のグループリストの場合の処理
     if (groupIds.length === 0) {
       groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
     }
+
+    console.log("groupIds", groupIds);
 
     // PostgreSQLのJSONB演算子を使用した効率的なクエリ
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
@@ -60,9 +66,9 @@ export async function getUnreadNotificationsCount() {
       FROM "Notification" n
       WHERE 
         (
-          (n."targetType" = 'SYSTEM') OR
-          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds}))
+          (n."target_type" = 'SYSTEM') OR
+          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
         )
         AND
         (
@@ -132,11 +138,11 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         SELECT n.id
         FROM "Notification" n
         WHERE
-          (n."targetType" = 'SYSTEM') OR
-          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
-          (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
-        ORDER BY n."sentAt" DESC
+          (n."target_type" = 'SYSTEM') OR
+          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
+          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
+        ORDER BY n."sent_at" DESC
         LIMIT ${(page - 1) * limit}
       `;
 
@@ -153,15 +159,15 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         n.title,
         n.message,
         n.type as "type",
-        n."targetType" as "targetType",
-        n."taskId" as "taskId",
+        n."target_type" as "target_type",
+        n."task_id" as "task_id",
         n.priority,
-        n."sentAt" as "sentAt",
-        n."expiresAt" as "expiresAt",
-        n."actionUrl" as "actionUrl",
-        n."userId" as "userId",
-        n."groupId" as "groupId",
-        n."taskId" as "taskId",
+        n."sent_at" as "sent_at",
+        n."expires_at" as "expires_at",
+        n."action_url" as "action_url",
+        n."user_id" as "user_id",
+        n."group_id" as "group_id",
+        n."task_id" as "task_id",
         CASE
           WHEN n."isRead" ? ${userId} AND (n."isRead" -> ${userId} ->> 'isRead')::boolean = TRUE
           THEN TRUE
@@ -175,18 +181,18 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         g.name as "groupName",
         t.task as "taskName"
       FROM "Notification" n
-      LEFT JOIN "User" u ON n."userId" = u.id
-      LEFT JOIN "Group" g ON n."groupId" = g.id
-      LEFT JOIN "Task" t ON n."taskId" = t.id
+      LEFT JOIN "User" u ON n."user_id" = u.id
+      LEFT JOIN "Group" g ON n."group_id" = g.id
+      LEFT JOIN "Task" t ON n."task_id" = t.id
       WHERE 
         (
-          (n."targetType" = 'SYSTEM') OR
-          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
-          (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
+          (n."target_type" = 'SYSTEM') OR
+          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
+          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
         )
         ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.sql``}
-      ORDER BY n."sentAt" DESC
+      ORDER BY n."sent_at" DESC
       LIMIT ${page * limit}
     `;
     // 上記で、limitのみになっていたので修正した
@@ -220,10 +226,10 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       FROM "Notification" n
       WHERE
         (
-          (n."targetType" = 'SYSTEM') OR
-          (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-          (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
-          (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
+          (n."target_type" = 'SYSTEM') OR
+          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
+          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
         )
         AND
         (
@@ -242,10 +248,10 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       SELECT COUNT(*) as count
       FROM "Notification" n
       WHERE
-        (n."targetType" = 'SYSTEM') OR
-        (n."targetType" = 'USER' AND n."userId" = ${userId}) OR
-        (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
-        (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
+        (n."target_type" = 'SYSTEM') OR
+        (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+        (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
+        (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
     `;
 
     const totalCount = Number(totalCountResult[0]?.count || 0);
@@ -350,9 +356,9 @@ export async function markAllNotificationsAsRead() {
         COALESCE("isRead", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
       WHERE 
         (
-          ("targetType" = 'SYSTEM') OR
-          ("targetType" = 'USER' AND "userId" = ${userId}) OR
-          ("targetType" = 'GROUP' AND "groupId" = ANY(${groupIds}))
+          ("target_type" = 'SYSTEM') OR
+          ("target_type" = 'USER' AND "user_id" = ${userId}) OR
+          ("target_type" = 'GROUP' AND "group_id" = ANY(${groupIds}))
         )
         AND
         (
