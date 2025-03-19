@@ -2,7 +2,6 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { LoginButton } from "@/components/auth/login-button";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { Sidebar } from "@/components/layout/sidebar";
 import { NotificationButton } from "@/components/notification/notification-button";
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
@@ -28,9 +27,7 @@ export async function Header() {
         {/* スマホ表示用レイアウト (sm未満) */}
         <div className="flex h-full items-center justify-between sm:hidden">
           {/* 左: ハンバーガーメニュー */}
-          <div className="flex w-16 items-center justify-start">
-            <Sidebar />
-          </div>
+          <div className="flex w-16 items-center justify-start"></div>
 
           {/* 中央: ロゴ (固定幅で中央配置) */}
           <div className="flex flex-1 items-center justify-center">
