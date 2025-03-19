@@ -398,16 +398,6 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
             </motion.div>
           </div>
         )}
-
-        {/* 選択ボタン */}
-        {!previewUrl && !disabled && (
-          <div className="text-center">
-            <Button type="button" variant="outline" size="sm" onClick={open} disabled={isUploading} aria-label="画像ファイルを選択">
-              <ImageIcon className="mr-2 h-4 w-4" />
-              画像を選択
-            </Button>
-          </div>
-        )}
       </div>
     </>
   );

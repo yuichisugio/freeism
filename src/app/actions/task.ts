@@ -33,6 +33,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
     const newTask = await prisma.task.create({
       data: {
         task: data.task,
+        detail: data.detail,
         reference: data.reference,
         info: data.info,
         imageUrl: data.imageUrl,
@@ -527,6 +528,7 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
           const task = await tx.task.create({
             data: {
               task: row.task,
+              detail: row.detail || null,
               reference: row.reference || null,
               info: row.info || null,
               contributionType: row.contributionType || contributionType.NON_REWARD,
@@ -809,6 +811,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
       where: { id: taskId },
       data: {
         task: data.task,
+        detail: data.detail,
         reference: data.reference,
         info: data.info,
         imageUrl: data.imageUrl,

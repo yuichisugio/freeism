@@ -27,6 +27,7 @@ export const taskPersonSchema = z
 
 export const taskFormSchema = z.object({
   task: z.string().min(1, "タスク内容を入力してください"),
+  detail: z.string().optional(),
   reference: z.string().optional(),
   info: z.string().optional(),
   imageUrl: z.string().optional(),

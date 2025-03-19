@@ -124,8 +124,9 @@ model GroupMembership {
 
 model Task {
   id                     String         @id @default(cuid())
-  task                   String
-  reference              String?
+  task                   String // タスクのタイトル
+  detail                 String? // タスクの詳細
+  reference              String? // 参考にした内容
   status                 TaskStatus     @default(PENDING)
   fixedContributionPoint Int?
   fixedEvaluator         String?
@@ -133,7 +134,7 @@ model Task {
   fixedEvaluationDate    DateTime?
   userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
   userFixedSubmitterId   String?
-  info                   String?
+  info                   String? // 証拠・結果・補足情報
   imageUrl               String?        // 報酬画像のURL
   contributionType       contributionType @default(NON_REWARD) // "REWARD" or "NON_REWARD"
   createdAt              DateTime       @default(now())

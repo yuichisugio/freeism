@@ -84,6 +84,7 @@ export function TaskInputForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       task: "",
+      detail: "",
       reference: "",
       info: "",
       contributionType: contributionType.REWARD,
@@ -167,6 +168,7 @@ export function TaskInputForm({
       // タスクを保存
       const result = await createTask({
         task: data.task,
+        detail: data.detail,
         reference: data.reference,
         info: data.info,
         imageUrl: data.imageUrl,
@@ -219,23 +221,26 @@ export function TaskInputForm({
         ]}
       />
 
+      <CustomFormField
+        fieldType="input"
+        type="text"
+        control={form.control}
+        name="task"
+        label="タスクのタイトル"
+        description="タスクのタイトルを入力してください"
+        placeholder="タスクのタイトルを入力してください"
+      />
+
+      <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="具体的な行動内容を記載してください" placeholder="タスクの内容を入力してください" />
+
       {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
       {isRewardType && (
         <div className="space-y-2">
-          <label className="text-sm font-medium">報酬画像</label>
-          <p className="text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
+          <label className="form-label-custom text-base font-medium text-gray-700">報酬画像</label>
+          <p className="form-description-custom text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
           <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
         </div>
       )}
-
-      <CustomFormField
-        fieldType="textarea"
-        control={form.control}
-        name="task"
-        label="実行したタスク内容"
-        description="具体的な行動内容を記載してください"
-        placeholder="タスクの内容を入力してください"
-      />
 
       <CustomFormField
         fieldType="textarea"

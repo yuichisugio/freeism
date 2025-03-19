@@ -463,21 +463,20 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
     const task = await prisma.task.create({
       data: {
         task: taskTitle,
+        detail: faker.lorem.paragraph(),
         reference: faker.datatype.boolean(0.3) ? faker.internet.url() : null,
         status: taskStatus,
         fixedContributionPoint: fixedPoints,
         fixedEvaluator,
         fixedEvaluationLogic,
-        info, // 証拠・結果・補足情報を追加
+        info,
         contributionType: faker.helpers.arrayElement(contributionTypes),
-        creatorId: creator.id, // クリエイターとしてユーザーを設定
-        userFixedSubmitterId: faker.datatype.boolean(0.3) ? faker.helpers.arrayElement(users).id : null, // 30%の確率で固定サブミッターを設定
+        creatorId: creator.id,
+        userFixedSubmitterId: faker.datatype.boolean(0.3) ? faker.helpers.arrayElement(users).id : null,
         groupId,
-        // 報告者を作成
         reporters: {
           create: reporters,
         },
-        // 実行者を作成
         executors: {
           create: executors,
         },

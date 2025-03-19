@@ -24,6 +24,7 @@ type TaskParticipant = {
 type Task = {
   id: string;
   task: string;
+  detail: string | null;
   reference: string | null;
   status: string;
   fixedContributionPoint: number | null;
@@ -155,6 +156,12 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       header: "TASK",
       sortable: true,
       cell: (row: Task) => row.task,
+    },
+    {
+      key: "detail" as keyof Task,
+      header: "DETAIL",
+      sortable: true,
+      cell: (row: Task) => row.detail,
     },
     {
       key: "reporters" as keyof Task,

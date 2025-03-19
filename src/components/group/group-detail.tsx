@@ -61,6 +61,7 @@ type Task = {
       userId: string;
     }[];
   };
+  detail: string | null;
 };
 
 type GroupDetailProps = {
@@ -403,6 +404,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       key: "action" as keyof Task,
       header: "アクション",
       editTask: true,
+    },
+    {
+      key: "detail" as keyof Task,
+      header: "詳細",
+      cell: (row: Task) => row.detail || "-",
+      sortable: false,
     },
   ];
 

@@ -30,6 +30,7 @@ type TaskParticipant = {
 type Task = {
   id: string;
   task: string;
+  detail: string | null;
   reference: string | null;
   info: string | null;
   imageUrl: string | null;
@@ -90,6 +91,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     resolver: zodResolver(formSchema),
     defaultValues: {
       task: "",
+      detail: "",
       reference: "",
       info: "",
       contributionType: contributionType.REWARD,
@@ -202,6 +204,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
       // タスクを更新
       const result = await updateTask(task.id, {
         task: formData.task,
+        detail: formData.detail,
         reference: formData.reference,
         info: formData.info,
         imageUrl: formData.imageUrl,
@@ -293,13 +296,16 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
             )}
 
             <CustomFormField
-              fieldType="textarea"
+              fieldType="input"
+              type="text"
               control={form.control}
               name="task"
-              label="実行したタスク内容"
-              description="具体的な行動内容を記載してください"
-              placeholder="タスクの内容を入力してください"
+              label="タスクのタイトル"
+              description="タスクのタイトルを入力してください"
+              placeholder="タスクのタイトルを入力してください"
             />
+
+            <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="タスクの詳細を入力してください" placeholder="タスクの詳細を入力してください" />
 
             <CustomFormField
               fieldType="textarea"
