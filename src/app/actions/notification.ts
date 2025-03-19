@@ -47,7 +47,7 @@ export async function getUnreadNotificationsCount() {
       where: { userId },
       select: { groupId: true },
     });
-    const groupIds = userGroupList.map((g) => g.groupId);
+    const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
 
     // 空のグループリストの場合の処理
     if (groupIds.length === 0) {
@@ -66,6 +66,8 @@ export async function getUnreadNotificationsCount() {
         )
         AND
         (
+          n."isRead" IS NULL
+          OR
           NOT (n."isRead" ? ${userId})
           OR
           (n."isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
@@ -102,7 +104,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       select: { groupId: true },
     });
     // グループIDを配列に格納
-    const groupIds = userGroupList.map((g) => g.groupId);
+    const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
 
     // 空のグループリストの場合の処理
     if (groupIds.length === 0) {
@@ -118,7 +120,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
     });
 
     // タスクIDを配列に格納
-    const taskIds = taskList.map((t) => t.id);
+    const taskIds = taskList.map((t) => t.id).filter(Boolean);
 
     // クライアントから指定されたIDを除外するためのパラメータを追加
     const excludeIds = new Set<string>();
@@ -183,7 +185,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
           (n."targetType" = 'GROUP' AND n."groupId" = ANY(${groupIds})) OR
           (n."targetType" = 'TASK' AND n."taskId" = ANY(${taskIds}))
         )
-        ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.empty}
+        ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.sql``}
       ORDER BY n."sentAt" DESC
       LIMIT ${page * limit}
     `;
@@ -225,6 +227,8 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         )
         AND
         (
+          n."isRead" IS NULL
+          OR
           NOT (n."isRead" ? ${userId})
           OR
           (n."isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
@@ -343,7 +347,7 @@ export async function markAllNotificationsAsRead() {
     await prisma.$executeRaw`
       UPDATE "Notification"
       SET "isRead" = 
-        "isRead" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+        COALESCE("isRead", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
       WHERE 
         (
           ("targetType" = 'SYSTEM') OR
@@ -352,6 +356,8 @@ export async function markAllNotificationsAsRead() {
         )
         AND
         (
+          "isRead" IS NULL
+          OR
           NOT ("isRead" ? ${userId})
           OR
           ("isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
