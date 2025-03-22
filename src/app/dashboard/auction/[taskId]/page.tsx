@@ -3,8 +3,8 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { type Auction } from "@/lib/auction/types";
 import { prisma } from "@/lib/prisma";
-import { type Auction } from "@/types/auction";
 
 import ClientComponent from "./client";
 

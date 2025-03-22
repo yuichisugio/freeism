@@ -43,12 +43,12 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
 /**
  * オークションの現在のステータスを取得
  */
-export function getAuctionStatus(auction: Auction): "upcoming" | "active" | "ended" {
+export function getAuctionStatus(auction: Auction | AuctionWithDetails): "upcoming" | "active" | "ended" {
   const now = new Date();
 
-  if (now < auction.startTime) {
+  if (now < new Date(auction.startTime)) {
     return "upcoming";
-  } else if (now > auction.endTime) {
+  } else if (now > new Date(auction.endTime)) {
     return "ended";
   } else {
     return "active";
@@ -135,6 +135,7 @@ export async function placeBid(auctionId: string, bidData: BidFormData, userId: 
         task: {
           include: {
             group: true,
+            creator: true,
           },
         },
       },
@@ -145,9 +146,13 @@ export async function placeBid(auctionId: string, bidData: BidFormData, userId: 
     }
 
     // 入札可能か確認
-    const auctionWithDetails = {
+    const auctionWithDetails: AuctionWithDetails = {
       ...auction,
-      task: auction.task,
+      title: "",
+      description: "",
+      startingPrice: 0,
+      currentPrice: 0,
+      sellerId: auction.task.creatorId,
       currentHighestBidder: null,
       winner: null,
       bids: [],
@@ -247,7 +252,29 @@ export async function getAuctionBidHistory(auctionId: string, limit = 20): Promi
     take: limit,
   });
 
-  return bids as BidHistoryWithUser[];
+  return bids.map((bid) => ({
+    ...bid,
+    id: bid.id,
+    auctionId: bid.auctionId,
+    userId: bid.userId,
+    amount: bid.amount,
+    createdAt: bid.createdAt.toISOString(),
+    isAutoBid: bid.isAutoBid,
+    user: bid.user
+      ? {
+          id: bid.user.id,
+          username: bid.user.name || "",
+          email: bid.user.email,
+          createdAt: bid.user.createdAt.toISOString(),
+          avatarUrl: bid.user.image || undefined,
+          name: bid.user.name,
+          emailVerified: bid.user.emailVerified,
+          image: bid.user.image,
+          isAppOwner: bid.user.isAppOwner,
+          updatedAt: bid.user.updatedAt,
+        }
+      : undefined,
+  }));
 }
 
 /**

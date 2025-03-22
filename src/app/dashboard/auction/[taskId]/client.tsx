@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { type Auction } from "@/types/auction";
+import { type Auction } from "@/lib/auction/types";
 
 // クライアントコンポーネントでdynamicインポートを行う
 const AuctionDetailClient = dynamic(() => import("@/components/auction/detail/AuctionDetail"), { ssr: false });

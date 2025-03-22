@@ -8,8 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
+import { type Auction } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
-import { type Auction } from "@/types/auction";
 import { Clock, Heart } from "lucide-react";
 
 import BidForm from "./BidForm";

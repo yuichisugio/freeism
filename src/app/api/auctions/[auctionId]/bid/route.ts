@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { placeBid } from "@/lib/auction/auction-service";
 import { AuctionEventType } from "@/lib/auction/types";
-import { type BidFormData } from "@/types/auction";
 import { z } from "zod";
 
 import { sendEventToAuctionSubscribers } from "../events/route";

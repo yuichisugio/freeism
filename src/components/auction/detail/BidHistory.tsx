@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { type BidHistoryWithUser } from "@/lib/auction/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
 import { GetInitialsFromName } from "@/lib/utils";
-import { type BidHistoryWithUser } from "@/types/auction";
 
 type BidHistoryProps = {
   auctionId: string;
