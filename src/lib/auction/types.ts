@@ -1,27 +1,15 @@
 import { type AuctionReview, type Task } from "@prisma/client";
 
+// オークション詳細ページのprops
+export type AuctionDetailProps = {
+  auction: Auction;
+  isOwnAuction: boolean;
+};
+
 // カテゴリ
 export type Category = {
   id: string;
   name: string;
-};
-
-// オークション
-export type Auction = {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl?: string;
-  startingPrice: number;
-  currentPrice: number;
-  bidCount?: number;
-  startTime: string; // ISO日付文字列
-  endTime: string; // ISO日付文字列
-  sellerId: string;
-  seller?: User;
-  categories?: Category[];
-  watchCount?: number;
-  depositPeriod?: number; // ポイント預かり期間（日数）
 };
 
 // 入札フォームデータの型
@@ -87,6 +75,24 @@ export type UserAuth = {
   email: string;
   username: string;
   avatarUrl?: string;
+};
+
+// オークション
+export type Auction = {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  startingPrice: number;
+  currentPrice: number;
+  bidCount?: number;
+  startTime: string; // ISO日付文字列
+  endTime: string; // ISO日付文字列
+  sellerId: string;
+  seller?: User;
+  categories?: Category[];
+  watchCount?: number;
+  depositPeriod?: number; // ポイント預かり期間（日数）
 };
 
 // オークションと関連データを含む拡張型

@@ -1,16 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { type Auction } from "@/lib/auction/types";
+import { type AuctionDetailProps } from "@/lib/auction/types";
 
 // クライアントコンポーネントでdynamicインポートを行う
 const AuctionDetailClient = dynamic(() => import("@/components/auction/detail/AuctionDetail"), { ssr: false });
 
-type AuctionDetailWrapperProps = {
-  auction: Auction;
-  isOwnAuction: boolean;
-};
-
-export default function AuctionDetailWrapper({ auction, isOwnAuction }: AuctionDetailWrapperProps) {
+export function AuctionDetailWrapper({ auction, isOwnAuction }: AuctionDetailProps) {
   return <AuctionDetailClient auction={auction} isOwnAuction={isOwnAuction} />;
 }

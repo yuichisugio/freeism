@@ -9,35 +9,42 @@ import { type AuctionWithDetails, type BidFormData, type BidHistoryWithUser } fr
 
 /**
  * タスクIDに関連するオークション情報を取得
+ * @param taskId タスクID
+ * @returns オークション情報
  */
 export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDetails | null> {
-  const auction = await prisma.auction.findUnique({
-    where: { taskId },
-    include: {
-      task: {
-        include: {
-          group: true,
-          creator: true,
+  try {
+    const auction = await prisma.auction.findUnique({
+      where: { taskId },
+      include: {
+        task: {
+          include: {
+            group: true,
+            creator: true,
+          },
+        },
+        currentHighestBidder: true,
+        winner: true,
+        bids: {
+          include: {
+            user: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 10,
         },
       },
-      currentHighestBidder: true,
-      winner: true,
-      bids: {
-        include: {
-          user: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 10,
-      },
-    },
-  });
+    });
 
-  if (!auction) return null;
+    if (!auction) return null;
 
-  // 必要なプロパティを持つオブジェクトとして返す
-  return auction as unknown as AuctionWithDetails;
+    // 必要なプロパティを持つオブジェクトとして返す
+    return auction as unknown as AuctionWithDetails;
+  } catch (error) {
+    console.error("オークション取得エラー:", error);
+    return null;
+  }
 }
 
 /**

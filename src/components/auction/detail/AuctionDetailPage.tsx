@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { type Auction } from "@/types/auction";
+import { type Auction } from "@/lib/auction/types";
 
 import AuctionDetail from "./AuctionDetail";
 import BidHistory from "./BidHistory";

@@ -3,43 +3,10 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { getAuctionWithTask } from "@/lib/auction/auction-service";
 import { type Auction } from "@/lib/auction/types";
-import { prisma } from "@/lib/prisma";
 
-import ClientComponent from "./client";
-
-// オークション情報を取得する関数
-async function getAuctionWithTask(taskId: string) {
-  try {
-    const auction = await prisma.auction.findUnique({
-      where: { taskId },
-      include: {
-        task: {
-          include: {
-            group: true,
-            creator: true,
-          },
-        },
-        currentHighestBidder: true,
-        winner: true,
-        bids: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 10,
-        },
-      },
-    });
-
-    return auction;
-  } catch (error) {
-    console.error("オークション取得エラー:", error);
-    return null;
-  }
-}
+import { AuctionDetailWrapper } from "./client";
 
 // 動的なメタデータを生成
 export async function generateMetadata({ params }: { params: Promise<{ taskId: string }> }): Promise<Metadata> {
@@ -99,7 +66,7 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
 
   return (
     <MainTemplate title={auctionData.task.task} description={auctionData.task.detail || ""}>
-      <ClientComponent auction={auction} isOwnAuction={isOwnAuction} />
+      <AuctionDetailWrapper auction={auction} isOwnAuction={isOwnAuction} />
     </MainTemplate>
   );
 }

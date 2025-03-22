@@ -8,18 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
-import { type Auction } from "@/lib/auction/types";
+import { type Auction, type AuctionDetailProps } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Clock, Heart } from "lucide-react";
 
 import BidForm from "./BidForm";
 import BidHistory from "./BidHistory";
 import CountdownDisplay from "./CountdownDisplay";
-
-type AuctionDetailProps = {
-  auction: Auction;
-  isOwnAuction: boolean;
-};
 
 function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
   const [showBidForm, setShowBidForm] = useState(false);
