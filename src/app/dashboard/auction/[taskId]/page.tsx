@@ -6,9 +6,13 @@ import { MainTemplate } from "@/components/layout/maintemplate";
 import { getAuctionWithTask } from "@/lib/auction/auction-service";
 import { type Auction } from "@/lib/auction/types";
 
-import { AuctionDetailWrapper } from "./client";
+import AuctionDetailWrapper from "./client";
 
-// 動的なメタデータを生成
+/**
+ * 動的なメタデータを生成
+ * @param params タスクID
+ * @returns メタデータ
+ */
 export async function generateMetadata({ params }: { params: Promise<{ taskId: string }> }): Promise<Metadata> {
   const { taskId } = await params;
   try {
@@ -28,6 +32,11 @@ export async function generateMetadata({ params }: { params: Promise<{ taskId: s
   }
 }
 
+/**
+ * オークション詳細ページ
+ * @param params タスクID
+ * @returns オークション詳細ページ
+ */
 export default async function AuctionDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
   const { taskId } = await params;
   const auctionData = await getAuctionWithTask(taskId);

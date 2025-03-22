@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
-import { type Auction, type AuctionDetailProps } from "@/lib/auction/types";
+import { type AuctionDetailProps } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Clock, Heart } from "lucide-react";
 
@@ -16,7 +16,13 @@ import BidForm from "./BidForm";
 import BidHistory from "./BidHistory";
 import CountdownDisplay from "./CountdownDisplay";
 
-function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
+/**
+ * オークション詳細ページ
+ * @param auction オークション情報
+ * @param isOwnAuction 自分の出品したオークションかどうか
+ * @returns オークション詳細ページ
+ */
+export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
   const [showBidForm, setShowBidForm] = useState(false);
   const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime));
   const { submitting, error, toggleWatchlist, getWatchlistStatus } = useBidActions();
@@ -203,5 +209,3 @@ function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
     </div>
   );
 }
-
-export default AuctionDetail;
