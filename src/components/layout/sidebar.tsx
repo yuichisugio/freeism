@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Bell, Home, Menu, PlusCircle, Settings, UserCircle, X } from "lucide-react";
+import { Bell, History, Home, Menu, PlusCircle, Settings, ShoppingCart, Tag, UserCircle, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const sidebarItems = [
@@ -37,6 +37,21 @@ const sidebarItems = [
         title: "GitHub API変換",
         href: "/dashboard/github-api-conversion",
         icon: PlusCircle,
+      },
+    ],
+  },
+  {
+    title: "オークション",
+    items: [
+      {
+        title: "商品一覧",
+        href: "/dashboard/auction",
+        icon: ShoppingCart,
+      },
+      {
+        title: "入札・落札履歴",
+        href: "/dashboard/auction/mine",
+        icon: History,
       },
     ],
   },
