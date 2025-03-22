@@ -1,0 +1,212 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBidActions } from "@/hooks/auction/useBidActions";
+import { useCountdown } from "@/hooks/auction/useCountdown";
+import { formatCurrency } from "@/lib/formatters";
+import { type Auction } from "@/types/auction";
+import { Clock, Heart } from "lucide-react";
+
+import BidForm from "./BidForm";
+import BidHistory from "./BidHistory";
+import CountdownDisplay from "./CountdownDisplay";
+
+type AuctionDetailProps = {
+  auction: Auction;
+  isOwnAuction: boolean;
+};
+
+function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
+  const [showBidForm, setShowBidForm] = useState(false);
+  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime));
+  const { submitting, error, toggleWatchlist, getWatchlistStatus } = useBidActions();
+  const [isWatchlisted, setIsWatchlisted] = useState(false);
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
+
+  // ウォッチリストの状態を取得する処理
+  useEffect(() => {
+    const checkWatchlistStatus = async () => {
+      if (!auction.id) return;
+
+      try {
+        const status = await getWatchlistStatus(auction.id);
+        setIsWatchlisted(status);
+        setInitialFetchDone(true);
+      } catch (err) {
+        console.error("ウォッチリストの状態取得エラー:", err);
+        setInitialFetchDone(true);
+      }
+    };
+
+    if (!initialFetchDone) {
+      checkWatchlistStatus();
+    }
+  }, [auction.id, getWatchlistStatus, initialFetchDone]);
+
+  // ウォッチリストボタンのクリックハンドラ
+  const handleWatchlistToggle = async () => {
+    if (!auction.id) return;
+
+    try {
+      const newStatus = await toggleWatchlist(auction.id);
+      setIsWatchlisted(newStatus);
+    } catch (err) {
+      console.error("ウォッチリスト更新エラー:", err);
+    }
+  };
+
+  const isAuctionEnded = countdownState.isExpired;
+
+  // オークション詳細タブの内容
+  const renderDetailsTab = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">現在価格</p>
+                <p className="text-2xl font-bold">{formatCurrency(auction.currentPrice)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm">開始価格</p>
+                <p>{formatCurrency(auction.startingPrice)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm">入札数</p>
+                <p>{auction.bidCount || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center gap-2">
+          <Clock size={18} className="text-muted-foreground" />
+          <CountdownDisplay countdownState={countdownState} formattedCountdown={formatCountdown()} />
+        </div>
+
+        {!isOwnAuction && !isAuctionEnded && (
+          <>
+            {showBidForm ? (
+              <BidForm auction={auction} onCancel={() => setShowBidForm(false)} />
+            ) : (
+              <Button className="w-full" onClick={() => setShowBidForm(true)}>
+                入札する
+              </Button>
+            )}
+          </>
+        )}
+
+        {isAuctionEnded && (
+          <div className="bg-muted rounded-md border p-4 text-center">
+            <p className="font-medium">このオークションは終了しました</p>
+          </div>
+        )}
+
+        {isOwnAuction && (
+          <div className="bg-muted rounded-md border p-4 text-center">
+            <p className="font-medium">自分の出品したオークションです</p>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-xl font-semibold">商品説明</h2>
+        <p className="whitespace-pre-line">{auction.description}</p>
+      </div>
+    </div>
+  );
+
+  // 質問と回答タブの内容
+  const renderQaTab = () => (
+    <div className="py-4">
+      <div className="bg-muted rounded-md border p-8 text-center">
+        <p className="text-muted-foreground">現在、質問はありません。</p>
+        <Button className="mt-4" variant="outline">
+          質問する
+        </Button>
+      </div>
+    </div>
+  );
+
+  // 配送・支払いタブの内容
+  const renderShippingTab = () => (
+    <div className="space-y-4 py-4">
+      <div>
+        <h3 className="mb-2 text-lg font-medium">配送方法</h3>
+        <p className="text-muted-foreground">出品者と直接調整してください。詳細は落札後に確認できます。</p>
+      </div>
+      <div>
+        <h3 className="mb-2 text-lg font-medium">支払い方法</h3>
+        <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.depositPeriod || 60}日後に返還されます。</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* 左側: オークション画像 */}
+        <div className="relative aspect-square overflow-hidden rounded-lg">
+          <Image src={auction.imageUrl || "/images/placeholder.jpg"} alt={auction.title} fill className="object-cover" priority />
+        </div>
+
+        {/* 右側: オークション情報ヘッダー部分 */}
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-start justify-between">
+              <h1 className="text-2xl font-bold">{auction.title}</h1>
+              <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || isOwnAuction} className={isWatchlisted ? "text-red-500" : ""}>
+                <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
+              </Button>
+            </div>
+            <p className="text-muted-foreground mt-1">{auction.seller?.username || "不明なユーザー"}</p>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Badge variant={isAuctionEnded ? "destructive" : "secondary"}>{isAuctionEnded ? "終了" : "出品中"}</Badge>
+            {auction.categories?.map((category) => (
+              <Badge key={category.id} variant="outline">
+                {category.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* タブ切り替え部分 */}
+      <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4 grid grid-cols-4">
+          <TabsTrigger value="details">詳細</TabsTrigger>
+          <TabsTrigger value="bid-history">入札履歴</TabsTrigger>
+          <TabsTrigger value="qa">質問と回答</TabsTrigger>
+          <TabsTrigger value="shipping">配送・支払い</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details" className="mt-0">
+          {renderDetailsTab()}
+        </TabsContent>
+
+        <TabsContent value="bid-history" className="mt-0">
+          {auction.id && <BidHistory auctionId={auction.id} />}
+        </TabsContent>
+
+        <TabsContent value="qa" className="mt-0">
+          {renderQaTab()}
+        </TabsContent>
+
+        <TabsContent value="shipping" className="mt-0">
+          {renderShippingTab()}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+export default AuctionDetail;

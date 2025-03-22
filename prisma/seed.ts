@@ -792,6 +792,404 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
   return { notifications, notificationReadStatuses: [] };
 }
 
+// オークションの生成
+async function createAuctions(tasks: any[], users: any[]) {
+  console.log("Creating auctions...");
+
+  const auctions = [];
+
+  // タスクからランダムに選択してオークションを作成
+  const auctionTasks = faker.helpers.arrayElements(tasks, Math.min(tasks.length, 15));
+
+  for (const task of auctionTasks) {
+    // 開始時間と終了時間の設定（現在から過去7日〜未来14日の範囲）
+    const now = new Date();
+    const startTimeOffset = faker.number.int({ min: -7 * 24 * 60 * 60 * 1000, max: 7 * 24 * 60 * 60 * 1000 });
+    const startTime = new Date(now.getTime() + startTimeOffset);
+
+    // 終了時間は開始時間から1日〜7日後
+    const endTimeOffset = faker.number.int({ min: 24 * 60 * 60 * 1000, max: 7 * 24 * 60 * 60 * 1000 });
+    const endTime = new Date(startTime.getTime() + endTimeOffset);
+
+    // 開始価格は500〜5000ポイントの範囲で設定
+    const initialPrice = faker.number.int({ min: 500, max: 5000 });
+
+    // オークションの状態を決定（開始前、進行中、終了済み）
+    let status: "PENDING" | "ACTIVE" | "ENDED" | "CANCELED";
+    if (startTime > now) {
+      status = "PENDING"; // 開始前
+    } else if (endTime > now) {
+      status = "ACTIVE"; // 進行中
+    } else {
+      status = "ENDED"; // 終了済み
+    }
+
+    // 現在の最高入札額を設定（初期値は開始価格）
+    let currentHighestBid = initialPrice;
+    let currentHighestBidderId = null;
+
+    // 入札者がいる場合に備えて、ランダムな最高入札者を選択
+    if (status === "ACTIVE" || status === "ENDED") {
+      // 入札できるユーザーはタスク作成者以外
+      const potentialBidders = users.filter((user) => user.id !== task.creatorId);
+      if (potentialBidders.length > 0) {
+        // 入札があるかどうかをランダムに決定
+        const hasBids = faker.datatype.boolean();
+        if (hasBids) {
+          // 最高入札者を設定
+          const highestBidder = faker.helpers.arrayElement(potentialBidders);
+          currentHighestBidderId = highestBidder.id;
+
+          // 最高入札額は開始価格の10%〜50%増し
+          const bidIncrease = initialPrice * (0.1 + faker.number.float({ min: 0, max: 0.4 }));
+          currentHighestBid = Math.floor(initialPrice + bidIncrease);
+        }
+      }
+    }
+
+    // 落札者を設定（終了済みの場合のみ）
+    let winnerId = null;
+    if (status === "ENDED" && currentHighestBidderId) {
+      // 最高入札者がいる場合は落札者として設定
+      winnerId = currentHighestBidderId;
+    }
+
+    const auction = await prisma.auction.create({
+      data: {
+        taskId: task.id,
+        currentHighestBid,
+        currentHighestBidderId,
+        winnerId,
+        startTime,
+        endTime,
+        status,
+        createdAt: new Date(startTime.getTime() - faker.number.int({ min: 1, max: 48 }) * 60 * 60 * 1000),
+      },
+    });
+
+    auctions.push(auction);
+  }
+
+  console.log(`Created ${auctions.length} auctions`);
+  return auctions;
+}
+
+// 入札履歴の生成
+async function createBidHistories(auctions: any[], users: any[]) {
+  console.log("Creating bid histories...");
+
+  const bidHistories = [];
+
+  for (const auction of auctions) {
+    // 開始前のオークションはスキップ
+    if (auction.status === "PENDING") continue;
+
+    // 関連するタスクを取得
+    const task = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { creatorId: true },
+    });
+
+    if (!task) continue;
+
+    // タスク作成者以外のユーザーを入札者候補として抽出
+    const potentialBidders = users.filter((user) => user.id !== task.creatorId);
+    if (potentialBidders.length === 0) continue;
+
+    // 入札数を0〜10の範囲でランダムに決定
+    const bidCount = auction.status === "ENDED" ? faker.number.int({ min: 1, max: 10 }) : faker.number.int({ min: 0, max: 10 });
+
+    if (bidCount === 0) continue;
+
+    // 入札履歴の生成（最古の入札から最新の入札まで）
+    let currentBid = auction.currentHighestBid;
+    const bidTimeRange = auction.endTime.getTime() - auction.startTime.getTime();
+    const bidTimes = Array(bidCount)
+      .fill(0)
+      .map(() => new Date(auction.startTime.getTime() + faker.number.float() * bidTimeRange))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    for (let i = 0; i < bidCount; i++) {
+      const bidder = faker.helpers.arrayElement(potentialBidders);
+
+      // 入札額は前回の入札額の1%〜10%増し
+      const bidIncrease = currentBid * (0.01 + faker.number.float({ min: 0, max: 0.09 }));
+      currentBid = Math.floor(currentBid + bidIncrease);
+
+      // 自動入札かどうかをランダムに決定
+      const isAutoBid = faker.datatype.boolean(0.3); // 30%の確率で自動入札
+
+      const bid = await prisma.bidHistory.create({
+        data: {
+          auctionId: auction.id,
+          userId: bidder.id,
+          amount: currentBid,
+          isAutoBid,
+          createdAt: bidTimes[i],
+          status: "BIDDING", // BIDDINGがBidStatusの有効な値
+        },
+      });
+
+      bidHistories.push(bid);
+    }
+
+    // 最終的な最高入札額でオークションを更新
+    if (bidHistories.length > 0) {
+      const highestBid = bidHistories.filter((bid) => bid.auctionId === auction.id).sort((a, b) => b.amount - a.amount)[0];
+
+      if (highestBid) {
+        await prisma.auction.update({
+          where: { id: auction.id },
+          data: {
+            currentHighestBid: highestBid.amount,
+            currentHighestBidderId: highestBid.userId,
+          },
+        });
+      }
+    }
+  }
+
+  console.log(`Created ${bidHistories.length} bid histories`);
+  return bidHistories;
+}
+
+// 自動入札設定の生成
+async function createAutoBids(auctions: any[], users: any[]) {
+  console.log("Creating auto bids...");
+
+  const autoBids = [];
+
+  // アクティブなオークションのみを対象
+  const activeAuctions = auctions.filter((auction) => auction.status === "ACTIVE");
+
+  for (const auction of activeAuctions) {
+    // 関連するタスクを取得
+    const task = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { creatorId: true },
+    });
+
+    if (!task) continue;
+
+    // タスク作成者以外のユーザーを候補として抽出
+    const potentialUsers = users.filter((user) => user.id !== task.creatorId);
+    if (potentialUsers.length === 0) continue;
+
+    // 自動入札設定を持つユーザー数（0〜2人）
+    const autoBidUserCount = faker.number.int({ min: 0, max: 2 });
+    if (autoBidUserCount === 0) continue;
+
+    // ランダムにユーザーを選択
+    const autoBidUsers = faker.helpers.arrayElements(potentialUsers, autoBidUserCount);
+
+    for (const user of autoBidUsers) {
+      // 自動入札の最大金額は現在の最高入札額の10%〜50%増し
+      const maxBidAmount = Math.floor(auction.currentHighestBid * (1.1 + faker.number.float({ min: 0, max: 0.4 })));
+      // 入札単位は1〜100の範囲でランダム
+      const bidIncrement = faker.number.int({ min: 1, max: 100 });
+
+      try {
+        const autoBid = await prisma.autoBid.create({
+          data: {
+            user: { connect: { id: user.id } },
+            auction: { connect: { id: auction.id } },
+            maxBidAmount,
+            bidIncrement,
+            isActive: true,
+            lastBidTime: new Date(new Date().getTime() - faker.number.int({ min: 1, max: 24 }) * 60 * 60 * 1000),
+          },
+        });
+
+        autoBids.push(autoBid);
+      } catch (error) {
+        console.error("自動入札設定作成エラー:", error);
+      }
+    }
+  }
+
+  console.log(`Created ${autoBids.length} auto bids`);
+  return autoBids;
+}
+
+// オークション通知の生成
+async function createAuctionNotifications(auctions: any[], users: any[]) {
+  console.log("Creating auction notifications...");
+
+  const notifications = [];
+
+  // 各ユーザーに対して通知を生成
+  for (const user of users) {
+    // ユーザーが関わっているオークション（高額入札または落札）
+    const relevantAuctions = auctions.filter((auction) => auction.currentHighestBidderId === user.id || auction.winnerId === user.id);
+
+    if (relevantAuctions.length === 0) continue;
+
+    // 各オークションに対して0〜3件の通知を生成
+    for (const auction of relevantAuctions) {
+      const notificationCount = faker.number.int({ min: 0, max: 3 });
+      if (notificationCount === 0) continue;
+
+      // 通知タイプのリスト (Prismaのスキーマに合わせる)
+      const notificationTypes: ("BID_PLACED" | "OUTBID" | "QUESTION_RECEIVED" | "MAX_BID_REACHED" | "AUCTION_ENDED" | "WON_AUCTION" | "LOST_AUCTION" | "POINT_RETURNED")[] = [
+        "BID_PLACED",
+        "OUTBID",
+        "AUCTION_ENDED",
+        "WON_AUCTION",
+        "LOST_AUCTION",
+        "POINT_RETURNED",
+      ];
+
+      for (let i = 0; i < notificationCount; i++) {
+        // ランダムな通知タイプを選択
+        const notificationType = faker.helpers.arrayElement(notificationTypes);
+
+        // 既読状態をランダムに決定
+        const isRead = faker.datatype.boolean(0.6); // 60%の確率で既読
+
+        // 通知の作成日時と有効期限（過去1週間以内の通知で、30日後に期限切れ）
+        const createdAt = new Date(new Date().getTime() - faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000);
+        const expiresAt = new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        try {
+          const notification = await prisma.auctionNotification.create({
+            data: {
+              user: { connect: { id: user.id } },
+              auction: { connect: { id: auction.id } },
+              title: generateNotificationTitle(notificationType),
+              message: generateNotificationMessage(notificationType, auction),
+              type: notificationType,
+              isRead,
+              createdAt,
+              expiresAt,
+            },
+          });
+
+          notifications.push(notification);
+        } catch (error) {
+          console.error(`通知作成エラー (タイプ: ${notificationType}):`, error);
+        }
+      }
+    }
+  }
+
+  console.log(`Created ${notifications.length} auction notifications`);
+  return notifications;
+}
+
+// 通知タイトルの生成ヘルパー関数
+function generateNotificationTitle(type: string): string {
+  switch (type) {
+    case "BID_PLACED":
+      return "入札完了";
+    case "OUTBID":
+      return "入札が上回られました";
+    case "AUCTION_ENDED":
+      return "オークション終了";
+    case "WON_AUCTION":
+      return "オークション落札成功";
+    case "LOST_AUCTION":
+      return "オークション落札失敗";
+    case "POINT_RETURNED":
+      return "ポイント返還";
+    default:
+      return "オークション通知";
+  }
+}
+
+// 通知メッセージの生成ヘルパー関数
+function generateNotificationMessage(type: string, auction: any): string {
+  switch (type) {
+    case "BID_PLACED":
+      return `あなたがオークション「${auction.id}」に入札しました。`;
+    case "OUTBID":
+      return `あなたの入札が他のユーザーに上回られました。`;
+    case "AUCTION_ENDED":
+      return `オークション「${auction.id}」が終了しました。`;
+    case "WON_AUCTION":
+      return `おめでとうございます！オークション「${auction.id}」を落札しました。`;
+    case "LOST_AUCTION":
+      return `残念ながらオークション「${auction.id}」を落札できませんでした。`;
+    case "POINT_RETURNED":
+      return `オークション「${auction.id}」の入札に使用したポイントが返還されました。`;
+    default:
+      return `オークション「${auction.id}」に関するお知らせです。`;
+  }
+}
+
+// オークションレビューの生成
+async function createAuctionReviews(auctions: any[]) {
+  console.log("Creating auction reviews...");
+
+  const reviews = [];
+
+  // 終了したオークションのみを対象
+  const endedAuctions = auctions.filter((auction) => auction.status === "ENDED" && auction.winnerId !== null);
+
+  for (const auction of endedAuctions) {
+    // 関連するタスクを取得
+    const task = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { creatorId: true },
+    });
+
+    if (!task) continue;
+
+    // レビューが存在する確率（70%）
+    const hasReview = faker.datatype.boolean(0.7);
+    if (!hasReview) continue;
+
+    // 売り手（タスク作成者）から買い手（落札者）へのレビュー
+    try {
+      const sellerReview = await prisma.auctionReview.create({
+        data: {
+          auction: { connect: { id: auction.id } },
+          reviewer: { connect: { id: task.creatorId } },
+          reviewee: { connect: { id: auction.winnerId } },
+          rating: faker.number.int({ min: 1, max: 5 }),
+          comment: faker.helpers.arrayElement([
+            "とても良い取引相手でした。スムーズに取引が完了しました。",
+            "迅速な対応に感謝します。また機会があれば取引したいです。",
+            "丁寧な対応でした。",
+            "問題なく取引できました。",
+            "また取引したいです。",
+          ]),
+          isSellerReview: true,
+          createdAt: new Date(auction.endTime.getTime() + faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000),
+        },
+      });
+
+      reviews.push(sellerReview);
+    } catch (error) {
+      console.error("売り手レビュー作成エラー:", error);
+    }
+
+    // 買い手から売り手へのレビュー（80%の確率で存在）
+    const hasBuyerToSellerReview = faker.datatype.boolean(0.8);
+    if (hasBuyerToSellerReview) {
+      try {
+        const buyerReview = await prisma.auctionReview.create({
+          data: {
+            auction: { connect: { id: auction.id } },
+            reviewer: { connect: { id: auction.winnerId } },
+            reviewee: { connect: { id: task.creatorId } },
+            rating: faker.number.int({ min: 1, max: 5 }),
+            comment: faker.helpers.arrayElement(["商品の状態が良く、満足しています。", "丁寧な梱包で安心しました。", "説明通りの商品でした。", "また利用したいです。", "迅速な発送に感謝します。"]),
+            isSellerReview: false,
+            createdAt: new Date(auction.endTime.getTime() + faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000),
+          },
+        });
+
+        reviews.push(buyerReview);
+      } catch (error) {
+        console.error("買い手レビュー作成エラー:", error);
+      }
+    }
+  }
+
+  console.log(`Created ${reviews.length} auction reviews`);
+  return reviews;
+}
+
 /**
  * メイン関数
  * シードデータを生成する全体の流れを制御します
@@ -822,7 +1220,14 @@ async function main() {
     // 6. 通知データの作成
     const { notifications, notificationReadStatuses } = await createNotifications(users, groups, tasks);
 
-    // 7. 統計情報の表示
+    // 7. オークション関連データの作成
+    const auctions = await createAuctions(tasks, users);
+    const bidHistories = await createBidHistories(auctions, users);
+    await createAutoBids(auctions, users);
+    await createAuctionNotifications(auctions, users);
+    await createAuctionReviews(auctions);
+
+    // 8. 統計情報の表示
     console.log("-------------------------------------");
     console.log("シードデータ作成完了！");
     console.log("-------------------------------------");
