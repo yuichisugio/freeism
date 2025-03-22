@@ -259,6 +259,7 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
   const buttonText = props.buttonText || placeholder;
   const dateFormat = props.dateFormat || "yyyy年MM月dd日";
   const locale = props.locale || ja;
+  const includeTime = dateFormat.includes("HH") || dateFormat.includes("mm") || dateFormat.includes("ss");
 
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
@@ -282,11 +283,53 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
             <Calendar
               mode="single"
               selected={field.value ? new Date(field.value) : undefined}
-              onSelect={(date: Date | undefined) => field.onChange(date || null)}
+              onSelect={(date: Date | undefined) => {
+                if (date) {
+                  // 日付が選択された場合、現在の時間情報を保持
+                  const currentValue = field.value ? new Date(field.value) : new Date();
+                  date.setHours(currentValue.getHours());
+                  date.setMinutes(currentValue.getMinutes());
+                  date.setSeconds(currentValue.getSeconds());
+                }
+                field.onChange(date || null);
+              }}
               initialFocus
               locale={locale}
               className="rounded-md border shadow-lg"
             />
+            {includeTime && (
+              <div className="border-t p-3">
+                <div className="flex items-center justify-between">
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    className="w-16 rounded-md border p-2"
+                    placeholder="時"
+                    value={field.value ? new Date(field.value).getHours() : 0}
+                    onChange={(e) => {
+                      const date = new Date(field.value || new Date());
+                      date.setHours(parseInt(e.target.value) || 0);
+                      field.onChange(date);
+                    }}
+                  />
+                  <span className="self-center">:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    className="w-16 rounded-md border p-2"
+                    placeholder="分"
+                    value={field.value ? new Date(field.value).getMinutes() : 0}
+                    onChange={(e) => {
+                      const date = new Date(field.value || new Date());
+                      date.setMinutes(parseInt(e.target.value) || 0);
+                      field.onChange(date);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </motion.div>
         </PopoverContent>
       </Popover>

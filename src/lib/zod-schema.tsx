@@ -35,6 +35,9 @@ export const taskFormSchema = z.object({
   contributionType: z.nativeEnum(contributionType, { required_error: "貢献の種類を選択してください" }),
   reporters: z.array(taskPersonSchema).optional(),
   executors: z.array(taskPersonSchema).optional(),
+  auctionStartTime: z.date().optional(),
+  auctionEndTime: z.date().optional(),
+  deliveryMethod: z.string().optional(),
 });
 
 // 通知作成フォームのバリデーションスキーマ

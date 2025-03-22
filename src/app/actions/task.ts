@@ -40,6 +40,8 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
         contributionType: data.contributionType,
         creatorId: session.user.id,
         groupId: data.groupId,
+        // 提供方法を追加
+        deliveryMethod: data.deliveryMethod,
         // 報告者の設定
         reporters: {
           create:
@@ -91,6 +93,24 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
         },
       },
     });
+
+    // 報酬タイプがREWARDの場合はオークションを作成
+    if (data.contributionType === contributionType.REWARD) {
+      // デフォルトの日時を設定
+      const startTime = data.auctionStartTime || new Date();
+      const endTime = data.auctionEndTime || new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // デフォルトは1週間後
+
+      await prisma.auction.create({
+        data: {
+          taskId: newTask.id,
+          startTime,
+          endTime,
+          status: "PENDING",
+          currentHighestBid: 0,
+          extensionCount: 0,
+        },
+      });
+    }
 
     revalidatePath(`/dashboard/group/${data.groupId}`);
     return { success: true, task: newTask };
@@ -534,6 +554,8 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
               contributionType: row.contributionType || contributionType.NON_REWARD,
               creatorId: session.user?.id || "",
               groupId: groupId,
+              // 提供方法を追加
+              deliveryMethod: row.deliveryMethod || null,
               // 作成者を報告者としても登録
               reporters: {
                 create: [
@@ -551,38 +573,50 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
                 ],
               },
             },
-            include: {
-              creator: {
-                select: {
-                  name: true,
-                },
-              },
-              reporters: {
-                include: {
-                  user: {
-                    select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-              executors: {
-                include: {
-                  user: {
-                    select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
           });
+
+          // 報酬タイプがREWARDの場合はオークションを作成
+          if (row.contributionType === contributionType.REWARD) {
+            // 日時文字列をDate型に変換
+            let startTime = new Date();
+            let endTime = new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // デフォルトは1週間後
+
+            if (row.auctionStartTime) {
+              try {
+                startTime = new Date(row.auctionStartTime);
+              } catch (e) {
+                console.error("開始日時の解析エラー:", e);
+              }
+            }
+
+            if (row.auctionEndTime) {
+              try {
+                endTime = new Date(row.auctionEndTime);
+              } catch (e) {
+                console.error("終了日時の解析エラー:", e);
+              }
+            }
+
+            await tx.auction.create({
+              data: {
+                taskId: task.id,
+                startTime,
+                endTime,
+                status: "PENDING",
+                currentHighestBid: 0,
+                extensionCount: 0,
+              },
+            });
+          }
+
           return task;
         }),
       );
+
       return tasks;
     });
 
+    revalidatePath(`/dashboard/group/${groupId}`);
     return { success: true, tasks: result };
   } catch (error) {
     console.error("[BULK_CREATE_TASKS]", error);
@@ -604,10 +638,11 @@ export async function updateTaskStatus(taskId: string, status: string) {
       throw new Error("認証エラーが発生しました");
     }
 
-    // 更新前にタスクを取得して権限とステータスを確認
+    // タスクの詳細情報を取得
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: {
+        group: true, // グループ情報を取得
         creator: {
           select: {
             id: true,
@@ -616,34 +651,19 @@ export async function updateTaskStatus(taskId: string, status: string) {
         },
         reporters: {
           include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+            user: true,
           },
         },
         executors: {
           include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        group: {
-          select: {
-            id: true,
+            user: true,
           },
         },
       },
     });
 
     if (!task) {
-      throw new Error("タスクが見つかりません");
+      throw new Error("Task not found");
     }
 
     // 変更不可のステータスチェック
@@ -696,6 +716,57 @@ export async function updateTaskStatus(taskId: string, status: string) {
         },
       },
     });
+
+    // ステータスがPOINTS_AWARDEDに変更されたかつfixedContributionPointが設定されている場合
+    if (status === "POINTS_AWARDED" && task.fixedContributionPoint) {
+      // GroupPointテーブルの残高を更新
+      const contributionPoint = task.fixedContributionPoint;
+
+      // 報告者と実行者のユーザーIDを取得（重複排除）
+      const reporterUserIds = task.reporters.filter((r) => r.user?.id).map((r) => r.user!.id);
+
+      const executorUserIds = task.executors.filter((e) => e.user?.id).map((e) => e.user!.id);
+
+      const userIds = [...new Set([...reporterUserIds, ...executorUserIds])];
+
+      // 各ユーザーのGroupPointを更新
+      for (const userId of userIds) {
+        // 既存のGroupPointを検索
+        let groupPoint = await prisma.groupPoint.findUnique({
+          where: {
+            userId_groupId: {
+              userId: userId,
+              groupId: task.group.id,
+            },
+          },
+        });
+
+        // GroupPointが存在しなければ作成、存在すれば更新
+        if (groupPoint) {
+          await prisma.groupPoint.update({
+            where: {
+              userId_groupId: {
+                userId: userId,
+                groupId: task.group.id,
+              },
+            },
+            data: {
+              balance: { increment: contributionPoint },
+              fixedTotalPoints: { increment: contributionPoint },
+            },
+          });
+        } else {
+          await prisma.groupPoint.create({
+            data: {
+              userId: userId,
+              groupId: task.group.id,
+              balance: contributionPoint,
+              fixedTotalPoints: contributionPoint,
+            },
+          });
+        }
+      }
+    }
 
     revalidatePath(`/dashboard/group/${updatedTask.groupId}`);
     return { success: true, task: updatedTask };
@@ -981,6 +1052,65 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
             },
           });
 
+          // GroupPointテーブルの残高を更新
+          // 1. 報告者と実行者のユーザーIDを取得
+          const taskWithUsers = await tx.task.findUnique({
+            where: { id: row.id },
+            include: {
+              reporters: {
+                select: { userId: true },
+                where: { userId: { not: null } }, // 登録済みユーザーのみ
+              },
+              executors: {
+                select: { userId: true },
+                where: { userId: { not: null } }, // 登録済みユーザーのみ
+              },
+            },
+          });
+
+          if (taskWithUsers) {
+            // 重複を排除したユーザーIDリストを作成
+            const userIds = [...new Set([...taskWithUsers.reporters.map((r) => r.userId as string), ...taskWithUsers.executors.map((e) => e.userId as string)])];
+
+            // 各ユーザーのGroupPointを更新
+            for (const userId of userIds) {
+              // 既存のGroupPointを検索
+              let groupPoint = await tx.groupPoint.findUnique({
+                where: {
+                  userId_groupId: {
+                    userId: userId,
+                    groupId: groupId,
+                  },
+                },
+              });
+
+              // GroupPointが存在しなければ作成、存在すれば更新
+              if (groupPoint) {
+                await tx.groupPoint.update({
+                  where: {
+                    userId_groupId: {
+                      userId: userId,
+                      groupId: groupId,
+                    },
+                  },
+                  data: {
+                    balance: { increment: contributionPoint },
+                    fixedTotalPoints: { increment: contributionPoint },
+                  },
+                });
+              } else {
+                await tx.groupPoint.create({
+                  data: {
+                    userId: userId,
+                    groupId: groupId,
+                    balance: contributionPoint,
+                    fixedTotalPoints: contributionPoint,
+                  },
+                });
+              }
+            }
+          }
+
           successData.push({ ...row, status: updatedTask.status });
         } catch (error) {
           console.error(`タスク更新エラー (ID: ${row.id}):`, error);
@@ -1116,7 +1246,69 @@ export async function bulkUpdateTaskStatuses(data: any[]) {
         const updatedTask = await prisma.task.update({
           where: { id: item.taskId },
           data: { status: item.status as TaskStatus },
+          include: {
+            reporters: {
+              include: {
+                user: true,
+              },
+            },
+            executors: {
+              include: {
+                user: true,
+              },
+            },
+          },
         });
+
+        // ステータスがPOINTS_AWARDEDに変更されかつfixedContributionPointが設定されている場合、GroupPointを更新
+        if (item.status === "POINTS_AWARDED" && task.fixedContributionPoint) {
+          const contributionPoint = task.fixedContributionPoint;
+
+          // 報告者と実行者のユーザーIDを取得（重複排除）
+          const reporterUserIds = updatedTask.reporters.filter((r) => r.user?.id).map((r) => r.user!.id);
+
+          const executorUserIds = updatedTask.executors.filter((e) => e.user?.id).map((e) => e.user!.id);
+
+          const userIds = [...new Set([...reporterUserIds, ...executorUserIds])];
+
+          // 各ユーザーのGroupPointを更新
+          for (const userId of userIds) {
+            // 既存のGroupPointを検索
+            let groupPoint = await prisma.groupPoint.findUnique({
+              where: {
+                userId_groupId: {
+                  userId: userId,
+                  groupId: task.group.id,
+                },
+              },
+            });
+
+            // GroupPointが存在しなければ作成、存在すれば更新
+            if (groupPoint) {
+              await prisma.groupPoint.update({
+                where: {
+                  userId_groupId: {
+                    userId: userId,
+                    groupId: task.group.id,
+                  },
+                },
+                data: {
+                  balance: { increment: contributionPoint },
+                  fixedTotalPoints: { increment: contributionPoint },
+                },
+              });
+            } else {
+              await prisma.groupPoint.create({
+                data: {
+                  userId: userId,
+                  groupId: task.group.id,
+                  balance: contributionPoint,
+                  fixedTotalPoints: contributionPoint,
+                },
+              });
+            }
+          }
+        }
 
         results.push(updatedTask);
       } catch (error) {

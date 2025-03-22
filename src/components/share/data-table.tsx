@@ -444,12 +444,14 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
           task={{
             id: editingTask.id as string,
             task: editingTask.task as string,
+            detail: editingTask.detail as string | null,
             reference: editingTask.reference as string | null,
             info: editingTask.info as string | null,
             status: editingTask.status as string,
             contributionType: editingTask.contributionType as contributionType,
             reporters: (editingTask.reporters || []) as any[],
             executors: (editingTask.executors || []) as any[],
+            imageUrl: editingTask.imageUrl as string | null,
             group: {
               id: (editingTask.group as any)?.id || "",
               name: (editingTask.group as any)?.name || "",

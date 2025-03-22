@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { createTask } from "@/app/actions/task";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
+import { Button } from "@/components/ui/button";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -91,6 +94,9 @@ export function TaskInputForm({
       executors: [],
       reporters: [],
       imageUrl: "",
+      auctionStartTime: new Date(),
+      auctionEndTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      deliveryMethod: "",
     },
   });
 
@@ -176,6 +182,10 @@ export function TaskInputForm({
         groupId: data.groupId,
         executors: executors.length > 0 ? executors : undefined,
         reporters: reporters.length > 0 ? reporters : undefined,
+        // オークション関連のデータを追加
+        auctionStartTime: data.contributionType === contributionType.REWARD ? data.auctionStartTime : undefined,
+        auctionEndTime: data.contributionType === contributionType.REWARD ? data.auctionEndTime : undefined,
+        deliveryMethod: data.contributionType === contributionType.REWARD ? data.deliveryMethod : undefined,
       });
 
       if (result.success) {
@@ -239,6 +249,45 @@ export function TaskInputForm({
           <label className="form-label-custom text-base font-medium text-gray-700">報酬画像</label>
           <p className="form-description-custom text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
           <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
+        </div>
+      )}
+
+      {/* 報酬になる貢献の場合のみオークション関連設定を表示 */}
+      {isRewardType && (
+        <div className="space-y-4 rounded-md border p-4">
+          <h3 className="text-lg font-medium">オークション設定</h3>
+
+          {/* オークション開始日時 - CustomFormFieldを使用 */}
+          <CustomFormField
+            fieldType="date"
+            control={form.control}
+            name="auctionStartTime"
+            label="オークション開始日時"
+            description="オークションの開始日時を設定してください。未設定の場合は現在の日時が適用されます。"
+            dateFormat="yyyy年MM月dd日 HH:mm"
+            placeholder="開始日時を選択"
+          />
+
+          {/* オークション終了日時 - CustomFormFieldを使用 */}
+          <CustomFormField
+            fieldType="date"
+            control={form.control}
+            name="auctionEndTime"
+            label="オークション終了日時"
+            description="オークションの終了日時を設定してください。未設定の場合は開始から1週間後が適用されます。"
+            dateFormat="yyyy年MM月dd日 HH:mm"
+            placeholder="終了日時を選択"
+          />
+
+          {/* 提供方法 */}
+          <CustomFormField
+            fieldType="textarea"
+            control={form.control}
+            name="deliveryMethod"
+            label="提供方法"
+            description="商品・サービスの提供方法を記載してください（例：Amazonほしい物リスト、Githubリポジトリ共有など）"
+            placeholder="提供方法を入力してください"
+          />
         </div>
       )}
 
