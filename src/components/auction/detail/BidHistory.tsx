@@ -13,43 +13,84 @@ type BidHistoryProps = {
   initialBids?: BidHistoryWithUser[];
 };
 
+// SSEからの更新を確認するためのポーリング間隔を30秒に設定（1秒未満にしない）
+const POLLING_INTERVAL = 30000; // 30秒
+
 function BidHistory({ auctionId, initialBids = [] }: BidHistoryProps) {
   const [bids, setBids] = useState<BidHistoryWithUser[]>(initialBids);
   const [isLoading, setIsLoading] = useState(!initialBids.length);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now());
 
+  // ユーザー名を安全に取得するヘルパー関数
+  const getUserName = (user: any): string => {
+    if (!user) return "不明なユーザー";
+    return user.username || user.name || "不明なユーザー";
+  };
+
+  // ユーザーアバターを安全に取得するヘルパー関数
+  const getUserAvatar = (user: any): string => {
+    if (!user) return "";
+    return user.avatarUrl || user.image || "";
+  };
+
+  // 初回と定期的な更新のための入札データ取得
   useEffect(() => {
-    if (initialBids.length > 0) {
-      return; // 初期データがある場合は読み込みをスキップ
+    // 初期データがあれば、それを使用
+    if (initialBids.length > 0 && bids.length === initialBids.length) {
+      setBids(initialBids);
+      setIsLoading(false);
+      setLastFetchTime(Date.now());
     }
 
-    const fetchBidHistory = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`/api/auctions/${auctionId}/bids`);
+    // 最初のデータ取得
+    if (!initialBids.length) {
+      fetchBidHistory();
+    }
 
-        if (!response.ok) {
-          throw new Error("入札履歴の取得に失敗しました");
-        }
+    // 定期的な更新（30秒ごと）
+    const intervalId = setInterval(() => {
+      fetchBidHistory();
+    }, POLLING_INTERVAL);
 
-        const data = await response.json();
-        setBids(data.bids);
-      } catch (err) {
-        console.error("入札履歴取得エラー:", err);
-        setError("入札履歴を読み込めませんでした");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBidHistory();
+    return () => clearInterval(intervalId);
   }, [auctionId, initialBids]);
 
-  if (isLoading) {
+  // 入札履歴を取得する関数
+  const fetchBidHistory = async () => {
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}/bids`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("入札履歴の取得に失敗しました");
+      }
+
+      const data = await response.json();
+
+      // 新しいデータがある場合のみ更新
+      if (data.bids && data.bids.length > bids.length) {
+        setBids(data.bids);
+      }
+
+      setIsLoading(false);
+      setLastFetchTime(Date.now());
+    } catch (err) {
+      console.error("入札履歴取得エラー:", err);
+      setError("入札履歴を読み込めませんでした");
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading && !initialBids.length) {
     return <BidHistorySkeleton />;
   }
 
-  if (error) {
+  if (error && !bids.length) {
     return <div className="text-destructive">{error}</div>;
   }
 
@@ -72,10 +113,10 @@ function BidHistory({ auctionId, initialBids = [] }: BidHistoryProps) {
             <TableRow key={bid.id}>
               <TableCell className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={bid.user?.avatarUrl || ""} alt={bid.user?.username || "ユーザー"} />
-                  <AvatarFallback>{GetInitialsFromName(bid.user?.username || "U")}</AvatarFallback>
+                  <AvatarImage src={getUserAvatar(bid.user)} alt={getUserName(bid.user)} />
+                  <AvatarFallback>{GetInitialsFromName(getUserName(bid.user))}</AvatarFallback>
                 </Avatar>
-                <span>{bid.user?.username || "不明なユーザー"}</span>
+                <span>{getUserName(bid.user)}</span>
                 {bid.isAutoBid && <span className="text-muted-foreground ml-1 text-xs">(自動入札)</span>}
               </TableCell>
               <TableCell>{formatCurrency(bid.amount)}</TableCell>

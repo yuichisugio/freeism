@@ -6,9 +6,9 @@ import { getAuctionBidHistory } from "@/lib/auction/auction-service";
 /**
  * オークション入札履歴を取得するAPI
  */
-export async function GET(request: NextRequest, { params }: { params: { auctionId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   try {
-    const auctionId = params.auctionId;
+    const { auctionId } = await params;
 
     // 該当するオークションの入札履歴を取得
     const bids = await getAuctionBidHistory(auctionId, 20);

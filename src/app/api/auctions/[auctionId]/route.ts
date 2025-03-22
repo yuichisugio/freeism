@@ -6,12 +6,13 @@ import { getAuctionWithTask } from "@/lib/auction/auction-service";
 /**
  * オークション詳細を取得するAPI
  */
-export async function GET(request: NextRequest, { params }: { params: { auctionId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   try {
+    const { auctionId } = await params;
+
     // セッションからユーザー情報を取得
     const session = await auth();
     const currentUserId = session?.user?.id;
-    const auctionId = params.auctionId;
 
     // オークション情報を取得
     const auction = await getAuctionWithTask(auctionId);

@@ -1,9 +1,14 @@
-import type { AuctionEventData } from "@/lib/auction/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAuctionWithTask } from "@/lib/auction/auction-service";
 import { AuctionEventType } from "@/lib/auction/types";
+
+// イベントデータの型定義
+type AuctionEventData = {
+  type: AuctionEventType;
+  data: Record<string, any>;
+};
 
 // 接続管理
 const connections = new Map<string, Set<ReadableStreamController<Uint8Array>>>();
@@ -11,13 +16,13 @@ const connections = new Map<string, Set<ReadableStreamController<Uint8Array>>>()
 /**
  * SSEエンドポイント
  */
-export async function GET(request: NextRequest, { params }: { params: { auctionId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
+  const { auctionId } = await params;
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
-
-  const auctionId = params.auctionId;
 
   // オークション情報を取得
   const auction = await getAuctionWithTask(auctionId);

@@ -6,14 +6,14 @@ import { isAuctionWatched, toggleWatchlist } from "@/lib/auction/auction-service
 /**
  * ウォッチリストの状態を取得
  */
-export async function GET(request: NextRequest, { params }: { params: { auctionId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
 
   const userId = session.user.id;
-  const auctionId = params.auctionId;
+  const { auctionId } = await params;
 
   try {
     const isWatched = await isAuctionWatched(userId, auctionId);
@@ -27,14 +27,14 @@ export async function GET(request: NextRequest, { params }: { params: { auctionI
 /**
  * ウォッチリストの状態を切り替え
  */
-export async function POST(request: NextRequest, { params }: { params: { auctionId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
 
   const userId = session.user.id;
-  const auctionId = params.auctionId;
+  const { auctionId } = await params;
 
   try {
     const isWatched = await toggleWatchlist(userId, auctionId);

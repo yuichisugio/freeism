@@ -10,40 +10,40 @@ import { sendEventToAuctionSubscribers } from "../events/route";
 
 // 入札データのバリデーションスキーマ
 const bidSchema = z.object({
-  amount: z.number().int().positive(),
+  amount: z.number().positive().int(),
   isAutoBid: z.boolean().optional(),
-  maxAmount: z.number().int().positive().optional(),
+  maxAmount: z.number().positive().int().optional(),
 });
 
 /**
- * 入札APIエンドポイント
+ * 入札処理を行うAPI
  */
-export async function POST(request: NextRequest, { params }: { params: { auctionId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
+  // セッションからユーザー情報を取得
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
 
   try {
+    // リクエストボディを取得
     const body = await request.json();
-    const validationResult = bidSchema.safeParse(body);
+    const { auctionId } = await params;
 
-    if (!validationResult.success) {
-      return NextResponse.json({ error: "入力データが無効です", details: validationResult.error.format() }, { status: 400 });
-    }
-
-    const bidData: BidFormData = {
-      auctionId: params.auctionId,
-      amount: validationResult.data.amount,
-      isAutoBid: validationResult.data.isAutoBid,
-      maxAmount: validationResult.data.maxAmount,
-    };
-
-    const userId = session.user.id;
-    const auctionId = params.auctionId;
+    // バリデーション
+    const validatedData = bidSchema.parse(body);
 
     // 入札処理
-    const result = await placeBid(auctionId, bidData, userId);
+    const result = await placeBid(
+      auctionId,
+      {
+        auctionId,
+        amount: validatedData.amount,
+        isAutoBid: validatedData.isAutoBid || false,
+        maxAmount: validatedData.maxAmount,
+      },
+      session.user.id,
+    );
 
     if (!result.success) {
       return NextResponse.json({ error: result.message }, { status: 400 });
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: { auction
           bid: {
             ...result.bid,
             user: {
-              id: userId,
+              id: session.user.id,
               name: session.user.name || null,
               email: "",
               emailVerified: null,
@@ -73,11 +73,16 @@ export async function POST(request: NextRequest, { params }: { params: { auction
 
     return NextResponse.json({
       success: true,
-      message: result.message,
       bid: result.bid,
+      message: result.message,
     });
   } catch (error) {
-    console.error("入札API処理エラー:", error);
+    console.error("入札エラー:", error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "入力データが不正です", details: error.errors }, { status: 400 });
+    }
+
     return NextResponse.json({ error: "入札処理中にエラーが発生しました" }, { status: 500 });
   }
 }

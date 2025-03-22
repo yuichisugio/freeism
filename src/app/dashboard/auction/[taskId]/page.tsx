@@ -1,14 +1,12 @@
 import React from "react";
 import { type Metadata } from "next";
-import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
 import { type Auction } from "@/types/auction";
 
-// クライアントコンポーネントを動的にインポート
-const AuctionDetailClient = dynamic(() => import("@/components/auction/detail/AuctionDetail"), { ssr: false }) as any; // 型エラーを回避するために一時的にany型で対応
+import ClientComponent from "./client";
 
 // オークション情報を取得する関数
 async function getAuctionWithTask(taskId: string) {
@@ -44,8 +42,8 @@ async function getAuctionWithTask(taskId: string) {
 }
 
 // 動的なメタデータを生成
-export async function generateMetadata({ params }: { params: { taskId: string } }): Promise<Metadata> {
-  const { taskId } = params;
+export async function generateMetadata({ params }: { params: Promise<{ taskId: string }> }): Promise<Metadata> {
+  const { taskId } = await params;
   try {
     const auction = await getAuctionWithTask(taskId);
     if (!auction) return notFound();
@@ -63,8 +61,8 @@ export async function generateMetadata({ params }: { params: { taskId: string } 
   }
 }
 
-export default async function AuctionDetailPage({ params }: { params: { taskId: string } }) {
-  const { taskId } = params;
+export default async function AuctionDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
+  const { taskId } = await params;
   const auctionData = await getAuctionWithTask(taskId);
 
   if (!auctionData) {
@@ -101,7 +99,7 @@ export default async function AuctionDetailPage({ params }: { params: { taskId: 
 
   return (
     <MainTemplate title={auctionData.task.task} description={auctionData.task.detail || ""}>
-      <AuctionDetailClient auction={auction} isOwnAuction={isOwnAuction} />
+      <ClientComponent auction={auction} isOwnAuction={isOwnAuction} />
     </MainTemplate>
   );
 }
