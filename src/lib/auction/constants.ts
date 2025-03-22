@@ -15,12 +15,17 @@ export const AUCTION_END_EXTENSION = {
   MAX_EXTENSION_COUNT: 2,
 };
 
+// カテゴリ
+export const AUCTION_CATEGORIES = ["すべて", "食品", "コード", "本", "etc"];
+
 // 表示関連
 export const DISPLAY = {
   // 入札履歴の表示件数
   BID_HISTORY_LIMIT: 20,
   // 質問と回答の表示件数
   QA_LIMIT: 10,
+  // 表示件数
+  PAGE_SIZE: 50,
 };
 
 // タブの定義

@@ -9,8 +9,10 @@ import AuctionFilters from "@/components/auction/AuctionFilters";
 import CustomPagination from "@/components/ui/CustomPagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from "@/hooks/auction/useDebounce";
+import { DISPLAY } from "@/lib/auction/constants";
 
+// オークション商品一覧
 export default function AuctionListings() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,7 +20,7 @@ export default function AuctionListings() {
 
   // カテゴリと表示件数
   const [categories, setCategories] = useState<string[]>([]);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(DISPLAY.PAGE_SIZE);
 
   // URLからパラメータを取得
   const currentPage = Number(searchParams.get("page") || "1");

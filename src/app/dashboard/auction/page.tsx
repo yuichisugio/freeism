@@ -1,4 +1,3 @@
-import React from "react";
 import { type Metadata } from "next";
 import AuctionListings from "@/components/auction/AuctionListings";
 import { MainTemplate } from "@/components/layout/maintemplate";

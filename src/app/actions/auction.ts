@@ -2,6 +2,7 @@
 
 import { cache } from "react";
 import { auth } from "@/auth";
+import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus, BidStatus } from "@prisma/client";
 
@@ -27,22 +28,14 @@ export type GetAuctionListingsParams = {
   sort?: AuctionSortOption;
 };
 
-// 定数
-const AUCTION_CATEGORIES_VALUES = ["すべて", "食品", "コード", "本", "etc"];
-const AUCTION_PAGE_SIZE_VALUE = 50;
-
 // 定数を取得する関数（"use server"ファイルからエクスポートするため）
 export async function getAuctionCategories() {
-  return AUCTION_CATEGORIES_VALUES;
+  return AUCTION_CATEGORIES;
 }
 
 export async function getAuctionPageSize() {
-  return AUCTION_PAGE_SIZE_VALUE;
+  return DISPLAY.PAGE_SIZE;
 }
-
-// 互換性のためのエイリアス - 非エクスポート変数として使用
-const AUCTION_CATEGORIES = AUCTION_CATEGORIES_VALUES;
-const AUCTION_PAGE_SIZE = AUCTION_PAGE_SIZE_VALUE;
 
 // ユーザーIDを取得
 export async function getCurrentUserId() {
@@ -76,7 +69,7 @@ export const getUserTotalPoints = cache(async () => {
 });
 
 // オークション一覧を取得する関数
-export async function getAuctionListings({ page = 1, pageSize = AUCTION_PAGE_SIZE_VALUE, filters = {}, sort = "newest" }: GetAuctionListingsParams) {
+export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZE, filters = {}, sort = "newest" }: GetAuctionListingsParams) {
   const userId = await getCurrentUserId();
   if (!userId) {
     return {
