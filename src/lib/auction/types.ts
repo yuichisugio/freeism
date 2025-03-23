@@ -6,6 +6,27 @@ export type AuctionDetailProps = {
   isOwnAuction: boolean;
 };
 
+// 入札フォームのprops
+export type BidFormProps = {
+  auction: Auction;
+  onCancelAction: () => void;
+};
+
+// 入札履歴のprops
+export type BidHistoryProps = {
+  auctionId: string;
+  initialBids?: BidHistoryWithUser[];
+};
+
+// カウントダウンタイマーの状
+export type CountdownState = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  isExpired: boolean;
+};
+
 // カテゴリ
 export type Category = {
   id: string;

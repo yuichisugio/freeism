@@ -15,6 +15,9 @@ export const AUCTION_END_EXTENSION = {
   MAX_EXTENSION_COUNT: 2,
 };
 
+// SSEからの更新を確認するためのポーリング間隔を30秒に設定（1秒未満にしない）
+export const POLLING_INTERVAL = 30000; // 30秒
+
 // カテゴリ
 export const AUCTION_CATEGORIES = ["すべて", "食品", "コード", "本", "etc"];
 

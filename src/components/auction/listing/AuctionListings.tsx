@@ -4,8 +4,8 @@ import type { AuctionFilterParams, AuctionSortOption } from "@/app/actions/aucti
 import React, { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAuctionCategories, getAuctionListings, getAuctionPageSize, toggleWatchlist } from "@/app/actions/auction";
-import AuctionCard from "@/components/auction/AuctionCard";
-import AuctionFilters from "@/components/auction/AuctionFilters";
+import AuctionCard from "@/components/auction/listing/AuctionCard";
+import AuctionFilters from "@/components/auction/listing/AuctionFilters";
 import CustomPagination from "@/components/ui/CustomPagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";

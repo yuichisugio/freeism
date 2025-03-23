@@ -14,7 +14,7 @@ import { Clock, Heart } from "lucide-react";
 
 import BidForm from "./BidForm";
 import BidHistory from "./BidHistory";
-import CountdownDisplay from "./CountdownDisplay";
+import { CountdownDisplay } from "./CountdownDisplay";
 
 /**
  * オークション詳細ページ
@@ -100,7 +100,7 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
           {!isOwnAuction && !isAuctionEnded && (
             <>
               {showBidForm ? (
-                <BidForm auction={auction} onCancel={() => setShowBidForm(false)} />
+                <BidForm auction={auction} onCancelAction={() => setShowBidForm(false)} />
               ) : (
                 <Button className="w-full" onClick={() => setShowBidForm(true)}>
                   入札する

@@ -1,5 +1,5 @@
 import { type Metadata } from "next";
-import AuctionListings from "@/components/auction/AuctionListings";
+import AuctionListings from "@/components/auction/listing/AuctionListings";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
 export const metadata: Metadata = {

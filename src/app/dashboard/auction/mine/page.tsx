@@ -1,6 +1,6 @@
 import React from "react";
 import { type Metadata } from "next";
-import AuctionHistory from "@/components/auction/auction-history";
+import AuctionHistory from "@/components/auction/auction-history/auction-history";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
 export const metadata: Metadata = {

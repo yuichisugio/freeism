@@ -5,23 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/useBidActions";
-import { type Auction } from "@/lib/auction/types";
+import { type BidFormProps } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 
-export type BidFormProps = {
-  auction: Auction;
-  onCancel: () => void;
-};
+/**
+ * 入札フォーム
+ * @param auction オークション
+ * @param onCancel キャンセルボタンのクリックハンドラ
+ * @returns 入札フォーム
+ */
+export default function BidForm({ auction, onCancelAction }: BidFormProps) {
+  // 最低入札額は現在価格の1ポイント増し
+  const minBid = auction.currentPrice + 1;
 
-function BidForm({ auction, onCancel }: BidFormProps) {
-  const minBid = Math.ceil(auction.currentPrice * 1.05); // 最低入札額は現在価格の5%増し
+  // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(minBid);
+
+  // 入札フォームのサブミットハンドラ
   const { clientPlaceBid, submitting, error } = useBidActions();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // 入札フォームのサブミットハンドラ
+  async function handleSubmit(e: React.FormEvent) {
+    // フォームのサブミットを防ぐ
     e.preventDefault();
 
+    // オークションIDがない場合は処理を中断
     if (!auction.id) return;
+
+    // 入札額が最低入札額未満の場合は処理を中断
+    if (bidAmount < minBid) return;
 
     try {
       const success = await clientPlaceBid({
@@ -29,12 +41,12 @@ function BidForm({ auction, onCancel }: BidFormProps) {
         amount: bidAmount,
       });
       if (success) {
-        onCancel(); // 入札成功後フォームを閉じる
+        onCancelAction(); // 入札成功後フォームを閉じる
       }
     } catch (err) {
       console.error("入札エラー:", err);
     }
-  };
+  }
 
   return (
     <Card>
@@ -52,7 +64,7 @@ function BidForm({ auction, onCancel }: BidFormProps) {
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={onCancelAction} disabled={submitting}>
             キャンセル
           </Button>
           <Button type="submit" disabled={submitting || bidAmount < minBid}>
@@ -63,5 +75,3 @@ function BidForm({ auction, onCancel }: BidFormProps) {
     </Card>
   );
 }
-
-export default BidForm;

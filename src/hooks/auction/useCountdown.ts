@@ -1,20 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-/**
- * カウントダウンタイマーの状態
- */
-export type CountdownState = {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  isExpired: boolean;
-};
+import { type CountdownState } from "@/lib/auction/types";
 
 /**
  * カウントダウンタイマー用カスタムフック
+ * @param targetDate カウントダウンのターゲット日時
+ * @returns カウントダウンの状態とフォーマットされたカウントダウン
  */
 export function useCountdown(targetDate: Date | string) {
   const calculateTimeLeft = (): CountdownState => {
@@ -95,6 +87,8 @@ export function useCountdown(targetDate: Date | string) {
 
 /**
  * カウントダウンをフォーマットする
+ * @param countdown カウントダウンの状態
+ * @returns フォーマットされたカウントダウン
  */
 export function formatCountdown(countdown: CountdownState): string {
   if (countdown.isExpired) {
