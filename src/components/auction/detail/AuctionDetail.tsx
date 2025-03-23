@@ -24,15 +24,16 @@ import CountdownDisplay from "./CountdownDisplay";
  */
 export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
   const [showBidForm, setShowBidForm] = useState(false);
-  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime));
-  const { submitting, error, toggleWatchlist, getWatchlistStatus } = useBidActions();
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
 
+  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime));
+  const { submitting, toggleWatchlist, getWatchlistStatus } = useBidActions();
+
   // ウォッチリストの状態を取得する処理
   useEffect(() => {
-    const checkWatchlistStatus = async () => {
+    async function checkWatchlistStatus() {
       if (!auction.id) return;
 
       try {
@@ -43,7 +44,7 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
         console.error("ウォッチリストの状態取得エラー:", err);
         setInitialFetchDone(true);
       }
-    };
+    }
 
     if (!initialFetchDone) {
       checkWatchlistStatus();
@@ -51,7 +52,7 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
   }, [auction.id, getWatchlistStatus, initialFetchDone]);
 
   // ウォッチリストボタンのクリックハンドラ
-  const handleWatchlistToggle = async () => {
+  async function handleWatchlistToggle() {
     if (!auction.id) return;
 
     try {
@@ -60,95 +61,107 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
     } catch (err) {
       console.error("ウォッチリスト更新エラー:", err);
     }
-  };
+  }
 
   const isAuctionEnded = countdownState.isExpired;
 
   // オークション詳細タブの内容
-  const renderDetailsTab = () => (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">現在価格</p>
-                <p className="text-2xl font-bold">{formatCurrency(auction.currentPrice)}</p>
+  function renderDetailsTab() {
+    return (
+      <div className="space-y-6">
+        {/* 現在価格、開始価格、入札数を表示するカード */}
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm">現在価格</p>
+                  <p className="text-2xl font-bold">{formatCurrency(auction.currentPrice)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">開始価格</p>
+                  <p>{formatCurrency(auction.startingPrice)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">入札数</p>
+                  <p>{auction.bidCount || 0}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-muted-foreground text-sm">開始価格</p>
-                <p>{formatCurrency(auction.startingPrice)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-sm">入札数</p>
-                <p>{auction.bidCount || 0}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <div className="flex items-center gap-2">
-          <Clock size={18} className="text-muted-foreground" />
-          <CountdownDisplay countdownState={countdownState} formattedCountdown={formatCountdown()} />
+          {/* カウントダウン表示部分 */}
+          <div className="flex items-center gap-2">
+            <Clock size={18} className="text-muted-foreground" />
+            <CountdownDisplay countdownState={countdownState} formattedCountdown={formatCountdown()} />
+          </div>
+
+          {/* 自分の出品していないオークションで、オークションが終了していない場合は入札フォームを表示 */}
+          {!isOwnAuction && !isAuctionEnded && (
+            <>
+              {showBidForm ? (
+                <BidForm auction={auction} onCancel={() => setShowBidForm(false)} />
+              ) : (
+                <Button className="w-full" onClick={() => setShowBidForm(true)}>
+                  入札する
+                </Button>
+              )}
+            </>
+          )}
+
+          {/* オークションが終了している場合は、終了した旨のメッセージを表示 */}
+          {isAuctionEnded && (
+            <div className="bg-muted rounded-md border p-4 text-center">
+              <p className="font-medium">このオークションは終了しました</p>
+            </div>
+          )}
+
+          {/* 自分の出品しているオークションの場合は、自分の出品したオークションですというメッセージを表示 */}
+          {isOwnAuction && (
+            <div className="bg-muted rounded-md border p-4 text-center">
+              <p className="font-medium">自分の出品したオークションです</p>
+            </div>
+          )}
         </div>
 
-        {!isOwnAuction && !isAuctionEnded && (
-          <>
-            {showBidForm ? (
-              <BidForm auction={auction} onCancel={() => setShowBidForm(false)} />
-            ) : (
-              <Button className="w-full" onClick={() => setShowBidForm(true)}>
-                入札する
-              </Button>
-            )}
-          </>
-        )}
-
-        {isAuctionEnded && (
-          <div className="bg-muted rounded-md border p-4 text-center">
-            <p className="font-medium">このオークションは終了しました</p>
-          </div>
-        )}
-
-        {isOwnAuction && (
-          <div className="bg-muted rounded-md border p-4 text-center">
-            <p className="font-medium">自分の出品したオークションです</p>
-          </div>
-        )}
+        {/* 商品説明部分 */}
+        <div>
+          <h2 className="mb-2 text-xl font-semibold">商品説明</h2>
+          <p className="whitespace-pre-line">{auction.description}</p>
+        </div>
       </div>
-
-      <div>
-        <h2 className="mb-2 text-xl font-semibold">商品説明</h2>
-        <p className="whitespace-pre-line">{auction.description}</p>
-      </div>
-    </div>
-  );
+    );
+  }
 
   // 質問と回答タブの内容
-  const renderQaTab = () => (
-    <div className="py-4">
-      <div className="bg-muted rounded-md border p-8 text-center">
-        <p className="text-muted-foreground">現在、質問はありません。</p>
-        <Button className="mt-4" variant="outline">
-          質問する
-        </Button>
+  function renderQaTab() {
+    return (
+      <div className="py-4">
+        <div className="bg-muted rounded-md border p-8 text-center">
+          <p className="text-muted-foreground">現在、質問はありません。</p>
+          <Button className="mt-4" variant="outline">
+            質問する
+          </Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   // 配送・支払いタブの内容
-  const renderShippingTab = () => (
-    <div className="space-y-4 py-4">
-      <div>
-        <h3 className="mb-2 text-lg font-medium">配送方法</h3>
-        <p className="text-muted-foreground">出品者と直接調整してください。詳細は落札後に確認できます。</p>
+  function renderShippingTab() {
+    return (
+      <div className="space-y-4 py-4">
+        <div>
+          <h3 className="mb-2 text-lg font-medium">配送方法</h3>
+          <p className="text-muted-foreground">出品者と直接調整してください。詳細は落札後に確認できます。</p>
+        </div>
+        <div>
+          <h3 className="mb-2 text-lg font-medium">支払い方法</h3>
+          <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.depositPeriod || 60}日後に返還されます。</p>
+        </div>
       </div>
-      <div>
-        <h3 className="mb-2 text-lg font-medium">支払い方法</h3>
-        <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.depositPeriod || 60}日後に返還されます。</p>
-      </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="space-y-6">

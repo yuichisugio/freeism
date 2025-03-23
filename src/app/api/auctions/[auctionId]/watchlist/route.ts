@@ -1,10 +1,13 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { isAuctionWatched, toggleWatchlist } from "@/lib/auction/auction-service";
+import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/auction-service";
 
 /**
  * ウォッチリストの状態を取得
+ * @param request リクエスト
+ * @param params パラメータ
+ * @returns レスポンス
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const session = await auth();
@@ -16,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { auctionId } = await params;
 
   try {
-    const isWatched = await isAuctionWatched(userId, auctionId);
+    const isWatched = await serverIsAuctionWatched(userId, auctionId);
     return NextResponse.json({ isWatched });
   } catch (error) {
     console.error("ウォッチリスト確認エラー:", error);
@@ -26,6 +29,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 /**
  * ウォッチリストの状態を切り替え
+ * @param request リクエスト
+ * @param params パラメータ
+ * @returns レスポンス
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const session = await auth();
@@ -37,7 +43,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { auctionId } = await params;
 
   try {
-    const isWatched = await toggleWatchlist(userId, auctionId);
+    const isWatched = await serverToggleWatchlist(userId, auctionId);
     return NextResponse.json({ isWatched });
   } catch (error) {
     console.error("ウォッチリスト更新エラー:", error);

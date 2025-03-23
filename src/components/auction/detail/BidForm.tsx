@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/useBidActions";
+import { type Auction } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
-import { type Auction } from "@/types/auction";
 
 export type BidFormProps = {
   auction: Auction;
@@ -16,7 +16,7 @@ export type BidFormProps = {
 function BidForm({ auction, onCancel }: BidFormProps) {
   const minBid = Math.ceil(auction.currentPrice * 1.05); // 最低入札額は現在価格の5%増し
   const [bidAmount, setBidAmount] = useState(minBid);
-  const { placeBid, submitting, error } = useBidActions();
+  const { clientPlaceBid, submitting, error } = useBidActions();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ function BidForm({ auction, onCancel }: BidFormProps) {
     if (!auction.id) return;
 
     try {
-      const success = await placeBid({
+      const success = await clientPlaceBid({
         auctionId: auction.id,
         amount: bidAmount,
       });

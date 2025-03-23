@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { type BidFormData, type BidHistoryWithUser } from "@/types/auction";
+import { type BidFormData, type BidHistoryWithUser } from "@/lib/auction/types";
 import { toast } from "sonner";
 
 /**
  * 入札操作用カスタムフック
+ * @returns 入札操作用の関数群
  */
 export function useBidActions() {
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -15,8 +16,10 @@ export function useBidActions() {
 
   /**
    * 入札を実行
+   * @param bidData 入札データ
+   * @returns 入札成功時true, 失敗時false
    */
-  const placeBid = async (bidData: BidFormData) => {
+  async function clientPlaceBid(bidData: BidFormData) {
     setSubmitting(true);
     setError(null);
     setWarningMessage(null);
@@ -60,12 +63,14 @@ export function useBidActions() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
   /**
    * ウォッチリストの切り替え
+   * @param auctionId オークションID
+   * @returns ウォッチリストの状態
    */
-  const toggleWatchlist = async (auctionId: string) => {
+  async function toggleWatchlist(auctionId: string) {
     try {
       const response = await fetch(`/api/auctions/${auctionId}/watchlist`, {
         method: "POST",
@@ -90,12 +95,14 @@ export function useBidActions() {
       toast.error("ウォッチリストの更新中にエラーが発生しました");
       return null;
     }
-  };
+  }
 
   /**
    * ウォッチリストの状態を取得
+   * @param auctionId オークションID
+   * @returns ウォッチリストの状態
    */
-  const getWatchlistStatus = async (auctionId: string) => {
+  async function getWatchlistStatus(auctionId: string) {
     try {
       const response = await fetch(`/api/auctions/${auctionId}/watchlist`);
 
@@ -109,14 +116,14 @@ export function useBidActions() {
       console.error("ウォッチリスト状態取得エラー:", err);
       return false;
     }
-  };
+  }
 
   return {
     submitting,
     error,
     lastBid,
     warningMessage,
-    placeBid,
+    clientPlaceBid,
     toggleWatchlist,
     getWatchlistStatus,
   };

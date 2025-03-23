@@ -1,10 +1,6 @@
 import type { Auction, BidHistory } from "@prisma/client";
-import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { AuctionStatus, BidStatus, Task, User } from "@prisma/client";
 
-import { AUCTION_END_EXTENSION } from "./constants";
 import { type AuctionWithDetails, type BidFormData, type BidHistoryWithUser } from "./types";
 
 /**
@@ -21,11 +17,12 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
           include: {
             group: true,
             creator: true,
+            executors: true,
           },
         },
         currentHighestBidder: true,
         winner: true,
-        bids: {
+        bidHistories: {
           include: {
             user: true,
           },
@@ -49,6 +46,8 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
 
 /**
  * オークションの現在のステータスを取得
+ * @param auction オークション情報
+ * @returns オークションのステータス
  */
 export function getAuctionStatus(auction: Auction | AuctionWithDetails): "upcoming" | "active" | "ended" {
   const now = new Date();
@@ -64,6 +63,10 @@ export function getAuctionStatus(auction: Auction | AuctionWithDetails): "upcomi
 
 /**
  * 入札可能か確認する
+ * @param auction オークション情報
+ * @param userId ユーザーID
+ * @param bidAmount 入札金額
+ * @returns 入札可能かどうか
  */
 export async function canPlaceBid(auction: AuctionWithDetails, userId: string | undefined, bidAmount: number): Promise<{ canBid: boolean; message?: string }> {
   // ユーザーIDが指定されていない場合は入札不可
@@ -97,11 +100,11 @@ export async function canPlaceBid(auction: AuctionWithDetails, userId: string | 
     };
   }
 
-  // ユーザーのポイント残高を確認
+  // ユーザーのポイント残高を確認。ポイントが不足している場合でも入札可能だが、注意メッセージは表示する
   const userPointBalance = await getUserPointBalance(userId, auction.task.groupId);
   if (userPointBalance < bidAmount) {
     return {
-      canBid: false,
+      canBid: true,
       message: `ポイント残高が不足しています（残高: ${userPointBalance}ポイント）`,
     };
   }
@@ -111,6 +114,9 @@ export async function canPlaceBid(auction: AuctionWithDetails, userId: string | 
 
 /**
  * ユーザーのポイント残高を取得
+ * @param userId ユーザーID
+ * @param groupId グループID
+ * @returns ユーザーのポイント残高
  */
 export async function getUserPointBalance(userId: string, groupId: string): Promise<number> {
   const groupPoint = await prisma.groupPoint.findUnique({
@@ -127,8 +133,12 @@ export async function getUserPointBalance(userId: string, groupId: string): Prom
 
 /**
  * 入札を行う
+ * @param auctionId オークションID
+ * @param bidData {auctionId: string, amount: number, isAutoBid?: boolean, maxAmount?: number} 入札データ
+ * @param userId ユーザーID
+ * @returns 入札処理の結果
  */
-export async function placeBid(auctionId: string, bidData: BidFormData, userId: string | undefined): Promise<{ success: boolean; message?: string; bid?: BidHistory }> {
+export async function serverPlaceBid(auctionId: string, bidData: BidFormData, userId: string | undefined): Promise<{ success: boolean; message?: string; bid?: BidHistory }> {
   try {
     // ユーザーIDが指定されていない場合はエラー
     if (!userId) {
@@ -165,6 +175,7 @@ export async function placeBid(auctionId: string, bidData: BidFormData, userId: 
       bids: [],
     };
 
+    // 入札可能か確認
     const canBidResult = await canPlaceBid(auctionWithDetails, userId, bidData.amount);
     if (!canBidResult.canBid) {
       return { success: false, message: canBidResult.message };
@@ -233,10 +244,23 @@ export async function placeBid(auctionId: string, bidData: BidFormData, userId: 
       }
     }
 
+    // メッセージを作成
+    let message = undefined;
+    if (canBidResult.message && bidData.isAutoBid) {
+      message = canBidResult.message + "自動入札を設定しました";
+    } else if (canBidResult.message) {
+      message = canBidResult.message + "入札しました";
+    } else if (bidData.isAutoBid) {
+      message = "自動入札を設定しました";
+    } else {
+      message = "入札しました";
+    }
+
+    // 入札成功時のレスポンス
     return {
       success: true,
       bid: bid as BidHistory,
-      message: bidData.isAutoBid ? "自動入札を設定しました" : undefined,
+      message: message,
     };
   } catch (error) {
     console.error("入札処理エラー:", error);
@@ -246,6 +270,9 @@ export async function placeBid(auctionId: string, bidData: BidFormData, userId: 
 
 /**
  * オークションの入札履歴を取得
+ * @param auctionId オークションID
+ * @param limit 取得する入札履歴の上限数
+ * @returns 入札履歴
  */
 export async function getAuctionBidHistory(auctionId: string, limit = 20): Promise<BidHistoryWithUser[]> {
   const bids = await prisma.bidHistory.findMany({
@@ -286,8 +313,11 @@ export async function getAuctionBidHistory(auctionId: string, limit = 20): Promi
 
 /**
  * ウォッチリストの状態を切り替え
+ * @param userId ユーザーID
+ * @param auctionId オークションID
+ * @returns ウォッチリストの状態
  */
-export async function toggleWatchlist(userId: string | undefined, auctionId: string): Promise<boolean> {
+export async function serverToggleWatchlist(userId: string | undefined, auctionId: string): Promise<boolean> {
   // ユーザーIDが指定されていない場合は何もしない
   if (!userId) {
     return false;
@@ -336,8 +366,11 @@ export async function toggleWatchlist(userId: string | undefined, auctionId: str
 
 /**
  * オークションがウォッチリストに追加されているかを確認
+ * @param userId ユーザーID
+ * @param auctionId オークションID
+ * @returns オークションがウォッチリストに追加されているかどうか
  */
-export async function isAuctionWatched(userId: string | undefined, auctionId: string): Promise<boolean> {
+export async function serverIsAuctionWatched(userId: string | undefined, auctionId: string): Promise<boolean> {
   // ユーザーIDが指定されていない場合は必ずfalse
   if (!userId) {
     return false;
@@ -360,6 +393,8 @@ export async function isAuctionWatched(userId: string | undefined, auctionId: st
 
 /**
  * 出品者の評価スコアを取得
+ * @param userId ユーザーID
+ * @returns 評価スコア
  */
 export async function getSellerRating(userId: string): Promise<number> {
   const reviews = await prisma.auctionReview.findMany({

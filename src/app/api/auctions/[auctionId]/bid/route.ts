@@ -1,21 +1,18 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { placeBid } from "@/lib/auction/auction-service";
+import { serverPlaceBid } from "@/lib/auction/auction-service";
 import { AuctionEventType } from "@/lib/auction/types";
+import { bidSchema } from "@/lib/auction/zod-schema";
 import { z } from "zod";
 
-import { sendEventToAuctionSubscribers } from "../events/route";
-
-// 入札データのバリデーションスキーマ
-const bidSchema = z.object({
-  amount: z.number().positive().int(),
-  isAutoBid: z.boolean().optional(),
-  maxAmount: z.number().positive().int().optional(),
-});
+import { sendEventToAuctionSubscribers } from "../sse-server-sent-events/route";
 
 /**
  * 入札処理を行うAPI
+ * @param request リクエスト
+ * @param params パラメータ
+ * @returns 入札処理の結果
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   // セッションからユーザー情報を取得
@@ -27,16 +24,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     // リクエストボディを取得
     const body = await request.json();
+    // パラメータを取得
     const { auctionId } = await params;
 
     // バリデーション
     const validatedData = bidSchema.parse(body);
 
     // 入札処理
-    const result = await placeBid(
+    const result = await serverPlaceBid(
       auctionId,
       {
-        auctionId,
+        auctionId: auctionId,
         amount: validatedData.amount,
         isAutoBid: validatedData.isAutoBid || false,
         maxAmount: validatedData.maxAmount,
@@ -78,6 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   } catch (error) {
     console.error("入札エラー:", error);
 
+    // バリデーションエラー
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "入力データが不正です", details: error.errors }, { status: 400 });
     }

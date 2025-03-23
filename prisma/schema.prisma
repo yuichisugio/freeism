@@ -319,11 +319,11 @@ model Auction {
   version              Int          @default(1) // 楽観的ロック用
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
-  
+
   task                 Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
   currentHighestBidder User?        @relation("HighestBidder", fields: [currentHighestBidderId], references: [id], onDelete: SetNull)
   winner               User?        @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
-  bids                 BidHistory[]
+  bidHistories         BidHistory[]
   watchlists           TaskWatchList[]
   reviews              AuctionReview[]
   notifications        AuctionNotification[]

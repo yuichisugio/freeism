@@ -15,6 +15,10 @@ const connections = new Map<string, Set<ReadableStreamController<Uint8Array>>>()
 
 /**
  * SSEエンドポイント
+ * オークションの初期データと、新しい入札が発生した場合のイベントを送信
+ * @param request リクエスト
+ * @param params パラメータ
+ * @returns レスポンス
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const { auctionId } = await params;
@@ -86,15 +90,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 /**
  * 特定のオークションの全接続に対してイベントを送信
+ * @param auctionId オークションID
+ * @param eventData イベントデータ
  */
 export async function sendEventToAuctionSubscribers(auctionId: string, eventData: AuctionEventData) {
+  // エンコーダーを作成
   const encoder = new TextEncoder();
+  // メッセージを作成
   const message = `event: message\ndata: ${JSON.stringify(eventData)}\n\n`;
+  // connectionsに保存しているauctionIdキーを指定して、そのauctionIdを受信しているユーザーのcontroller一覧を取得
   const controllers = connections.get(auctionId);
 
+  // コントローラーが存在し、かつサイズが0より大きい場合は、コントローラーを繰り返し処理
   if (controllers && controllers.size > 0) {
     for (const controller of controllers) {
       try {
+        // エンコーダーを使用してメッセージをエンコードして、enqueueメソッドに渡して送信
         controller.enqueue(encoder.encode(message));
       } catch (e) {
         console.error("SSEメッセージ送信中にエラーが発生しました:", e);
