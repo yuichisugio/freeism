@@ -22,7 +22,7 @@ export const POLLING_INTERVAL = 30000;
 export const MAX_RETRIES = 5;
 
 // オークション画像のデフォルトURL
-export const DEFAULT_AUCTION_IMAGE_URL = "https://placekitten.com/600/600";
+export const DEFAULT_AUCTION_IMAGE_URL = "/images/default-auction.svg";
 
 // カテゴリ
 export const AUCTION_CATEGORIES = ["すべて", "食品", "コード", "本", "etc"];

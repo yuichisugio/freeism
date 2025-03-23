@@ -121,14 +121,14 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
         };
         break;
       case "not_bidded":
-        where.bids = {
+        where.bidHistories = {
           none: {
             userId,
           },
         };
         break;
       case "bidded":
-        where.bids = {
+        where.bidHistories = {
           some: {
             userId,
           },
@@ -215,7 +215,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
       orderBy = { currentHighestBid: "desc" };
       break;
     case "bids":
-      orderBy = { bids: { _count: "desc" } };
+      orderBy = { bidHistories: { _count: "desc" } };
       break;
     default:
       orderBy = { createdAt: "desc" };
@@ -253,7 +253,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
           },
         },
       },
-      bids: {
+      bidHistories: {
         orderBy: {
           amount: "desc",
         },
@@ -265,7 +265,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
         },
       },
       _count: {
-        select: { bids: true },
+        select: { bidHistories: true },
       },
     },
   });
@@ -318,7 +318,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
       startTime: auction.startTime,
       status: auction.status,
       isWatched: auction.watchlists.length > 0,
-      bidsCount: auction._count.bids,
+      bidsCount: auction._count.bidHistories,
       seller: {
         id: auction.task.creator.id,
         name: auction.task.creator.name,

@@ -30,7 +30,9 @@ export function useAuctionEvent(auctionId: string, initialAuction?: AuctionWithD
 
     const connect = () => {
       try {
-        const eventSource = new EventSource(`/api/auctions/${auctionId}/events`);
+        const eventSource = new EventSource(`/api/auctions/${auctionId}/sse-server-sent-events`, {
+          withCredentials: true, // 認証情報を含める
+        });
         eventSourceRef.current = eventSource;
 
         eventSource.onmessage = (event) => {
@@ -93,25 +95,36 @@ export function useAuctionEvent(auctionId: string, initialAuction?: AuctionWithD
         };
 
         eventSource.onerror = (err) => {
-          console.error("SSE接続エラー:", err);
-          eventSource.close();
-          eventSourceRef.current = null;
+          // エラーの詳細をログに出力
+          console.error("SSE接続エラー: 再接続を試みます", { readyState: eventSource.readyState });
 
-          // エラー状態を設定
-          setError("リアルタイム更新の接続が切断されました");
+          // 接続が閉じられた場合のみクローズ処理を行う
+          if (eventSource.readyState === EventSource.CLOSED) {
+            eventSource.close();
+            eventSourceRef.current = null;
 
-          // 接続再試行
-          if (retryCountRef.current < MAX_RETRIES) {
-            const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
-            retryCountRef.current++;
+            // エラー状態を設定
+            setError("リアルタイム更新の接続が切断されました。再接続しています...");
 
-            setTimeout(() => {
-              if (!eventSourceRef.current) {
-                connect();
-              }
-            }, retryDelay);
-          } else {
-            setError("リアルタイム更新を利用できません。ページを再読み込みしてください。");
+            // 接続再試行
+            if (retryCountRef.current < MAX_RETRIES) {
+              // 指数バックオフ + ランダム要素を加えたジッターで再接続
+              const baseDelay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
+              const jitter = Math.random() * 1000; // 0-1000msのランダム値
+              const retryDelay = baseDelay + jitter;
+
+              retryCountRef.current++;
+              console.log(`SSE再接続を${retryDelay}ms後に試みます (${retryCountRef.current}/${MAX_RETRIES}回目)`);
+
+              setTimeout(() => {
+                if (!eventSourceRef.current) {
+                  connect();
+                }
+              }, retryDelay);
+            } else {
+              // 最大リトライ回数を超えた場合
+              setError("リアルタイム更新を利用できません。ページを再読み込みしてください。");
+            }
           }
         };
       } catch (err) {

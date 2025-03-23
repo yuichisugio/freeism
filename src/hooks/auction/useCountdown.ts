@@ -45,12 +45,6 @@ export function useCountdown(targetDate: Date | string) {
   const [timeLeft, setTimeLeft] = useState<CountdownState>(calculateTimeLeft());
 
   useEffect(() => {
-    // 初期値設定
-    setTimeLeft(calculateTimeLeft());
-
-    // タイマーがすでに終了している場合は何もしない
-    if (timeLeft.isExpired) return;
-
     // 1秒ごとに更新
     const timerId = setInterval(() => {
       const newTimeLeft = calculateTimeLeft();

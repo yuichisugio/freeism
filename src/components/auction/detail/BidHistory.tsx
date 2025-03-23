@@ -55,7 +55,9 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
         }
 
         // SSE接続を確立
-        eventSource = new EventSource(`/api/auctions/${auctionId}/sse-server-sent-events`);
+        eventSource = new EventSource(`/api/auctions/${auctionId}/sse-server-sent-events`, {
+          withCredentials: true, // 認証情報を含める
+        });
 
         // 接続開始時のイベントハンドラ
         eventSource.onopen = () => {
@@ -101,8 +103,9 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
         });
 
         // エラー発生時のイベントハンドラ
-        eventSource.addEventListener("error", (event) => {
-          console.error("SSE接続エラー:", event);
+        eventSource.onerror = (event) => {
+          // エラーの詳細をログに出力
+          console.error("SSE接続エラー:", { readyState: eventSource?.readyState });
 
           if (eventSource) {
             eventSource.close();
@@ -112,7 +115,11 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
           // 接続が切断された場合は、再接続を試みる
           if (retryCount < maxRetries) {
             retryCount++;
-            const timeout = retryTimeout * Math.pow(2, retryCount - 1); // 指数バックオフ
+            // 指数バックオフ + ランダム要素を加えたジッターで再接続
+            const baseDelay = retryTimeout * Math.pow(2, retryCount - 1);
+            const jitter = Math.random() * 1000; // 0-1000msのランダム値
+            const timeout = baseDelay + jitter;
+
             console.log(`${timeout}ms後に再接続を試みます (${retryCount}/${maxRetries})`);
 
             setTimeout(() => {
@@ -121,7 +128,7 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
           } else {
             setError("サーバーとの接続が切断されました。ページを更新してください。");
           }
-        });
+        };
       } catch (err) {
         console.error("SSE接続エラー:", err);
         setError("入札履歴の更新接続に失敗しました");

@@ -3,7 +3,6 @@
 import type { Auction, AuctionDetailProps } from "@/lib/auction/types";
 import dynamic from "next/dynamic";
 import { useAuctionEvent } from "@/hooks/auction/useAuctionEvent";
-import { AuctionWithDetails } from "@/lib/auction/types";
 
 /**
  * オークション詳細ページのクライアントコンポーネント
