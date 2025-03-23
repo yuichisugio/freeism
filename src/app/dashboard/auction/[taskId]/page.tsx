@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { getAuctionWithTask } from "@/lib/auction/auction-service";
+import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
 import { type Auction } from "@/lib/auction/types";
 
 import AuctionDetailWrapper from "./client";
@@ -57,10 +58,9 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
     id: auctionData.id,
     title: auctionData.task.task,
     description: auctionData.task.detail || "",
-    imageUrl: auctionData.task.imageUrl || "/images/placeholder.jpg",
-    startingPrice: auctionData.task.fixedContributionPoint || 0,
+    imageUrl: auctionData.task.imageUrl || DEFAULT_AUCTION_IMAGE_URL,
+    startingPrice: 0,
     currentPrice: auctionData.currentHighestBid,
-    bidCount: auctionData.bids.length,
     startTime: auctionData.startTime.toISOString(),
     endTime: auctionData.endTime.toISOString(),
     sellerId: auctionData.task.creatorId,

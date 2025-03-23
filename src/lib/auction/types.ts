@@ -1,9 +1,18 @@
 import { type AuctionReview, type Task } from "@prisma/client";
 
+// カウントダウン表示のprops
+export type CountdownDisplayProps = {
+  countdownState: CountdownState;
+  countdownAction: () => string;
+};
+
 // オークション詳細ページのprops
 export type AuctionDetailProps = {
   auction: Auction;
+  bidHistory?: BidHistoryWithUser[];
   isOwnAuction: boolean;
+  isLoading?: boolean;
+  error?: string | null;
 };
 
 // 入札フォームのprops

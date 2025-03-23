@@ -2,10 +2,14 @@
 
 import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/types";
 import { useEffect, useRef, useState } from "react";
+import { MAX_RETRIES } from "@/lib/auction/constants";
 import { AuctionEventType } from "@/lib/auction/types";
 
 /**
  * オークションSSEを購読するカスタムフック
+ * @param auctionId オークションID
+ * @param initialAuction 初期オークションデータ
+ * @returns オークション情報、入札履歴、ローディング状態、エラー、終了時間延長状態
  */
 export function useAuctionEvent(auctionId: string, initialAuction?: AuctionWithDetails) {
   const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
@@ -15,7 +19,6 @@ export function useAuctionEvent(auctionId: string, initialAuction?: AuctionWithD
   const [endTimeExtended, setEndTimeExtended] = useState<boolean>(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const retryCountRef = useRef<number>(0);
-  const maxRetries = 5;
 
   useEffect(() => {
     // 初期データがあればそれを使用
@@ -98,7 +101,7 @@ export function useAuctionEvent(auctionId: string, initialAuction?: AuctionWithD
           setError("リアルタイム更新の接続が切断されました");
 
           // 接続再試行
-          if (retryCountRef.current < maxRetries) {
+          if (retryCountRef.current < MAX_RETRIES) {
             const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
             retryCountRef.current++;
 

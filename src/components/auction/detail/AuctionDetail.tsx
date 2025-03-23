@@ -8,7 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
-import { type AuctionDetailProps } from "@/lib/auction/types";
+import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
+import { type AuctionDetailProps, type BidHistoryWithUser } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Clock, Heart } from "lucide-react";
 
@@ -19,16 +20,19 @@ import { CountdownDisplay } from "./CountdownDisplay";
 /**
  * オークション詳細ページ
  * @param auction オークション情報
+ * @param bidHistory 入札履歴
  * @param isOwnAuction 自分の出品したオークションかどうか
+ * @param isLoading ローディング状態
+ * @param error エラーメッセージ
  * @returns オークション詳細ページ
  */
-export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailProps) {
+export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, isLoading, error }: AuctionDetailProps) {
   const [showBidForm, setShowBidForm] = useState(false);
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
 
-  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime));
+  const { countdownState, countdown } = useCountdown(new Date(auction.endTime));
   const { submitting, toggleWatchlist, getWatchlistStatus } = useBidActions();
 
   // ウォッチリストの状態を取得する処理
@@ -84,7 +88,7 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm">入札数</p>
-                  <p>{auction.bidCount || 0}</p>
+                  <p>{bidHistory.length || auction.bidCount || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -93,7 +97,7 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
           {/* カウントダウン表示部分 */}
           <div className="flex items-center gap-2">
             <Clock size={18} className="text-muted-foreground" />
-            <CountdownDisplay countdownState={countdownState} formattedCountdown={formatCountdown()} />
+            <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
           </div>
 
           {/* 自分の出品していないオークションで、オークションが終了していない場合は入札フォームを表示 */}
@@ -163,19 +167,29 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
     );
   }
 
+  // ローディング状態の表示
+  if (isLoading) {
+    return <div className="p-8 text-center">オークション情報を読み込み中...</div>;
+  }
+
+  // エラー状態の表示
+  if (error) {
+    return <div className="text-destructive p-8 text-center">{error}</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 左側: オークション画像 */}
         <div className="relative aspect-square overflow-hidden rounded-lg">
-          <Image src={auction.imageUrl || "/images/placeholder.jpg"} alt={auction.title} fill className="object-cover" priority />
+          <Image src={auction?.imageUrl || DEFAULT_AUCTION_IMAGE_URL} alt={auction?.title || "オークション画像"} fill className="object-cover" priority />
         </div>
 
         {/* 右側: オークション情報ヘッダー部分 */}
         <div className="space-y-6">
           <div>
             <div className="flex items-start justify-between">
-              <h1 className="text-2xl font-bold">{auction.title}</h1>
+              <h1 className="text-2xl font-bold">{auction?.title || "オークションタイトル"}</h1>
               <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || isOwnAuction} className={isWatchlisted ? "text-red-500" : ""}>
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
               </Button>
@@ -185,7 +199,7 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
 
           <div className="flex items-center space-x-2">
             <Badge variant={isAuctionEnded ? "destructive" : "secondary"}>{isAuctionEnded ? "終了" : "出品中"}</Badge>
-            {auction.categories?.map((category) => (
+            {auction.categories?.map((category: { id: string; name: string }) => (
               <Badge key={category.id} variant="outline">
                 {category.name}
               </Badge>
@@ -208,7 +222,8 @@ export default function AuctionDetail({ auction, isOwnAuction }: AuctionDetailPr
         </TabsContent>
 
         <TabsContent value="bid-history" className="mt-0">
-          {auction.id && <BidHistory auctionId={auction.id} />}
+          {/* SSEで取得した入札履歴を渡す */}
+          {auction.id && <BidHistory auctionId={auction.id} initialBids={bidHistory} />}
         </TabsContent>
 
         <TabsContent value="qa" className="mt-0">

@@ -16,7 +16,13 @@ export const AUCTION_END_EXTENSION = {
 };
 
 // SSEからの更新を確認するためのポーリング間隔を30秒に設定（1秒未満にしない）
-export const POLLING_INTERVAL = 30000; // 30秒
+export const POLLING_INTERVAL = 30000;
+
+// オークションSSEの最大リトライ回数
+export const MAX_RETRIES = 5;
+
+// オークション画像のデフォルトURL
+export const DEFAULT_AUCTION_IMAGE_URL = "https://placekitten.com/600/600";
 
 // カテゴリ
 export const AUCTION_CATEGORIES = ["すべて", "食品", "コード", "本", "etc"];

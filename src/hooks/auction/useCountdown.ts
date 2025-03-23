@@ -9,12 +9,18 @@ import { type CountdownState } from "@/lib/auction/types";
  * @returns カウントダウンの状態とフォーマットされたカウントダウン
  */
 export function useCountdown(targetDate: Date | string) {
-  const calculateTimeLeft = (): CountdownState => {
+  /**
+   * カウントダウンの状態を計算する関数
+   * @returns カウントダウンの状態
+   */
+  function calculateTimeLeft(): CountdownState {
     const now = new Date();
     const target = typeof targetDate === "string" ? new Date(targetDate) : targetDate;
 
+    // ターゲット日時と現在の日時の差を計算
     const difference = target.getTime() - now.getTime();
 
+    // タイマーが終了している場合
     if (difference <= 0) {
       return {
         days: 0,
@@ -25,6 +31,7 @@ export function useCountdown(targetDate: Date | string) {
       };
     }
 
+    // 残り時間を計算
     return {
       days: Math.floor(difference / (1000 * 60 * 60 * 24)),
       hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
@@ -32,8 +39,9 @@ export function useCountdown(targetDate: Date | string) {
       seconds: Math.floor((difference / 1000) % 60),
       isExpired: false,
     };
-  };
+  }
 
+  // カウントダウンの状態を管理するuseState
   const [timeLeft, setTimeLeft] = useState<CountdownState>(calculateTimeLeft());
 
   useEffect(() => {
@@ -58,8 +66,11 @@ export function useCountdown(targetDate: Date | string) {
     return () => clearInterval(timerId);
   }, [targetDate]);
 
-  // カウントダウンをフォーマットする関数
-  const formatCountdown = () => {
+  /**
+   * カウントダウンをフォーマットする関数
+   * @returns フォーマットされたカウントダウン
+   */
+  function formatCountdown(): string {
     if (timeLeft.isExpired) {
       return "終了";
     }
@@ -77,35 +88,10 @@ export function useCountdown(targetDate: Date | string) {
     }
 
     return `${timeLeft.seconds}秒`;
-  };
+  }
 
   return {
     countdownState: timeLeft,
-    formatCountdown,
+    countdown: formatCountdown,
   };
-}
-
-/**
- * カウントダウンをフォーマットする
- * @param countdown カウントダウンの状態
- * @returns フォーマットされたカウントダウン
- */
-export function formatCountdown(countdown: CountdownState): string {
-  if (countdown.isExpired) {
-    return "終了";
-  }
-
-  if (countdown.days > 0) {
-    return `${countdown.days}日 ${countdown.hours}時間`;
-  }
-
-  if (countdown.hours > 0) {
-    return `${countdown.hours}時間 ${countdown.minutes}分`;
-  }
-
-  if (countdown.minutes > 0) {
-    return `${countdown.minutes}分 ${countdown.seconds}秒`;
-  }
-
-  return `${countdown.seconds}秒`;
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { POLLING_INTERVAL } from "@/lib/auction/constants";
 import { type BidHistoryProps, type BidHistoryWithUser } from "@/lib/auction/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
 import { GetInitialsFromName } from "@/lib/utils";
@@ -20,7 +19,6 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
   const [bids, setBids] = useState<BidHistoryWithUser[]>(initialBids);
   const [isLoading, setIsLoading] = useState(!initialBids.length);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now());
 
   // ユーザー名を安全に取得するヘルパー関数
   function getUserName(user: any): string {
@@ -34,56 +32,114 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
     return user.avatarUrl || user.image || "";
   }
 
-  // 入札履歴を取得する関数
-  async function fetchBidHistory() {
-    try {
-      const response = await fetch(`/api/auctions/${auctionId}/bids`, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("入札履歴の取得に失敗しました");
-      }
-
-      const data = await response.json();
-
-      // 新しいデータがある場合のみ更新
-      if (data.bids && data.bids.length > bids.length) {
-        setBids(data.bids);
-      }
-
-      setIsLoading(false);
-      setLastFetchTime(Date.now());
-    } catch (err) {
-      console.error("入札履歴取得エラー:", err);
-      setError("入札履歴を読み込めませんでした");
-      setIsLoading(false);
-    }
-  }
-
-  // 初回と定期的な更新のための入札データ取得
   useEffect(() => {
     // 初期データがあれば、それを使用
-    if (initialBids.length > 0 && bids.length === initialBids.length) {
+    if (initialBids.length > 0) {
       setBids(initialBids);
       setIsLoading(false);
-      setLastFetchTime(Date.now());
     }
 
-    // 最初のデータ取得
-    if (!initialBids.length) {
-      fetchBidHistory();
+    // SSE接続を設定
+    let eventSource: EventSource | null = null;
+    let retryCount = 0;
+    const maxRetries = 5;
+    const retryTimeout = 3000; // 3秒後に再接続
+
+    function setupEventSource() {
+      if (!auctionId) return;
+
+      try {
+        // 既存の接続をクローズ
+        if (eventSource) {
+          eventSource.close();
+        }
+
+        // SSE接続を確立
+        eventSource = new EventSource(`/api/auctions/${auctionId}/sse-server-sent-events`);
+
+        // 接続開始時のイベントハンドラ
+        eventSource.onopen = () => {
+          console.log("SSE接続が確立されました");
+          retryCount = 0; // 接続成功したらリトライカウントをリセット
+        };
+
+        // 初期データ受信時のイベントハンドラ
+        eventSource.addEventListener("initial", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.bids && Array.isArray(data.bids)) {
+              setBids(data.bids);
+              setIsLoading(false);
+            }
+          } catch (err) {
+            console.error("初期データの解析エラー:", err);
+          }
+        });
+
+        // 新しい入札受信時のイベントハンドラ
+        eventSource.addEventListener("new_bid", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.bid) {
+              setBids((prev) => [data.bid, ...prev]);
+            }
+          } catch (err) {
+            console.error("新規入札データの解析エラー:", err);
+          }
+        });
+
+        // オークション更新時のイベントハンドラ
+        eventSource.addEventListener("auction_update", (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.bids && Array.isArray(data.bids)) {
+              setBids(data.bids);
+            }
+          } catch (err) {
+            console.error("オークション更新データの解析エラー:", err);
+          }
+        });
+
+        // エラー発生時のイベントハンドラ
+        eventSource.addEventListener("error", (event) => {
+          console.error("SSE接続エラー:", event);
+
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+
+          // 接続が切断された場合は、再接続を試みる
+          if (retryCount < maxRetries) {
+            retryCount++;
+            const timeout = retryTimeout * Math.pow(2, retryCount - 1); // 指数バックオフ
+            console.log(`${timeout}ms後に再接続を試みます (${retryCount}/${maxRetries})`);
+
+            setTimeout(() => {
+              setupEventSource();
+            }, timeout);
+          } else {
+            setError("サーバーとの接続が切断されました。ページを更新してください。");
+          }
+        });
+      } catch (err) {
+        console.error("SSE接続エラー:", err);
+        setError("入札履歴の更新接続に失敗しました");
+        setIsLoading(false);
+      }
     }
 
-    // 定期的な更新（30秒ごと）
-    const intervalId = setInterval(() => {
-      fetchBidHistory();
-    }, POLLING_INTERVAL);
+    // SSE接続を開始
+    setupEventSource();
 
-    return () => clearInterval(intervalId);
+    // クリーンアップ関数
+    return () => {
+      if (eventSource) {
+        console.log("SSE接続を終了します");
+        eventSource.close();
+        eventSource = null;
+      }
+    };
   }, [auctionId, initialBids]);
 
   // ローディング中の場合

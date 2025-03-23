@@ -9,9 +9,13 @@ import { toast } from "sonner";
  * @returns 入札操作用の関数群
  */
 export function useBidActions() {
+  // 入札中フラグ
   const [submitting, setSubmitting] = useState<boolean>(false);
+  // エラーメッセージ
   const [error, setError] = useState<string | null>(null);
+  // 最後の入札データ
   const [lastBid, setLastBid] = useState<BidHistoryWithUser | null>(null);
+  // 警告メッセージ
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   /**
@@ -72,20 +76,25 @@ export function useBidActions() {
    */
   async function toggleWatchlist(auctionId: string) {
     try {
+      // ウォッチリストの切り替え
       const response = await fetch(`/api/auctions/${auctionId}/watchlist`, {
         method: "POST",
       });
 
+      // レスポンスデータ
       const data = await response.json();
 
+      // レスポンスが成功しない場合
       if (!response.ok) {
         toast.error(data.error || "ウォッチリストの更新に失敗しました");
         return null;
       }
 
+      // ウォッチリストに追加した場合
       if (data.isWatched) {
         toast.success("ウォッチリストに追加しました");
       } else {
+        // ウォッチリストから削除した場合
         toast.success("ウォッチリストから削除しました");
       }
 
@@ -104,13 +113,18 @@ export function useBidActions() {
    */
   async function getWatchlistStatus(auctionId: string) {
     try {
+      // ウォッチリストの状態を取得
       const response = await fetch(`/api/auctions/${auctionId}/watchlist`);
 
+      // レスポンスが成功しない場合
       if (!response.ok) {
         return false;
       }
 
+      // レスポンスデータ
       const data = await response.json();
+
+      // ウォッチリストの状態を返す
       return data.isWatched;
     } catch (err) {
       console.error("ウォッチリスト状態取得エラー:", err);
