@@ -25,6 +25,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // 認証チェック
   const session = await auth();
+
+  // ログインしていない場合は401エラーを返す
   if (!session?.user?.id) {
     console.error("SSE接続認証エラー: ユーザーセッションが存在しません");
     return new Response(
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     // オークション情報を取得
     const auction = await getAuctionWithTask(auctionId);
+
+    // オークションが存在しない場合は404エラーを返す
     if (!auction) {
       console.error(`SSE接続エラー: オークションID ${auctionId} が見つかりません`);
       return new Response(
@@ -64,6 +68,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // ストリームとエンコーダーの設定
     const encoder = new TextEncoder();
+
+    // ストリームの設定
     const stream = new ReadableStream({
       start: async (controller) => {
         // コネクションの初期化
