@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterParams, AuctionSortOption } from "@/app/actions/auction";
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAuctionCategories, getAuctionListings, getAuctionPageSize, toggleWatchlist } from "@/app/actions/auction";
 import AuctionCard from "@/components/auction/listing/AuctionCard";
@@ -64,7 +64,7 @@ export default function AuctionListings() {
   }, []);
 
   // データ取得関数
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     const result = await getAuctionListings({
       page,
       pageSize,
@@ -76,10 +76,10 @@ export default function AuctionListings() {
     setTotalCount(result.totalCount);
     setTotalPages(result.totalPages);
     setUserPoints(result.userTotalPoints);
-  };
+  }, [page, pageSize, filters, sortOption]);
 
   // URLパラメータを更新する関数
-  const updateUrlParams = () => {
+  const updateUrlParams = useCallback(() => {
     const params = new URLSearchParams();
     if (page > 1) params.set("page", String(page));
     if (filters.category && filters.category !== "すべて") params.set("category", filters.category);
@@ -89,7 +89,7 @@ export default function AuctionListings() {
 
     const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
     router.push(newUrl);
-  };
+  }, [page, filters, sortOption, router]);
 
   // URL変更と同時にデータ取得
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function AuctionListings() {
       updateUrlParams();
       fetchListings();
     });
-  }, [page, filters, sortOption]);
+  }, [updateUrlParams, fetchListings]);
 
   // 検索クエリ変更時
   useEffect(() => {
@@ -105,7 +105,7 @@ export default function AuctionListings() {
       setFilters((prev) => ({ ...prev, searchQuery: debouncedSearchQuery }));
       setPage(1); // 検索時は1ページ目に戻す
     }
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, filters.searchQuery]);
 
   // ページ変更ハンドラ
   const handlePageChange = (newPage: number) => {

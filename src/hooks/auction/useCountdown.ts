@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { type CountdownState } from "@/lib/auction/types";
 
 /**
@@ -13,7 +13,7 @@ export function useCountdown(targetDate: Date | string) {
    * カウントダウンの状態を計算する関数
    * @returns カウントダウンの状態
    */
-  function calculateTimeLeft(): CountdownState {
+  const calculateTimeLeft = useCallback((): CountdownState => {
     const now = new Date();
     const target = typeof targetDate === "string" ? new Date(targetDate) : targetDate;
 
@@ -39,7 +39,7 @@ export function useCountdown(targetDate: Date | string) {
       seconds: Math.floor((difference / 1000) % 60),
       isExpired: false,
     };
-  }
+  }, [targetDate]);
 
   // カウントダウンの状態を管理するuseState
   const [timeLeft, setTimeLeft] = useState<CountdownState>(calculateTimeLeft());
@@ -58,7 +58,7 @@ export function useCountdown(targetDate: Date | string) {
 
     // クリーンアップ
     return () => clearInterval(timerId);
-  }, [targetDate]);
+  }, [targetDate, calculateTimeLeft]);
 
   /**
    * カウントダウンをフォーマットする関数

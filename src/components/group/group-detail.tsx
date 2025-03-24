@@ -60,6 +60,7 @@ type Task = {
       id: string;
       userId: string;
     }[];
+    depositPeriod?: number;
   };
   detail: string | null;
 };
@@ -621,6 +622,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                 goal: tasks[0].group.goal,
                 evaluationMethod: tasks[0].group.evaluationMethod,
                 maxParticipants: tasks[0].group.maxParticipants,
+                depositPeriod: tasks[0].group.depositPeriod || 0,
               }}
               onCloseAction={() => setEditDialogOpen(false)}
             />
