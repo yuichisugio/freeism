@@ -17,7 +17,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // オークション情報
   const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
   // 入札履歴
-  const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>((initialAuction?.bids as BidHistoryWithUser[]) || []);
+  const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>(initialAuction?.bidHistories || []);
   // ローディング状態
   const [loading, setLoading] = useState<boolean>(true);
   // エラー
@@ -57,6 +57,83 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // オプション
   const { reconnectOnVisibility = true, bufferEvents = true } = initialAuction.options || {};
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // イベントデータを処理する関数
+  const processEventData = useCallback((eventData: AuctionEventData) => {
+    // イベントタイプごとの処理
+    switch (eventData.type) {
+      case AuctionEventType.INITIAL:
+        if (eventData.data.auction) {
+          setAuction(eventData.data.auction);
+          setBidHistory(eventData.data.auction.bidHistories as BidHistoryWithUser[]);
+        }
+        setLoading(false);
+        retryCountRef.current = 0; // 成功したらリトライカウンタをリセット
+        break;
+
+      case AuctionEventType.NEW_BID:
+        if (eventData.data.bid) {
+          // 既存の入札履歴の先頭に追加
+          setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
+
+          // オークション情報も更新
+          if (eventData.data.auction) {
+            setAuction(eventData.data.auction);
+          }
+        }
+        break;
+
+      case AuctionEventType.AUCTION_EXTENSION:
+        if (eventData.data.auction) {
+          setAuction(eventData.data.auction);
+          setEndTimeExtended(true);
+          // 3秒後に通知を非表示
+          setTimeout(() => setEndTimeExtended(false), 3000);
+        }
+        break;
+
+      case AuctionEventType.AUCTION_ENDED:
+        if (eventData.data.auction) {
+          setAuction(eventData.data.auction);
+        }
+        break;
+
+      case AuctionEventType.AUCTION_UPDATE:
+        if (eventData.data.auction) {
+          setAuction(eventData.data.auction);
+        }
+        break;
+
+      case AuctionEventType.ERROR:
+        if (eventData.data.error) {
+          setError(eventData.data.error);
+        }
+        break;
+    }
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // イベントをバッファリングする関数
+  const processEvent = useCallback(
+    (event: EventHistoryItem) => {
+      if (bufferEvents) {
+        // バッファリングモードの場合、バッファに追加
+        eventBufferRef.current.push(event);
+      } else {
+        // 即時処理モード（ConnectionEstablishedイベント以外を処理）
+        if (event.type !== ExtendedEventType.CONNECTION_ESTABLISHED) {
+          processEventData({
+            type: event.type as AuctionEventType,
+            data: event.data,
+          });
+        }
+      }
+    },
+    [bufferEvents, processEventData],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -366,86 +443,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       setError("リアルタイム更新を開始できませんでした");
       setLoading(false);
     }
-  }, [auctionId, clientId, lastEventId, error]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // イベントデータを処理する関数
-  const processEventData = useCallback((eventData: AuctionEventData) => {
-    // イベントタイプごとの処理
-    switch (eventData.type) {
-      case AuctionEventType.INITIAL:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-          setBidHistory(eventData.data.auction.bids as BidHistoryWithUser[]);
-        }
-        setLoading(false);
-        retryCountRef.current = 0; // 成功したらリトライカウンタをリセット
-        break;
-
-      case AuctionEventType.NEW_BID:
-        if (eventData.data.bid) {
-          // 既存の入札履歴の先頭に追加
-          setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
-
-          // オークション情報も更新
-          if (eventData.data.auction) {
-            setAuction(eventData.data.auction);
-          }
-        }
-        break;
-
-      case AuctionEventType.AUCTION_EXTENSION:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-          setEndTimeExtended(true);
-          // 3秒後に通知を非表示
-          setTimeout(() => setEndTimeExtended(false), 3000);
-        }
-        break;
-
-      case AuctionEventType.AUCTION_ENDED:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-        }
-        break;
-
-      case AuctionEventType.AUCTION_UPDATE:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-        }
-        break;
-
-      case AuctionEventType.ERROR:
-        if (eventData.data.error) {
-          setError(eventData.data.error);
-        }
-        break;
-    }
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // イベントをバッファリングする関数
-  const processEvent = useCallback(
-    (event: EventHistoryItem) => {
-      if (bufferEvents) {
-        // バッファリングモードの場合、バッファに追加
-        eventBufferRef.current.push(event);
-      } else {
-        // 即時処理モード（ConnectionEstablishedイベント以外を処理）
-        if (event.type !== ExtendedEventType.CONNECTION_ESTABLISHED) {
-          processEventData({
-            type: event.type as AuctionEventType,
-            data: event.data,
-          });
-        }
-      }
-    },
-    [bufferEvents, processEventData],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  }, [auctionId, clientId, lastEventId, error, processEventData, processEvent]);
 
   // バッファ処理のインターバル設定
   useEffect(() => {
@@ -489,7 +487,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     // 初期データがあればそれを使用
     if (initialAuction) {
       setAuction(initialAuction);
-      setBidHistory((initialAuction.bids as BidHistoryWithUser[]) || []);
+      setBidHistory((initialAuction.bidHistories as BidHistoryWithUser[]) || []);
     }
 
     // 接続を確立

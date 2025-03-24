@@ -15,7 +15,6 @@ export function convertAuctionToAuctionType(auctionData: AuctionWithDetails): Cu
     title: auctionData.task.task,
     description: auctionData.task.detail || "",
     imageUrl: auctionData.task.imageUrl || DEFAULT_AUCTION_IMAGE_URL,
-    startingPrice: auctionData.startingPrice,
     currentPrice: auctionData.currentHighestBid,
     startTime: auctionData.startTime.toISOString(),
     endTime: auctionData.endTime.toISOString(),
@@ -27,7 +26,7 @@ export function convertAuctionToAuctionType(auctionData: AuctionWithDetails): Cu
       createdAt: auctionData.task.creator.createdAt.toISOString(),
       avatarUrl: auctionData.task.creator.image || undefined,
     },
-    bidCount: auctionData.bids?.length || 0,
+    bidCount: auctionData.bidHistories?.length || 0,
     categories: [],
     watchCount: 0,
     depositPeriod: 7, // デフォルトの預かり期間を7日に設定
@@ -40,7 +39,6 @@ export function convertAuctionToAuctionType(auctionData: AuctionWithDetails): Cu
  * @returns オークション情報
  */
 export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDetails | null> {
-  console.log("getAuctionWithTask", taskId);
   try {
     const auction = await prisma.auction.findUnique({
       where: { taskId },
@@ -65,8 +63,6 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
         },
       },
     });
-
-    console.log("auction", auction);
 
     if (!auction) return null;
 
@@ -201,13 +197,12 @@ export async function serverPlaceBid(auctionId: string, bidData: BidFormData, us
       ...auction,
       title: "",
       description: "",
-      startingPrice: 0,
       currentPrice: 0,
       sellerId: auction.task.creatorId,
       currentHighestBidder: null,
       winner: null,
       depositPeriod: auction.task.group.depositPeriod,
-      bids: [],
+      bidHistories: [],
       options: {
         reconnectOnVisibility: true,
         bufferEvents: true,

@@ -26,6 +26,7 @@ import { CountdownDisplay } from "./CountdownDisplay";
  * @returns オークション詳細ページ
  */
 export default function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
+  console.log("initialAuction", initialAuction);
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札フォームの表示状態
@@ -56,6 +57,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
   // カウントダウンの状態
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
+  // オークションが終了しているかどうか
   const isAuctionEnded = countdownState.isExpired;
 
   // 入札アクション
@@ -109,15 +111,11 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm">現在価格</p>
-                  <p className="text-2xl font-bold">{formatCurrency(auction.currentPrice)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">開始価格</p>
-                  <p>{formatCurrency(auction.startingPrice)}</p>
+                  <p className="text-2xl font-bold">{formatCurrency(auction.currentHighestBid)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm">入札数</p>
-                  <p>{bidHistory.length || 0}</p>
+                  <p>{auction.bidHistories.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -139,8 +137,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
                       id: auction.id,
                       title: auction.title,
                       description: auction.description,
-                      startingPrice: auction.startingPrice,
-                      currentPrice: auction.currentPrice,
+                      currentPrice: auction.currentHighestBid,
                       startTime: auction.startTime.toString(),
                       endTime: auction.endTime.toString(),
                       sellerId: auction.sellerId,
@@ -232,7 +229,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 左側: オークション画像 */}
-        <div className="relative aspect-square overflow-hidden rounded-lg">
+        <div className="relative h-[150px] rounded-lg">
           <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title || "オークション画像"} fill className="object-cover" priority />
         </div>
 

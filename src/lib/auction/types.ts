@@ -120,7 +120,6 @@ export type Auction = {
   title: string;
   description: string;
   imageUrl?: string;
-  startingPrice: number;
   currentPrice: number;
   bidCount?: number;
   startTime: string; // ISO日付文字列
@@ -143,12 +142,12 @@ export type AuctionWithDetails = {
   endTime: Date;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
+  bidHistories: BidHistory[];
   winnerId: string | null;
   extensionCount: number;
   version: number;
   title: string;
   description: string;
-  startingPrice: number;
   currentPrice: number;
   sellerId: string;
   task: Task & {
@@ -158,7 +157,6 @@ export type AuctionWithDetails = {
   depositPeriod: number;
   currentHighestBidder: User | null;
   winner: User | null;
-  bids: Array<BidHistory & { user: any }>;
   options: {
     reconnectOnVisibility?: boolean; // ページが表示されたときに再接続
     bufferEvents?: boolean; // イベントをバッファリング

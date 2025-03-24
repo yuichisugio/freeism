@@ -4,6 +4,7 @@
  * @returns フォーマットされた金額文字列
  */
 export function formatCurrency(amount: number): string {
+  console.log("formatCurrency", amount);
   return new Intl.NumberFormat("ja-JP", {
     style: "currency",
     currency: "JPY",

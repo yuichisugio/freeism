@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getAuctionWithTask } from "@/lib/auction/auction-service";
 import { AuctionEventType } from "@/lib/auction/types";
 
 // 設定パラメータ
@@ -257,23 +256,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // 接続成功メッセージを送信
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "connection_established", clientId })}\n\n`));
-
-        // オークション情報を取得
-        if (lastEventId === 0) {
-          const auction = await getAuctionWithTask(auctionId);
-          if (auction) {
-            controller.enqueue(
-              encoder.encode(
-                connectionManager.formatEventMessage({
-                  id: 0,
-                  type: AuctionEventType.INITIAL,
-                  data: { auction },
-                  timestamp: Date.now(),
-                }),
-              ),
-            );
-          }
-        }
 
         // 最後のイベントID以降のイベントを送信（再接続時）
         if (lastEventId > 0) {
