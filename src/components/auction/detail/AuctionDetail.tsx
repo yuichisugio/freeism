@@ -271,7 +271,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
         <TabsContent value="bid-history" className="mt-0">
           {/* SSEで取得した入札履歴を渡す */}
-          {auction.id && <BidHistory auctionId={auction.id} initialBids={bidHistory} />}
+          {<BidHistory initialBids={bidHistory} />}
         </TabsContent>
 
         <TabsContent value="qa" className="mt-0">

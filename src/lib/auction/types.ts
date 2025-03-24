@@ -30,8 +30,7 @@ export type BidFormProps = {
 
 // 入札履歴のprops
 export type BidHistoryProps = {
-  auctionId: string;
-  initialBids?: BidHistoryWithUser[];
+  initialBids: BidHistoryWithUser[];
 };
 
 // カウントダウンタイマーの状

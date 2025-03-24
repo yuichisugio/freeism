@@ -1,25 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { type BidHistoryProps, type BidHistoryWithUser } from "@/lib/auction/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
-import { GetInitialsFromName } from "@/lib/utils";
-
-import { BidHistorySkeleton } from "../skeleton/bid-history";
 
 /**
  * 入札履歴
- * @param auctionId オークションID
  * @param initialBids 初期の入札履歴
  * @returns 入札履歴
  */
-export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryProps) {
+export default function BidHistory({ initialBids = [] }: BidHistoryProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const [bids, setBids] = useState<BidHistoryWithUser[]>(initialBids);
-  const [isLoading, setIsLoading] = useState(!initialBids.length);
-  const [error, setError] = useState<string | null>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザー名を安全に取得するヘルパー関数
   function getUserName(user: any): string {
@@ -27,23 +22,7 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
     return user.username || user.name || "不明なユーザー";
   }
 
-  // ユーザーアバターを安全に取得するヘルパー関数
-  function getUserAvatar(user: any): string {
-    if (!user) return "";
-    return user.avatarUrl || user.image || "";
-  }
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ローディング中の場合
-  if (isLoading && !initialBids.length) {
-    return <BidHistorySkeleton />;
-  }
-
-  // エラーがある場合
-  if (error && !bids.length) {
-    return <div className="text-destructive">{error}</div>;
-  }
 
   // 入札履歴がない場合
   if (bids.length === 0) {
