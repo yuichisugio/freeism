@@ -1,7 +1,7 @@
 import type { Auction, BidHistory } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-import { type AuctionWithDetails, type BidFormData, type BidHistoryWithUser } from "./types";
+import type { AuctionWithDetails, BidFormData, BidHistoryWithUser } from "./types";
 
 /**
  * タスクIDに関連するオークション情報を取得
@@ -9,6 +9,7 @@ import { type AuctionWithDetails, type BidFormData, type BidHistoryWithUser } fr
  * @returns オークション情報
  */
 export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDetails | null> {
+  console.log("getAuctionWithTask", taskId);
   try {
     const auction = await prisma.auction.findUnique({
       where: { taskId },
@@ -33,6 +34,8 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
         },
       },
     });
+
+    console.log("auction", auction);
 
     if (!auction) return null;
 

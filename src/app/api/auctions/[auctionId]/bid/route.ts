@@ -48,21 +48,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // 入札成功時に接続中のクライアントに通知
     if (result.bid) {
-      await sendEventToAuctionSubscribers(auctionId, {
-        type: AuctionEventType.NEW_BID,
-        data: {
-          bid: {
-            ...result.bid,
-            user: {
-              id: session.user.id,
-              name: session.user.name || null,
-              email: "",
-              emailVerified: null,
-              image: session.user.image || null,
-              isAppOwner: false,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
+      await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, {
+        bid: {
+          ...result.bid,
+          user: {
+            id: session.user.id,
+            name: session.user.name || null,
+            email: "",
+            emailVerified: null,
+            image: session.user.image || null,
+            isAppOwner: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
         },
       });

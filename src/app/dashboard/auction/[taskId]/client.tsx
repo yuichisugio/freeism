@@ -12,7 +12,7 @@ import { useAuctionEvent } from "@/hooks/auction/useAuctionEvent";
  */
 export default function AuctionDetailWrapper({ auction, isOwnAuction }: { auction: Auction; isOwnAuction: boolean }) {
   // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
-  const { auction: liveAuction, bidHistory, loading, error } = useAuctionEvent(auction.id, auction as any);
+  const { auction: liveAuction, bidHistory, loading, error } = useAuctionEvent(auction as any);
 
   // クライアントコンポーネントでdynamicインポートを行う
   const AuctionDetailClient = dynamic(() => import("@/components/auction/detail/AuctionDetail"), { ssr: false });

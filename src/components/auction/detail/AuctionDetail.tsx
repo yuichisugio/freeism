@@ -27,12 +27,18 @@ import { CountdownDisplay } from "./CountdownDisplay";
  * @returns オークション詳細ページ
  */
 export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, isLoading, error }: AuctionDetailProps) {
+  // 入札フォームの表示状態
   const [showBidForm, setShowBidForm] = useState(false);
+  // ウォッチリストの状態
   const [isWatchlisted, setIsWatchlisted] = useState(false);
+  // 初期フェッチの完了状態
   const [initialFetchDone, setInitialFetchDone] = useState(false);
+  // アクティブタブ
   const [activeTab, setActiveTab] = useState("details");
 
+  // カウントダウンの状態
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime));
+  // 入札アクション
   const { submitting, toggleWatchlist, getWatchlistStatus } = useBidActions();
 
   // ウォッチリストの状態を取得する処理

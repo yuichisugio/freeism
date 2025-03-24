@@ -16,32 +16,32 @@ generator client {
 }
 
 model User {
-  id            String            @id @default(cuid())
-  name          String?
-  email         String            @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  isAppOwner    Boolean           @default(false) @map("is_app_owner")
-  accounts      Account[]
-  sessions      Session[]
-  settings      UserSettings?
-  groups        Group[]
-  memberships   GroupMembership[]
-  taskCreator   Task[]            @relation("TaskCreator")
-  userFixedSubmitter Task[]            @relation("UserFixedSubmitter")
-  notifications Notification[]
-  analytics     Analytics[]
-  taskReporter  TaskReporter[]
-  taskExecutor  TaskExecutor[]
-  watchLists        TaskWatchList[]
-  groupPoints       GroupPoint[]
-  bids              BidHistory[]
-  highestBids       Auction[]     @relation("HighestBidder")
-  wonAuctions       Auction[]     @relation("AuctionWinner")
-  autoBids          AutoBid[]
+  id                   String                @id @default(cuid())
+  name                 String?
+  email                String                @unique
+  emailVerified        DateTime?             @map("email_verified")
+  image                String?
+  isAppOwner           Boolean               @default(false) @map("is_app_owner")
+  accounts             Account[]
+  sessions             Session[]
+  settings             UserSettings?
+  groups               Group[]
+  memberships          GroupMembership[]
+  taskCreator          Task[]                @relation("TaskCreator")
+  userFixedSubmitter   Task[]                @relation("UserFixedSubmitter")
+  notifications        Notification[]
+  analytics            Analytics[]
+  taskReporter         TaskReporter[]
+  taskExecutor         TaskExecutor[]
+  watchLists           TaskWatchList[]
+  groupPoints          GroupPoint[]
+  bids                 BidHistory[]
+  highestBids          Auction[]             @relation("HighestBidder")
+  wonAuctions          Auction[]             @relation("AuctionWinner")
+  autoBids             AutoBid[]
   auctionNotifications AuctionNotification[]
-  reviewsGiven      AuctionReview[] @relation("ReviewerUser")
-  reviewsReceived   AuctionReview[] @relation("RevieweeUser")
+  reviewsGiven         AuctionReview[]       @relation("ReviewerUser")
+  reviewsReceived      AuctionReview[]       @relation("RevieweeUser")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -53,12 +53,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text @map("refresh_token")
-  access_token      String? @db.Text @map("access_token")
+  refresh_token     String? @map("refresh_token") @db.Text
+  access_token      String? @map("access_token") @db.Text
   expires_at        Int?    @map("expires_at")
   token_type        String? @map("token_type")
   scope             String?
-  id_token          String? @db.Text @map("id_token")
+  id_token          String? @map("id_token") @db.Text
   session_state     String? @map("session_state")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -92,7 +92,7 @@ model UserSettings {
   id        String   @id @default(cuid())
   userId    String   @unique @map("user_id")
   username  String
-  lifeGoal  String   @db.Text @map("life_goal")
+  lifeGoal  String   @map("life_goal") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -108,7 +108,7 @@ model Group {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   createdBy        String            @map("created_by")
-  isBlackList      Json?             @db.JsonB @map("is_black_list") // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
+  isBlackList      Json?             @map("is_black_list") @db.JsonB // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
   user             User              @relation(fields: [createdBy], references: [id])
   members          GroupMembership[]
   tasks            Task[]
@@ -134,28 +134,28 @@ model GroupMembership {
 }
 
 model Task {
-  id                     String         @id @default(cuid())
+  id                     String           @id @default(cuid())
   task                   String // タスクのタイトル
   detail                 String? // タスクの詳細
   reference              String? // 参考にした内容
-  status                 TaskStatus     @default(PENDING)
-  fixedContributionPoint Int?           @map("fixed_contribution_point")
-  fixedEvaluator         String?        @map("fixed_evaluator")
-  fixedEvaluationLogic   String?        @map("fixed_evaluation_logic")
-  fixedEvaluationDate    DateTime?      @map("fixed_evaluation_date")
-  userFixedSubmitter     User?          @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade) // 固定評価者
-  userFixedSubmitterId   String?        @map("user_fixed_submitter_id")
-  info                   String?       // 証拠・結果・補足情報
-  imageUrl               String?        @map("image_url") // 報酬画像のURL
+  status                 TaskStatus       @default(PENDING)
+  fixedContributionPoint Int?             @map("fixed_contribution_point")
+  fixedEvaluator         String?          @map("fixed_evaluator")
+  fixedEvaluationLogic   String?          @map("fixed_evaluation_logic")
+  fixedEvaluationDate    DateTime?        @map("fixed_evaluation_date")
+  userFixedSubmitter     User?            @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade) // 固定評価者
+  userFixedSubmitterId   String?          @map("user_fixed_submitter_id")
+  info                   String? // 証拠・結果・補足情報
+  imageUrl               String?          @map("image_url") // 報酬画像のURL
   contributionType       contributionType @default(NON_REWARD) @map("contribution_type") // "REWARD" or "NON_REWARD"
-  deliveryMethod         String?       @map("delivery_method") // 提供方法
-  createdAt              DateTime       @default(now()) @map("created_at")
-  updatedAt              DateTime       @updatedAt @map("updated_at")
-  creator                User           @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  creatorId              String         @map("creator_id")
+  deliveryMethod         String?          @map("delivery_method") // 提供方法
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId              String           @map("creator_id")
   reporters              TaskReporter[]
   executors              TaskExecutor[]
-  group                  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId                String
   analytics              Analytics[]
   notifications          Notification[]
@@ -244,14 +244,14 @@ model Notification {
 
 // 新しく追加: タスク報告者モデル
 model TaskReporter {
-  id        String    @id @default(cuid())
-  name      String?   // 未登録ユーザーの場合は名前のみ
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?   @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
-  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId    String    @map("task_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  name      String? // 未登録ユーザーの場合は名前のみ
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?  @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String   @map("task_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([taskId])
@@ -259,14 +259,14 @@ model TaskReporter {
 
 // 新しく追加: タスク実行者モデル
 model TaskExecutor {
-  id        String    @id @default(cuid())
-  name      String?   // 未登録ユーザーの場合は名前のみ
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?   @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
-  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId    String    @map("task_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  name      String? // 未登録ユーザーの場合は名前のみ
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?  @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String   @map("task_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([taskId])
@@ -278,7 +278,7 @@ model TaskWatchList {
   userId    String   @map("user_id")
   auctionId String   @map("auction_id")
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
@@ -296,7 +296,7 @@ model GroupPoint {
   fixedTotalPoints Int      @default(0) @map("fixed_total_points") // 保有ポイント
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
-  
+
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
@@ -307,22 +307,22 @@ model GroupPoint {
 
 // オークション関連テーブル
 model Auction {
-  id                   String       @id @default(cuid())
-  taskId               String       @unique @map("task_id")
-  startTime            DateTime     @map("start_time")
-  endTime              DateTime     @map("end_time")
-  currentHighestBid    Int          @default(0) @map("current_highest_bid") // 現在の最高入札額
-  currentHighestBidderId String?    @map("current_highest_bidder_id")
-  winnerId             String?      @map("winner_id")
-  status               AuctionStatus @default(PENDING)
-  extensionCount       Int          @default(0) @map("extension_count") // 延長回数
-  version              Int          @default(1) // 楽観的ロック用
-  createdAt            DateTime     @default(now()) @map("created_at")
-  updatedAt            DateTime     @updatedAt @map("updated_at")
+  id                     String        @id @default(cuid())
+  taskId                 String        @unique @map("task_id")
+  startTime              DateTime      @map("start_time")
+  endTime                DateTime      @map("end_time")
+  currentHighestBid      Int           @default(0) @map("current_highest_bid") // 現在の最高入札額
+  currentHighestBidderId String?       @map("current_highest_bidder_id")
+  winnerId               String?       @map("winner_id")
+  status                 AuctionStatus @default(PENDING)
+  extensionCount         Int           @default(0) @map("extension_count") // 延長回数
+  version                Int           @default(1) // 楽観的ロック用
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
 
-  task                 Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  currentHighestBidder User?        @relation("HighestBidder", fields: [currentHighestBidderId], references: [id], onDelete: SetNull)
-  winner               User?        @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  task                 Task                  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  currentHighestBidder User?                 @relation("HighestBidder", fields: [currentHighestBidderId], references: [id], onDelete: SetNull)
+  winner               User?                 @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
   bidHistories         BidHistory[]
   watchlists           TaskWatchList[]
   reviews              AuctionReview[]
@@ -335,21 +335,21 @@ model Auction {
 }
 
 enum AuctionStatus {
-  PENDING   // オークション開始前
-  ACTIVE    // オークション進行中
-  ENDED     // オークション終了
-  CANCELED  // オークションキャンセル
+  PENDING // オークション開始前
+  ACTIVE // オークション進行中
+  ENDED // オークション終了
+  CANCELED // オークションキャンセル
 }
 
 model BidHistory {
-  id        String   @id @default(cuid())
-  auctionId String   @map("auction_id")
-  userId    String   @map("user_id")
-  amount    Int      // 入札額
-  isAutoBid Boolean  @default(false) @map("is_auto_bid")
+  id        String    @id @default(cuid())
+  auctionId String    @map("auction_id")
+  userId    String    @map("user_id")
+  amount    Int // 入札額
+  isAutoBid Boolean   @default(false) @map("is_auto_bid")
   status    BidStatus @default(BIDDING)
-  createdAt DateTime @default(now()) @map("created_at")
-  
+  createdAt DateTime  @default(now()) @map("created_at")
+
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -358,23 +358,23 @@ model BidHistory {
 }
 
 enum BidStatus {
-  BIDDING      // 入札中
-  WON          // 落札済み
-  LOST         // 落札失敗
+  BIDDING // 入札中
+  WON // 落札済み
+  LOST // 落札失敗
   INSUFFICIENT // 残高不足
 }
 
 model AutoBid {
-  id            String   @id @default(cuid())
-  userId        String   @map("user_id")
-  auctionId     String   @map("auction_id")
-  maxBidAmount  Int      @map("max_bid_amount") // 最大入札額
-  bidIncrement  Int      @default(1) @map("bid_increment") // 入札単位
-  lastBidTime   DateTime? @map("last_bid_time") // 最後の入札時間
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  auctionId    String    @map("auction_id")
+  maxBidAmount Int       @map("max_bid_amount") // 最大入札額
+  bidIncrement Int       @default(1) @map("bid_increment") // 入札単位
+  lastBidTime  DateTime? @map("last_bid_time") // 最後の入札時間
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
@@ -384,16 +384,16 @@ model AutoBid {
 }
 
 model AuctionNotification {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  auctionId   String   @map("auction_id")
-  title       String
-  message     String   @db.Text
-  type        AuctionNotificationType
-  isRead      Boolean  @default(false) @map("is_read")
-  createdAt   DateTime @default(now()) @map("created_at")
-  expiresAt   DateTime @map("expires_at")
-  
+  id        String                  @id @default(cuid())
+  userId    String                  @map("user_id")
+  auctionId String                  @map("auction_id")
+  title     String
+  message   String                  @db.Text
+  type      AuctionNotificationType
+  isRead    Boolean                 @default(false) @map("is_read")
+  createdAt DateTime                @default(now()) @map("created_at")
+  expiresAt DateTime                @map("expires_at")
+
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
@@ -402,14 +402,14 @@ model AuctionNotification {
 }
 
 enum AuctionNotificationType {
-  BID_PLACED        // 自分の出品に入札があった
-  OUTBID            // 自分の入札が他者に上回られた
+  BID_PLACED // 自分の出品に入札があった
+  OUTBID // 自分の入札が他者に上回られた
   QUESTION_RECEIVED // 質問を受け取った
-  MAX_BID_REACHED   // 設定した最大入札額に達した
-  AUCTION_ENDED     // オークション終了
-  WON_AUCTION       // オークション落札
-  LOST_AUCTION      // オークション落札失敗
-  POINT_RETURNED    // ポイント返還
+  MAX_BID_REACHED // 設定した最大入札額に達した
+  AUCTION_ENDED // オークション終了
+  WON_AUCTION // オークション落札
+  LOST_AUCTION // オークション落札失敗
+  POINT_RETURNED // ポイント返還
 }
 
 model AuctionReview {
@@ -417,12 +417,12 @@ model AuctionReview {
   auctionId          String   @map("auction_id")
   reviewerId         String   @map("reviewer_id") // 評価者
   revieweeId         String   @map("reviewee_id") // 評価される人
-  rating             Int      // 星評価(1-5)
+  rating             Int // 星評価(1-5)
   comment            String?  @db.Text
   completionProofUrl String?  @map("completion_proof_url") // 完了証明の添付URL
   isSellerReview     Boolean  @map("is_seller_review") // 出品者による評価か買い手による評価か
   createdAt          DateTime @default(now()) @map("created_at")
-  
+
   auction  Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   reviewer User    @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
   reviewee User    @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)

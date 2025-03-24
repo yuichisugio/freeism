@@ -42,8 +42,6 @@ export async function getUnreadNotificationsCount() {
 
     const userId = session.user.id;
 
-    console.log("userId", userId);
-
     // アクセス可能なグループIDを取得
     const userGroupList = await prisma.groupMembership.findMany({
       where: { userId },
@@ -51,14 +49,10 @@ export async function getUnreadNotificationsCount() {
     });
     const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
 
-    console.log("groupIds", groupIds);
-
     // 空のグループリストの場合の処理
     if (groupIds.length === 0) {
       groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
     }
-
-    console.log("groupIds", groupIds);
 
     // PostgreSQLのJSONB演算子を使用した効率的なクエリ
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
