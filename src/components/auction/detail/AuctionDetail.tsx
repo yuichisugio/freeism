@@ -167,12 +167,6 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
             </div>
           )}
         </div>
-
-        {/* 商品説明部分 */}
-        <div>
-          <h2 className="mb-2 text-xl font-semibold">商品説明</h2>
-          <p className="whitespace-pre-line">{auction.description || ""}</p>
-        </div>
       </div>
     );
   }
