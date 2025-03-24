@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
 import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
-import { type AuctionDetailProps, type BidHistoryWithUser } from "@/lib/auction/types";
+import { type AuctionDetailProps } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Clock, Heart } from "lucide-react";
 

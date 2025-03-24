@@ -39,58 +39,6 @@ type ExportType = "TASK" | "ANALYTICS" | "";
 // エクスポートの目的
 type ExportPurpose = "ANALYSIS" | "VIEWING" | "";
 
-// 分析データのレスポンス型
-// @ts-ignore - Will be used in future implementations
-type AnalyticsResponse =
-  | {
-      data: Record<
-        string,
-        Array<{
-          分析ID: string;
-          タスクID: string;
-          貢献ポイント: number;
-          評価ロジック: string;
-          評価者ID: string;
-          評価者名: string;
-          タスク内容: string;
-          参照情報: string;
-          証拠情報: string;
-          ステータス: string;
-          貢献タイプ: string;
-          タスク作成者: string;
-          グループ目標: string;
-          評価方法: string;
-          作成日: string;
-          [key: string]: any; // その他のプロパティも許容
-        }>
-      >;
-      totalPages: number;
-      currentPage: number;
-    }
-  | { error: string };
-
-// 分析データの型
-// @ts-ignore - Will be used in future implementations
-type AnalyticsData = {
-  [evaluatorName: string]: Array<{
-    分析ID: string;
-    タスクID: string;
-    貢献ポイント: number;
-    評価ロジック: string;
-    評価者ID: string;
-    評価者名: string;
-    タスク内容: string;
-    参照情報: string;
-    証拠情報: string;
-    ステータス: string;
-    貢献タイプ: string;
-    タスク作成者: string;
-    グループ目標: string;
-    評価方法: string;
-    作成日: string;
-  }>;
-};
-
 // モーダルのプロパティ
 type ExportDataModalProps = {
   isOpen: boolean;

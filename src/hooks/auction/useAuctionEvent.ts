@@ -94,7 +94,7 @@ export function useAuctionEvent(auctionId: string, initialAuction?: AuctionWithD
           }
         };
 
-        eventSource.onerror = (err) => {
+        eventSource.onerror = () => {
           // エラーの詳細をログに出力
           console.error("SSE接続エラー: 再接続を試みます", { readyState: eventSource.readyState });
 

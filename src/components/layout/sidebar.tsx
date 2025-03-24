@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Bell, History, Home, Menu, PlusCircle, Settings, ShoppingCart, Tag, UserCircle, X } from "lucide-react";
+import { Bell, History, Home, Menu, PlusCircle, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const sidebarItems = [

@@ -4,7 +4,7 @@ import { cache } from "react";
 import { auth } from "@/auth";
 import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
 import { prisma } from "@/lib/prisma";
-import { AuctionStatus, BidStatus } from "@prisma/client";
+import { AuctionStatus } from "@prisma/client";
 
 // フィルタリングパラメータの型定義
 export type AuctionFilterParams = {

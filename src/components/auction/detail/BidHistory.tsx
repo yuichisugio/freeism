@@ -103,7 +103,7 @@ export default function BidHistory({ auctionId, initialBids = [] }: BidHistoryPr
         });
 
         // エラー発生時のイベントハンドラ
-        eventSource.onerror = (event) => {
+        eventSource.onerror = () => {
           // エラーの詳細をログに出力
           console.error("SSE接続エラー:", { readyState: eventSource?.readyState });
 
