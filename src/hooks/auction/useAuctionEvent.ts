@@ -1,7 +1,6 @@
 "use client";
 
-import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/types";
-import type { ConnectionStatus, EventHistoryItem } from "@/lib/auction/types";
+import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser, ConnectionStatus, EventHistoryItem } from "@/lib/auction/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BUFFER_INTERVAL, CONNECTION_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_TIMEOUT, MAX_RETRIES, RETRY_DELAYS } from "@/lib/auction/constants";
 import { AuctionEventType, ExtendedEventType } from "@/lib/auction/types";
@@ -13,27 +12,43 @@ import { AuctionEventType, ExtendedEventType } from "@/lib/auction/types";
  * @returns オークション情報、入札履歴、接続状態、ユーティリティ関数
  */
 export function useAuctionEvent(initialAuction: AuctionWithDetails) {
-  // 状態管理
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // オークション情報
   const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
+  // 入札履歴
   const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>((initialAuction?.bids as BidHistoryWithUser[]) || []);
+  // ローディング状態
   const [loading, setLoading] = useState<boolean>(true);
+  // エラー
   const [error, setError] = useState<string | null>(initialAuction ? null : "オークションデータが見つかりません");
+  // オークション延長通知
   const [endTimeExtended, setEndTimeExtended] = useState<boolean>(false);
+  // 接続状態
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(initialAuction ? "初期化中" : "エラー");
+  // イベントID
   const [lastEventId, setLastEventId] = useState<number>(0);
+  // クライアントID
   const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // refs
+  // イベントソース
   const eventSourceRef = useRef<EventSource | null>(null);
+  // リトライ回数
   const retryCountRef = useRef<number>(0);
+  // 最後のハートビート時間
   const lastHeartbeatRef = useRef<number>(Date.now());
+  // ハートビートタイムアウト
   const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 接続関数
   const connectRef = useRef<(() => void) | undefined>();
+  // 接続タイムアウト
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const eventBufferRef = useRef<EventHistoryItem[]>([]);
+  // バッチ処理するインターバル時間を管理するref
   const bufferIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // バッチ処理するために、Eventを貯めているState
+  const eventBufferRef = useRef<EventHistoryItem[]>([]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -47,9 +62,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ハートビートチェック関数
   const checkHeartbeat = useCallback(() => {
+    // 現在時刻
     const now = Date.now();
+    // 最後のハートビート時間からの経過時間
     const timeSinceLastHeartbeat = now - lastHeartbeatRef.current;
 
+    // ハートビートタイムアウトの場合
     if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT) {
       console.warn(`SSEハートビート失敗: 最後の応答から${timeSinceLastHeartbeat}ms経過`);
 
