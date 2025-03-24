@@ -1,7 +1,38 @@
 import type { Auction, BidHistory } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-import type { AuctionWithDetails, BidFormData, BidHistoryWithUser } from "./types";
+import type { AuctionWithDetails, BidFormData, BidHistoryWithUser, Auction as CustomAuction } from "./types";
+import { DEFAULT_AUCTION_IMAGE_URL } from "./constants";
+
+/**
+ * Prismaモデルから@/types/auctionで定義されたAuction型に変換
+ * @param auctionData Prismaモデルのオークションデータ
+ * @returns @/types/auctionで定義されたAuction型のオークションデータ
+ */
+export function convertAuctionToAuctionType(auctionData: AuctionWithDetails): CustomAuction {
+  return {
+    id: auctionData.id,
+    title: auctionData.task.task,
+    description: auctionData.task.detail || "",
+    imageUrl: auctionData.task.imageUrl || DEFAULT_AUCTION_IMAGE_URL,
+    startingPrice: auctionData.startingPrice,
+    currentPrice: auctionData.currentHighestBid,
+    startTime: auctionData.startTime.toISOString(),
+    endTime: auctionData.endTime.toISOString(),
+    sellerId: auctionData.task.creatorId,
+    seller: {
+      id: auctionData.task.creator.id,
+      username: auctionData.task.creator.name || "不明なユーザー",
+      email: auctionData.task.creator.email,
+      createdAt: auctionData.task.creator.createdAt.toISOString(),
+      avatarUrl: auctionData.task.creator.image || undefined,
+    },
+    bidCount: auctionData.bids?.length || 0,
+    categories: [],
+    watchCount: 0,
+    depositPeriod: 7, // デフォルトの預かり期間を7日に設定
+  };
+}
 
 /**
  * タスクIDに関連するオークション情報を取得
@@ -175,7 +206,13 @@ export async function serverPlaceBid(auctionId: string, bidData: BidFormData, us
       sellerId: auction.task.creatorId,
       currentHighestBidder: null,
       winner: null,
+      depositPeriod: auction.task.group.depositPeriod,
       bids: [],
+      options: {
+        reconnectOnVisibility: true,
+        bufferEvents: true,
+        clientId: `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      },
     };
 
     // 入札可能か確認

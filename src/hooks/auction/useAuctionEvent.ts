@@ -1,34 +1,10 @@
 "use client";
 
 import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/types";
+import type { ConnectionStatus, EventHistoryItem } from "@/lib/auction/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MAX_RETRIES } from "@/lib/auction/constants";
-import { AuctionEventType } from "@/lib/auction/types";
-
-// SSEの設定パラメータ
-const HEARTBEAT_INTERVAL = 30000; // 30秒（ハートビート間隔）
-const HEARTBEAT_TIMEOUT = 45000; // 45秒（ハートビートタイムアウト）
-const CONNECTION_TIMEOUT = 10000; // 10秒（接続タイムアウト）
-const BUFFER_INTERVAL = 500; // バッファ処理間隔（ミリ秒）
-
-// リトライ戦略の設定（指数バックオフ + ジッター）
-const RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000]; // 最大30秒
-
-// 拡張イベントタイプの定義（接続確立メッセージ用）
-const ExtendedEventType = {
-  CONNECTION_ESTABLISHED: "connection_established" as const,
-};
-
-// 受信したイベントデータの型
-type EventHistoryItem = {
-  id: number;
-  type: AuctionEventType | typeof ExtendedEventType.CONNECTION_ESTABLISHED;
-  data: Record<string, any>;
-  timestamp: number;
-};
-
-// 接続状態の型
-type ConnectionStatus = "初期化中" | "接続中" | "切断" | "エラー";
+import { BUFFER_INTERVAL, CONNECTION_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_TIMEOUT, MAX_RETRIES, RETRY_DELAYS } from "@/lib/auction/constants";
+import { AuctionEventType, ExtendedEventType } from "@/lib/auction/types";
 
 /**
  * オークションSSEを購読するカスタムフック（拡張版）
@@ -36,39 +12,38 @@ type ConnectionStatus = "初期化中" | "接続中" | "切断" | "エラー";
  * @param options 追加オプション
  * @returns オークション情報、入札履歴、接続状態、ユーティリティ関数
  */
-export function useAuctionEvent(
-  initialAuction: AuctionWithDetails,
-  options: {
-    reconnectOnVisibility?: boolean; // ページが表示されたときに再接続
-    bufferEvents?: boolean; // イベントをバッファリング
-    clientId?: string; // カスタムクライアントID
-  } = {},
-) {
-  // オークションID
-  const auctionId = initialAuction.id;
-
-  // オプション
-  const { reconnectOnVisibility = true, bufferEvents = true, clientId: initialClientId } = options;
-
+export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // 状態管理
-  const [auction, setAuction] = useState<AuctionWithDetails>(initialAuction);
-  const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>((initialAuction.bids as BidHistoryWithUser[]) || []);
+  const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
+  const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>((initialAuction?.bids as BidHistoryWithUser[]) || []);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialAuction ? null : "オークションデータが見つかりません");
   const [endTimeExtended, setEndTimeExtended] = useState<boolean>(false);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("初期化中");
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(initialAuction ? "初期化中" : "エラー");
   const [lastEventId, setLastEventId] = useState<number>(0);
-  const [clientId, setClientId] = useState<string>(initialClientId || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // refs
   const eventSourceRef = useRef<EventSource | null>(null);
   const retryCountRef = useRef<number>(0);
   const lastHeartbeatRef = useRef<number>(Date.now());
   const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const connectRef = useRef<() => void>();
+  const connectRef = useRef<(() => void) | undefined>();
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const eventBufferRef = useRef<EventHistoryItem[]>([]);
   const bufferIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // オークションID
+  const auctionId = initialAuction.id;
+
+  // オプション
+  const { reconnectOnVisibility = true, bufferEvents = true } = initialAuction.options || {};
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ハートビートチェック関数
   const checkHeartbeat = useCallback(() => {
@@ -99,6 +74,8 @@ export function useAuctionEvent(
     heartbeatTimeoutRef.current = setTimeout(checkHeartbeat, HEARTBEAT_INTERVAL);
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 切断関数
   const disconnect = useCallback(() => {
     if (eventSourceRef.current) {
@@ -125,6 +102,8 @@ export function useAuctionEvent(
     console.log("SSE接続を切断しました");
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 再接続関数
   const reconnect = useCallback(() => {
     console.log("SSE接続を手動で再接続します");
@@ -137,6 +116,8 @@ export function useAuctionEvent(
       }
     }, 100);
   }, [disconnect]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 接続関数
   const connect = useCallback(() => {
@@ -369,6 +350,8 @@ export function useAuctionEvent(
     }
   }, [auctionId, clientId, lastEventId, error]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // イベントデータを処理する関数
   const processEventData = useCallback((eventData: AuctionEventData) => {
     // イベントタイプごとの処理
@@ -423,6 +406,8 @@ export function useAuctionEvent(
     }
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // イベントをバッファリングする関数
   const processEvent = useCallback(
     (event: EventHistoryItem) => {
@@ -441,6 +426,8 @@ export function useAuctionEvent(
     },
     [bufferEvents, processEventData],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // バッファ処理のインターバル設定
   useEffect(() => {
@@ -472,6 +459,8 @@ export function useAuctionEvent(
     };
   }, [bufferEvents, processEventData]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // connectRef に connect 関数を格納
   useEffect(() => {
     connectRef.current = connect;
@@ -497,6 +486,8 @@ export function useAuctionEvent(
     };
   }, [initialAuction, connect, disconnect, checkHeartbeat]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ページビジビリティの変更を監視
   useEffect(() => {
     if (reconnectOnVisibility) {
@@ -520,14 +511,16 @@ export function useAuctionEvent(
     }
   }, [reconnectOnVisibility, disconnect]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
-    auction,
-    bidHistory,
-    loading,
-    error,
-    endTimeExtended,
-    connectionStatus,
-    clientId,
+    auction, // オークション情報
+    bidHistory, // 入札履歴
+    loading, // ローディング状態
+    error, // エラー
+    endTimeExtended, // オークション延長通知
+    connectionStatus, // 接続状態
+    clientId, // クライアントID
     lastEventId,
     retryCount: retryCountRef.current,
     reconnect, // 手動で再接続するための関数

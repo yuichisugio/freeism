@@ -1,18 +1,25 @@
 import { type AuctionReview, type Task } from "@prisma/client";
 
+// 受信したイベントデータの型
+export type EventHistoryItem = {
+  id: number;
+  type: AuctionEventType | typeof ExtendedEventType.CONNECTION_ESTABLISHED;
+  data: Record<string, any>;
+  timestamp: number;
+};
+
+// 拡張イベントタイプの定義（接続確立メッセージ用）
+export const ExtendedEventType = {
+  CONNECTION_ESTABLISHED: "connection_established" as const,
+};
+
+// 接続状態の型
+export type ConnectionStatus = "初期化中" | "接続中" | "切断" | "エラー";
+
 // カウントダウン表示のprops
 export type CountdownDisplayProps = {
   countdownState: CountdownState;
   countdownAction: () => string;
-};
-
-// オークション詳細ページのprops
-export type AuctionDetailProps = {
-  auction: Auction;
-  bidHistory?: BidHistoryWithUser[];
-  isOwnAuction: boolean;
-  isLoading?: boolean;
-  error?: string | null;
 };
 
 // 入札フォームのprops
@@ -148,9 +155,15 @@ export type AuctionWithDetails = {
     group: any;
     creator: any;
   };
+  depositPeriod: number;
   currentHighestBidder: User | null;
   winner: User | null;
   bids: Array<BidHistory & { user: any }>;
+  options: {
+    reconnectOnVisibility?: boolean; // ページが表示されたときに再接続
+    bufferEvents?: boolean; // イベントをバッファリング
+    clientId?: string; // カスタムクライアントID
+  };
 };
 
 // オークションSSEイベントタイプ

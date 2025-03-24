@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuctionEvent } from "@/hooks/auction/useAuctionEvent";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
 import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
-import { type AuctionDetailProps } from "@/lib/auction/types";
+import { type Auction, type AuctionWithDetails } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Clock, Heart } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import BidForm from "./BidForm";
 import BidHistory from "./BidHistory";
@@ -19,14 +22,12 @@ import { CountdownDisplay } from "./CountdownDisplay";
 
 /**
  * オークション詳細ページ
- * @param auction オークション情報
- * @param bidHistory 入札履歴
- * @param isOwnAuction 自分の出品したオークションかどうか
- * @param isLoading ローディング状態
- * @param error エラーメッセージ
+ * @param initialAuction オークション情報
  * @returns オークション詳細ページ
  */
-export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, isLoading, error }: AuctionDetailProps) {
+export default function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 入札フォームの表示状態
   const [showBidForm, setShowBidForm] = useState(false);
   // ウォッチリストの状態
@@ -36,10 +37,31 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
   // アクティブタブ
   const [activeTab, setActiveTab] = useState("details");
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ユーザーIDを取得
+  const { data: session } = useSession();
+  if (!session || !session.user) {
+    notFound();
+  }
+  const currentUserId = session.user.id;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
+  const { auction = initialAuction, bidHistory, loading, error } = useAuctionEvent(initialAuction);
+  if (!auction) {
+    notFound();
+  }
+
   // カウントダウンの状態
-  const { countdownState, countdown } = useCountdown(new Date(auction.endTime));
+  const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
+  const isAuctionEnded = countdownState.isExpired;
+
   // 入札アクション
   const { submitting, toggleWatchlist, getWatchlistStatus } = useBidActions();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリストの状態を取得する処理
   useEffect(() => {
@@ -61,10 +83,11 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
     }
   }, [auction.id, getWatchlistStatus, initialFetchDone]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ウォッチリストボタンのクリックハンドラ
   async function handleWatchlistToggle() {
     if (!auction.id) return;
-
     try {
       const newStatus = await toggleWatchlist(auction.id);
       setIsWatchlisted(newStatus);
@@ -73,7 +96,7 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
     }
   }
 
-  const isAuctionEnded = countdownState.isExpired;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークション詳細タブの内容
   function renderDetailsTab() {
@@ -94,7 +117,7 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm">入札数</p>
-                  <p>{bidHistory.length || auction.bidCount || 0}</p>
+                  <p>{bidHistory.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -107,10 +130,24 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
           </div>
 
           {/* 自分の出品していないオークションで、オークションが終了していない場合は入札フォームを表示 */}
-          {!isOwnAuction && !isAuctionEnded && (
+          {auction.sellerId !== currentUserId && !isAuctionEnded && (
             <>
               {showBidForm ? (
-                <BidForm auction={auction} onCancelAction={() => setShowBidForm(false)} />
+                <BidForm
+                  auction={
+                    {
+                      id: auction.id,
+                      title: auction.title,
+                      description: auction.description,
+                      startingPrice: auction.startingPrice,
+                      currentPrice: auction.currentPrice,
+                      startTime: auction.startTime.toString(),
+                      endTime: auction.endTime.toString(),
+                      sellerId: auction.sellerId,
+                    } as Auction
+                  }
+                  onCancelAction={() => setShowBidForm(false)}
+                />
               ) : (
                 <Button className="w-full" onClick={() => setShowBidForm(true)}>
                   入札する
@@ -127,7 +164,7 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
           )}
 
           {/* 自分の出品しているオークションの場合は、自分の出品したオークションですというメッセージを表示 */}
-          {isOwnAuction && (
+          {auction.sellerId === currentUserId && (
             <div className="bg-muted rounded-md border p-4 text-center">
               <p className="font-medium">自分の出品したオークションです</p>
             </div>
@@ -137,11 +174,13 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
         {/* 商品説明部分 */}
         <div>
           <h2 className="mb-2 text-xl font-semibold">商品説明</h2>
-          <p className="whitespace-pre-line">{auction.description}</p>
+          <p className="whitespace-pre-line">{auction.description || ""}</p>
         </div>
       </div>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 質問と回答タブの内容
   function renderQaTab() {
@@ -157,6 +196,8 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
     );
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 配送・支払いタブの内容
   function renderShippingTab() {
     return (
@@ -167,14 +208,16 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
         </div>
         <div>
           <h3 className="mb-2 text-lg font-medium">支払い方法</h3>
-          <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.depositPeriod || 60}日後に返還されます。</p>
+          <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.depositPeriod}日後に返還されます。</p>
         </div>
       </div>
     );
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ローディング状態の表示
-  if (isLoading) {
+  if (loading) {
     return <div className="p-8 text-center">オークション情報を読み込み中...</div>;
   }
 
@@ -183,33 +226,35 @@ export default function AuctionDetail({ auction, bidHistory = [], isOwnAuction, 
     return <div className="text-destructive p-8 text-center">{error}</div>;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 左側: オークション画像 */}
         <div className="relative aspect-square overflow-hidden rounded-lg">
-          <Image src={auction?.imageUrl || DEFAULT_AUCTION_IMAGE_URL} alt={auction?.title || "オークション画像"} fill className="object-cover" priority />
+          <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title || "オークション画像"} fill className="object-cover" priority />
         </div>
 
         {/* 右側: オークション情報ヘッダー部分 */}
         <div className="space-y-6">
           <div>
             <div className="flex items-start justify-between">
-              <h1 className="text-2xl font-bold">{auction?.title || "オークションタイトル"}</h1>
-              <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || isOwnAuction} className={isWatchlisted ? "text-red-500" : ""}>
+              <h1 className="text-2xl font-bold">{auction.title || "オークションタイトル"}</h1>
+              <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || auction.sellerId === currentUserId} className={isWatchlisted ? "text-red-500" : ""}>
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
               </Button>
             </div>
-            <p className="text-muted-foreground mt-1">{auction.seller?.username || "不明なユーザー"}</p>
+            <p className="text-muted-foreground mt-1">{auction.task.creator.name || "不明なユーザー"}</p>
           </div>
 
           <div className="flex items-center space-x-2">
             <Badge variant={isAuctionEnded ? "destructive" : "secondary"}>{isAuctionEnded ? "終了" : "出品中"}</Badge>
-            {auction.categories?.map((category: { id: string; name: string }) => (
-              <Badge key={category.id} variant="outline">
-                {category.name}
+            {auction.task.group && (
+              <Badge key={auction.task.group.id} variant="outline">
+                {auction.task.group.name}
               </Badge>
-            ))}
+            )}
           </div>
         </div>
       </div>

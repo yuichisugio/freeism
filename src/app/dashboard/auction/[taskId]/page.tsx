@@ -4,8 +4,6 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { getAuctionWithTask } from "@/lib/auction/auction-service";
-import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
-import { type Auction } from "@/lib/auction/types";
 
 import AuctionDetailWrapper from "./client";
 
@@ -39,43 +37,24 @@ export async function generateMetadata({ params }: { params: Promise<{ taskId: s
  * @returns オークション詳細ページ
  */
 export default async function AuctionDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
+  // タスクIDを取得
   const { taskId } = await params;
-  const auctionData = await getAuctionWithTask(taskId);
 
+  // オークションデータを取得
+  const auctionData = await getAuctionWithTask(taskId);
   if (!auctionData) {
     notFound();
   }
 
   // 現在のユーザー情報を取得
   const session = await auth();
-  const currentUserId = session?.user?.id;
-
-  // 出品者かどうかを確認
-  const isOwnAuction = auctionData.task.creatorId === currentUserId;
-
-  // Prismaモデルから@/types/auctionで定義されたAuction型に変換
-  const auction: Auction = {
-    id: auctionData.id,
-    title: auctionData.task.task,
-    description: auctionData.task.detail || "",
-    imageUrl: auctionData.task.imageUrl || DEFAULT_AUCTION_IMAGE_URL,
-    startingPrice: 0,
-    currentPrice: auctionData.currentHighestBid,
-    startTime: auctionData.startTime.toISOString(),
-    endTime: auctionData.endTime.toISOString(),
-    sellerId: auctionData.task.creatorId,
-    seller: {
-      id: auctionData.task.creator.id,
-      username: auctionData.task.creator.name || "不明なユーザー",
-      email: auctionData.task.creator.email,
-      createdAt: auctionData.task.creator.createdAt.toISOString(),
-      avatarUrl: auctionData.task.creator.image || undefined,
-    },
-  };
+  if (!session || !session.user) {
+    notFound();
+  }
 
   return (
     <MainTemplate title={auctionData.task.task} description={auctionData.task.detail || ""}>
-      <AuctionDetailWrapper auction={auction} isOwnAuction={isOwnAuction} />
+      <AuctionDetailWrapper initialAuction={auctionData} />
     </MainTemplate>
   );
 }
