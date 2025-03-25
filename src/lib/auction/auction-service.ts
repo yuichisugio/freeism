@@ -66,6 +66,8 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
 
     if (!auction) return null;
 
+    console.log("auction", auction);
+
     // 必要なプロパティを持つオブジェクトとして返す
     return auction as unknown as AuctionWithDetails;
   } catch (error) {

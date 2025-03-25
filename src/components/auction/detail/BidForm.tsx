@@ -56,7 +56,7 @@ export default function BidForm({ auction, onCancelAction }: BidFormProps) {
             <div>
               <p className="text-muted-foreground mb-1 text-sm">現在価格: {formatCurrency(auction.currentPrice)}</p>
               <p className="text-muted-foreground mb-2 text-sm">最低入札額: {formatCurrency(minBid)}</p>
-              <Input type="number" min={minBid} step={100} value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))} required />
+              <Input type="number" min={minBid} step={1} value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))} required />
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}

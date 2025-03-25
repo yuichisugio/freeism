@@ -199,7 +199,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
         </div>
         <div>
           <h3 className="mb-2 text-lg font-medium">支払い方法</h3>
-          <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.depositPeriod}日後に返還されます。</p>
+          <p className="text-muted-foreground">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.task.group.depositPeriod}日後に返還されます。</p>
         </div>
       </div>
     );

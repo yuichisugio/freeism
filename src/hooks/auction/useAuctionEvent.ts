@@ -2,7 +2,7 @@
 
 import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser, ConnectionStatus, EventHistoryItem } from "@/lib/auction/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BUFFER_INTERVAL, CONNECTION_TIMEOUT, HEARTBEAT_INTERVAL, HEARTBEAT_TIMEOUT, MAX_RETRIES, RETRY_DELAYS } from "@/lib/auction/constants";
+import { BUFFER_INTERVAL, CONNECTION_TIMEOUT, MAX_RETRIES, RETRY_DELAYS } from "@/lib/auction/constants";
 import { AuctionEventType, ExtendedEventType } from "@/lib/auction/types";
 
 /**
@@ -37,10 +37,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const eventSourceRef = useRef<EventSource | null>(null);
   // リトライ回数
   const retryCountRef = useRef<number>(0);
-  // 最後のハートビート時間
-  const lastHeartbeatRef = useRef<number>(Date.now());
-  // ハートビートタイムアウト
-  const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // 接続関数
   const connectRef = useRef<(() => void) | undefined>();
   // 接続タイムアウト
@@ -116,7 +112,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // イベントをバッファリングする関数
+  // イベントをバッチ処理するために、貯めておく関数
   const processEvent = useCallback(
     (event: EventHistoryItem) => {
       if (bufferEvents) {
@@ -137,40 +133,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ハートビートチェック関数
-  const checkHeartbeat = useCallback(() => {
-    // 現在時刻
-    const now = Date.now();
-    // 最後のハートビート時間からの経過時間
-    const timeSinceLastHeartbeat = now - lastHeartbeatRef.current;
-
-    // ハートビートタイムアウトの場合
-    if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT) {
-      console.warn(`SSEハートビート失敗: 最後の応答から${timeSinceLastHeartbeat}ms経過`);
-
-      // 接続が生きていないと判断して再接続
-      if (eventSourceRef.current) {
-        console.log("ハートビートタイムアウトのため接続を再確立します");
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-
-        // エラー表示と再接続
-        setError("リアルタイム更新の接続が切断されました。再接続しています...");
-        setConnectionStatus("エラー");
-
-        // connectRef経由で接続関数を呼び出す
-        if (connectRef.current) {
-          connectRef.current();
-        }
-      }
-    }
-
-    // 次のチェックをスケジュール
-    heartbeatTimeoutRef.current = setTimeout(checkHeartbeat, HEARTBEAT_INTERVAL);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // 切断関数
   const disconnect = useCallback(() => {
     if (eventSourceRef.current) {
@@ -181,11 +143,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     if (connectionTimeoutRef.current) {
       clearTimeout(connectionTimeoutRef.current);
       connectionTimeoutRef.current = null;
-    }
-
-    if (heartbeatTimeoutRef.current) {
-      clearTimeout(heartbeatTimeoutRef.current);
-      heartbeatTimeoutRef.current = null;
     }
 
     if (bufferIntervalRef.current) {
@@ -304,9 +261,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           connectionTimeoutRef.current = null;
         }
 
-        // ハートビートの更新
-        lastHeartbeatRef.current = Date.now();
-
         try {
           // データが空の場合はハートビートなどの特殊メッセージとして扱い、そのまま処理を終了
           if (!event.data) {
@@ -316,6 +270,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
           // メッセージデータのパース
           let data;
+          console.log("event.data", event.data);
           try {
             data = JSON.parse(event.data);
           } catch (parseError) {
@@ -354,9 +309,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
               setLastEventId(parseInt(e.lastEventId, 10));
             }
 
-            // ハートビートの更新
-            lastHeartbeatRef.current = Date.now();
-
             // データの有無を確認してからパース
             if (!e.data) {
               console.log(`イベント ${eventType} にデータがありません`);
@@ -365,6 +317,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
             // 安全にJSONパースを試みる
             let eventData;
+            console.log("e.data", e.data);
             try {
               eventData = JSON.parse(e.data);
             } catch (parseError) {
@@ -493,14 +446,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     // 接続を確立
     connect();
 
-    // ハートビートチェッカーを開始
-    heartbeatTimeoutRef.current = setTimeout(checkHeartbeat, HEARTBEAT_INTERVAL);
-
     // クリーンアップ
     return () => {
       disconnect();
     };
-  }, [initialAuction, connect, disconnect, checkHeartbeat]);
+  }, [initialAuction, connect, disconnect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
