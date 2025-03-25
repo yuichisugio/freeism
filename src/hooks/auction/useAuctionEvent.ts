@@ -2,7 +2,7 @@
 
 import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser, ConnectionStatus, EventHistoryItem } from "@/lib/auction/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BUFFER_INTERVAL, CONNECTION_TIMEOUT, MAX_RETRIES, RETRY_DELAYS } from "@/lib/auction/constants";
+import { BUFFER_INTERVAL } from "@/lib/auction/constants";
 import { AuctionEventType, ExtendedEventType } from "@/lib/auction/types";
 
 /**
@@ -30,17 +30,17 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const [lastEventId, setLastEventId] = useState<number>(0);
   // クライアントID
   const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  // 最後に受信したSSEメッセージ（デバッグ用）
+  const [lastReceivedMessage, setLastReceivedMessage] = useState<string | null>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // イベントソース
   const eventSourceRef = useRef<EventSource | null>(null);
-  // リトライ回数
-  const retryCountRef = useRef<number>(0);
+
   // 接続関数
   const connectRef = useRef<(() => void) | undefined>();
-  // 接続タイムアウト
-  const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // バッチ処理するインターバル時間を管理するref
   const bufferIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // バッチ処理するために、Eventを貯めているState
@@ -58,15 +58,19 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // イベントデータを処理する関数
   const processEventData = useCallback((eventData: AuctionEventData) => {
+    // ローディング状態を解除する（どのイベントタイプでも）
+    setLoading(false);
+
     // イベントタイプごとの処理
     switch (eventData.type) {
       case AuctionEventType.INITIAL:
         if (eventData.data.auction) {
           setAuction(eventData.data.auction);
-          setBidHistory(eventData.data.auction.bidHistories as BidHistoryWithUser[]);
+          // 新しい入札履歴があれば設定
+          if (eventData.data.auction.bidHistories) {
+            setBidHistory(eventData.data.auction.bidHistories as BidHistoryWithUser[]);
+          }
         }
-        setLoading(false);
-        retryCountRef.current = 0; // 成功したらリトライカウンタをリセット
         break;
 
       case AuctionEventType.NEW_BID:
@@ -102,6 +106,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         }
         break;
 
+      case AuctionEventType.CONNECTION_ESTABLISHED:
+        // 接続確立イベントを受け取ったらクライアントIDを更新
+        if (eventData.data.clientId) {
+          setClientId(eventData.data.clientId);
+        }
+        break;
+
       case AuctionEventType.ERROR:
         if (eventData.data.error) {
           setError(eventData.data.error);
@@ -119,8 +130,16 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         // バッファリングモードの場合、バッファに追加
         eventBufferRef.current.push(event);
       } else {
-        // 即時処理モード（ConnectionEstablishedイベント以外を処理）
-        if (event.type !== ExtendedEventType.CONNECTION_ESTABLISHED) {
+        // 即時処理モード
+        if (event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
+          // connection_established イベントの場合は clientId を更新
+          if (event.data && event.data.clientId) {
+            setClientId(event.data.clientId);
+            // 接続確立時にローディング状態を解除
+            setLoading(false);
+          }
+        } else {
+          // その他のイベントを通常処理
           processEventData({
             type: event.type as AuctionEventType,
             data: event.data,
@@ -135,14 +154,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // 切断関数
   const disconnect = useCallback(() => {
+    console.log("disconnect called from", new Error().stack);
     if (eventSourceRef.current) {
+      console.log("実際に切断します");
       eventSourceRef.current.close();
       eventSourceRef.current = null;
-    }
-
-    if (connectionTimeoutRef.current) {
-      clearTimeout(connectionTimeoutRef.current);
-      connectionTimeoutRef.current = null;
     }
 
     if (bufferIntervalRef.current) {
@@ -175,6 +191,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const connect = useCallback(() => {
     // 既存の接続があれば閉じる
     if (eventSourceRef.current) {
+      console.log("既存の接続を閉じます");
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
@@ -194,55 +211,20 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // URLの作成
       const url = `/api/auctions/${auctionId}/sse-server-sent-events${params.toString() ? `?${params.toString()}` : ""}`;
-
-      // 接続タイムアウト設定
-      connectionTimeoutRef.current = setTimeout(() => {
-        console.error("SSE接続がタイムアウトしました");
-        if (eventSourceRef.current) {
-          eventSourceRef.current.close();
-          eventSourceRef.current = null;
-        }
-
-        setConnectionStatus("エラー");
-        setError("接続タイムアウト。再接続しています...");
-
-        // リトライロジックを開始
-        if (retryCountRef.current < MAX_RETRIES) {
-          const retryDelay = RETRY_DELAYS[Math.min(retryCountRef.current, RETRY_DELAYS.length - 1)];
-          // ジッターを追加（0-500msのランダム値）
-          const jitter = Math.random() * 500;
-          const finalDelay = retryDelay + jitter;
-
-          retryCountRef.current++;
-          console.log(`SSE接続タイムアウト: ${finalDelay}ms後に再試行します (${retryCountRef.current}/${MAX_RETRIES}回目)`);
-
-          setTimeout(() => {
-            if (connectRef.current) {
-              connectRef.current();
-            }
-          }, finalDelay);
-        } else {
-          setError("リアルタイム更新を利用できません。ページを再読み込みしてください。");
-          setLoading(false);
-        }
-      }, CONNECTION_TIMEOUT);
+      console.log("SSE接続URL:", url);
 
       // EventSourceの作成
       const eventSource = new EventSource(url, {
         withCredentials: true, // 認証情報を含める
       });
+
+      // イベントソースの参照を保存
       eventSourceRef.current = eventSource;
 
       // 接続成功時
       eventSource.onopen = () => {
         console.log("SSE接続確立");
         setConnectionStatus("接続中");
-
-        // タイムアウトをクリア
-        if (connectionTimeoutRef.current) {
-          clearTimeout(connectionTimeoutRef.current);
-          connectionTimeoutRef.current = null;
-        }
 
         // ローディングをクリア
         setLoading(false);
@@ -255,22 +237,24 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // メッセージ受信時
       eventSource.onmessage = (event) => {
-        // タイムアウトをクリア（メッセージ受信時も接続は生きている）
-        if (connectionTimeoutRef.current) {
-          clearTimeout(connectionTimeoutRef.current);
-          connectionTimeoutRef.current = null;
-        }
-
         try {
+          // デバッグ用に最後に受信したメッセージを保存
+          setLastReceivedMessage(
+            JSON.stringify({
+              type: event.type || "message",
+              lastEventId: event.lastEventId,
+              data: event.data,
+              timestamp: new Date().toISOString(),
+            }),
+          );
+
           // データが空の場合はハートビートなどの特殊メッセージとして扱い、そのまま処理を終了
           if (!event.data) {
-            console.log("空のメッセージ受信（ハートビートの可能性）");
             return;
           }
 
           // メッセージデータのパース
           let data;
-          console.log("event.data", event.data);
           try {
             data = JSON.parse(event.data);
           } catch (parseError) {
@@ -285,8 +269,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           }
 
           // 接続確立メッセージの処理
-          if (data && data.type === ExtendedEventType.CONNECTION_ESTABLISHED && data.clientId) {
+          if (event.type === ExtendedEventType.CONNECTION_ESTABLISHED && data.clientId) {
             setClientId(data.clientId);
+            setLoading(false); // 接続確立時にローディング状態を解除
             return;
           }
 
@@ -297,13 +282,32 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           }
         } catch (err) {
           console.error("SSEメッセージ処理中にエラーが発生しました:", err);
+          // エラー情報も保存
+          setLastReceivedMessage(
+            JSON.stringify({
+              error: String(err),
+              timestamp: new Date().toISOString(),
+            }),
+          );
         }
       };
 
       // 標準的なイベントタイプのハンドラ登録
       Object.values(AuctionEventType).forEach((eventType) => {
         eventSource.addEventListener(eventType, (e: MessageEvent) => {
+          console.log("イベントタイプ:", eventType);
+          console.log("e:", e);
           try {
+            // デバッグ用に最後に受信したメッセージを保存
+            setLastReceivedMessage(
+              JSON.stringify({
+                type: eventType,
+                lastEventId: e.lastEventId,
+                data: e.data,
+                timestamp: new Date().toISOString(),
+              }),
+            );
+
             // イベントIDの抽出と保存（再接続用）
             if (e.lastEventId) {
               setLastEventId(parseInt(e.lastEventId, 10));
@@ -311,13 +315,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
             // データの有無を確認してからパース
             if (!e.data) {
-              console.log(`イベント ${eventType} にデータがありません`);
               return;
             }
 
             // 安全にJSONパースを試みる
             let eventData;
-            console.log("e.data", e.data);
             try {
               eventData = JSON.parse(e.data);
             } catch (parseError) {
@@ -335,20 +337,37 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             });
           } catch (err) {
             console.error(`イベント ${eventType} 処理中にエラーが発生しました:`, err);
+            // エラー情報も保存
+            setLastReceivedMessage(
+              JSON.stringify({
+                type: eventType,
+                error: String(err),
+                timestamp: new Date().toISOString(),
+              }),
+            );
           }
         });
+      });
+
+      // connection_established イベントの明示的な処理
+      eventSource.addEventListener(ExtendedEventType.CONNECTION_ESTABLISHED, (e: MessageEvent) => {
+        try {
+          if (e.data) {
+            const data = JSON.parse(e.data);
+            if (data && data.clientId) {
+              setClientId(data.clientId);
+              setLoading(false); // 接続確立時にローディング状態を解除
+            }
+          }
+        } catch (err) {
+          console.error("connection_established イベント処理中にエラーが発生しました:", err);
+        }
       });
 
       // エラーハンドラ
       eventSource.onerror = (event) => {
         // エラーの詳細をログに出力
         console.warn(`SSE接続エラー発生: readyState=${eventSource.readyState}`, event);
-
-        // タイムアウトをクリア
-        if (connectionTimeoutRef.current) {
-          clearTimeout(connectionTimeoutRef.current);
-          connectionTimeoutRef.current = null;
-        }
 
         // readyStateに基づいた処理（数値で比較）
         // 0: CONNECTING, 1: OPEN, 2: CLOSED
@@ -365,30 +384,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
         // エラー状態を設定
         setError("リアルタイム更新の接続が切断されました。再接続しています...");
-
-        // 接続再試行
-        if (retryCountRef.current < MAX_RETRIES) {
-          // 指数バックオフ + ジッターで再接続
-          const baseDelay = RETRY_DELAYS[Math.min(retryCountRef.current, RETRY_DELAYS.length - 1)];
-          const jitter = Math.random() * 1000; // 0-1000msのランダム値
-          const retryDelay = baseDelay + jitter;
-
-          retryCountRef.current++;
-          console.log(`SSE再接続を${retryDelay}ms後に試みます (${retryCountRef.current}/${MAX_RETRIES}回目)`);
-
-          // 確実にsetTimeoutが動作するようにする
-          window.setTimeout(() => {
-            if (!eventSourceRef.current && connectRef.current) {
-              console.log("SSE再接続を開始します...");
-              connectRef.current();
-            }
-          }, retryDelay);
-        } else {
-          // 最大リトライ回数を超えた場合
-          console.error(`SSE最大再接続回数(${MAX_RETRIES})に達しました。再接続を停止します。`);
-          setError("リアルタイム更新を利用できません。ページを再読み込みしてください。");
-          setLoading(false);
-        }
       };
     } catch (err) {
       console.error("SSE接続の確立に失敗しました:", err);
@@ -407,9 +402,16 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           const events = [...eventBufferRef.current];
           eventBufferRef.current = [];
 
-          // 各イベントを処理（ConnectionEstablishedイベント以外）
+          // 各イベントを処理
           for (const event of events) {
-            if (event.type !== ExtendedEventType.CONNECTION_ESTABLISHED) {
+            if (event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
+              // connection_established イベントの場合は clientId を更新
+              if (event.data && event.data.clientId) {
+                setClientId(event.data.clientId);
+                setLoading(false); // 接続確立時にローディング状態を解除
+              }
+            } else {
+              // その他のイベントを通常処理
               processEventData({
                 type: event.type as AuctionEventType,
                 data: event.data,
@@ -488,8 +490,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     connectionStatus, // 接続状態
     clientId, // クライアントID
     lastEventId,
-    retryCount: retryCountRef.current,
     reconnect, // 手動で再接続するための関数
     disconnect, // 手動で切断するための関数
+    lastReceivedMessage, // 最後に受信したSSEメッセージ（デバッグ用）
   };
 }

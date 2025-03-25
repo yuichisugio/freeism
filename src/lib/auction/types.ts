@@ -171,6 +171,7 @@ export enum AuctionEventType {
   AUCTION_EXTENSION = "auction_extension",
   AUCTION_ENDED = "auction_ended",
   ERROR = "error",
+  CONNECTION_ESTABLISHED = "connection_established",
 }
 
 // オークションSSEイベントデータ
@@ -182,6 +183,7 @@ export type AuctionEventData = {
     message?: string;
     newEndTime?: string;
     error?: string;
+    clientId?: string; // クライアントID（接続確立メッセージ用）
   };
 };
 

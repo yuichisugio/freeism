@@ -23,7 +23,18 @@ type EventHistoryItem = {
 // 接続管理クラス
 class ConnectionManager {
   // オークションID => (クライアントID => コントローラー) の二層マップ
-  private connections = new Map<string, Map<string, ReadableStreamController<Uint8Array>>>();
+  private connections = new Map<
+    string,
+    Map<
+      string,
+      {
+        controller: ReadableStreamController<Uint8Array>;
+        heartbeatInterval: NodeJS.Timeout | null;
+        timeoutId: NodeJS.Timeout | null;
+        isActive: boolean; // 接続がアクティブかどうかを示すフラグ
+      }
+    >
+  >();
   // オークションID => イベント履歴 のマップ
   private eventHistories = new Map<string, EventHistoryItem[]>();
   // グローバルイベントIDカウンター
@@ -31,12 +42,19 @@ class ConnectionManager {
   // エンコーダー
   private encoder = new TextEncoder();
 
-  // オークションごとの接続数を取得
+  /**
+   * オークションごとの接続数を取得
+   * @param auctionId オークションID
+   * @returns オークションごとの接続数
+   */
   getConnectionCount(auctionId: string): number {
     return this.connections.get(auctionId)?.size || 0;
   }
 
-  // 全ての接続数を取得
+  /**
+   * 全ての接続数を取得
+   * @returns 全ての接続数
+   */
   getTotalConnectionCount(): number {
     let total = 0;
     for (const clientMap of this.connections.values()) {
@@ -45,34 +63,90 @@ class ConnectionManager {
     return total;
   }
 
-  // クライアント接続を追加
-  addConnection(auctionId: string, clientId: string, controller: ReadableStreamController<Uint8Array>): void {
+  /**
+   * クライアント接続を追加
+   * @param auctionId オークションID
+   * @param clientId クライアントID
+   * @param controller コントローラー
+   * @param heartbeatInterval ハートビート間隔
+   * @param timeoutId タイムアウトID
+   */
+  addConnection(auctionId: string, clientId: string, controller: ReadableStreamController<Uint8Array>, heartbeatInterval: NodeJS.Timeout | null = null, timeoutId: NodeJS.Timeout | null = null): void {
     // オークションのマップがなければ初期化
     if (!this.connections.has(auctionId)) {
       this.connections.set(auctionId, new Map());
     }
 
     // クライアントを追加
-    this.connections.get(auctionId)?.set(clientId, controller);
+    const auctionClients = this.connections.get(auctionId);
+    if (auctionClients) {
+      auctionClients.set(clientId, {
+        controller,
+        heartbeatInterval,
+        timeoutId,
+        isActive: true,
+      });
+    }
+
     console.log(`SSE接続確立: クライアント ${clientId} がオークション ${auctionId} に接続しました (接続数: ${this.getConnectionCount(auctionId)})`);
   }
 
-  // クライアント接続を削除
+  /**
+   * クライアント接続を削除
+   * @param auctionId オークションID
+   * @param clientId クライアントID
+   */
   removeConnection(auctionId: string, clientId: string): void {
-    const auctionClients = this.connections.get(auctionId);
-    if (auctionClients) {
-      auctionClients.delete(clientId);
-      console.log(`SSE接続終了: クライアント ${clientId} がオークション ${auctionId} から切断しました (残り接続数: ${auctionClients.size})`);
+    console.log("removeConnection", auctionId, clientId);
 
-      // オークションの接続がなくなったらマップからも削除
-      if (auctionClients.size === 0) {
-        this.connections.delete(auctionId);
-        console.log(`オークション ${auctionId} の全ての接続が終了しました`);
-      }
+    const auctionClients = this.connections.get(auctionId);
+    console.log("removeConnection_auctionClients");
+
+    // オークションのマップがなければ初期化
+    if (!auctionClients) return;
+
+    const connectionInfo = auctionClients.get(clientId);
+    console.log("removeConnection_connectionInfo");
+    if (!connectionInfo) return;
+
+    // 既にクリーンアップ済みならスキップ
+    if (!connectionInfo.isActive) {
+      console.log(`クライアント ${clientId} の接続は既にクリーンアップ済みです`);
+      return;
+    }
+
+    // タイマーのクリーンアップ
+    if (connectionInfo.heartbeatInterval) {
+      clearInterval(connectionInfo.heartbeatInterval);
+      connectionInfo.heartbeatInterval = null;
+    }
+
+    if (connectionInfo.timeoutId) {
+      clearTimeout(connectionInfo.timeoutId);
+      connectionInfo.timeoutId = null;
+    }
+
+    // アクティブフラグを更新
+    connectionInfo.isActive = false;
+
+    // マップから削除
+    auctionClients.delete(clientId);
+
+    console.log(`SSE接続終了: クライアント ${clientId} がオークション ${auctionId} から切断しました (残り接続数: ${auctionClients.size})`);
+
+    if (auctionClients.size === 0) {
+      this.connections.delete(auctionId);
+      console.log(`オークション ${auctionId} の全ての接続が終了しました`);
     }
   }
 
-  // イベント履歴を記録
+  /**
+   * イベント履歴を記録
+   * @param auctionId オークションID
+   * @param type イベントタイプ
+   * @param data イベントデータ
+   * @returns イベント履歴
+   */
   addEventToHistory(auctionId: string, type: AuctionEventType, data: Record<string, any>): EventHistoryItem {
     const eventId = this.globalEventId++;
 
@@ -100,13 +174,22 @@ class ConnectionManager {
     return eventItem;
   }
 
-  // 特定イベントID以降のイベントを取得
+  /**
+   * 特定イベントID以降のイベントを取得
+   * @param auctionId オークションID
+   * @param lastEventId 最後のイベントID
+   * @returns イベント履歴
+   */
   getEventsSince(auctionId: string, lastEventId: number): EventHistoryItem[] {
     const history = this.eventHistories.get(auctionId) || [];
     return history.filter((event) => event.id > lastEventId);
   }
 
-  // SSEメッセージ形式に変換
+  /**
+   * SSEメッセージ形式に変換
+   * @param event イベント履歴
+   * @returns SSEメッセージ
+   */
   formatEventMessage(event: EventHistoryItem): string {
     let message = "";
 
@@ -117,7 +200,13 @@ class ConnectionManager {
     return message;
   }
 
-  // オークションの購読者全員にイベントを送信
+  /**
+   * オークションの購読者全員にイベントを送信
+   * @param auctionId オークションID
+   * @param type イベントタイプ
+   * @param data イベントデータ
+   * @returns イベント履歴
+   */
   broadcastToAuction(auctionId: string, type: AuctionEventType, data: Record<string, any>): EventHistoryItem {
     console.log("broadcastToAuction", auctionId, type, data);
     // イベントを履歴に追加
@@ -126,7 +215,7 @@ class ConnectionManager {
     // イベントメッセージを送信用のフォーマット
     const eventMessage = this.formatEventMessage(event);
 
-    console.log("eventMessage", eventMessage);
+    console.log("broadcastToAuction_eventMessage", eventMessage);
 
     // エンコードされたメッセージを取得
     const encodedEventMessage = this.encoder.encode(eventMessage);
@@ -134,20 +223,15 @@ class ConnectionManager {
     // オークションの購読者を取得
     const auctionClients = this.connections.get(auctionId);
 
-    // ↓で、undefinedになっている
-    console.log("auctionClients", auctionClients);
-
     // オークションの購読者がいる場合
     if (auctionClients && auctionClients.size > 0) {
       // 削除すべき接続を追跡
       const clientsToRemove: string[] = [];
 
       // 全クライアントに送信
-      for (const [clientId, controller] of auctionClients.entries()) {
+      for (const [clientId, connectionInfo] of auctionClients.entries()) {
         try {
-          console.log("controller", controller);
-          // エンコードされたメッセージを送信
-          controller.enqueue(encodedEventMessage);
+          connectionInfo.controller.enqueue(encodedEventMessage);
         } catch (e) {
           // エラーが発生した場合は接続を削除する配列に追加
           console.error(`クライアント ${clientId} へのメッセージ送信エラー:`, e);
@@ -162,14 +246,36 @@ class ConnectionManager {
       }
 
       console.log(`オークション ${auctionId} の ${auctionClients.size} クライアントにイベント ${type} を送信しました`);
+    } else {
+      console.log(`オークション ${auctionId} に接続者がいません`);
     }
 
     return event;
   }
 }
 
-// シングルトンとしてコネクションマネージャを作成
-const connectionManager = new ConnectionManager();
+// グローバルなシングルトンとして確実に共有するため、キャッシュやモジュールの再読み込みに対応した実装に変更
+let globalConnectionManager: ConnectionManager | null = null;
+
+export function getConnectionManager(): ConnectionManager {
+  if (!globalConnectionManager) {
+    globalConnectionManager = new ConnectionManager();
+    // グローバルオブジェクトに保存して確実に共有されるようにする
+    if (typeof global !== "undefined") {
+      (global as any).__connectionManager = globalConnectionManager;
+    }
+  }
+
+  // すでにグローバルに保存されたインスタンスがあればそれを使用
+  if (typeof global !== "undefined" && (global as any).__connectionManager) {
+    return (global as any).__connectionManager;
+  }
+
+  return globalConnectionManager;
+}
+
+// 使用時
+const connectionManager = getConnectionManager();
 
 /**
  * SSEエンドポイント
@@ -234,40 +340,41 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // ストリームとエンコーダーの設定
     const encoder = new TextEncoder();
 
+    // コントローラーの状態管理用の変数
+    let isControllerClosed = false;
+
+    // クライアントが接続を閉じた時の処理
+    const handleAbort = () => {
+      console.log("sse-abort", clientId);
+      connectionManager.removeConnection(auctionId, clientId);
+      console.log(`クライアントが接続を中断: ${clientId} (オークション: ${auctionId})`);
+    };
+
+    // abortイベントリスナーを登録
+    request.signal.addEventListener("abort", handleAbort);
+
     // ストリームの設定
     const stream = new ReadableStream({
       start: async (controller) => {
-        // コネクションの登録
-        connectionManager.addConnection(auctionId, clientId, controller);
-        console.log("connectionManager.addConnection", auctionId, clientId, controller);
-
-        // 接続成功メッセージを送信
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "connection_established", clientId })}\n\n`));
-
-        // 最後のイベントID以降のイベントを送信（再接続時）
-        if (lastEventId > 0) {
-          const missedEvents = connectionManager.getEventsSince(auctionId, lastEventId);
-
-          if (missedEvents.length > 0) {
-            console.log(`クライアント ${clientId} に ${missedEvents.length} 件の未受信イベントを送信します`);
-
-            for (const event of missedEvents) {
-              controller.enqueue(encoder.encode(connectionManager.formatEventMessage(event)));
-            }
-          }
-        }
-
         // ハートビートタイマー設定
         const heartbeatInterval = setInterval(() => {
           try {
+            // コントローラーが閉じられているか、コネクションが無効になっていたら
+            // ハートビートを送信しない
+            if (isControllerClosed || !connectionManager.getConnectionCount(auctionId)) {
+              clearInterval(heartbeatInterval);
+              return;
+            }
             console.log("sse-heartbeat_start", controller);
-            // ↓のcontllerが渡されていないのでは？
-            controller.enqueue(encoder.encode(":heartbeat\n\n"));
+            controller.enqueue(encoder.encode(":\n\n"));
             console.log("sse-heartbeat_end", controller);
           } catch (error) {
             // エラーが発生した場合はタイマーをクリアして接続削除
             clearInterval(heartbeatInterval);
+            console.log("sse-heartbeat_clearInterval", controller);
+            isControllerClosed = true;
             connectionManager.removeConnection(auctionId, clientId);
+            console.log("sse-heartbeat_removeConnection", controller);
             console.log(`ハートビート中にエラーが発生したため接続を削除: ${clientId},${error}`);
           }
         }, HEARTBEAT_INTERVAL);
@@ -275,7 +382,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // 一定時間後にタイムアウト
         const timeoutId = setTimeout(() => {
           try {
-            controller.close();
+            if (!isControllerClosed) {
+              isControllerClosed = true;
+              controller.close();
+            }
             clearInterval(heartbeatInterval);
             connectionManager.removeConnection(auctionId, clientId);
             console.log(`SSEタイムアウト: ユーザー ${session.user?.id} のオークション ${auctionId} への接続がタイムアウトしました`);
@@ -284,21 +394,44 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }
         }, CONNECTION_TIMEOUT);
 
+        // コネクションの登録
+        connectionManager.addConnection(auctionId, clientId, controller, heartbeatInterval, timeoutId);
+        console.log("connectionManager.addConnection", auctionId, clientId, controller);
+
+        try {
+          // 接続成功メッセージを送信
+          const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify({ clientId })}\n\n`;
+          controller.enqueue(encoder.encode(connectionMessage));
+          console.log(`クライアント ${clientId} への接続確立メッセージを送信しました`);
+
+          // 最後のイベントID以降のイベントを送信（再接続時）
+          if (lastEventId > 0) {
+            const missedEvents = connectionManager.getEventsSince(auctionId, lastEventId);
+
+            if (missedEvents.length > 0) {
+              console.log(`クライアント ${clientId} に ${missedEvents.length} 件の未受信イベントを送信します`);
+
+              for (const event of missedEvents) {
+                if (!isControllerClosed) {
+                  controller.enqueue(encoder.encode(connectionManager.formatEventMessage(event)));
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("接続確立メッセージ送信中にエラーが発生しました:", error);
+          isControllerClosed = true;
+        }
+
         // クリーンアップ関数
         return () => {
           console.log("sse-cleanup", controller);
+          isControllerClosed = true;
           clearTimeout(timeoutId);
           clearInterval(heartbeatInterval);
           connectionManager.removeConnection(auctionId, clientId);
         };
       },
-    });
-
-    // クライアントが接続を閉じた時の処理
-    request.signal.addEventListener("abort", () => {
-      console.log("sse-abort", clientId);
-      connectionManager.removeConnection(auctionId, clientId);
-      console.log(`クライアントが接続を中断: ${clientId} (オークション: ${auctionId})`);
     });
 
     // レスポンスヘッダーの設定

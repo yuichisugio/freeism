@@ -29,12 +29,16 @@ export function useBidActions() {
     setWarningMessage(null);
 
     try {
+      console.log("入札APIリクエスト送信", bidData);
       const response = await fetch(`/api/auctions/${bidData.auctionId}/bid`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(bidData),
+        // シグナルなしでリクエストを送信（abortしない）
+        // デフォルトではNavigationのシグナルが使われることがあるため明示的に指定しない
+        signal: undefined,
       });
 
       const data = await response.json();
@@ -46,6 +50,7 @@ export function useBidActions() {
       }
 
       // 成功時
+      console.log("入札API成功レスポンス", data);
       if (data.bid) {
         setLastBid(data.bid);
       }

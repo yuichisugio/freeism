@@ -36,12 +36,17 @@ export default function BidForm({ auction, onCancelAction }: BidFormProps) {
     if (bidAmount < minBid) return;
 
     try {
+      console.log("入札処理開始");
       const success = await clientPlaceBid({
         auctionId: auction.id,
         amount: bidAmount,
       });
+      console.log("入札処理完了", success);
       if (success) {
-        onCancelAction(); // 入札成功後フォームを閉じる
+        // 少し遅延を入れてからフォームを閉じる
+        setTimeout(() => {
+          onCancelAction(); // 入札成功後フォームを閉じる
+        }, 300);
       }
     } catch (err) {
       console.error("入札エラー:", err);

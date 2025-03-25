@@ -50,7 +50,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
-  const { auction = initialAuction, bidHistory, loading, error } = useAuctionEvent(initialAuction);
+  const { auction = initialAuction, bidHistory, loading, error, lastReceivedMessage } = useAuctionEvent(initialAuction);
   if (!auction) {
     notFound();
   }
@@ -221,6 +221,14 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
   return (
     <div className="space-y-6">
+      {/* SSEデバッグ情報表示エリア */}
+      {lastReceivedMessage && (
+        <div className="overflow-x-auto rounded-md bg-slate-100 p-2 font-mono text-xs">
+          <p className="mb-1 font-semibold">最後に受信したSSEメッセージ:</p>
+          <pre className="break-all whitespace-pre-wrap">{lastReceivedMessage}</pre>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 左側: オークション画像 */}
         <div className="relative h-[150px] rounded-lg">
