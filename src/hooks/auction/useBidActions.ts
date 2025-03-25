@@ -17,18 +17,32 @@ export function useBidActions() {
   const [lastBid, setLastBid] = useState<BidHistoryWithUser | null>(null);
   // 警告メッセージ
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  // 入札処理中フラグ（グローバル状態管理用）
+  const [bidProcessInProgress, setBidProcessInProgress] = useState<boolean>(false);
 
   /**
    * 入札を実行
    * @param bidData 入札データ
+   * @param onBiddingStatusChange 入札状態変更時のコールバック（オプション）
    * @returns 入札成功時true, 失敗時false
    */
-  async function clientPlaceBid(bidData: BidFormData) {
+  async function clientPlaceBid(bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) {
     setSubmitting(true);
     setError(null);
     setWarningMessage(null);
+    setBidProcessInProgress(true);
+
+    // 外部コールバックがあれば入札開始を通知
+    if (onBiddingStatusChange) {
+      onBiddingStatusChange(true);
+    }
 
     try {
+      console.log("入札処理開始 - SSE接続保護モード有効");
+
+      // SSE保護用クッキーを設定（入札中であることをサーバーに伝える）
+      document.cookie = `bid_in_progress=${bidData.auctionId}; path=/; max-age=30; SameSite=Strict`;
+
       console.log("入札APIリクエスト送信", bidData);
       const response = await fetch(`/api/auctions/${bidData.auctionId}/bid`, {
         method: "POST",
@@ -37,8 +51,11 @@ export function useBidActions() {
         },
         body: JSON.stringify(bidData),
         // シグナルなしでリクエストを送信（abortしない）
-        // デフォルトではNavigationのシグナルが使われることがあるため明示的に指定しない
         signal: undefined,
+        // 重要: 既存のSSE接続を切断しないようにする
+        keepalive: true,
+        // キャッシュを無効化
+        cache: "no-store",
       });
 
       const data = await response.json();
@@ -70,7 +87,21 @@ export function useBidActions() {
       toast.error("入札処理中にエラーが発生しました");
       return false;
     } finally {
-      setSubmitting(false);
+      // 少し遅延させてから入札処理終了状態にする
+      setTimeout(() => {
+        setSubmitting(false);
+        setBidProcessInProgress(false);
+
+        // SSE保護用クッキーを削除
+        document.cookie = "bid_in_progress=; path=/; max-age=0; SameSite=Strict";
+
+        // 外部コールバックがあれば入札終了を通知
+        if (onBiddingStatusChange) {
+          onBiddingStatusChange(false);
+        }
+
+        console.log("入札処理完了 - SSE接続保護モード無効化");
+      }, 1000);
     }
   }
 
@@ -142,6 +173,7 @@ export function useBidActions() {
     error,
     lastBid,
     warningMessage,
+    bidProcessInProgress,
     clientPlaceBid,
     toggleWatchlist,
     getWatchlistStatus,

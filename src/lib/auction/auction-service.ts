@@ -1,8 +1,71 @@
 import type { Auction, BidHistory } from "@prisma/client";
+import { getConnectionManager } from "@/app/api/auctions/[auctionId]/sse-server-sent-events/route";
 import { prisma } from "@/lib/prisma";
 
-import type { AuctionWithDetails, BidFormData, BidHistoryWithUser, Auction as CustomAuction } from "./types";
+import type { AuctionWithDetails, BidFormData, BidHistoryWithUser, Auction as CustomAuction, EventHistoryItem } from "./types";
 import { DEFAULT_AUCTION_IMAGE_URL } from "./constants";
+import { AuctionEventType } from "./types";
+
+const connectionManager = getConnectionManager();
+
+/**
+ * 特定のオークションの全接続に対してイベントを送信
+ * @param auctionId オークションID
+ * @param type イベントタイプ
+ * @param data イベントデータ
+ * @returns イベント
+ */
+export function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: Record<string, any>): EventHistoryItem {
+  console.log("sendEventToAuctionSubscribers", auctionId, type, data);
+  return connectionManager.broadcastToAuction(auctionId, type, data);
+}
+
+/**
+ * オークション更新イベントの送信ヘルパー関数
+ * @param auctionId オークションID
+ * @param auction オークション情報
+ */
+export function sendAuctionUpdateEvent(auctionId: string, auction: Record<string, any>): EventHistoryItem {
+  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_UPDATE, { auction });
+}
+
+/**
+ * 新規入札イベントの送信ヘルパー関数
+ * @param auctionId オークションID
+ * @param bid 入札情報
+ * @param auction 更新されたオークション情報
+ */
+export function sendNewBidEvent(auctionId: string, bid: Record<string, any>, auction: Record<string, any>): EventHistoryItem {
+  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, { bid, auction });
+}
+
+/**
+ * オークション延長イベントの送信ヘルパー関数
+ * @param auctionId オークションID
+ * @param newEndTime 新しい終了時間
+ * @param auction 更新されたオークション情報
+ */
+export function sendAuctionExtensionEvent(auctionId: string, newEndTime: string, auction: Record<string, any>): EventHistoryItem {
+  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_EXTENSION, { newEndTime, auction });
+}
+
+/**
+ * オークション終了イベントの送信ヘルパー関数
+ * @param auctionId オークションID
+ * @param auction 最終的なオークション情報
+ */
+export function sendAuctionEndedEvent(auctionId: string, auction: Record<string, any>): EventHistoryItem {
+  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_ENDED, { auction });
+}
+
+/**
+ * エラーイベントの送信ヘルパー関数
+ * @param auctionId オークションID
+ * @param error エラーメッセージ
+ */
+export function sendErrorEvent(auctionId: string, error: string): EventHistoryItem {
+  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.ERROR, { error });
+}
 
 /**
  * Prismaモデルから@/types/auctionで定義されたAuction型に変換

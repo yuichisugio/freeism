@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { type BidFormProps } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
+
+import { useAuctionEventContext } from "../../../hooks/auction/useAuctionEventContext";
 
 /**
  * 入札フォーム
@@ -24,38 +26,64 @@ export default function BidForm({ auction, onCancelAction }: BidFormProps) {
   // 入札フォームのサブミットハンドラ
   const { clientPlaceBid, submitting, error } = useBidActions();
 
+  // SSE接続の保護状態を管理するためのコンテキストを取得
+  // このコンテキストがない場合は何もしない関数を用意
+  const auctionEventContext = useAuctionEventContext();
+  const setIsBidding = useMemo(() => auctionEventContext?.setIsBidding || (() => {}), [auctionEventContext]);
+
+  // コンポーネントのマウント時に処理状態をリセット
+  useEffect(() => {
+    // クリーンアップ関数（アンマウント時に呼ばれる）
+    return () => {
+      // 入札処理中フラグがまだtrueの場合には強制的にリセット
+      setIsBidding(false);
+      console.log("BidFormアンマウント: SSE保護状態をリセット");
+    };
+  }, [setIsBidding]);
+
   // 入札フォームのサブミットハンドラ
-  async function handleSubmit(e: React.FormEvent) {
-    // フォームのサブミットを防ぐ
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // オークションIDがない場合は処理を中断
-    if (!auction.id) return;
-
-    // 入札額が最低入札額未満の場合は処理を中断
-    if (bidAmount < minBid) return;
+    if (bidAmount < minBid) {
+      return;
+    }
 
     try {
-      console.log("入札処理開始");
-      const success = await clientPlaceBid({
-        auctionId: auction.id,
-        amount: bidAmount,
-      });
-      console.log("入札処理完了", success);
+      // 入札中の状態を設定する（先に設定することが重要）
+      setIsBidding(true);
+      console.log("入札処理開始 - SSE保護状態を設定:", true);
+
+      // 入札を実行（入札状態変更のコールバックを渡す）
+      const success = await clientPlaceBid(
+        {
+          auctionId: auction.id,
+          amount: bidAmount,
+        },
+        // 入札状態変更のコールバック
+        (isBidding) => {
+          console.log("入札状態変更:", isBidding);
+          setIsBidding(isBidding);
+        },
+      );
+
+      // 入札が成功した場合のみフォームを閉じる
       if (success) {
-        // 少し遅延を入れてからフォームを閉じる
-        setTimeout(() => {
-          onCancelAction(); // 入札成功後フォームを閉じる
-        }, 300);
+        // 入札成功後、キャンセルアクションを実行
+        onCancelAction();
       }
-    } catch (err) {
-      console.error("入札エラー:", err);
+    } catch (error) {
+      console.error("Bid failed:", error);
+    } finally {
+      // 念のため入札状態をリセット（通常はclientPlaceBidのコールバックで処理される）
+      console.log("入札処理完了 - SSE保護状態をリセット");
+      setIsBidding(false);
     }
-  }
+  };
 
   return (
     <Card>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <CardContent className="pt-4">
           <div className="space-y-4">
             <div>

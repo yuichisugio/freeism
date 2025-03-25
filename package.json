@@ -9,7 +9,6 @@
   },
   "scripts": {
     "dev": "next dev --turbopack",
-    "setup-node": "source $HOME/.nvm/nvm.sh && nvm use",
     "build": "next build",
     "start": "next start",
     "test": "vitest run --passWithNoTests",

@@ -1,12 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { serverPlaceBid } from "@/lib/auction/auction-service";
+import { sendEventToAuctionSubscribers, serverPlaceBid } from "@/lib/auction/auction-service";
 import { AuctionEventType } from "@/lib/auction/types";
 import { bidSchema } from "@/lib/auction/zod-schema";
 import { z } from "zod";
-
-import { sendEventToAuctionSubscribers } from "../sse-server-sent-events/route";
 
 /**
  * 入札処理を行うAPI
@@ -65,11 +63,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       });
     }
 
-    return NextResponse.json({
+    // 入札保護のために、レスポンスヘッダーを設定
+    const response = NextResponse.json({
       success: true,
       bid: result.bid,
       message: result.message,
     });
+
+    // SSE接続保護用のヘッダー
+    response.headers.set("X-SSE-Protection", "true");
+
+    return response;
   } catch (error) {
     console.error("入札エラー:", error);
 

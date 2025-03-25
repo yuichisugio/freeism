@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/useAuctionEvent";
+import { AuctionEventContext } from "@/hooks/auction/useAuctionEventContext";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
 import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
@@ -50,7 +51,8 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
-  const { auction = initialAuction, bidHistory, loading, error, lastReceivedMessage } = useAuctionEvent(initialAuction);
+  const { auction = initialAuction, bidHistory, loading, error, lastReceivedMessage, setIsBidding } = useAuctionEvent(initialAuction);
+
   if (!auction) {
     notFound();
   }
@@ -220,70 +222,72 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="space-y-6">
-      {/* SSEデバッグ情報表示エリア */}
-      {lastReceivedMessage && (
-        <div className="overflow-x-auto rounded-md bg-slate-100 p-2 font-mono text-xs">
-          <p className="mb-1 font-semibold">最後に受信したSSEメッセージ:</p>
-          <pre className="break-all whitespace-pre-wrap">{lastReceivedMessage}</pre>
-        </div>
-      )}
+    <AuctionEventContext.Provider value={{ setIsBidding }}>
+      <div className="space-y-6">
+        {/* SSEデバッグ情報表示エリア */}
+        {lastReceivedMessage && (
+          <div className="overflow-x-auto rounded-md bg-slate-100 p-2 font-mono text-xs">
+            <p className="mb-1 font-semibold">最後に受信したSSEメッセージ:</p>
+            <pre className="break-all whitespace-pre-wrap">{lastReceivedMessage}</pre>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* 左側: オークション画像 */}
-        <div className="relative h-[150px] rounded-lg">
-          <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title || "オークション画像"} fill className="object-cover" priority />
-        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* 左側: オークション画像 */}
+          <div className="relative h-[150px] rounded-lg">
+            <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title || "オークション画像"} fill className="object-cover" priority />
+          </div>
 
-        {/* 右側: オークション情報ヘッダー部分 */}
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-start justify-between">
-              <h1 className="text-2xl font-bold">{auction.title || "オークションタイトル"}</h1>
-              <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || auction.sellerId === currentUserId} className={isWatchlisted ? "text-red-500" : ""}>
-                <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
-              </Button>
+          {/* 右側: オークション情報ヘッダー部分 */}
+          <div className="space-y-6">
+            <div>
+              <div className="flex items-start justify-between">
+                <h1 className="text-2xl font-bold">{auction.title || "オークションタイトル"}</h1>
+                <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || auction.sellerId === currentUserId} className={isWatchlisted ? "text-red-500" : ""}>
+                  <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
+                </Button>
+              </div>
+              <p className="text-muted-foreground mt-1">{auction.task.creator.name || "不明なユーザー"}</p>
             </div>
-            <p className="text-muted-foreground mt-1">{auction.task.creator.name || "不明なユーザー"}</p>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <Badge variant={isAuctionEnded ? "destructive" : "secondary"}>{isAuctionEnded ? "終了" : "出品中"}</Badge>
-            {auction.task.group && (
-              <Badge key={auction.task.group.id} variant="outline">
-                {auction.task.group.name}
-              </Badge>
-            )}
+            <div className="flex items-center space-x-2">
+              <Badge variant={isAuctionEnded ? "destructive" : "secondary"}>{isAuctionEnded ? "終了" : "出品中"}</Badge>
+              {auction.task.group && (
+                <Badge key={auction.task.group.id} variant="outline">
+                  {auction.task.group.name}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* タブ切り替え部分 */}
+        <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4 grid grid-cols-4">
+            <TabsTrigger value="details">詳細</TabsTrigger>
+            <TabsTrigger value="bid-history">入札履歴</TabsTrigger>
+            <TabsTrigger value="qa">質問と回答</TabsTrigger>
+            <TabsTrigger value="shipping">配送・支払い</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="mt-0">
+            {renderDetailsTab()}
+          </TabsContent>
+
+          <TabsContent value="bid-history" className="mt-0">
+            {/* SSEで取得した入札履歴を渡す */}
+            {<BidHistory initialBids={bidHistory} />}
+          </TabsContent>
+
+          <TabsContent value="qa" className="mt-0">
+            {renderQaTab()}
+          </TabsContent>
+
+          <TabsContent value="shipping" className="mt-0">
+            {renderShippingTab()}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* タブ切り替え部分 */}
-      <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4 grid grid-cols-4">
-          <TabsTrigger value="details">詳細</TabsTrigger>
-          <TabsTrigger value="bid-history">入札履歴</TabsTrigger>
-          <TabsTrigger value="qa">質問と回答</TabsTrigger>
-          <TabsTrigger value="shipping">配送・支払い</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="details" className="mt-0">
-          {renderDetailsTab()}
-        </TabsContent>
-
-        <TabsContent value="bid-history" className="mt-0">
-          {/* SSEで取得した入札履歴を渡す */}
-          {<BidHistory initialBids={bidHistory} />}
-        </TabsContent>
-
-        <TabsContent value="qa" className="mt-0">
-          {renderQaTab()}
-        </TabsContent>
-
-        <TabsContent value="shipping" className="mt-0">
-          {renderShippingTab()}
-        </TabsContent>
-      </Tabs>
-    </div>
+    </AuctionEventContext.Provider>
   );
 }

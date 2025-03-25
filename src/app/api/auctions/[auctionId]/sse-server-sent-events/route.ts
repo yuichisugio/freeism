@@ -1,7 +1,7 @@
+import type { AuctionEventType } from "@/lib/auction/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { AuctionEventType } from "@/lib/auction/types";
 
 // 設定パラメータ
 const MAX_CONNECTIONS_PER_AUCTION = 1000; // オークションごとの最大接続数
@@ -222,6 +222,7 @@ class ConnectionManager {
 
     // オークションの購読者を取得
     const auctionClients = this.connections.get(auctionId);
+    console.log("broadcastToAuction_auctionClients", auctionClients);
 
     // オークションの購読者がいる場合
     if (auctionClients && auctionClients.size > 0) {
@@ -297,6 +298,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // 最後のイベントIDを取得
   const lastEventId = parseInt(url.searchParams.get("lastEventId") || "0", 10);
 
+  // 入札中フラグを取得
+  const bidInProgress = url.searchParams.get("bidInProgress") === "true";
+
+  // 接続の優先度を判定（入札中は高優先度）
+  const isHighPriorityConnection = bidInProgress;
+
+  console.log(`SSE接続確立中: ${clientId} (オークション: ${auctionId}, 優先度: ${isHighPriorityConnection ? "高" : "通常"})`);
+
   // 認証チェック
   const session = await auth();
 
@@ -340,14 +349,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // ストリームとエンコーダーの設定
     const encoder = new TextEncoder();
 
-    // コントローラーの状態管理用の変数
-    let isControllerClosed = false;
-
     // クライアントが接続を閉じた時の処理
     const handleAbort = () => {
-      console.log("sse-abort", clientId);
-      connectionManager.removeConnection(auctionId, clientId);
-      console.log(`クライアントが接続を中断: ${clientId} (オークション: ${auctionId})`);
+      try {
+        console.log("handleAbort_bidInProgress", bidInProgress);
+        // 入札中の場合は接続を維持する
+        if (bidInProgress) {
+          console.log(`クライアント ${clientId} は入札処理中のため、abort信号を無視します`);
+          return;
+        }
+
+        connectionManager.removeConnection(auctionId, clientId);
+      } catch (error) {
+        console.error(`クライアント ${clientId} のabortハンドリング中にエラーが発生:`, error);
+      }
     };
 
     // abortイベントリスナーを登録
@@ -361,7 +376,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           try {
             // コントローラーが閉じられているか、コネクションが無効になっていたら
             // ハートビートを送信しない
-            if (isControllerClosed || !connectionManager.getConnectionCount(auctionId)) {
+            if (!connectionManager.getConnectionCount(auctionId)) {
               clearInterval(heartbeatInterval);
               return;
             }
@@ -372,7 +387,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             // エラーが発生した場合はタイマーをクリアして接続削除
             clearInterval(heartbeatInterval);
             console.log("sse-heartbeat_clearInterval", controller);
-            isControllerClosed = true;
             connectionManager.removeConnection(auctionId, clientId);
             console.log("sse-heartbeat_removeConnection", controller);
             console.log(`ハートビート中にエラーが発生したため接続を削除: ${clientId},${error}`);
@@ -382,10 +396,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // 一定時間後にタイムアウト
         const timeoutId = setTimeout(() => {
           try {
-            if (!isControllerClosed) {
-              isControllerClosed = true;
-              controller.close();
-            }
+            controller.close();
             clearInterval(heartbeatInterval);
             connectionManager.removeConnection(auctionId, clientId);
             console.log(`SSEタイムアウト: ユーザー ${session.user?.id} のオークション ${auctionId} への接続がタイムアウトしました`);
@@ -412,21 +423,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               console.log(`クライアント ${clientId} に ${missedEvents.length} 件の未受信イベントを送信します`);
 
               for (const event of missedEvents) {
-                if (!isControllerClosed) {
-                  controller.enqueue(encoder.encode(connectionManager.formatEventMessage(event)));
-                }
+                controller.enqueue(encoder.encode(connectionManager.formatEventMessage(event)));
               }
             }
           }
         } catch (error) {
           console.error("接続確立メッセージ送信中にエラーが発生しました:", error);
-          isControllerClosed = true;
         }
 
         // クリーンアップ関数
         return () => {
           console.log("sse-cleanup", controller);
-          isControllerClosed = true;
           clearTimeout(timeoutId);
           clearInterval(heartbeatInterval);
           connectionManager.removeConnection(auctionId, clientId);
@@ -459,65 +466,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     );
   }
-}
-
-/**
- * 特定のオークションの全接続に対してイベントを送信
- * @param auctionId オークションID
- * @param type イベントタイプ
- * @param data イベントデータ
- * @returns イベント
- */
-export function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: Record<string, any>): EventHistoryItem {
-  console.log("sendEventToAuctionSubscribers", auctionId, type, data);
-  return connectionManager.broadcastToAuction(auctionId, type, data);
-}
-
-/**
- * オークション更新イベントの送信ヘルパー関数
- * @param auctionId オークションID
- * @param auction オークション情報
- */
-export function sendAuctionUpdateEvent(auctionId: string, auction: Record<string, any>): EventHistoryItem {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_UPDATE, { auction });
-}
-
-/**
- * 新規入札イベントの送信ヘルパー関数
- * @param auctionId オークションID
- * @param bid 入札情報
- * @param auction 更新されたオークション情報
- */
-export function sendNewBidEvent(auctionId: string, bid: Record<string, any>, auction: Record<string, any>): EventHistoryItem {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, { bid, auction });
-}
-
-/**
- * オークション延長イベントの送信ヘルパー関数
- * @param auctionId オークションID
- * @param newEndTime 新しい終了時間
- * @param auction 更新されたオークション情報
- */
-export function sendAuctionExtensionEvent(auctionId: string, newEndTime: string, auction: Record<string, any>): EventHistoryItem {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_EXTENSION, { newEndTime, auction });
-}
-
-/**
- * オークション終了イベントの送信ヘルパー関数
- * @param auctionId オークションID
- * @param auction 最終的なオークション情報
- */
-export function sendAuctionEndedEvent(auctionId: string, auction: Record<string, any>): EventHistoryItem {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_ENDED, { auction });
-}
-
-/**
- * エラーイベントの送信ヘルパー関数
- * @param auctionId オークションID
- * @param error エラーメッセージ
- */
-export function sendErrorEvent(auctionId: string, error: string): EventHistoryItem {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.ERROR, { error });
 }
 
 // GET以外のメソッドを禁止
