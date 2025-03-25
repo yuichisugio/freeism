@@ -68,70 +68,106 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * サーバーから受け取ったデータを処理するヘルパー関数
+   * auctionDataをinitialAuctionと同じ形式に変換し、ステートを更新
+   */
+  const processServerAuctionData = useCallback(
+    (auctionData: any, receivedClientId: string | null = null) => {
+      if (!auctionData) return;
+
+      console.log("SSE auctionData処理:", auctionData);
+
+      // サーバーから受け取ったauctionDataをinitialAuctionと同じ形式に変換
+      const processedAuction: AuctionWithDetails = {
+        ...auctionData,
+        // 必要に応じて不足プロパティを追加
+        options: {
+          reconnectOnVisibility: true,
+          bufferEvents: true,
+          clientId: receivedClientId || clientId,
+        },
+        // 日付オブジェクトを文字列から変換（必要な場合）
+        startTime: new Date(auctionData.startTime),
+        endTime: new Date(auctionData.endTime),
+        createdAt: new Date(auctionData.createdAt),
+        updatedAt: new Date(auctionData.updatedAt),
+      };
+
+      // 変換したデータをステートに設定
+      setAuction(processedAuction);
+
+      // 入札履歴があれば設定
+      if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
+        setBidHistory(auctionData.bidHistories);
+      }
+    },
+    [clientId],
+  );
+
   // イベントデータを処理する関数
-  const processEventData = useCallback((eventData: AuctionEventData) => {
-    // ローディング状態を解除する（どのイベントタイプでも）
-    setLoading(false);
+  const processEventData = useCallback(
+    (eventData: AuctionEventData) => {
+      // ローディング状態を解除する（どのイベントタイプでも）
+      setLoading(false);
 
-    // イベントタイプごとの処理
-    switch (eventData.type) {
-      case AuctionEventType.INITIAL:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-          // 新しい入札履歴があれば設定
-          if (eventData.data.auction.bidHistories) {
-            setBidHistory(eventData.data.auction.bidHistories as BidHistoryWithUser[]);
-          }
-        }
-        break;
-
-      case AuctionEventType.NEW_BID:
-        if (eventData.data.bid) {
-          // 既存の入札履歴の先頭に追加
-          setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
-
-          // オークション情報も更新
+      // イベントタイプごとの処理
+      switch (eventData.type) {
+        case AuctionEventType.INITIAL:
           if (eventData.data.auction) {
-            setAuction(eventData.data.auction);
+            processServerAuctionData(eventData.data.auction);
           }
-        }
-        break;
+          break;
 
-      case AuctionEventType.AUCTION_EXTENSION:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-          setEndTimeExtended(true);
-          // 3秒後に通知を非表示
-          setTimeout(() => setEndTimeExtended(false), 3000);
-        }
-        break;
+        case AuctionEventType.NEW_BID:
+          if (eventData.data.bid) {
+            // 既存の入札履歴の先頭に追加
+            setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
 
-      case AuctionEventType.AUCTION_ENDED:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-        }
-        break;
+            // オークション情報も更新
+            if (eventData.data.auction) {
+              processServerAuctionData(eventData.data.auction);
+            }
+          }
+          break;
 
-      case AuctionEventType.AUCTION_UPDATE:
-        if (eventData.data.auction) {
-          setAuction(eventData.data.auction);
-        }
-        break;
+        case AuctionEventType.AUCTION_EXTENSION:
+          if (eventData.data.auction) {
+            processServerAuctionData(eventData.data.auction);
+            setEndTimeExtended(true);
+            // 3秒後に通知を非表示
+            setTimeout(() => setEndTimeExtended(false), 3000);
+          }
+          break;
 
-      case AuctionEventType.CONNECTION_ESTABLISHED:
-        // 接続確立イベントを受け取ったらクライアントIDを更新
-        if (eventData.data.clientId) {
-          setClientId(eventData.data.clientId);
-        }
-        break;
+        case AuctionEventType.AUCTION_ENDED:
+          if (eventData.data.auction) {
+            processServerAuctionData(eventData.data.auction);
+          }
+          break;
 
-      case AuctionEventType.ERROR:
-        if (eventData.data.error) {
-          setError(eventData.data.error);
-        }
-        break;
-    }
-  }, []);
+        case AuctionEventType.AUCTION_UPDATE:
+          if (eventData.data.auction) {
+            processServerAuctionData(eventData.data.auction);
+          }
+          break;
+
+        case AuctionEventType.CONNECTION_ESTABLISHED:
+          // 接続確立イベントを受け取ったらクライアントIDを更新
+          if (eventData.data.clientId) {
+            setClientId(eventData.data.clientId);
+          }
+          break;
+
+        case AuctionEventType.ERROR:
+          if (eventData.data.error) {
+            setError(eventData.data.error);
+          }
+          break;
+      }
+    },
+    [processServerAuctionData],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -147,9 +183,15 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           // connection_established イベントの場合は clientId を更新
           if (event.data && event.data.clientId) {
             setClientId(event.data.clientId);
-            // 接続確立時にローディング状態を解除
-            setLoading(false);
           }
+
+          // auctionDataがある場合はそれを使用
+          if (event.data && event.data.auctionData) {
+            processServerAuctionData(event.data.auctionData, event.data.clientId);
+          }
+
+          // 接続確立時にローディング状態を解除
+          setLoading(false);
         } else {
           // その他のイベントを通常処理
           processEventData({
@@ -159,7 +201,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         }
       }
     },
-    [bufferEvents, processEventData],
+    [bufferEvents, processEventData, processServerAuctionData],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -257,9 +299,19 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         }
 
         // 接続確立メッセージの処理
-        if (event === ExtendedEventType.CONNECTION_ESTABLISHED && eventData.clientId) {
-          setClientId(eventData.clientId);
-          setLoading(false); // 接続確立時にローディング状態を解除
+        if (event === ExtendedEventType.CONNECTION_ESTABLISHED) {
+          // クライアントIDがある場合は更新
+          if (eventData.clientId) {
+            setClientId(eventData.clientId);
+          }
+
+          // auctionDataがある場合はそれを使用
+          if (eventData.auctionData) {
+            processServerAuctionData(eventData.auctionData, eventData.clientId);
+          }
+
+          // ローディング状態を解除
+          setLoading(false);
           return;
         }
 
@@ -274,7 +326,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.error(`SSEメッセージ処理中にエラーが発生しました:`, error);
       }
     },
-    [processEvent],
+    [processEvent, processServerAuctionData],
   );
 
   // SSEストリームを処理する関数
@@ -285,6 +337,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       }
 
       const reader = response.body?.getReader();
+
       if (!reader) {
         throw new Error("SSEレスポンスのBodyが取得できません");
       }
@@ -411,6 +464,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         params.append("lastEventId", lastEventId.toString());
       }
 
+      // オークションIDもクエリパラメータに追加
+      params.append("auctionId", auctionId);
+
       // URLの作成
       const url = `/api/auctions/${auctionId}/sse-server-sent-events${params.toString() ? `?${params.toString()}` : ""}`;
       console.log("SSE接続URL:", url);
@@ -432,21 +488,23 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           if (!response.ok) {
             throw new Error(`SSE接続に失敗しました: ${response.status} ${response.statusText}`);
           }
-          return handleSSEStream(response);
+          handleSSEStream(response);
         })
-        .catch((error) => {
-          if (error.name !== "AbortError") {
-            console.error("SSE接続の確立に失敗しました:", error);
+        .catch((err) => {
+          if ((err as Error).name !== "AbortError") {
+            console.error("SSE接続の確立に失敗しました:", err);
             setConnectionStatus("エラー");
             setError("リアルタイム更新を開始できませんでした");
             setLoading(false);
           }
         });
     } catch (err) {
-      console.error("SSE接続の確立に失敗しました:", err);
-      setConnectionStatus("エラー");
-      setError("リアルタイム更新を開始できませんでした");
-      setLoading(false);
+      if ((err as Error).name !== "AbortError") {
+        console.error("SSE接続の確立に失敗しました:", err);
+        setConnectionStatus("エラー");
+        setError("リアルタイム更新を開始できませんでした");
+        setLoading(false);
+      }
     }
   }, [auctionId, clientId, lastEventId, handleSSEStream]);
 
@@ -465,8 +523,15 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
               // connection_established イベントの場合は clientId を更新
               if (event.data && event.data.clientId) {
                 setClientId(event.data.clientId);
-                setLoading(false); // 接続確立時にローディング状態を解除
               }
+
+              // auctionDataがある場合はそれを使用
+              if (event.data && event.data.auctionData) {
+                processServerAuctionData(event.data.auctionData, event.data.clientId);
+              }
+
+              // 接続確立時にローディング状態を解除
+              setLoading(false);
             } else {
               // その他のイベントを通常処理
               processEventData({
@@ -485,7 +550,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         bufferIntervalRef.current = null;
       }
     };
-  }, [bufferEvents, processEventData]);
+  }, [bufferEvents, processEventData, processServerAuctionData]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

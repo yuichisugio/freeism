@@ -12,7 +12,6 @@ import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
  */
 export default function BidHistory({ initialBids = [] }: BidHistoryProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  console.log("initialBids", initialBids);
   const [bids] = useState<BidHistoryWithUser[]>(initialBids);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

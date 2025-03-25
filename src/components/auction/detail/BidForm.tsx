@@ -46,9 +46,6 @@ export default function BidForm({ auction, onCancelAction }: BidFormProps) {
       }
     } catch (error) {
       console.error("Bid failed:", error);
-    } finally {
-      // 念のため入札状態をリセット（通常はclientPlaceBidのコールバックで処理される）
-      console.log("入札処理完了 - SSE保護状態をリセット");
     }
   };
 

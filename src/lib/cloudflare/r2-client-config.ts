@@ -9,8 +9,9 @@ export const clientR2Config = {
 };
 
 /**
- * 画像アップロード機能が有効かどうかを確認（クライアントサイド用）
+ * R2（Cloudflare）が有効かどうかを確認する関数
+ * @returns R2が有効かどうか
  */
 export function isR2Enabled(): boolean {
-  return clientR2Config.isEnabled;
+  return !!process.env.NEXT_PUBLIC_CLOUDFLARE_R2_ENABLED === true;
 }

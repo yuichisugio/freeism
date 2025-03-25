@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getWatchlistStatusAction, placeBidAction, toggleWatchlistAction } from "@/app/actions/auction";
 import { type BidFormData, type BidHistoryWithUser } from "@/lib/auction/types";
 import { toast } from "sonner";
 
@@ -38,51 +39,39 @@ export function useBidActions() {
     }
 
     try {
-      console.log("入札処理開始 - SSE接続保護モード有効");
+      console.log("入札サーバーアクション実行", bidData);
 
-      // SSE保護用クッキーを設定（入札中であることをサーバーに伝える）
-      document.cookie = `bid_in_progress=${bidData.auctionId}; path=/; max-age=30; SameSite=Strict`;
+      // サーバーアクションを呼び出し
+      const result = await placeBidAction(bidData.auctionId, bidData);
 
-      console.log("入札APIリクエスト送信", bidData);
-      const response = await fetch(`/api/auctions/${bidData.auctionId}/bid`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bidData),
-        // シグナルなしでリクエストを送信（abortしない）
-        signal: undefined,
-        // 重要: 既存のSSE接続を切断しないようにする
-        keepalive: true,
-        // キャッシュを無効化
-        cache: "no-store",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "入札に失敗しました");
-        toast.error(data.error || "入札に失敗しました");
+      if (!result.success) {
+        setError(result.message || "入札に失敗しました");
+        toast.error(result.message || "入札に失敗しました");
         return false;
       }
 
       // 成功時
-      console.log("入札API成功レスポンス", data);
-      if (data.bid) {
-        setLastBid(data.bid);
+      console.log("入札サーバーアクション成功レスポンス", result);
+      if (result.bid) {
+        // Date型からstring型に変換
+        const bidWithStringDate = {
+          ...result.bid,
+          createdAt: result.bid.createdAt.toISOString(),
+        };
+        setLastBid(bidWithStringDate as BidHistoryWithUser);
       }
 
       // 警告メッセージがある場合は設定
-      if (data.message) {
-        setWarningMessage(data.message);
-        toast.warning(data.message);
+      if (result.message) {
+        setWarningMessage(result.message);
+        toast.warning(result.message);
       } else {
         toast.success("入札が完了しました");
       }
 
       return true;
     } catch (err) {
-      console.error("入札API呼び出しエラー:", err);
+      console.error("入札サーバーアクション呼び出しエラー:", err);
       setError("入札処理中にエラーが発生しました");
       toast.error("入札処理中にエラーが発生しました");
       return false;
@@ -92,15 +81,12 @@ export function useBidActions() {
         setSubmitting(false);
         setBidProcessInProgress(false);
 
-        // SSE保護用クッキーを削除
-        document.cookie = "bid_in_progress=; path=/; max-age=0; SameSite=Strict";
-
         // 外部コールバックがあれば入札終了を通知
         if (onBiddingStatusChange) {
           onBiddingStatusChange(false);
         }
 
-        console.log("入札処理完了 - SSE接続保護モード無効化");
+        console.log("入札処理完了");
       }, 1000);
     }
   }
@@ -112,29 +98,24 @@ export function useBidActions() {
    */
   async function toggleWatchlist(auctionId: string) {
     try {
-      // ウォッチリストの切り替え
-      const response = await fetch(`/api/auctions/${auctionId}/watchlist`, {
-        method: "POST",
-      });
+      // ウォッチリストの切り替え（サーバーアクション）
+      const result = await toggleWatchlistAction(auctionId);
 
-      // レスポンスデータ
-      const data = await response.json();
-
-      // レスポンスが成功しない場合
-      if (!response.ok) {
-        toast.error(data.error || "ウォッチリストの更新に失敗しました");
+      // 結果が正常でない場合
+      if (!result.success) {
+        toast.error(result.message || "ウォッチリストの更新に失敗しました");
         return null;
       }
 
       // ウォッチリストに追加した場合
-      if (data.isWatched) {
+      if (result.isWatched) {
         toast.success("ウォッチリストに追加しました");
       } else {
         // ウォッチリストから削除した場合
         toast.success("ウォッチリストから削除しました");
       }
 
-      return data.isWatched;
+      return result.isWatched;
     } catch (err) {
       console.error("ウォッチリストAPI呼び出しエラー:", err);
       toast.error("ウォッチリストの更新中にエラーが発生しました");
@@ -149,19 +130,16 @@ export function useBidActions() {
    */
   async function getWatchlistStatus(auctionId: string) {
     try {
-      // ウォッチリストの状態を取得
-      const response = await fetch(`/api/auctions/${auctionId}/watchlist`);
+      // ウォッチリストの状態を取得（サーバーアクション）
+      const result = await getWatchlistStatusAction(auctionId);
 
-      // レスポンスが成功しない場合
-      if (!response.ok) {
+      // 結果が正常でない場合
+      if (!result.success) {
         return false;
       }
 
-      // レスポンスデータ
-      const data = await response.json();
-
       // ウォッチリストの状態を返す
-      return data.isWatched;
+      return result.isWatched;
     } catch (err) {
       console.error("ウォッチリスト状態取得エラー:", err);
       return false;

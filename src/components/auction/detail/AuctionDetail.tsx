@@ -26,7 +26,6 @@ import { CountdownDisplay } from "./CountdownDisplay";
  * @returns オークション詳細ページ
  */
 export default function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
-  console.log("initialAuction", initialAuction);
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札フォームの表示状態
@@ -93,7 +92,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
     if (!auction.id) return;
     try {
       const newStatus = await toggleWatchlist(auction.id);
-      setIsWatchlisted(newStatus);
+      setIsWatchlisted(newStatus || false);
     } catch (err) {
       console.error("ウォッチリスト更新エラー:", err);
     }

@@ -1,10 +1,31 @@
 "use server";
 
+import type { BidFormData, BidHistoryWithUser } from "@/lib/auction/types";
 import { cache } from "react";
+// import { DateTime } from "luxon";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+// import { notifyNewBid } from "@/lib/auction/auction-notification";
+// import { clerkClient } from "@clerk/nextjs";
+import { isAdminUser } from "@/lib/admin/utils";
+import { sendEventToAuctionSubscribers, serverIsAuctionWatched, serverPlaceBid, serverToggleWatchlist } from "@/lib/auction/auction-service";
 import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
+import { AuctionEventType } from "@/lib/auction/types";
+import { uploadFile } from "@/lib/cloudflare/upload";
+import { validateImageFiles } from "@/lib/images/image-validator";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
+import { z } from "zod";
+
+// import { db } from "@/db";
+// import {
+//   auctionSchema,
+//   auctionPatchSchema,
+//   type AuctionFormData,
+//   type AuctionDetailWithUserAndBids,
+// } from "@/lib/auction/types";
+// import { getAuction, processAuctionData } from "@/lib/auction/auction-service";
 
 // フィルタリングパラメータの型定義
 export type AuctionFilterParams = {
@@ -374,5 +395,135 @@ export async function toggleWatchlist(auctionId: string) {
       },
     });
     return { isWatched: true };
+  }
+}
+
+/**
+ * 入札を行うサーバーアクション
+ * @param auctionId オークションID
+ * @param bidData 入札データ
+ * @returns 入札結果（成功/失敗、メッセージ、入札履歴）
+ */
+export async function placeBidAction(auctionId: string, bidData: BidFormData) {
+  // 認証セッションを取得
+  const session = await auth();
+  if (!session || !session.user) {
+    return {
+      success: false,
+      message: "ログインが必要です",
+    };
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    return {
+      success: false,
+      message: "ユーザーIDが取得できません",
+    };
+  }
+
+  try {
+    // bidDataにuser_idを追加
+    const updatedBidData = {
+      ...bidData,
+      user_id: userId,
+    };
+
+    // サーバー側の入札処理を実行
+    const result = await serverPlaceBid(auctionId, updatedBidData, userId);
+
+    // 入札成功時の通知は既存の実装に任せる
+
+    return result;
+  } catch (error) {
+    console.error("入札サーバーアクションエラー:", error);
+    return {
+      success: false,
+      message: "サーバーでエラーが発生しました",
+    };
+  }
+}
+
+/**
+ * ウォッチリストの切り替えを行うサーバーアクション
+ * @param auctionId オークションID
+ * @returns 操作結果（成功/失敗、メッセージ、ウォッチリスト状態）
+ */
+export async function toggleWatchlistAction(auctionId: string) {
+  // 認証セッションを取得
+  const session = await auth();
+  if (!session || !session.user) {
+    return {
+      success: false,
+      message: "ログインが必要です",
+      isWatched: null,
+    };
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    return {
+      success: false,
+      message: "ユーザーIDが取得できません",
+      isWatched: null,
+    };
+  }
+
+  try {
+    // ウォッチリストの切り替え処理を実行
+    const isWatched = await serverToggleWatchlist(auctionId, userId);
+
+    return {
+      success: true,
+      isWatched,
+      message: isWatched ? "ウォッチリストに追加しました" : "ウォッチリストから削除しました",
+    };
+  } catch (error) {
+    console.error("ウォッチリスト切り替えエラー:", error);
+    return {
+      success: false,
+      message: "ウォッチリストの更新中にエラーが発生しました",
+      isWatched: null,
+    };
+  }
+}
+
+/**
+ * ウォッチリストの状態を取得するサーバーアクション
+ * @param auctionId オークションID
+ * @returns ウォッチリストの状態
+ */
+export async function getWatchlistStatusAction(auctionId: string) {
+  // 認証セッションを取得
+  const session = await auth();
+  if (!session || !session.user) {
+    return {
+      success: false,
+      isWatched: false,
+    };
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    return {
+      success: false,
+      isWatched: false,
+    };
+  }
+
+  try {
+    // ウォッチリストの状態を確認
+    const isWatched = await serverIsAuctionWatched(auctionId, userId);
+
+    return {
+      success: true,
+      isWatched,
+    };
+  } catch (error) {
+    console.error("ウォッチリスト状態取得エラー:", error);
+    return {
+      success: false,
+      isWatched: false,
+    };
   }
 }

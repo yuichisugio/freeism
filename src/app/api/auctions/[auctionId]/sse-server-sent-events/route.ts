@@ -2,6 +2,7 @@ import type { AuctionEventType } from "@/lib/auction/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getAuctionByAuctionId } from "@/lib/auction/auction-service";
 
 // 設定パラメータ
 const MAX_CONNECTIONS_PER_AUCTION = 1000; // オークションごとの最大接続数
@@ -275,7 +276,7 @@ export function getConnectionManager(): ConnectionManager {
   return globalConnectionManager;
 }
 
-// 使用時
+// コネクションマネージャーのインスタンスを取得
 const connectionManager = getConnectionManager();
 
 /**
@@ -298,13 +299,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // 最後のイベントIDを取得
   const lastEventId = parseInt(url.searchParams.get("lastEventId") || "0", 10);
 
-  // 入札中フラグを取得
-  const bidInProgress = url.searchParams.get("bidInProgress") === "true";
+  // URLからオークションIDを取得（パスパラメータと一致するか確認用）
+  const queryAuctionId = url.searchParams.get("auctionId");
 
-  // 接続の優先度を判定（入札中は高優先度）
-  const isHighPriorityConnection = bidInProgress;
+  console.log(`SSE接続確立中: ${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId})`);
 
-  console.log(`SSE接続確立中: ${clientId} (オークション: ${auctionId}, 優先度: ${isHighPriorityConnection ? "高" : "通常"})`);
+  // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
+  if (queryAuctionId && queryAuctionId !== auctionId) {
+    console.warn(`警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`);
+  }
 
   // 認証チェック
   const session = await auth();
@@ -352,12 +355,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // クライアントが接続を閉じた時の処理
     const handleAbort = () => {
       try {
-        console.log("handleAbort_bidInProgress", bidInProgress);
-        // 入札中の場合は接続を維持する
-        if (bidInProgress) {
-          console.log(`クライアント ${clientId} は入札処理中のため、abort信号を無視します`);
-          return;
-        }
+        console.log("handleAbort");
 
         connectionManager.removeConnection(auctionId, clientId);
       } catch (error) {
@@ -367,6 +365,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // abortイベントリスナーを登録
     request.signal.addEventListener("abort", handleAbort);
+
+    console.log("auctionId", auctionId);
+    const auctionData = await getAuctionByAuctionId(auctionId);
+    console.log("auctionData", auctionData);
 
     // ストリームの設定
     const stream = new ReadableStream({
@@ -411,7 +413,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         try {
           // 接続成功メッセージを送信
-          const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify({ clientId })}\n\n`;
+          const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify({ auctionData, clientId })}\n\n`;
           controller.enqueue(encoder.encode(connectionMessage));
           console.log(`クライアント ${clientId} への接続確立メッセージを送信しました`);
 
@@ -468,8 +470,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // GET以外のメソッドを禁止
-export async function POST() {
-  return new NextResponse(null, { status: 405 });
+export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
+  // GETリクエストと同じロジックをコールする（HTTPメソッドの違いによる混乱を避けるため）
+  return GET(request, { params });
 }
 
 export async function PUT() {

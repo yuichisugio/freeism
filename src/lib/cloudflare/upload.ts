@@ -1,54 +1,79 @@
-"use client";
+"use server";
 
-// サーバーサイド機能は別のファイルにインポートされるため、ここではインポートしない
-// import { createR2Client, getR2BucketName, getR2PublicUrl } from "./r2-client";
-// 代わりにクライアントサイド用の設定をインポート
-import { isR2Enabled } from "./r2-client-config";
+// アップロード関連の定数を定義
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-// 画像MIMEタイプの列挙型
-export enum ImageMimeType {
+enum ImageMimeType {
   JPEG = "image/jpeg",
-  JPG = "image/jpg",
   PNG = "image/png",
-  WEBP = "image/webp",
   GIF = "image/gif",
-  AVIF = "image/avif",
+  WEBP = "image/webp",
 }
 
-// 画像拡張子の列挙型。列挙型は、列挙型の名前.プロパティ名でアクセスする。
-export enum ImageExtension {
-  JPEG = "jpg",
-  JPG = "jpg",
-  PNG = "png",
-  WEBP = "webp",
-  GIF = "gif",
-  AVIF = "avif",
-}
+const isImageUploadEnabled = () => {
+  return process.env.ENABLE_IMAGE_UPLOAD === "true";
+};
 
-// 共通のロギング関数
-export const logger = {
-  warn: (message: string, ...args: any[]) => {
-    console.warn(`[R2 Service] ${message}`, ...args);
-  },
-  error: (message: string, ...args: any[]) => {
-    console.error(`[R2 Service] ${message}`, ...args);
-  },
-  info: (message: string, ...args: any[]) => {
-    console.info(`[R2 Service] ${message}`, ...args);
-  },
+const logger = {
+  warn: (message: string) => console.warn(message),
+  error: (message: string, error?: any) => console.error(message, error),
 };
 
 /**
- * 画像アップロード機能が有効かどうかを確認（クライアントサイド用）
+ * Cloudflareにファイルをアップロードする関数
+ * @param file アップロードするファイル
+ * @param options アップロードオプション
+ * @returns アップロード結果
  */
-export function isImageUploadEnabled(): boolean {
-  // process.env.NEXT_PUBLIC_* 形式の環境変数のみクライアントサイドでアクセス可能
-  return isR2Enabled();
+export async function uploadFile(file: File, options?: { path?: string; filename?: string }): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    if (!process.env.CLOUDFLARE_ENDPOINT || !process.env.CLOUDFLARE_ACCOUNT_ID || !process.env.CLOUDFLARE_API_TOKEN) {
+      console.error("Cloudflare環境変数が設定されていません");
+      return { success: false, error: "ストレージ設定が不完全です" };
+    }
+
+    // ここにCloudflare Images APIを使用したファイルアップロード処理を実装
+    // 以下は例示用のコードです
+    const formData = new FormData();
+    formData.append("file", file);
+
+    if (options?.path) {
+      formData.append("path", options.path);
+    }
+
+    if (options?.filename) {
+      formData.append("filename", options.filename);
+    }
+
+    const endpoint = `${process.env.CLOUDFLARE_ENDPOINT}/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Cloudflareアップロードエラー:", data);
+      return { success: false, error: data.errors?.[0]?.message || "アップロードエラー" };
+    }
+
+    return {
+      success: true,
+      url: data.result?.variants?.[0] || data.result?.variants?.[0] || "",
+    };
+  } catch (error) {
+    console.error("ファイルアップロードエラー:", error);
+    return { success: false, error: "アップロード処理中にエラーが発生しました" };
+  }
 }
 
 /**
  * 署名付きアップロードURLを生成するためのAPIエンドポイントを呼び出す
- * クライアントサイドから使用するメソッド
  * @param fileType アップロードするファイルのMIMEタイプ
  * @param fileName オプションのファイル名（指定しない場合はUUIDを生成）
  * @returns 署名付きURLと、アップロード後のパブリックURLのオブジェクト
@@ -91,20 +116,3 @@ export async function getSignedUploadUrl(
     return null;
   }
 }
-
-/**
- * アップロードできる画像タイプの配列
- */
-export const ACCEPTED_IMAGE_TYPES: Record<ImageMimeType, string[]> = {
-  [ImageMimeType.JPEG]: [".jpg", ".jpeg"],
-  [ImageMimeType.JPG]: [".jpg", ".jpeg"],
-  [ImageMimeType.PNG]: [".png"],
-  [ImageMimeType.WEBP]: [".webp"],
-  [ImageMimeType.GIF]: [".gif"],
-  [ImageMimeType.AVIF]: [".avif"],
-};
-
-/**
- * 最大ファイルサイズ（5MB）
- */
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
