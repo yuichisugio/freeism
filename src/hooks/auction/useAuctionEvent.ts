@@ -32,10 +32,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   // 最後に受信したSSEメッセージ（デバッグ用）
   const [lastReceivedMessage, setLastReceivedMessage] = useState<string | null>(null);
-  // 入札処理中フラグ（接続安定性向上のため追加）
-  const [isBidding, setIsBidding] = useState<boolean>(false);
-  // 接続保護期間フラグ（接続を一時的に保護する期間）
-  const isConnectionProtectedRef = useRef<boolean>(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -91,12 +87,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       case AuctionEventType.NEW_BID:
         if (eventData.data.bid) {
-          // 入札保護期間を設定（新しい入札イベントがきたら3秒間は接続を保護）
-          isConnectionProtectedRef.current = true;
-          setTimeout(() => {
-            isConnectionProtectedRef.current = false;
-          }, 3000);
-
           // 既存の入札履歴の先頭に追加
           setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
 
@@ -178,12 +168,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const disconnect = useCallback(() => {
     console.log("disconnect called from", new Error().stack);
 
-    // 入札処理中またはBid/保護期間中は接続を維持
-    if (isBidding || isConnectionProtectedRef.current) {
-      console.log("入札処理中または保護期間中のため接続を維持します");
-      return;
-    }
-
     // 接続を中断
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -207,30 +191,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
     setConnectionStatus("切断");
     console.log("SSE接続を切断しました");
-  }, [isBidding]);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 再接続関数
   const reconnect = useCallback(() => {
-    // 入札処理中または保護期間中は再接続を遅延
-    if (isBidding || isConnectionProtectedRef.current) {
-      console.log("入札処理中または保護期間中のため再接続を遅延します");
-
-      // 既存の再接続タイマーをクリア
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-      }
-
-      // 3秒後に再接続を試みる
-      reconnectTimerRef.current = setTimeout(() => {
-        console.log("遅延再接続を実行します");
-        reconnect();
-      }, 3000);
-
-      return;
-    }
-
     console.log("SSE接続を手動で再接続します");
     disconnect();
 
@@ -240,7 +206,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         connectRef.current();
       }
     }, 300);
-  }, [disconnect, isBidding]);
+  }, [disconnect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -383,12 +349,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // 接続関数
   const connect = useCallback(() => {
-    // 入札処理中は接続をスキップ
-    if (isBidding) {
-      console.log("入札処理中のため接続処理をスキップします");
-      return;
-    }
-
     // 短時間に何度も再接続しないようにする
     const now = Date.now();
     if (now - lastReconnectTimeRef.current < 1000) {
@@ -451,11 +411,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         params.append("lastEventId", lastEventId.toString());
       }
 
-      // 入札中フラグを追加
-      if (isBidding) {
-        params.append("bidInProgress", "true");
-      }
-
       // URLの作成
       const url = `/api/auctions/${auctionId}/sse-server-sent-events${params.toString() ? `?${params.toString()}` : ""}`;
       console.log("SSE接続URL:", url);
@@ -493,7 +448,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       setError("リアルタイム更新を開始できませんでした");
       setLoading(false);
     }
-  }, [auctionId, clientId, lastEventId, isBidding, handleSSEStream]);
+  }, [auctionId, clientId, lastEventId, handleSSEStream]);
 
   // バッファ処理のインターバル設定
   useEffect(() => {
@@ -562,12 +517,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   useEffect(() => {
     if (reconnectOnVisibility) {
       const handleVisibilityChange = () => {
-        // 入札処理中はビジビリティによる接続・切断を無視
-        if (isBidding || isConnectionProtectedRef.current) {
-          console.log("入札処理中または保護期間中のためビジビリティ変更を無視します");
-          return;
-        }
-
         if (document.visibilityState === "visible" && !isConnectedRef.current) {
           console.log("ページが表示されたため、SSE接続を再開します");
           if (connectRef.current) {
@@ -585,7 +534,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
     }
-  }, [reconnectOnVisibility, disconnect, isBidding]);
+  }, [reconnectOnVisibility, disconnect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -601,6 +550,5 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     reconnect, // 手動で再接続するための関数
     disconnect, // 手動で切断するための関数
     lastReceivedMessage, // 最後に受信したSSEメッセージ（デバッグ用）
-    setIsBidding, // 入札処理中フラグの設定関数（外部から設定できるように公開）
   };
 }

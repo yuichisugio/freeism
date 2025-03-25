@@ -70,9 +70,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       message: result.message,
     });
 
-    // SSE接続保護用のヘッダー
-    response.headers.set("X-SSE-Protection", "true");
-
     return response;
   } catch (error) {
     console.error("入札エラー:", error);

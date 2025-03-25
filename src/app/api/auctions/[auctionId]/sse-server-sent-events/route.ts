@@ -447,7 +447,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
-        "X-Accel-Buffering": "no", // Nginxバッファリングの無効化
       },
     });
   } catch (error) {
