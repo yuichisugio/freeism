@@ -23,7 +23,7 @@ const SEED_CONFIG = {
 };
 
 // 保持する固定ユーザーID
-const PRESERVED_USER_IDS = ["cm8ftmmtg0000mccb2pwdzd6n"];
+const PRESERVED_USER_IDS = ["cm8ftmmtg0000mccb2pwdzd6n", "cm8odp55e0004mckyvhfo8ezy"];
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
@@ -1222,7 +1222,7 @@ async function main() {
 
     // 7. オークション関連データの作成
     const auctions = await createAuctions(tasks, users);
-    const bidHistories = await createBidHistories(auctions, users);
+    await createBidHistories(auctions, users);
     await createAutoBids(auctions, users);
     await createAuctionNotifications(auctions, users);
     await createAuctionReviews(auctions);
