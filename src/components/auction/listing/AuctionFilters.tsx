@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { getUserGroups } from "@/lib/auction/action";
+import { getUserGroups } from "@/lib/auction/action/user";
 import { Filter } from "lucide-react";
 
 type AuctionFiltersProps = {

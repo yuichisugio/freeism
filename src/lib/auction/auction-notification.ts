@@ -1,8 +1,7 @@
 "use server";
 
+import { sendNewBidEvent } from "@/lib/auction/action/connection";
 import { prisma } from "@/lib/prisma";
-
-import { sendNewBidEvent } from "./action";
 
 /**
  * 新規入札通知を行う関数

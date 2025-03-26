@@ -1,5 +1,3 @@
-"use server";
-
 import { type AuctionReview, type AuctionStatus, type Task } from "@prisma/client";
 
 // フィルタリングパラメータの型定義

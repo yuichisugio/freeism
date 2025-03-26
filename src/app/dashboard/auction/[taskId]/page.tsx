@@ -3,7 +3,7 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getAuctionWithTask } from "@/lib/auction/action";
+import { getAuctionWithTask } from "@/lib/auction/action/auction-retrieve";
 
 import AuctionDetailWrapper from "./client";
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { getWatchlistStatusAction, placeBidAction, toggleWatchlistAction } from "@/lib/auction/action";
+import { placeBidAction } from "@/lib/auction/action/bid";
+import { getWatchlistStatusAction, toggleWatchlistAction } from "@/lib/auction/action/watchlist";
 import { type BidFormData, type BidHistoryWithUser } from "@/lib/auction/types";
 import { toast } from "sonner";
 

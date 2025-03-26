@@ -9,7 +9,8 @@ import CustomPagination from "@/components/ui/CustomPagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/auction/useDebounce";
-import { getAuctionCategories, getAuctionListings, getAuctionPageSize, toggleWatchlist } from "@/lib/auction/action";
+import { getAuctionCategories, getAuctionListings, getAuctionPageSize } from "@/lib/auction/action/auction-listing";
+import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 import { DISPLAY } from "@/lib/auction/constants";
 
 // オークション商品一覧
