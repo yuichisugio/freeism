@@ -12,9 +12,11 @@ let connectionManagerInstance: any = null;
  */
 export async function getConnectionManagerInstance() {
   if (!connectionManagerInstance) {
+    console.log("action/connection: Loading ConnectionManager for the first time");
     // 必要になった時点で動的にインポート
     const { getConnectionManager } = await import("@/app/api/auctions/[auctionId]/sse-server-sent-events/route");
     connectionManagerInstance = getConnectionManager();
+    console.log("action/connection: ConnectionManager instance loaded:", connectionManagerInstance ? "success" : "failed");
   }
   return connectionManagerInstance;
 }
