@@ -414,9 +414,60 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
     // サーバー側の入札処理を実行
     const result = await serverPlaceBid(auctionId, updatedBidData, userId);
 
-    // 入札成功時の通知は既存の実装に任せる
-    await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, result);
+    // 入札成功時にオークション情報を取得して通知データに追加
+    if (result.success && result.bid) {
+      // 最新のオークション情報を取得
+      const updatedAuction = await prisma.auction.findUnique({
+        where: { id: auctionId },
+        include: {
+          task: {
+            include: {
+              creator: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+              group: true,
+            },
+          },
+          bidHistories: {
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+          watchlists: true,
+        },
+      });
 
+      // オークション情報を通知データに追加
+      if (updatedAuction) {
+        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, {
+          bid: result.bid,
+          auction: updatedAuction,
+        });
+      } else {
+        // 通常の通知（オークション情報なし）
+        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, result);
+      }
+
+      // 結果にオークション情報を追加して返す
+      return {
+        ...result,
+        auction: updatedAuction,
+      };
+    }
+
+    // 入札失敗時は元の結果をそのまま返す
     return result;
   } catch (error) {
     console.error("入札サーバーアクションエラー:", error);

@@ -1,14 +1,14 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionSortOption } from "@/app/actions/auction";
+import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types";
 import React, { useEffect, useState } from "react";
-import { getUserGroups } from "@/app/actions/auction";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { getUserGroups } from "@/lib/auction/action";
 import { Filter } from "lucide-react";
 
 type AuctionFiltersProps = {

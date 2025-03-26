@@ -2,16 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { sendNewBidEvent } from "./auction-service";
+import { sendNewBidEvent } from "./action";
 
 /**
  * 新規入札通知を行う関数
  * @param auctionId オークションID
  * @param bidId 入札ID
- * @param userId 入札ユーザーID
  * @returns 通知処理の結果
  */
-export async function notifyNewBid(auctionId: string, bidId: string, userId: string): Promise<{ success: boolean }> {
+export async function notifyNewBid(auctionId: string, bidId: string): Promise<{ success: boolean }> {
   try {
     // 入札情報を取得
     const bid = await prisma.bidHistory.findUnique({

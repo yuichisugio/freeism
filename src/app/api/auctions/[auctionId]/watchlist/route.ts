@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/auction-service";
+import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action";
 
 /**
  * ウォッチリストの状態を取得

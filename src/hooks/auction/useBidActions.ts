@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getWatchlistStatusAction, placeBidAction, toggleWatchlistAction } from "@/app/actions/auction";
+import { getWatchlistStatusAction, placeBidAction, toggleWatchlistAction } from "@/lib/auction/action";
 import { type BidFormData, type BidHistoryWithUser } from "@/lib/auction/types";
 import { toast } from "sonner";
 
@@ -39,6 +39,11 @@ export function useBidActions() {
 
     try {
       console.log("入札サーバーアクション実行", bidData);
+
+      // bidData.auctionIdがない場合、エラーを投げる
+      if (!bidData.auctionId) {
+        throw new Error("オークションIDが指定されていません");
+      }
 
       // サーバーアクションを呼び出し
       const result = await placeBidAction(bidData.auctionId, bidData);
@@ -92,7 +97,12 @@ export function useBidActions() {
    * @param auctionId オークションID
    * @returns ウォッチリストの状態
    */
-  async function toggleWatchlist(auctionId: string) {
+  async function toggleWatchlist(auctionId: string | undefined) {
+    if (!auctionId) {
+      toast.error("オークションIDが指定されていません");
+      return null;
+    }
+
     try {
       // ウォッチリストの切り替え（サーバーアクション）
       const result = await toggleWatchlistAction(auctionId);
@@ -124,7 +134,11 @@ export function useBidActions() {
    * @param auctionId オークションID
    * @returns ウォッチリストの状態
    */
-  async function getWatchlistStatus(auctionId: string) {
+  async function getWatchlistStatus(auctionId: string | undefined) {
+    if (!auctionId) {
+      return false;
+    }
+
     try {
       // ウォッチリストの状態を取得（サーバーアクション）
       const result = await getWatchlistStatusAction(auctionId);

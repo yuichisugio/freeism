@@ -2,7 +2,7 @@ import type { AuctionEventType } from "@/lib/auction/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getAuctionByAuctionId } from "@/lib/auction/auction-service";
+import { getAuctionByAuctionId } from "@/lib/auction/action";
 
 // 設定パラメータ
 const MAX_CONNECTIONS_PER_AUCTION = 1000; // オークションごとの最大接続数
@@ -209,14 +209,14 @@ class ConnectionManager {
    * @returns イベント履歴
    */
   broadcastToAuction(auctionId: string, type: AuctionEventType, data: Record<string, any>): EventHistoryItem {
-    console.log("broadcastToAuction", auctionId, type, data);
+    console.log("broadcastToAuction");
     // イベントを履歴に追加
     const event = this.addEventToHistory(auctionId, type, data);
 
     // イベントメッセージを送信用のフォーマット
     const eventMessage = this.formatEventMessage(event);
 
-    console.log("broadcastToAuction_eventMessage", eventMessage);
+    console.log("broadcastToAuction_eventMessage\n", eventMessage);
 
     // エンコードされたメッセージを取得
     const encodedEventMessage = this.encoder.encode(eventMessage);

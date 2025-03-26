@@ -85,6 +85,11 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
     }
   }, [auction.id, getWatchlistStatus, initialFetchDone]);
 
+  // オークション情報の変更を監視
+  useEffect(() => {
+    console.log("AuctionDetail: auction updated", auction);
+  }, [auction]);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリストボタンのクリックハンドラ
@@ -111,11 +116,11 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-sm">現在価格</p>
-                  <p className="text-2xl font-bold">{formatCurrency(auction.currentHighestBid)}</p>
+                  <p className="text-2xl font-bold">{formatCurrency(auction.currentHighestBid || 0)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm">入札数</p>
-                  <p>{auction.bidHistories.length || 0}</p>
+                  <p>{bidHistory.length || 0}</p>
                 </div>
               </div>
             </CardContent>
