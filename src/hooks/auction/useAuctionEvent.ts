@@ -119,28 +119,39 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           break;
 
         case AuctionEventType.NEW_BID:
-          if (eventData.data.bid) {
-            // 既存の入札履歴の先頭に追加
-            setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
+          console.log("NEW_BID イベント受信:", eventData);
 
-            // オークション情報も更新
-            if (eventData.data.auction) {
-              processServerAuctionData(eventData.data.auction);
-            } else if (eventData.data.bid) {
-              // 入札情報からオークション情報を更新（サーバーがオークション全体を送らない場合の対応）
-              setAuction((prev: AuctionWithDetails | undefined) => {
-                if (!prev) return prev;
-                // 入札額が現在の最高額より高い場合のみ更新
-                const bidAmount = (eventData.data.bid as BidHistoryWithUser).amount;
-                if (bidAmount > prev.currentHighestBid) {
-                  return {
-                    ...prev,
-                    currentHighestBid: bidAmount,
-                  };
-                }
-                return prev;
-              });
-            }
+          // 1. 入札データがある場合は入札履歴に追加
+          if (eventData.data.bid) {
+            setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
+          }
+
+          // 2. データ構造を分析して適切な方法でオークション情報を更新
+          // データ自体にオークション情報（id, currentHighestBidなど）が含まれている場合
+          if ("id" in eventData.data && "currentHighestBid" in eventData.data) {
+            console.log("オークション情報が直接含まれています - 全体を更新");
+            processServerAuctionData(eventData.data);
+          }
+          // auction子オブジェクトにオークション情報が含まれている場合
+          else if (eventData.data.auction) {
+            console.log("auction子オブジェクトからオークション情報を更新");
+            processServerAuctionData(eventData.data.auction);
+          }
+          // 入札情報のみ含まれている場合
+          else if (eventData.data.bid) {
+            console.log("入札情報のみから最低限の情報を更新");
+            setAuction((prev: AuctionWithDetails | undefined) => {
+              if (!prev) return prev;
+              const bidAmount = (eventData.data.bid as BidHistoryWithUser).amount;
+              if (bidAmount > (prev.currentHighestBid || 0)) {
+                return {
+                  ...prev,
+                  currentHighestBid: bidAmount,
+                  currentHighestBidderId: (eventData.data.bid as BidHistoryWithUser).userId,
+                };
+              }
+              return prev;
+            });
           }
           break;
 
@@ -149,8 +160,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           if (eventData.data.clientId) {
             setClientId(eventData.data.clientId);
           }
-          // 追加：接続確立時にオークションデータがあれば更新
-          if (eventData.data.auction) {
+          // 接続確立時にオークションデータがあれば更新
+          if ("auctionData" in eventData.data) {
+            processServerAuctionData(eventData.data.auctionData);
+          } else if ("auction" in eventData.data) {
             processServerAuctionData(eventData.data.auction);
           }
           break;
@@ -164,18 +177,27 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         case AuctionEventType.AUCTION_EXTENSION:
           if (eventData.data.auction) {
             processServerAuctionData(eventData.data.auction);
+          } else if ("id" in eventData.data) {
+            // データ自体がオークション情報の場合
+            processServerAuctionData(eventData.data);
           }
           break;
 
         case AuctionEventType.AUCTION_ENDED:
           if (eventData.data.auction) {
             processServerAuctionData(eventData.data.auction);
+          } else if ("id" in eventData.data) {
+            // データ自体がオークション情報の場合
+            processServerAuctionData(eventData.data);
           }
           break;
 
         case AuctionEventType.AUCTION_UPDATE:
           if (eventData.data.auction) {
             processServerAuctionData(eventData.data.auction);
+          } else if ("id" in eventData.data) {
+            // データ自体がオークション情報の場合
+            processServerAuctionData(eventData.data);
           }
           break;
       }
