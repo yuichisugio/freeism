@@ -458,50 +458,50 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // 接続関数
   const connect = useCallback(() => {
-    // 短時間に何度も再接続しないようにする
-    const now = Date.now();
-    if (now - lastReconnectTimeRef.current < 1000) {
-      // 1秒以内
-      console.log("再接続試行が頻繁すぎるため、スキップします");
+    // // 短時間に何度も再接続しないようにする
+    // const now = Date.now();
+    // if (now - lastReconnectTimeRef.current < 1000) {
+    //   // 1秒以内
+    //   console.log("再接続試行が頻繁すぎるため、スキップします");
 
-      // 一定回数以上の再接続試行があった場合は、より長い間隔で再試行
-      reconnectAttemptsRef.current++;
-      if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
-        console.log(`再接続試行回数が上限(${MAX_RECONNECT_ATTEMPTS}回)を超えました。しばらく待機します`);
+    //   // 一定回数以上の再接続試行があった場合は、より長い間隔で再試行
+    //   reconnectAttemptsRef.current++;
+    //   if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
+    //     console.log(`再接続試行回数が上限(${MAX_RECONNECT_ATTEMPTS}回)を超えました。しばらく待機します`);
 
-        // 既存のタイマーをクリア
-        if (reconnectTimerRef.current) {
-          clearTimeout(reconnectTimerRef.current);
-        }
+    //     // 既存のタイマーをクリア
+    //     if (reconnectTimerRef.current) {
+    //       clearTimeout(reconnectTimerRef.current);
+    //     }
 
-        // より長い間隔で再試行
-        reconnectTimerRef.current = setTimeout(() => {
-          console.log("再接続カウンターをリセットして再試行します");
-          reconnectAttemptsRef.current = 0;
-          connect();
-        }, RECONNECT_RESET_TIME);
+    //     // より長い間隔で再試行
+    //     reconnectTimerRef.current = setTimeout(() => {
+    //       console.log("再接続カウンターをリセットして再試行します");
+    //       reconnectAttemptsRef.current = 0;
+    //       connect();
+    //     }, RECONNECT_RESET_TIME);
 
-        // 再接続試行回数が上限を超えた場合、ローディング状態を解除
-        setLoading(false);
-        return;
-      }
+    //     // 再接続試行回数が上限を超えた場合、ローディング状態を解除
+    //     setLoading(false);
+    //     return;
+    //   }
 
-      // 少し待ってから再試行
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-      }
-      reconnectTimerRef.current = setTimeout(
-        () => {
-          connect();
-        },
-        1000 + reconnectAttemptsRef.current * 500,
-      ); // 徐々に間隔を広げる
+    //   // 少し待ってから再試行
+    //   if (reconnectTimerRef.current) {
+    //     clearTimeout(reconnectTimerRef.current);
+    //   }
+    //   reconnectTimerRef.current = setTimeout(
+    //     () => {
+    //       connect();
+    //     },
+    //     1000 + reconnectAttemptsRef.current * 500,
+    //   ); // 徐々に間隔を広げる
 
-      return;
-    }
+    //   return;
+    // }
 
-    // 再接続試行時間を更新
-    lastReconnectTimeRef.current = now;
+    // // 再接続試行時間を更新
+    // lastReconnectTimeRef.current = now;
 
     // 既存の接続をクリーンアップ
     if (abortControllerRef.current) {
@@ -649,6 +649,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // connectRef に connect 関数を格納
   useEffect(() => {
     connectRef.current = connect;
+    console.log("connectRef.current", connectRef.current);
   }, [connect]);
 
   // 初期化処理
