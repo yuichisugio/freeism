@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser, ConnectionStatus, EventHistoryItem } from "@/lib/auction/types";
+import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser, EventHistoryItem } from "@/lib/auction/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BUFFER_INTERVAL } from "@/lib/auction/constants";
 import { AuctionEventType } from "@/lib/auction/types";
@@ -13,7 +13,6 @@ const ExtendedEventType = {
 /**
  * オークションSSEを購読するカスタムフック（拡張版）
  * @param initialAuction 初期オークションデータ
- * @param options 追加オプション
  * @returns オークション情報、入札履歴、接続状態、ユーティリティ関数
  */
 export function useAuctionEvent(initialAuction: AuctionWithDetails) {
@@ -27,10 +26,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const [loading, setLoading] = useState<boolean>(true);
   // エラー
   const [error, setError] = useState<string | null>(initialAuction ? null : "オークションデータが見つかりません");
-  // オークション延長通知
-  const [endTimeExtended, setEndTimeExtended] = useState<boolean>(false);
-  // 接続状態
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(initialAuction ? "初期化中" : "エラー");
   // イベントID
   const [lastEventId, setLastEventId] = useState<number>(0);
   // クライアントID
@@ -44,14 +39,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const isConnectedRef = useRef<boolean>(false);
   // fetch APIのコントローラー
   const abortControllerRef = useRef<AbortController | null>(null);
-
   // 接続関数
   const connectRef = useRef<(() => void) | undefined>();
-
   // バッチ処理するインターバル時間を管理するref
-  const bufferIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  // バッチ処理するために、Eventを貯めているState
-  const eventBufferRef = useRef<EventHistoryItem[]>([]);
+  const batchIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // バッチ処理するために、Eventを貯めているRef
+  const batchPoolRef = useRef<EventHistoryItem[]>([]);
   // 接続を再確立する予約タイマー
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
   // 接続試行回数
@@ -63,7 +56,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const auctionId = initialAuction.id;
 
   // オプション
-  const { reconnectOnVisibility = true, bufferEvents = true } = initialAuction.options || {};
+  const { reconnectOnVisibility = true, batchMode = true } = initialAuction.options || {};
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -86,7 +79,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         // 必要に応じて不足プロパティを追加
         options: {
           reconnectOnVisibility: true,
-          bufferEvents: true,
+          batchMode: true,
           clientId: receivedClientId || clientId,
         },
         // 日付オブジェクトを文字列から変換（必要な場合）
@@ -108,7 +101,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     [clientId, initialAuction],
   );
 
-  // イベントデータを処理する関数
+  /**
+   * イベントデータを処理する関数
+   * @param eventData イベントデータ
+   */
   const processEventData = useCallback(
     (eventData: AuctionEventData) => {
       // ローディング状態を解除する（どのイベントタイプでも）
@@ -148,27 +144,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           }
           break;
 
-        case AuctionEventType.AUCTION_EXTENSION:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-            setEndTimeExtended(true);
-            // 3秒後に通知を非表示
-            setTimeout(() => setEndTimeExtended(false), 3000);
-          }
-          break;
-
-        case AuctionEventType.AUCTION_ENDED:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-          }
-          break;
-
-        case AuctionEventType.AUCTION_UPDATE:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-          }
-          break;
-
         case AuctionEventType.CONNECTION_ESTABLISHED:
           // 接続確立イベントを受け取ったらクライアントIDを更新
           if (eventData.data.clientId) {
@@ -185,6 +160,24 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             setError(eventData.data.error);
           }
           break;
+
+        case AuctionEventType.AUCTION_EXTENSION:
+          if (eventData.data.auction) {
+            processServerAuctionData(eventData.data.auction);
+          }
+          break;
+
+        case AuctionEventType.AUCTION_ENDED:
+          if (eventData.data.auction) {
+            processServerAuctionData(eventData.data.auction);
+          }
+          break;
+
+        case AuctionEventType.AUCTION_UPDATE:
+          if (eventData.data.auction) {
+            processServerAuctionData(eventData.data.auction);
+          }
+          break;
       }
     },
     [processServerAuctionData],
@@ -192,48 +185,41 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // イベントをバッチ処理するために、貯めておく関数
+  /**
+   * イベントをバッチ処理するために、貯めておく関数
+   * @param event イベント
+   */
   const processEvent = useCallback(
     (event: EventHistoryItem) => {
-      if (bufferEvents) {
-        // バッファリングモードの場合、バッファに追加
-        eventBufferRef.current.push(event);
+      // バッチ処理を行うモード以外 or 即時実行する場合
+      if (!batchMode || event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
+        setClientId(event.data.clientId);
+
+        processEventData({
+          type: event.type as AuctionEventType,
+          data: event.data,
+        });
+
+        // 接続確立時にローディング状態を解除
+        setLoading(false);
       } else {
-        // 即時処理モード
-        if (event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
-          // connection_established イベントの場合は clientId を更新
-          if (event.data && event.data.clientId) {
-            setClientId(event.data.clientId);
-          }
-
-          // auctionDataがある場合はそれを使用
-          if (event.data && event.data.auctionData) {
-            processServerAuctionData(event.data.auctionData, event.data.clientId);
-          }
-
-          // 接続確立時にローディング状態を解除
-          setLoading(false);
-        } else {
-          // その他のイベントを通常処理
-          processEventData({
-            type: event.type as AuctionEventType,
-            data: event.data,
-          });
-        }
+        // バッチ処理のPoolに追加
+        batchPoolRef.current.push(event);
       }
     },
-    [bufferEvents, processEventData, processServerAuctionData],
+    [batchMode, processEventData],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 切断関数
+  /**
+   * 切断関数
+   */
   const disconnect = useCallback(() => {
     console.log("disconnect called from", new Error().stack);
 
     // 接続状態を先に更新して非同期処理を保護
     isConnectedRef.current = false;
-    setConnectionStatus("切断");
 
     // 接続を中断（少し遅延を入れて非同期処理の完了を待つ）
     setTimeout(() => {
@@ -243,9 +229,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       }
 
       // バッファインターバルをクリア
-      if (bufferIntervalRef.current) {
-        clearInterval(bufferIntervalRef.current);
-        bufferIntervalRef.current = null;
+      if (batchIntervalRef.current) {
+        clearInterval(batchIntervalRef.current);
+        batchIntervalRef.current = null;
       }
 
       // 再接続タイマーをクリア
@@ -260,7 +246,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 再接続関数
+  /**
+   * 再接続関数
+   */
   const reconnect = useCallback(() => {
     console.log("SSE接続を手動で再接続します");
     disconnect();
@@ -275,10 +263,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // SSEイベントを処理する関数
+  /**
+   * SSEイベントを処理する関数
+   * @param text SSEメッセージ
+   */
   const processSSEEvent = useCallback(
     (text: string) => {
-      console.log("SSE_processSSEEvent_text", text);
+      console.log("processSSEEvent_start", text);
+
       // SSEメッセージを解析
       const lines = text.split("\n");
       let event = "message";
@@ -296,12 +288,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       }
 
       console.log(`SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}`);
-
-      // データが空の場合はハートビートなどの特殊メッセージとして扱い、そのまま処理を終了
-      if (!data) {
-        console.log("SSEハートビートメッセージを受信しました");
-        return;
-      }
 
       // デバッグ用に最後に受信したメッセージを保存
       setLastReceivedMessage(
@@ -362,35 +348,34 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     [processEvent, processServerAuctionData],
   );
 
-  // SSEストリームを処理する関数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * SSEストリームを処理する関数
+   * @param response レスポンス
+   */
   const handleSSEStream = useCallback(
     async (response: Response) => {
-      if (!response.ok) {
-        setLoading(false); // エラー時にローディング状態を解除
-        throw new Error(`SSE接続に失敗しました: ${response.status} ${response.statusText}`);
-      }
-
       console.log("SSEストリームの処理を開始します");
+      // レスポンスのBodyを取得
       const reader = response.body?.getReader();
 
+      // レスポンスのBodyが取得できない場合はエラー
       if (!reader) {
         setLoading(false); // リーダー取得エラー時にローディング状態を解除
         throw new Error("SSEレスポンスのBodyが取得できません");
       }
 
-      console.log("SSEストリームリーダーを取得しました");
+      // テキストデコーダーを作成
       const decoder = new TextDecoder();
+      // バッファを初期化
       let buffer = "";
 
       try {
         // 接続状態の更新
         isConnectedRef.current = true;
-        setConnectionStatus("接続中");
         console.log("SSE接続状態を「接続中」に設定しました");
-        setLoading(false); // 接続成功時にローディング状態を解除
-        if (error) {
-          setError(null);
-        }
+        setLoading(false);
 
         // 接続成功したらカウンターをリセット
         reconnectAttemptsRef.current = 0;
@@ -402,27 +387,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
             if (done) {
               console.log("SSEストリームが終了しました");
-              setLoading(false); // ストリーム終了時にローディング状態を解除
+              setLoading(false);
               break;
             }
 
             // バッファに追加して処理
             buffer += decoder.decode(value, { stream: true });
-            console.log("SSEストリームからデータを受信しました:", buffer.length, "バイト");
-
-            // イベントの区切り文字 '\n\n' でメッセージを分割
-            const messages = buffer.split("\n\n");
-            buffer = messages.pop() || ""; // 最後の部分は完全なメッセージでない可能性があるのでバッファに残す
-
-            console.log(`SSEストリームから${messages.length}件のメッセージを分割しました`);
-
-            // 完全なメッセージを処理
-            for (const message of messages) {
-              if (message.trim() && isConnectedRef.current) {
-                console.log("SSEメッセージを処理します:", message.substring(0, 50) + (message.length > 50 ? "..." : ""));
-                processSSEEvent(message);
-              }
-            }
+            console.log("SSEストリームからデータを受信しました:", buffer.length, "バイト\n", buffer);
+            processSSEEvent(buffer);
           } catch (readError) {
             // 読み取り中のエラーをキャッチして、AbortErrorなら静かに終了
             if ((readError as Error).name === "AbortError") {
@@ -437,7 +409,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       } catch (err: unknown) {
         if ((err as Error).name !== "AbortError") {
           console.error("SSEストリーム処理中にエラーが発生しました:", err);
-          setConnectionStatus("エラー");
           setError("リアルタイム更新の接続が切断されました。再接続しています...");
           setLoading(false); // エラー時にローディング状態を解除
 
@@ -461,34 +432,30 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         setLoading(false); // 最終的にローディング状態を解除
       }
     },
-    [error, processSSEEvent],
+    [processSSEEvent],
   );
 
-  // 接続関数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 接続関数
+   */
   const connect = useCallback(() => {
     // 既存の接続をクリーンアップ
     if (abortControllerRef.current) {
-      // 即座にabortせず、少し待ってから
       const controller = abortControllerRef.current;
       abortControllerRef.current = null;
       controller.abort();
     }
 
-    // 接続タイムアウト処理（30秒後にloading解除）
-    const connectionTimeout = setTimeout(() => {
-      if (loading) {
-        console.log("接続タイムアウト - ローディング状態を解除します");
-        setLoading(false);
-        setConnectionStatus("タイムアウト");
-      }
-    }, 30000);
-
     try {
       // URLパラメータの構築
       const params = new URLSearchParams();
+      // clientIdがある場合はクエリパラメータに追加
       if (clientId) {
         params.append("clientId", clientId);
       }
+      // lastEventIdがある場合はクエリパラメータに追加
       if (lastEventId > 0) {
         params.append("lastEventId", lastEventId.toString());
       }
@@ -508,7 +475,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       setTimeout(() => {
         // この時点でabortControllerRefがnullになっていたら、その間に別の処理が入ったということ
         if (!abortControllerRef.current) {
-          clearTimeout(connectionTimeout);
           return;
         }
 
@@ -524,10 +490,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           },
         })
           .then((response) => {
-            clearTimeout(connectionTimeout); // タイムアウトクリア
             console.log(`SSE接続レスポンス:`, response.status, response.statusText);
 
             if (!response.ok) {
+              setLoading(false);
               throw new Error(`SSE接続に失敗しました: ${response.status} ${response.statusText}`);
             }
 
@@ -535,39 +501,41 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             handleSSEStream(response);
           })
           .catch((err) => {
-            clearTimeout(connectionTimeout); // タイムアウトクリア
-
             if ((err as Error).name !== "AbortError") {
               console.error("SSE接続の確立に失敗しました:", err);
-              setConnectionStatus("エラー");
               setError("リアルタイム更新を開始できませんでした");
               setLoading(false);
             }
           });
       }, 100);
     } catch (err) {
-      clearTimeout(connectionTimeout); // タイムアウトクリア
-
       if ((err as Error).name !== "AbortError") {
         console.error("SSE接続の確立に失敗しました:", err);
-        setConnectionStatus("エラー");
         setError("リアルタイム更新を開始できませんでした");
         setLoading(false);
       }
     }
-  }, [auctionId, clientId, lastEventId, handleSSEStream, loading]);
+  }, [auctionId, clientId, lastEventId, handleSSEStream]);
 
-  // バッファ処理のインターバル設定
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * バッファ処理(バッチ処理)を行うインターバル設定
+   */
   useEffect(() => {
-    if (bufferEvents) {
-      bufferIntervalRef.current = setInterval(() => {
-        if (eventBufferRef.current.length > 0) {
-          // バッファ内のイベントを処理
-          const events = [...eventBufferRef.current];
-          eventBufferRef.current = [];
+    // バッチ処理を行うモードの場合は、Intervalを設定
+    if (batchMode) {
+      // IntervalのIDを、refに保存
+      batchIntervalRef.current = setInterval(() => {
+        // バッファ内にイベントがある場合
+        if (batchPoolRef.current.length > 0) {
+          // バッファ内のイベントを取り出して、バッファの中身をゼロにする
+          const events = [...batchPoolRef.current];
+          batchPoolRef.current = [];
 
-          // 各イベントを処理
+          // バッチ処理のPool内の各イベントをひとつづつ処理
           for (const event of events) {
+            // イベントのタイプに応じた処理
             if (event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
               // connection_established イベントの場合は clientId を更新
               if (event.data && event.data.clientId) {
@@ -582,7 +550,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
               // 接続確立時にローディング状態を解除
               setLoading(false);
             } else {
-              // その他のイベントを通常処理
+              // その他のtypeのイベントを通常処理
               processEventData({
                 type: event.type as AuctionEventType,
                 data: event.data,
@@ -593,31 +561,32 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       }, BUFFER_INTERVAL);
     }
 
+    // バッファ処理(バッチ処理)を行うIntervalをクリーンアップ
     return () => {
-      if (bufferIntervalRef.current) {
-        clearInterval(bufferIntervalRef.current);
-        bufferIntervalRef.current = null;
+      if (batchIntervalRef.current) {
+        clearInterval(batchIntervalRef.current);
+        batchIntervalRef.current = null;
       }
     };
-  }, [bufferEvents, processEventData, processServerAuctionData]);
+  }, [batchMode, processEventData, processServerAuctionData]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // connectRef に connect 関数を格納
+  /**
+   * connectRef に connect 関数を格納
+   */
   useEffect(() => {
     connectRef.current = connect;
     console.log("connectRef.current", connectRef.current);
   }, [connect]);
 
-  // 初期化処理
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 初期化処理
+   */
   useEffect(() => {
     console.log("useAuctionEvent: 初期化処理開始");
-
-    // 初期データがあればそれを使用
-    if (initialAuction) {
-      setAuction(initialAuction);
-      setBidHistory((initialAuction.bidHistories as BidHistoryWithUser[]) || []);
-    }
 
     // 接続を確立
     connect();
@@ -626,11 +595,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     return () => {
       disconnect();
     };
-  }, [initialAuction, connect, disconnect]);
+  }, [connect, disconnect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ページビジビリティの変更を監視
+  /**
+   * ページビジビリティの変更を監視
+   */
   useEffect(() => {
     if (reconnectOnVisibility) {
       const handleVisibilityChange = () => {
@@ -672,8 +643,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     bidHistory, // 入札履歴
     loading, // ローディング状態
     error, // エラー
-    endTimeExtended, // オークション延長通知
-    connectionStatus, // 接続状態
     clientId, // クライアントID
     lastEventId, // 最後に受信したイベントID
     reconnect, // 手動で再接続するための関数

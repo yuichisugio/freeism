@@ -140,7 +140,7 @@ export type AuctionWithDetails = {
   watchlists?: any[];
   options?: {
     reconnectOnVisibility?: boolean; // ページが表示されたときに再接続
-    bufferEvents?: boolean; // イベントをバッファリング
+    batchMode?: boolean; // イベントをバッファリング
     clientId?: string; // カスタムクライアントID
   };
 };
