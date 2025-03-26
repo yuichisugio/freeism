@@ -1,16 +1,18 @@
 "use server";
 
+import type { ConnectionManager } from "@/app/api/auctions/[auctionId]/sse-server-sent-events/route";
+
 import type { EventHistoryItem } from "../types";
 import { AuctionEventType } from "../types";
 
 // 遅延初期化用の変数
-let connectionManagerInstance: any = null;
+let connectionManagerInstance: ConnectionManager | null = null;
 
 /**
  * ConnectionManagerを遅延ロードする
  * @returns ConnectionManagerインスタンス
  */
-export async function getConnectionManagerInstance() {
+export async function getConnectionManagerInstance(): Promise<ConnectionManager> {
   if (!connectionManagerInstance) {
     console.log("action/connection: Loading ConnectionManager for the first time");
     // 必要になった時点で動的にインポート

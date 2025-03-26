@@ -37,6 +37,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // 接続状態を管理するための参照
   const isConnectedRef = useRef<boolean>(false);
+  // fetch APIのコントローラー
+  const abortControllerRef = useRef<AbortController | null>(null);
   // 接続関数
   const connectRef = useRef<(() => void) | undefined>();
   // バッチ処理するインターバル時間を管理するref
@@ -66,7 +68,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    */
   const processServerAuctionData = useCallback(
     (auctionData: any, receivedClientId: string | null = null) => {
-      // データがない場合はスキップ
       if (!auctionData) return;
 
       console.log("SSE_processServerAuctionData_auctionData", auctionData);
@@ -95,7 +96,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       // 入札履歴があれば設定
       if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
         setBidHistory(auctionData.bidHistories);
-        console.log("SSE_processServerAuctionData_setBidHistory", auctionData.bidHistories);
       }
     },
     [clientId, initialAuction],
@@ -223,6 +223,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
     // 接続を中断（少し遅延を入れて非同期処理の完了を待つ）
     setTimeout(() => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+
       // バッファインターバルをクリア
       if (batchIntervalRef.current) {
         clearInterval(batchIntervalRef.current);
@@ -266,32 +271,23 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     (text: string) => {
       console.log("processSSEEvent_start", text);
 
-      // \nで区切った配列に変換
+      // SSEメッセージを解析
       const lines = text.split("\n");
-
-      // イベントタイプ、データ、イベントIDを格納する変数を用意
       let event = "message";
       let data = "";
       let id = "";
 
-      // メッセージを解析
       for (const line of lines) {
-        // event:で始まる場合
         if (line.startsWith("event:")) {
-          // 文頭から6文字を抜いた文字を作成。event:の後ろの文字列を取得
           event = line.substring(6).trim();
-          // data:で始まる場合
         } else if (line.startsWith("data:")) {
-          // 文頭から5文字を抜いた文字を作成。data:の後ろの文字列を取得
           data = line.substring(5).trim();
-          // id:で始まる場合
         } else if (line.startsWith("id:")) {
-          // 文頭から4文字を抜いた文字を作成。id:の後ろの文字列を取得
           id = line.substring(3).trim();
         }
       }
 
-      console.log(`SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length}`);
+      console.log(`SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}`);
 
       // デバッグ用に最後に受信したメッセージを保存
       setLastReceivedMessage(
@@ -308,11 +304,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         const eventData = JSON.parse(data);
         console.log("SSE_processSSEEvent_type:", event, "eventData:", eventData);
 
-        // イベントIDがある場合
+        // イベントIDの設定
         if (id) {
-          // イベントIDを整数に変換
           const eventId = parseInt(id, 10);
-          // 整数に変換できない場合はスキップ
           if (!isNaN(eventId)) {
             setLastEventId(eventId);
             console.log(`イベントIDを更新しました: ${eventId}`);
@@ -447,6 +441,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * 接続関数
    */
   const connect = useCallback(() => {
+    // 既存の接続をクリーンアップ
+    if (abortControllerRef.current) {
+      const controller = abortControllerRef.current;
+      abortControllerRef.current = null;
+      controller.abort();
+    }
+
     try {
       // URLパラメータの構築
       const params = new URLSearchParams();
@@ -467,8 +468,16 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       const url = `${baseUrl}?${params.toString()}`;
       console.log("SSE接続URL:", url);
 
+      // 中断用のコントローラーを作成
+      abortControllerRef.current = new AbortController();
+
       // 接続試行前に少し待機（メッセージチャネルが完全に閉じるのを待つ）
       setTimeout(() => {
+        // この時点でabortControllerRefがnullになっていたら、その間に別の処理が入ったということ
+        if (!abortControllerRef.current) {
+          return;
+        }
+
         console.log(`SSE接続を開始します: ${url}`);
 
         // fetchを使ってSSE接続を開始

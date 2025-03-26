@@ -22,7 +22,7 @@ type EventHistoryItem = {
 };
 
 // 接続管理クラス
-class ConnectionManager {
+export class ConnectionManager {
   // オークションID => (クライアントID => コントローラー) の二層マップ
   private connections = new Map<
     string,
