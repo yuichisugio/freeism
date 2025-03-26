@@ -19,7 +19,7 @@ export async function validateImageFiles(files: File[]): Promise<{ valid: boolea
       if (file.size > MAX_FILE_SIZE) {
         return {
           valid: false,
-          error: `ファイルサイズが大きすぎます。5MB以下のファイルを選択してください。(${file.name})`,
+          error: `ファイルサイズが大きすぎます。10MB以下のファイルを選択してください。(${file.name})`,
         };
       }
     }

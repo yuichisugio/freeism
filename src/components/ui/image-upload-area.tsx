@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { isR2Enabled } from "@/lib/cloudflare/r2-client-config";
-import { ACCEPTED_IMAGE_TYPES, getSignedUploadUrl, MAX_FILE_SIZE } from "@/lib/cloudflare/upload";
+import { getSignedUploadUrl } from "@/lib/cloudflare/upload";
+import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/lib/cloudflare/upload-constants";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Image as ImageIcon, Loader2, Trash2, Upload, X } from "lucide-react";
@@ -36,7 +37,7 @@ export type ImageUploadAreaProps = {
 // ファイル処理の共通ロジックを抽出した関数
 function processImageFile(file: File, callback: (file: File, objectUrl: string) => void) {
   if (file.size > MAX_FILE_SIZE) {
-    toast.error(`ファイルサイズが大きすぎます（上限: 5MB）`);
+    toast.error(`ファイルサイズが大きすぎます（上限: 10MB）`);
     return false;
   }
 
@@ -277,7 +278,14 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
 
   // ドロップゾーン設定
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-    accept: ACCEPTED_IMAGE_TYPES,
+    accept: {
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/jpg": [".jpg"],
+      "image/png": [".png"],
+      "image/gif": [".gif"],
+      "image/webp": [".webp"],
+      "image/avif": [".avif"],
+    },
     maxSize: MAX_FILE_SIZE,
     onDrop,
     disabled: disabled || isUploading || !isEnabled,
@@ -285,7 +293,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
     onDropRejected: (rejectedFiles) => {
       rejectedFiles.forEach((rejection) => {
         if (rejection.errors[0]?.code === "file-too-large") {
-          toast.error(`ファイルサイズが大きすぎます（上限: 5MB）`);
+          toast.error(`ファイルサイズが大きすぎます（上限: 10MB）`);
         } else {
           toast.error(`無効なファイル形式です`);
         }
@@ -394,7 +402,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
             >
               {isUploading ? <Loader2 className="mb-3 h-10 w-10 animate-spin text-blue-500" /> : <Upload className="mb-3 h-10 w-10 text-gray-400" />}
               <p className="mb-2 font-medium text-gray-700">クリックまたはドラッグ&ドロップ</p>
-              <p className="text-sm text-gray-500">JPEG, PNG, WebP, GIF (最大5MB)</p>
+              <p className="text-sm text-gray-500">JPEG, PNG, WebP, GIF (最大10MB)</p>
             </motion.div>
           </div>
         )}

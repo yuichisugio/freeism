@@ -8,8 +8,8 @@ export enum ImageMimeType {
   JPEG = "image/jpeg",
   JPG = "image/jpg",
   PNG = "image/png",
-  WEBP = "image/webp",
   GIF = "image/gif",
+  WEBP = "image/webp",
   AVIF = "image/avif",
 }
 
@@ -47,16 +47,16 @@ export function isImageUploadEnabled(): boolean {
 /**
  * アップロードできる画像タイプの配列
  */
-export const ACCEPTED_IMAGE_TYPES: Record<ImageMimeType, string[]> = {
-  [ImageMimeType.JPEG]: [".jpg", ".jpeg"],
-  [ImageMimeType.JPG]: [".jpg", ".jpeg"],
-  [ImageMimeType.PNG]: [".png"],
-  [ImageMimeType.WEBP]: [".webp"],
-  [ImageMimeType.GIF]: [".gif"],
-  [ImageMimeType.AVIF]: [".avif"],
+export const ACCEPTED_IMAGE_TYPES = {
+  "image/jpeg": true,
+  "image/jpg": true,
+  "image/png": true,
+  "image/gif": true,
+  "image/webp": true,
+  "image/avif": true,
 };
 
 /**
- * 最大ファイルサイズ（5MB）
+ * 最大ファイルサイズ（10MB）
  */
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB

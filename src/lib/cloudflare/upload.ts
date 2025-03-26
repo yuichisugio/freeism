@@ -1,22 +1,10 @@
 "use server";
 
-// アップロード関連の定数を定義
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-enum ImageMimeType {
-  JPEG = "image/jpeg",
-  PNG = "image/png",
-  GIF = "image/gif",
-  WEBP = "image/webp",
-}
+import { logger } from "./logger";
+import { ACCEPTED_IMAGE_TYPES, ImageMimeType, MAX_FILE_SIZE } from "./upload-constants";
 
 const isImageUploadEnabled = () => {
   return process.env.ENABLE_IMAGE_UPLOAD === "true";
-};
-
-const logger = {
-  warn: (message: string) => console.warn(message),
-  error: (message: string, error?: any) => console.error(message, error),
 };
 
 /**
