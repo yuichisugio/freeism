@@ -236,7 +236,7 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
           bid: result.bid,
         };
 
-        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails);
+        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails as AuctionWithDetails);
       } else {
         // 通常の通知（オークション情報なし）
         console.error("オークション情報が取得できませんでした");
