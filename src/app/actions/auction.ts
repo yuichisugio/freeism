@@ -1,31 +1,13 @@
 "use server";
 
-import type { BidFormData, BidHistoryWithUser } from "@/lib/auction/types";
+import type { BidFormData } from "@/lib/auction/types";
 import { cache } from "react";
-// import { DateTime } from "luxon";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-// import { notifyNewBid } from "@/lib/auction/auction-notification";
-// import { clerkClient } from "@clerk/nextjs";
-import { isAdminUser } from "@/lib/admin/utils";
 import { sendEventToAuctionSubscribers, serverIsAuctionWatched, serverPlaceBid, serverToggleWatchlist } from "@/lib/auction/auction-service";
 import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
 import { AuctionEventType } from "@/lib/auction/types";
-import { uploadFile } from "@/lib/cloudflare/upload";
-import { validateImageFiles } from "@/lib/images/image-validator";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
-import { z } from "zod";
-
-// import { db } from "@/db";
-// import {
-//   auctionSchema,
-//   auctionPatchSchema,
-//   type AuctionFormData,
-//   type AuctionDetailWithUserAndBids,
-// } from "@/lib/auction/types";
-// import { getAuction, processAuctionData } from "@/lib/auction/auction-service";
 
 // フィルタリングパラメータの型定義
 export type AuctionFilterParams = {
@@ -433,6 +415,7 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
     const result = await serverPlaceBid(auctionId, updatedBidData, userId);
 
     // 入札成功時の通知は既存の実装に任せる
+    await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, result);
 
     return result;
   } catch (error) {

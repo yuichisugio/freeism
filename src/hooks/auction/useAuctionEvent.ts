@@ -71,12 +71,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   /**
    * サーバーから受け取ったデータを処理するヘルパー関数
    * auctionDataをinitialAuctionと同じ形式に変換し、ステートを更新
+   * @param auctionData サーバーから受け取ったデータ
+   * @param receivedClientId 受信したクライアントID（オプション）
    */
   const processServerAuctionData = useCallback(
     (auctionData: any, receivedClientId: string | null = null) => {
       if (!auctionData) return;
 
-      console.log("SSE auctionData処理:", auctionData);
+      console.log("SSE_processServerAuctionData_auctionData", auctionData);
 
       // サーバーから受け取ったauctionDataをinitialAuctionと同じ形式に変換
       const processedAuction: AuctionWithDetails = {
@@ -96,6 +98,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // 変換したデータをステートに設定
       setAuction(processedAuction);
+      console.log("SSE_processServerAuctionData_setAuction");
 
       // 入札履歴があれば設定
       if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {

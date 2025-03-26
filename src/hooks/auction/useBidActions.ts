@@ -31,7 +31,6 @@ export function useBidActions() {
     setSubmitting(true);
     setError(null);
     setWarningMessage(null);
-    setBidProcessInProgress(true);
 
     // 外部コールバックがあれば入札開始を通知
     if (onBiddingStatusChange) {
@@ -76,18 +75,15 @@ export function useBidActions() {
       toast.error("入札処理中にエラーが発生しました");
       return false;
     } finally {
-      // 少し遅延させてから入札処理終了状態にする
-      setTimeout(() => {
-        setSubmitting(false);
-        setBidProcessInProgress(false);
+      setSubmitting(false);
+      setBidProcessInProgress(false);
 
-        // 外部コールバックがあれば入札終了を通知
-        if (onBiddingStatusChange) {
-          onBiddingStatusChange(false);
-        }
+      // 外部コールバックがあれば入札終了を通知
+      if (onBiddingStatusChange) {
+        onBiddingStatusChange(false);
+      }
 
-        console.log("入札処理完了");
-      }, 1000);
+      console.log("入札処理完了");
     }
   }
 

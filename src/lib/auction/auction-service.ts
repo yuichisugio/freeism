@@ -4,7 +4,7 @@ import type { Auction, BidHistory } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-import type { AuctionWithDetails, BidFormData, BidHistoryWithUser, Auction as CustomAuction, EventHistoryItem, User } from "./types";
+import type { AuctionWithDetails, BidFormData, BidHistoryWithUser, Auction as CustomAuction, EventHistoryItem } from "./types";
 import { DEFAULT_AUCTION_IMAGE_URL } from "./constants";
 import { AuctionEventType } from "./types";
 
