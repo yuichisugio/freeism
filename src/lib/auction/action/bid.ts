@@ -8,7 +8,7 @@ import { bidSchema } from "@/lib/auction/zod-schema";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-import type { BidFormData, BidHistoryWithUser } from "../types";
+import type { AuctionWithDetails, BidFormData, BidHistoryWithUser } from "../types";
 import { AuctionEventType } from "../types";
 import { sendEventToAuctionSubscribers } from "./connection";
 
@@ -207,13 +207,43 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
 
       // オークション情報を通知データに追加
       if (updatedAuction) {
-        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, {
+        const auctionWithDetails: AuctionWithDetails = {
+          id: updatedAuction.id,
+          createdAt: updatedAuction.createdAt,
+          updatedAt: updatedAuction.updatedAt,
+          status: updatedAuction.status,
+          taskId: updatedAuction.taskId,
+          startTime: updatedAuction.startTime,
+          endTime: updatedAuction.endTime,
+          currentHighestBid: updatedAuction.currentHighestBid,
+          currentHighestBidderId: updatedAuction.currentHighestBidderId,
+          bidHistories: updatedAuction.bidHistories.map((bid) => ({
+            ...bid,
+            createdAt: bid.createdAt.toISOString(),
+          })),
+          winnerId: updatedAuction.winnerId,
+          extensionCount: updatedAuction.extensionCount,
+          version: updatedAuction.version,
+          title: updatedAuction.task.task || "",
+          description: updatedAuction.task.detail || "",
+          currentPrice: updatedAuction.currentHighestBid,
+          sellerId: updatedAuction.task.creator.id,
+          task: updatedAuction.task,
+          depositPeriod: updatedAuction.task.group.depositPeriod,
+          currentHighestBidder: null,
+          winner: null,
+          watchlists: updatedAuction.watchlists,
           bid: result.bid,
-          auction: updatedAuction,
-        });
+        };
+
+        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails);
       } else {
         // 通常の通知（オークション情報なし）
-        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, result);
+        console.error("オークション情報が取得できませんでした");
+        return {
+          success: false,
+          message: "オークション情報の取得に失敗しました",
+        };
       }
 
       // 結果にオークション情報を追加して返す
@@ -303,26 +333,55 @@ export async function handleBidRequest(request: NextRequest, { params }: { param
               },
             },
           },
+          watchlists: true,
         },
       });
 
       // SSEイベント送信
-      await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, {
-        bid: {
-          ...result.bid,
-          user: {
-            id: session.user.id,
-            name: session.user.name || null,
-            email: "",
-            emailVerified: null,
-            image: session.user.image || null,
-            isAppOwner: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+      if (updatedAuction) {
+        const auctionWithDetails: AuctionWithDetails = {
+          id: updatedAuction.id,
+          createdAt: updatedAuction.createdAt,
+          updatedAt: updatedAuction.updatedAt,
+          status: updatedAuction.status,
+          taskId: updatedAuction.taskId,
+          startTime: updatedAuction.startTime,
+          endTime: updatedAuction.endTime,
+          currentHighestBid: updatedAuction.currentHighestBid,
+          currentHighestBidderId: updatedAuction.currentHighestBidderId,
+          bidHistories: updatedAuction.bidHistories.map((bid) => ({
+            ...bid,
+            createdAt: bid.createdAt.toISOString(),
+          })),
+          winnerId: updatedAuction.winnerId,
+          extensionCount: updatedAuction.extensionCount,
+          version: updatedAuction.version,
+          title: updatedAuction.task.task || "",
+          description: updatedAuction.task.detail || "",
+          currentPrice: updatedAuction.currentHighestBid,
+          sellerId: updatedAuction.task.creator.id,
+          task: updatedAuction.task,
+          depositPeriod: updatedAuction.task.group.depositPeriod,
+          currentHighestBidder: null,
+          winner: null,
+          watchlists: updatedAuction.watchlists,
+          bid: {
+            ...result.bid,
+            user: {
+              id: session.user.id,
+              name: session.user.name || null,
+              email: "",
+              emailVerified: null,
+              image: session.user.image || null,
+              isAppOwner: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
           },
-        },
-        auction: updatedAuction, // 更新されたオークション情報を含める
-      });
+        };
+
+        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails);
+      }
     }
 
     // 入札保護のために、レスポンスヘッダーを設定

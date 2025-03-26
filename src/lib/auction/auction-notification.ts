@@ -26,7 +26,12 @@ export async function notifyNewBid(auctionId: string, bidId: string): Promise<{ 
     const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
       include: {
-        task: true,
+        task: {
+          include: {
+            creator: true,
+            group: true,
+          },
+        },
         bidHistories: {
           orderBy: { createdAt: "desc" },
           take: 1,
@@ -47,17 +52,53 @@ export async function notifyNewBid(auctionId: string, bidId: string): Promise<{ 
         userId: bid.userId,
         amount: bid.amount,
         createdAt: bid.createdAt.toISOString(),
-        user: {
-          id: bid.user?.id,
-          name: bid.user?.name,
-          image: bid.user?.image,
-        },
+        auctionId: bid.auctionId,
+        isAutoBid: bid.isAutoBid,
+        user: bid.user
+          ? {
+              id: bid.user.id,
+              username: bid.user.name || "",
+              email: bid.user.email || "",
+              name: bid.user.name,
+              emailVerified: bid.user.emailVerified,
+              image: bid.user.image,
+              isAppOwner: bid.user.isAppOwner || false,
+              createdAt: bid.user.createdAt.toISOString(),
+              updatedAt: bid.user.updatedAt,
+              avatarUrl: bid.user.image || undefined,
+            }
+          : undefined,
       },
       {
         id: auction.id,
+        createdAt: auction.createdAt,
+        updatedAt: auction.updatedAt,
+        status: auction.status,
+        taskId: auction.taskId,
+        startTime: auction.startTime,
+        endTime: auction.endTime,
         currentHighestBid: auction.currentHighestBid,
         currentHighestBidderId: auction.currentHighestBidderId,
-        endTime: auction.endTime.toISOString(),
+        bidHistories: auction.bidHistories.map((history) => ({
+          ...history,
+          createdAt: history.createdAt.toISOString(),
+        })),
+        winnerId: auction.winnerId,
+        extensionCount: auction.extensionCount,
+        version: auction.version,
+        title: auction.task.task || "",
+        description: auction.task.detail || "",
+        currentPrice: auction.currentHighestBid,
+        sellerId: auction.task.creator.id,
+        task: {
+          ...auction.task,
+          creator: auction.task.creator,
+          group: auction.task.group,
+        },
+        depositPeriod: auction.task.group.depositPeriod,
+        currentHighestBidder: null,
+        winner: null,
+        watchlists: [],
       },
     );
 

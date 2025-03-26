@@ -143,6 +143,7 @@ export type AuctionWithDetails = {
     batchMode?: boolean; // イベントをバッファリング
     clientId?: string; // カスタムクライアントID
   };
+  bid?: BidHistoryWithUser;
 };
 
 // オークションリスト結果型

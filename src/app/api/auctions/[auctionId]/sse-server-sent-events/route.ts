@@ -1,4 +1,4 @@
-import type { AuctionEventType } from "@/lib/auction/types";
+import type { AuctionEventType, AuctionWithDetails } from "@/lib/auction/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
@@ -233,7 +233,7 @@ export class ConnectionManager {
    * @param data イベントデータ
    * @returns イベント履歴
    */
-  broadcastToAuction(auctionId: string, type: AuctionEventType, data: Record<string, any>): EventHistoryItem {
+  broadcastToAuction(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): EventHistoryItem {
     console.log("broadcastToAuction_start", auctionId, type);
 
     // 正規化：文字列として扱うことを確実にする
