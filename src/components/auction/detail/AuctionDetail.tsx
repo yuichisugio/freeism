@@ -65,7 +65,9 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ウォッチリストの状態を取得する処理
+  /**
+   * ウォッチリストの状態を取得する処理
+   */
   useEffect(() => {
     async function checkWatchlistStatus() {
       if (!auction.id) return;
@@ -85,14 +87,29 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
     }
   }, [auction.id, getWatchlistStatus, initialFetchDone]);
 
-  // オークション情報の変更を監視
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オークション情報の変更を監視。更新があればコンソールに出力
+   */
   useEffect(() => {
     console.log("AuctionDetail: auction updated", auction);
   }, [auction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ウォッチリストボタンのクリックハンドラ
+  /**
+   * 入札履歴の変更を監視。更新があればコンソールに出力
+   */
+  useEffect(() => {
+    console.log("AuctionDetail: bidHistory updated", bidHistory);
+  }, [bidHistory]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ウォッチリストボタンのクリックハンドラ
+   */
   async function handleWatchlistToggle() {
     if (!auction.id) return;
     try {
@@ -105,7 +122,9 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // オークション詳細タブの内容
+  /**
+   * オークション詳細タブの内容
+   */
   function renderDetailsTab() {
     return (
       <div className="space-y-6">
