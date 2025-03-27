@@ -30,12 +30,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // 接続関数を保持する ref
+  const connectFuncRef = useRef<(() => void) | undefined>();
+  // 切断関数を保持する ref
+  const disconnectFuncRef = useRef<() => void | undefined>();
   // 接続状態を管理するための参照
   const isConnectedRef = useRef<boolean>(false);
   // fetch APIのコントローラー
   const abortControllerRef = useRef<AbortController | null>(null);
-  // 接続関数
-  const connectRef = useRef<(() => void) | undefined>();
   // バッチ処理するインターバル時間を管理するref
   const batchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // バッチ処理するために、Eventを貯めているRef
@@ -215,8 +217,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
     // 少し待ってから再接続
     setTimeout(() => {
-      if (connectRef.current) {
-        connectRef.current();
+      if (connectFuncRef.current) {
+        connectFuncRef.current();
       }
     }, 300);
   }, [disconnect]);
@@ -227,65 +229,116 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * SSEイベントを処理する関数
    * @param text SSEメッセージ
    */
+  /**
+   * SSEイベントを処理する関数
+   * @param text SSEメッセージ (単一の message ブロック、\n\n で区切られた後の部分)
+   */
   const processSSEEvent = useCallback(
     (text: string) => {
-      console.log("SSE_processSSEEvent_start", text);
+      // text が空や空白文字だけの場合は処理しない
+      if (!text || text.trim() === "") {
+        console.log("SSE_processSSEEvent_空のメッセージのためスキップ:", text);
+        return;
+      }
+      console.log("SSE_processSSEEvent_start processing:", text);
 
       // SSEメッセージを解析
       const lines = text.split("\n");
-      let event = "message";
-      let data = "";
-      let id = "";
+      let event = "message"; // デフォルトイベントタイプ
+      let data = ""; // データ部分を格納 (複数行 data に対応するため初期化)
+      let id = ""; // イベントIDを格納
+      let hasDataField = false; // data: フィールドが存在したかのフラグ
 
       for (const line of lines) {
         if (line.startsWith("event:")) {
           event = line.substring(6).trim();
         } else if (line.startsWith("data:")) {
-          data = line.substring(5).trim();
+          hasDataField = true;
+          // "data:" の後のスペースも考慮してトリムする
+          // 複数行 data の場合、改行を保持して連結 (仕様に厳密に従うなら改行が必要)
+          if (data === "") {
+            // 最初の data 行
+            data = line.substring(5).trimStart(); // 先頭のスペースのみ削除
+          } else {
+            // 2行目以降の data 行 (改行を挟んで連結)
+            data += "\n" + line.substring(5).trimStart();
+          }
         } else if (line.startsWith("id:")) {
           id = line.substring(3).trim();
+        } else if (line.startsWith(":")) {
+          // コメント行は完全に無視
+          console.log("SSE_processSSEEvent_コメント行を無視:", line);
+          // コメント行のみのメッセージの場合、ここで処理を終了させることもできる
+          // if (lines.length === 1) return;
+        } else if (line.trim() === "") {
+          // 空行は無視
+          continue;
+        } else {
+          // 不明な行、またはフィールド名のない行 (仕様では無視される)
+          console.log("SSE_processSSEEvent_不明な行:", line);
         }
       }
 
-      console.log(`SSE_processSSEEvent_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}`);
+      console.log(`SSE_processSSEEvent_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
 
-      // デバッグ用に最後に受信したメッセージを保存
-      setLastReceivedMessage(
-        JSON.stringify({
-          type: event,
-          lastEventId: id,
-          data,
-          timestamp: new Date().toISOString(),
-        }),
-      );
+      // ★★★ 修正点: dataフィールドが存在しなかった、または data が空文字列の場合は JSON.parse を試みない ★★★
+      // eventタイプによってはdataが空でも意味を持つ場合があるため、イベントタイプで分岐
+      if (!hasDataField || data === "") {
+        console.log(`SSE_processSSEEvent_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
+        // data が空でも処理が必要なイベントタイプ (例: ping) があればここで処理
+        if (event === "ping") {
+          console.log("SSE_processSSEEvent_ping イベント受信");
+          // 必要に応じて処理
+          return;
+        }
+        // その他の data が空のイベントは無視、またはエラーとして扱う場合はここで処理
+        console.log(`SSE_processSSEEvent_イベント ${event} は data が空のため処理をスキップします。`);
+        return; // スキップして終了
+      }
 
+      // data フィールドが存在し、空でない場合のみパースを試みる
       try {
-        // メッセージデータのパース
         const eventData = JSON.parse(data);
-        console.log("SSE_processSSEEvent_type:", event, "eventData:", eventData);
+        console.log("SSE_processSSEEvent_パース成功 type:", event, "eventData:", eventData);
 
-        // イベントIDの設定
+        // イベントIDの設定 (パース成功後)
         if (id) {
           const eventId = parseInt(id, 10);
           if (!isNaN(eventId)) {
-            setLastEventId(eventId);
+            setLastEventId(eventId); // 状態更新
             console.log(`SSE_processSSEEvent_イベントIDを更新しました: ${eventId}`);
           }
         }
 
-        // イベントタイプに応じた処理
-        console.log(`SSE_processSSEEvent_SSEイベントを処理します: ${event}`);
+        // デバッグ用に最後に受信したメッセージを保存
+        setLastReceivedMessage(
+          JSON.stringify({
+            type: event,
+            lastEventId: id,
+            rawData: text,
+            parsedDataAttempt: data,
+            timestamp: new Date().toISOString(),
+          }),
+        );
+
+        // イベントキューに追加
         processEvent({
-          id: id ? parseInt(id, 10) : Date.now(),
+          id: id ? parseInt(id, 10) : Date.now(), // ID が数値でない場合も考慮
           type: event as AuctionEventType,
-          data: eventData || {}, // データが無い場合は空オブジェクトを設定
+          data: eventData, // パース済みのデータ
           timestamp: Date.now(),
         });
+        console.log(`SSE_processSSEEvent_イベント ${event} をキューに追加しました`);
       } catch (error) {
-        console.error(`SSE_processSSEEvent_SSEメッセージ処理中にエラーが発生しました:`, error);
+        // JSON.parse でのエラーハンドリング
+        console.error(`SSE_processSSEEvent_JSONパース中にエラーが発生しました:`, error);
+        console.error(`SSE_processSSEEvent_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
+        setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
+        // 必要であればエラーイベントとしてキューに追加するなどの処理
+        // processEvent({ type: AuctionEventType.ERROR, data: { error: `JSON Parse Error: ${error.message}`, rawData: data } ... });
       }
     },
-    [processEvent],
+    [processEvent /* setError を依存に追加する場合 */], // processEvent を依存配列に追加
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -297,78 +350,107 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const handleSSEStream = useCallback(
     async (response: Response) => {
       console.log("SSE_handleSSEStream_start");
-      // レスポンスのBodyを取得
       const reader = response.body?.getReader();
-
-      // レスポンスのBodyが取得できない場合はエラー
       if (!reader) {
-        setLoading(false); // リーダー取得エラー時にローディング状態を解除
-        throw new Error("SSE_handleSSEStream_SSEレスポンスのBodyが取得できません");
+        setLoading(false);
+        setError("SSEレスポンスのBodyが取得できません"); // エラー状態も更新
+        return; // Body がなければ処理終了
       }
 
-      // テキストデコーダーを作成
       const decoder = new TextDecoder();
-      // バッファを初期化
-      let buffer = "";
+      let buffer = ""; // メッセージを蓄積するバッファ
 
       try {
-        // 接続状態の更新
         isConnectedRef.current = true;
         console.log("SSE_handleSSEStream_SSE接続状態を「接続中」に設定しました");
         setLoading(false);
 
-        // 受信ループ
         while (isConnectedRef.current) {
+          // isConnectedRef をループ条件に
           try {
             const { value, done } = await reader.read();
 
             if (done) {
               console.log("SSE_handleSSEStream_SSEストリームが終了しました");
-              setLoading(false);
-              break;
+              // ストリーム終了時に残っているバッファも処理
+              if (buffer.trim().length > 0) {
+                console.log("SSE_handleSSEStream_ストリーム終了、残バッファ処理:", buffer);
+                // メッセージ区切りがない場合も考慮してそのまま処理
+                processSSEEvent(buffer);
+              }
+              break; // ストリーム終了なのでループを抜ける
             }
 
-            // バッファに追加して処理
+            // 受信データをバッファに追加
             buffer += decoder.decode(value, { stream: true });
-            console.log("SSE_handleSSEStream_SSEストリームからデータを受信しました:", buffer.length, "バイト\n", buffer);
-            processSSEEvent(buffer);
-          } catch (readError) {
-            // 読み取り中のエラーをキャッチして、AbortErrorなら静かに終了
-            if ((readError as Error).name === "AbortError") {
-              console.log("SSE_handleSSEStream_SSEストリームの読み取りが中断されました");
-              setLoading(false); // 中断時にローディング状態を解除
-              break;
-            } else {
-              throw readError; // それ以外のエラーは再スロー
+            console.log("SSE_handleSSEStream_SSEストリームからデータ受信:", value.length, "バイト, バッファ:", buffer.length);
+
+            // メッセージ区切り文字 "\n\n" で分割して処理
+            let boundary = buffer.indexOf("\n\n");
+            while (boundary >= 0) {
+              const message = buffer.substring(0, boundary); // 区切り文字までのメッセージ
+              buffer = buffer.substring(boundary + 2); // バッファから処理済みメッセージを削除 ("\n\n" の2文字分)
+
+              if (message.trim().length > 0) {
+                console.log("SSE_handleSSEStream_完全なメッセージを処理:", message);
+                processSSEEvent(message);
+              }
+              // 次の区切り文字を探す
+              boundary = buffer.indexOf("\n\n");
             }
+            // ループ終了後、buffer には次のメッセージの断片 or 空文字列が残る
+          } catch (readError) {
+            // 読み取り中のエラーハンドリング
+            if ((readError as Error).name === "AbortError") {
+              console.log("SSE_handleSSEStream_SSEストリームの読み取りが中断されました (AbortError)");
+              // AbortError は disconnect() によって意図的に発生するので、ここではエラー状態にしない
+              setLoading(false);
+            } else {
+              // AbortError 以外の読み取りエラー
+              console.error("SSE_handleSSEStream_ストリーム読み取り中にエラー:", readError);
+              setError("リアルタイム更新中に読み取りエラーが発生しました。");
+              setLoading(false);
+              // 予期せぬエラーの場合は接続を切断する
+              if (isConnectedRef.current && disconnectFuncRef.current) {
+                disconnectFuncRef.current();
+              }
+            }
+            break; // エラー発生時はループを抜ける
           }
         }
       } catch (err: unknown) {
+        // fetch 自体のエラーや、予期せぬエラー
         if ((err as Error).name !== "AbortError") {
-          console.error("SSE_handleSSEStream_SSEストリーム処理中にエラーが発生しました:", err);
-          setError("リアルタイム更新の接続が切断されました。再接続しています...");
-          setLoading(false); // エラー時にローディング状態を解除
-
-          // エラー時の再接続
-          setTimeout(() => {
-            if (connectRef.current && isConnectedRef.current) {
-              connectRef.current();
-            }
-          }, 1000);
+          console.error("SSE_handleSSEStream_SSEストリーム処理中に予期せぬエラー:", err);
+          setError("リアルタイム更新の接続で問題が発生しました。");
+          setLoading(false);
+          // 接続を切断
+          if (isConnectedRef.current && disconnectFuncRef.current) {
+            disconnectFuncRef.current();
+          }
         } else {
-          setLoading(false); // 中断時にもローディング状態を解除
+          console.log("SSE_handleSSEStream_予期せぬ AbortError をキャッチ");
+          setLoading(false);
         }
       } finally {
-        // 読み取りが終了したら必ず読み取りを解放
+        console.log("SSE_handleSSEStream_finallyブロック実行");
+        // リーダーの解放を試みる
         try {
-          reader.releaseLock();
+          if (reader) {
+            await reader.cancel(); // ストリームをキャンセル
+            reader.releaseLock();
+            console.log("SSE_handleSSEStream_リーダーロックを解放しました");
+          }
         } catch (e) {
-          console.log("SSE_handleSSEStream_リーダーロックの解放に失敗しました", e);
+          console.warn("SSE_handleSSEStream_リーダー解放/キャンセル中に警告:", e);
         }
-        isConnectedRef.current = false;
-        setLoading(false); // 最終的にローディング状態を解除
+        // isConnectedRef.current = false; // disconnect 関数内で false になるはず
+        setLoading(false); // 最終的にローディング解除
+        console.log("SSE_handleSSEStream_finally 処理完了");
       }
     },
+    // processSSEEvent は useCallback でメモ化されている想定
+    // disconnectFuncRef.current を使うようにしたので disconnect は依存から外せる
     [processSSEEvent],
   );
 
@@ -500,8 +582,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * 初めて開いたときに、接続を確立するための処理
    */
   useEffect(() => {
-    connectRef.current = connect;
-    console.log("SSE_useEffect_connectRef.current", connectRef.current);
+    disconnectFuncRef.current = disconnect;
+    console.log("SSE_useEffect_disconnectFuncRef.current", disconnectFuncRef.current);
+  }, [disconnect]);
+
+  useEffect(() => {
+    connectFuncRef.current = connect;
+    console.log("SSE_useEffect_connectFuncRef.current", connectFuncRef.current);
   }, [connect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -511,16 +598,24 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * 初めて開いたときに、接続を確立するための処理
    */
   useEffect(() => {
-    console.log("SSE_useEffect_初期化処理開始");
+    console.log("SSE_useEffect_初期化処理開始 (修正後)");
 
     // 接続を確立
-    connect();
+    // connectFuncRef を介して最新の connect 関数を呼び出す
+    // マウント時に一度だけ実行されることを保証
+    if (connectFuncRef.current) {
+      connectFuncRef.current();
+    }
 
-    // クリーンアップ
+    // クリーンアップ (アンマウント時)
+    // disconnectFuncRef を介して最新の disconnect 関数を呼び出す
     return () => {
-      disconnect();
+      console.log("SSE_useEffect_クリーンアップ実行 (修正後)");
+      if (disconnectFuncRef.current) {
+        disconnectFuncRef.current();
+      }
     };
-  }, [connect, disconnect]);
+  }, []); // ← 修正点: 依存配列を空にして、マウント/アンマウント時にのみ実行
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -537,8 +632,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             console.log("SSE_useEffect_ページが表示されたため、SSE接続を再開します");
             // ブラウザのイベントループを一周待ってから実行
             setTimeout(() => {
-              if (connectRef.current) {
-                connectRef.current();
+              if (connectFuncRef.current) {
+                connectFuncRef.current();
               }
             }, 150);
           }
