@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/useAuctionEvent";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
+import { useWatchlistActions } from "@/hooks/auction/useWatchlistActions";
 import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
 import { type Auction, type AuctionWithDetails } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
@@ -61,8 +62,8 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
   // オークションが終了しているかどうか
   const isAuctionEnded = countdownState.isExpired;
 
-  // 入札アクション
-  const { submitting, toggleWatchlist, getWatchlistStatus } = useBidActions();
+  // ウォッチリストアクション
+  const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
