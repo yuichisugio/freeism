@@ -77,8 +77,8 @@ export function useBidActions() {
       return true;
     } catch (err) {
       console.error("useBidActions_clientPlaceBid_入札サーバーアクション呼び出しエラー:", err);
-      setError("入札処理中にエラーが発生しました");
-      toast.error("入札処理中にエラーが発生しました");
+      setError("useBidActions_clientPlaceBid_入札処理中にエラーが発生しました");
+      toast.error("useBidActions_clientPlaceBid_入札処理中にエラーが発生しました");
       return false;
     } finally {
       setSubmitting(false);
@@ -100,7 +100,7 @@ export function useBidActions() {
    */
   async function toggleWatchlist(auctionId: string | undefined) {
     if (!auctionId) {
-      toast.error("オークションIDが指定されていません");
+      toast.error("useBidActions_toggleWatchlist_オークションIDが指定されていません");
       return null;
     }
 
@@ -110,7 +110,7 @@ export function useBidActions() {
 
       // 結果が正常でない場合
       if (!result.success) {
-        toast.error(result.message || "ウォッチリストの更新に失敗しました");
+        toast.error(result.message || "useBidActions_toggleWatchlist_ウォッチリストの更新に失敗しました");
         return null;
       }
 

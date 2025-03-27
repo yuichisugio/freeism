@@ -21,6 +21,7 @@ import { sendEventToAuctionSubscribers } from "./connection";
  */
 export async function serverPlaceBid(auctionId: string, bidData: BidFormData, userId: string): Promise<{ success: boolean; message?: string; bid?: any }> {
   try {
+    console.log("serverPlaceBid_start", auctionId, bidData, userId);
     // オークション情報を取得
     const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
@@ -143,6 +144,7 @@ export async function getAuctionBidHistory(auctionId: string, limit = 20): Promi
  * @returns 入札結果（成功/失敗、メッセージ、入札履歴）
  */
 export async function placeBidAction(auctionId: string, bidData: BidFormData) {
+  console.log("placeBidAction_start", auctionId, bidData);
   // 認証セッションを取得
   const session = await auth();
   if (!session || !session.user) {
