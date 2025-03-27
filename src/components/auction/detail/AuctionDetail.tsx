@@ -156,21 +156,19 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
           {/* 自分の出品していないオークションで、オークションが終了していない場合は入札フォームを表示 */}
           {auction.sellerId !== currentUserId && !isAuctionEnded && (
-            <>
-              <BidForm
-                auction={
-                  {
-                    id: auction.id,
-                    title: auction.title,
-                    description: auction.description,
-                    currentPrice: auction.currentHighestBid,
-                    startTime: auction.startTime.toString(),
-                    endTime: auction.endTime.toString(),
-                    sellerId: auction.sellerId,
-                  } as Auction
-                }
-              />
-            </>
+            <BidForm
+              auction={
+                {
+                  id: auction.id,
+                  title: auction.title,
+                  description: auction.description,
+                  currentPrice: auction.currentHighestBid,
+                  startTime: auction.startTime.toString(),
+                  endTime: auction.endTime.toString(),
+                  sellerId: auction.sellerId,
+                } as Auction
+              }
+            />
           )}
 
           {/* オークションが終了している場合は、終了した旨のメッセージを表示 */}

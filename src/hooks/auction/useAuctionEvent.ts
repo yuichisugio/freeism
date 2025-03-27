@@ -75,7 +75,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       const processedAuction: AuctionWithDetails = {
         ...initialAuction, // ベースとして初期データを使用
         ...auctionData, // サーバーからのデータで上書き
-        // 必要に応じて不足プロパティを追加
+        bidHistories: auctionData.data.bidHistories || initialAuction.bidHistories,
+        currentHighestBid: auctionData.data.currentHighestBid || initialAuction.currentHighestBid,
         options: {
           reconnectOnVisibility: true,
           batchMode: true,
