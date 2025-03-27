@@ -61,12 +61,15 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * @param auctionData サーバーから受け取ったデータ
    * @param receivedClientId 受信したクライアントID（オプション）
    */
-  const processServerAuctionData = useCallback(
+  const giveAuctionDataToState = useCallback(
     (auctionData: any, receivedClientId: string | null = null) => {
-      console.log("SSE_processServerAuctionData_start", auctionData);
+      console.log("SSE_giveAuctionDataToState_start", auctionData);
 
       // サーバーから受け取ったデータがない場合は処理しない
-      if (!auctionData) return;
+      if (!auctionData) {
+        console.log("SSE_giveAuctionDataToState_auctionDataがないため処理をスキップします");
+        return;
+      }
 
       // サーバーから受け取ったauctionDataをinitialAuctionと同じ形式に変換
       const processedAuction: AuctionWithDetails = {
@@ -87,11 +90,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // 変換したデータをステートに設定
       setAuction(processedAuction);
-      console.log("SSE_processServerAuctionData_setAuction", processedAuction);
+      console.log("SSE_giveAuctionDataToState_setAuction", processedAuction);
 
       // 入札履歴があれば設定
       if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
         setBidHistory(auctionData.bidHistories);
+        console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.bidHistories);
       }
     },
     [clientId, initialAuction],
@@ -101,9 +105,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * イベントデータを処理する関数
    * @param eventData イベントデータ
    */
-  const processEventData = useCallback(
+  const processEventDataByType = useCallback(
     (eventData: AuctionEventData) => {
-      console.log("SSE_processEventData_start", eventData);
+      console.log("SSE_processEventDataByType_start", eventData);
 
       // ローディング状態を解除する（どのイベントタイプでも）
       setLoading(false);
@@ -112,33 +116,33 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       switch (eventData.type) {
         // 新規入札イベント
         case AuctionEventType.NEW_BID:
-          console.log("SSE_processEventData_NEW_BID", eventData);
-          processServerAuctionData(eventData);
+          console.log("SSE_processEventDataByType_NEW_BID", eventData);
+          giveAuctionDataToState(eventData);
           break;
 
         // 接続確立イベント
         case AuctionEventType.CONNECTION_ESTABLISHED:
-          console.log("SSE_processEventData_CONNECTION_ESTABLISHED", eventData);
+          console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED", eventData);
           // 接続確立イベントを受け取ったらクライアントIDを更新
           if (eventData.data.clientId) {
             setClientId(eventData.data.clientId);
-            console.log("SSE_processEventData_CONNECTION_ESTABLISHED_setClientId", eventData.data.clientId);
+            console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_setClientId", eventData.data.clientId);
           }
           // 接続確立イベントを受け取ったらオークション情報を更新
-          processServerAuctionData(eventData);
-          console.log("SSE_processEventData_CONNECTION_ESTABLISHED_processServerAuctionData");
+          giveAuctionDataToState(eventData);
+          console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_processServerAuctionData");
           break;
 
         // エラーイベント
         case AuctionEventType.ERROR:
-          console.log("SSE_processEventData_ERROR", eventData);
+          console.log("SSE_processEventDataByType_ERROR", eventData);
           if (eventData.data.error) {
             setError(eventData.data.error);
           }
           break;
       }
     },
-    [processServerAuctionData],
+    [giveAuctionDataToState],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -147,26 +151,26 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * イベントをバッチ処理するために、貯めておく関数
    * @param event イベント
    */
-  const processEvent = useCallback(
+  const judgeBatchMode = useCallback(
     (event: EventHistoryItem) => {
-      console.log("SSE_processEvent_start", event);
+      console.log("SSE_judgeBatchMode_start", event);
       // バッチ処理を行うモード以外 or 即時実行する場合
       if (!batchMode || event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
         setClientId(event.data.clientId);
 
-        processEventData({
+        processEventDataByType({
           type: event.type as AuctionEventType,
           data: event.data,
         });
-        console.log("SSE_processEvent_processEventData");
+        console.log("SSE_judgeBatchMode_processEventDataByType");
       }
       // バッチ処理のPoolに追加
       else {
         batchPoolRef.current.push(event);
-        console.log("SSE_processEvent_batchPoolRef.current", batchPoolRef.current);
+        console.log("SSE_judgeBatchMode_batchPoolRef.current", batchPoolRef.current);
       }
     },
-    [batchMode, processEventData],
+    [batchMode, processEventDataByType],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -233,14 +237,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * SSEイベントを処理する関数
    * @param text SSEメッセージ (単一の message ブロック、\n\n で区切られた後の部分)
    */
-  const processSSEEvent = useCallback(
+  const editSSEdata = useCallback(
     (text: string) => {
       // text が空や空白文字だけの場合は処理しない
       if (!text || text.trim() === "") {
-        console.log("SSE_processSSEEvent_空のメッセージのためスキップ:", text);
+        console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);
         return;
       }
-      console.log("SSE_processSSEEvent_start processing:", text);
+      console.log("SSE_editSSEdata_start processing:", text);
 
       // SSEメッセージを解析
       const lines = text.split("\n");
@@ -267,46 +271,45 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           id = line.substring(3).trim();
         } else if (line.startsWith(":")) {
           // コメント行は完全に無視
-          console.log("SSE_processSSEEvent_コメント行を無視:", line);
-          // コメント行のみのメッセージの場合、ここで処理を終了させることもできる
-          // if (lines.length === 1) return;
+          console.log("SSE_editSSEdata_コメント行を無視:", line);
+          continue;
         } else if (line.trim() === "") {
           // 空行は無視
           continue;
         } else {
           // 不明な行、またはフィールド名のない行 (仕様では無視される)
-          console.log("SSE_processSSEEvent_不明な行:", line);
+          console.log("SSE_editSSEdata_不明な行:", line);
         }
       }
 
-      console.log(`SSE_processSSEEvent_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
+      console.log(`SSE_editSSEdata_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
 
       // ★★★ 修正点: dataフィールドが存在しなかった、または data が空文字列の場合は JSON.parse を試みない ★★★
       // eventタイプによってはdataが空でも意味を持つ場合があるため、イベントタイプで分岐
       if (!hasDataField || data === "") {
-        console.log(`SSE_processSSEEvent_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
+        console.log(`SSE_editSSEdata_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
         // data が空でも処理が必要なイベントタイプ (例: ping) があればここで処理
         if (event === "ping") {
-          console.log("SSE_processSSEEvent_ping イベント受信");
+          console.log("SSE_editSSEdata_ping イベント受信");
           // 必要に応じて処理
           return;
         }
         // その他の data が空のイベントは無視、またはエラーとして扱う場合はここで処理
-        console.log(`SSE_processSSEEvent_イベント ${event} は data が空のため処理をスキップします。`);
+        console.log(`SSE_editSSEdata_イベント ${event} は data が空のため処理をスキップします。`);
         return; // スキップして終了
       }
 
       // data フィールドが存在し、空でない場合のみパースを試みる
       try {
         const eventData = JSON.parse(data);
-        console.log("SSE_processSSEEvent_パース成功 type:", event, "eventData:", eventData);
+        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData);
 
         // イベントIDの設定 (パース成功後)
         if (id) {
           const eventId = parseInt(id, 10);
           if (!isNaN(eventId)) {
             setLastEventId(eventId); // 状態更新
-            console.log(`SSE_processSSEEvent_イベントIDを更新しました: ${eventId}`);
+            console.log(`SSE_editSSEdata_イベントIDを更新しました: ${eventId}`);
           }
         }
 
@@ -322,23 +325,23 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         );
 
         // イベントキューに追加
-        processEvent({
+        judgeBatchMode({
           id: id ? parseInt(id, 10) : Date.now(), // ID が数値でない場合も考慮
           type: event as AuctionEventType,
           data: eventData, // パース済みのデータ
           timestamp: Date.now(),
         });
-        console.log(`SSE_processSSEEvent_イベント ${event} をキューに追加しました`);
+        console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
       } catch (error) {
         // JSON.parse でのエラーハンドリング
-        console.error(`SSE_processSSEEvent_JSONパース中にエラーが発生しました:`, error);
-        console.error(`SSE_processSSEEvent_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
+        console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
+        console.error(`SSE_editSSEdata_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
         setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
         // 必要であればエラーイベントとしてキューに追加するなどの処理
-        // processEvent({ type: AuctionEventType.ERROR, data: { error: `JSON Parse Error: ${error.message}`, rawData: data } ... });
+        // judgeBatchMode({ type: AuctionEventType.ERROR, data: { error: `JSON Parse Error: ${error.message}`, rawData: data } ... });
       }
     },
-    [processEvent /* setError を依存に追加する場合 */], // processEvent を依存配列に追加
+    [judgeBatchMode /* setError を依存に追加する場合 */], // processEvent を依存配列に追加
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -354,6 +357,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       if (!reader) {
         setLoading(false);
         setError("SSEレスポンスのBodyが取得できません"); // エラー状態も更新
+        console.log("SSE_handleSSEStream_SSEレスポンスのBodyが取得できません");
         return; // Body がなければ処理終了
       }
 
@@ -376,7 +380,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
               if (buffer.trim().length > 0) {
                 console.log("SSE_handleSSEStream_ストリーム終了、残バッファ処理:", buffer);
                 // メッセージ区切りがない場合も考慮してそのまま処理
-                processSSEEvent(buffer);
+                editSSEdata(buffer);
               }
               break; // ストリーム終了なのでループを抜ける
             }
@@ -393,7 +397,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
               if (message.trim().length > 0) {
                 console.log("SSE_handleSSEStream_完全なメッセージを処理:", message);
-                processSSEEvent(message);
+                editSSEdata(message);
               }
               // 次の区切り文字を探す
               boundary = buffer.indexOf("\n\n");
@@ -451,7 +455,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     },
     // processSSEEvent は useCallback でメモ化されている想定
     // disconnectFuncRef.current を使うようにしたので disconnect は依存から外せる
-    [processSSEEvent],
+    [editSSEdata],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -494,6 +498,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       setTimeout(() => {
         // この時点でabortControllerRefがnullになっていたら、その間に別の処理が入ったということ
         if (!abortControllerRef.current) {
+          console.log("SSE_connect_abortControllerRefがnullになっていたため、接続をスキップします");
           return;
         }
 
@@ -557,7 +562,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           // バッチ処理のPool内の各イベントをひとつづつ処理
           for (const event of events) {
             // バッファ内のイベントをひとつづつ処理
-            processEventData({
+            processEventDataByType({
               type: event.type as AuctionEventType,
               data: event.data,
             });
@@ -568,12 +573,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
     // バッファ処理(バッチ処理)を行うIntervalをクリーンアップ
     return () => {
+      console.log("SSE_useEffect_batchMode_クリーンアップ");
       if (batchIntervalRef.current) {
         clearInterval(batchIntervalRef.current);
         batchIntervalRef.current = null;
       }
     };
-  }, [batchMode, processEventData, processServerAuctionData]);
+  }, [batchMode, processEventDataByType, giveAuctionDataToState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
