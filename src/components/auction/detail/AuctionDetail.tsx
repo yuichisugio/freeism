@@ -57,6 +57,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
   // カウントダウンの状態
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
+
   // オークションが終了しているかどうか
   const isAuctionEnded = countdownState.isExpired;
 
@@ -93,7 +94,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
    * オークション情報の変更を監視。更新があればコンソールに出力
    */
   useEffect(() => {
-    console.log("AuctionDetail: auction updated", auction);
+    console.log("AuctionDetail_auction_state_updated", auction);
   }, [auction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -102,7 +103,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
    * 入札履歴の変更を監視。更新があればコンソールに出力
    */
   useEffect(() => {
-    console.log("AuctionDetail: bidHistory updated", bidHistory);
+    console.log("AuctionDetail_bidHistory_state_updated", bidHistory);
   }, [bidHistory]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -52,6 +52,8 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
+  console.log("AuctionDetailPage_initialAuction", auctionData);
+
   return (
     <MainTemplate title={auctionData.task.task} description={auctionData.task.detail || ""}>
       <AuctionDetailWrapper initialAuction={auctionData} />
