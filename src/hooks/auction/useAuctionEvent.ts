@@ -42,8 +42,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const batchPoolRef = useRef<EventHistoryItem[]>([]);
   // 接続を再確立する予約タイマー
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // 接続試行回数
-  const reconnectAttemptsRef = useRef<number>(0);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -63,9 +61,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    */
   const processServerAuctionData = useCallback(
     (auctionData: any, receivedClientId: string | null = null) => {
-      if (!auctionData) return;
+      console.log("SSE_processServerAuctionData_start", auctionData);
 
-      console.log("SSE_processServerAuctionData_auctionData", auctionData);
+      // サーバーから受け取ったデータがない場合は処理しない
+      if (!auctionData) return;
 
       // サーバーから受け取ったauctionDataをinitialAuctionと同じ形式に変換
       const processedAuction: AuctionWithDetails = {
@@ -102,6 +101,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    */
   const processEventData = useCallback(
     (eventData: AuctionEventData) => {
+      console.log("SSE_processEventData_start", eventData);
+
       // ローディング状態を解除する（どのイベントタイプでも）
       setLoading(false);
 
@@ -109,85 +110,28 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       switch (eventData.type) {
         // 新規入札イベント
         case AuctionEventType.NEW_BID:
-          console.log("NEW_BID イベント受信:", eventData);
-
-          // 1. 入札データがある場合は入札履歴に追加
-          if (eventData.data.bid) {
-            setBidHistory((prev) => [eventData.data.bid as BidHistoryWithUser, ...prev]);
-          }
-
-          // 2. データ構造を分析して適切な方法でオークション情報を更新
-          // データ自体にオークション情報（id, currentHighestBidなど）が含まれている場合
-          if ("id" in eventData.data && "currentHighestBid" in eventData.data) {
-            console.log("オークション情報が直接含まれています - 全体を更新");
-            processServerAuctionData(eventData.data);
-          }
-          // auction子オブジェクトにオークション情報が含まれている場合
-          else if (eventData.data.auction) {
-            console.log("auction子オブジェクトからオークション情報を更新");
-            processServerAuctionData(eventData.data.auction);
-          }
-          // 入札情報のみ含まれている場合
-          else if (eventData.data.bid) {
-            console.log("入札情報のみから最低限の情報を更新");
-            setAuction((prev: AuctionWithDetails | undefined) => {
-              if (!prev) return prev;
-              const bidAmount = (eventData.data.bid as BidHistoryWithUser).amount;
-              if (bidAmount > (prev.currentHighestBid || 0)) {
-                return {
-                  ...prev,
-                  currentHighestBid: bidAmount,
-                  currentHighestBidderId: (eventData.data.bid as BidHistoryWithUser).userId,
-                };
-              }
-              return prev;
-            });
-          }
+          console.log("SSE_processEventData_NEW_BID", eventData);
+          processServerAuctionData(eventData);
           break;
 
+        // 接続確立イベント
         case AuctionEventType.CONNECTION_ESTABLISHED:
+          console.log("SSE_processEventData_CONNECTION_ESTABLISHED", eventData);
           // 接続確立イベントを受け取ったらクライアントIDを更新
           if (eventData.data.clientId) {
             setClientId(eventData.data.clientId);
+            console.log("SSE_processEventData_CONNECTION_ESTABLISHED_setClientId", eventData.data.clientId);
           }
-          // 接続確立時にオークションデータがあれば更新
-          if ("auctionData" in eventData.data) {
-            processServerAuctionData(eventData.data.auctionData);
-          } else if ("auction" in eventData.data) {
-            processServerAuctionData(eventData.data.auction);
-          }
+          // 接続確立イベントを受け取ったらオークション情報を更新
+          processServerAuctionData(eventData);
+          console.log("SSE_processEventData_CONNECTION_ESTABLISHED_processServerAuctionData");
           break;
 
+        // エラーイベント
         case AuctionEventType.ERROR:
+          console.log("SSE_processEventData_ERROR", eventData);
           if (eventData.data.error) {
             setError(eventData.data.error);
-          }
-          break;
-
-        case AuctionEventType.AUCTION_EXTENSION:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-          } else if ("id" in eventData.data) {
-            // データ自体がオークション情報の場合
-            processServerAuctionData(eventData.data);
-          }
-          break;
-
-        case AuctionEventType.AUCTION_ENDED:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-          } else if ("id" in eventData.data) {
-            // データ自体がオークション情報の場合
-            processServerAuctionData(eventData.data);
-          }
-          break;
-
-        case AuctionEventType.AUCTION_UPDATE:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-          } else if ("id" in eventData.data) {
-            // データ自体がオークション情報の場合
-            processServerAuctionData(eventData.data);
           }
           break;
       }
@@ -297,7 +241,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         }
       }
 
-      console.log(`SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}`);
+      console.log(`processSSEEvent_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}`);
 
       // デバッグ用に最後に受信したメッセージを保存
       setLastReceivedMessage(
@@ -312,19 +256,19 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       try {
         // メッセージデータのパース
         const eventData = JSON.parse(data);
-        console.log("SSE_processSSEEvent_type:", event, "eventData:", eventData);
+        console.log("processSSEEvent_type:", event, "eventData:", eventData);
 
         // イベントIDの設定
         if (id) {
           const eventId = parseInt(id, 10);
           if (!isNaN(eventId)) {
             setLastEventId(eventId);
-            console.log(`イベントIDを更新しました: ${eventId}`);
+            console.log(`processSSEEvent_イベントIDを更新しました: ${eventId}`);
           }
         }
 
         // イベントタイプに応じた処理
-        console.log(`SSEイベントを処理します: ${event}`);
+        console.log(`processSSEEvent_SSEイベントを処理します: ${event}`);
         processEvent({
           id: id ? parseInt(id, 10) : Date.now(),
           type: event as AuctionEventType,
@@ -332,7 +276,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           timestamp: Date.now(),
         });
       } catch (error) {
-        console.error(`SSEメッセージ処理中にエラーが発生しました:`, error);
+        console.error(`processSSEEvent_SSEメッセージ処理中にエラーが発生しました:`, error);
       }
     },
     [processEvent],
@@ -346,14 +290,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    */
   const handleSSEStream = useCallback(
     async (response: Response) => {
-      console.log("SSEストリームの処理を開始します");
+      console.log("handleSSEStream_start");
       // レスポンスのBodyを取得
       const reader = response.body?.getReader();
 
       // レスポンスのBodyが取得できない場合はエラー
       if (!reader) {
         setLoading(false); // リーダー取得エラー時にローディング状態を解除
-        throw new Error("SSEレスポンスのBodyが取得できません");
+        throw new Error("handleSSEStream_SSEレスポンスのBodyが取得できません");
       }
 
       // テキストデコーダーを作成
@@ -364,11 +308,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       try {
         // 接続状態の更新
         isConnectedRef.current = true;
-        console.log("SSE接続状態を「接続中」に設定しました");
+        console.log("handleSSEStream_SSE接続状態を「接続中」に設定しました");
         setLoading(false);
-
-        // 接続成功したらカウンターをリセット
-        reconnectAttemptsRef.current = 0;
 
         // 受信ループ
         while (isConnectedRef.current) {
@@ -376,19 +317,19 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             const { value, done } = await reader.read();
 
             if (done) {
-              console.log("SSEストリームが終了しました");
+              console.log("handleSSEStream_SSEストリームが終了しました");
               setLoading(false);
               break;
             }
 
             // バッファに追加して処理
             buffer += decoder.decode(value, { stream: true });
-            console.log("SSEストリームからデータを受信しました:", buffer.length, "バイト\n", buffer);
+            console.log("handleSSEStream_SSEストリームからデータを受信しました:", buffer.length, "バイト\n", buffer);
             processSSEEvent(buffer);
           } catch (readError) {
             // 読み取り中のエラーをキャッチして、AbortErrorなら静かに終了
             if ((readError as Error).name === "AbortError") {
-              console.log("SSEストリームの読み取りが中断されました");
+              console.log("handleSSEStream_SSEストリームの読み取りが中断されました");
               setLoading(false); // 中断時にローディング状態を解除
               break;
             } else {
@@ -398,7 +339,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         }
       } catch (err: unknown) {
         if ((err as Error).name !== "AbortError") {
-          console.error("SSEストリーム処理中にエラーが発生しました:", err);
+          console.error("handleSSEStream_SSEストリーム処理中にエラーが発生しました:", err);
           setError("リアルタイム更新の接続が切断されました。再接続しています...");
           setLoading(false); // エラー時にローディング状態を解除
 
@@ -416,7 +357,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         try {
           reader.releaseLock();
         } catch (e) {
-          console.log("リーダーロックの解放に失敗しました", e);
+          console.log("handleSSEStream_リーダーロックの解放に失敗しました", e);
         }
         isConnectedRef.current = false;
         setLoading(false); // 最終的にローディング状態を解除

@@ -35,9 +35,6 @@ export type BidFormData = {
 export enum AuctionEventType {
   CONNECTION_ESTABLISHED = "connection_established",
   NEW_BID = "new_bid",
-  AUCTION_UPDATE = "auction_update",
-  AUCTION_EXTENSION = "auction_extension",
-  AUCTION_ENDED = "auction_ended",
   ERROR = "error",
 }
 
