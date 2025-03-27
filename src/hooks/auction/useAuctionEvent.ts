@@ -5,11 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BUFFER_INTERVAL } from "@/lib/auction/constants";
 import { AuctionEventType } from "@/lib/auction/types";
 
-// ExtendedEventTypeを直接インポートできないので、クライアントサイドで定義
-const ExtendedEventType = {
-  CONNECTION_ESTABLISHED: "connection_established" as const,
-};
-
 /**
  * オークションSSEを購読するカスタムフック（拡張版）
  * @param initialAuction 初期オークションデータ
@@ -112,12 +107,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // イベントタイプごとの処理
       switch (eventData.type) {
-        case AuctionEventType.INITIAL:
-          if (eventData.data.auction) {
-            processServerAuctionData(eventData.data.auction);
-          }
-          break;
-
+        // 新規入札イベント
         case AuctionEventType.NEW_BID:
           console.log("NEW_BID イベント受信:", eventData);
 
@@ -214,18 +204,16 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const processEvent = useCallback(
     (event: EventHistoryItem) => {
       // バッチ処理を行うモード以外 or 即時実行する場合
-      if (!batchMode || event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
+      if (!batchMode || event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
         setClientId(event.data.clientId);
 
         processEventData({
           type: event.type as AuctionEventType,
           data: event.data,
         });
-
-        // 接続確立時にローディング状態を解除
-        setLoading(false);
-      } else {
-        // バッチ処理のPoolに追加
+      }
+      // バッチ処理のPoolに追加
+      else {
         batchPoolRef.current.push(event);
       }
     },
@@ -335,26 +323,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           }
         }
 
-        // 接続確立メッセージの処理
-        if (event === ExtendedEventType.CONNECTION_ESTABLISHED) {
-          console.log("SSE接続確立イベントを受信しました");
-          // クライアントIDがある場合は更新
-          if (eventData.clientId) {
-            setClientId(eventData.clientId);
-            console.log(`クライアントIDを更新しました: ${eventData.clientId}`);
-          }
-
-          // auctionDataがある場合はそれを使用
-          if (eventData.auctionData) {
-            console.log("SSE_CONNECTION_ESTABLISHED_auctionData:", eventData.auctionData);
-            processServerAuctionData(eventData.auctionData, eventData.clientId);
-          }
-
-          // ローディング状態を解除
-          setLoading(false);
-          return;
-        }
-
         // イベントタイプに応じた処理
         console.log(`SSEイベントを処理します: ${event}`);
         processEvent({
@@ -367,7 +335,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.error(`SSEメッセージ処理中にエラーが発生しました:`, error);
       }
     },
-    [processEvent, processServerAuctionData],
+    [processEvent],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -549,7 +517,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     if (batchMode) {
       // IntervalのIDを、refに保存
       batchIntervalRef.current = setInterval(() => {
-        // バッファ内にイベントがある場合
+        // batchPoolRef.currentは配列で、バッファ内にイベントがある場合
         if (batchPoolRef.current.length > 0) {
           // バッファ内のイベントを取り出して、バッファの中身をゼロにする
           const events = [...batchPoolRef.current];
@@ -557,27 +525,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
           // バッチ処理のPool内の各イベントをひとつづつ処理
           for (const event of events) {
-            // イベントのタイプに応じた処理
-            if (event.type === ExtendedEventType.CONNECTION_ESTABLISHED) {
-              // connection_established イベントの場合は clientId を更新
-              if (event.data && event.data.clientId) {
-                setClientId(event.data.clientId);
-              }
-
-              // auctionDataがある場合はそれを使用
-              if (event.data && event.data.auctionData) {
-                processServerAuctionData(event.data.auctionData, event.data.clientId);
-              }
-
-              // 接続確立時にローディング状態を解除
-              setLoading(false);
-            } else {
-              // その他のtypeのイベントを通常処理
-              processEventData({
-                type: event.type as AuctionEventType,
-                data: event.data,
-              });
-            }
+            // バッファ内のイベントをひとつづつ処理
+            processEventData({
+              type: event.type as AuctionEventType,
+              data: event.data,
+            });
           }
         }
       }, BUFFER_INTERVAL);
@@ -596,6 +548,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   /**
    * connectRef に connect 関数を格納
+   * 初めて開いたときに、接続を確立するための処理
    */
   useEffect(() => {
     connectRef.current = connect;
@@ -605,7 +558,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 初期化処理
+   * 初期化処理。
+   * 初めて開いたときに、接続を確立するための処理
    */
   useEffect(() => {
     console.log("useAuctionEvent: 初期化処理開始");
@@ -623,6 +577,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   /**
    * ページビジビリティの変更を監視
+   * 再度開いたときに、再接続するための処理
    */
   useEffect(() => {
     if (reconnectOnVisibility) {
@@ -660,6 +615,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // useAuctionEvent の返り値
   return {
     auction, // オークション情報
     bidHistory, // 入札履歴

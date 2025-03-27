@@ -39,7 +39,6 @@ export enum AuctionEventType {
   AUCTION_EXTENSION = "auction_extension",
   AUCTION_ENDED = "auction_ended",
   ERROR = "error",
-  INITIAL = "initial",
 }
 
 // イベント履歴データ型
