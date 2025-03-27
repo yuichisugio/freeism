@@ -186,7 +186,6 @@ export type CountdownDisplayProps = {
 // 入札フォームのprops
 export type BidFormProps = {
   auction: Auction;
-  onCancelAction: () => void;
 };
 
 // 入札履歴のprops

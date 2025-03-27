@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/useAuctionEvent";
-import { useBidActions } from "@/hooks/auction/useBidActions";
 import { useCountdown } from "@/hooks/auction/useCountdown";
 import { useWatchlistActions } from "@/hooks/auction/useWatchlistActions";
 import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
@@ -29,8 +28,6 @@ import { CountdownDisplay } from "./CountdownDisplay";
 export default function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札フォームの表示状態
-  const [showBidForm, setShowBidForm] = useState(false);
   // ウォッチリストの状態
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   // 初期フェッチの完了状態
@@ -140,8 +137,12 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
                   <p className="text-2xl font-bold">{formatCurrency(auction.currentHighestBid || 0)}</p>
                 </div>
                 <div>
+                  <p className="text-muted-foreground text-sm">最低入札額</p>
+                  <p className="text-2xl font-bold">{formatCurrency(auction.currentHighestBid + 1 || 0)}</p>
+                </div>
+                <div>
                   <p className="text-muted-foreground text-sm">入札数</p>
-                  <p>{bidHistory.length || 0}</p>
+                  <p className="text-2xl font-bold">{bidHistory.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -156,26 +157,19 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
           {/* 自分の出品していないオークションで、オークションが終了していない場合は入札フォームを表示 */}
           {auction.sellerId !== currentUserId && !isAuctionEnded && (
             <>
-              {showBidForm ? (
-                <BidForm
-                  auction={
-                    {
-                      id: auction.id,
-                      title: auction.title,
-                      description: auction.description,
-                      currentPrice: auction.currentHighestBid,
-                      startTime: auction.startTime.toString(),
-                      endTime: auction.endTime.toString(),
-                      sellerId: auction.sellerId,
-                    } as Auction
-                  }
-                  onCancelAction={() => setShowBidForm(false)}
-                />
-              ) : (
-                <Button className="w-full" onClick={() => setShowBidForm(true)}>
-                  入札する
-                </Button>
-              )}
+              <BidForm
+                auction={
+                  {
+                    id: auction.id,
+                    title: auction.title,
+                    description: auction.description,
+                    currentPrice: auction.currentHighestBid,
+                    startTime: auction.startTime.toString(),
+                    endTime: auction.endTime.toString(),
+                    sellerId: auction.sellerId,
+                  } as Auction
+                }
+              />
             </>
           )}
 

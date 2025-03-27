@@ -14,12 +14,8 @@ export function useBidActions() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   // エラーメッセージ
   const [error, setError] = useState<string | null>(null);
-  // 最後の入札データ
-  const [lastBid, setLastBid] = useState<BidHistoryWithUser | null>(null);
   // 警告メッセージ
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
-  // 入札処理中フラグ（グローバル状態管理用）
-  const [bidProcessInProgress, setBidProcessInProgress] = useState<boolean>(false);
 
   /**
    * 入札を実行
@@ -56,14 +52,6 @@ export function useBidActions() {
 
       // 成功時
       console.log("useBidActions_clientPlaceBid_入札サーバーアクション成功レスポンス", result);
-      if (result.bid) {
-        // Date型からstring型に変換
-        const bidWithStringDate = {
-          ...result.bid,
-          createdAt: result.bid.createdAt.toISOString(),
-        };
-        setLastBid(bidWithStringDate as BidHistoryWithUser);
-      }
 
       // 警告メッセージがある場合は設定
       if (result.message) {
@@ -81,7 +69,6 @@ export function useBidActions() {
       return false;
     } finally {
       setSubmitting(false);
-      setBidProcessInProgress(false);
 
       // 外部コールバックがあれば入札終了を通知
       if (onBiddingStatusChange) {
@@ -95,9 +82,7 @@ export function useBidActions() {
   return {
     submitting,
     error,
-    lastBid,
     warningMessage,
-    bidProcessInProgress,
     clientPlaceBid,
   };
 }

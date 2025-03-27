@@ -91,7 +91,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       // 変換したデータをステートに設定
       setAuction(processedAuction);
       console.log("SSE_giveAuctionDataToState_setAuction", processedAuction);
+      console.log("SSE_giveAuctionDataToState_setAuction_auction_state", auction);
 
+      console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.bidHistories);
       // 入札履歴があれば設定
       if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
         setBidHistory(auctionData.bidHistories);
@@ -128,9 +130,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             setClientId(eventData.data.clientId);
             console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_setClientId", eventData.data.clientId);
           }
+          console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_giveAuctionDataToState");
           // 接続確立イベントを受け取ったらオークション情報を更新
           giveAuctionDataToState(eventData);
-          console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_processServerAuctionData");
           break;
 
         // エラーイベント
@@ -158,11 +160,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       if (!batchMode || event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
         setClientId(event.data.clientId);
 
+        console.log("SSE_judgeBatchMode_processEventDataByType");
+
         processEventDataByType({
           type: event.type as AuctionEventType,
           data: event.data,
         });
-        console.log("SSE_judgeBatchMode_processEventDataByType");
       }
       // バッチ処理のPoolに追加
       else {
