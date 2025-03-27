@@ -77,6 +77,21 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         ...auctionData, // サーバーからのデータで上書き
         bidHistories: auctionData.data.bidHistories || initialAuction.bidHistories,
         currentHighestBid: auctionData.data.currentHighestBid || initialAuction.currentHighestBid,
+        currentHighestBidderId: auctionData.data.currentHighestBidderId || initialAuction.currentHighestBidderId,
+        currentHighestBidder: auctionData.data.currentHighestBidder || initialAuction.currentHighestBidder,
+        winnerId: auctionData.data.winnerId || initialAuction.winnerId,
+        winner: auctionData.data.winner || initialAuction.winner,
+        watchlists: auctionData.data.watchlists || initialAuction.watchlists,
+        bid: auctionData.data.bid || initialAuction.bid,
+        depositPeriod: auctionData.data.depositPeriod || initialAuction.depositPeriod,
+        task: auctionData.data.task || initialAuction.task,
+        currentPrice: auctionData.data.currentPrice || initialAuction.currentPrice,
+        version: auctionData.data.version || initialAuction.version,
+        title: auctionData.data.title || initialAuction.title,
+        description: auctionData.data.description || initialAuction.description,
+        extensionCount: auctionData.data.extensionCount || initialAuction.extensionCount,
+        status: auctionData.data.status || initialAuction.status,
+        taskId: auctionData.data.taskId || initialAuction.taskId,
         options: {
           reconnectOnVisibility: true,
           batchMode: true,
@@ -94,11 +109,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       console.log("SSE_giveAuctionDataToState_setAuction", processedAuction);
       console.log("SSE_giveAuctionDataToState_setAuction_auction_state", auction);
 
-      console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.bidHistories);
+      console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.data.bidHistories);
       // 入札履歴があれば設定
-      if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
-        setBidHistory(auctionData.bidHistories);
-        console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.bidHistories);
+      if (auctionData.data.bidHistories && Array.isArray(auctionData.data.bidHistories)) {
+        setBidHistory(auctionData.data.bidHistories);
+        console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.data.bidHistories);
       }
     },
     [clientId, initialAuction],

@@ -6,7 +6,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/useBidActions";
 import { type BidFormProps } from "@/lib/auction/types";
-import { formatCurrency } from "@/lib/formatters";
 
 /**
  * 入札フォーム
@@ -34,10 +33,13 @@ export default function BidForm({ auction }: BidFormProps) {
 
     try {
       // 入札を実行（入札状態変更のコールバックを渡す）
-      const success = await clientPlaceBid({
+      await clientPlaceBid({
         auctionId: auction.id,
         amount: bidAmount,
       });
+
+      // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
+      setBidAmount(bidAmount + 1);
     } catch (error) {
       console.error("Bid failed:", error);
     }
@@ -56,9 +58,9 @@ export default function BidForm({ auction }: BidFormProps) {
           </div>
         </CardContent>
 
-        <CardFooter className="flex justify-between">
-          <Button type="submit" disabled={submitting || bidAmount < minBid}>
-            {submitting ? "処理中..." : "入札する"}
+        <CardFooter className="w-full">
+          <Button type="submit" disabled={submitting || bidAmount < minBid} className="w-full">
+            {submitting ? "入札処理中..." : "入札する"}
           </Button>
         </CardFooter>
       </form>
