@@ -39,7 +39,7 @@ export function useBidActions() {
     }
 
     try {
-      console.log("入札サーバーアクション実行", bidData);
+      console.log("useBidActions_clientPlaceBid_入札サーバーアクション実行", bidData);
 
       // bidData.auctionIdがない場合、エラーを投げる
       if (!bidData.auctionId) {
@@ -56,7 +56,7 @@ export function useBidActions() {
       }
 
       // 成功時
-      console.log("入札サーバーアクション成功レスポンス", result);
+      console.log("useBidActions_clientPlaceBid_入札サーバーアクション成功レスポンス", result);
       if (result.bid) {
         // Date型からstring型に変換
         const bidWithStringDate = {
@@ -76,7 +76,7 @@ export function useBidActions() {
 
       return true;
     } catch (err) {
-      console.error("入札サーバーアクション呼び出しエラー:", err);
+      console.error("useBidActions_clientPlaceBid_入札サーバーアクション呼び出しエラー:", err);
       setError("入札処理中にエラーが発生しました");
       toast.error("入札処理中にエラーが発生しました");
       return false;
@@ -89,7 +89,7 @@ export function useBidActions() {
         onBiddingStatusChange(false);
       }
 
-      console.log("入札処理完了");
+      console.log("useBidActions_clientPlaceBid_入札処理完了");
     }
   }
 
@@ -124,7 +124,7 @@ export function useBidActions() {
 
       return result.isWatched;
     } catch (err) {
-      console.error("ウォッチリストAPI呼び出しエラー:", err);
+      console.error("useBidActions_toggleWatchlist_ウォッチリストAPI呼び出しエラー:", err);
       toast.error("ウォッチリストの更新中にエラーが発生しました");
       return null;
     }
@@ -152,7 +152,7 @@ export function useBidActions() {
       // ウォッチリストの状態を返す
       return result.isWatched;
     } catch (err) {
-      console.error("ウォッチリスト状態取得エラー:", err);
+      console.error("useBidActions_getWatchlistStatus_ウォッチリスト状態取得エラー:", err);
       return false;
     }
   }
