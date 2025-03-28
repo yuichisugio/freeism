@@ -76,14 +76,14 @@ export class ConnectionManager {
    * @param timeoutId タイムアウトID
    */
   addConnection(auctionId: string, clientId: string, controller: ReadableStreamController<Uint8Array>, heartbeatInterval: NodeJS.Timeout | null = null, timeoutId: NodeJS.Timeout | null = null): void {
-    console.log("addConnection_start", auctionId, clientId);
+    console.log("route.ts_addConnection_start", auctionId, clientId);
 
     // 正規化：文字列として扱うことを確実にする
     const normalizedAuctionId = String(auctionId);
 
     // オークションのマップがなければ初期化
     if (!this.connections.has(normalizedAuctionId)) {
-      console.log(`Creating new map for auction ${normalizedAuctionId}`);
+      console.log(`route.ts_addConnection_Creating new map for auction ${normalizedAuctionId}`);
       this.connections.set(normalizedAuctionId, new Map());
     }
 
@@ -92,7 +92,7 @@ export class ConnectionManager {
     if (auctionClients) {
       // 既存の接続があれば先にクリーンアップ
       if (auctionClients.has(clientId)) {
-        console.log(`クライアント ${clientId} は既に接続済みです。古い接続をクリーンアップします。`);
+        console.log(`route.ts_addConnection_クライアント ${clientId} は既に接続済みです。古い接続をクリーンアップします。`);
         this.removeConnection(normalizedAuctionId, clientId);
       }
 
@@ -103,10 +103,10 @@ export class ConnectionManager {
         isActive: true,
       });
     }
-    console.log("addConnection_end", normalizedAuctionId, clientId, auctionClients);
-    console.log("Current connections map:", Array.from(this.connections.keys()));
+    console.log("route.ts_addConnection_end", normalizedAuctionId, clientId, auctionClients);
+    console.log("route.ts_addConnection_Current connections map:", Array.from(this.connections.keys()));
 
-    console.log(`SSE接続確立: クライアント ${clientId} がオークション ${normalizedAuctionId} に接続しました (接続数: ${this.getConnectionCount(normalizedAuctionId)})`);
+    console.log(`route.ts_addConnection_SSE接続確立: クライアント ${clientId} がオークション ${normalizedAuctionId} に接続しました (接続数: ${this.getConnectionCount(normalizedAuctionId)})`);
   }
 
   /**
@@ -115,24 +115,24 @@ export class ConnectionManager {
    * @param clientId クライアントID
    */
   removeConnection(auctionId: string, clientId: string): void {
-    console.log("removeConnection", auctionId, clientId);
+    console.log("route.ts_removeConnection_start", auctionId, clientId);
 
     // 正規化：文字列として扱うことを確実にする
     const normalizedAuctionId = String(auctionId);
 
     const auctionClients = this.connections.get(normalizedAuctionId);
-    console.log("removeConnection_auctionClients");
+    console.log("route.ts_removeConnection_auctionClients");
 
     // オークションのマップがなければ初期化
     if (!auctionClients) return;
 
     const connectionInfo = auctionClients.get(clientId);
-    console.log("removeConnection_connectionInfo");
+    console.log("route.ts_removeConnection_connectionInfo");
     if (!connectionInfo) return;
 
     // 既にクリーンアップ済みならスキップ
     if (!connectionInfo.isActive) {
-      console.log(`クライアント ${clientId} の接続は既にクリーンアップ済みです`);
+      console.log(`route.ts_removeConnection_クライアント ${clientId} の接続は既にクリーンアップ済みです`);
       return;
     }
 
@@ -153,11 +153,11 @@ export class ConnectionManager {
     // マップから削除
     auctionClients.delete(clientId);
 
-    console.log(`SSE接続終了: クライアント ${clientId} がオークション ${normalizedAuctionId} から切断しました (残り接続数: ${auctionClients.size})`);
+    console.log(`route.ts_removeConnection_SSE接続終了: クライアント ${clientId} がオークション ${normalizedAuctionId} から切断しました (残り接続数: ${auctionClients.size})`);
 
     if (auctionClients.size === 0) {
       this.connections.delete(normalizedAuctionId);
-      console.log(`オークション ${normalizedAuctionId} の全ての接続が終了しました`);
+      console.log(`route.ts_removeConnection_オークション ${normalizedAuctionId} の全ての接続が終了しました`);
     }
   }
 
@@ -235,7 +235,7 @@ export class ConnectionManager {
    * @returns イベント履歴
    */
   broadcastToAuction(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): EventHistoryItem {
-    console.log("broadcastToAuction_start", auctionId, type);
+    console.log("route.ts_broadcastToAuction_start", auctionId, type);
 
     // 正規化：文字列として扱うことを確実にする
     const normalizedAuctionId = String(auctionId);
@@ -246,21 +246,21 @@ export class ConnectionManager {
     // イベントメッセージを送信用のフォーマット
     const eventMessage = this.formatEventMessage(event);
 
-    console.log("broadcastToAuction_eventMessage\n", eventMessage);
+    console.log("route.ts_broadcastToAuction_eventMessage\n", eventMessage);
 
     // エンコードされたメッセージを取得
     const encodedEventMessage = this.encoder.encode(eventMessage);
 
     // デバッグ：すべての保存されているオークションIDを表示
-    console.log("All stored auction IDs:", Array.from(this.connections.keys()));
+    console.log("route.ts_broadcastToAuction_All stored auction IDs:", Array.from(this.connections.keys()));
 
     // オークションの購読者を取得
     const auctionClients = this.connections.get(normalizedAuctionId);
-    console.log("Trying to find auction clients for:", normalizedAuctionId, "result:", auctionClients ? "found" : "not found");
+    console.log("route.ts_broadcastToAuction_Trying to find auction clients for:", normalizedAuctionId, "result:", auctionClients ? "found" : "not found");
 
     if (!auctionClients) {
-      console.log("broadcastToAuction_auctionClients_not_found");
-      console.log("Connection map contains:", this.connections.size, "auctions");
+      console.log("route.ts_broadcastToAuction_auctionClients_not_found");
+      console.log("route.ts_broadcastToAuction_Connection map contains:", this.connections.size, "auctions");
       // すべてのキーを調査
       for (const [key, value] of this.connections.entries()) {
         console.log(`Key: "${key}", Type: ${typeof key}, Length: ${key.length}, Client Count: ${value.size}`);
@@ -280,7 +280,7 @@ export class ConnectionManager {
       }
       return event;
     }
-    console.log("broadcastToAuction_auctionClients", auctionClients);
+    console.log("route.ts_broadcastToAuction_auctionClients", auctionClients);
 
     // オークションの購読者がいる場合
     if (auctionClients && auctionClients.size > 0) {
@@ -304,9 +304,9 @@ export class ConnectionManager {
         this.removeConnection(normalizedAuctionId, clientId);
       }
 
-      console.log(`オークション ${normalizedAuctionId} の ${auctionClients.size} クライアントにイベント ${type} を送信しました`);
+      console.log(`route.ts_broadcastToAuction_オークション ${normalizedAuctionId} の ${auctionClients.size} クライアントにイベント ${type} を送信しました`);
     } else {
-      console.log(`オークション ${normalizedAuctionId} に接続者がいません`);
+      console.log(`route.ts_broadcastToAuction_オークション ${normalizedAuctionId} に接続者がいません`);
     }
 
     return event;
@@ -324,12 +324,12 @@ export function getConnectionManager(): ConnectionManager {
 
   // 新しいインスタンスを作成
   if (!globalConnectionManager) {
-    console.log("Creating new ConnectionManager instance");
+    console.log("route.ts_getConnectionManager_Creating new ConnectionManager instance");
     globalConnectionManager = new ConnectionManager();
 
     // グローバルオブジェクトに保存して確実に共有されるようにする
     if (typeof global !== "undefined") {
-      console.log("Storing ConnectionManager in global object");
+      console.log("route.ts_getConnectionManager_Storing ConnectionManager in global object");
       (global as any).__connectionManager = globalConnectionManager;
     }
   }
@@ -339,7 +339,7 @@ export function getConnectionManager(): ConnectionManager {
 
 // コネクションマネージャーのインスタンスを取得
 const connectionManager = getConnectionManager();
-console.log("Module-level ConnectionManager instance created");
+console.log("route.ts_getConnectionManager_Module-level ConnectionManager instance created");
 
 /**
  * SSEエンドポイント
@@ -354,7 +354,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // クエリパラメータを取得
   const url = new URL(request.url);
-  console.log(`SSE: 受信したリクエストURL: ${request.url}`);
+  console.log(`route.ts_GET_受信したリクエストURL: ${request.url}`);
 
   // クライアントIDを取得
   const clientId = url.searchParams.get("clientId") || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -365,20 +365,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // URLからオークションIDを取得（パスパラメータと一致するか確認用）
   const queryAuctionId = url.searchParams.get("auctionId");
 
-  console.log(`SSE接続確立中: ${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId}, 最後のイベントID: ${lastEventId})`);
+  console.log(`route.ts_GET_SSE接続確立中: ${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId}, 最後のイベントID: ${lastEventId})`);
 
   // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
   if (queryAuctionId && queryAuctionId !== auctionId) {
-    console.warn(`警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`);
+    console.warn(`route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`);
   }
 
   // 認証チェック
   const session = await auth();
-  console.log(`SSE: セッション: ${session ? "あり" : "なし"}, ユーザーID: ${session?.user?.id || "なし"}`);
+  console.log(`route.ts_GET_セッション: ${session ? "あり" : "なし"}, ユーザーID: ${session?.user?.id || "なし"}`);
 
   // ログインしていない場合は401エラーを返す
   if (!session?.user?.id) {
-    console.error("SSE接続認証エラー: ユーザーセッションが存在しません");
+    console.error("route.ts_GET_SSE接続認証エラー: ユーザーセッションが存在しません");
     return new Response(
       JSON.stringify({
         error: "認証が必要です",
@@ -397,7 +397,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     // 接続数制限チェック
     const connectionCount = connectionManager.getConnectionCount(auctionId);
-    console.log(`SSE: オークション ${auctionId} の現在の接続数: ${connectionCount}`);
+    console.log(`route.ts_GET_オークション ${auctionId} の現在の接続数: ${connectionCount}`);
 
     if (connectionCount >= MAX_CONNECTIONS_PER_AUCTION) {
       return new Response(
@@ -422,20 +422,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // クライアントが接続を閉じた時の処理
     const handleAbort = () => {
       try {
-        console.log(`SSE: クライアント ${clientId} の接続が中断されました (abort)`);
+        console.log(`route.ts_GET_クライアント ${clientId} の接続が中断されました (abort)`);
 
         connectionManager.removeConnection(auctionId, clientId);
       } catch (error) {
-        console.error(`クライアント ${clientId} のabortハンドリング中にエラーが発生:`, error);
+        console.error(`route.ts_GET_クライアント ${clientId} のabortハンドリング中にエラーが発生:`, error);
       }
     };
 
     // abortイベントリスナーを登録
     request.signal.addEventListener("abort", handleAbort);
 
-    console.log(`SSE: オークション ${auctionId} のデータを取得します`);
+    console.log(`route.ts_GET_オークション ${auctionId} のデータを取得します`);
     const auctionData = await getAuctionByAuctionId(auctionId);
-    console.log(`SSE: オークションデータ取得結果:`, auctionData ? "成功" : "失敗");
+    console.log(`route.ts_GET_オークションデータ取得結果:`, auctionData ? "成功" : "失敗");
 
     // ストリームの設定
     const stream = new ReadableStream({
@@ -449,14 +449,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               clearInterval(heartbeatInterval);
               return;
             }
-            console.log(`SSE: クライアント ${clientId} にハートビートを送信します`);
+            console.log(`route.ts_GET_クライアント ${clientId} にハートビートを送信します`);
             controller.enqueue(encoder.encode(":\n\n"));
           } catch (error) {
             // エラーが発生した場合はタイマーをクリアして接続削除
             clearInterval(heartbeatInterval);
-            console.log("SSE: ハートビート送信中にエラーが発生しました");
+            console.log("route.ts_GET_ハートビート送信中にエラーが発生しました");
             connectionManager.removeConnection(auctionId, clientId);
-            console.log(`ハートビート中にエラーが発生したため接続を削除: ${clientId},${error}`);
+            console.log(`route.ts_GET_ハートビート中にエラーが発生したため接続を削除: ${clientId},${error}`);
           }
         }, HEARTBEAT_INTERVAL);
 
@@ -466,43 +466,43 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             controller.close();
             clearInterval(heartbeatInterval);
             connectionManager.removeConnection(auctionId, clientId);
-            console.log(`SSEタイムアウト: ユーザー ${session.user?.id} のオークション ${auctionId} への接続がタイムアウトしました`);
+            console.log(`route.ts_GET_タイムアウト: ユーザー ${session.user?.id} のオークション ${auctionId} への接続がタイムアウトしました`);
           } catch (e) {
-            console.error("コントローラーのクローズ中にエラーが発生しました:", e);
+            console.error("route.ts_GET_コントローラーのクローズ中にエラーが発生しました:", e);
           }
         }, CONNECTION_TIMEOUT);
 
         // コネクションの登録
         connectionManager.addConnection(auctionId, clientId, controller, heartbeatInterval, timeoutId);
-        console.log(`SSE: クライアント ${clientId} の接続を登録しました (オークション: ${auctionId})`);
+        console.log(`route.ts_GET_クライアント ${clientId} の接続を登録しました (オークション: ${auctionId})`);
 
         try {
           // 接続成功メッセージを送信
           const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify({ auctionData, clientId })}\n\n`;
           controller.enqueue(encoder.encode(connectionMessage));
-          console.log(`SSE: クライアント ${clientId} への接続確立メッセージを送信しました`);
+          console.log(`route.ts_GET_クライアント ${clientId} への接続確立メッセージを送信しました`);
 
           // 最後のイベントID以降のイベントを送信（再接続時）
           if (lastEventId > 0) {
             const missedEvents = connectionManager.getEventsSince(auctionId, lastEventId);
 
             if (missedEvents.length > 0) {
-              console.log(`SSE: クライアント ${clientId} に ${missedEvents.length} 件の未受信イベントを送信します`);
+              console.log(`route.ts_GET_クライアント ${clientId} に ${missedEvents.length} 件の未受信イベントを送信します`);
 
               for (const event of missedEvents) {
                 controller.enqueue(encoder.encode(connectionManager.formatEventMessage(event)));
               }
             } else {
-              console.log(`SSE: クライアント ${clientId} の未受信イベントはありません (lastEventId: ${lastEventId})`);
+              console.log(`route.ts_GET_クライアント ${clientId} の未受信イベントはありません (lastEventId: ${lastEventId})`);
             }
           }
         } catch (error) {
-          console.error("SSE: 接続確立メッセージ送信中にエラーが発生しました:", error);
+          console.error("route.ts_GET_接続確立メッセージ送信中にエラーが発生しました:", error);
         }
 
         // クリーンアップ関数
         return () => {
-          console.log(`SSE: クライアント ${clientId} の接続をクリーンアップします`);
+          console.log(`route.ts_GET_クライアント ${clientId} の接続をクリーンアップします`);
           clearTimeout(timeoutId);
           clearInterval(heartbeatInterval);
           connectionManager.removeConnection(auctionId, clientId);
@@ -510,7 +510,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
 
-    console.log(`SSE: クライアント ${clientId} にSSEストリームレスポンスを返します`);
+    console.log(`route.ts_GET_クライアント ${clientId} にSSEストリームレスポンスを返します`);
     // レスポンスヘッダーの設定
     return new NextResponse(stream, {
       headers: {
@@ -520,7 +520,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
   } catch (error) {
-    console.error("SSEセットアップエラー:", error);
+    console.error("route.ts_GET_SSEセットアップエラー:", error);
     return new Response(
       JSON.stringify({
         error: "サーバーエラー",

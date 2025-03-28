@@ -62,7 +62,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * @param receivedClientId 受信したクライアントID（オプション）
    */
   const giveAuctionDataToState = useCallback(
-    (auctionData: any, receivedClientId: string | null = null) => {
+    (auctionData: AuctionWithDetails, receivedClientId: string | null = null) => {
       console.log("SSE_giveAuctionDataToState_start", auctionData);
 
       // サーバーから受け取ったデータがない場合は処理しない
@@ -73,25 +73,27 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // サーバーから受け取ったauctionDataをinitialAuctionと同じ形式に変換
       const processedAuction: AuctionWithDetails = {
-        ...initialAuction, // ベースとして初期データを使用
-        ...auctionData, // サーバーからのデータで上書き
-        bidHistories: auctionData.data.bidHistories || initialAuction.bidHistories,
-        currentHighestBid: auctionData.data.currentHighestBid || initialAuction.currentHighestBid,
-        currentHighestBidderId: auctionData.data.currentHighestBidderId || initialAuction.currentHighestBidderId,
-        currentHighestBidder: auctionData.data.currentHighestBidder || initialAuction.currentHighestBidder,
-        winnerId: auctionData.data.winnerId || initialAuction.winnerId,
-        winner: auctionData.data.winner || initialAuction.winner,
-        watchlists: auctionData.data.watchlists || initialAuction.watchlists,
-        bid: auctionData.data.bid || initialAuction.bid,
-        depositPeriod: auctionData.data.depositPeriod || initialAuction.depositPeriod,
-        task: auctionData.data.task || initialAuction.task,
-        currentPrice: auctionData.data.currentPrice || initialAuction.currentPrice,
-        version: auctionData.data.version || initialAuction.version,
-        title: auctionData.data.title || initialAuction.title,
-        description: auctionData.data.description || initialAuction.description,
-        extensionCount: auctionData.data.extensionCount || initialAuction.extensionCount,
-        status: auctionData.data.status || initialAuction.status,
-        taskId: auctionData.data.taskId || initialAuction.taskId,
+        ...initialAuction,
+        ...auctionData,
+        sellerId: auctionData.sellerId,
+        bidHistories: auctionData.bidHistories,
+        id: auctionData.id,
+        currentHighestBid: auctionData.currentHighestBid,
+        currentHighestBidderId: auctionData.currentHighestBidderId,
+        currentHighestBidder: auctionData.currentHighestBidder,
+        winnerId: auctionData.winnerId,
+        winner: auctionData.winner,
+        watchlists: auctionData.watchlists,
+        bid: auctionData.bid,
+        depositPeriod: auctionData.depositPeriod,
+        task: auctionData.task,
+        currentPrice: auctionData.currentPrice,
+        version: auctionData.version,
+        title: auctionData.title,
+        description: auctionData.description,
+        extensionCount: auctionData.extensionCount,
+        status: auctionData.status,
+        taskId: auctionData.taskId,
         options: {
           reconnectOnVisibility: true,
           batchMode: true,
@@ -109,12 +111,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       console.log("SSE_giveAuctionDataToState_setAuction", processedAuction);
       console.log("SSE_giveAuctionDataToState_setAuction_auction_state", auction);
 
-      console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.data.bidHistories);
+      console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.bidHistories);
       // 入札履歴があれば設定
-      if (auctionData.data.bidHistories && Array.isArray(auctionData.data.bidHistories)) {
-        setBidHistory(auctionData.data.bidHistories);
-        console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.data.bidHistories);
+      if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
+        setBidHistory(auctionData.bidHistories);
+        console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.bidHistories);
       }
+
+      setLoading(false);
     },
     [clientId, initialAuction, auction],
   );
@@ -127,15 +131,42 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     (eventData: AuctionEventData) => {
       console.log("SSE_processEventDataByType_start", eventData);
 
-      // ローディング状態を解除する（どのイベントタイプでも）
-      setLoading(false);
+      // AuctionWithDetails型に変換
+      const auctionData: AuctionWithDetails = {
+        ...eventData,
+        id: eventData.data.auction?.id || initialAuction.id,
+        createdAt: eventData.data.auction?.createdAt || initialAuction.createdAt,
+        updatedAt: eventData.data.auction?.updatedAt || initialAuction.updatedAt,
+        status: eventData.data.auction?.status || initialAuction.status,
+        taskId: eventData.data.auction?.taskId || initialAuction.taskId,
+        startTime: eventData.data.auction?.startTime || initialAuction.startTime,
+        endTime: eventData.data.auction?.endTime || initialAuction.endTime,
+        currentHighestBid: eventData.data.auction?.currentHighestBid || initialAuction.currentHighestBid,
+        currentHighestBidderId: eventData.data.auction?.currentHighestBidderId || initialAuction.currentHighestBidderId,
+        bidHistories: eventData.data.auction?.bidHistories || initialAuction.bidHistories,
+        winnerId: eventData.data.auction?.winnerId || initialAuction.winnerId,
+        extensionCount: eventData.data.auction?.extensionCount || initialAuction.extensionCount,
+        version: eventData.data.auction?.version || initialAuction.version,
+        title: eventData.data.auction?.title || initialAuction.title,
+        description: eventData.data.auction?.description || initialAuction.description,
+        task: eventData.data.auction?.task || initialAuction.task,
+        currentPrice: eventData.data.auction?.currentPrice || initialAuction.currentPrice,
+        sellerId: eventData.data.auction?.sellerId || initialAuction.sellerId,
+        depositPeriod: eventData.data.auction?.depositPeriod || initialAuction.depositPeriod,
+        currentHighestBidder: eventData.data.auction?.currentHighestBidder || initialAuction.currentHighestBidder,
+        winner: eventData.data.auction?.winner || initialAuction.winner,
+        watchlists: eventData.data.auction?.watchlists || initialAuction.watchlists,
+        bid: eventData.data.auction?.bid || initialAuction.bid,
+      };
+
+      console.log("SSE_processEventDataByType_auctionData", auctionData);
 
       // イベントタイプごとの処理
       switch (eventData.type) {
         // 新規入札イベント
         case AuctionEventType.NEW_BID:
           console.log("SSE_processEventDataByType_NEW_BID", eventData);
-          giveAuctionDataToState(eventData);
+          giveAuctionDataToState(auctionData);
           break;
 
         // 接続確立イベント
@@ -148,7 +179,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           }
           console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_giveAuctionDataToState");
           // 接続確立イベントを受け取ったらオークション情報を更新
-          giveAuctionDataToState(eventData);
+          giveAuctionDataToState(auctionData);
           break;
 
         // エラーイベント
@@ -160,7 +191,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           break;
       }
     },
-    [giveAuctionDataToState],
+    [giveAuctionDataToState, initialAuction],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -598,7 +629,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         batchIntervalRef.current = null;
       }
     };
-  }, [batchMode, processEventDataByType, giveAuctionDataToState]);
+  }, [batchMode, processEventDataByType]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -649,27 +680,22 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * 再度開いたときに、再接続するための処理
    */
   useEffect(() => {
+    // ページビジビリティの変更を監視する場合
     if (reconnectOnVisibility) {
       const handleVisibilityChange = () => {
         if (document.visibilityState === "visible") {
           // 表示状態になった時、接続されていなければ再接続
           if (!isConnectedRef.current) {
             console.log("SSE_useEffect_ページが表示されたため、SSE接続を再開します");
-            // ブラウザのイベントループを一周待ってから実行
-            setTimeout(() => {
-              if (connectFuncRef.current) {
-                connectFuncRef.current();
-              }
-            }, 150);
+            if (connectFuncRef.current) {
+              connectFuncRef.current();
+            }
           }
         } else if (document.visibilityState === "hidden") {
           // 非表示状態になった時、まだ接続中なら切断
           if (isConnectedRef.current) {
             console.log("SSE_useEffect_ページが非表示になったため、SSE接続を閉じます");
-            // 即時ではなく次のティックで実行
-            setTimeout(() => {
-              disconnect();
-            }, 100);
+            disconnect();
           }
         }
       };
