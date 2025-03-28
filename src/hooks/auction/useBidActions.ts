@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { placeBidAction } from "@/lib/auction/action/bid";
-import { type BidFormData, type BidHistoryWithUser } from "@/lib/auction/types";
+import { type BidFormData } from "@/lib/auction/types";
 import { toast } from "sonner";
 
 /**
