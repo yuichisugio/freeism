@@ -133,30 +133,35 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // AuctionWithDetails型に変換
       const auctionData: AuctionWithDetails = {
-        ...eventData,
-        id: eventData.data.auction?.id || initialAuction.id,
-        createdAt: eventData.data.auction?.createdAt || initialAuction.createdAt,
-        updatedAt: eventData.data.auction?.updatedAt || initialAuction.updatedAt,
-        status: eventData.data.auction?.status || initialAuction.status,
-        taskId: eventData.data.auction?.taskId || initialAuction.taskId,
-        startTime: eventData.data.auction?.startTime || initialAuction.startTime,
-        endTime: eventData.data.auction?.endTime || initialAuction.endTime,
-        currentHighestBid: eventData.data.auction?.currentHighestBid || initialAuction.currentHighestBid,
-        currentHighestBidderId: eventData.data.auction?.currentHighestBidderId || initialAuction.currentHighestBidderId,
-        bidHistories: eventData.data.auction?.bidHistories || initialAuction.bidHistories,
-        winnerId: eventData.data.auction?.winnerId || initialAuction.winnerId,
-        extensionCount: eventData.data.auction?.extensionCount || initialAuction.extensionCount,
-        version: eventData.data.auction?.version || initialAuction.version,
-        title: eventData.data.auction?.title || initialAuction.title,
-        description: eventData.data.auction?.description || initialAuction.description,
-        task: eventData.data.auction?.task || initialAuction.task,
-        currentPrice: eventData.data.auction?.currentPrice || initialAuction.currentPrice,
-        sellerId: eventData.data.auction?.sellerId || initialAuction.sellerId,
-        depositPeriod: eventData.data.auction?.depositPeriod || initialAuction.depositPeriod,
-        currentHighestBidder: eventData.data.auction?.currentHighestBidder || initialAuction.currentHighestBidder,
-        winner: eventData.data.auction?.winner || initialAuction.winner,
-        watchlists: eventData.data.auction?.watchlists || initialAuction.watchlists,
-        bid: eventData.data.auction?.bid || initialAuction.bid,
+        ...eventData.data,
+        id: eventData.data?.id || initialAuction.id,
+        createdAt: eventData.data?.createdAt || initialAuction.createdAt,
+        updatedAt: eventData.data?.updatedAt || initialAuction.updatedAt,
+        status: eventData.data?.status || initialAuction.status,
+        taskId: eventData.data?.taskId || initialAuction.taskId,
+        startTime: eventData.data?.startTime || initialAuction.startTime,
+        endTime: eventData.data?.endTime || initialAuction.endTime,
+        currentHighestBid: eventData.data?.currentHighestBid || initialAuction.currentHighestBid,
+        currentHighestBidderId: eventData.data?.currentHighestBidderId || initialAuction.currentHighestBidderId,
+        bidHistories: eventData.data?.bidHistories || initialAuction.bidHistories,
+        winnerId: eventData.data?.winnerId || initialAuction.winnerId,
+        extensionCount: eventData.data?.extensionCount || initialAuction.extensionCount,
+        version: eventData.data?.version || initialAuction.version,
+        title: eventData.data?.title || initialAuction.title,
+        description: eventData.data?.description || initialAuction.description,
+        task: eventData.data?.task || initialAuction.task,
+        currentPrice: eventData.data?.currentPrice || initialAuction.currentPrice,
+        sellerId: eventData.data?.sellerId || initialAuction.sellerId,
+        depositPeriod: eventData.data?.depositPeriod || initialAuction.depositPeriod,
+        currentHighestBidder: eventData.data?.currentHighestBidder || initialAuction.currentHighestBidder,
+        winner: eventData.data?.winner || initialAuction.winner,
+        watchlists: eventData.data?.watchlists || initialAuction.watchlists,
+        bid: eventData.data?.bid || initialAuction.bid,
+        options: {
+          reconnectOnVisibility: true,
+          batchMode: true,
+          clientId: clientId,
+        },
       };
 
       console.log("SSE_processEventDataByType_auctionData", auctionData);
@@ -165,17 +170,17 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       switch (eventData.type) {
         // 新規入札イベント
         case AuctionEventType.NEW_BID:
-          console.log("SSE_processEventDataByType_NEW_BID", eventData);
+          console.log("SSE_processEventDataByType_NEW_BID", auctionData);
           giveAuctionDataToState(auctionData);
           break;
 
         // 接続確立イベント
         case AuctionEventType.CONNECTION_ESTABLISHED:
-          console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED", eventData);
+          console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED", auctionData);
           // 接続確立イベントを受け取ったらクライアントIDを更新
-          if (eventData.data.clientId) {
-            setClientId(eventData.data.clientId);
-            console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_setClientId", eventData.data.clientId);
+          if (auctionData.options?.clientId) {
+            setClientId(auctionData.options.clientId);
+            console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_setClientId", auctionData.options.clientId);
           }
           console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED_giveAuctionDataToState");
           // 接続確立イベントを受け取ったらオークション情報を更新
@@ -184,14 +189,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
         // エラーイベント
         case AuctionEventType.ERROR:
-          console.log("SSE_processEventDataByType_ERROR", eventData);
-          if (eventData.data.error) {
-            setError(eventData.data.error);
+          console.log("SSE_processEventDataByType_ERROR", auctionData);
+          if (eventData.error) {
+            setError(eventData.error);
           }
           break;
       }
     },
-    [giveAuctionDataToState, initialAuction],
+    [giveAuctionDataToState, initialAuction, clientId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -205,13 +210,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       console.log("SSE_judgeBatchMode_start", event);
       // バッチ処理を行うモード以外 or 即時実行する場合
       if (!batchMode || event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
-        setClientId(event.data.clientId);
+        setClientId(event.clientId);
 
         console.log("SSE_judgeBatchMode_processEventDataByType");
 
         processEventDataByType({
           type: event.type as AuctionEventType,
-          data: event.data,
+          data: event.data as AuctionWithDetails,
         });
       }
       // バッチ処理のPoolに追加
@@ -351,7 +356,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // data フィールドが存在し、空でない場合のみパースを試みる
       try {
-        const eventData = JSON.parse(data);
+        const eventData: AuctionWithDetails = JSON.parse(data);
         console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData);
 
         // イベントIDの設定 (パース成功後)
@@ -378,8 +383,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         judgeBatchMode({
           id: id ? parseInt(id, 10) : Date.now(), // ID が数値でない場合も考慮
           type: event as AuctionEventType,
-          data: eventData, // パース済みのデータ
+          data: eventData as AuctionWithDetails, // パース済みのデータ
           timestamp: Date.now(),
+          clientId: clientId,
         });
         console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
       } catch (error) {
@@ -391,7 +397,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         // judgeBatchMode({ type: AuctionEventType.ERROR, data: { error: `JSON Parse Error: ${error.message}`, rawData: data } ... });
       }
     },
-    [judgeBatchMode /* setError を依存に追加する場合 */], // processEvent を依存配列に追加
+    [judgeBatchMode, clientId], // processEvent を依存配列に追加
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

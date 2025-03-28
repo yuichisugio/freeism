@@ -45,8 +45,9 @@ export enum AuctionEventType {
 export type EventHistoryItem = {
   id: number;
   type: AuctionEventType;
-  data: Record<string, any>;
+  data: AuctionWithDetails;
   timestamp: number;
+  clientId: string;
 };
 
 // Userの型定義
@@ -235,14 +236,12 @@ export type UserAuth = {
 // オークションSSEイベントデータ
 export type AuctionEventData = {
   type: AuctionEventType;
-  data: {
-    auction?: AuctionWithDetails;
-    bid?: BidHistoryWithUser;
-    message?: string;
-    newEndTime?: string;
-    error?: string;
-    clientId?: string; // クライアントID（接続確立メッセージ用）
-  };
+  data?: AuctionWithDetails;
+  bid?: BidHistoryWithUser;
+  message?: string;
+  newEndTime?: string;
+  error?: string;
+  clientId?: string; // クライアントID（接続確立メッセージ用）
 };
 
 // レビュー情報
