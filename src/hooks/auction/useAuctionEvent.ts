@@ -116,7 +116,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.data.bidHistories);
       }
     },
-    [clientId, initialAuction],
+    [clientId, initialAuction, auction],
   );
 
   /**

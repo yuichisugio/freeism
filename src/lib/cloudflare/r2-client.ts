@@ -3,7 +3,7 @@
 import { env } from "@/env";
 import { S3Client } from "@aws-sdk/client-s3";
 
-import { logger } from "./upload";
+import { logger } from "./logger";
 
 // ファイル全体がサーバーサイドでのみ使用されることを示すコメント
 /**

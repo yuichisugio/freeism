@@ -2,7 +2,7 @@
 
 import type { ConnectionManager } from "@/app/api/auctions/[auctionId]/sse-server-sent-events/route";
 
-import type { AuctionWithDetails, BidHistoryWithUser, EventHistoryItem } from "../types";
+import type { BidHistoryWithUser, EventHistoryItem } from "../types";
 import { AuctionEventType } from "../types";
 
 // 遅延初期化用の変数
@@ -30,10 +30,10 @@ export async function getConnectionManagerInstance(): Promise<ConnectionManager>
  * @param data イベントデータ
  * @returns イベント
  */
-export async function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): Promise<EventHistoryItem> {
+export async function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: Record<string, any>): Promise<EventHistoryItem> {
   console.log("sendEventToAuctionSubscribers", auctionId, type, data);
   const connectionManager = await getConnectionManagerInstance();
-  return connectionManager.broadcastToAuction(auctionId, type, data);
+  return connectionManager.broadcastToAuction(auctionId, type, data as any);
 }
 
 /**
@@ -43,8 +43,8 @@ export async function sendEventToAuctionSubscribers(auctionId: string, type: Auc
  * @param auctionData オークションデータ
  * @returns イベント
  */
-export async function sendNewBidEvent(auctionId: string, bidData: BidHistoryWithUser, auctionData: AuctionWithDetails): Promise<EventHistoryItem> {
-  const eventData: AuctionWithDetails = {
+export async function sendNewBidEvent(auctionId: string, bidData: BidHistoryWithUser, auctionData: Record<string, any>): Promise<EventHistoryItem> {
+  const eventData: Record<string, any> = {
     ...auctionData,
     bid: bidData,
   };
