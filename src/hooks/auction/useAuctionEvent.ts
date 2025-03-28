@@ -133,7 +133,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // AuctionWithDetails型に変換
       const auctionData: AuctionWithDetails = {
-        ...eventData.data,
         id: eventData.data?.id || initialAuction.id,
         createdAt: eventData.data?.createdAt || initialAuction.createdAt,
         updatedAt: eventData.data?.updatedAt || initialAuction.updatedAt,
@@ -214,7 +213,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
         processEventDataByType({
           type: event.type as AuctionEventType,
-          data: event.data as AuctionWithDetails,
+          data: event.data,
         });
       }
       // バッチ処理のPoolに追加
@@ -354,8 +353,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // data フィールドが存在し、空でない場合のみパースを試みる
       try {
-        const eventData: AuctionWithDetails = JSON.parse(data);
-        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData);
+        const eventData = JSON.parse(data);
+        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.auctionData);
 
         // イベントIDの設定 (パース成功後)
         if (id) {

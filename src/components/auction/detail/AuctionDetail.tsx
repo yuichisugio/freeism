@@ -49,10 +49,6 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
   // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
   const { auction = initialAuction, bidHistory, loading, error, lastReceivedMessage } = useAuctionEvent(initialAuction);
 
-  if (!auction) {
-    notFound();
-  }
-
   // カウントダウンの状態
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
 

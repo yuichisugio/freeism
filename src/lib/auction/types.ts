@@ -236,11 +236,7 @@ export type UserAuth = {
 export type AuctionEventData = {
   type: AuctionEventType;
   data?: AuctionWithDetails;
-  bid?: BidHistoryWithUser;
-  message?: string;
-  newEndTime?: string;
   error?: string;
-  clientId?: string; // クライアントID（接続確立メッセージ用）
 };
 
 // レビュー情報

@@ -478,7 +478,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         try {
           // 接続成功メッセージを送信
-          const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify({ auctionData, clientId })}\n\n`;
+          const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify(auctionData)}\n\n`;
           controller.enqueue(encoder.encode(connectionMessage));
           console.log(`route.ts_GET_クライアント ${clientId} への接続確立メッセージを送信しました`);
 
