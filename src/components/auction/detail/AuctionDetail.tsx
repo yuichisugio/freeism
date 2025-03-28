@@ -257,7 +257,6 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
         <div className="space-y-6">
           <div>
             <div className="flex items-start justify-between">
-              <h1 className="text-2xl font-bold">{auction.title || "オークションタイトル"}</h1>
               <Button variant="ghost" size="icon" onClick={handleWatchlistToggle} disabled={submitting || auction.sellerId === currentUserId} className={isWatchlisted ? "text-red-500" : ""}>
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
               </Button>

@@ -58,22 +58,30 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
       include: {
         task: {
           include: {
+            creator: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
             group: true,
-            creator: true,
-            executors: true,
           },
         },
-        currentHighestBidder: true,
-        winner: true,
         bidHistories: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 10,
         },
+        watchlists: true,
       },
     });
 

@@ -42,12 +42,16 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
 
   // オークションデータを取得
   const auctionData = await getAuctionWithTask(taskId);
+
+  // オークションデータが存在しない場合は404エラーを返す
   if (!auctionData) {
     notFound();
   }
 
   // 現在のユーザー情報を取得
   const session = await auth();
+
+  // ユーザー情報が存在しない場合は404エラーを返す
   if (!session || !session.user) {
     notFound();
   }
