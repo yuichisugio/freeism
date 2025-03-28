@@ -1,27 +1,8 @@
 "use server";
 
-import type { ConnectionManager } from "@/app/api/auctions/[auctionId]/sse-server-sent-events/route";
-
 import type { AuctionWithDetails, BidHistoryWithUser } from "../types";
 import { AuctionEventType } from "../types";
-
-// 遅延初期化用の変数
-let connectionManagerInstance: ConnectionManager | null = null;
-
-/**
- * ConnectionManagerを遅延ロードする
- * @returns ConnectionManagerインスタンス
- */
-export async function getConnectionManagerInstance(): Promise<ConnectionManager> {
-  if (!connectionManagerInstance) {
-    console.log("action/connection: Loading ConnectionManager for the first time");
-    // 必要になった時点で動的にインポート
-    const { getConnectionManager } = await import("@/app/api/auctions/[auctionId]/sse-server-sent-events/route");
-    connectionManagerInstance = getConnectionManager();
-    console.log("action/connection: ConnectionManager instance loaded:", connectionManagerInstance ? "success" : "failed");
-  }
-  return connectionManagerInstance;
-}
+import { connectionManager } from "./connection-manager-singleton";
 
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
@@ -40,7 +21,6 @@ type EventHistoryItem = {
  */
 export async function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): Promise<EventHistoryItem> {
   console.log("sendEventToAuctionSubscribers", auctionId, type, data);
-  const connectionManager = await getConnectionManagerInstance();
   return connectionManager.broadcastToAuction(auctionId, type, data);
 }
 
