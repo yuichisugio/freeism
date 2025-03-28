@@ -47,7 +47,6 @@ export type EventHistoryItem = {
   type: AuctionEventType;
   data: AuctionWithDetails;
   timestamp: number;
-  clientId: string;
 };
 
 // Userの型定義

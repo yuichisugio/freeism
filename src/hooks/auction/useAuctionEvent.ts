@@ -210,8 +210,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       console.log("SSE_judgeBatchMode_start", event);
       // バッチ処理を行うモード以外 or 即時実行する場合
       if (!batchMode || event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
-        setClientId(event.clientId);
-
         console.log("SSE_judgeBatchMode_processEventDataByType");
 
         processEventDataByType({
@@ -385,7 +383,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           type: event as AuctionEventType,
           data: eventData as AuctionWithDetails, // パース済みのデータ
           timestamp: Date.now(),
-          clientId: clientId,
         });
         console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
       } catch (error) {
@@ -397,7 +394,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         // judgeBatchMode({ type: AuctionEventType.ERROR, data: { error: `JSON Parse Error: ${error.message}`, rawData: data } ... });
       }
     },
-    [judgeBatchMode, clientId], // processEvent を依存配列に追加
+    [judgeBatchMode], // processEvent を依存配列に追加
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

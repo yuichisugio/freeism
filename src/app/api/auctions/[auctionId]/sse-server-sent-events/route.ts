@@ -234,7 +234,7 @@ export class ConnectionManager {
    * @param data イベントデータ
    * @returns イベント履歴
    */
-  broadcastToAuction(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): EventHistoryItem {
+  broadcastToAuction(auctionId: string, type: AuctionEventType, data: AuctionWithDetails, _clientId?: string): EventHistoryItem {
     console.log("route.ts_broadcastToAuction_start", auctionId, type);
 
     // 正規化：文字列として扱うことを確実にする
