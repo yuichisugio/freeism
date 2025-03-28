@@ -1,7 +1,6 @@
 "use server";
 
 import { logger } from "./logger";
-import { ACCEPTED_IMAGE_TYPES, ImageMimeType, MAX_FILE_SIZE } from "./upload-constants";
 
 const isImageUploadEnabled = () => {
   return process.env.ENABLE_IMAGE_UPLOAD === "true";

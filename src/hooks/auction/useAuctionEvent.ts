@@ -408,7 +408,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       console.log("SSE_handleSSEStream_start");
       const reader = response.body?.getReader();
       if (!reader) {
-        setLoading(false);
         setError("SSEレスポンスのBodyが取得できません"); // エラー状態も更新
         console.log("SSE_handleSSEStream_SSEレスポンスのBodyが取得できません");
         return; // Body がなければ処理終了
@@ -420,7 +419,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       try {
         isConnectedRef.current = true;
         console.log("SSE_handleSSEStream_SSE接続状態を「接続中」に設定しました");
-        setLoading(false);
 
         while (isConnectedRef.current) {
           // isConnectedRef をループ条件に
@@ -455,7 +453,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
               // 次の区切り文字を探す
               boundary = buffer.indexOf("\n\n");
             }
-            // ループ終了後、buffer には次のメッセージの断片 or 空文字列が残る
           } catch (readError) {
             // 読み取り中のエラーハンドリング
             if ((readError as Error).name === "AbortError") {
