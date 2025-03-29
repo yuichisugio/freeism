@@ -20,7 +20,7 @@ type EventHistoryItem = {
  * @returns イベント
  */
 export async function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): Promise<EventHistoryItem> {
-  console.log("sendEventToAuctionSubscribers", auctionId, type, data);
+  console.log("sendEventToAuctionSubscribers", auctionId, type);
   return connectionManager.broadcastToAuction(auctionId, type, data);
 }
 

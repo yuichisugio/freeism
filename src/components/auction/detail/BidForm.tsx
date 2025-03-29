@@ -15,7 +15,7 @@ import { type BidFormProps } from "@/lib/auction/types";
  */
 export default function BidForm({ auction }: BidFormProps) {
   useEffect(() => {
-    console.log("BidForm_auction", auction);
+    // 最低入札額は現在価格の1ポイント増し。現在の入札額が、他社が入札して更新された額より小さい場合は1ポイント増し
     if (auction.currentHighestBid >= bidAmount) {
       setBidAmount(auction.currentHighestBid + 1);
     }
