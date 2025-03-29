@@ -1,12 +1,12 @@
 import React from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 
-interface CustomPaginationProps {
+type CustomPaginationProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   showPageInfo?: boolean;
-}
+};
 
 export default function CustomPagination({ currentPage, totalPages, onPageChange, showPageInfo = false }: CustomPaginationProps) {
   // 表示するページ番号を生成

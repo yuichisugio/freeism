@@ -1,16 +1,17 @@
 "use client";
 
-import type { AuctionFilterParams } from "@/lib/auction/types";
 import React from "react";
 import AuctionCard from "@/components/auction/listing/AuctionCard";
 import AuctionFilters from "@/components/auction/listing/AuctionFilters";
-import CustomPagination from "@/components/ui/CustomPagination";
+import CustomPagination from "@/components/auction/listing/AuctionPagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/useAuctionListings";
 
 // オークション商品一覧
 export default function AuctionListings() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックと状態を取得
   const {
     // 状態
@@ -33,6 +34,8 @@ export default function AuctionListings() {
     handleResetFilters,
     handleToggleWatchlist,
   } = useAuctionListings();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="space-y-6">

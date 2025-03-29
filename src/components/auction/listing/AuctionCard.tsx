@@ -13,7 +13,7 @@ import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Clock, Eye, Heart, Star, Tag, Users } from "lucide-react";
 
-import CardCountdown from "./CardCountdown";
+import CardCountdown from "./AuctionCountdown";
 
 export default function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
   // ウォッチリスト更新中の状態

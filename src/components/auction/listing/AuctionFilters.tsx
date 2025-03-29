@@ -9,16 +9,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { getUserGroups } from "@/lib/auction/action/user";
+import { type AuctionFiltersProps } from "@/lib/auction/types";
 import { Filter, X } from "lucide-react";
-
-type AuctionFiltersProps = {
-  filters: AuctionFilterParams;
-  onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
-  sortOption: AuctionSortOption;
-  onSortChangeAction: (sort: AuctionSortOption) => void;
-  categories?: string[];
-  onResetFilters?: () => void;
-};
 
 export default function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: AuctionFiltersProps) {
   // 価格範囲フィルター

@@ -11,6 +11,16 @@ export type AuctionFilterParams = {
   searchQuery?: string;
 };
 
+// フィルターのprops
+export type AuctionFiltersProps = {
+  filters: AuctionFilterParams;
+  onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
+  sortOption: AuctionSortOption;
+  onSortChangeAction: (sort: AuctionSortOption) => void;
+  categories?: string[];
+  onResetFilters?: () => void;
+};
+
 // ソートオプションの型定義
 export type AuctionSortOption = "newest" | "time_remaining" | "price_asc" | "price_desc" | "bids";
 
