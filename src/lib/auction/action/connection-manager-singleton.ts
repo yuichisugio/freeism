@@ -1,28 +1,13 @@
 import { ConnectionManager } from "@/lib/auction/action/connection-manager-class";
 
-declare global {
-  var __connectionManagerInstance: ConnectionManager | undefined;
-}
+console.log("connection-manager-singleton.ts_called");
 
-let connectionManager: ConnectionManager;
+const globalForConnectionManager = globalThis as unknown as { __myapp_connectionManagerInstance: ConnectionManager };
 
-console.log("ConnectionManagerSingleton: Initializing..."); // 初期化開始ログ
+console.log("connection-manager-singleton.ts_globalForConnectionManager.__myapp_connectionManagerInstance", globalForConnectionManager.__myapp_connectionManagerInstance);
+const connectionManager = globalForConnectionManager.__myapp_connectionManagerInstance ?? new ConnectionManager();
 
-if (process.env.NODE_ENV === "production") {
-  connectionManager = new ConnectionManager(); // 本番環境では直接インスタンス化
-  console.log("ConnectionManagerSingleton: Using production instance.");
-} else {
-  // 開発環境ではグローバルキャッシュを使用
-  if (!global.__connectionManagerInstance) {
-    console.log("ConnectionManagerSingleton: Creating new instance for development.");
-    // ここで new ConnectionManager() を呼び出す
-    global.__connectionManagerInstance = new ConnectionManager();
-  } else {
-    console.log("ConnectionManagerSingleton: Re-using existing development instance.");
-  }
-  connectionManager = global.__connectionManagerInstance;
-}
-
-console.log("ConnectionManagerSingleton: Instance assigned."); // インスタンス割り当てログ
+console.log("connection-manager-singleton.ts_connectionManager", connectionManager);
+if (process.env.NODE_ENV !== "production") globalForConnectionManager.__myapp_connectionManagerInstance = connectionManager;
 
 export { connectionManager };

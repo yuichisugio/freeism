@@ -51,7 +51,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const auctionId = initialAuction.id;
 
   // オプション
-  const { reconnectOnVisibility = true, batchMode = true } = initialAuction.options || {};
+  const { reconnectOnVisibility = true } = initialAuction.options || {};
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -96,7 +96,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         taskId: auctionData.taskId,
         options: {
           reconnectOnVisibility: true,
-          batchMode: true,
           clientId: receivedClientId || clientId,
         },
         // 日付オブジェクトを文字列から変換（必要な場合）
@@ -109,7 +108,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       // 変換したデータをステートに設定
       setAuction(processedAuction);
       console.log("SSE_giveAuctionDataToState_setAuction", processedAuction);
-      console.log("SSE_giveAuctionDataToState_setAuction_auction_state", auction);
 
       console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.bidHistories);
       // 入札履歴があれば設定
@@ -120,7 +118,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       setLoading(false);
     },
-    [clientId, initialAuction, auction],
+    [clientId, initialAuction],
   );
 
   /**
@@ -158,7 +156,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         bid: eventData.data?.bid || initialAuction.bid,
         options: {
           reconnectOnVisibility: true,
-          batchMode: true,
           clientId: clientId,
         },
       };
@@ -208,7 +205,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     (event: EventHistoryItem) => {
       console.log("SSE_judgeBatchMode_start", event);
       // バッチ処理を行うモード以外 or 即時実行する場合
-      if (!batchMode || event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
+      if (event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
         console.log("SSE_judgeBatchMode_processEventDataByType");
 
         processEventDataByType({
@@ -222,7 +219,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.log("SSE_judgeBatchMode_batchPoolRef.current", batchPoolRef.current);
       }
     },
-    [batchMode, processEventDataByType],
+    [processEventDataByType],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -354,7 +351,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       // data フィールドが存在し、空でない場合のみパースを試みる
       try {
         const eventData = JSON.parse(data);
-        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.auctionData);
+        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
 
         // イベントIDの設定 (パース成功後)
         if (id) {
@@ -389,8 +386,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
         console.error(`SSE_editSSEdata_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
         setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
-        // 必要であればエラーイベントとしてキューに追加するなどの処理
-        // judgeBatchMode({ type: AuctionEventType.ERROR, data: { error: `JSON Parse Error: ${error.message}`, rawData: data } ... });
       }
     },
     [judgeBatchMode], // processEvent を依存配列に追加
@@ -596,39 +591,37 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * バッファ処理(バッチ処理)を行うインターバル設定
    */
   useEffect(() => {
-    // バッチ処理を行うモードの場合は、Intervalを設定
-    if (batchMode) {
-      console.log("SSE_useEffect_batchMode_true");
-      // IntervalのIDを、refに保存
-      batchIntervalRef.current = setInterval(() => {
-        // batchPoolRef.currentは配列で、バッファ内にイベントがある場合
-        if (batchPoolRef.current.length > 0) {
-          console.log("SSE_useEffect_batchMode_true_batchPoolRef.current.length > 0");
-          // バッファ内のイベントを取り出して、バッファの中身をゼロにする
-          const events = [...batchPoolRef.current];
-          batchPoolRef.current = [];
+    console.log("SSE_useEffect_batch_start");
+    // IntervalのIDを、refに保存
+    batchIntervalRef.current = setInterval(() => {
+      // batchPoolRef.currentは配列で、バッファ内にイベントがある場合
+      console.log("SSE_useEffect_batch_batchPoolRef.current.length", batchPoolRef.current.length);
+      if (batchPoolRef.current.length > 0) {
+        console.log("SSE_useEffect_batch_batchPoolRef.current.length > 0");
+        // バッファ内のイベントを取り出して、バッファの中身をゼロにする
+        const events = [...batchPoolRef.current];
+        batchPoolRef.current = [];
 
-          // バッチ処理のPool内の各イベントをひとつづつ処理
-          for (const event of events) {
-            // バッファ内のイベントをひとつづつ処理
-            processEventDataByType({
-              type: event.type as AuctionEventType,
-              data: event.data,
-            });
-          }
+        // バッチ処理のPool内の各イベントをひとつづつ処理
+        for (const event of events) {
+          // バッファ内のイベントをひとつづつ処理
+          processEventDataByType({
+            type: event.type as AuctionEventType,
+            data: event.data,
+          });
         }
-      }, BUFFER_INTERVAL);
-    }
+      }
+    }, BUFFER_INTERVAL);
 
     // バッファ処理(バッチ処理)を行うIntervalをクリーンアップ
     return () => {
-      console.log("SSE_useEffect_batchMode_クリーンアップ");
+      console.log("SSE_useEffect_batch_クリーンアップ");
       if (batchIntervalRef.current) {
         clearInterval(batchIntervalRef.current);
         batchIntervalRef.current = null;
       }
     };
-  }, [batchMode, processEventDataByType]);
+  }, [processEventDataByType]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
