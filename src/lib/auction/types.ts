@@ -251,3 +251,39 @@ export async function getExtendedEventType() {
     CONNECTION_ESTABLISHED: "connection_established" as const,
   };
 }
+
+// オークションカードのprops
+export type AuctionCardProps = {
+  auction: {
+    id: string;
+    taskId: string;
+    title: string;
+    description?: string;
+    imageUrl?: string;
+    currentBid: number;
+    bidToBeatAmount: number;
+    endTime: Date;
+    startTime: Date;
+    status: AuctionStatus;
+    isWatched: boolean;
+    bidsCount: number;
+    seller: {
+      id: string;
+      name: string | null;
+      image: string | null;
+      rating: number | null;
+    };
+    group: {
+      id: string;
+      name: string;
+    };
+  };
+  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
+};
+
+// オークションカード用カウントダウンのprops
+export type CardCountdownProps = {
+  endTime: Date;
+  className?: string;
+  onExpire?: () => void;
+};

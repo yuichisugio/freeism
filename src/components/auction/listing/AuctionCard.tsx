@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { type AuctionCardProps } from "@/lib/auction/types";
 import { cn } from "@/lib/utils";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
@@ -14,36 +15,7 @@ import { Clock, Eye, Heart, Star, Tag, Users } from "lucide-react";
 
 import CardCountdown from "./CardCountdown";
 
-// オークション情報の型定義
-type AuctionProps = {
-  auction: {
-    id: string;
-    taskId: string;
-    title: string;
-    description?: string;
-    imageUrl?: string;
-    currentBid: number;
-    bidToBeatAmount: number;
-    endTime: Date;
-    startTime: Date;
-    status: AuctionStatus;
-    isWatched: boolean;
-    bidsCount: number;
-    seller: {
-      id: string;
-      name: string | null;
-      image: string | null;
-      rating: number | null;
-    };
-    group: {
-      id: string;
-      name: string;
-    };
-  };
-  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
-};
-
-export default function AuctionCard({ auction, onToggleWatchlistAction }: AuctionProps) {
+export default function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
   // ウォッチリスト更新中の状態
   const [isUpdating, setIsUpdating] = useState(false);
 

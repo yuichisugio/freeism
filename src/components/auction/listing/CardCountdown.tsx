@@ -1,14 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { type CardCountdownProps } from "@/lib/auction/types";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
-
-type CardCountdownProps = {
-  endTime: Date;
-  className?: string;
-  onExpire?: () => void;
-};
 
 /**
  * オークションカード用シンプルなカウントダウンコンポーネント
