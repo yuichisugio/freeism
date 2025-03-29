@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,17 @@ import { type BidFormProps } from "@/lib/auction/types";
  * @returns 入札フォーム
  */
 export default function BidForm({ auction }: BidFormProps) {
-  // 最低入札額は現在価格の1ポイント増し
-  const minBid = auction.currentPrice + 1;
+  useEffect(() => {
+    console.log("BidForm_auction", auction);
+    if (auction.currentHighestBid >= bidAmount) {
+      setBidAmount(auction.currentHighestBid + 1);
+    }
+  }, [auction]);
 
+  // 最低入札額は現在価格の1ポイント増し
+  const [minBid, setMinBid] = useState(auction.currentHighestBid + 1);
   // 入札額を管理するuseState
-  const [bidAmount, setBidAmount] = useState(minBid);
+  const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
 
   // 入札フォームのサブミットハンドラ
   const { clientPlaceBid, submitting, error } = useBidActions();
@@ -60,7 +66,7 @@ export default function BidForm({ auction }: BidFormProps) {
 
         <CardFooter className="w-full">
           <Button type="submit" disabled={submitting || bidAmount < minBid} className="w-full">
-            {submitting ? "入札処理中..." : "入札する"}
+            {auction.currentHighestBid > bidAmount ? "最低入札額より高いポイントを入力して下さい" : submitting ? "入札処理中..." : "入札する"}
           </Button>
         </CardFooter>
       </form>

@@ -75,7 +75,7 @@ export type Auction = {
   title: string;
   description: string;
   imageUrl?: string;
-  currentPrice: number;
+  currentHighestBid: number;
   startTime: string;
   endTime: string;
   sellerId: string;

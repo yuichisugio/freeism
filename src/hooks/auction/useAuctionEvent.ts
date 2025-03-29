@@ -38,10 +38,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const isConnectedRef = useRef<boolean>(false);
   // fetch APIのコントローラー
   const abortControllerRef = useRef<AbortController | null>(null);
-  // バッチ処理するインターバル時間を管理するref
-  const batchIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  // バッチ処理するために、Eventを貯めているRef
-  const batchPoolRef = useRef<EventHistoryItem[]>([]);
   // 接続を再確立する予約タイマー
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -198,33 +194,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * イベントをバッチ処理するために、貯めておく関数
-   * @param event イベント
-   */
-  const judgeBatchMode = useCallback(
-    (event: EventHistoryItem) => {
-      console.log("SSE_judgeBatchMode_start", event);
-      // バッチ処理を行うモード以外 or 即時実行する場合
-      if (event.type === AuctionEventType.CONNECTION_ESTABLISHED) {
-        console.log("SSE_judgeBatchMode_processEventDataByType");
-
-        processEventDataByType({
-          type: event.type as AuctionEventType,
-          data: event.data,
-        });
-      }
-      // バッチ処理のPoolに追加
-      else {
-        batchPoolRef.current.push(event);
-        console.log("SSE_judgeBatchMode_batchPoolRef.current", batchPoolRef.current);
-      }
-    },
-    [processEventDataByType],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 切断関数
    */
   // Promise を返す形にリファクタリング
@@ -242,24 +211,11 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       console.log("SSE_disconnect_abortControllerRef.current", abortControllerRef.current);
     }
 
-    // バッファインターバルをクリア
-    if (batchIntervalRef.current) {
-      clearInterval(batchIntervalRef.current);
-      batchIntervalRef.current = null;
-      console.log("SSE_disconnect_batchIntervalRef.current", batchIntervalRef.current);
-    }
-
     // 再接続タイマーをクリア
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
       console.log("SSE_disconnect_reconnectTimerRef.current", reconnectTimerRef.current);
-    }
-
-    // ★ 未処理のバッファをクリア (切断時に破棄する場合) ★
-    if (batchPoolRef.current.length > 0) {
-      console.warn(`SSE_disconnect_切断時に未処理のバッファイベント ${batchPoolRef.current.length} 件を破棄します`);
-      batchPoolRef.current = [];
     }
 
     setLoading(false);
@@ -298,110 +254,105 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * SSEイベントを処理する関数
    * @param text SSEメッセージ (単一の message ブロック、\n\n で区切られた後の部分)
    */
-  const editSSEdata = useCallback(
-    (text: string) => {
-      // text が空や空白文字だけの場合は処理しない
-      if (!text || text.trim() === "") {
-        console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);
+  const editSSEdata = useCallback((text: string) => {
+    // text が空や空白文字だけの場合は処理しない
+    if (!text || text.trim() === "") {
+      console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);
+      return;
+    }
+    console.log("SSE_editSSEdata_start processing:", text);
+
+    // SSEメッセージを解析
+    const lines = text.split("\n");
+    let event = "message"; // デフォルトイベントタイプ
+    let data = ""; // データ部分を格納 (複数行 data に対応するため初期化)
+    let id = ""; // イベントIDを格納
+    let hasDataField = false; // data: フィールドが存在したかのフラグ
+
+    for (const line of lines) {
+      if (line.startsWith("event:")) {
+        event = line.substring(6).trim();
+      } else if (line.startsWith("data:")) {
+        hasDataField = true;
+        // "data:" の後のスペースも考慮してトリムする
+        // 複数行 data の場合、改行を保持して連結 (仕様に厳密に従うなら改行が必要)
+        if (data === "") {
+          // 最初の data 行
+          data = line.substring(5).trimStart(); // 先頭のスペースのみ削除
+        } else {
+          // 2行目以降の data 行 (改行を挟んで連結)
+          data += "\n" + line.substring(5).trimStart();
+        }
+      } else if (line.startsWith("id:")) {
+        id = line.substring(3).trim();
+      } else if (line.startsWith(":")) {
+        // コメント行は完全に無視
+        console.log("SSE_editSSEdata_コメント行を無視:", line);
+        continue;
+      } else if (line.trim() === "") {
+        // 空行は無視
+        continue;
+      } else {
+        // 不明な行、またはフィールド名のない行 (仕様では無視される)
+        console.log("SSE_editSSEdata_不明な行:", line);
+      }
+    }
+
+    console.log(`SSE_editSSEdata_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
+
+    // ★★★ 修正点: dataフィールドが存在しなかった、または data が空文字列の場合は JSON.parse を試みない ★★★
+    // eventタイプによってはdataが空でも意味を持つ場合があるため、イベントタイプで分岐
+    if (!hasDataField || data === "") {
+      console.log(`SSE_editSSEdata_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
+      // data が空でも処理が必要なイベントタイプ (例: ping) があればここで処理
+      if (event === "ping") {
+        console.log("SSE_editSSEdata_ping イベント受信");
+        // 必要に応じて処理
         return;
       }
-      console.log("SSE_editSSEdata_start processing:", text);
+      // その他の data が空のイベントは無視、またはエラーとして扱う場合はここで処理
+      console.log(`SSE_editSSEdata_イベント ${event} は data が空のため処理をスキップします。`);
+      return; // スキップして終了
+    }
 
-      // SSEメッセージを解析
-      const lines = text.split("\n");
-      let event = "message"; // デフォルトイベントタイプ
-      let data = ""; // データ部分を格納 (複数行 data に対応するため初期化)
-      let id = ""; // イベントIDを格納
-      let hasDataField = false; // data: フィールドが存在したかのフラグ
+    // data フィールドが存在し、空でない場合のみパースを試みる
+    try {
+      const eventData = JSON.parse(data);
+      console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
 
-      for (const line of lines) {
-        if (line.startsWith("event:")) {
-          event = line.substring(6).trim();
-        } else if (line.startsWith("data:")) {
-          hasDataField = true;
-          // "data:" の後のスペースも考慮してトリムする
-          // 複数行 data の場合、改行を保持して連結 (仕様に厳密に従うなら改行が必要)
-          if (data === "") {
-            // 最初の data 行
-            data = line.substring(5).trimStart(); // 先頭のスペースのみ削除
-          } else {
-            // 2行目以降の data 行 (改行を挟んで連結)
-            data += "\n" + line.substring(5).trimStart();
-          }
-        } else if (line.startsWith("id:")) {
-          id = line.substring(3).trim();
-        } else if (line.startsWith(":")) {
-          // コメント行は完全に無視
-          console.log("SSE_editSSEdata_コメント行を無視:", line);
-          continue;
-        } else if (line.trim() === "") {
-          // 空行は無視
-          continue;
-        } else {
-          // 不明な行、またはフィールド名のない行 (仕様では無視される)
-          console.log("SSE_editSSEdata_不明な行:", line);
+      // イベントIDの設定 (パース成功後)
+      if (id) {
+        const eventId = parseInt(id, 10);
+        if (!isNaN(eventId)) {
+          setLastEventId(eventId); // 状態更新
+          console.log(`SSE_editSSEdata_イベントIDを更新しました: ${eventId}`);
         }
       }
 
-      console.log(`SSE_editSSEdata_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
+      // デバッグ用に最後に受信したメッセージを保存
+      setLastReceivedMessage(
+        JSON.stringify({
+          type: event,
+          lastEventId: id,
+          parsedDataAttempt: eventData,
+          timestamp: new Date().toISOString(),
+        }),
+      );
 
-      // ★★★ 修正点: dataフィールドが存在しなかった、または data が空文字列の場合は JSON.parse を試みない ★★★
-      // eventタイプによってはdataが空でも意味を持つ場合があるため、イベントタイプで分岐
-      if (!hasDataField || data === "") {
-        console.log(`SSE_editSSEdata_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
-        // data が空でも処理が必要なイベントタイプ (例: ping) があればここで処理
-        if (event === "ping") {
-          console.log("SSE_editSSEdata_ping イベント受信");
-          // 必要に応じて処理
-          return;
-        }
-        // その他の data が空のイベントは無視、またはエラーとして扱う場合はここで処理
-        console.log(`SSE_editSSEdata_イベント ${event} は data が空のため処理をスキップします。`);
-        return; // スキップして終了
-      }
+      // イベントキューに追加
+      processEventDataByType({
+        type: event as AuctionEventType,
+        data: eventData as AuctionWithDetails,
+      });
 
-      // data フィールドが存在し、空でない場合のみパースを試みる
-      try {
-        const eventData = JSON.parse(data);
-        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
-
-        // イベントIDの設定 (パース成功後)
-        if (id) {
-          const eventId = parseInt(id, 10);
-          if (!isNaN(eventId)) {
-            setLastEventId(eventId); // 状態更新
-            console.log(`SSE_editSSEdata_イベントIDを更新しました: ${eventId}`);
-          }
-        }
-
-        // デバッグ用に最後に受信したメッセージを保存
-        setLastReceivedMessage(
-          JSON.stringify({
-            type: event,
-            lastEventId: id,
-            rawData: text,
-            parsedDataAttempt: data,
-            timestamp: new Date().toISOString(),
-          }),
-        );
-
-        // イベントキューに追加
-        judgeBatchMode({
-          id: id ? parseInt(id, 10) : Date.now(), // ID が数値でない場合も考慮
-          type: event as AuctionEventType,
-          data: eventData as AuctionWithDetails, // パース済みのデータ
-          timestamp: Date.now(),
-        });
-        console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
-      } catch (error) {
-        // JSON.parse でのエラーハンドリング
-        console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
-        console.error(`SSE_editSSEdata_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
-        setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
-      }
-    },
-    [judgeBatchMode], // processEvent を依存配列に追加
-  );
+      console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
+    } catch (error) {
+      // JSON.parse でのエラーハンドリング
+      console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
+      console.error(`SSE_editSSEdata_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
+      setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
+    }
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -517,51 +468,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * バッファ処理(バッチ処理)を行うインターバル設定
-   */
-  const startBatchInterval = useCallback(() => {
-    // 既にインターバルが存在する場合は新たに設定しない
-    if (batchIntervalRef.current) {
-      console.log("SSE_startBatchInterval_既にインターバルが存在するためスキップ");
-      return;
-    }
-    console.log("SSE_startBatchInterval_バッチ処理インターバルを開始します Interval:", BUFFER_INTERVAL, "ms");
-    batchIntervalRef.current = setInterval(() => {
-      // batchPoolRef.currentにイベントがある場合のみ処理
-      if (batchPoolRef.current.length > 0) {
-        // 処理中にバッファに追加される可能性を考慮し、現在のバッファのスナップショットを取得
-        const eventsToProcess = [...batchPoolRef.current];
-        // バッファを先に空にする（重要：処理中に新たに追加されたものを次回のインターバルで処理するため）
-        batchPoolRef.current = [];
-
-        console.log(`SSE_batchInterval_処理開始: ${eventsToProcess.length}件`);
-        // console.log("SSE_batchInterval_処理対象イベント:", eventsToProcess); // デバッグ用に詳細ログが必要な場合
-
-        try {
-          // スナップショット内の各イベントを処理
-          for (const event of eventsToProcess) {
-            console.log(`SSE_batchInterval_イベント処理中: Type=${event.type}, ID=${event.id}`);
-            processEventDataByType({
-              type: event.type as AuctionEventType,
-              data: event.data,
-            });
-          }
-          console.log("SSE_batchInterval_処理完了");
-        } catch (batchError) {
-          console.error("SSE_batchInterval_イベント処理中にエラーが発生しました:", batchError);
-          // エラーが発生した場合、処理できなかったイベントは失われる（batchPoolRefは既に空のため）
-          // 必要であれば、ここでエラー処理を追加（例: エラー状態を設定、エラーイベントを再キューするなど）
-          setError(`バッチ処理中にエラーが発生しました: ${(batchError as Error).message}`);
-        }
-      } else {
-        // console.log("SSE_batchInterval_バッファは空です"); // デバッグ用
-      }
-    }, BUFFER_INTERVAL); // 定義されたインターバル時間で実行
-  }, [processEventDataByType]); // processEventDataByTypeが変更されたら再生成
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 接続関数
    */
   const connect = useCallback(async (): Promise<void> => {
@@ -573,8 +479,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     // 既存の接続をクリーンアップ
     if (abortControllerRef.current) {
       // const controller = abortControllerRef.current;
-      // // abortControllerRef.current = null;
-      // // controller.abort();
+      // abortControllerRef.current = null;
+      // controller.abort();
       console.log("SSE_connect_abortControllerRef.current_abort");
       return;
     }
@@ -650,9 +556,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
             setLoading(false); // ローディング解除
             setError(null); // エラー状態をクリア
 
-            // ★★★ バッチ処理インターバルを開始 ★★★
-            startBatchInterval();
-
             // ★ ストリーム処理を開始 ★
             console.log(`SSE_connect_SSE接続が成功し、ストリーム処理を開始します`);
             handleSSEStream(response);
@@ -672,7 +575,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         setLoading(false);
       }
     }
-  }, [auctionId, clientId, lastEventId, handleSSEStream, startBatchInterval]);
+  }, [auctionId, clientId, lastEventId, handleSSEStream]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

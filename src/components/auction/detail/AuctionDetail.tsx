@@ -158,7 +158,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
                   id: auction.id,
                   title: auction.title,
                   description: auction.description,
-                  currentPrice: auction.currentHighestBid,
+                  currentHighestBid: auction.currentHighestBid,
                   startTime: auction.startTime.toString(),
                   endTime: auction.endTime.toString(),
                   sellerId: auction.sellerId,
