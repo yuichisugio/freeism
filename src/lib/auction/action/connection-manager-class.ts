@@ -223,28 +223,28 @@ export class ConnectionManager {
     const eventMessage = this.formatEventMessage(event);
     const encodedEventMessage = this.encoder.encode(eventMessage);
 
-    console.log("[CM Class] All stored auction IDs:", Array.from(this.connections.keys()));
+    console.log("[CM Class] broadcastToAuction All stored auction IDs:", Array.from(this.connections.keys()));
     const auctionClients = this.connections.get(normalizedAuctionId);
-    console.log("[CM Class] Finding clients for:", normalizedAuctionId, "Result:", auctionClients ? "found" : "not found");
+    console.log("[CM Class] broadcastToAuction Finding clients for:", normalizedAuctionId, "Result:", auctionClients ? "found" : "not found");
 
     if (!auctionClients) {
-      console.warn("[CM Class] No clients found for auction:", normalizedAuctionId);
+      console.warn("[CM Class] broadcastToAuction No clients found for auction:", normalizedAuctionId);
       return event;
     }
+    console.log("[CM Class] broadcastToAuction Auction clients:", Array.from(auctionClients.keys()));
 
     const clientsToRemove: string[] = [];
     let sentCount = 0;
     for (const [clientId, connectionInfo] of auctionClients.entries()) {
       if (!connectionInfo.isActive) {
-        // 送信する前にアクティブか確認
-        // console.log(`[CM Class] Skipping inactive client ${clientId}`);
+        console.log(`[CM Class] broadcastToAuction Skipping inactive client ${clientId}`);
         continue;
       }
       try {
         connectionInfo.controller.enqueue(encodedEventMessage);
         sentCount++;
       } catch (e) {
-        console.error(`[CM Class] Error sending to client ${clientId}:`, e);
+        console.error(`[CM Class] broadcastToAuction Error sending to client ${clientId}:`, e);
         clientsToRemove.push(clientId);
       }
     }
@@ -255,11 +255,11 @@ export class ConnectionManager {
     }
 
     if (sentCount > 0) {
-      console.log(`[CM Class] Broadcast event ${type} to ${sentCount} client(s) in auction ${normalizedAuctionId}`);
+      console.log(`[CM Class] broadcastToAuction Broadcast event ${type} to ${sentCount} client(s) in auction ${normalizedAuctionId}`);
     } else if (auctionClients.size > 0 && clientsToRemove.length < auctionClients.size) {
-      console.log(`[CM Class] No active clients to broadcast to in auction ${normalizedAuctionId}, but inactive connections exist.`);
+      console.log(`[CM Class] broadcastToAuction No active clients to broadcast to in auction ${normalizedAuctionId}, but inactive connections exist.`);
     } else {
-      console.log(`[CM Class] No clients to broadcast to in auction ${normalizedAuctionId}.`);
+      console.log(`[CM Class] broadcastToAuction No clients to broadcast to in auction ${normalizedAuctionId}.`);
     }
 
     return event;
