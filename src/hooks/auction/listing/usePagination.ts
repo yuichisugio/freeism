@@ -8,7 +8,16 @@ type UsePaginationProps = {
   maxPageToShow?: number;
 };
 
+/**
+ * ページネーションフック
+ * @param currentPage 現在のページ
+ * @param totalPages 総ページ数
+ * @param maxPageToShow 表示するページ数
+ * @returns ページネーションフック
+ */
 export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: UsePaginationProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 表示するページ番号を生成
   const pageNumbers = useMemo(() => {
     const pages = [];
@@ -48,11 +57,15 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: Us
     return pages;
   }, [currentPage, totalPages, maxPageToShow]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 前のページに進むかどうか
   const hasPreviousPage = currentPage > 1;
 
   // 次のページに進むかどうか
   const hasNextPage = currentPage < totalPages;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     pageNumbers,

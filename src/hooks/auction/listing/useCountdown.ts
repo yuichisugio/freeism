@@ -1,24 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { type TimeRemaining, type UseCountdownProps } from "@/lib/auction/types";
 
-type TimeRemaining = {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  isExpired: boolean;
-  isUrgent: boolean;
-  isCritical: boolean;
-};
-
-type UseCountdownProps = {
-  endTime: Date | string;
-  onExpire?: () => void;
-};
-
+/**
+ * カウントダウンフック
+ * @param endTime 終了時間
+ * @param onExpire 終了時のコールバック関数
+ * @returns 残り時間の状態とフォーマットされた残り時間
+ */
 export function useCountdown({ endTime, onExpire }: UseCountdownProps) {
-  // 残り時間を計算する関数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 残り時間を計算する関数
+   * @returns 残り時間の状態
+   */
   const getTimeRemaining = useCallback((): TimeRemaining => {
     const now = new Date();
     const end = new Date(endTime);
@@ -50,7 +47,12 @@ export function useCountdown({ endTime, onExpire }: UseCountdownProps) {
     return { days, hours, minutes, seconds, isExpired: false, isUrgent, isCritical };
   }, [endTime]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 残り時間の状態を管理するuseState
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>(getTimeRemaining());
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 残り時間をフォーマットする関数
   const formatTimeRemaining = useCallback((): string => {
@@ -73,6 +75,8 @@ export function useCountdown({ endTime, onExpire }: UseCountdownProps) {
     return `残り${timeRemaining.seconds}秒`;
   }, [timeRemaining]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 1秒ごとに残り時間を更新するタイマー
   useEffect(() => {
     const timer = setInterval(() => {
@@ -88,6 +92,8 @@ export function useCountdown({ endTime, onExpire }: UseCountdownProps) {
 
     return () => clearInterval(timer);
   }, [endTime, onExpire, getTimeRemaining]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     timeRemaining,

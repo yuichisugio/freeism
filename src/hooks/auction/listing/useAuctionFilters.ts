@@ -1,20 +1,23 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types";
-import { useEffect, useState } from "react";
+import type { AuctionFilterParams, AuctionSortOption, UseAuctionFiltersProps } from "@/lib/auction/types";
+import { useCallback, useEffect, useState } from "react";
 import { getUserGroups } from "@/lib/auction/action/user";
 
-// フィルターのprops
-type UseAuctionFiltersProps = {
-  filters: AuctionFilterParams;
-  onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
-  sortOption: AuctionSortOption;
-  onSortChangeAction: (sort: AuctionSortOption) => void;
-  categories?: string[];
-  onResetFilters?: () => void;
-};
-
+/**
+ * オークションフィルター用カスタムフック
+ * @param props フィルターのprops
+ * @param filters フィルターの状態
+ * @param onFilterChangeAction フィルターの変更アクション
+ * @param sortOption ソートオプション
+ * @param onSortChangeAction ソートオプションの変更アクション
+ * @param categories カテゴリオプション
+ * @param onResetFilters フィルターのリセットアクション
+ * @returns フィルターの状態とハンドラー
+ */
 export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: UseAuctionFiltersProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 価格範囲フィルター
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
 
@@ -26,6 +29,8 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
 
   // アクティブなフィルターの数をカウント
   const [activeFilterCount, setActiveFilterCount] = useState(0);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // グループ情報を取得
   useEffect(() => {
@@ -41,6 +46,8 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
     fetchGroups();
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // アクティブなフィルターの数を計算
   useEffect(() => {
     let count = 0;
@@ -54,33 +61,45 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
     setActiveFilterCount(count);
   }, [filters]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 価格範囲変更時のハンドラー
-  const handlePriceRangeChange = (value: [number, number]) => {
+  const handlePriceRangeChange = useCallback((value: [number, number]) => {
     setPriceRange(value);
-  };
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲適用時のハンドラー
-  const handlePriceRangeApply = () => {
+  const handlePriceRangeApply = useCallback(() => {
     onFilterChangeAction({
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
     });
-  };
+  }, [onFilterChangeAction, priceRange]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フィルター表示切り替え
-  const toggleFilterDisplay = () => {
+  const toggleFilterDisplay = useCallback(() => {
     setShowFilters(!showFilters);
-  };
+  }, [showFilters]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲のプリセット設定
-  const setPricePreset = (min: number, max: number) => {
+  const setPricePreset = useCallback((min: number, max: number) => {
     setPriceRange([min, max]);
-  };
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲をリセット
-  const resetPriceRange = () => {
+  const resetPriceRange = useCallback(() => {
     setPriceRange([0, 10000]);
-  };
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     priceRange,

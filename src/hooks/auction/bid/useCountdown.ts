@@ -9,6 +9,8 @@ import { type CountdownState } from "@/lib/auction/types";
  * @returns カウントダウンの状態とフォーマットされたカウントダウン
  */
 export function useCountdown(targetDate: Date | string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * カウントダウンの状態を計算する関数
    * @returns カウントダウンの状態
@@ -41,9 +43,14 @@ export function useCountdown(targetDate: Date | string) {
     };
   }, [targetDate]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カウントダウンの状態を管理するuseState
   const [timeLeft, setTimeLeft] = useState<CountdownState>(calculateTimeLeft());
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // タイマーを更新
   useEffect(() => {
     // 1秒ごとに更新
     const timerId = setInterval(() => {
@@ -60,11 +67,13 @@ export function useCountdown(targetDate: Date | string) {
     return () => clearInterval(timerId);
   }, [targetDate, calculateTimeLeft]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * カウントダウンをフォーマットする関数
    * @returns フォーマットされたカウントダウン
    */
-  function formatCountdown(): string {
+  const formatCountdown = useCallback((): string => {
     if (timeLeft.isExpired) {
       return "終了";
     }
@@ -82,7 +91,9 @@ export function useCountdown(targetDate: Date | string) {
     }
 
     return `${timeLeft.seconds}秒`;
-  }
+  }, [timeLeft]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     countdownState: timeLeft,

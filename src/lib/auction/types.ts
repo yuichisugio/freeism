@@ -1,5 +1,54 @@
 import { type AuctionReview, type AuctionStatus, type Task } from "@prisma/client";
 
+export type AuctionCardHookProps = {
+  auction: {
+    id: string;
+    startTime: Date | string;
+    endTime: Date | string;
+    status: string;
+    isWatched: boolean;
+    seller: {
+      rating: number | null;
+      name?: string | null;
+      image?: string | null;
+    };
+  };
+  onToggleWatchlistAction: (id: string) => Promise<void>;
+};
+
+export type SellerRating = {
+  fullStars: number;
+  hasHalfStar: boolean;
+  emptyStars: number;
+  ratingValue: number | null;
+};
+
+// フィルターのprops
+export type UseAuctionFiltersProps = {
+  filters: AuctionFilterParams;
+  onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
+  sortOption: AuctionSortOption;
+  onSortChangeAction: (sort: AuctionSortOption) => void;
+  categories?: string[];
+  onResetFilters?: () => void;
+};
+
+// カウントダウンの状態
+export type TimeRemaining = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  isExpired: boolean;
+  isUrgent: boolean;
+  isCritical: boolean;
+};
+
+export type UseCountdownProps = {
+  endTime: Date | string;
+  onExpire?: () => void;
+};
+
 // フィルタリングパラメータの型定義
 export type AuctionFilterParams = {
   category?: string;

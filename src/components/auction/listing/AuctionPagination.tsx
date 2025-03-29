@@ -12,9 +12,20 @@ type AuctionPaginationProps = {
   showPageInfo?: boolean;
 };
 
+/**
+ * オークションページネーションコンポーネント
+ * @param currentPage 現在のページ
+ * @param totalPages 総ページ数
+ * @param onPageChangeAction ページ変更アクション
+ * @param showPageInfo ページ情報表示有無
+ */
 export default function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからページネーションロジックを取得
   const { pageNumbers, hasPreviousPage, hasNextPage } = usePagination({ currentPage, totalPages });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex flex-col items-center gap-2">

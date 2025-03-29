@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { getWatchlistStatusAction, toggleWatchlistAction } from "@/lib/auction/action/watchlist";
 import { toast } from "sonner";
 
@@ -9,15 +9,19 @@ import { toast } from "sonner";
  * @returns ウォッチリスト操作用の関数群
  */
 export function useWatchlistActions() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 処理中フラグ
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ウォッチリストの切り替え
    * @param auctionId オークションID
    * @returns ウォッチリストの状態
    */
-  async function toggleWatchlist(auctionId: string | undefined) {
+  const toggleWatchlist = useCallback(async (auctionId: string | undefined) => {
     if (!auctionId) {
       toast.error("useWatchlistActions_toggleWatchlist_オークションIDが指定されていません");
       return null;
@@ -50,14 +54,16 @@ export function useWatchlistActions() {
     } finally {
       setSubmitting(false);
     }
-  }
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ウォッチリストの状態を取得
    * @param auctionId オークションID
    * @returns ウォッチリストの状態
    */
-  async function getWatchlistStatus(auctionId: string | undefined) {
+  const getWatchlistStatus = useCallback(async (auctionId: string | undefined) => {
     if (!auctionId) {
       return false;
     }
@@ -77,7 +83,9 @@ export function useWatchlistActions() {
       console.error("useWatchlistActions_getWatchlistStatus_ウォッチリスト状態取得エラー:", err);
       return false;
     }
-  }
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     submitting,

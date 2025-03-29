@@ -12,7 +12,18 @@ import { useAuctionFilters } from "@/hooks/auction/listing/useAuctionFilters";
 import { type AuctionFiltersProps } from "@/lib/auction/types";
 import { Filter, X } from "lucide-react";
 
+/**
+ * オークションフィルターコンポーネント
+ * @param filters フィルター
+ * @param onFilterChangeAction フィルター変更アクション
+ * @param sortOption ソートオプション
+ * @param onSortChangeAction ソート変更アクション
+ * @param categories カテゴリー
+ * @param onResetFilters フィルターリセットアクション
+ */
 export default function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: AuctionFiltersProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックを取得
   const { priceRange, groups, showFilters, activeFilterCount, handlePriceRangeChange, handlePriceRangeApply, toggleFilterDisplay, setPricePreset, resetPriceRange } = useAuctionFilters({
     filters,
@@ -22,6 +33,8 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
     categories,
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // フィルターのリセット
   const handleResetFilters = () => {
     resetPriceRange();
@@ -29,6 +42,8 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
       onResetFilters();
     }
   };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-4">

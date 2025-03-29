@@ -1,41 +1,31 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { type AuctionCardHookProps, type SellerRating } from "@/lib/auction/types";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 
-type AuctionCardHookProps = {
-  auction: {
-    id: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    status: string;
-    isWatched: boolean;
-    seller: {
-      rating: number | null;
-      name?: string | null;
-      image?: string | null;
-    };
-  };
-  onToggleWatchlistAction: (id: string) => Promise<void>;
-};
-
-type SellerRating = {
-  fullStars: number;
-  hasHalfStar: boolean;
-  emptyStars: number;
-  ratingValue: number | null;
-};
-
+/**
+ * オークションカード用フック
+ * @param auction オークション
+ * @param onToggleWatchlistAction ウォッチリスト更新アクション
+ * @returns オークションカードの状態とハンドラー
+ */
 export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardHookProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ウォッチリスト更新中の状態
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 現在時刻とオークションの開始・終了時刻を比較
   const now = new Date();
   const [isStarted] = useState(new Date(auction.startTime) <= now);
   const [isEnded, setIsEnded] = useState(new Date(auction.endTime) <= now || auction.status === AuctionStatus.ENDED);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 新着判定（過去3日以内の出品）
   const isNew = isWithinInterval(new Date(auction.startTime), {
@@ -43,11 +33,15 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
     end: new Date(),
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // まもなく終了判定（24時間以内）
   const isEndingSoon = isStarted && !isEnded && new Date(auction.endTime).getTime() - now.getTime() < 24 * 60 * 60 * 1000;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ウォッチリストの切り替え
-  const handleToggleWatchlist = async () => {
+  const handleToggleWatchlist = useCallback(async () => {
     if (isUpdating) return;
 
     setIsUpdating(true);
@@ -56,12 +50,16 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, [auction.id, isUpdating, onToggleWatchlistAction]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 開始前の場合のメッセージ
   const getStartMessage = useCallback(() => {
     return `開始まで${formatDistanceToNow(new Date(auction.startTime), { locale: ja })}`;
   }, [auction.startTime]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 出品者の評価を計算
   const getSellerRating = useCallback((): SellerRating => {
@@ -86,6 +84,8 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
       ratingValue: auction.seller.rating,
     };
   }, [auction.seller.rating]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     isUpdating,

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
  * @returns デバンスした値
  */
 export function useDebounce<T>(value: T, delay: number): T {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // デバンスした値
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -22,6 +23,8 @@ export function useDebounce<T>(value: T, delay: number): T {
       clearTimeout(handler);
     };
   }, [value, delay]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return debouncedValue;
 }

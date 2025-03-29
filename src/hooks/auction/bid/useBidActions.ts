@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { placeBidAction } from "@/lib/auction/action/bid";
 import { type BidFormData } from "@/lib/auction/types";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
  * @returns 入札操作用の関数群
  */
 export function useBidActions() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // 入札中フラグ
   const [submitting, setSubmitting] = useState<boolean>(false);
   // エラーメッセージ
@@ -17,13 +18,15 @@ export function useBidActions() {
   // 警告メッセージ
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 入札を実行
    * @param bidData 入札データ
    * @param onBiddingStatusChange 入札状態変更時のコールバック（オプション）
    * @returns 入札成功時true, 失敗時false
    */
-  async function clientPlaceBid(bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) {
+  const clientPlaceBid = useCallback(async (bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) => {
     setSubmitting(true);
     setError(null);
     setWarningMessage(null);
@@ -77,7 +80,9 @@ export function useBidActions() {
 
       console.log("useBidActions_clientPlaceBid_入札処理完了");
     }
-  }
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     submitting,

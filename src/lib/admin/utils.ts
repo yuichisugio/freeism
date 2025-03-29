@@ -7,8 +7,12 @@ import { auth } from "@/auth";
  * @returns ユーザーが管理者かどうか
  */
 export async function isAdminUser(): Promise<boolean> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const session = await auth();
   if (!session?.user) return false;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザーが管理者かどうかを判定するロジック
   // セッションからの管理者情報取得を仮で実装

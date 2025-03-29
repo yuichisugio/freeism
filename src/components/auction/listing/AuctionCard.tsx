@@ -12,9 +12,18 @@ import { Clock, Eye, Heart, Star, Tag, Users } from "lucide-react";
 
 import CardCountdown from "./AuctionCountdown";
 
+/**
+ * オークションカードコンポーネント
+ * @param auction オークション
+ * @param onToggleWatchlistAction ウォッチリスト更新アクション
+ */
 export default function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックを取得
   const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage, sellerRating } = useAuctionCard({ auction, onToggleWatchlistAction });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 出品者の評価表示
   const renderRating = () => {
@@ -48,6 +57,8 @@ export default function AuctionCard({ auction, onToggleWatchlistAction }: Auctio
       </div>
     );
   };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-lg">

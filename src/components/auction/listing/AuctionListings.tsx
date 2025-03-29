@@ -8,7 +8,10 @@ import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/useAuctionListings";
 
-// オークション商品一覧
+/**
+ * オークション商品一覧コンポーネント
+ * @returns オークション商品一覧コンポーネント
+ */
 export default function AuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -7,10 +7,17 @@ import { Clock } from "lucide-react";
 
 /**
  * オークションカード用シンプルなカウントダウンコンポーネント
+ * @param endTime 終了時間
+ * @param className クラス名
+ * @param onExpire 終了時のコールバック関数
  */
 export default function CardCountdown({ endTime, className, onExpire }: CardCountdownProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックを取得
   const { timeRemaining, formatTimeRemaining } = useCountdown({ endTime, onExpire });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div

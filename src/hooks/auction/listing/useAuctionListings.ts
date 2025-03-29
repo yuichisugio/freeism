@@ -10,6 +10,8 @@ import { DISPLAY } from "@/lib/auction/constants";
 
 /**
  * オークション一覧画面のロジックを管理するカスタムフック
+ * @returns オークション一覧画面のロジック
+ * @description オークション一覧画面のロジックを管理するカスタムフック
  */
 export function useAuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
