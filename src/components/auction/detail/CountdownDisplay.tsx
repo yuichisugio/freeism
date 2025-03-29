@@ -1,6 +1,8 @@
 "use client";
 
 import { type CountdownDisplayProps } from "@/lib/auction/types";
+import { motion } from "framer-motion";
+import { AlertTriangle, Clock } from "lucide-react";
 
 /**
  * カウントダウン表示
@@ -9,16 +11,31 @@ import { type CountdownDisplayProps } from "@/lib/auction/types";
  * @returns カウントダウン表示
  */
 export function CountdownDisplay({ countdownState, countdownAction }: CountdownDisplayProps) {
-  // カウントダウンの状態に基づいて表示を変更
+  // オークション終了時の表示
   if (countdownState.isExpired) {
-    return <p className="font-medium text-red-500">オークション終了</p>;
+    return (
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex items-center gap-2 font-medium text-red-500">
+        <AlertTriangle className="h-4 w-4" />
+        <span>オークション終了</span>
+      </motion.div>
+    );
   }
 
-  // 残り時間が24時間以内の場合
+  // 残り時間が24時間以内の場合（急ぎ表示）
   if (countdownState.days === 0 && countdownState.hours < 24) {
-    return <p className="font-medium text-red-500">{countdownAction()}</p>;
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="relative">
+        <div className="flex items-center gap-2 font-medium text-red-500">{countdownAction()}</div>
+        {countdownState.hours < 1 && <div className="mt-1 text-xs text-red-500">まもなく終了します！</div>}
+      </motion.div>
+    );
   }
 
-  // 通常表示
-  return <p className="text-muted-foreground">{countdownAction()}</p>;
+  // 通常表示（余裕がある場合）
+  return (
+    <div className="text-muted-foreground flex items-center gap-1">
+      <Clock className="h-4 w-4" />
+      <span>{countdownAction()}</span>
+    </div>
+  );
 }
