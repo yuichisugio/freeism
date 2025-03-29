@@ -29,7 +29,7 @@ declare module "@/components/auction/detail/BidForm" {
 }
 
 declare module "@/components/auction/detail/CountdownDisplay" {
-  import { type CountdownState } from "@/hooks/auction/useCountdown";
+  import { type CountdownState } from "@/hooks/auction/bid/useCountdown";
 
   export type CountdownDisplayProps = {
     countdownState: CountdownState;

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useBidActions } from "@/hooks/auction/useBidActions";
+import { useBidActions } from "@/hooks/auction/bid/useBidActions";
 import { type BidFormProps } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
