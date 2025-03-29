@@ -30,10 +30,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 接続関数を保持する ref
-  const connectFuncRef = useRef<(() => void) | undefined>();
-  // 切断関数を保持する ref
-  const disconnectFuncRef = useRef<() => void | undefined>();
+  // 接続関数を保持する ref （明示的に Promise を返す関数とする）
+  const connectFuncRef = useRef<(() => Promise<void>) | undefined>();
+  // 切断関数を保持する ref （明示的に Promise を返す関数とする）
+  const disconnectFuncRef = useRef<(() => Promise<void>) | undefined>();
   // 接続状態を管理するための参照
   const isConnectedRef = useRef<boolean>(false);
   // fetch APIのコントローラー
@@ -227,36 +227,44 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   /**
    * 切断関数
    */
-  const disconnect = useCallback(() => {
+  // Promise を返す形にリファクタリング
+  const disconnect = useCallback(async (): Promise<void> => {
     console.log("disconnect called from", new Error().stack);
 
     // 接続状態を先に更新して非同期処理を保護
     isConnectedRef.current = false;
 
-    // 接続を中断（少し遅延を入れて非同期処理の完了を待つ）
-    setTimeout(() => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
-        console.log("SSE_disconnect_abortControllerRef.current", abortControllerRef.current);
-      }
+    // setTimeoutは使用しない。setTimeoutを使用すると再接続時に行うuseEffectの内容までclearされてしまう
 
-      // バッファインターバルをクリア
-      if (batchIntervalRef.current) {
-        clearInterval(batchIntervalRef.current);
-        batchIntervalRef.current = null;
-        console.log("SSE_disconnect_batchIntervalRef.current", batchIntervalRef.current);
-      }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      console.log("SSE_disconnect_abortControllerRef.current", abortControllerRef.current);
+    }
 
-      // 再接続タイマーをクリア
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-        console.log("SSE_disconnect_reconnectTimerRef.current", reconnectTimerRef.current);
-      }
+    // バッファインターバルをクリア
+    if (batchIntervalRef.current) {
+      clearInterval(batchIntervalRef.current);
+      batchIntervalRef.current = null;
+      console.log("SSE_disconnect_batchIntervalRef.current", batchIntervalRef.current);
+    }
 
-      console.log("SSE_disconnect_接続を切断しました");
-    }, 100);
+    // 再接続タイマーをクリア
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+      console.log("SSE_disconnect_reconnectTimerRef.current", reconnectTimerRef.current);
+    }
+
+    // ★ 未処理のバッファをクリア (切断時に破棄する場合) ★
+    if (batchPoolRef.current.length > 0) {
+      console.warn(`SSE_disconnect_切断時に未処理のバッファイベント ${batchPoolRef.current.length} 件を破棄します`);
+      batchPoolRef.current = [];
+    }
+
+    setLoading(false);
+
+    console.log("SSE_disconnect_接続を切断しました");
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -266,14 +274,18 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    */
   const reconnect = useCallback(() => {
     console.log("SSE_reconnect_接続を手動で再接続します");
-    disconnect();
+    void disconnect();
 
-    // 少し待ってから再接続
+    // 少し待ってから接続処理を呼び出す (クリーンアップが完了するのを待つため)
+    // 必要であれば reconnectTimerRef を使うなど、より堅牢な待機処理も可能
     setTimeout(() => {
+      console.log("SSE_reconnect_connect関数を呼び出します");
       if (connectFuncRef.current) {
-        connectFuncRef.current();
+        void connectFuncRef.current();
+      } else {
+        console.warn("SSE_reconnect_connect関数が見つかりませんでした");
       }
-    }, 300);
+    }, 300); // 300ms待機 (必要に応じて調整)
   }, [disconnect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -460,7 +472,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
               setLoading(false);
               // 予期せぬエラーの場合は接続を切断する
               if (isConnectedRef.current && disconnectFuncRef.current) {
-                disconnectFuncRef.current();
+                void disconnectFuncRef.current();
               }
             }
             break; // エラー発生時はループを抜ける
@@ -474,7 +486,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           setLoading(false);
           // 接続を切断
           if (isConnectedRef.current && disconnectFuncRef.current) {
-            disconnectFuncRef.current();
+            void disconnectFuncRef.current();
           }
         } else {
           console.log("SSE_handleSSEStream_予期せぬ AbortError をキャッチ");
@@ -505,15 +517,75 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * バッファ処理(バッチ処理)を行うインターバル設定
+   */
+  const startBatchInterval = useCallback(() => {
+    // 既にインターバルが存在する場合は新たに設定しない
+    if (batchIntervalRef.current) {
+      console.log("SSE_startBatchInterval_既にインターバルが存在するためスキップ");
+      return;
+    }
+    console.log("SSE_startBatchInterval_バッチ処理インターバルを開始します Interval:", BUFFER_INTERVAL, "ms");
+    batchIntervalRef.current = setInterval(() => {
+      // batchPoolRef.currentにイベントがある場合のみ処理
+      if (batchPoolRef.current.length > 0) {
+        // 処理中にバッファに追加される可能性を考慮し、現在のバッファのスナップショットを取得
+        const eventsToProcess = [...batchPoolRef.current];
+        // バッファを先に空にする（重要：処理中に新たに追加されたものを次回のインターバルで処理するため）
+        batchPoolRef.current = [];
+
+        console.log(`SSE_batchInterval_処理開始: ${eventsToProcess.length}件`);
+        // console.log("SSE_batchInterval_処理対象イベント:", eventsToProcess); // デバッグ用に詳細ログが必要な場合
+
+        try {
+          // スナップショット内の各イベントを処理
+          for (const event of eventsToProcess) {
+            console.log(`SSE_batchInterval_イベント処理中: Type=${event.type}, ID=${event.id}`);
+            processEventDataByType({
+              type: event.type as AuctionEventType,
+              data: event.data,
+            });
+          }
+          console.log("SSE_batchInterval_処理完了");
+        } catch (batchError) {
+          console.error("SSE_batchInterval_イベント処理中にエラーが発生しました:", batchError);
+          // エラーが発生した場合、処理できなかったイベントは失われる（batchPoolRefは既に空のため）
+          // 必要であれば、ここでエラー処理を追加（例: エラー状態を設定、エラーイベントを再キューするなど）
+          setError(`バッチ処理中にエラーが発生しました: ${(batchError as Error).message}`);
+        }
+      } else {
+        // console.log("SSE_batchInterval_バッファは空です"); // デバッグ用
+      }
+    }, BUFFER_INTERVAL); // 定義されたインターバル時間で実行
+  }, [processEventDataByType]); // processEventDataByTypeが変更されたら再生成
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 接続関数
    */
-  const connect = useCallback(() => {
+  const connect = useCallback(async (): Promise<void> => {
+    // 既に接続済み、または接続試行中の場合は処理を中断
+    if (isConnectedRef.current) {
+      console.log("SSE_connect_既に接続済みのためスキップ");
+      return;
+    }
     // 既存の接続をクリーンアップ
     if (abortControllerRef.current) {
-      const controller = abortControllerRef.current;
-      abortControllerRef.current = null;
-      controller.abort();
+      // const controller = abortControllerRef.current;
+      // // abortControllerRef.current = null;
+      // // controller.abort();
+      console.log("SSE_connect_abortControllerRef.current_abort");
+      return;
     }
+
+    setLoading(true); // 接続試行中はローディング表示
+    setError(null); // 既存のエラーをクリア
+
+    // 中断用の新しい AbortController を作成
+    const controller = new AbortController();
+    abortControllerRef.current = controller; // Refに保存
+    console.log("SSE_connect_新しいAbortControllerを作成・設定");
 
     try {
       // URLパラメータの構築
@@ -535,12 +607,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       const url = `${baseUrl}?${params.toString()}`;
       console.log("SSE_connect_SSE接続URL:", url);
 
-      // 中断用のコントローラーを作成
-      abortControllerRef.current = new AbortController();
-
       // 接続試行前に少し待機（メッセージチャネルが完全に閉じるのを待つ）
       setTimeout(() => {
         // この時点でabortControllerRefがnullになっていたら、その間に別の処理が入ったということ
+        // これでsse接続が2度行われる事象を防いでいるっぽい
         if (!abortControllerRef.current) {
           console.log("SSE_connect_abortControllerRefがnullになっていたため、接続をスキップします");
           return;
@@ -549,22 +619,41 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.log(`SSE_connect_SSE接続を開始します: ${url}`);
 
         // fetchを使ってSSE接続を開始
-        fetch(url, {
+        void fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache, no-transform",
             Connection: "keep-alive",
           },
+          signal: controller.signal, // AbortControllerのシグナルを渡す
         })
           .then((response) => {
             console.log(`SSE_connect_SSE接続レスポンス:`, response.status, response.statusText);
+
+            // fetch呼び出し後に中断されたかチェック
+            if (controller.signal.aborted) {
+              console.log("SSE_connect_fetch レスポンス受信後、中断されました (AbortError)");
+              // disconnect が呼ばれているはずなので、ここでは状態更新不要かも
+              setLoading(false); // 念のためローディング解除
+              return;
+            }
 
             if (!response.ok) {
               setLoading(false);
               throw new Error(`SSE_connect_SSE接続に失敗しました: ${response.status} ${response.statusText}`);
             }
 
+            // ★ 接続成功時の処理 ★
+            console.log("SSE_connect_SSE接続成功");
+            isConnectedRef.current = true; // 接続状態を true に設定
+            setLoading(false); // ローディング解除
+            setError(null); // エラー状態をクリア
+
+            // ★★★ バッチ処理インターバルを開始 ★★★
+            startBatchInterval();
+
+            // ★ ストリーム処理を開始 ★
             console.log(`SSE_connect_SSE接続が成功し、ストリーム処理を開始します`);
             handleSSEStream(response);
           })
@@ -583,45 +672,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         setLoading(false);
       }
     }
-  }, [auctionId, clientId, lastEventId, handleSSEStream]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * バッファ処理(バッチ処理)を行うインターバル設定
-   */
-  useEffect(() => {
-    console.log("SSE_useEffect_batch_start");
-    // IntervalのIDを、refに保存
-    batchIntervalRef.current = setInterval(() => {
-      // batchPoolRef.currentは配列で、バッファ内にイベントがある場合
-      console.log("SSE_useEffect_batch_batchPoolRef.current.length", batchPoolRef.current.length);
-      if (batchPoolRef.current.length > 0) {
-        console.log("SSE_useEffect_batch_batchPoolRef.current.length > 0");
-        // バッファ内のイベントを取り出して、バッファの中身をゼロにする
-        const events = [...batchPoolRef.current];
-        batchPoolRef.current = [];
-
-        // バッチ処理のPool内の各イベントをひとつづつ処理
-        for (const event of events) {
-          // バッファ内のイベントをひとつづつ処理
-          processEventDataByType({
-            type: event.type as AuctionEventType,
-            data: event.data,
-          });
-        }
-      }
-    }, BUFFER_INTERVAL);
-
-    // バッファ処理(バッチ処理)を行うIntervalをクリーンアップ
-    return () => {
-      console.log("SSE_useEffect_batch_クリーンアップ");
-      if (batchIntervalRef.current) {
-        clearInterval(batchIntervalRef.current);
-        batchIntervalRef.current = null;
-      }
-    };
-  }, [processEventDataByType]);
+  }, [auctionId, clientId, lastEventId, handleSSEStream, startBatchInterval]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -646,13 +697,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * 初めて開いたときに、接続を確立するための処理
    */
   useEffect(() => {
-    console.log("SSE_useEffect_初期化処理開始 (修正後)");
+    console.log("SSE_useEffect_初期化処理開始");
 
     // 接続を確立
     // connectFuncRef を介して最新の connect 関数を呼び出す
     // マウント時に一度だけ実行されることを保証
     if (connectFuncRef.current) {
-      connectFuncRef.current();
+      void connectFuncRef.current();
     }
 
     // クリーンアップ (アンマウント時)
@@ -660,7 +711,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     return () => {
       console.log("SSE_useEffect_クリーンアップ実行 (修正後)");
       if (disconnectFuncRef.current) {
-        disconnectFuncRef.current();
+        void disconnectFuncRef.current();
       }
     };
   }, []); // ← 修正点: 依存配列を空にして、マウント/アンマウント時にのみ実行
@@ -676,29 +727,55 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     if (reconnectOnVisibility) {
       const handleVisibilityChange = () => {
         if (document.visibilityState === "visible") {
-          // 表示状態になった時、接続されていなければ再接続
           if (!isConnectedRef.current) {
-            console.log("SSE_useEffect_ページが表示されたため、SSE接続を再開します");
-            if (connectFuncRef.current) {
-              connectFuncRef.current();
+            console.log("SSE_visibilitychange_ページが表示されたため再接続を試みます");
+            // 再接続タイマーが動いていればクリア
+            if (reconnectTimerRef.current) {
+              clearTimeout(reconnectTimerRef.current);
+              reconnectTimerRef.current = null;
             }
+            // connect関数を直接呼び出すのではなく、ref経由で呼び出す
+            //  即時再接続ではなく、少し待つ場合
+            reconnectTimerRef.current = setTimeout(() => {
+              console.log("SSE_visibilitychange_connect 呼び出し");
+              if (connectFuncRef.current) {
+                void connectFuncRef.current();
+              } else {
+                console.warn("SSE_visibilitychange_connect関数が見つかりませんでした");
+              }
+            }, 300); // 例: 300ms後に再接続
+          } else {
+            console.log("SSE_visibilitychange_ページが表示されましたが、既に接続済みです");
           }
         } else if (document.visibilityState === "hidden") {
           // 非表示状態になった時、まだ接続中なら切断
           if (isConnectedRef.current) {
-            console.log("SSE_useEffect_ページが非表示になったため、SSE接続を閉じます");
-            disconnect();
+            console.log("SSE_visibilitychange_ページが非表示になったため接続を切断します");
+            // disconnect関数を直接呼び出すのではなく、ref経由で呼び出す
+            if (disconnectFuncRef.current) {
+              void disconnectFuncRef.current();
+            }
           }
         }
       };
 
+      // イベントリスナーの登録を useEffect の本体に移動
       document.addEventListener("visibilitychange", handleVisibilityChange);
 
+      // イベントリスナーの削除を クリーンアップ関数に移動
       return () => {
+        console.log("SSE_useEffect_visibilitychange リスナーを削除");
         document.removeEventListener("visibilitychange", handleVisibilityChange);
+        // タイマーが残っていればクリア
+        if (reconnectTimerRef.current) {
+          clearTimeout(reconnectTimerRef.current);
+          reconnectTimerRef.current = null;
+        }
       };
     }
-  }, [reconnectOnVisibility, disconnect]);
+    // reconnectOnVisibility が false の場合のクリーンアップ (何もしないが、return は必要)
+    return () => {};
+  }, [reconnectOnVisibility]); // ★★★ 依存配列に connect と disconnect を含めない (ref経由で使うため) ★★★
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

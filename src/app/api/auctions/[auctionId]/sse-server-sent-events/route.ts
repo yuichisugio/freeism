@@ -1,4 +1,3 @@
-import type { AuctionEventType, AuctionWithDetails } from "@/lib/auction/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";

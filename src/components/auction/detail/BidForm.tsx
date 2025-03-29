@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import { type BidFormProps } from "@/lib/auction/types";
 export default function BidForm({ auction }: BidFormProps) {
   // 最低入札額は現在価格の1ポイント増し
   const minBid = auction.currentPrice + 1;
-  console.log("BidForm_minBid", minBid);
 
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(minBid);

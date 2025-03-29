@@ -4,7 +4,7 @@
 export const HEARTBEAT_INTERVAL = 30000; // 30秒（ハートビート間隔）
 export const HEARTBEAT_TIMEOUT = 45000; // 45秒（ハートビートタイムアウト）
 export const CONNECTION_TIMEOUT = 10000; // 10秒（接続タイムアウト）
-export const BUFFER_INTERVAL = 500; // バッファ処理間隔（ミリ秒）
+export const BUFFER_INTERVAL = 1000; // バッファ処理間隔（ミリ秒）
 
 // リトライ戦略の設定（指数バックオフ + ジッター）
 export const RETRY_DELAYS = [1000, 2000, 5000, 10000, 30000]; // 最大30秒
