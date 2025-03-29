@@ -4,6 +4,7 @@ import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types
 import { useEffect, useState } from "react";
 import { getUserGroups } from "@/lib/auction/action/user";
 
+// フィルターのprops
 type UseAuctionFiltersProps = {
   filters: AuctionFilterParams;
   onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
@@ -13,7 +14,7 @@ type UseAuctionFiltersProps = {
   onResetFilters?: () => void;
 };
 
-export function useAuctionFilters({ filters, onFilterChangeAction, categories = [] }: UseAuctionFiltersProps) {
+export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: UseAuctionFiltersProps) {
   // 価格範囲フィルター
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
 
