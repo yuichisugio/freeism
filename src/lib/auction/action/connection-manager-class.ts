@@ -12,6 +12,8 @@ type EventHistoryItem = {
 
 // 接続管理クラス
 export class ConnectionManager {
+  // インスタンスID
+  public readonly instanceId: string;
   // オークションID => (クライアントID => コントローラー) の二層マップ
   private connections = new Map<
     string,
@@ -26,7 +28,16 @@ export class ConnectionManager {
 
   // コンストラクタ
   constructor() {
-    console.log("[ConnectionManager Class] Instance created."); // コンストラクタログを追加
+    this.instanceId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    console.log("[ConnectionManager Class] Instance created. ID:", this.instanceId);
+  }
+
+  /**
+   * インスタンスIDを取得
+   * @returns インスタンスID
+   */
+  public getInstanceId(): string {
+    return this.instanceId;
   }
 
   /**
