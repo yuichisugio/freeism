@@ -3,8 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
 
+import { AUCTION_CATEGORIES, DISPLAY } from "../constants";
 import { type AuctionListingResult, type GetAuctionListingsParams } from "../types";
-import { AUCTION_CATEGORIES, DISPLAY } from "./constants";
 import { getCurrentUserId, getUserGroups, getUserTotalPoints } from "./user";
 
 /**

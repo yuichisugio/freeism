@@ -1,5 +1,5 @@
 // connection-manager-singleton.ts
-import { ConnectionManager } from "@/lib/auction/action/connection-manager-class";
+import { ConnectionManager } from "@/lib/auction/server-sent-events/connection-manager-class";
 
 // ConnectionManagerクラスに getInstanceId() メソッドが実装されている前提です
 

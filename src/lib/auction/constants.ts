@@ -1,5 +1,19 @@
 // オークション関連の定数を定義
 
+// SSE設定パラメータ
+export const SSE_CONFIG = {
+  MAX_CONNECTIONS_PER_AUCTION: 1000, // オークションごとの最大接続数
+  CONNECTION_TIMEOUT: 60 * 60 * 1000, // 60分タイムアウト
+  HEARTBEAT_INTERVAL: 30000, // 30秒ごとにハートビート
+  MAX_EVENT_HISTORY: 50, // オークションごとのイベント履歴最大数
+};
+
+// オークションのデフォルトイメージURL
+export const DEFAULT_AUCTION_IMAGE_URL = "/images/default-auction-image.jpg";
+
+// オークションカテゴリ
+export const AUCTION_CATEGORIES = ["すべて", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "食品", "コード", "本", "その他"];
+
 // SSEの設定パラメータ
 export const HEARTBEAT_INTERVAL = 30000; // 30秒（ハートビート間隔）
 export const HEARTBEAT_TIMEOUT = 45000; // 45秒（ハートビートタイムアウト）
@@ -29,12 +43,6 @@ export const POLLING_INTERVAL = 30000;
 
 // オークションSSEの最大リトライ回数
 export const MAX_RETRIES = 5;
-
-// オークション画像のデフォルトURL
-export const DEFAULT_AUCTION_IMAGE_URL = "/images/default-auction.svg";
-
-// カテゴリ
-export const AUCTION_CATEGORIES = ["すべて", "食品", "コード", "本", "etc"];
 
 // 表示関連
 export const DISPLAY = {

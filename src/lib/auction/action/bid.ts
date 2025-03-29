@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import type { AuctionWithDetails, BidFormData, BidHistoryWithUser } from "../types";
 import { AuctionEventType } from "../types";
-import { sendEventToAuctionSubscribers } from "./connection";
+import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 /**
  * サーバーサイドでの入札処理

@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
-import { connectionManager } from "@/lib/auction/action/connection-manager-singleton";
+import { connectionManager } from "@/lib/auction/server-sent-events/connection-manager-singleton";
 
 // 設定パラメータ
 const MAX_CONNECTIONS_PER_AUCTION = 1000; // オークションごとの最大接続数

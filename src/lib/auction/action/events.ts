@@ -2,7 +2,7 @@
 
 import type { AuctionWithDetails, BidHistoryWithUser } from "../types";
 import { AuctionEventType } from "../types";
-import { sendEventToAuctionSubscribers } from "./connection";
+import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {

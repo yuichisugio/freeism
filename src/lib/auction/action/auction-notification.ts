@@ -1,6 +1,6 @@
 "use server";
 
-import { sendNewBidEvent } from "@/lib/auction/action/connection";
+import { sendNewBidEvent } from "@/lib/auction/action/server-sent-events-broadcast";
 import { prisma } from "@/lib/prisma";
 
 /**
