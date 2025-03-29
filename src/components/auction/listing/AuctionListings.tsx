@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types";
-import React, { useCallback, useEffect, useState, useTransition } from "react";
+import React, { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuctionCard from "@/components/auction/listing/AuctionCard";
 import AuctionFilters from "@/components/auction/listing/AuctionFilters";
@@ -50,6 +50,10 @@ export default function AuctionListings() {
 
   // ページネーション
   const [page, setPage] = useState(currentPage);
+
+  // ウォッチリストの変更を追跡
+  const [watchlistChanges, setWatchlistChanges] = useState<Set<string>>(new Set());
+  const saveWatchlistTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 初期設定データの取得
   useEffect(() => {
@@ -128,35 +132,94 @@ export default function AuctionListings() {
   // ウォッチリスト切り替えハンドラ
   const handleToggleWatchlist = async (auctionId: string) => {
     try {
-      const result = await toggleWatchlist(auctionId);
-
       // 楽観的UI更新
-      setAuctions((prev) => prev.map((auction) => (auction.id === auctionId ? { ...auction, isWatched: result.isWatched } : auction)));
+      setAuctions((prev) => prev.map((auction) => (auction.id === auctionId ? { ...auction, isWatched: !auction.isWatched } : auction)));
+
+      // 変更を追跡
+      setWatchlistChanges((prev) => {
+        const newChanges = new Set(prev);
+        if (newChanges.has(auctionId)) {
+          newChanges.delete(auctionId);
+        } else {
+          newChanges.add(auctionId);
+        }
+        return newChanges;
+      });
+
+      // 既存のタイマーをクリア
+      if (saveWatchlistTimeoutRef.current) {
+        clearTimeout(saveWatchlistTimeoutRef.current);
+      }
+
+      // 一定時間後に一括保存
+      saveWatchlistTimeoutRef.current = setTimeout(() => {
+        if (watchlistChanges.size > 0) {
+          // 各変更を処理
+          const changes = Array.from(watchlistChanges);
+          for (const id of changes) {
+            toggleWatchlist(id).catch((error) => {
+              console.error("ウォッチリストの更新に失敗しました", error);
+            });
+          }
+          // 変更リストをクリア
+          setWatchlistChanges(new Set());
+        }
+      }, 2000);
     } catch (error) {
       console.error("ウォッチリストの更新に失敗しました", error);
     }
   };
 
+  // 画面を離れる時に未保存の変更を保存
+  useEffect(() => {
+    return () => {
+      // クリーンアップ関数：コンポーネントがアンマウントされる時に実行
+      const saveRemainingChanges = async () => {
+        if (watchlistChanges.size > 0) {
+          const changes = Array.from(watchlistChanges);
+          for (const id of changes) {
+            await toggleWatchlist(id);
+          }
+        }
+      };
+
+      if (saveWatchlistTimeoutRef.current) {
+        clearTimeout(saveWatchlistTimeoutRef.current);
+      }
+
+      saveRemainingChanges();
+    };
+  }, [watchlistChanges]);
+
   return (
     <div className="space-y-6">
       {/* ユーザーの総ポイント表示 */}
       <div className="mb-4 flex justify-end">
-        <div className="rounded-md bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-white shadow">
+        <div className="rounded-md bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-white shadow-sm">
           <span className="font-bold">保有ポイント総額:</span> {userPoints.toLocaleString()} ポイント
         </div>
       </div>
 
       {/* カテゴリタブ */}
-      <div className="mb-4 flex overflow-x-auto pb-2">
-        {categories.map((category) => (
-          <button
-            key={category}
-            className={`mx-1 rounded-full px-4 py-2 whitespace-nowrap ${filters.category === category ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-            onClick={() => handleFilterChange({ category })}
-          >
-            {category}
-          </button>
-        ))}
+      <div className="relative -mx-2 mb-4 sm:mx-0">
+        <div className="scrollbar-hide flex overflow-x-auto pb-2 sm:pb-0">
+          <div className="flex items-center space-x-1 px-2 sm:space-x-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                className={`rounded-full px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${
+                  filters.category === category ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => handleFilterChange({ category })}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* スクロールフェードの装飾 - 横スクロールのUIヒントになります */}
+        <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-white to-transparent sm:hidden"></div>
       </div>
 
       {/* 検索バーとフィルター */}
@@ -166,52 +229,96 @@ export default function AuctionListings() {
         </div>
 
         <div className="w-full md:w-2/3">
-          <AuctionFilters filters={filters} onFilterChangeAction={handleFilterChange} sortOption={sortOption} onSortChangeAction={handleSortChange} />
+          <AuctionFilters
+            filters={filters}
+            onFilterChangeAction={handleFilterChange}
+            sortOption={sortOption}
+            onSortChangeAction={handleSortChange}
+            categories={categories}
+            onResetFilters={() => {
+              setFilters({
+                category: "すべて",
+                status: "all",
+                searchQuery: "",
+              });
+              setSearchQuery("");
+              setSortOption("newest");
+              setPage(1);
+            }}
+          />
         </div>
       </div>
 
-      {/* 商品一覧 */}
+      {/* ローディング状態または結果表示 */}
       {isPending ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="overflow-hidden rounded-lg bg-white shadow-md">
-              <Skeleton className="h-48 w-full" />
-              <div className="space-y-2 p-4">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
+        <div className="space-y-4">
+          <div className="flex animate-pulse items-center justify-center py-4">
+            <div className="bg-primary mr-2 h-4 w-4 rounded-full"></div>
+            <div className="bg-primary mr-2 h-4 w-4 rounded-full opacity-75 delay-150"></div>
+            <div className="bg-primary h-4 w-4 rounded-full opacity-50 delay-300"></div>
+            <span className="ml-3 text-gray-600">データを読み込み中...</span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-lg bg-white shadow-md">
+                <Skeleton className="h-48 w-full" />
+                <div className="space-y-2 p-4">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
         <>
           {auctions.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {auctions.map((auction) => (
                 <AuctionCard key={auction.id} auction={auction} onToggleWatchlistAction={handleToggleWatchlist} />
               ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg text-gray-500">条件に一致するオークション商品が見つかりませんでした</p>
+              <div className="mb-4 text-center">
+                <h3 className="text-xl font-medium text-gray-900">商品が見つかりませんでした</h3>
+                <p className="mt-2 text-gray-500">検索条件を変更するか、別のフィルターを試してみてください。</p>
+              </div>
+              <button
+                onClick={() => {
+                  setFilters({
+                    category: "すべて",
+                    status: "all",
+                    searchQuery: "",
+                  });
+                  setSearchQuery("");
+                  setSortOption("newest");
+                  setPage(1);
+                }}
+                className="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-white transition-colors"
+              >
+                フィルターをリセット
+              </button>
             </div>
           )}
 
           {/* ページネーション */}
-          {totalPages > 1 && (
+          {auctions.length > 0 && totalPages > 1 && (
             <div className="mt-8 flex justify-center">
-              <CustomPagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+              <CustomPagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} showPageInfo={true} />
+            </div>
+          )}
+
+          {/* 商品数と合計ページ数の表示 */}
+          {auctions.length > 0 && (
+            <div className="mt-4 text-center text-sm text-gray-500">
+              全{totalCount}件中 {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)}件を表示
             </div>
           )}
         </>
       )}
-
-      {/* 総件数表示 */}
-      <div className="text-right text-sm text-gray-500">
-        全 {totalCount.toLocaleString()} 件中 {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, totalCount)} 件を表示
-      </div>
     </div>
   );
 }

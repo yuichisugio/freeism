@@ -1,8 +1,7 @@
 "use client";
 
-import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser, EventHistoryItem } from "@/lib/auction/types";
+import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BUFFER_INTERVAL } from "@/lib/auction/constants";
 import { AuctionEventType } from "@/lib/auction/types";
 
 /**
@@ -254,105 +253,108 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * SSEイベントを処理する関数
    * @param text SSEメッセージ (単一の message ブロック、\n\n で区切られた後の部分)
    */
-  const editSSEdata = useCallback((text: string) => {
-    // text が空や空白文字だけの場合は処理しない
-    if (!text || text.trim() === "") {
-      console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);
-      return;
-    }
-    console.log("SSE_editSSEdata_start processing:", text);
-
-    // SSEメッセージを解析
-    const lines = text.split("\n");
-    let event = "message"; // デフォルトイベントタイプ
-    let data = ""; // データ部分を格納 (複数行 data に対応するため初期化)
-    let id = ""; // イベントIDを格納
-    let hasDataField = false; // data: フィールドが存在したかのフラグ
-
-    for (const line of lines) {
-      if (line.startsWith("event:")) {
-        event = line.substring(6).trim();
-      } else if (line.startsWith("data:")) {
-        hasDataField = true;
-        // "data:" の後のスペースも考慮してトリムする
-        // 複数行 data の場合、改行を保持して連結 (仕様に厳密に従うなら改行が必要)
-        if (data === "") {
-          // 最初の data 行
-          data = line.substring(5).trimStart(); // 先頭のスペースのみ削除
-        } else {
-          // 2行目以降の data 行 (改行を挟んで連結)
-          data += "\n" + line.substring(5).trimStart();
-        }
-      } else if (line.startsWith("id:")) {
-        id = line.substring(3).trim();
-      } else if (line.startsWith(":")) {
-        // コメント行は完全に無視
-        console.log("SSE_editSSEdata_コメント行を無視:", line);
-        continue;
-      } else if (line.trim() === "") {
-        // 空行は無視
-        continue;
-      } else {
-        // 不明な行、またはフィールド名のない行 (仕様では無視される)
-        console.log("SSE_editSSEdata_不明な行:", line);
-      }
-    }
-
-    console.log(`SSE_editSSEdata_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
-
-    // ★★★ 修正点: dataフィールドが存在しなかった、または data が空文字列の場合は JSON.parse を試みない ★★★
-    // eventタイプによってはdataが空でも意味を持つ場合があるため、イベントタイプで分岐
-    if (!hasDataField || data === "") {
-      console.log(`SSE_editSSEdata_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
-      // data が空でも処理が必要なイベントタイプ (例: ping) があればここで処理
-      if (event === "ping") {
-        console.log("SSE_editSSEdata_ping イベント受信");
-        // 必要に応じて処理
+  const editSSEdata = useCallback(
+    (text: string) => {
+      // text が空や空白文字だけの場合は処理しない
+      if (!text || text.trim() === "") {
+        console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);
         return;
       }
-      // その他の data が空のイベントは無視、またはエラーとして扱う場合はここで処理
-      console.log(`SSE_editSSEdata_イベント ${event} は data が空のため処理をスキップします。`);
-      return; // スキップして終了
-    }
+      console.log("SSE_editSSEdata_start processing:", text);
 
-    // data フィールドが存在し、空でない場合のみパースを試みる
-    try {
-      const eventData = JSON.parse(data);
-      console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
+      // SSEメッセージを解析
+      const lines = text.split("\n");
+      let event = "message"; // デフォルトイベントタイプ
+      let data = ""; // データ部分を格納 (複数行 data に対応するため初期化)
+      let id = ""; // イベントIDを格納
+      let hasDataField = false; // data: フィールドが存在したかのフラグ
 
-      // イベントIDの設定 (パース成功後)
-      if (id) {
-        const eventId = parseInt(id, 10);
-        if (!isNaN(eventId)) {
-          setLastEventId(eventId); // 状態更新
-          console.log(`SSE_editSSEdata_イベントIDを更新しました: ${eventId}`);
+      for (const line of lines) {
+        if (line.startsWith("event:")) {
+          event = line.substring(6).trim();
+        } else if (line.startsWith("data:")) {
+          hasDataField = true;
+          // "data:" の後のスペースも考慮してトリムする
+          // 複数行 data の場合、改行を保持して連結 (仕様に厳密に従うなら改行が必要)
+          if (data === "") {
+            // 最初の data 行
+            data = line.substring(5).trimStart(); // 先頭のスペースのみ削除
+          } else {
+            // 2行目以降の data 行 (改行を挟んで連結)
+            data += "\n" + line.substring(5).trimStart();
+          }
+        } else if (line.startsWith("id:")) {
+          id = line.substring(3).trim();
+        } else if (line.startsWith(":")) {
+          // コメント行は完全に無視
+          console.log("SSE_editSSEdata_コメント行を無視:", line);
+          continue;
+        } else if (line.trim() === "") {
+          // 空行は無視
+          continue;
+        } else {
+          // 不明な行、またはフィールド名のない行 (仕様では無視される)
+          console.log("SSE_editSSEdata_不明な行:", line);
         }
       }
 
-      // デバッグ用に最後に受信したメッセージを保存
-      setLastReceivedMessage(
-        JSON.stringify({
-          type: event,
-          lastEventId: id,
-          parsedDataAttempt: eventData,
-          timestamp: new Date().toISOString(),
-        }),
-      );
+      console.log(`SSE_editSSEdata_SSEイベント解析結果: type=${event}, id=${id}, データ長=${data?.length || 0}, dataフィールド存在=${hasDataField}`);
 
-      // イベントキューに追加
-      processEventDataByType({
-        type: event as AuctionEventType,
-        data: eventData as AuctionWithDetails,
-      });
+      // ★★★ 修正点: dataフィールドが存在しなかった、または data が空文字列の場合は JSON.parse を試みない ★★★
+      // eventタイプによってはdataが空でも意味を持つ場合があるため、イベントタイプで分岐
+      if (!hasDataField || data === "") {
+        console.log(`SSE_editSSEdata_data が空または data フィールドが存在しません。Event: ${event}, ID: ${id}`);
+        // data が空でも処理が必要なイベントタイプ (例: ping) があればここで処理
+        if (event === "ping") {
+          console.log("SSE_editSSEdata_ping イベント受信");
+          // 必要に応じて処理
+          return;
+        }
+        // その他の data が空のイベントは無視、またはエラーとして扱う場合はここで処理
+        console.log(`SSE_editSSEdata_イベント ${event} は data が空のため処理をスキップします。`);
+        return; // スキップして終了
+      }
 
-      console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
-    } catch (error) {
-      // JSON.parse でのエラーハンドリング
-      console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
-      console.error(`SSE_editSSEdata_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
-      setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
-    }
-  }, []);
+      // data フィールドが存在し、空でない場合のみパースを試みる
+      try {
+        const eventData = JSON.parse(data);
+        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
+
+        // イベントIDの設定 (パース成功後)
+        if (id) {
+          const eventId = parseInt(id, 10);
+          if (!isNaN(eventId)) {
+            setLastEventId(eventId); // 状態更新
+            console.log(`SSE_editSSEdata_イベントIDを更新しました: ${eventId}`);
+          }
+        }
+
+        // デバッグ用に最後に受信したメッセージを保存
+        setLastReceivedMessage(
+          JSON.stringify({
+            type: event,
+            lastEventId: id,
+            parsedDataAttempt: eventData,
+            timestamp: new Date().toISOString(),
+          }),
+        );
+
+        // イベントキューに追加
+        processEventDataByType({
+          type: event as AuctionEventType,
+          data: eventData as AuctionWithDetails,
+        });
+
+        console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
+      } catch (error) {
+        // JSON.parse でのエラーハンドリング
+        console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
+        console.error(`SSE_editSSEdata_パースに失敗した data:`, JSON.stringify(data)); // エスケープして表示
+        setError(`受信データの解析に失敗しました (イベント: ${event})`); // エラー状態を更新
+      }
+    },
+    [processEventDataByType],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

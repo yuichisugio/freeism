@@ -12,7 +12,7 @@ export const SSE_CONFIG = {
 export const DEFAULT_AUCTION_IMAGE_URL = "/images/default-auction-image.jpg";
 
 // オークションカテゴリ
-export const AUCTION_CATEGORIES = ["すべて", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "食品", "コード", "本", "その他"];
+export const AUCTION_CATEGORIES = ["すべて", "食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"];
 
 // SSEの設定パラメータ
 export const HEARTBEAT_INTERVAL = 30000; // 30秒（ハートビート間隔）

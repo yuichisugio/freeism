@@ -5,13 +5,14 @@ interface CustomPaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  showPageInfo?: boolean;
 }
 
-export default function CustomPagination({ currentPage, totalPages, onPageChange }: CustomPaginationProps) {
+export default function CustomPagination({ currentPage, totalPages, onPageChange, showPageInfo = false }: CustomPaginationProps) {
   // 表示するページ番号を生成
   const getPageNumbers = () => {
     const pages = [];
-    const maxPageToShow = 5;
+    const maxPageToShow = 7; // 奇数にして中央に現在のページを表示
 
     if (totalPages <= maxPageToShow) {
       // 全ページ数が少ない場合は全て表示
@@ -20,8 +21,13 @@ export default function CustomPagination({ currentPage, totalPages, onPageChange
       }
     } else {
       // 現在のページの前後を表示
-      const startPage = Math.max(1, currentPage - 2);
-      const endPage = Math.min(totalPages, startPage + maxPageToShow - 1);
+      let startPage = Math.max(1, currentPage - Math.floor(maxPageToShow / 2));
+      let endPage = Math.min(totalPages, startPage + maxPageToShow - 1);
+
+      // endPageが上限を超えた場合、startPageを調整
+      if (endPage === totalPages) {
+        startPage = Math.max(1, endPage - maxPageToShow + 1);
+      }
 
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
@@ -44,38 +50,46 @@ export default function CustomPagination({ currentPage, totalPages, onPageChange
   };
 
   return (
-    <Pagination>
-      <PaginationContent>
-        {currentPage > 1 && (
-          <PaginationItem>
-            <PaginationPrevious onClick={() => onPageChange(currentPage - 1)} />
-          </PaginationItem>
-        )}
+    <div className="flex flex-col items-center gap-2">
+      <Pagination>
+        <PaginationContent>
+          {currentPage > 1 && (
+            <PaginationItem>
+              <PaginationPrevious onClick={() => onPageChange(currentPage - 1)} />
+            </PaginationItem>
+          )}
 
-        {getPageNumbers().map((page, index) => {
-          if (page === -1 || page === -2) {
+          {getPageNumbers().map((page, index) => {
+            if (page === -1 || page === -2) {
+              return (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <span className="flex size-9 items-center justify-center">...</span>
+                </PaginationItem>
+              );
+            }
+
             return (
-              <PaginationItem key={`ellipsis-${index}`}>
-                <span className="flex size-9 items-center justify-center">...</span>
+              <PaginationItem key={page}>
+                <PaginationLink isActive={page === currentPage} onClick={() => onPageChange(page)}>
+                  {page}
+                </PaginationLink>
               </PaginationItem>
             );
-          }
+          })}
 
-          return (
-            <PaginationItem key={page}>
-              <PaginationLink isActive={page === currentPage} onClick={() => onPageChange(page)}>
-                {page}
-              </PaginationLink>
+          {currentPage < totalPages && (
+            <PaginationItem>
+              <PaginationNext onClick={() => onPageChange(currentPage + 1)} />
             </PaginationItem>
-          );
-        })}
+          )}
+        </PaginationContent>
+      </Pagination>
 
-        {currentPage < totalPages && (
-          <PaginationItem>
-            <PaginationNext onClick={() => onPageChange(currentPage + 1)} />
-          </PaginationItem>
-        )}
-      </PaginationContent>
-    </Pagination>
+      {showPageInfo && (
+        <div className="text-muted-foreground text-sm">
+          {currentPage} / {totalPages} ページ
+        </div>
+      )}
+    </div>
   );
 }

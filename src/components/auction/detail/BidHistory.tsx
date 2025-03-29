@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { type BidHistoryProps, type BidHistoryWithUser } from "@/lib/auction/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
 import { motion } from "framer-motion";
-import { Activity, AlertCircle, HandCoins, User } from "lucide-react";
+import { Activity, AlertCircle, HandCoins } from "lucide-react";
 
 /**
  * 入札履歴

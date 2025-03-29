@@ -17,17 +17,18 @@ import { ArrowRight, Gavel, Minus, Plus } from "lucide-react";
  * @returns 入札フォーム
  */
 export default function BidForm({ auction }: BidFormProps) {
+  // 入札額を管理するuseState
+  const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
+
   useEffect(() => {
     // 最低入札額は現在価格の1ポイント増し。現在の入札額が、他社が入札して更新された額より小さい場合は1ポイント増し
     if (auction.currentHighestBid >= bidAmount) {
       setBidAmount(auction.currentHighestBid + 1);
     }
-  }, [auction]);
+  }, [auction, bidAmount]);
 
   // 最低入札額は現在価格の1ポイント増し
-  const [minBid, setMinBid] = useState(auction.currentHighestBid + 1);
-  // 入札額を管理するuseState
-  const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
+  const [minBid] = useState(auction.currentHighestBid + 1);
 
   // 入札フォームのサブミットハンドラ
   const { clientPlaceBid, submitting, error } = useBidActions();

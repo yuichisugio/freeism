@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
 
@@ -7,19 +8,29 @@ import { AUCTION_CATEGORIES, DISPLAY } from "../constants";
 import { type AuctionListingResult, type GetAuctionListingsParams } from "../types";
 import { getCurrentUserId, getUserGroups, getUserTotalPoints } from "./user";
 
+// レスポンスをキャッシュするためのキーを生成
+function getCacheKey(params: GetAuctionListingsParams, userGroupIds: string[]): string {
+  const { page, pageSize, filters, sort } = params;
+  return `auctions-${page}-${pageSize}-${JSON.stringify(filters)}-${sort}-${userGroupIds.join(",")}`;
+}
+
+// キャッシュストア (サーバーメモリ)
+const auctionCache = new Map<string, { data: AuctionListingResult; timestamp: number }>();
+const CACHE_TTL = 60 * 1000; // 1分キャッシュ
+
 /**
  * 定数を取得する関数（"use server"ファイルからエクスポートするため）
  */
-export async function getAuctionCategories() {
+export const getAuctionCategories = cache(async () => {
   return AUCTION_CATEGORIES;
-}
+});
 
 /**
  * 表示設定を取得する関数
  */
-export async function getAuctionPageSize() {
+export const getAuctionPageSize = cache(async () => {
   return DISPLAY.PAGE_SIZE;
-}
+});
 
 /**
  * オークション一覧を取得する関数
@@ -49,6 +60,18 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
       totalPages: 0,
       userTotalPoints: 0,
     };
+  }
+
+  // キャッシュキーを生成
+  const cacheKey = getCacheKey({ page, pageSize, filters, sort }, userGroupIds);
+
+  // キャッシュ確認
+  const cachedData = auctionCache.get(cacheKey);
+  const now = Date.now();
+
+  // 有効なキャッシュがある場合は返す
+  if (cachedData && now - cachedData.timestamp < CACHE_TTL) {
+    return cachedData.data;
   }
 
   // 基本的なフィルター条件
@@ -288,11 +311,16 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
     };
   });
 
-  return {
+  // キャッシュにデータを保存
+  const result = {
     items,
     totalCount,
     currentPage: page,
     totalPages,
     userTotalPoints,
   };
+
+  auctionCache.set(cacheKey, { data: result, timestamp: now });
+
+  return result;
 }

@@ -14,7 +14,7 @@ import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
 import { type Auction, type AuctionWithDetails } from "@/lib/auction/types";
 import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
-import { AlertTriangle, BarChart, Clock, FileText, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
+import { AlertTriangle, BarChart, Clock, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import BidForm from "./BidForm";
