@@ -1,70 +1,30 @@
 "use client";
 
 import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { getUserGroups } from "@/lib/auction/action/user";
+import { useAuctionFilters } from "@/hooks/auction/listing/useAuctionFilters";
 import { type AuctionFiltersProps } from "@/lib/auction/types";
 import { Filter, X } from "lucide-react";
 
 export default function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: AuctionFiltersProps) {
-  // 価格範囲フィルター
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
-  // グループリスト
-  const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
-  // フィルターパネルの表示状態
-  const [showFilters, setShowFilters] = useState(false);
-  // アクティブなフィルターの数をカウント
-  const [activeFilterCount, setActiveFilterCount] = useState(0);
-
-  // グループ情報を取得
-  useEffect(() => {
-    async function fetchGroups() {
-      const userGroups = await getUserGroups();
-      const groupData = userGroups.map((membership) => ({
-        id: membership.group.id,
-        name: membership.group.name,
-      }));
-      setGroups(groupData);
-    }
-
-    fetchGroups();
-  }, []);
-
-  // アクティブなフィルターの数を計算
-  useEffect(() => {
-    let count = 0;
-    if (filters.category && filters.category !== "すべて") count++;
-    if (filters.status && filters.status !== "all") count++;
-    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) count++;
-    if (filters.remainingTime && filters.remainingTime !== "all") count++;
-    if (filters.groupId) count++;
-    if (filters.searchQuery) count++;
-
-    setActiveFilterCount(count);
-  }, [filters]);
-
-  // 価格範囲変更時のハンドラー
-  const handlePriceRangeChange = (value: [number, number]) => {
-    setPriceRange(value);
-  };
-
-  // 価格範囲適用時のハンドラー
-  const handlePriceRangeApply = () => {
-    onFilterChangeAction({
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-    });
-  };
+  // カスタムフックからロジックを取得
+  const { priceRange, groups, showFilters, activeFilterCount, handlePriceRangeChange, handlePriceRangeApply, toggleFilterDisplay, setPricePreset, resetPriceRange } = useAuctionFilters({
+    filters,
+    onFilterChangeAction,
+    sortOption,
+    onSortChangeAction,
+    categories,
+  });
 
   // フィルターのリセット
   const handleResetFilters = () => {
-    setPriceRange([0, 10000]);
+    resetPriceRange();
     if (onResetFilters) {
       onResetFilters();
     }
@@ -73,7 +33,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
   return (
     <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="h-auto gap-1 py-1.5 text-xs whitespace-nowrap sm:h-9 sm:gap-2 sm:text-sm">
+        <Button variant="outline" size="sm" onClick={toggleFilterDisplay} className="h-auto gap-1 py-1.5 text-xs whitespace-nowrap sm:h-9 sm:gap-2 sm:text-sm">
           <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           詳細フィルター
           {activeFilterCount > 0 && <span className="bg-primary ml-1 flex h-4 w-4 items-center justify-center rounded-full text-xs text-white sm:h-5 sm:w-5">{activeFilterCount}</span>}
@@ -183,7 +143,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                         value={priceRange[0]}
                         onChange={(e) => {
                           const value = Math.max(0, Math.min(priceRange[1] - 100, parseInt(e.target.value) || 0));
-                          setPriceRange([value, priceRange[1]]);
+                          handlePriceRangeChange([value, priceRange[1]]);
                         }}
                         className="border-input bg-background h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors"
                       />
@@ -200,7 +160,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                         value={priceRange[1]}
                         onChange={(e) => {
                           const value = Math.max(priceRange[0] + 100, Math.min(10000, parseInt(e.target.value) || 0));
-                          setPriceRange([priceRange[0], value]);
+                          handlePriceRangeChange([priceRange[0], value]);
                         }}
                         className="border-input bg-background h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors"
                       />
@@ -208,19 +168,19 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button type="button" size="sm" variant="outline" onClick={() => setPriceRange([0, 1000])} className="text-xs">
+                    <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(0, 1000)} className="text-xs">
                       ~1,000 P
                     </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={() => setPriceRange([1000, 5000])} className="text-xs">
+                    <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(1000, 5000)} className="text-xs">
                       1,000~5,000 P
                     </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={() => setPriceRange([5000, 10000])} className="text-xs">
+                    <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(5000, 10000)} className="text-xs">
                       5,000+ P
                     </Button>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button type="button" size="sm" variant="outline" onClick={() => setPriceRange([0, 10000])} className="w-1/2">
+                    <Button type="button" size="sm" variant="outline" onClick={resetPriceRange} className="w-1/2">
                       リセット
                     </Button>
                     <Button type="button" size="sm" onClick={handlePriceRangeApply} className="w-1/2">

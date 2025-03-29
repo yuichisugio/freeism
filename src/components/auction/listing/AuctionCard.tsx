@@ -1,66 +1,36 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuctionCard } from "@/hooks/auction/listing/useAuctionCard";
 import { type AuctionCardProps } from "@/lib/auction/types";
 import { cn } from "@/lib/utils";
-import { AuctionStatus } from "@prisma/client";
-import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
-import { ja } from "date-fns/locale";
 import { Clock, Eye, Heart, Star, Tag, Users } from "lucide-react";
 
 import CardCountdown from "./AuctionCountdown";
 
 export default function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
-  // ウォッチリスト更新中の状態
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  // 現在時刻とオークションの開始・終了時刻を比較
-  const now = new Date();
-  const [isStarted] = useState(new Date(auction.startTime) <= now);
-  const [isEnded, setIsEnded] = useState(new Date(auction.endTime) <= now || auction.status === AuctionStatus.ENDED);
-
-  // ウォッチリストの切り替え
-  const handleToggleWatchlist = async () => {
-    if (isUpdating) return;
-
-    setIsUpdating(true);
-    try {
-      await onToggleWatchlistAction(auction.id);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  // 開始前の場合
-  const getStartMessage = () => {
-    return `開始まで${formatDistanceToNow(new Date(auction.startTime), { locale: ja })}`;
-  };
+  // カスタムフックからロジックを取得
+  const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage, sellerRating } = useAuctionCard({ auction, onToggleWatchlistAction });
 
   // 出品者の評価表示
   const renderRating = () => {
-    if (auction.seller.rating === null) {
+    if (sellerRating.ratingValue === null) {
       return <span className="text-gray-400">未評価</span>;
     }
-
-    // 5つ星評価の表示
-    const fullStars = Math.floor(auction.seller.rating);
-    const hasHalfStar = auction.seller.rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
     return (
       <div className="flex items-center">
         {/* フルスター */}
-        {Array.from({ length: fullStars }).map((_, i) => (
+        {Array.from({ length: sellerRating.fullStars }).map((_, i) => (
           <Star key={`full-${i}`} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
         ))}
 
         {/* ハーフスター */}
-        {hasHalfStar && (
+        {sellerRating.hasHalfStar && (
           <span className="relative">
             <Star className="h-3 w-3 text-gray-300" />
             <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
@@ -70,11 +40,11 @@ export default function AuctionCard({ auction, onToggleWatchlistAction }: Auctio
         )}
 
         {/* 空スター */}
-        {Array.from({ length: emptyStars }).map((_, i) => (
+        {Array.from({ length: sellerRating.emptyStars }).map((_, i) => (
           <Star key={`empty-${i}`} className="h-3 w-3 text-gray-300" />
         ))}
 
-        <span className="ml-1 text-xs text-gray-600">{auction.seller.rating.toFixed(1)}</span>
+        <span className="ml-1 text-xs text-gray-600">{sellerRating.ratingValue.toFixed(1)}</span>
       </div>
     );
   };
@@ -82,10 +52,7 @@ export default function AuctionCard({ auction, onToggleWatchlistAction }: Auctio
   return (
     <div className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-lg">
       {/* 新着バッジ（過去3日以内の出品） */}
-      {isWithinInterval(new Date(auction.startTime), {
-        start: subDays(new Date(), 3),
-        end: new Date(),
-      }) && <div className="absolute top-0 left-0 z-10 rounded-br-lg bg-blue-500 px-2 py-1 text-xs font-semibold text-white">NEW</div>}
+      {isNew && <div className="absolute top-0 left-0 z-10 rounded-br-lg bg-blue-500 px-2 py-1 text-xs font-semibold text-white">NEW</div>}
 
       {/* ウォッチリストボタン - 絶対位置 */}
       <button
@@ -131,7 +98,7 @@ export default function AuctionCard({ auction, onToggleWatchlistAction }: Auctio
           </div>
 
           {/* まもなく終了バッジ */}
-          {isStarted && !isEnded && new Date(auction.endTime).getTime() - now.getTime() < 24 * 60 * 60 * 1000 && (
+          {isEndingSoon && (
             <Badge variant="destructive" className="absolute right-2 bottom-2 z-10 flex items-center gap-1">
               <Clock className="h-3 w-3" />
               まもなく終了

@@ -3,7 +3,7 @@
 import React from "react";
 import AuctionCard from "@/components/auction/listing/AuctionCard";
 import AuctionFilters from "@/components/auction/listing/AuctionFilters";
-import CustomPagination from "@/components/auction/listing/AuctionPagination";
+import AuctionPagination from "@/components/auction/listing/AuctionPagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/useAuctionListings";
@@ -125,7 +125,7 @@ export default function AuctionListings() {
           {/* ページネーション */}
           {auctions.length > 0 && totalPages > 1 && (
             <div className="mt-8 flex justify-center">
-              <CustomPagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} showPageInfo={true} />
+              <AuctionPagination currentPage={page} totalPages={totalPages} onPageChangeAction={handlePageChange} showPageInfo={true} />
             </div>
           )}
 
