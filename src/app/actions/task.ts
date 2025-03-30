@@ -38,6 +38,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
         info: data.info,
         imageUrl: data.imageUrl,
         contributionType: data.contributionType,
+        category: data.category, // カテゴリを追加
         creatorId: session.user.id,
         groupId: data.groupId,
         // 提供方法を追加
@@ -67,6 +68,11 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
                 [{ userId: session.user.id }],
         },
       },
+    });
+
+    // 作成したタスクを関連データを含めて再取得
+    const taskWithRelations = await prisma.task.findUnique({
+      where: { id: newTask.id },
       include: {
         creator: {
           select: {
@@ -113,7 +119,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
     }
 
     revalidatePath(`/dashboard/group/${data.groupId}`);
-    return { success: true, task: newTask };
+    return { success: true, task: taskWithRelations || newTask };
   } catch (error) {
     console.error("[CREATE_TASK]", error);
     return { error: "タスクの作成中にエラーが発生しました" };
