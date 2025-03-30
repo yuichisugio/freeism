@@ -11,11 +11,10 @@ import { getUserGroups } from "@/lib/auction/action/user";
  * @param onFilterChangeAction フィルターの変更アクション
  * @param sortOption ソートオプション
  * @param onSortChangeAction ソートオプションの変更アクション
- * @param categories カテゴリオプション
  * @param onResetFilters フィルターのリセットアクション
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: UseAuctionFiltersProps) {
+export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: UseAuctionFiltersProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲フィルター
@@ -26,6 +25,9 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
 
   // フィルターパネルの表示状態
   const [showFilters, setShowFilters] = useState(false);
+
+  // グループコンボボックス状態
+  const [openGroupCombobox, setOpenGroupCombobox] = useState(false);
 
   // アクティブなフィルターの数をカウント
   const [activeFilterCount, setActiveFilterCount] = useState(0);
@@ -104,11 +106,11 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
   return {
     priceRange,
     groups,
-    showFilters,
     activeFilterCount,
+    openGroupCombobox,
+    setOpenGroupCombobox,
     handlePriceRangeChange,
     handlePriceRangeApply,
-    toggleFilterDisplay,
     setPricePreset,
     resetPriceRange,
   };

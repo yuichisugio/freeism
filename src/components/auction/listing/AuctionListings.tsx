@@ -50,10 +50,15 @@ export default function AuctionListings() {
 
   return (
     <div className="space-y-6">
+      {/* 検索バー */}
+      <div className="w-full">
+        <SearchBar placeholder="商品名や説明文を検索..." value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} />
+      </div>
+
       {/* カテゴリタブ */}
       <div className="relative mx-2 mb-4 sm:mx-0">
         <div className="scrollbar-hide flex overflow-x-auto pb-2 sm:pb-0">
-          <div className="flex items-center justify-start space-x-1 px-2 sm:space-x-2">
+          <div className="flex items-center justify-start space-x-1 sm:space-x-2">
             {categories && categories.length > 0 ? (
               categories.map((category: string) => (
                 <button
@@ -76,22 +81,16 @@ export default function AuctionListings() {
         <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-white to-transparent sm:hidden"></div>
       </div>
 
-      {/* 検索バーとフィルター */}
-      <div className="flex flex-col items-start gap-4 md:flex-row">
-        <div className="w-full md:w-1/3">
-          <SearchBar placeholder="商品名や説明文を検索..." value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} />
-        </div>
-
-        <div className="w-full md:w-2/3">
-          <AuctionFilters
-            filters={filters}
-            onFilterChangeAction={handleFilterChange}
-            sortOption={sortOption}
-            onSortChangeAction={handleSortChange}
-            categories={categories}
-            onResetFilters={handleResetFilters}
-          />
-        </div>
+      {/* フィルター */}
+      <div className="w-full">
+        <AuctionFilters
+          filters={filters}
+          onFilterChangeAction={handleFilterChange}
+          sortOption={sortOption}
+          onSortChangeAction={handleSortChange}
+          categories={categories}
+          onResetFilters={handleResetFilters}
+        />
       </div>
 
       {/* ローディング状態または結果表示 */}

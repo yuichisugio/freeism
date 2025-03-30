@@ -4,13 +4,16 @@ import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types
 import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useAuctionFilters } from "@/hooks/auction/listing/useAuctionFilters";
 import { type AuctionFiltersProps } from "@/lib/auction/types";
-import { Filter, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown, Filter, X } from "lucide-react";
 
 /**
  * オークションフィルターコンポーネント
@@ -25,12 +28,24 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
-  const { priceRange, groups, showFilters, activeFilterCount, handlePriceRangeChange, handlePriceRangeApply, toggleFilterDisplay, setPricePreset, resetPriceRange } = useAuctionFilters({
+  const {
+    priceRange,
+    groups,
+    showFilters,
+    activeFilterCount,
+    openGroupCombobox,
+    setOpenGroupCombobox,
+    handlePriceRangeChange,
+    handlePriceRangeApply,
+    toggleFilterDisplay,
+    setPricePreset,
+    resetPriceRange,
+  } = useAuctionFilters({
     filters,
     onFilterChangeAction,
     sortOption,
     onSortChangeAction,
-    categories,
+    onResetFilters,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -74,24 +89,6 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
       {showFilters && (
         <div className="mt-4 border-t pt-4">
           <Accordion type="single" collapsible className="w-full" defaultValue="status">
-            {categories.length > 0 && (
-              <AccordionItem value="category">
-                <AccordionTrigger className="py-2 text-sm">カテゴリー</AccordionTrigger>
-                <AccordionContent>
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-4">
-                    {categories.map((category) => (
-                      <div key={category} className="flex items-center space-x-2">
-                        <RadioGroupItem value={category} id={`category-${category}`} />
-                        <Label htmlFor={`category-${category}`} className="text-sm">
-                          {category}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            )}
-
             <AccordionItem value="status">
               <AccordionTrigger className="py-2 text-sm">ステータス</AccordionTrigger>
               <AccordionContent>
@@ -245,19 +242,49 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
             <AccordionItem value="group">
               <AccordionTrigger className="text-sm">グループ</AccordionTrigger>
               <AccordionContent>
-                <Select value={filters.groupId || ""} onValueChange={(value) => onFilterChangeAction({ groupId: value || undefined })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="グループを選択" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">すべてのグループ</SelectItem>
-                    {groups.map((group) => (
-                      <SelectItem key={group.id} value={group.id}>
-                        {group.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openGroupCombobox} onOpenChange={setOpenGroupCombobox}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={openGroupCombobox} className="w-full justify-between">
+                      {filters.groupId ? groups.find((group) => group.id === filters.groupId)?.name || "グループを選択" : "グループを選択"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="グループを検索..." />
+                      <CommandList>
+                        <CommandEmpty>グループが見つかりません</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="all-groups"
+                            onSelect={() => {
+                              onFilterChangeAction({ groupId: undefined });
+                              setOpenGroupCombobox(false);
+                            }}
+                            className={cn("transition-colors duration-150 hover:bg-blue-50", !filters.groupId && "bg-blue-50")}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", !filters.groupId ? "opacity-100" : "opacity-0")} />
+                            すべてのグループ
+                          </CommandItem>
+                          {groups.map((group) => (
+                            <CommandItem
+                              key={group.id}
+                              value={group.name}
+                              onSelect={() => {
+                                onFilterChangeAction({ groupId: group.id });
+                                setOpenGroupCombobox(false);
+                              }}
+                              className={cn("transition-colors duration-150 hover:bg-blue-50", filters.groupId === group.id && "bg-blue-50")}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", filters.groupId === group.id ? "opacity-100" : "opacity-0")} />
+                              {group.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
