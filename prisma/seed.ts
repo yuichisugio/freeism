@@ -358,6 +358,25 @@ async function createGroupMemberships(groups: any[], users: any[], minMembersPer
   return memberships;
 }
 
+// constants.tsのAUCTION_CATEGORIESと同様のカテゴリを定義
+const TASK_CATEGORIES = ["食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"];
+
+// 提供方法のリスト（タスクに既に設定されていない場合のデフォルト）
+const DELIVERY_METHODS = ["Amazonのほしい物リスト", "GitHubスポンサー", "直接発送（着払い）", "オンラインコード送信", "オンラインミーティング", "チャットでの情報提供", "メールでのデータ送信"];
+
+// カテゴリ別の提供方法マッピング
+const CATEGORY_DELIVERY_METHODS: Record<string, string[]> = {
+  食品: ["直接配送", "宅配便", "フードデリバリー", "お取り寄せ"],
+  コード: ["GitHub", "GitLab", "BitBucket", "メール添付"],
+  本: ["郵送", "電子書籍", "PDF送信", "オンライン閲覧"],
+  デザイン: ["Figmaリンク", "Dropbox", "Google Drive", "メール添付"],
+  開発: ["リポジトリ共有", "API連携", "Docker Hub", "開発環境共有"],
+  マーケティング: ["レポート共有", "分析データ送付", "プレゼン資料", "ビデオ会議"],
+  ライティング: ["Google Docs", "Word文書", "PDF送信", "ブログ投稿"],
+  事務作業: ["メール", "Slack", "共有ドキュメント", "ビデオ会議"],
+  その他: ["メール", "郵送", "オンライン共有", "直接対面"],
+};
+
 /**
  * タスクを生成する関数
  * @param count 生成するタスク数
@@ -379,6 +398,9 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
     // タスクの詳細を生成
     const taskTitle = faker.company.catchPhrase();
     const taskStatus = faker.helpers.arrayElement(taskStatuses);
+
+    // ランダムにカテゴリを選択
+    const category = faker.helpers.arrayElement(TASK_CATEGORIES);
 
     // 評価者と評価ロジック (50%の確率で設定)
     const hasEvaluator = faker.datatype.boolean(0.5);
@@ -463,18 +485,31 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
       }
     }
 
+    // 出品タイプの場合は提供方法を設定（カテゴリに合わせた提供方法）
+    const isReward = faker.datatype.boolean(0.4); // 40%の確率で報酬タスク
+    const contributionType = isReward ? "REWARD" : "NON_REWARD";
+
+    // カテゴリに応じた提供方法を選択（報酬タイプの場合のみ）
+    let deliveryMethod = null;
+    if (isReward) {
+      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS;
+      deliveryMethod = faker.helpers.arrayElement(categoryMethods);
+    }
+
     // タスク作成
     const task = await prisma.task.create({
       data: {
         task: taskTitle,
         detail: faker.lorem.paragraph(),
         reference: faker.datatype.boolean(0.3) ? faker.internet.url() : null,
+        category,
         status: taskStatus,
         fixedContributionPoint: fixedPoints,
         fixedEvaluator,
         fixedEvaluationLogic,
         info,
-        contributionType: faker.helpers.arrayElement(contributionTypes),
+        contributionType,
+        deliveryMethod,
         creatorId: creator.id,
         userFixedSubmitterId: faker.datatype.boolean(0.3) ? faker.helpers.arrayElement(users).id : null,
         groupId,
@@ -793,15 +828,39 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
 }
 
 // オークションの生成
-async function createAuctions(tasks: any[], users: any[]) {
+async function createAuctions(tasks: any[], users: any[]): Promise<any[]> {
   console.log("Creating auctions...");
 
-  const auctions = [];
+  const auctions: any[] = [];
 
-  // タスクからランダムに選択してオークションを作成
-  const auctionTasks = faker.helpers.arrayElements(tasks, Math.min(tasks.length, 15));
+  // タスクから報酬タイプのタスクのみ抽出（contributionType が "REWARD" のもの）
+  const rewardTasks = tasks.filter((task) => task.contributionType === "REWARD");
 
-  for (const task of auctionTasks) {
+  // 報酬タスクが少ない場合は、追加の報酬タスクを作成
+  if (rewardTasks.length < 15) {
+    console.log(`報酬タスクが少ないため、NON_REWARDタスクからいくつかを変換します`);
+    const nonRewardTasks = tasks.filter((task) => task.contributionType === "NON_REWARD");
+    const tasksToConvert = faker.helpers.arrayElements(nonRewardTasks, Math.min(nonRewardTasks.length, 15 - rewardTasks.length));
+
+    for (const task of tasksToConvert) {
+      // カテゴリを確認
+      const category = task.category || "その他";
+      // カテゴリに合った提供方法を選択
+      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS;
+      const deliveryMethod = faker.helpers.arrayElement(categoryMethods);
+
+      await prisma.task.update({
+        where: { id: task.id },
+        data: {
+          contributionType: "REWARD",
+          deliveryMethod,
+        },
+      });
+      rewardTasks.push({ ...task, contributionType: "REWARD", deliveryMethod });
+    }
+  }
+
+  for (const task of rewardTasks) {
     // 開始時間と終了時間の設定（現在から過去7日〜未来14日の範囲）
     const now = new Date();
     const startTimeOffset = faker.number.int({ min: -7 * 24 * 60 * 60 * 1000, max: 7 * 24 * 60 * 60 * 1000 });
@@ -852,6 +911,24 @@ async function createAuctions(tasks: any[], users: any[]) {
     if (status === "ENDED" && currentHighestBidderId) {
       // 最高入札者がいる場合は落札者として設定
       winnerId = currentHighestBidderId;
+    }
+
+    // タスクの情報を取得して、既存の提供方法を確認
+    let deliveryMethod = task.deliveryMethod;
+
+    // 提供方法が未設定の場合、カテゴリに応じた提供方法をランダムに選択
+    if (!deliveryMethod) {
+      const category = task.category || "その他";
+      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS;
+      deliveryMethod = faker.helpers.arrayElement(categoryMethods);
+
+      // タスク情報に提供方法を更新
+      await prisma.task.update({
+        where: { id: task.id },
+        data: {
+          deliveryMethod,
+        },
+      });
     }
 
     const auction = await prisma.auction.create({
@@ -975,18 +1052,18 @@ async function createAutoBids(auctions: any[], users: any[]) {
     const potentialUsers = users.filter((user) => user.id !== task.creatorId);
     if (potentialUsers.length === 0) continue;
 
-    // 自動入札設定を持つユーザー数（0〜2人）
-    const autoBidUserCount = faker.number.int({ min: 0, max: 2 });
+    // 自動入札設定を持つユーザー数（0〜3人）
+    const autoBidUserCount = faker.number.int({ min: 0, max: 3 });
     if (autoBidUserCount === 0) continue;
 
     // ランダムにユーザーを選択
     const autoBidUsers = faker.helpers.arrayElements(potentialUsers, autoBidUserCount);
 
     for (const user of autoBidUsers) {
-      // 自動入札の最大金額は現在の最高入札額の10%〜50%増し
-      const maxBidAmount = Math.floor(auction.currentHighestBid * (1.1 + faker.number.float({ min: 0, max: 0.4 })));
-      // 入札単位は1〜100の範囲でランダム
-      const bidIncrement = faker.number.int({ min: 1, max: 100 });
+      // 自動入札の最大金額は現在の最高入札額の10%〜100%増し
+      const maxBidAmount = Math.floor(auction.currentHighestBid * (1.1 + faker.number.float({ min: 0, max: 0.9 })));
+      // 入札単位は10〜200の範囲でランダム
+      const bidIncrement = faker.number.int({ min: 10, max: 200 });
 
       try {
         const autoBid = await prisma.autoBid.create({
@@ -1026,18 +1103,23 @@ async function createAuctionNotifications(auctions: any[], users: any[]) {
 
     // 各オークションに対して0〜3件の通知を生成
     for (const auction of relevantAuctions) {
-      const notificationCount = faker.number.int({ min: 0, max: 3 });
-      if (notificationCount === 0) continue;
+      const notificationCount = faker.number.int({ min: 1, max: 3 }); // 最低1件は通知を生成
 
       // 通知タイプのリスト (Prismaのスキーマに合わせる)
-      const notificationTypes: ("BID_PLACED" | "OUTBID" | "QUESTION_RECEIVED" | "MAX_BID_REACHED" | "AUCTION_ENDED" | "WON_AUCTION" | "LOST_AUCTION" | "POINT_RETURNED")[] = [
+      let notificationTypes: ("BID_PLACED" | "OUTBID" | "QUESTION_RECEIVED" | "MAX_BID_REACHED" | "AUCTION_ENDED" | "WON_AUCTION" | "LOST_AUCTION" | "POINT_RETURNED")[] = [
         "BID_PLACED",
         "OUTBID",
         "AUCTION_ENDED",
-        "WON_AUCTION",
-        "LOST_AUCTION",
-        "POINT_RETURNED",
       ];
+
+      // 落札者の場合
+      if (auction.winnerId === user.id) {
+        notificationTypes = ["WON_AUCTION", "POINT_RETURNED"];
+      }
+      // 最高入札者だが落札者ではない場合
+      else if (auction.currentHighestBidderId === user.id && auction.status === "ENDED" && auction.winnerId !== user.id) {
+        notificationTypes = ["LOST_AUCTION", "POINT_RETURNED"];
+      }
 
       for (let i = 0; i < notificationCount; i++) {
         // ランダムな通知タイプを選択
@@ -1050,13 +1132,30 @@ async function createAuctionNotifications(auctions: any[], users: any[]) {
         const createdAt = new Date(new Date().getTime() - faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000);
         const expiresAt = new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000);
 
+        // 関連するタスク情報を取得
+        const task = await prisma.task.findUnique({
+          where: { id: auction.taskId },
+          select: {
+            task: true,
+            deliveryMethod: true,
+          },
+        });
+
+        // 預けたポイントが返ってくる期間（落札日の2ヶ月後）
+        let pointReturnDate = null;
+        if (auction.status === "ENDED" && auction.winnerId) {
+          const twoMonthsLater = new Date(auction.endTime);
+          twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+          pointReturnDate = twoMonthsLater;
+        }
+
         try {
           const notification = await prisma.auctionNotification.create({
             data: {
               user: { connect: { id: user.id } },
               auction: { connect: { id: auction.id } },
               title: generateNotificationTitle(notificationType),
-              message: generateNotificationMessage(notificationType, auction),
+              message: generateNotificationMessage(notificationType, auction, task, pointReturnDate),
               type: notificationType,
               isRead,
               createdAt,
@@ -1090,29 +1189,41 @@ function generateNotificationTitle(type: string): string {
     case "LOST_AUCTION":
       return "オークション落札失敗";
     case "POINT_RETURNED":
-      return "ポイント返還";
+      return "ポイント返還予定のお知らせ";
     default:
       return "オークション通知";
   }
 }
 
 // 通知メッセージの生成ヘルパー関数
-function generateNotificationMessage(type: string, auction: any): string {
+function generateNotificationMessage(type: string, auction: any, task?: any, pointReturnDate?: Date | null): string {
+  const taskTitle = task?.task ? task.task.substring(0, 30) + (task.task.length > 30 ? "..." : "") : "商品";
+  const deliveryMethod = task?.deliveryMethod || "未定";
+  const bidAmount = auction.currentHighestBid.toLocaleString();
+
   switch (type) {
     case "BID_PLACED":
-      return `あなたがオークション「${auction.id}」に入札しました。`;
+      return `「${taskTitle}」のオークションに${bidAmount}ポイントで入札しました。`;
     case "OUTBID":
-      return `あなたの入札が他のユーザーに上回られました。`;
+      return `「${taskTitle}」のオークションで、あなたの入札が他のユーザーに上回られました。再入札を検討してください。`;
     case "AUCTION_ENDED":
-      return `オークション「${auction.id}」が終了しました。`;
+      return `「${taskTitle}」のオークションが終了しました。結果を確認してください。`;
     case "WON_AUCTION":
-      return `おめでとうございます！オークション「${auction.id}」を落札しました。`;
+      if (pointReturnDate) {
+        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+        return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。\n預けたポイントは${formattedDate}に返還される予定です。`;
+      }
+      return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。`;
     case "LOST_AUCTION":
-      return `残念ながらオークション「${auction.id}」を落札できませんでした。`;
+      return `残念ながら「${taskTitle}」のオークションで落札できませんでした。入札したポイントは返還されました。`;
     case "POINT_RETURNED":
-      return `オークション「${auction.id}」の入札に使用したポイントが返還されました。`;
+      if (pointReturnDate) {
+        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+        return `「${taskTitle}」のオークションで預けた${bidAmount}ポイントは${formattedDate}に返還される予定です。`;
+      }
+      return `「${taskTitle}」のオークションで使用したポイントが返還されました。`;
     default:
-      return `オークション「${auction.id}」に関するお知らせです。`;
+      return `「${taskTitle}」のオークションに関するお知らせです。`;
   }
 }
 
@@ -1125,6 +1236,14 @@ async function createAuctionReviews(auctions: any[]) {
   // 終了したオークションのみを対象
   const endedAuctions = auctions.filter((auction) => auction.status === "ENDED" && auction.winnerId !== null);
 
+  // 完了証明URLのパターン
+  const proofUrlPatterns = [
+    "https://example.com/proof/",
+    "https://img-service.com/completion/",
+    "https://storage.googleapis.com/proof-images/",
+    null, // 証明なしのケース
+  ];
+
   for (const auction of endedAuctions) {
     // 関連するタスクを取得
     const task = await prisma.task.findUnique({
@@ -1134,25 +1253,35 @@ async function createAuctionReviews(auctions: any[]) {
 
     if (!task) continue;
 
-    // レビューが存在する確率（70%）
-    const hasReview = faker.datatype.boolean(0.7);
+    // レビューが存在する確率（80%）
+    const hasReview = faker.datatype.boolean(0.8);
     if (!hasReview) continue;
 
     // 売り手（タスク作成者）から買い手（落札者）へのレビュー
     try {
+      // 完了証明URLの生成（40%の確率で存在）
+      const hasProofUrl = faker.datatype.boolean(0.4);
+      const proofUrlBase = hasProofUrl ? faker.helpers.arrayElement(proofUrlPatterns.filter(Boolean)) : null;
+      const completionProofUrl = proofUrlBase ? `${proofUrlBase}${faker.string.uuid()}.jpg` : null;
+
+      const sellerReviewComments = [
+        "とても良い取引相手でした。スムーズに取引が完了しました。",
+        "迅速な対応に感謝します。また機会があれば取引したいです。",
+        "丁寧な対応でした。約束通りの取引ができました。",
+        "問題なく取引できました。信頼できる相手です。",
+        "コミュニケーションが円滑で、理解力の高い方でした。",
+        "非常に協力的で、取引がとてもスムーズでした。",
+        "また取引したいです。とても満足しています。",
+      ];
+
       const sellerReview = await prisma.auctionReview.create({
         data: {
           auction: { connect: { id: auction.id } },
           reviewer: { connect: { id: task.creatorId } },
           reviewee: { connect: { id: auction.winnerId } },
-          rating: faker.number.int({ min: 1, max: 5 }),
-          comment: faker.helpers.arrayElement([
-            "とても良い取引相手でした。スムーズに取引が完了しました。",
-            "迅速な対応に感謝します。また機会があれば取引したいです。",
-            "丁寧な対応でした。",
-            "問題なく取引できました。",
-            "また取引したいです。",
-          ]),
+          rating: faker.number.int({ min: 3, max: 5 }), // 売り手からは比較的高評価
+          comment: faker.helpers.arrayElement(sellerReviewComments),
+          completionProofUrl,
           isSellerReview: true,
           createdAt: new Date(auction.endTime.getTime() + faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000),
         },
@@ -1163,17 +1292,34 @@ async function createAuctionReviews(auctions: any[]) {
       console.error("売り手レビュー作成エラー:", error);
     }
 
-    // 買い手から売り手へのレビュー（80%の確率で存在）
-    const hasBuyerToSellerReview = faker.datatype.boolean(0.8);
+    // 買い手から売り手へのレビュー（90%の確率で存在）
+    const hasBuyerToSellerReview = faker.datatype.boolean(0.9);
     if (hasBuyerToSellerReview) {
       try {
+        // 完了証明URLの生成（30%の確率で存在）
+        const hasProofUrl = faker.datatype.boolean(0.3);
+        const proofUrlBase = hasProofUrl ? faker.helpers.arrayElement(proofUrlPatterns.filter(Boolean)) : null;
+        const completionProofUrl = proofUrlBase ? `${proofUrlBase}${faker.string.uuid()}.jpg` : null;
+
+        const buyerReviewComments = [
+          "商品の状態が良く、満足しています。",
+          "丁寧な梱包で安心しました。",
+          "説明通りの商品でした。",
+          "また利用したいです。対応が迅速でとても良かったです。",
+          "迅速な発送に感謝します。良い取引ができました。",
+          "期待以上の内容でした。とても満足しています。",
+          "正確な情報提供に感謝します。",
+          "次回も機会があれば取引したいです。",
+        ];
+
         const buyerReview = await prisma.auctionReview.create({
           data: {
             auction: { connect: { id: auction.id } },
             reviewer: { connect: { id: auction.winnerId } },
             reviewee: { connect: { id: task.creatorId } },
-            rating: faker.number.int({ min: 1, max: 5 }),
-            comment: faker.helpers.arrayElement(["商品の状態が良く、満足しています。", "丁寧な梱包で安心しました。", "説明通りの商品でした。", "また利用したいです。", "迅速な発送に感謝します。"]),
+            rating: faker.number.int({ min: 2, max: 5 }), // 買い手からの評価は若干ばらつきがある
+            comment: faker.helpers.arrayElement(buyerReviewComments),
+            completionProofUrl,
             isSellerReview: false,
             createdAt: new Date(auction.endTime.getTime() + faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000),
           },
@@ -1188,6 +1334,147 @@ async function createAuctionReviews(auctions: any[]) {
 
   console.log(`Created ${reviews.length} auction reviews`);
   return reviews;
+}
+
+// オークションのウォッチリスト生成
+async function createTaskWatchLists(auctions: any[], users: any[]) {
+  console.log("Creating task watch lists...");
+
+  const watchLists = [];
+
+  // すべてのオークションに対して処理
+  for (const auction of auctions) {
+    // 関連するタスクを取得
+    const task = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { creatorId: true },
+    });
+
+    if (!task) continue;
+
+    // タスク作成者以外のユーザーを対象に
+    const potentialWatchers = users.filter((user) => user.id !== task.creatorId);
+    if (potentialWatchers.length === 0) continue;
+
+    // ウォッチリストに追加するユーザー数（0〜5人）
+    const watcherCount = faker.number.int({ min: 0, max: 5 });
+    if (watcherCount === 0) continue;
+
+    // ランダムにウォッチするユーザーを選択
+    const watchers = faker.helpers.arrayElements(potentialWatchers, watcherCount);
+
+    for (const watcher of watchers) {
+      try {
+        const watchList = await prisma.taskWatchList.create({
+          data: {
+            userId: watcher.id,
+            auctionId: auction.id,
+            createdAt: new Date(
+              faker.date.between({
+                from: auction.createdAt,
+                to: new Date(),
+              }),
+            ),
+          },
+        });
+
+        watchLists.push(watchList);
+      } catch (error) {
+        // ユニーク制約に違反した場合はスキップ
+        if (error instanceof Error && error.message.includes("Unique constraint")) {
+          console.log(`ユーザー ${watcher.id} は既にオークション ${auction.id} をウォッチリストに追加済みです`);
+        } else {
+          console.error("ウォッチリスト作成エラー:", error);
+        }
+      }
+    }
+  }
+
+  console.log(`Created ${watchLists.length} watch list entries`);
+  return watchLists;
+}
+
+// グループポイントの生成
+async function createGroupPoints(users: any[], auctions: any[]) {
+  console.log("Creating group points...");
+
+  const groupPoints = [];
+
+  // 各ユーザーに対してグループポイントを生成
+  for (const user of users) {
+    // ユーザーが所属するグループを取得
+    const userMemberships = await prisma.groupMembership.findMany({
+      where: { userId: user.id },
+      include: { group: true },
+    });
+
+    if (userMemberships.length === 0) continue;
+
+    // 各グループに対して
+    for (const membership of userMemberships) {
+      const group = membership.group;
+
+      // 既存のグループポイントレコードを確認
+      const existingGroupPoint = await prisma.groupPoint.findUnique({
+        where: {
+          userId_groupId: {
+            userId: user.id,
+            groupId: group.id,
+          },
+        },
+      });
+
+      if (existingGroupPoint) {
+        console.log(`ユーザー ${user.id} のグループ ${group.id} に対するポイント情報は既に存在します`);
+        groupPoints.push(existingGroupPoint);
+        continue;
+      }
+
+      // 基本のポイント残高と合計ポイント
+      let balance = faker.number.int({ min: 100, max: 10000 });
+      let fixedTotalPoints = balance;
+
+      // ユーザーが落札者であるオークションを取得
+      const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === "ENDED");
+
+      // オークションの落札情報からポイント残高を調整
+      for (const auction of wonAuctions) {
+        // オークションに関連するタスクを取得
+        const task = await prisma.task.findUnique({
+          where: { id: auction.taskId },
+          select: { groupId: true },
+        });
+
+        // タスクがこのグループに関連しているか確認
+        if (task && task.groupId === group.id) {
+          // 落札時に一時的に使用されるポイント
+          balance -= auction.currentHighestBid;
+          // ただし総獲得ポイントは変わらない
+        }
+      }
+
+      // バランスが負にならないように調整
+      balance = Math.max(0, balance);
+
+      try {
+        const groupPoint = await prisma.groupPoint.create({
+          data: {
+            userId: user.id,
+            groupId: group.id,
+            balance,
+            fixedTotalPoints,
+          },
+        });
+
+        groupPoints.push(groupPoint);
+      } catch (error) {
+        console.error("グループポイント作成エラー:", error);
+      }
+    }
+  }
+
+  console.log(`Created ${groupPoints.length} group points records`);
+  return groupPoints;
 }
 
 /**
@@ -1222,12 +1509,16 @@ async function main() {
 
     // 7. オークション関連データの作成
     const auctions = await createAuctions(tasks, users);
-    await createBidHistories(auctions, users);
-    await createAutoBids(auctions, users);
-    await createAuctionNotifications(auctions, users);
-    await createAuctionReviews(auctions);
+    const bidHistories = await createBidHistories(auctions, users);
+    const autoBids = await createAutoBids(auctions, users);
+    const watchLists = await createTaskWatchLists(auctions, users);
+    const auctionNotifications = await createAuctionNotifications(auctions, users);
+    const auctionReviews = await createAuctionReviews(auctions);
 
-    // 8. 統計情報の表示
+    // 8. グループポイントデータの作成
+    const groupPoints = await createGroupPoints(users, auctions);
+
+    // 9. 統計情報の表示
     console.log("-------------------------------------");
     console.log("シードデータ作成完了！");
     console.log("-------------------------------------");
@@ -1242,6 +1533,13 @@ async function main() {
     console.log(`分析データ: ${analytics.length}件`);
     console.log(`通知: ${notifications.length}件`);
     console.log(`通知既読状態: ${notificationReadStatuses.length}件`);
+    console.log(`オークション: ${auctions.length}件`);
+    console.log(`入札履歴: ${bidHistories.length}件`);
+    console.log(`自動入札設定: ${autoBids.length}件`);
+    console.log(`ウォッチリスト: ${watchLists.length}件`);
+    console.log(`オークション通知: ${auctionNotifications.length}件`);
+    console.log(`オークションレビュー: ${auctionReviews.length}件`);
+    console.log(`グループポイント: ${groupPoints.length}件`);
     console.log("-------------------------------------");
   } catch (error) {
     console.error("シード作成エラー:", error);

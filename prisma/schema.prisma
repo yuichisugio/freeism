@@ -138,6 +138,7 @@ model Task {
   task                   String // タスクのタイトル
   detail                 String? // タスクの詳細
   reference              String? // 参考にした内容
+  category               String?          @default("その他") // タスクのカテゴリ
   status                 TaskStatus       @default(PENDING)
   fixedContributionPoint Int?             @map("fixed_contribution_point")
   fixedEvaluator         String?          @map("fixed_evaluator")
