@@ -52,7 +52,7 @@ export type UseCountdownProps = {
 // フィルタリングパラメータの型定義
 export type AuctionFilterParams = {
   category?: string;
-  status?: "all" | "watchlist" | "not_bidded" | "bidded" | "ended";
+  status?: "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended";
   minPrice?: number;
   maxPrice?: number;
   remainingTime?: "1h" | "1d" | "1w" | "1m" | "all";

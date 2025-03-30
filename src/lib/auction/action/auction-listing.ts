@@ -126,6 +126,11 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
       case "ended":
         where.status = AuctionStatus.ENDED;
         break;
+      case "not_ended":
+        where.status = {
+          not: AuctionStatus.ENDED,
+        };
+        break;
       default:
         // "all" の場合は追加条件なし
         break;
