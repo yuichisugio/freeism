@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionSortOption, UseAuctionFiltersProps } from "@/lib/auction/types";
+import type { AuctionFilterParams, UseAuctionFiltersProps } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useState } from "react";
 import { getUserGroups } from "@/lib/auction/action/user";
 
@@ -14,7 +14,7 @@ import { getUserGroups } from "@/lib/auction/action/user";
  * @param onResetFilters フィルターのリセットアクション
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: UseAuctionFiltersProps) {
+export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _sortOption, onSortChangeAction: _onSortChangeAction, onResetFilters: _onResetFilters }: UseAuctionFiltersProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲フィルター
@@ -48,7 +48,7 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
       setGroups(groupData);
     }
 
-    fetchGroups();
+    void fetchGroups();
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

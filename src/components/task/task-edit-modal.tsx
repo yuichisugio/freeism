@@ -116,17 +116,17 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     if (task) {
       form.reset({
         task: task.task,
-        detail: task.detail || "",
-        reference: task.reference || "",
-        info: task.info || "",
-        imageUrl: task.imageUrl || "",
+        detail: task.detail ?? "",
+        reference: task.reference ?? "",
+        info: task.info ?? "",
+        imageUrl: task.imageUrl ?? "",
         contributionType: task.contributionType,
-        category: task.category || "その他",
+        category: task.category ?? "その他",
       });
 
       // 実行者と報告者をセット
-      setExecutors(task.executors || []);
-      setReporters(task.reporters || []);
+      setExecutors(task.executors ?? []);
+      setReporters(task.reporters ?? []);
     }
   }, [task, form]);
 
@@ -225,7 +225,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
       console.log("更新結果:", result);
       toast.dismiss();
 
-      if (result && result.success) {
+      if (result?.success) {
         toast.success("タスクを更新しました");
 
         // モーダルを閉じる
@@ -251,11 +251,11 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
         setTimeout(() => {
           router.replace(newPath);
           setTimeout(() => {
-            router.replace(currentPath + (window.location.search || ""));
+            router.replace(currentPath + (window.location.search ?? ""));
           }, 100);
         }, 100);
       } else {
-        const errorMessage = result?.error || "タスクの更新に失敗しました（不明なエラー）";
+        const errorMessage = result?.error ?? "タスクの更新に失敗しました（不明なエラー）";
         toast.error(errorMessage);
         console.error("更新失敗:", result);
       }
@@ -396,7 +396,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                     {executors.map((executor, index) => (
                       <li key={`executor-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
-                          {executor.name || "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
+                          {executor.name ?? "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
                         </span>
                         <Button type="button" variant="ghost" className="h-auto p-1 text-red-500" onClick={() => removeExecutor(index)}>
                           削除
@@ -457,7 +457,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                     {reporters.map((reporter, index) => (
                       <li key={`reporter-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
-                          {reporter.name || "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
+                          {reporter.name ?? "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
                         </span>
                         <Button type="button" variant="ghost" className="h-auto p-1 text-red-500" onClick={() => removeReporter(index)}>
                           削除

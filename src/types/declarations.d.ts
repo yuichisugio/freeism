@@ -12,8 +12,7 @@ declare module "@/components/auction/detail/AuctionDetail" {
     isOwnAuction: boolean;
   };
 
-  const AuctionDetail: React.FC<AuctionDetailProps>;
-  export default AuctionDetail;
+  export const AuctionDetail: React.FC<AuctionDetailProps>;
 }
 
 declare module "@/components/auction/detail/BidForm" {
@@ -24,20 +23,18 @@ declare module "@/components/auction/detail/BidForm" {
     onCancel: () => void;
   };
 
-  const BidForm: React.FC<BidFormProps>;
-  export default BidForm;
+  export const BidForm: React.FC<BidFormProps>;
 }
 
 declare module "@/components/auction/detail/CountdownDisplay" {
-  import { type CountdownState } from "@/hooks/auction/bid/useCountdown";
+  import { type CountdownState } from "@/hooks/auction/bid/use-countdown";
 
   export type CountdownDisplayProps = {
     countdownState: CountdownState;
     formattedCountdown: string;
   };
 
-  const CountdownDisplay: React.FC<CountdownDisplayProps>;
-  export default CountdownDisplay;
+  export const CountdownDisplay: React.FC<CountdownDisplayProps>;
 }
 
 // UIコンポーネントの型宣言

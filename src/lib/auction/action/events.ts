@@ -1,14 +1,14 @@
 "use server";
 
-import type { AuctionWithDetails, BidHistoryWithUser } from "../types";
-import { AuctionEventType } from "../types";
+import type { AuctionWithDetails, BidHistoryWithUser } from "../type/types";
+import { AuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
   id: number;
   type: AuctionEventType;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   timestamp: number;
 };
 
@@ -84,10 +84,21 @@ export async function sendErrorEvent(auctionId: string, error: string): Promise<
     description: error,
     currentPrice: 0,
     sellerId: "",
+    // @ts-expect-error - 必要な最小限のオブジェクトを提供
     task: {
-      group: {},
-      creator: {},
-    } as any,
+      group: {
+        id: "",
+        name: "",
+      },
+      creator: {
+        id: "",
+        username: "",
+        email: "",
+        createdAt: "",
+        name: null,
+        image: null,
+      },
+    },
     depositPeriod: 0,
     currentHighestBidder: null,
     winner: null,

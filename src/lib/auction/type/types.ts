@@ -1,5 +1,88 @@
-import { type AuctionReview, type AuctionStatus, type Task } from "@prisma/client";
+import { type AuctionReview, type AuctionStatus, type BidStatus, type Task, type TaskStatus } from "@prisma/client";
 
+// 入札履歴の型
+export type BidHistoryItem = {
+  id: string;
+  auctionId: string;
+  amount: number;
+  isAutoBid: boolean;
+  status: BidStatus;
+  createdAt: Date;
+  auction: {
+    id: string;
+    task: {
+      id: string;
+      task: string;
+      detail: string | null;
+      imageUrl: string | null;
+      status: TaskStatus;
+    };
+    currentHighestBid: number;
+    endTime: Date;
+    status: AuctionStatus;
+  };
+};
+
+export type WonAuctionItem = {
+  id: string;
+  taskId: string;
+  currentHighestBid: number;
+  endTime: Date;
+  status: AuctionStatus;
+  createdAt: Date;
+  task: {
+    id: string;
+    task: string;
+    detail: string | null;
+    imageUrl: string | null;
+    status: TaskStatus;
+    creator: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+    deliveryMethod: string | null;
+  };
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    isSellerReview: boolean;
+  }[];
+};
+
+export type CreatedAuctionItem = {
+  id: string;
+  taskId: string;
+  currentHighestBid: number;
+  endTime: Date;
+  status: AuctionStatus;
+  createdAt: Date;
+  task: {
+    id: string;
+    task: string;
+    detail: string | null;
+    imageUrl: string | null;
+    status: TaskStatus;
+    deliveryMethod: string | null;
+  };
+  winner: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  } | null;
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    isSellerReview: boolean;
+  }[];
+};
+
+// オークション履歴のタブ
+export type AuctionHistoryTabs = "bids" | "won" | "created";
+
+// オークションカードのprops
 export type AuctionCardHookProps = {
   auction: {
     id: string;
@@ -169,6 +252,12 @@ export type BidHistoryWithUser = BidHistory & {
   user?: User;
 };
 
+// タスクグループの型定義
+export type TaskGroup = {
+  id: string;
+  name: string;
+};
+
 // オークション詳細情報を含む型
 export type AuctionWithDetails = {
   id: string;
@@ -189,13 +278,13 @@ export type AuctionWithDetails = {
   currentPrice: number;
   sellerId: string;
   task: Task & {
-    group: any;
-    creator: any;
+    group: TaskGroup;
+    creator: User;
   };
   depositPeriod: number;
   currentHighestBidder: User | null;
   winner: User | null;
-  watchlists?: any[];
+  watchlists?: WatchlistItem[];
   options?: {
     reconnectOnVisibility?: boolean; // ページが表示されたときに再接続
     batchMode?: boolean; // イベントをバッファリング

@@ -75,7 +75,7 @@ export async function getUnreadNotificationsCount() {
     `;
 
     // bigintを安全にnumberに変換
-    const unreadCount = countResult && countResult[0] ? Number(countResult[0].count) : 0;
+    const unreadCount = countResult?.[0] ? Number(countResult[0].count) : 0;
 
     return unreadCount;
   } catch (error) {
@@ -141,7 +141,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       `;
 
       if (Array.isArray(previousNotifications)) {
-        previousNotifications.forEach((n: any) => excludeIds.add(n.id));
+        previousNotifications.forEach((n: { id: string }) => excludeIds.add(n.id));
       }
     }
 
@@ -193,25 +193,45 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
 
     // 以下のコードは変更なし
     const notifications = Array.isArray(notificationsRaw)
-      ? notificationsRaw.map((n) => ({
-          id: n.id,
-          title: n.title || "",
-          message: n.message || "",
-          NotificationType: n.type,
-          NotificationTargetType: n.targetType,
-          isRead: n.isRead === true,
-          priority: Number(n.priority) || 1.0,
-          sentAt: n.sentAt ? new Date(n.sentAt).toISOString() : new Date().toISOString(),
-          readAt: n.readAt ? new Date(n.readAt).toISOString() : null,
-          expiresAt: n.expiresAt ? new Date(n.expiresAt).toISOString() : null,
-          actionUrl: n.actionUrl || null,
-          userId: n.userId || null,
-          groupId: n.groupId || null,
-          taskId: n.taskId || null,
-          userName: n.userName || null,
-          groupName: n.groupName || null,
-          taskName: n.taskName || null,
-        }))
+      ? notificationsRaw.map(
+          (n: {
+            id: string;
+            title: string | null;
+            message: string | null;
+            type: "INFO" | "SUCCESS" | "WARNING";
+            targetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
+            isRead: boolean;
+            priority: number | string;
+            sentAt: string | Date | null;
+            readAt: string | Date | null;
+            expiresAt: string | Date | null;
+            actionUrl: string | null;
+            userId: string | null;
+            groupId: string | null;
+            taskId: string | null;
+            userName: string | null;
+            groupName: string | null;
+            taskName: string | null;
+          }) => ({
+            id: n.id,
+            title: n.title ?? "",
+            message: n.message ?? "",
+            NotificationType: n.type,
+            NotificationTargetType: n.targetType,
+            isRead: n.isRead === true,
+            priority: Number(n.priority) ?? 1.0,
+            sentAt: n.sentAt ? new Date(n.sentAt).toISOString() : new Date().toISOString(),
+            readAt: n.readAt ? new Date(n.readAt).toISOString() : null,
+            expiresAt: n.expiresAt ? new Date(n.expiresAt).toISOString() : null,
+            actionUrl: n.actionUrl ?? null,
+            userId: n.userId ?? null,
+            groupId: n.groupId ?? null,
+            taskId: n.taskId ?? null,
+            userName: n.userName ?? null,
+            groupName: n.groupName ?? null,
+            taskName: n.taskName ?? null,
+          }),
+        )
       : [];
 
     // 未読カウント取得
@@ -235,7 +255,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         )
     `;
 
-    const unreadCount = Number(unreadCountResult[0]?.count || 0);
+    const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
 
     // 合計数取得
     const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
@@ -248,7 +268,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
     `;
 
-    const totalCount = Number(totalCountResult[0]?.count || 0);
+    const totalCount = Number(totalCountResult[0]?.count ?? 0);
 
     return {
       notifications,
@@ -460,11 +480,11 @@ export async function createNotification(data: CreateNotificationFormData, isApp
           targetUserIds.push(task.creatorId);
 
           // タスク報告者を追加 (登録ユーザーのみ)
-          const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId as string);
+          const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId!);
           targetUserIds.push(...reporterUserIds);
 
           // タスク実行者を追加 (登録ユーザーのみ)
-          const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId as string);
+          const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId!);
           targetUserIds.push(...executorUserIds);
 
           // タスクが属するグループのメンバーも追加
@@ -495,8 +515,8 @@ export async function createNotification(data: CreateNotificationFormData, isApp
         type: data.type,
         targetType: data.targetType,
         priority: data.priority,
-        expiresAt: data.expiresAt || undefined,
-        actionUrl: data.actionUrl || undefined,
+        expiresAt: data.expiresAt ?? undefined,
+        actionUrl: data.actionUrl ?? undefined,
         userId: session.user.id, // 通知作成者
         groupId: data.targetType === "GROUP" ? data.groupId : null,
         taskId: data.targetType === "TASK" ? data.taskId : null,

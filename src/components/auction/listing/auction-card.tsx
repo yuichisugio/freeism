@@ -2,22 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { CardCountdown } from "@/components/auction/listing/auction-countdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAuctionCard } from "@/hooks/auction/listing/useAuctionCard";
-import { type AuctionCardProps } from "@/lib/auction/types";
+import { useAuctionCard } from "@/hooks/auction/listing/use-auction-card";
+import { type AuctionCardProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
-import { Clock, Eye, Heart, Star, Tag, Users } from "lucide-react";
-
-import CardCountdown from "./AuctionCountdown";
+import { Clock, Heart, Star, Tag, Users } from "lucide-react";
 
 /**
  * オークションカードコンポーネント
  * @param auction オークション
  * @param onToggleWatchlistAction ウォッチリスト更新アクション
  */
-export default function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
+export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -71,7 +70,7 @@ export default function AuctionCard({ auction, onToggleWatchlistAction }: Auctio
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          handleToggleWatchlist();
+          void handleToggleWatchlist();
         }}
         disabled={isUpdating}
         aria-label={auction.isWatched ? "ウォッチリストから削除" : "ウォッチリストに追加"}
@@ -144,10 +143,10 @@ export default function AuctionCard({ auction, onToggleWatchlistAction }: Auctio
           {/* 出品者情報 */}
           <div className="flex items-center gap-2">
             <Avatar className="h-5 w-5">
-              <AvatarImage src={auction.seller.image || ""} alt={auction.seller.name || "出品者"} />
-              <AvatarFallback>{auction.seller.name?.[0] || "U"}</AvatarFallback>
+              <AvatarImage src={auction.seller.image ?? ""} alt={auction.seller.name ?? "出品者"} />
+              <AvatarFallback>{auction.seller.name?.[0] ?? "U"}</AvatarFallback>
             </Avatar>
-            <span className="max-w-[120px] truncate text-xs text-gray-600 dark:text-gray-300">{auction.seller.name || "Unknown"}</span>
+            <span className="max-w-[120px] truncate text-xs text-gray-600 dark:text-gray-300">{auction.seller.name ?? "Unknown"}</span>
           </div>
 
           {/* 評価 */}

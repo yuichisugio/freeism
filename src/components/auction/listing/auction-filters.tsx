@@ -1,18 +1,17 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types";
+import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/type/types";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { useAuctionFilters } from "@/hooks/auction/listing/useAuctionFilters";
-import { type AuctionFiltersProps } from "@/lib/auction/types";
+import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
+import { type AuctionFiltersProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import { ArrowDownCircle, ArrowUpCircle, BarChart4, Calendar, Check, ChevronsUpDown, Clock, EyeIcon, Filter, ShieldAlert, ShieldCheck, Sparkles, TimerIcon, X } from "lucide-react";
 
@@ -22,10 +21,9 @@ import { ArrowDownCircle, ArrowUpCircle, BarChart4, Calendar, Check, ChevronsUpD
  * @param onFilterChangeAction フィルター変更アクション
  * @param sortOption ソートオプション
  * @param onSortChangeAction ソート変更アクション
- * @param categories カテゴリー
  * @param onResetFilters フィルターリセットアクション
  */
-export default function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, categories = [], onResetFilters }: AuctionFiltersProps) {
+export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: AuctionFiltersProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -183,7 +181,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                     <CardTitle className="text-sm font-medium text-green-800">ステータス</CardTitle>
                   </CardHeader>
                   <CardContent className="p-3">
-                    <RadioGroup value={filters.status || "all"} onValueChange={(value) => onFilterChangeAction({ status: value as AuctionFilterParams["status"] })} className="grid gap-2">
+                    <RadioGroup value={filters.status ?? "all"} onValueChange={(value) => onFilterChangeAction({ status: value as AuctionFilterParams["status"] })} className="grid gap-2">
                       {statusOptions.map((option) => (
                         <label
                           key={option.value}
@@ -219,7 +217,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                     <Popover open={openGroupCombobox} onOpenChange={setOpenGroupCombobox}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" aria-expanded={openGroupCombobox} className="w-full justify-between border-gray-200 bg-white py-6 hover:border-purple-200">
-                          {filters.groupId ? groups.find((group) => group.id === filters.groupId)?.name || "グループを選択" : "グループを選択"}
+                          {filters.groupId ? (groups.find((group) => group.id === filters.groupId)?.name ?? "グループを選択") : "グループを選択"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>

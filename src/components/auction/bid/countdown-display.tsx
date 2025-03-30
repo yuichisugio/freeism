@@ -1,6 +1,6 @@
 "use client";
 
-import { type CountdownDisplayProps } from "@/lib/auction/types";
+import { type CountdownDisplayProps } from "@/lib/auction/type/types";
 import { motion } from "framer-motion";
 import { AlertTriangle, Clock } from "lucide-react";
 

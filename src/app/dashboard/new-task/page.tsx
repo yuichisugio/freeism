@@ -84,7 +84,7 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
 
     users = groupMembers.map((member) => ({
       id: member.user.id,
-      name: member.user.name || "不明なユーザー",
+      name: member.user.name ?? "不明なユーザー",
     }));
   } else {
     // ユーザーが所属するすべてのグループのメンバーを取得
@@ -108,11 +108,11 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
       });
 
       // 重複ユーザーを削除
-      const uniqueUsers = new Map();
+      const uniqueUsers = new Map<string, { id: string; name: string }>();
       groupMembers.forEach((member) => {
         uniqueUsers.set(member.user.id, {
           id: member.user.id,
-          name: member.user.name || "不明なユーザー",
+          name: member.user.name ?? "不明なユーザー",
         });
       });
 

@@ -62,7 +62,7 @@ export async function generateSignedUploadUrl(
   }
 
   // ファイル名が指定されていない場合はUUIDを生成
-  const fileKey = fileName || `${uuidv4()}.${extension}`;
+  const fileKey = fileName ?? `${uuidv4()}.${extension}`;
 
   try {
     // 署名付きURLを生成（有効期限15分）

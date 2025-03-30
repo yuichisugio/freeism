@@ -1,14 +1,14 @@
 "use server";
 
-import type { AuctionWithDetails, BidHistoryWithUser } from "../types";
+import type { AuctionWithDetails, BidHistoryWithUser } from "../type/types";
 import { connectionManager } from "../server-sent-events/connection-manager-singleton";
-import { AuctionEventType } from "../types";
+import { AuctionEventType } from "../type/types";
 
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
   id: number;
   type: AuctionEventType;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   timestamp: number;
 };
 

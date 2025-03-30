@@ -1,7 +1,7 @@
 "use client";
 
-import { useCountdown } from "@/hooks/auction/listing/useCountdown";
-import { type CardCountdownProps } from "@/lib/auction/types";
+import { useCountdown } from "@/hooks/auction/listing/use-countdown";
+import { type CardCountdownProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 
@@ -11,7 +11,7 @@ import { Clock } from "lucide-react";
  * @param className クラス名
  * @param onExpire 終了時のコールバック関数
  */
-export default function CardCountdown({ endTime, className, onExpire }: CardCountdownProps) {
+export function CardCountdown({ endTime, className, onExpire }: CardCountdownProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得

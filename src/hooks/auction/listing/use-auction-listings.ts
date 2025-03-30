@@ -1,9 +1,9 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/types";
+import type { AuctionFilterParams, AuctionListingResult, AuctionSortOption } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDebounce } from "@/hooks/auction/bid/useDebounce";
+import { useDebounce } from "@/hooks/auction/bid/use-debounce";
 import { getAuctionCategories, getAuctionListings, getAuctionPageSize } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
@@ -25,19 +25,19 @@ export function useAuctionListings() {
   const searchParams = useSearchParams();
 
   // ページ数のURLパラメータ
-  const currentPage = Number(searchParams.get("page") || "1");
+  const currentPage = Number(searchParams.get("page") ?? "1");
 
   // カテゴリのURLパラメータ
-  const currentCategory = searchParams.get("category") || "すべて";
+  const currentCategory = searchParams.get("category") ?? "すべて";
 
   // ステータスのURLパラメータ
-  const currentStatus = (searchParams.get("status") || "all") as AuctionFilterParams["status"];
+  const currentStatus = (searchParams.get("status") ?? "all") as AuctionFilterParams["status"];
 
   // ソートのURLパラメータ
-  const currentSort = (searchParams.get("sort") || "newest") as AuctionSortOption;
+  const currentSort = (searchParams.get("sort") ?? "newest") as AuctionSortOption;
 
   // 検索クエリのURLパラメータ
-  const currentQuery = searchParams.get("q") || "";
+  const currentQuery = searchParams.get("q") ?? "";
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,7 +52,7 @@ export function useAuctionListings() {
 
   // ローカルステート
   // オークション情報
-  const [auctions, setAuctions] = useState<any[]>([]);
+  const [auctions, setAuctions] = useState<AuctionListingResult["items"]>([]);
   // 合計件数
   const [totalCount, setTotalCount] = useState(0);
   // 合計ページ数
@@ -116,7 +116,7 @@ export function useAuctionListings() {
       }
     }
 
-    loadInitialData();
+    void loadInitialData();
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -156,8 +156,8 @@ export function useAuctionListings() {
   // URL変更と同時にデータ取得
   useEffect(() => {
     startTransition(() => {
-      updateUrlParams();
-      fetchListings();
+      void updateUrlParams();
+      void fetchListings();
     });
   }, [updateUrlParams, fetchListings]);
 
@@ -239,7 +239,7 @@ export function useAuctionListings() {
             // 各変更を処理
             const changes = Array.from(watchlistChanges);
             for (const id of changes) {
-              toggleWatchlist(id).catch((error) => {
+              void toggleWatchlist(id).catch((error) => {
                 console.error("ウォッチリストの更新に失敗しました", error);
               });
             }
@@ -264,7 +264,9 @@ export function useAuctionListings() {
         if (watchlistChanges.size > 0) {
           const changes = Array.from(watchlistChanges);
           for (const id of changes) {
-            await toggleWatchlist(id);
+            void toggleWatchlist(id).catch((error) => {
+              console.error("クリーンアップ時のウォッチリスト更新に失敗しました", error);
+            });
           }
         }
       };
@@ -273,7 +275,7 @@ export function useAuctionListings() {
         clearTimeout(saveWatchlistTimeoutRef.current);
       }
 
-      saveRemainingChanges();
+      void saveRemainingChanges();
     };
   }, [watchlistChanges]);
 

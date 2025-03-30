@@ -1,3 +1,5 @@
+"use client";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function GroupDetailSkeleton() {
@@ -46,7 +48,7 @@ export function GroupDetailSkeleton() {
                 </tr>
               </thead>
               <tbody>
-                {[...Array(3)].map((_, index) => (
+                {[...Array<undefined>(3)].map((_, index) => (
                   <tr key={index} className="border-b border-blue-50">
                     <td className="px-5 py-3">
                       <Skeleton className="h-4 w-24" />
@@ -91,7 +93,7 @@ export function GroupDetailSkeleton() {
                 </tr>
               </thead>
               <tbody>
-                {[...Array(3)].map((_, index) => (
+                {[...Array<undefined>(3)].map((_, index) => (
                   <tr key={index} className="border-b border-blue-50">
                     <td className="px-5 py-3">
                       <Skeleton className="h-4 w-24" />

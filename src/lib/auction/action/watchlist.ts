@@ -115,7 +115,7 @@ export async function serverIsAuctionWatched(auctionId: string, userId: string):
 export async function toggleWatchlistAction(auctionId: string) {
   // 認証セッションを取得
   const session = await auth();
-  if (!session || !session.user) {
+  if (!session?.user) {
     return {
       success: false,
       message: "ログインが必要です",
@@ -159,7 +159,7 @@ export async function toggleWatchlistAction(auctionId: string) {
 export async function getWatchlistStatusAction(auctionId: string) {
   // 認証セッションを取得
   const session = await auth();
-  if (!session || !session.user) {
+  if (!session?.user) {
     return {
       success: false,
       isWatched: false,

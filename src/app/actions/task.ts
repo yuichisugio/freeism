@@ -103,8 +103,8 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
     // 報酬タイプがREWARDの場合はオークションを作成
     if (data.contributionType === contributionType.REWARD) {
       // デフォルトの日時を設定
-      const startTime = data.auctionStartTime || new Date();
-      const endTime = data.auctionEndTime || new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // デフォルトは1週間後
+      const startTime = data.auctionStartTime ?? new Date();
+      const endTime = data.auctionEndTime ?? new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // デフォルトは1週間後
 
       await prisma.auction.create({
         data: {
@@ -119,7 +119,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
     }
 
     revalidatePath(`/dashboard/group/${data.groupId}`);
-    return { success: true, task: taskWithRelations || newTask };
+    return { success: true, task: taskWithRelations ?? newTask };
   } catch (error) {
     console.error("[CREATE_TASK]", error);
     return { error: "タスクの作成中にエラーが発生しました" };
@@ -199,7 +199,7 @@ export async function getTasksByGroupId(groupId: string) {
  * @param onlyTaskCompleted - TASK_COMPLETEDステータスのタスクのみを取得するフラグ（分析用）
  * @returns CSV形式のタスク情報
  */
-export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted: boolean = false) {
+export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted = false) {
   try {
     const session = await auth();
 
@@ -208,7 +208,14 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
     }
 
     // クエリ条件を構築
-    let whereConditions: any = { groupId };
+    const whereConditions: {
+      groupId: string;
+      createdAt?: {
+        gte?: Date;
+        lte?: Date;
+      };
+      status?: TaskStatus;
+    } = { groupId };
 
     // 日付範囲が指定されている場合、条件に追加
     if (startDate) {
@@ -227,10 +234,42 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
 
     // 分析用の場合はTASK_COMPLETEDのタスクのみ対象にする
     if (onlyTaskCompleted) {
-      whereConditions.status = "TASK_COMPLETED";
+      whereConditions.status = "TASK_COMPLETED" as TaskStatus;
     }
 
-    const tasks = await prisma.task.findMany({
+    // Prismaの返却型に合わせた型定義
+    type PrismaTaskWithIncludes = {
+      id: string;
+      task: string;
+      reference: string | null;
+      status: string;
+      contributionType: string;
+      info: string | null;
+      fixedContributionPoint: number | null;
+      fixedEvaluator: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      creator: {
+        name: string | null;
+      } | null;
+      reporters: {
+        user: {
+          name: string | null;
+        } | null;
+        name: string | null;
+      }[];
+      executors: {
+        user: {
+          name: string | null;
+        } | null;
+        name: string | null;
+      }[];
+      group: {
+        name: string | null;
+      } | null;
+    };
+
+    const tasks = (await prisma.task.findMany({
       where: whereConditions,
       include: {
         creator: {
@@ -265,28 +304,28 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       orderBy: {
         createdAt: "desc",
       },
-    });
+    })) as unknown as PrismaTaskWithIncludes[];
 
-    if (!tasks) {
+    if (!tasks || tasks.length === 0) {
       throw new Error("タスクが見つかりません");
     }
 
-    // タスクのユーザー名を取得。taskひとつが要素の配列なので、全部を.mapで繰り返して加工している
+    // タスクのユーザー名を取得
     const formattedTasks = tasks.map((task) => {
       // 報告者と実行者の名前をカンマ区切りで連結
-      const reporterNames = task.reporters.map((r) => r.user?.name || r.name || "不明").join(", ");
-      const executorNames = task.executors.map((e) => e.user?.name || e.name || "不明").join(", ");
+      const reporterNames = task.reporters.map((r) => r.user?.name ?? r.name ?? "不明").join(", ");
+      const executorNames = task.executors.map((e) => e.user?.name ?? e.name ?? "不明").join(", ");
 
       return {
         タスクID: task.id,
         タスク内容: task.task,
-        参照: task.reference || "",
-        証拠情報: task.info || "",
+        参照: task.reference ?? "",
+        証拠情報: task.info ?? "",
         ステータス: task.status,
-        貢献ポイント: task.fixedContributionPoint || 0,
-        評価者: task.fixedEvaluator || "",
+        貢献ポイント: task.fixedContributionPoint ?? 0,
+        評価者: task.fixedEvaluator ?? "",
         貢献タイプ: task.contributionType,
-        作成者: task.creator.name || "不明",
+        作成者: task.creator?.name ?? "不明",
         報告者: reporterNames,
         実行者: executorNames,
         作成日: task.createdAt.toISOString().split("T")[0],
@@ -301,6 +340,37 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
   }
 }
 
+// タスクとその関連データの型定義
+type TaskWithRelations = {
+  id: string;
+  task: string;
+  reference: string | null;
+  status: string;
+  contributionType: string;
+  info: string | null;
+  fixedContributionPoint: number | null;
+  fixedEvaluator: string | null;
+  fixedEvaluationLogic: string | null;
+  fixedEvaluationDate: Date | null;
+  userFixedSubmitterId: string | null;
+  executors: TaskUserRelation[];
+  reporters: TaskUserRelation[];
+  creator: {
+    id: string;
+    name: string | null;
+  } | null;
+};
+
+// タスクとユーザーの関連の型定義
+type TaskUserRelation = {
+  user?: {
+    id?: string;
+    name?: string | null;
+  } | null;
+  name?: string | null;
+  userId?: string;
+};
+
 /**
  * グループの分析結果をCSV形式でエクスポートする関数
  * @param groupId - グループID
@@ -309,7 +379,7 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
  * @param onlyTaskCompleted - TASK_COMPLETEDステータスのタスクのみを取得するフラグ（分析用）
  * @returns 評価者ごとに分けられたCSVデータ
  */
-export async function exportGroupAnalytics(groupId: string, page: number = 1, onlyFixed: boolean = false, onlyTaskCompleted: boolean = false) {
+export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed = false, onlyTaskCompleted = false) {
   try {
     // ページごとの件数（要件に合わせて200件に変更）
     const limit = 200;
@@ -326,16 +396,21 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
     }
 
     // クエリ条件を構築
-    let whereConditions: any = { groupId };
+    const whereConditions: {
+      groupId: string;
+      AND?: {
+        status: TaskStatus;
+      }[];
+    } = { groupId };
 
     // FIX済みのみの条件
     if (onlyFixed) {
       whereConditions.AND = [
-        { status: "POINTS_AWARDED" }, // ステータスがPOINTS_AWARDEDのもののみに限定
+        { status: "POINTS_AWARDED" as TaskStatus }, // ステータスがPOINTS_AWARDEDのもののみに限定
       ];
     } else if (onlyTaskCompleted) {
       // FIX済み条件がオフで、分析用の場合はTASK_COMPLETEDのみを対象とする
-      whereConditions.AND = [{ status: "TASK_COMPLETED" }];
+      whereConditions.AND = [{ status: "TASK_COMPLETED" as TaskStatus }];
     }
 
     // タスク数を取得
@@ -346,7 +421,7 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
     const totalPages = Math.ceil(tasksCount / limit);
 
     // タスクを取得
-    const tasks = await prisma.task.findMany({
+    const tasks = (await prisma.task.findMany({
       where: whereConditions,
       skip: offset,
       take: limit,
@@ -392,7 +467,7 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
           },
         },
       },
-    });
+    })) as unknown as TaskWithRelations[];
 
     // 関連するユーザーIDを収集
     const userIds: string[] = [];
@@ -413,7 +488,7 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
       userIds.length > 0
         ? await prisma.user.findMany({
             where: {
-              id: { in: userIds },
+              id: { in: userIds.filter(Boolean) }, // null値を除外
             },
             select: {
               id: true,
@@ -423,71 +498,116 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
         : [];
 
     // 取得したデータをマッピングするためのマップを作成
-    const tasksMap = tasks.reduce<Record<string, any>>((acc, task) => {
-      acc[task.id] = task;
-      return acc;
-    }, {});
+    const tasksMap: Record<string, TaskWithRelations> = {};
 
-    const usersMap = users.reduce<Record<string, any>>((acc, user) => {
-      acc[user.id] = user;
-      return acc;
-    }, {});
+    // マップを作成
+    tasks.forEach((task) => {
+      tasksMap[task.id] = {
+        id: task.id,
+        task: task.task,
+        reference: task.reference,
+        status: task.status,
+        contributionType: task.contributionType,
+        info: task.info,
+        fixedContributionPoint: task.fixedContributionPoint,
+        fixedEvaluator: task.fixedEvaluator,
+        fixedEvaluationLogic: task.fixedEvaluationLogic,
+        fixedEvaluationDate: task.fixedEvaluationDate,
+        userFixedSubmitterId: task.userFixedSubmitterId,
+        executors: task.executors,
+        reporters: task.reporters,
+        creator: task.creator,
+      };
+    });
+
+    type UserMapItem = {
+      id: string;
+      name: string | null;
+    };
+
+    const usersMap: Record<string, UserMapItem> = {};
+
+    // ユーザーマップを作成
+    users.forEach((user) => {
+      usersMap[user.id] = user;
+    });
 
     // 最終的なデータを組み立てる
-    const analytics = tasks.map((task) => {
-      // 使用されない変数をコメントアウト
-      // const evaluator = task.fixedEvaluator && usersMap[task.fixedEvaluator] ? usersMap[task.fixedEvaluator] : undefined;
+    type AnalyticsItem = {
+      id: string;
+      executors: TaskUserRelation[];
+      reporters: TaskUserRelation[];
+      creator: {
+        id: string;
+        name: string | null;
+      } | null;
+      group: typeof group;
+    };
 
+    const analytics: AnalyticsItem[] = tasks.map((task) => {
       return {
         id: task.id,
-        task: {
-          id: task.id,
-          task: task.task,
-          reference: task.reference,
-          status: task.status,
-          contributionType: task.contributionType,
-          info: task.info,
-          executors: task.executors,
-          reporters: task.reporters,
-          creator: task.creator,
-        },
+        executors: task.executors,
+        reporters: task.reporters,
+        creator: task.creator,
         group: group,
       };
     });
 
     // 評価者ごとにグループ化
-    const groupedByEvaluator: Record<string, any[]> = {};
+    type CsvDataItem = {
+      分析ID: string;
+      タスクID: string;
+      貢献ポイント: number;
+      評価ロジック: string;
+      評価者ID: string;
+      評価者名: string;
+      タスク内容: string;
+      参照情報: string;
+      証拠情報: string;
+      ステータス: string;
+      貢献タイプ: string;
+      タスク報告者: string;
+      タスク実行者: string;
+      タスク作成者: string;
+      グループ目標: string | null;
+      評価方法: string | null;
+      作成日: string;
+      評価日?: string;
+    };
+
+    const groupedByEvaluator: Record<string, CsvDataItem[]> = {};
 
     analytics.forEach((item) => {
       const task = tasksMap[item.id];
       const evaluatorId = task.fixedEvaluator;
 
       // nullの安全な処理
-      const evaluator = evaluatorId && usersMap[evaluatorId] ? usersMap[evaluatorId] : undefined;
+      const evaluator = evaluatorId && typeof evaluatorId === "string" && usersMap[evaluatorId] ? usersMap[evaluatorId] : undefined;
       const evaluatorName = evaluator ? evaluator.name : "未割り当て";
-      const taskContent = task.task || "";
-      const referenceContent = task.reference || "";
-      const infoContent = task.info || "";
+      const taskContent = task.task ?? "";
+      const referenceContent = task.reference ?? "";
+      const infoContent = task.info ?? "";
 
       // 報告者と実行者の名前を抽出
       const reporterNames = task.reporters
-        .map((r: any) => (r.user ? r.user.name : r.name) || "")
-        .filter((name: string) => name.length > 0)
+        .map((r) => (r.user ? r.user.name : r.name) ?? "")
+        .filter((name) => name.length > 0)
         .join(", ");
 
       const executorNames = task.executors
-        .map((e: any) => (e.user ? e.user.name : e.name) || "")
-        .filter((name: string) => name.length > 0)
+        .map((e) => (e.user ? e.user.name : e.name) ?? "")
+        .filter((name) => name.length > 0)
         .join(", ");
 
       // CSV用のデータ構造を作成
-      const csvData: any = {
+      const csvData: CsvDataItem = {
         分析ID: task.id,
         タスクID: task.id,
-        貢献ポイント: task.fixedContributionPoint || 0,
-        評価ロジック: task.fixedEvaluationLogic || "",
-        評価者ID: task.fixedEvaluator || "",
-        評価者名: evaluatorName,
+        貢献ポイント: task.fixedContributionPoint ?? 0,
+        評価ロジック: task.fixedEvaluationLogic ?? "",
+        評価者ID: task.fixedEvaluator ?? "",
+        評価者名: evaluatorName ?? "",
         タスク内容: taskContent,
         参照情報: referenceContent,
         証拠情報: infoContent,
@@ -495,24 +615,22 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
         貢献タイプ: task.contributionType,
         タスク報告者: reporterNames,
         タスク実行者: executorNames,
-        タスク作成者: task.creator ? task.creator.name : "",
+        タスク作成者: task.creator ? (task.creator.name ?? "") : "",
         グループ目標: group.goal,
         評価方法: group.evaluationMethod,
         作成日: task.fixedEvaluationDate ? new Date(task.fixedEvaluationDate).toISOString().split("T")[0] : "",
       };
 
       // FIX済みの場合は追加情報を含める
-      if (onlyFixed) {
-        Object.assign(csvData, {
-          評価日: task.fixedEvaluationDate ? task.fixedEvaluationDate.toISOString().split("T")[0] : "",
-        });
+      if (onlyFixed && task.fixedEvaluationDate) {
+        csvData.評価日 = task.fixedEvaluationDate.toISOString().split("T")[0];
       }
 
       // 評価者ごとのグループに追加
-      if (!groupedByEvaluator[evaluatorName]) {
-        groupedByEvaluator[evaluatorName] = [];
+      if (!groupedByEvaluator[evaluatorName ?? ""]) {
+        groupedByEvaluator[evaluatorName ?? ""] = [];
       }
-      groupedByEvaluator[evaluatorName].push(csvData);
+      groupedByEvaluator[evaluatorName ?? ""].push(csvData);
     });
 
     // 全体のページ数も返す
@@ -535,7 +653,19 @@ export async function exportGroupAnalytics(groupId: string, page: number = 1, on
  * @param userId - ユーザーID
  * @returns 処理結果を含むオブジェクト
  */
-export async function bulkCreateTasks(data: any[], groupId: string) {
+export async function bulkCreateTasks(
+  data: Array<{
+    task: string;
+    detail?: string | null;
+    reference?: string | null;
+    info?: string | null;
+    contributionType?: string | null;
+    deliveryMethod?: string | null;
+    auctionStartTime?: string | Date;
+    auctionEndTime?: string | Date;
+  }>,
+  groupId: string,
+) {
   try {
     // 認証セッションを取得
     const session = await auth();
@@ -554,19 +684,19 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
           const task = await tx.task.create({
             data: {
               task: row.task,
-              detail: row.detail || null,
-              reference: row.reference || null,
-              info: row.info || null,
-              contributionType: row.contributionType || contributionType.NON_REWARD,
-              creatorId: session.user?.id || "",
+              detail: row.detail ?? null,
+              reference: row.reference ?? null,
+              info: row.info ?? null,
+              contributionType: (row.contributionType as contributionType) ?? contributionType.NON_REWARD,
+              creatorId: session.user?.id ?? "",
               groupId: groupId,
               // 提供方法を追加
-              deliveryMethod: row.deliveryMethod || null,
+              deliveryMethod: row.deliveryMethod ?? null,
               // 作成者を報告者としても登録
               reporters: {
                 create: [
                   {
-                    userId: session.user?.id || "",
+                    userId: session.user?.id ?? "",
                   },
                 ],
               },
@@ -574,7 +704,7 @@ export async function bulkCreateTasks(data: any[], groupId: string) {
               executors: {
                 create: [
                   {
-                    userId: session.user?.id || "",
+                    userId: session.user?.id ?? "",
                   },
                 ],
               },
@@ -673,7 +803,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
     }
 
     // 変更不可のステータスチェック
-    const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+    const immutableStatuses: TaskStatus[] = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
     if (immutableStatuses.includes(task.status)) {
       return { error: "このステータスのタスクは変更できません" };
     }
@@ -738,7 +868,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
       // 各ユーザーのGroupPointを更新
       for (const userId of userIds) {
         // 既存のGroupPointを検索
-        let groupPoint = await prisma.groupPoint.findUnique({
+        const groupPoint = await prisma.groupPoint.findUnique({
           where: {
             userId_groupId: {
               userId: userId,
@@ -840,7 +970,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
     }
 
     // 変更不可のステータスチェック
-    const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+    const immutableStatuses: TaskStatus[] = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
     if (immutableStatuses.includes(task.status)) {
       return { error: "このステータスのタスクは変更できません" };
     }
@@ -940,13 +1070,23 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
   }
 }
 
+type FixedEvaluationData = {
+  id: string;
+  fixedContributionPoint: string | number;
+  fixedEvaluator: string;
+  fixedEvaluationLogic: string;
+  fixedEvaluationDate?: string | Date;
+  失敗理由?: string;
+  [key: string]: unknown;
+};
+
 /**
  * FIXした分析結果データをCSVからアップロードして、タスクを更新する関数
  * @param data - CSVから読み込んだ評価データ
  * @param groupId - グループID
  * @returns 処理結果と成功・失敗データを含むオブジェクト
  */
-export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
+export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], groupId: string) {
   try {
     const session = await auth();
 
@@ -985,8 +1125,8 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
     }
 
     // 成功したデータと失敗したデータを保存する配列
-    const successData: any[] = [];
-    const failedData: any[] = [];
+    const successData: FixedEvaluationData[] = [];
+    const failedData: FixedEvaluationData[] = [];
 
     // トランザクションを使用してデータを一括更新
     await prisma.$transaction(async (tx) => {
@@ -1018,7 +1158,7 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
 
         try {
           // 評価ポイントが数値かをチェック
-          const contributionPoint = parseInt(row.fixedContributionPoint);
+          const contributionPoint = parseInt(row.fixedContributionPoint.toString());
           if (isNaN(contributionPoint)) {
             failedData.push({ ...row, 失敗理由: "固定貢献ポイントが数値ではありません" });
             continue;
@@ -1044,6 +1184,13 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
             evaluationDate = new Date();
           }
 
+          // セッションのユーザーIDチェック
+          const userId = session.user?.id;
+          if (!userId) {
+            failedData.push({ ...row, 失敗理由: "認証情報が不正です" });
+            continue;
+          }
+
           // タスクを更新
           const updatedTask = await tx.task.update({
             where: { id: row.id },
@@ -1051,9 +1198,8 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
               fixedContributionPoint: contributionPoint,
               fixedEvaluator: row.fixedEvaluator,
               fixedEvaluationLogic: row.fixedEvaluationLogic,
-              // @ts-ignore - fixedEvaluationDateはスキーマに存在するが型定義にない
               fixedEvaluationDate: evaluationDate,
-              userFixedSubmitterId: session?.user?.id,
+              userFixedSubmitterId: userId,
               status: "POINTS_AWARDED",
             },
           });
@@ -1076,12 +1222,12 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
 
           if (taskWithUsers) {
             // 重複を排除したユーザーIDリストを作成
-            const userIds = [...new Set([...taskWithUsers.reporters.map((r) => r.userId as string), ...taskWithUsers.executors.map((e) => e.userId as string)])];
+            const userIds = [...new Set([...taskWithUsers.reporters.map((r) => r.userId!), ...taskWithUsers.executors.map((e) => e.userId!)])];
 
             // 各ユーザーのGroupPointを更新
             for (const userId of userIds) {
               // 既存のGroupPointを検索
-              let groupPoint = await tx.groupPoint.findUnique({
+              const groupPoint = await tx.groupPoint.findUnique({
                 where: {
                   userId_groupId: {
                     userId: userId,
@@ -1149,7 +1295,13 @@ export async function bulkUpdateFixedEvaluations(data: any[], groupId: string) {
  * @param data タスクIDとステータスを含むデータ配列
  * @returns 処理結果を含むオブジェクト
  */
-export async function bulkUpdateTaskStatuses(data: any[]) {
+export async function bulkUpdateTaskStatuses(
+  data: Array<{
+    taskId: string;
+    status: string;
+    [key: string]: unknown;
+  }>,
+) {
   try {
     const session = await auth();
 
@@ -1161,7 +1313,7 @@ export async function bulkUpdateTaskStatuses(data: any[]) {
     const isAppOwner = await checkAppOwner(userId);
 
     // 有効なステータスの配列
-    const validStatuses = ["PENDING", "BIDDED", "POINTS_DEPOSITED", "TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+    const validStatuses: TaskStatus[] = ["PENDING", "BIDDED", "POINTS_DEPOSITED", "TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"] as TaskStatus[];
 
     const results = [];
     const failedResults = [];
@@ -1181,7 +1333,7 @@ export async function bulkUpdateTaskStatuses(data: any[]) {
         }
 
         // ステータスの有効性チェック
-        if (!validStatuses.includes(item.status)) {
+        if (!validStatuses.includes(item.status as TaskStatus)) {
           failedResults.push({ ...item, error: `無効なステータスです: ${item.status}` });
           continue;
         }
@@ -1242,7 +1394,7 @@ export async function bulkUpdateTaskStatuses(data: any[]) {
         }
 
         // 変更不可のステータスチェック（特定のステータスからは変更不可）
-        const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+        const immutableStatuses: TaskStatus[] = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
         if (immutableStatuses.includes(task.status)) {
           failedResults.push({ ...item, error: `このステータス(${task.status})のタスクは変更できません` });
           continue;
@@ -1280,7 +1432,7 @@ export async function bulkUpdateTaskStatuses(data: any[]) {
           // 各ユーザーのGroupPointを更新
           for (const userId of userIds) {
             // 既存のGroupPointを検索
-            let groupPoint = await prisma.groupPoint.findUnique({
+            const groupPoint = await prisma.groupPoint.findUnique({
               where: {
                 userId_groupId: {
                   userId: userId,
@@ -1340,7 +1492,6 @@ export async function bulkUpdateTaskStatuses(data: any[]) {
     };
   }
 }
-
 // タスク一覧を取得する関数
 export async function getMyTasks() {
   try {

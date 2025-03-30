@@ -15,7 +15,6 @@ export enum ImageMimeType {
 
 // 画像拡張子の列挙型
 export enum ImageExtension {
-  JPEG = "jpg",
   JPG = "jpg",
   PNG = "png",
   WEBP = "webp",
@@ -25,13 +24,13 @@ export enum ImageExtension {
 
 // 共通のロギング関数
 export const logger = {
-  warn: (message: string, ...args: any[]) => {
+  warn: (message: string, ...args: unknown[]) => {
     console.warn(`[R2 Service] ${message}`, ...args);
   },
-  error: (message: string, ...args: any[]) => {
+  error: (message: string, ...args: unknown[]) => {
     console.error(`[R2 Service] ${message}`, ...args);
   },
-  info: (message: string, ...args: any[]) => {
+  info: (message: string, ...args: unknown[]) => {
     console.info(`[R2 Service] ${message}`, ...args);
   },
 };

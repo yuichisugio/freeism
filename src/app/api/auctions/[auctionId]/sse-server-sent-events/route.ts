@@ -25,10 +25,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   console.log(`route.ts_GET_受信したリクエストURL: ${request.url}`);
 
   // クライアントIDを取得
-  const clientId = url.searchParams.get("clientId") || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  const clientId = url.searchParams.get("clientId") ?? `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
   // 最後のイベントIDを取得
-  const lastEventId = parseInt(url.searchParams.get("lastEventId") || "0", 10);
+  const lastEventId = parseInt(url.searchParams.get("lastEventId") ?? "0", 10);
 
   // URLからオークションIDを取得（パスパラメータと一致するか確認用）
   const queryAuctionId = url.searchParams.get("auctionId");
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // 認証チェック
   const session = await auth();
-  console.log(`route.ts_GET_セッション: ${session ? "あり" : "なし"}, ユーザーID: ${session?.user?.id || "なし"}`);
+  console.log(`route.ts_GET_セッション: ${session ? "あり" : "なし"}, ユーザーID: ${session?.user?.id ?? "なし"}`);
 
   // ログインしていない場合は401エラーを返す
   if (!session?.user?.id) {

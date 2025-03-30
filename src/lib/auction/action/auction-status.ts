@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-import { type Auction, type AuctionWithDetails } from "../types";
+import { type Auction, type AuctionWithDetails } from "../type/types";
 
 /**
  * オークションの現在のステータスを取得
@@ -38,7 +38,7 @@ export async function getUserPointBalance(userId: string, groupId: string): Prom
     },
   });
 
-  return groupPoint?.balance || 0;
+  return groupPoint?.balance ?? 0;
 }
 
 /**

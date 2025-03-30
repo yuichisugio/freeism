@@ -1,5 +1,5 @@
 // 型定義をエクスポート
-export * from "./types";
+export * from "./type/types";
 
 // アクション関数をエクスポート
 export * from "./action/auction-listing";

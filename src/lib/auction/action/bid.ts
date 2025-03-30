@@ -8,18 +8,18 @@ import { bidSchema } from "@/lib/auction/zod-schema";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-import type { AuctionWithDetails, BidFormData, BidHistoryWithUser } from "../types";
-import { AuctionEventType } from "../types";
+import type { AuctionWithDetails, BidFormData, BidHistory, BidHistoryWithUser } from "../type/types";
+import { AuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 /**
- * サーバーサイドでの入札処理
+ * サーバー側での入札処理
  * @param auctionId オークションID
  * @param bidData 入札データ
  * @param userId ユーザーID
  * @returns 入札処理の結果
  */
-export async function serverPlaceBid(auctionId: string, bidData: BidFormData, userId: string): Promise<{ success: boolean; message?: string; bid?: any }> {
+export async function serverPlaceBid(auctionId: string, bidData: BidFormData, userId: string): Promise<{ success: boolean; message?: string; bid?: BidHistory }> {
   try {
     console.log("serverPlaceBid_start", auctionId, bidData, userId);
     // オークション情報を取得
@@ -69,7 +69,7 @@ export async function serverPlaceBid(auctionId: string, bidData: BidFormData, us
         auctionId,
         userId,
         amount: bidData.amount,
-        isAutoBid: bidData.isAutoBid || false,
+        isAutoBid: bidData.isAutoBid ?? false,
       },
     });
 
@@ -86,7 +86,15 @@ export async function serverPlaceBid(auctionId: string, bidData: BidFormData, us
     return {
       success: true,
       message: "入札が完了しました",
-      bid: bidHistory,
+      bid: {
+        id: bidHistory.id,
+        auctionId: bidHistory.auctionId,
+        userId: bidHistory.userId,
+        amount: bidHistory.amount,
+        createdAt: bidHistory.createdAt.toISOString(),
+        isAutoBid: bidHistory.isAutoBid,
+        status: bidHistory.status,
+      },
     };
   } catch (error) {
     console.error("入札処理エラー:", error);
@@ -123,10 +131,10 @@ export async function getAuctionBidHistory(auctionId: string, limit = 20): Promi
     user: bid.user
       ? {
           id: bid.user.id,
-          username: bid.user.name || "",
+          username: bid.user.name ?? "",
           email: bid.user.email,
           createdAt: bid.user.createdAt.toISOString(),
-          avatarUrl: bid.user.image || undefined,
+          avatarUrl: bid.user.image ?? undefined,
           name: bid.user.name,
           emailVerified: bid.user.emailVerified,
           image: bid.user.image,
@@ -147,7 +155,7 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
   console.log("placeBidAction_start", auctionId, bidData);
   // 認証セッションを取得
   const session = await auth();
-  if (!session || !session.user) {
+  if (!session?.user) {
     return {
       success: false,
       message: "ログインが必要です",
@@ -226,11 +234,27 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
           winnerId: updatedAuction.winnerId,
           extensionCount: updatedAuction.extensionCount,
           version: updatedAuction.version,
-          title: updatedAuction.task.task || "",
-          description: updatedAuction.task.detail || "",
+          title: updatedAuction.task.task ?? "",
+          description: updatedAuction.task.detail ?? "",
           currentPrice: updatedAuction.currentHighestBid,
           sellerId: updatedAuction.task.creator.id,
-          task: updatedAuction.task,
+          task: {
+            ...updatedAuction.task,
+            creator: {
+              id: updatedAuction.task.creator.id,
+              username: updatedAuction.task.creator.name ?? "",
+              email: "",
+              createdAt: new Date().toISOString(),
+              name: updatedAuction.task.creator.name,
+              image: updatedAuction.task.creator.image,
+              emailVerified: null,
+              isAppOwner: false,
+              updatedAt: new Date(),
+            },
+            group: {
+              ...updatedAuction.task.group,
+            },
+          },
           depositPeriod: updatedAuction.task.group.depositPeriod,
           currentHighestBidder: null,
           winner: null,
@@ -238,7 +262,7 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
           bid: result.bid,
         };
 
-        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails as AuctionWithDetails);
+        await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails);
       } else {
         // 通常の通知（オークション情報なし）
         console.error("オークション情報が取得できませんでした");
@@ -281,7 +305,7 @@ export async function handleBidRequest(request: NextRequest, { params }: { param
 
   try {
     // リクエストボディを取得
-    const body = await request.json();
+    const body = (await request.json()) as z.infer<typeof bidSchema>;
     // パラメータを取得
     const { auctionId } = await params;
 
@@ -294,7 +318,7 @@ export async function handleBidRequest(request: NextRequest, { params }: { param
       {
         auctionId: auctionId,
         amount: validatedData.amount,
-        isAutoBid: validatedData.isAutoBid || false,
+        isAutoBid: validatedData.isAutoBid ?? false,
         maxAmount: validatedData.maxAmount,
       },
       session.user.id,
@@ -358,11 +382,27 @@ export async function handleBidRequest(request: NextRequest, { params }: { param
           winnerId: updatedAuction.winnerId,
           extensionCount: updatedAuction.extensionCount,
           version: updatedAuction.version,
-          title: updatedAuction.task.task || "",
-          description: updatedAuction.task.detail || "",
+          title: updatedAuction.task.task ?? "",
+          description: updatedAuction.task.detail ?? "",
           currentPrice: updatedAuction.currentHighestBid,
           sellerId: updatedAuction.task.creator.id,
-          task: updatedAuction.task,
+          task: {
+            ...updatedAuction.task,
+            creator: {
+              id: updatedAuction.task.creator.id,
+              username: updatedAuction.task.creator.name ?? "",
+              email: "",
+              createdAt: new Date().toISOString(),
+              name: updatedAuction.task.creator.name,
+              image: updatedAuction.task.creator.image,
+              emailVerified: null,
+              isAppOwner: false,
+              updatedAt: new Date(),
+            },
+            group: {
+              ...updatedAuction.task.group,
+            },
+          },
           depositPeriod: updatedAuction.task.group.depositPeriod,
           currentHighestBidder: null,
           winner: null,
@@ -371,12 +411,13 @@ export async function handleBidRequest(request: NextRequest, { params }: { param
             ...result.bid,
             user: {
               id: session.user.id,
-              name: session.user.name || null,
+              username: session.user.name ?? "",
+              name: session.user.name ?? null,
               email: "",
               emailVerified: null,
-              image: session.user.image || null,
+              image: session.user.image ?? null,
               isAppOwner: false,
-              createdAt: new Date(),
+              createdAt: new Date().toISOString(),
               updatedAt: new Date(),
             },
           },

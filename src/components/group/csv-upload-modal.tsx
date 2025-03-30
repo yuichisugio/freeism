@@ -86,6 +86,74 @@ type ActionButtonsProps = {
   onUpload: () => void;
 };
 
+type CsvRow = Record<string, string>;
+
+// APIレスポンス型
+// 各種APIの戻り値に対応する共通型
+type ApiResponseBase = {
+  success: boolean;
+  error?: string;
+};
+
+// タスク作成API用のレスポンス型
+type TasksApiResponse = ApiResponseBase & {
+  tasks?: unknown[];
+};
+
+// 評価API用のレスポンス型
+type EvaluationsApiResponse = ApiResponseBase & {
+  analyses?: Array<{ count: number; message: string }>;
+};
+
+// 固定評価API用のレスポンス型
+type FixedEvaluationsApiResponse = ApiResponseBase & {
+  successData?: unknown[];
+  failedData?: Record<string, unknown>[];
+};
+
+// タスクステータスAPI用のレスポンス型
+type TaskStatusesApiResponse = ApiResponseBase & {
+  updatedCount?: number;
+  failedCount?: number;
+  failedData?: Record<string, unknown>[] | null;
+};
+
+// TaskReport用データ型
+type TaskReportData = {
+  task: string;
+  detail?: string | null;
+  reference?: string | null;
+  info?: string | null;
+  contributionType?: string | null;
+  deliveryMethod?: string | null;
+  auctionStartTime?: string | Date;
+  auctionEndTime?: string | Date;
+};
+
+// ContributionEvaluation用データ型
+type ContributionEvaluationData = {
+  taskId: string;
+  contributionPoint: number;
+  evaluationLogic: string;
+};
+
+// FixedContribution用データ型
+type FixedContributionData = {
+  id: string;
+  fixedContributionPoint: string | number;
+  fixedEvaluator: string;
+  fixedEvaluationLogic: string;
+  fixedEvaluationDate?: string | Date;
+  [key: string]: unknown;
+};
+
+// TaskStatus用データ型
+type TaskStatusData = {
+  taskId: string;
+  status: string;
+  [key: string]: unknown;
+};
+
 // --------------------------------------------------
 // 定数
 // --------------------------------------------------
@@ -154,12 +222,12 @@ const globalDropOverlay = {
  * @param file パースするCSVファイル
  * @returns パースされたデータ
  */
-const parseAndValidateCSV = async (file: File): Promise<any[]> => {
+const parseAndValidateCSV = async (file: File): Promise<CsvRow[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => resolve(results.data),
+      complete: (results) => resolve(results.data as CsvRow[]),
       error: (error) => reject(error),
     });
   });
@@ -169,7 +237,7 @@ const parseAndValidateCSV = async (file: File): Promise<any[]> => {
  * 失敗したデータをCSVとしてエクスポート
  * @param failedData エクスポートする失敗データ
  */
-const exportFailedData = (failedData: any[]) => {
+const exportFailedData = (failedData: Record<string, unknown>[]) => {
   if (!failedData.length) return;
 
   const csv = Papa.unparse(failedData);
@@ -231,7 +299,7 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
     }
 
     if (isOpen) {
-      checkPermissions();
+      void checkPermissions();
     }
   }, [groupId, isOpen, session]);
 
@@ -371,7 +439,7 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
 
   // 必要なカラム取得
   const getRequiredColumns = useCallback((type: UploadType): string[] => {
-    return REQUIRED_COLUMNS[type] || [];
+    return REQUIRED_COLUMNS[type] ?? [];
   }, []);
 
   // アップロードタイプに応じた権限チェック
@@ -384,6 +452,83 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
     },
     [isGroupOwner, isAppOwner],
   );
+
+  // CSVデータをTaskReportDataに変換
+  const convertToTaskReportData = (data: CsvRow[]): TaskReportData[] => {
+    return data.map((row) => {
+      // 必須フィールドのデフォルト値を空文字列に設定
+      const task = typeof row.task === "string" ? row.task : "";
+
+      // オプションフィールドはnullまたはundefinedを許容
+      const detail = row.detail || null;
+      const reference = row.reference || null;
+      const info = row.info || null;
+      const contributionType = row.contributionType || null;
+      const deliveryMethod = row.deliveryMethod || null;
+
+      // 日付フィールドはundefinedを許容
+      const auctionStartTime = row.auctionStartTime;
+      const auctionEndTime = row.auctionEndTime;
+
+      return {
+        task,
+        detail,
+        reference,
+        info,
+        contributionType,
+        deliveryMethod,
+        auctionStartTime,
+        auctionEndTime,
+      } as TaskReportData;
+    });
+  };
+
+  // CSVデータをContributionEvaluationDataに変換
+  const convertToContributionEvaluationData = (data: CsvRow[]): ContributionEvaluationData[] => {
+    return data.map((row) => {
+      const taskId = typeof row.taskId === "string" ? row.taskId : "";
+      const contributionPoint = Number(row.contributionPoint || "0");
+      const evaluationLogic = typeof row.evaluationLogic === "string" ? row.evaluationLogic : "";
+
+      return {
+        taskId,
+        contributionPoint,
+        evaluationLogic,
+      } as ContributionEvaluationData;
+    });
+  };
+
+  // CSVデータをFixedContributionDataに変換
+  const convertToFixedContributionData = (data: CsvRow[]): FixedContributionData[] => {
+    return data.map((row) => {
+      const id = typeof row.id === "string" ? row.id : "";
+      const fixedContributionPoint = row.fixedContributionPoint || "0";
+      const fixedEvaluator = typeof row.fixedEvaluator === "string" ? row.fixedEvaluator : "";
+      const fixedEvaluationLogic = typeof row.fixedEvaluationLogic === "string" ? row.fixedEvaluationLogic : "";
+      const fixedEvaluationDate = row.fixedEvaluationDate;
+
+      return {
+        id,
+        fixedContributionPoint,
+        fixedEvaluator,
+        fixedEvaluationLogic,
+        fixedEvaluationDate,
+      } as FixedContributionData;
+    });
+  };
+
+  // CSVデータをTaskStatusDataに変換
+  const convertToTaskStatusData = (data: CsvRow[]): TaskStatusData[] => {
+    return data.map((row) => {
+      const taskId = typeof row.taskId === "string" ? row.taskId : "";
+      const status = typeof row.status === "string" ? row.status : "";
+
+      return {
+        taskId,
+        status,
+      } as TaskStatusData;
+    });
+  };
 
   // アップロード処理
   const handleUpload = useCallback(async () => {
@@ -402,18 +547,22 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
 
     try {
       const requiredColumns = getRequiredColumns(uploadType);
-      const allFilesData: { file: File; data: any[] }[] = [];
+      const allFilesData: { file: File; data: CsvRow[] }[] = [];
       const allValidationErrors: string[] = [];
 
       // ファイルのパースと検証
       for (const file of currentFiles) {
         try {
           const data = await parseAndValidateCSV(file);
-          const missingData = data.reduce((errors: string[], row: any, index: number) => {
-            const missingColumns = requiredColumns.filter((column) => row[column] === undefined || row[column] === null || row[column] === "");
+          const missingData = data.reduce((errors: string[], row: CsvRow, index: number) => {
+            // 必須カラムのチェック（型安全な方法で）
+            const missingColumnsList = requiredColumns.filter((column) => {
+              // rowがオブジェクトでcolumnが文字列キーとして存在するかを確認
+              return typeof row === "object" && row !== null ? (column in row ? row[column] === undefined || row[column] === null || row[column] === "" : true) : true;
+            });
 
-            if (missingColumns.length > 0) {
-              errors.push(`「${file.name}」の「${index + 1}行目」で以下の項目が未入力です: ${missingColumns.join(", ")}`);
+            if (missingColumnsList.length > 0) {
+              errors.push(`「${file.name}」の「${index + 1}行目」で以下の項目が未入力です: ${missingColumnsList.join(", ")}`);
             }
 
             return errors;
@@ -449,30 +598,96 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
       let hasErrors = false;
 
       for (const { data } of allFilesData) {
-        let result: any;
+        let result: ApiResponseBase = { success: false };
 
         if (uploadType === "TASK_REPORT") {
-          result = await bulkCreateTasks(data, groupId);
-        } else if (uploadType === "CONTRIBUTION_EVALUATION") {
-          result = await bulkCreateEvaluations(data, groupId);
-        } else if (uploadType === "FIXED_CONTRIBUTION") {
-          result = await bulkUpdateFixedEvaluations(data, groupId);
+          try {
+            // 安全にCSVRowをTaskReportDataに変換
+            const taskData = convertToTaskReportData(data);
 
-          if (result.failedData && result.failedData.length > 0) {
-            exportFailedData(result.failedData);
-            toast.info(`${result.failedData.length}件のデータが登録できませんでした。CSVファイルをダウンロードして確認してください。`);
+            // APIを呼び出し
+            const taskResponse = (await bulkCreateTasks(taskData, groupId)) as TasksApiResponse;
+
+            result = {
+              success: taskResponse.success,
+              error: taskResponse.error,
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              error: error instanceof Error ? error.message : "不明なエラーが発生しました",
+            };
+          }
+        } else if (uploadType === "CONTRIBUTION_EVALUATION") {
+          try {
+            // 安全にCSVRowをContributionEvaluationDataに変換
+            const evalData = convertToContributionEvaluationData(data);
+
+            // APIを呼び出し
+            const evalResponse = (await bulkCreateEvaluations(evalData, groupId)) as EvaluationsApiResponse;
+
+            result = {
+              success: evalResponse.success,
+              error: evalResponse.error,
+            };
+          } catch (error) {
+            result = {
+              success: false,
+              error: error instanceof Error ? error.message : "不明なエラーが発生しました",
+            };
+          }
+        } else if (uploadType === "FIXED_CONTRIBUTION") {
+          try {
+            // 安全にCSVRowをFixedContributionDataに変換
+            const fixedData = convertToFixedContributionData(data);
+
+            // APIを呼び出し
+            const fixedResponse = (await bulkUpdateFixedEvaluations(fixedData, groupId)) as FixedEvaluationsApiResponse;
+
+            result = {
+              success: fixedResponse.success,
+              error: fixedResponse.error,
+            };
+
+            // 失敗データの処理
+            if (fixedResponse.failedData && Array.isArray(fixedResponse.failedData) && fixedResponse.failedData.length > 0) {
+              exportFailedData(fixedResponse.failedData);
+              toast.info(`${fixedResponse.failedData.length}件のデータが登録できませんでした。CSVファイルをダウンロードして確認してください。`);
+            }
+          } catch (error) {
+            result = {
+              success: false,
+              error: error instanceof Error ? error.message : "不明なエラーが発生しました",
+            };
           }
         } else if (uploadType === "TASK_STATUS") {
-          result = await bulkUpdateTaskStatuses(data);
+          try {
+            // 安全にCSVRowをTaskStatusDataに変換
+            const statusData = convertToTaskStatusData(data);
 
-          if (result.failedData && result.failedData.length > 0) {
-            exportFailedData(result.failedData);
-            toast.info(`${result.failedData.length}件のデータが更新できませんでした。CSVファイルをダウンロードして確認してください。`);
+            // APIを呼び出し
+            const statusResponse = (await bulkUpdateTaskStatuses(statusData)) as TaskStatusesApiResponse;
+
+            result = {
+              success: statusResponse.success,
+              error: statusResponse.error,
+            };
+
+            // 失敗データの処理
+            if (statusResponse.failedData && Array.isArray(statusResponse.failedData) && statusResponse.failedData.length > 0) {
+              exportFailedData(statusResponse.failedData);
+              toast.info(`${statusResponse.failedData.length}件のデータが更新できませんでした。CSVファイルをダウンロードして確認してください。`);
+            }
+          } catch (error) {
+            result = {
+              success: false,
+              error: error instanceof Error ? error.message : "不明なエラーが発生しました",
+            };
           }
         }
 
-        if (result && !result.success) {
-          toast.error(result.error || "データの保存中にエラーが発生しました");
+        if (!result.success) {
+          toast.error(result.error ?? "データの保存中にエラーが発生しました");
           hasErrors = true;
           break;
         }
@@ -507,7 +722,7 @@ function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions) {
         .map((field) => field.trim())
         .filter((field) => field)
         .map((field) => {
-          const match = field.match(/([^（]+)（([^）]+)）/);
+          const match = /([^（]+)（([^）]+)）/.exec(field);
           if (match) {
             return { key: match[1].trim(), description: match[2].trim() };
           }

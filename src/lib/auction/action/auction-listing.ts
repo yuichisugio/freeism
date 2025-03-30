@@ -5,8 +5,51 @@ import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
 
 import { AUCTION_CATEGORIES, DISPLAY } from "../constants";
-import { type AuctionListingResult, type GetAuctionListingsParams } from "../types";
+import { type AuctionListingResult, type GetAuctionListingsParams } from "../type/types";
 import { getCurrentUserId, getUserGroups, getUserTotalPoints } from "./user";
+
+// AuctionWhereInput型の定義
+type AuctionWhereInput = {
+  task?: {
+    groupId?: { in: string[] } | string;
+    task?: { contains: string; mode: "insensitive" };
+    OR?: Array<{ task: { contains: string; mode: "insensitive" } } | { detail: { contains: string; mode: "insensitive" } }>;
+  };
+  watchlists?: {
+    some: {
+      userId: string;
+    };
+  };
+  bidHistories?: {
+    none?: {
+      userId: string;
+    };
+    some?: {
+      userId: string;
+    };
+  };
+  status?:
+    | AuctionStatus
+    | {
+        not: AuctionStatus;
+      };
+  currentHighestBid?: {
+    gte?: number;
+    lte?: number;
+  };
+  endTime?: {
+    gte: Date;
+    lte: Date;
+  };
+};
+
+// AuctionOrderByInput型の定義
+type AuctionOrderByInput = {
+  createdAt?: "asc" | "desc";
+  endTime?: "asc" | "desc";
+  currentHighestBid?: "asc" | "desc";
+  bidHistories?: { _count: "asc" | "desc" };
+};
 
 // レスポンスをキャッシュするためのキーを生成
 function getCacheKey(params: GetAuctionListingsParams, userGroupIds: string[]): string {
@@ -85,7 +128,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
   }
 
   // 基本的なフィルター条件
-  let where: any = {
+  const where: AuctionWhereInput = {
     task: {
       groupId: { in: userGroupIds },
     },
@@ -154,7 +197,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
   // 残り時間でフィルタリング
   if (filters.remainingTime && filters.remainingTime !== "all") {
     const now = new Date();
-    let endDate = new Date();
+    const endDate = new Date();
 
     switch (filters.remainingTime) {
       case "1h":
@@ -194,7 +237,7 @@ export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZ
   }
 
   // ソート条件の設定
-  let orderBy: any = {};
+  let orderBy: AuctionOrderByInput = {};
   switch (sort) {
     case "newest":
       orderBy = { createdAt: "desc" };

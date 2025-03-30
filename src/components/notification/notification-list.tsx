@@ -33,13 +33,31 @@ export type NotificationData = {
   taskName: string | null;
 };
 
+// 返り値の型を定義
+type NotificationManagerResult = {
+  notifications: NotificationData[];
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: string | null;
+  unreadCount: number;
+  hasMore: boolean;
+  activeFilter: FilterType;
+  toggleReadStatus: (id: string, isRead: boolean) => void;
+  loadMoreNotifications: () => void;
+  markAllAsRead: () => void;
+  handleFilterChange: (filter: FilterType) => void;
+  handleManualRefresh: () => void;
+  requestCounter: number;
+  pendingUpdateCount: number;
+};
+
 // 定数の定義（コンポーネント外で定義）
 const ITEMS_PER_PAGE = 20;
 
 /**
  * 通知管理カスタムフック
  */
-function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean) => void) {
+function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean) => void): NotificationManagerResult {
   // 基本的な状態
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,9 +165,9 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
           ...notification,
           sentAt: new Date(notification.sentAt),
           readAt: notification.readAt ? new Date(notification.readAt) : null,
-          userName: notification.userName || null,
-          groupName: notification.groupName || null,
-          taskName: notification.taskName || null,
+          userName: notification.userName ?? null,
+          groupName: notification.groupName ?? null,
+          taskName: notification.taskName ?? null,
         }));
 
         // 通知リストの更新
@@ -245,7 +263,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
     if (isLoadingMore || !hasMore) {
       return;
     }
-    fetchNotifications(currentPage + 1, true);
+    void fetchNotifications(currentPage + 1, true);
   }, [currentPage, fetchNotifications, hasMore, isLoadingMore]);
 
   // 既読/未読状態の切り替え。既読/未読ボタンを押した時に呼ばれる関数で、stateのnotificationsの通知のisReadを更新する
@@ -351,7 +369,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
       const visibleNotifications = filter === "all" ? notifications : filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications.filter((n) => n.isRead);
 
       if (visibleNotifications.length < 5 && hasMore && !isLoading && !isLoadingMore) {
-        loadMoreNotifications();
+        void loadMoreNotifications();
       }
     },
     [notifications, hasMore, isLoading, isLoadingMore, loadMoreNotifications],
@@ -364,25 +382,25 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
 
     // 保留中の更新を同期
     if (pendingUpdates.size > 0) {
-      syncWithServer(true);
+      void syncWithServer(true);
     }
 
     // 初期ロードフラグをリセット
     setInitialLoadDone(false);
 
     // データを再取得
-    fetchNotifications(1, false);
+    void fetchNotifications(1, false);
   }, [pendingUpdates, syncWithServer, fetchNotifications]);
 
   // 初期データ取得
   useEffect(() => {
     console.log("[通知] 初期データ取得");
-    fetchNotifications();
+    void fetchNotifications();
 
     // コンポーネントのクリーンアップ時に保留中の更新を同期
     return () => {
       if (pendingUpdates.size > 0) {
-        syncWithServer(true);
+        void syncWithServer(true);
       }
     };
   }, [fetchNotifications, pendingUpdates.size, syncWithServer]);
@@ -401,7 +419,8 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
       }
     };
 
-    syncOnPathChange();
+    // 明示的にPromiseをvoid演算子で無視する
+    void syncOnPathChange();
 
     // 依存配列にpathname追加
   }, [pathname, pendingUpdates, syncWithServer]);
@@ -410,7 +429,7 @@ function useNotificationManager(onUnreadStatusChangeAction?: (hasUnread: boolean
   useEffect(() => {
     return () => {
       if (pendingUpdates.size > 0) {
-        syncWithServer(true);
+        void syncWithServer(true);
       }
     };
   }, [pendingUpdates.size, syncWithServer]);
@@ -511,7 +530,7 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
   }, [notification.isRead, localIsRead]);
 
   // メッセージの省略表示
-  function truncateMessage(message: string, maxLength: number = 50) {
+  function truncateMessage(message: string, maxLength = 50) {
     if (!message) return "";
     return message.length > maxLength ? message.substring(0, maxLength) + "..." : message;
   }
@@ -570,19 +589,19 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
             {notification.NotificationTargetType === "USER" && notification.userId && (
               <>
                 <span className="mr-1">👤</span>
-                <span>ユーザー: {notification.userName || notification.userId}</span>
+                <span>ユーザー: {notification.userName ?? notification.userId}</span>
               </>
             )}
             {notification.NotificationTargetType === "GROUP" && notification.groupId && (
               <>
                 <span className="mr-1">👥</span>
-                <span>グループ: {notification.groupName || notification.groupId}</span>
+                <span>グループ: {notification.groupName ?? notification.groupId}</span>
               </>
             )}
             {notification.NotificationTargetType === "TASK" && notification.taskId && (
               <>
                 <span className="mr-1">📋</span>
-                <span>タスク: {notification.taskName || notification.taskId}</span>
+                <span>タスク: {notification.taskName ?? notification.taskId}</span>
               </>
             )}
             {notification.NotificationTargetType === "SYSTEM" && (
@@ -744,7 +763,7 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
               {notifications.length > 0 ? (
                 <>
                   <ul className="space-y-3">
-                    {notifications.map((notification) => (
+                    {notifications.map((notification: NotificationData) => (
                       <NotificationItem key={notification.id} notification={notification} onToggleReadStatus={toggleReadStatus} />
                     ))}
                   </ul>

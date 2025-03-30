@@ -22,7 +22,7 @@ export const taskPersonSchema = z
     name: z.string().optional(),
     userId: z.string().optional(),
   })
-  .refine((data) => data.name || data.userId, {
+  .refine((data) => data.name ?? data.userId, {
     message: "名前またはユーザーIDのいずれかを指定してください",
   });
 

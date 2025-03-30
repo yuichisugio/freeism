@@ -11,6 +11,19 @@ import { DataTable } from "@/components/share/data-table";
 import { type contributionType } from "@prisma/client";
 import { toast } from "react-hot-toast";
 
+// User型（getAllUsersが返す形式に合わせる）
+type BasicUser = {
+  id: string;
+  name: string | null;
+  email: string;
+};
+
+// DataTable用のユーザータイプ（必要なプロパティのみを含む）
+type SimpleUser = {
+  id: string;
+  name: string;
+};
+
 // 報告者と実行者の型
 type TaskParticipant = {
   id: string;
@@ -50,7 +63,7 @@ type MyTasksTableProps = {
 export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
   const router = useRouter();
   const [tasks, setTasks] = useState(initialTasks);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<BasicUser[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [isAppOwner, setIsAppOwner] = useState(false);
 
@@ -59,13 +72,13 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
     async function fetchUsers() {
       try {
         const allUsers = await getAllUsers();
-        setUsers(allUsers);
+        setUsers(allUsers as BasicUser[]);
       } catch (error) {
         console.error("ユーザー一覧取得エラー:", error);
       }
     }
 
-    fetchUsers();
+    void fetchUsers();
   }, []);
 
   // 権限情報を取得
@@ -83,19 +96,19 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       }
     }
 
-    checkPermissions();
+    void checkPermissions();
   }, []);
 
   // 報告者名を連結する関数
   const getReporterNames = (reporters: TaskParticipant[]): string => {
     if (!reporters || reporters.length === 0) return "-";
-    return reporters.map((r) => (r.user ? r.user.name : r.name) || "不明").join(", ");
+    return reporters.map((r) => (r.user ? r.user.name : r.name) ?? "不明").join(", ");
   };
 
   // 実行者名を連結する関数
   const getExecutorNames = (executors: TaskParticipant[]): string => {
     if (!executors || executors.length === 0) return "-";
-    return executors.map((e) => (e.user ? e.user.name : e.name) || "不明").join(", ");
+    return executors.map((e) => (e.user ? e.user.name : e.name) ?? "不明").join(", ");
   };
 
   // タスク編集可能かどうかの判定
@@ -122,7 +135,7 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
   // タスク編集後の更新処理
   const handleTaskEdited = () => {
     // 非同期処理を即時実行関数として実行
-    (async () => {
+    void (async () => {
       try {
         // タスクデータを再取得
         const updatedTasks = await getMyTasks();
@@ -185,13 +198,13 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       key: "fixedEvaluator" as keyof Task,
       header: "算出者",
       sortable: true,
-      cell: (row: Task) => row.fixedEvaluator || "-",
+      cell: (row: Task) => row.fixedEvaluator ?? "-",
     },
     {
       key: "fixedEvaluationLogic" as keyof Task,
       header: "算出ロジック",
       sortable: true,
-      cell: (row: Task) => row.fixedEvaluationLogic || "-",
+      cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
     },
     {
       key: "status" as keyof Task,
@@ -211,11 +224,14 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
       dataTableProps={{
         data: tasks,
         columns,
-        onDataChange: (data) => setTasks(data as Task[]),
+        onDataChange: (data) => setTasks(data),
         editTask: {
           canEdit: canEditTask,
           onEdit: handleTaskEdited,
-          users: users,
+          users: users.map((user) => ({
+            id: user.id,
+            name: user.name ?? "",
+          })) as SimpleUser[],
         },
       }}
     />

@@ -25,7 +25,8 @@ export type RadioOption = {
 export type ComboBoxOption = {
   id: string;
   name: string;
-  [key: string]: any;
+  // valuePropertyとlabelPropertyとして使用されるプロパティは必ずstring型であることを保証
+  [key: string]: string | number | boolean | null | undefined;
 };
 
 // フィールドタイプに応じた詳細なプロパティ定義
@@ -141,7 +142,7 @@ function renderInputField<T extends FieldValues>(props: InputFieldProps<T>, fiel
       <Input
         id={props.name}
         type={props.type}
-        placeholder={props.placeholder || ""}
+        placeholder={props.placeholder ?? ""}
         min={props.min}
         max={props.max}
         {...field}
@@ -156,7 +157,7 @@ function renderTextareaField<T extends FieldValues>(props: TextareaFieldProps<T>
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <Textarea
         id={props.name}
-        placeholder={props.placeholder || ""}
+        placeholder={props.placeholder ?? ""}
         {...field}
         className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
       />
@@ -168,7 +169,7 @@ function renderRadioField<T extends FieldValues>(props: RadioFieldProps<T>, fiel
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <div className="border-input bg-background flex flex-col space-y-1 rounded-md border border-blue-200 px-3 py-2 shadow-sm transition-all duration-200 hover:border-blue-300">
-        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className={props.className || "flex flex-col space-y-2"}>
+        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className={props.className ?? "flex flex-col space-y-2"}>
           {props.options.map((option) => (
             <motion.div key={option.value} whileHover={{ x: 3 }} transition={{ duration: 0.2 }}>
               <FormItem key={option.value} className="flex items-center space-y-0 space-x-3">
@@ -188,11 +189,24 @@ function renderRadioField<T extends FieldValues>(props: RadioFieldProps<T>, fiel
 }
 
 function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>, field: ControllerRenderProps<T, Path<T>>) {
-  const valueProperty = props.valueProperty || "id";
-  const labelProperty = props.labelProperty || "name";
-  const placeholder = props.placeholder || "選択してください";
-  const searchPlaceholder = props.searchPlaceholder || "検索...";
-  const emptyMessage = props.emptyMessage || "項目が見つかりません";
+  const valueProperty = props.valueProperty ?? "id";
+  const labelProperty = props.labelProperty ?? "name";
+  const placeholder = props.placeholder ?? "選択してください";
+  const searchPlaceholder = props.searchPlaceholder ?? "検索...";
+  const emptyMessage = props.emptyMessage ?? "項目が見つかりません";
+
+  // Keyとして安全な値を取得するヘルパー関数
+  const getKey = (item: ComboBoxOption, prop: string): string => {
+    const value = item[prop];
+    // 文字列または数値の場合は文字列に変換して返す
+    return value != null ? String(value) : `item-${Math.random().toString(36).substring(2, 9)}`;
+  };
+
+  // 文字列として安全な値を取得するヘルパー関数
+  const getStringValue = (item: ComboBoxOption, prop: string): string => {
+    const value = item[prop];
+    return value != null ? String(value) : "";
+  };
 
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
@@ -205,7 +219,7 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
             className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")}
             type="button"
           >
-            {field.value ? props.options.find((item) => item[valueProperty] === field.value)?.[labelProperty] || placeholder : placeholder}
+            {field.value ? (props.options.find((item) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder) : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -217,10 +231,10 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
               <CommandGroup>
                 <AnimatePresence>
                   {props.options.map((item) => (
-                    <motion.div key={item[valueProperty]} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+                    <motion.div key={getKey(item, valueProperty)} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
                       <CommandItem
-                        key={item[valueProperty]}
-                        value={item[labelProperty]}
+                        key={getKey(item, valueProperty)}
+                        value={getStringValue(item, labelProperty)}
                         onSelect={() => {
                           field.onChange(item[valueProperty]);
                           props.setOpen(false);
@@ -236,7 +250,7 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
                         >
                           <Check className="mr-2 h-4 w-4 text-blue-500" />
                         </motion.div>
-                        {item[labelProperty]}
+                        {getStringValue(item, labelProperty)}
                       </CommandItem>
                     </motion.div>
                   ))}
@@ -251,10 +265,10 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
 }
 
 function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>, field: ControllerRenderProps<T, Path<T>>) {
-  const placeholder = props.placeholder || "日付を選択";
-  const buttonText = props.buttonText || placeholder;
-  const dateFormat = props.dateFormat || "yyyy年MM月dd日";
-  const locale = props.locale || ja;
+  const placeholder = props.placeholder ?? "日付を選択";
+  const buttonText = props.buttonText ?? placeholder;
+  const dateFormat = props.dateFormat ?? "yyyy年MM月dd日";
+  const locale = props.locale ?? ja;
   const includeTime = dateFormat.includes("HH") || dateFormat.includes("mm") || dateFormat.includes("ss");
 
   return (
@@ -287,7 +301,7 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
                   date.setMinutes(currentValue.getMinutes());
                   date.setSeconds(currentValue.getSeconds());
                 }
-                field.onChange(date || null);
+                field.onChange(date ?? null);
               }}
               initialFocus
               locale={locale}
@@ -304,8 +318,8 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
                     placeholder="時"
                     value={field.value ? new Date(field.value).getHours() : 0}
                     onChange={(e) => {
-                      const date = new Date(field.value || new Date());
-                      date.setHours(parseInt(e.target.value) || 0);
+                      const date = new Date(field.value ?? new Date());
+                      date.setHours(parseInt(e.target.value) ?? 0);
                       field.onChange(date);
                     }}
                   />
@@ -318,8 +332,8 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
                     placeholder="分"
                     value={field.value ? new Date(field.value).getMinutes() : 0}
                     onChange={(e) => {
-                      const date = new Date(field.value || new Date());
-                      date.setMinutes(parseInt(e.target.value) || 0);
+                      const date = new Date(field.value ?? new Date());
+                      date.setMinutes(parseInt(e.target.value) ?? 0);
                       field.onChange(date);
                     }}
                   />
@@ -354,7 +368,7 @@ export function CustomFormField<T extends FieldValues>(props: CustomFormFieldPro
           default:
             // この行は型チェックを通すためのもので、正しい型定義であれば実行されません
             const exhaustiveCheck: never = props;
-            throw new Error(`未対応のフィールドタイプ: ${exhaustiveCheck}`);
+            throw new Error(`未対応のフィールドタイプ: ${String(exhaustiveCheck)}`);
         }
       }}
     />

@@ -81,7 +81,7 @@ export default async function CreateNotificationPage() {
   // ユーザーデータを整形（null nameを処理）
   const formattedUsers = users.map((user) => ({
     id: user.id,
-    name: user.name || "名前なし",
+    name: user.name ?? "名前なし",
   }));
 
   // グループ一覧を取得

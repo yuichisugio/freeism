@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { type TimeRemaining, type UseCountdownProps } from "@/lib/auction/types";
+import { type TimeRemaining, type UseCountdownProps } from "@/lib/auction/type/types";
 
 /**
  * カウントダウンフック

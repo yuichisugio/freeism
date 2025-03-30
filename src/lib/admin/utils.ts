@@ -16,6 +16,6 @@ export async function isAdminUser(): Promise<boolean> {
 
   // ユーザーが管理者かどうかを判定するロジック
   // セッションからの管理者情報取得を仮で実装
-  // @ts-ignore - isAppOwnerプロパティはカスタム拡張されている可能性があるためignore
+  // @ts-expect-error - isAppOwnerプロパティはカスタム拡張されている可能性があるためignore
   return !!session.user.isAppOwner;
 }

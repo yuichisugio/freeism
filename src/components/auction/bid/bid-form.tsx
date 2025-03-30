@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useBidActions } from "@/hooks/auction/bid/useBidActions";
-import { type BidFormProps } from "@/lib/auction/types";
+import { useBidActions } from "@/hooks/auction/bid/use-bid-actions";
+import { type BidFormProps } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
 import { ArrowRight, Gavel, Minus, Plus } from "lucide-react";
@@ -16,7 +16,7 @@ import { ArrowRight, Gavel, Minus, Plus } from "lucide-react";
  * @param onCancel キャンセルボタンのクリックハンドラ
  * @returns 入札フォーム
  */
-export default function BidForm({ auction }: BidFormProps) {
+export function BidForm({ auction }: BidFormProps) {
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
 

@@ -288,7 +288,7 @@ export async function getGroup(groupId: string) {
 export async function checkAuth() {
   try {
     const session = await auth();
-    return session?.user?.id || null;
+    return session?.user?.id ?? null;
   } catch (error) {
     console.error("[CHECK_AUTH]", error);
     return null;
@@ -307,7 +307,7 @@ export async function checkAppOwner(userId: string) {
       select: { isAppOwner: true },
     });
 
-    return user?.isAppOwner || false;
+    return user?.isAppOwner ?? false;
   } catch (error) {
     console.error("[CHECK_APP_OWNER]", error);
     return false;
@@ -528,7 +528,7 @@ export async function removeMember(groupId: string, userId: string, addToBlackLi
           select: { isBlackList: true },
         });
 
-        const blackList = (group?.isBlackList as Record<string, boolean>) || {};
+        const blackList = (group?.isBlackList as Record<string, boolean>) ?? {};
         blackList[userId] = true;
 
         await tx.group.update({

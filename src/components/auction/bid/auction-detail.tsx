@@ -7,26 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuctionEvent } from "@/hooks/auction/bid/useAuctionEvent";
-import { useCountdown } from "@/hooks/auction/bid/useCountdown";
-import { useWatchlistActions } from "@/hooks/auction/bid/useWatchlistActions";
+import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
+import { useCountdown } from "@/hooks/auction/bid/use-countdown";
+import { useWatchlistActions } from "@/hooks/auction/bid/use-watchlist-actions";
 import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
-import { type Auction, type AuctionWithDetails } from "@/lib/auction/types";
+import { type Auction, type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Clock, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-import BidForm from "./BidForm";
-import BidHistory from "./BidHistory";
-import { CountdownDisplay } from "./CountdownDisplay";
+import { BidForm } from "./bid-form";
+import { BidHistory } from "./bid-history";
+import { CountdownDisplay } from "./countdown-display";
 
 /**
  * オークション詳細ページ
  * @param initialAuction オークション情報
  * @returns オークション詳細ページ
  */
-export default function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
+export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリストの状態
@@ -40,7 +40,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
 
   // ユーザーIDを取得
   const { data: session } = useSession();
-  if (!session || !session.user) {
+  if (!session?.user) {
     notFound();
   }
   const currentUserId = session.user.id;
@@ -66,11 +66,9 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
    */
   useEffect(() => {
     async function checkWatchlistStatus() {
-      if (!auction.id) return;
-
       try {
-        const status = await getWatchlistStatus(auction.id);
-        setIsWatchlisted(status);
+        const isWatched = await getWatchlistStatus(auction.id);
+        setIsWatchlisted(isWatched);
         setInitialFetchDone(true);
       } catch (err) {
         console.error("ウォッチリストの状態取得エラー:", err);
@@ -79,7 +77,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
     }
 
     if (!initialFetchDone) {
-      checkWatchlistStatus();
+      void checkWatchlistStatus();
     }
   }, [auction.id, getWatchlistStatus, initialFetchDone]);
 
@@ -110,7 +108,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
     if (!auction.id) return;
     try {
       const newStatus = await toggleWatchlist(auction.id);
-      setIsWatchlisted(newStatus || false);
+      setIsWatchlisted(newStatus ?? false);
     } catch (err) {
       console.error("ウォッチリスト更新エラー:", err);
     }
@@ -130,15 +128,15 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">現在価格</p>
-                <p className="mt-2 text-3xl font-bold text-blue-700">{formatCurrency(auction.currentHighestBid || 0)}</p>
+                <p className="mt-2 text-3xl font-bold text-blue-700">{formatCurrency(auction.currentHighestBid ?? 0)}</p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">最低入札額</p>
-                <p className="mt-2 text-3xl font-bold text-green-700">{formatCurrency(auction.currentHighestBid + 1 || 0)}</p>
+                <p className="mt-2 text-3xl font-bold text-green-700">{formatCurrency((auction.currentHighestBid ?? 0) + 1)}</p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">入札数</p>
-                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length || 0}</p>
+                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length ?? 0}</p>
               </div>
             </div>
           </CardContent>
@@ -224,7 +222,9 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
             <ShoppingBag className="mt-1 h-5 w-5 text-green-500" />
             <div>
               <h3 className="mb-2 text-lg font-medium text-green-900">支払い方法</h3>
-              <p className="text-green-700">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{auction.task.group.depositPeriod}日後に返還されます。</p>
+              <p className="text-green-700">
+                落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{(auction.task.group as { depositPeriod?: number }).depositPeriod ?? 7}日後に返還されます。
+              </p>
             </div>
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           {/* 左側: オークション画像 */}
           <div className="relative h-[250px] overflow-hidden rounded-lg">
-            <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title || "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
+            <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title ?? "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
           </div>
 
           {/* 右側: オークション情報ヘッダー部分 */}
@@ -296,7 +296,7 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                   <User size={16} className="text-primary" />
                 </div>
-                <p className="text-muted-foreground">{auction.task.creator.name || "不明なユーザー"}</p>
+                <p className="text-muted-foreground">{(auction.task.creator as { name?: string | null }).name ?? "不明なユーザー"}</p>
               </div>
             </div>
 
@@ -305,8 +305,8 @@ export default function AuctionDetail({ initialAuction }: { initialAuction: Auct
                 {isAuctionEnded ? "終了" : "出品中"}
               </Badge>
               {auction.task.group && (
-                <Badge key={auction.task.group.id} variant="outline" className="px-3 py-1 text-sm font-medium">
-                  {auction.task.group.name}
+                <Badge key={(auction.task.group as { id: string }).id} variant="outline" className="px-3 py-1 text-sm font-medium">
+                  {(auction.task.group as { name: string }).name}
                 </Badge>
               )}
             </div>

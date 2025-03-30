@@ -7,7 +7,8 @@ import { generateSignedUploadUrl } from "@/lib/cloudflare/upload-server";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { fileType, fileName } = await request.json();
+    const data = (await request.json()) as { fileType: string; fileName?: string };
+    const { fileType, fileName } = data;
 
     // ファイルタイプの検証
     if (!fileType) {

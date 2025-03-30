@@ -34,7 +34,7 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
   const totalContributionPointsByGroup = memberships.reduce(
     (acc, membership) => {
       const groupId = membership.group.id;
-      const groupContributionPoints = membership.group.tasks.reduce((sum, task) => sum + (task.fixedContributionPoint || 0), 0);
+      const groupContributionPoints = membership.group.tasks.reduce((sum, task) => sum + (task.fixedContributionPoint ?? 0), 0);
       acc[groupId] = groupContributionPoints;
       return acc;
     },

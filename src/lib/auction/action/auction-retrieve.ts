@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 
 import { DEFAULT_AUCTION_IMAGE_URL } from "../constants";
-import { type Auction, type AuctionWithDetails } from "../types";
+import { type Auction, type AuctionWithDetails } from "../type/types";
 
 /**
  * オークションIDに関連するオークション情報を取得
@@ -104,20 +104,23 @@ export async function convertAuctionToAuctionType(auctionData: AuctionWithDetail
   return {
     id: auctionData.id,
     title: auctionData.task.task,
-    description: auctionData.task.detail || "",
-    imageUrl: auctionData.task.imageUrl || DEFAULT_AUCTION_IMAGE_URL,
+    description: auctionData.task.detail ?? "",
+    imageUrl: auctionData.task.imageUrl ?? DEFAULT_AUCTION_IMAGE_URL,
     currentHighestBid: auctionData.currentHighestBid,
     startTime: auctionData.startTime.toISOString(),
     endTime: auctionData.endTime.toISOString(),
     sellerId: auctionData.task.creatorId,
     seller: {
       id: auctionData.task.creator.id,
-      username: auctionData.task.creator.name || "不明なユーザー",
+      username: auctionData.task.creator.name ?? "不明なユーザー",
       email: auctionData.task.creator.email,
-      createdAt: auctionData.task.creator.createdAt.toISOString(),
-      avatarUrl: auctionData.task.creator.image || undefined,
+      createdAt:
+        typeof auctionData.task.creator.createdAt === "object" && auctionData.task.creator.createdAt !== null
+          ? (auctionData.task.creator.createdAt as Date).toISOString()
+          : String(auctionData.task.creator.createdAt),
+      avatarUrl: auctionData.task.creator.image ?? undefined,
     },
-    bidCount: auctionData.bidHistories?.length || 0,
+    bidCount: auctionData.bidHistories?.length ?? 0,
     categories: [],
     watchCount: 0,
     depositPeriod: 7, // デフォルトの預かり期間を7日に設定

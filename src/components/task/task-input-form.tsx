@@ -366,7 +366,7 @@ export function TaskInputForm({
               {executors.map((executor, index) => (
                 <li key={index} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                   <span>
-                    {executor.name || "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
+                    {executor.name ?? "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
                   </span>
                   <button type="button" className="text-red-500" onClick={() => removeExecutor(index)}>
                     削除
@@ -419,7 +419,7 @@ export function TaskInputForm({
               {reporters.map((reporter, index) => (
                 <li key={index} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                   <span>
-                    {reporter.name || "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
+                    {reporter.name ?? "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
                   </span>
                   <button type="button" className="text-red-500" onClick={() => removeReporter(index)}>
                     削除

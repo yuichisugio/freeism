@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useEffect } from "react";
-import AuctionCard from "@/components/auction/listing/AuctionCard";
-import AuctionFilters from "@/components/auction/listing/AuctionFilters";
-import AuctionPagination from "@/components/auction/listing/AuctionPagination";
+import { AuctionCard } from "@/components/auction/listing/auction-card";
+import { AuctionFilters } from "@/components/auction/listing/auction-filters";
+import { AuctionPagination } from "@/components/auction/listing/auction-pagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuctionListings } from "@/hooks/auction/listing/useAuctionListings";
+import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings";
 
 /**
  * オークション商品一覧コンポーネント
  * @returns オークション商品一覧コンポーネント
  */
-export default function AuctionListings() {
+export function AuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックと状態を取得
@@ -120,9 +120,15 @@ export default function AuctionListings() {
         <>
           {auctions.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-              {auctions.map((auction: any) => (
-                <AuctionCard key={auction.id} auction={auction} onToggleWatchlistAction={handleToggleWatchlist} />
-              ))}
+              {auctions.map((auction) => {
+                // AuctionCardPropsの型定義に合わせて変換
+                const auctionForCard = {
+                  ...auction,
+                  description: auction.description ?? undefined,
+                  imageUrl: auction.imageUrl ?? undefined,
+                };
+                return <AuctionCard key={auction.id} auction={auctionForCard} onToggleWatchlistAction={handleToggleWatchlist} />;
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">

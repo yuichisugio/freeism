@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
-import { usePagination } from "@/hooks/auction/listing/usePagination";
+import { usePagination } from "@/hooks/auction/listing/use-pagination";
 
 // ページネーションのprops
 type AuctionPaginationProps = {
@@ -19,7 +19,7 @@ type AuctionPaginationProps = {
  * @param onPageChangeAction ページ変更アクション
  * @param showPageInfo ページ情報表示有無
  */
-export default function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
+export function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからページネーションロジックを取得

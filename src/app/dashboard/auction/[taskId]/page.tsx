@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ taskId: s
 
     return {
       title: `${auction.task.task} | オークション | Freeism`,
-      description: auction.task.detail || `オークション商品: ${auction.task.task}`,
+      description: auction.task.detail ?? `オークション商品: ${auction.task.task}`,
     };
   } catch (error) {
     console.error("メタデータ生成エラー:", error);
@@ -52,12 +52,12 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
   const session = await auth();
 
   // ユーザー情報が存在しない場合は404エラーを返す
-  if (!session || !session.user) {
+  if (!session?.user) {
     notFound();
   }
 
   return (
-    <MainTemplate title={auctionData.task.task} description={auctionData.task.detail || ""}>
+    <MainTemplate title={auctionData.task.task} description={auctionData.task.detail ?? ""}>
       <AuctionDetailWrapper initialAuction={auctionData} />
     </MainTemplate>
   );

@@ -40,8 +40,8 @@ export async function createR2Service() {
   const areCredentialsConfigured = Boolean(env.CLOUDFLARE_ACCESS_KEY_ID && env.CLOUDFLARE_SECRET_ACCESS_KEY && env.CLOUDFLARE_ACCOUNT_ID);
 
   // バケット名とパブリックURLを取得
-  const bucketName = env.CLOUDFLARE_R2_BUCKET || null;
-  const publicUrl = env.CLOUDFLARE_PUBLIC_URL || null;
+  const bucketName = env.CLOUDFLARE_R2_BUCKET ?? null;
+  const publicUrl = env.CLOUDFLARE_PUBLIC_URL ?? null;
 
   if (!areCredentialsConfigured) {
     logger.error("R2の認証情報が設定されていません");

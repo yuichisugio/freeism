@@ -69,6 +69,13 @@ type GroupDetailProps = {
   tasks: Task[];
 };
 
+// ユーザー情報の型定義
+type User = {
+  id: string;
+  name: string | null;
+  email: string | null;
+};
+
 export function GroupDetail({ tasks }: GroupDetailProps) {
   const router = useRouter();
   const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(tasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
@@ -90,7 +97,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMember, setIsMember] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // 権限情報を保持するstate
   const [isAppOwner, setIsAppOwner] = useState(false);
@@ -108,7 +115,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       }
     }
 
-    fetchUsers();
+    void fetchUsers();
   }, []);
 
   // コンポーネントマウント時に権限チェックを一度だけ実行
@@ -141,7 +148,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       }
     }
 
-    checkPermissions();
+    void checkPermissions();
   }, [tasks]);
 
   // グループ参加処理
@@ -347,14 +354,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
 
   // 報告者名を連結する関数
   const getReporterNames = (reporters: TaskParticipant[]): string => {
-    if (!reporters || reporters.length === 0) return "-";
-    return reporters.map((r) => (r.user ? r.user.name : r.name) || "不明").join(", ");
+    return reporters.map((reporter) => reporter.user?.name ?? reporter.name ?? "不明").join(", ");
   };
 
   // 実行者名を連結する関数
   const getExecutorNames = (executors: TaskParticipant[]): string => {
-    if (!executors || executors.length === 0) return "-";
-    return executors.map((e) => (e.user ? e.user.name : e.name) || "不明").join(", ");
+    return executors.map((executor) => executor.user?.name ?? executor.name ?? "不明").join(", ");
   };
 
   // 共通のテーブル列定義（contributionType列を含まない）
@@ -362,13 +367,13 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "task" as keyof Task,
       header: "TASK",
-      cell: (row: Task) => row.task,
+      cell: (row: Task) => row.task ?? "不明",
       sortable: true,
     },
     {
       key: "name" as keyof Task,
       header: "作成者",
-      cell: (row: Task) => row.creator.name || "-",
+      cell: (row: Task) => row.creator.name ?? "-",
       sortable: true,
     },
     {
@@ -386,13 +391,13 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "fixedEvaluator" as keyof Task,
       header: "評価者",
-      cell: (row: Task) => row.fixedEvaluator || "-",
+      cell: (row: Task) => row.fixedEvaluator ?? "-",
       sortable: true,
     },
     {
       key: "fixedEvaluationLogic" as keyof Task,
       header: "評価ロジック",
-      cell: (row: Task) => row.fixedEvaluationLogic || "-",
+      cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
       sortable: true,
     },
     {
@@ -409,7 +414,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "detail" as keyof Task,
       header: "詳細",
-      cell: (row: Task) => row.detail || "-",
+      cell: (row: Task) => row.detail ?? "-",
       sortable: false,
     },
   ];
@@ -442,7 +447,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "contributionPoint" as keyof Task,
       header: "現在の入札額",
-      cell: (row: Task) => `${row.fixedContributionPoint || 0}p`,
+      cell: (row: Task) => `${row.fixedContributionPoint ?? 0}p`,
       sortable: true,
     },
     ...commonColumns.slice(4), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
@@ -474,7 +479,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     setIsLoading(true);
 
     // 非同期処理を即時実行関数として実行
-    (async () => {
+    void (async () => {
       try {
         // タスクデータを再取得
         if (tasks.length > 0) {
@@ -506,12 +511,15 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     data: nonRewardTasks,
     columns: nonRewardColumns,
     pagination: true,
-    onDataChange: (data) => setNonRewardTasks(data as Task[]),
+    onDataChange: (data) => setNonRewardTasks(data),
     stickyHeader: true,
     editTask: {
       canEdit: canEditTask,
       onEdit: handleTaskEdited,
-      users: users,
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name ?? "",
+      })),
     },
   };
 
@@ -519,12 +527,15 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     data: rewardTasks,
     columns: rewardColumns,
     pagination: true,
-    onDataChange: (data) => setRewardTasks(data as Task[]),
+    onDataChange: (data) => setRewardTasks(data),
     stickyHeader: true,
     editTask: {
       canEdit: canEditTask,
       onEdit: handleTaskEdited,
-      users: users,
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name ?? "",
+      })),
     },
   };
 
@@ -614,7 +625,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">グループ情報編集</DialogTitle>
           </DialogHeader>
-          {tasks[0] && tasks[0].group && (
+          {tasks[0]?.group && (
             <EditGroupForm
               group={{
                 id: tasks[0].group.id,
@@ -622,7 +633,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                 goal: tasks[0].group.goal,
                 evaluationMethod: tasks[0].group.evaluationMethod,
                 maxParticipants: tasks[0].group.maxParticipants,
-                depositPeriod: tasks[0].group.depositPeriod || 0,
+                depositPeriod: tasks[0].group.depositPeriod ?? 0,
               }}
               onCloseAction={() => setEditDialogOpen(false)}
             />
@@ -644,7 +655,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
               <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" role="combobox" aria-expanded={isComboboxOpen} className="w-full justify-between">
-                    {selectedUserName || "ユーザーを選択"}
+                    {selectedUserName ?? "ユーザーを選択"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -659,7 +670,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                           .map((member) => (
                             <CommandItem
                               key={member.user.id}
-                              value={member.user.name || ""}
+                              value={member.user.name ?? ""}
                               onSelect={() => {
                                 setSelectedUserId(member.user.id);
                                 setSelectedUserName(member.user.name);
@@ -667,7 +678,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                               }}
                             >
                               <Check className={`mr-2 h-4 w-4 ${selectedUserId === member.user.id ? "opacity-100" : "opacity-0"}`} />
-                              {member.user.name || "No Name"}
+                              {member.user.name ?? "No Name"}
                             </CommandItem>
                           ))}
                       </CommandGroup>
@@ -728,7 +739,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
               <Popover open={isRemovalComboboxOpen} onOpenChange={setIsRemovalComboboxOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" role="combobox" aria-expanded={isRemovalComboboxOpen} className="w-full justify-between">
-                    {selectedMemberNameForRemoval || "メンバーを選択"}
+                    {selectedMemberNameForRemoval ?? "メンバーを選択"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -741,7 +752,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                         {groupMembers.map((member) => (
                           <CommandItem
                             key={member.user.id}
-                            value={member.user.name || ""}
+                            value={member.user.name ?? ""}
                             onSelect={() => {
                               setSelectedMemberForRemoval(member.user.id);
                               setSelectedMemberNameForRemoval(member.user.name);
@@ -749,7 +760,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
                             }}
                           >
                             <Check className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.user.id ? "opacity-100" : "opacity-0"}`} />
-                            {member.user.name || "No Name"}
+                            {member.user.name ?? "No Name"}
                           </CommandItem>
                         ))}
                       </CommandGroup>

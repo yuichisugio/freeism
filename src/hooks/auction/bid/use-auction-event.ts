@@ -1,8 +1,8 @@
 "use client";
 
-import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/types";
+import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AuctionEventType } from "@/lib/auction/types";
+import { AuctionEventType } from "@/lib/auction/type/types";
 
 /**
  * オークションSSEを購読するカスタムフック（拡張版）
@@ -23,7 +23,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // イベントID
   const [lastEventId, setLastEventId] = useState<number>(0);
   // クライアントID
-  const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId || `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId ?? `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   // 最後に受信したSSEメッセージ（デバッグ用）
   const [lastReceivedMessage, setLastReceivedMessage] = useState<string | null>(null);
 
@@ -46,7 +46,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   const auctionId = initialAuction.id;
 
   // オプション
-  const { reconnectOnVisibility = true } = initialAuction.options || {};
+  const { reconnectOnVisibility = true } = initialAuction.options ?? {};
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -91,7 +91,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         taskId: auctionData.taskId,
         options: {
           reconnectOnVisibility: true,
-          clientId: receivedClientId || clientId,
+          clientId: receivedClientId ?? clientId,
         },
         // 日付オブジェクトを文字列から変換（必要な場合）
         startTime: auctionData.startTime ? new Date(auctionData.startTime) : initialAuction.startTime,
@@ -126,29 +126,29 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // AuctionWithDetails型に変換
       const auctionData: AuctionWithDetails = {
-        id: eventData.data?.id || initialAuction.id,
-        createdAt: eventData.data?.createdAt || initialAuction.createdAt,
-        updatedAt: eventData.data?.updatedAt || initialAuction.updatedAt,
-        status: eventData.data?.status || initialAuction.status,
-        taskId: eventData.data?.taskId || initialAuction.taskId,
-        startTime: eventData.data?.startTime || initialAuction.startTime,
-        endTime: eventData.data?.endTime || initialAuction.endTime,
-        currentHighestBid: eventData.data?.currentHighestBid || initialAuction.currentHighestBid,
-        currentHighestBidderId: eventData.data?.currentHighestBidderId || initialAuction.currentHighestBidderId,
-        bidHistories: eventData.data?.bidHistories || initialAuction.bidHistories,
-        winnerId: eventData.data?.winnerId || initialAuction.winnerId,
-        extensionCount: eventData.data?.extensionCount || initialAuction.extensionCount,
-        version: eventData.data?.version || initialAuction.version,
-        title: eventData.data?.title || initialAuction.title,
-        description: eventData.data?.description || initialAuction.description,
-        task: eventData.data?.task || initialAuction.task,
-        currentPrice: eventData.data?.currentPrice || initialAuction.currentPrice,
-        sellerId: eventData.data?.sellerId || initialAuction.sellerId,
-        depositPeriod: eventData.data?.depositPeriod || initialAuction.depositPeriod,
-        currentHighestBidder: eventData.data?.currentHighestBidder || initialAuction.currentHighestBidder,
-        winner: eventData.data?.winner || initialAuction.winner,
-        watchlists: eventData.data?.watchlists || initialAuction.watchlists,
-        bid: eventData.data?.bid || initialAuction.bid,
+        id: eventData.data?.id ?? initialAuction.id,
+        createdAt: eventData.data?.createdAt ?? initialAuction.createdAt,
+        updatedAt: eventData.data?.updatedAt ?? initialAuction.updatedAt,
+        status: eventData.data?.status ?? initialAuction.status,
+        taskId: eventData.data?.taskId ?? initialAuction.taskId,
+        startTime: eventData.data?.startTime ?? initialAuction.startTime,
+        endTime: eventData.data?.endTime ?? initialAuction.endTime,
+        currentHighestBid: eventData.data?.currentHighestBid ?? initialAuction.currentHighestBid,
+        currentHighestBidderId: eventData.data?.currentHighestBidderId ?? initialAuction.currentHighestBidderId,
+        bidHistories: eventData.data?.bidHistories ?? initialAuction.bidHistories,
+        winnerId: eventData.data?.winnerId ?? initialAuction.winnerId,
+        extensionCount: eventData.data?.extensionCount ?? initialAuction.extensionCount,
+        version: eventData.data?.version ?? initialAuction.version,
+        title: eventData.data?.title ?? initialAuction.title,
+        description: eventData.data?.description ?? initialAuction.description,
+        task: eventData.data?.task ?? initialAuction.task,
+        currentPrice: eventData.data?.currentPrice ?? initialAuction.currentPrice,
+        sellerId: eventData.data?.sellerId ?? initialAuction.sellerId,
+        depositPeriod: eventData.data?.depositPeriod ?? initialAuction.depositPeriod,
+        currentHighestBidder: eventData.data?.currentHighestBidder ?? initialAuction.currentHighestBidder,
+        winner: eventData.data?.winner ?? initialAuction.winner,
+        watchlists: eventData.data?.watchlists ?? initialAuction.watchlists,
+        bid: eventData.data?.bid ?? initialAuction.bid,
         options: {
           reconnectOnVisibility: true,
           clientId: clientId,
@@ -317,7 +317,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // data フィールドが存在し、空でない場合のみパースを試みる
       try {
-        const eventData = JSON.parse(data);
+        const eventData = JSON.parse(data) as { data: AuctionWithDetails };
         console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
 
         // イベントIDの設定 (パース成功後)
@@ -342,7 +342,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         // イベントキューに追加
         processEventDataByType({
           type: event as AuctionEventType,
-          data: eventData as AuctionWithDetails,
+          data: eventData.data,
         });
 
         console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
@@ -560,7 +560,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
             // ★ ストリーム処理を開始 ★
             console.log(`SSE_connect_SSE接続が成功し、ストリーム処理を開始します`);
-            handleSSEStream(response);
+            void handleSSEStream(response);
           })
           .catch((err) => {
             if ((err as Error).name !== "AbortError") {
@@ -679,7 +679,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
       };
     }
     // reconnectOnVisibility が false の場合のクリーンアップ (何もしないが、return は必要)
-    return () => {};
+    return () => {
+      // visibilityの変更を監視しない場合のクリーンアップ関数
+      // 何もしないが、リターン関数は必要
+    };
   }, [reconnectOnVisibility]); // ★★★ 依存配列に connect と disconnect を含めない (ref経由で使うため) ★★★
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

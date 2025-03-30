@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { placeBidAction } from "@/lib/auction/action/bid";
-import { type BidFormData } from "@/lib/auction/types";
+import { type BidFormData } from "@/lib/auction/type/types";
 import { toast } from "sonner";
 
 /**
@@ -48,8 +48,8 @@ export function useBidActions() {
       const result = await placeBidAction(bidData.auctionId, bidData);
 
       if (!result.success) {
-        setError(result.message || "入札に失敗しました");
-        toast.error(result.message || "入札に失敗しました");
+        setError(result.message ?? "入札に失敗しました");
+        toast.error(result.message ?? "入札に失敗しました");
         return false;
       }
 

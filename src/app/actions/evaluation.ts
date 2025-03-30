@@ -35,7 +35,7 @@ type EvaluationImportData = z.infer<typeof evaluationDataSchema>;
 /**
  * 評価結果の型定義
  */
-type EvaluationResult = { success: true; analyses: any[] } | { success: false; error: string; details?: Record<string, unknown> };
+type EvaluationResult = { success: true; analyses: Array<{ count: number; message: string }> } | { success: false; error: string; details?: Record<string, unknown> };
 
 /**
  * CSVから貢献評価を一括登録する関数
@@ -121,7 +121,7 @@ export async function bulkCreateEvaluations(rawData: EvaluationImportData[], gro
         data: validatedData.map((row) => ({
           contributionPoint: Number(row.contributionPoint),
           evaluationLogic: row.evaluationLogic,
-          evaluator: session?.user?.id || "",
+          evaluator: session?.user?.id ?? "",
           taskId: row.taskId,
           groupId,
         })),

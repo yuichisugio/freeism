@@ -30,7 +30,7 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: Us
     } else {
       // 現在のページの前後を表示
       let startPage = Math.max(1, currentPage - Math.floor(maxPageToShow / 2));
-      let endPage = Math.min(totalPages, startPage + maxPageToShow - 1);
+      const endPage = Math.min(totalPages, startPage + maxPageToShow - 1);
 
       // endPageが上限を超えた場合、startPageを調整
       if (endPage === totalPages) {

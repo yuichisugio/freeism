@@ -21,6 +21,12 @@ import { toast } from "sonner";
 
 import { TaskEditModal } from "../task/task-edit-modal";
 
+// TaskParticipant型を定義
+export type TaskParticipant = {
+  id: string;
+  name: string;
+};
+
 export type TaskStatus = {
   label: string;
   value: string;
@@ -313,7 +319,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                     {column.statusCombobox
                       ? (() => {
                           const safeList = Array.isArray(taskStatuses) ? taskStatuses : [];
-                          const selectedLabel = safeList.find((option) => option.value === String(row[column.key]))?.label || "ステータスを選択";
+                          const selectedLabel = safeList.find((option) => option.value === String(row[column.key]))?.label ?? "ステータスを選択";
 
                           return (
                             <Popover open={openStatus === (row.id as string)} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? (row.id as string) : null)}>
@@ -449,15 +455,15 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
             info: editingTask.info as string | null,
             status: editingTask.status as string,
             contributionType: editingTask.contributionType as contributionType,
-            reporters: (editingTask.reporters || []) as any[],
-            executors: (editingTask.executors || []) as any[],
+            reporters: (editingTask.reporters ?? []) as TaskParticipant[],
+            executors: (editingTask.executors ?? []) as TaskParticipant[],
             imageUrl: editingTask.imageUrl as string | null,
             group: {
-              id: (editingTask.group as any)?.id || "",
-              name: (editingTask.group as any)?.name || "",
+              id: (editingTask.group as { id: string; name: string })?.id ?? "",
+              name: (editingTask.group as { id: string; name: string })?.name ?? "",
             },
           }}
-          users={editTask?.users || []}
+          users={editTask?.users ?? []}
           onTaskUpdated={handleTaskUpdated}
         />
       )}

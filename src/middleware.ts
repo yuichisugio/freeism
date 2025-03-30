@@ -14,7 +14,7 @@ export const config = {
   ],
 };
 
-export default auth((req) => {
+export const middleware = auth((req) => {
   try {
     // 現在のパスを取得
     const pathname = new URL(req.url).pathname;

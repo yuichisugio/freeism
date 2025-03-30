@@ -18,8 +18,22 @@ const logError = (message: string, error: unknown, context?: Record<string, unkn
   console.error(message, error, context);
 };
 
+// アカウント情報のインターフェース定義
+type AuthAccount = {
+  type: string;
+  provider: string;
+  providerAccountId: string;
+  access_token?: string | null;
+  refresh_token?: string | null;
+  expires_at?: number | null;
+  token_type?: string | null;
+  scope?: string | null;
+  id_token?: string | null;
+  session_state?: string | null;
+};
+
 // アカウントデータ準備関数
-function prepareAccountData(userId: string, account: any): Prisma.AccountCreateInput {
+function prepareAccountData(userId: string, account: AuthAccount): Prisma.AccountCreateInput {
   return {
     user: {
       connect: {
@@ -35,7 +49,7 @@ function prepareAccountData(userId: string, account: any): Prisma.AccountCreateI
     token_type: account.token_type ?? null,
     scope: account.scope?.toString() ?? null,
     id_token: account.id_token?.toString() ?? null,
-    session_state: account.session_state?.toString() ?? null,
+    session_state: account.session_state ? (typeof account.session_state === "string" ? account.session_state : JSON.stringify(account.session_state)) : null,
   };
 }
 
@@ -108,7 +122,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                   token_type: account.token_type,
                   scope: account.scope?.toString() ?? null,
                   id_token: account.id_token?.toString() ?? null,
-                  session_state: account.session_state?.toString() ?? null,
+                  session_state: account.session_state ? (typeof account.session_state === "string" ? account.session_state : JSON.stringify(account.session_state)) : null,
                 },
               });
 
@@ -117,7 +131,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 where: { id: existingAccount.user.id },
                 data: {
                   // nullやundefinedの場合は既存のメールアドレスを使用
-                  email: user.email || existingAccount.user.email,
+                  email: user.email ?? existingAccount.user.email,
                   name: user.name ?? existingAccount.user.name,
                   image: user.image ?? existingAccount.user.image,
                 },
@@ -231,7 +245,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.email = token.email as string;
+        session.user.email = token.email!;
         session.user.name = token.name as string | null;
         session.user.image = token.image as string | null;
       }

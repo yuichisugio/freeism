@@ -9,8 +9,8 @@ import { getSignedUploadUrl } from "@/lib/cloudflare/upload";
 export async function POST(req: NextRequest) {
   try {
     // リクエストボディから必要な情報を取得
-    const body = await req.json();
-    const { contentType } = body;
+    const data = (await req.json()) as { contentType: string };
+    const { contentType } = data;
 
     if (!contentType) {
       return NextResponse.json({ error: "Content type is required" }, { status: 400 });

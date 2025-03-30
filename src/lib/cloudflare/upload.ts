@@ -6,6 +6,26 @@ const isImageUploadEnabled = () => {
   return process.env.ENABLE_IMAGE_UPLOAD === "true";
 };
 
+// Cloudflare APIレスポンスの型定義
+type CloudflareResponse = {
+  result?: {
+    id?: string;
+    variants?: string[];
+  };
+  success: boolean;
+  errors?: Array<{
+    code: number;
+    message: string;
+  }>;
+};
+
+// 署名付きURLレスポンスの型定義
+type SignedUrlResponse = {
+  signedUrl: string;
+  publicUrl: string | null;
+  key: string;
+};
+
 /**
  * Cloudflareにファイルをアップロードする関数
  * @param file アップロードするファイル
@@ -42,16 +62,16 @@ export async function uploadFile(file: File, options?: { path?: string; filename
       body: formData,
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as CloudflareResponse;
 
     if (!response.ok) {
       console.error("Cloudflareアップロードエラー:", data);
-      return { success: false, error: data.errors?.[0]?.message || "アップロードエラー" };
+      return { success: false, error: data.errors?.[0]?.message ?? "アップロードエラー" };
     }
 
     return {
       success: true,
-      url: data.result?.variants?.[0] || data.result?.variants?.[0] || "",
+      url: data.result?.variants?.[0] ?? "",
     };
   } catch (error) {
     console.error("ファイルアップロードエラー:", error);
@@ -93,13 +113,13 @@ export async function getSignedUploadUrl(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "署名付きURLの取得に失敗しました");
+      const errorData = (await response.json()) as { message?: string };
+      throw new Error(errorData.message ?? "署名付きURLの取得に失敗しました");
     }
 
-    return await response.json();
+    return (await response.json()) as SignedUrlResponse;
   } catch (error) {
-    logger.error("署名付きURLの取得中にエラーが発生しました", error);
+    logger.error("署名付きURLの取得中にエラーが発生しました", error instanceof Error ? error.message : String(error));
     return null;
   }
 }
