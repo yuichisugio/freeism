@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import AuctionCard from "@/components/auction/listing/AuctionCard";
 import AuctionFilters from "@/components/auction/listing/AuctionFilters";
 import AuctionPagination from "@/components/auction/listing/AuctionPagination";
@@ -38,25 +38,37 @@ export default function AuctionListings() {
     handleToggleWatchlist,
   } = useAuctionListings();
 
+  // デバッグ用: カテゴリの状態を確認
+  useEffect(() => {
+    console.log("Categories in component:", categories);
+    console.log("Categories type:", typeof categories);
+    console.log("Categories is Array:", Array.isArray(categories));
+    console.log("Categories length:", categories ? categories.length : "undefined");
+  }, [categories]);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="space-y-6">
       {/* カテゴリタブ */}
-      <div className="relative -mx-2 mb-4 sm:mx-0">
+      <div className="relative mx-2 mb-4 sm:mx-0">
         <div className="scrollbar-hide flex overflow-x-auto pb-2 sm:pb-0">
-          <div className="flex items-center space-x-1 px-2 sm:space-x-2">
-            {categories.map((category: string) => (
-              <button
-                key={category}
-                className={`rounded-full px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${
-                  filters.category === category ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-                onClick={() => handleFilterChange({ category })}
-              >
-                {category}
-              </button>
-            ))}
+          <div className="flex items-center justify-start space-x-1 px-2 sm:space-x-2">
+            {categories && categories.length > 0 ? (
+              categories.map((category: string) => (
+                <button
+                  key={category}
+                  className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${
+                    filters.category === category ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                  onClick={() => handleFilterChange({ category })}
+                >
+                  {category}
+                </button>
+              ))
+            ) : (
+              <div className="text-red-500">カテゴリが読み込まれていません ({categories ? categories.length : "undefined"})</div>
+            )}
           </div>
         </div>
 

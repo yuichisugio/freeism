@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/auction/bid/useDebounce";
 import { getAuctionCategories, getAuctionListings, getAuctionPageSize } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
-import { DISPLAY } from "@/lib/auction/constants";
+import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
 
 /**
  * オークション一覧画面のロジックを管理するカスタムフック
@@ -42,8 +42,9 @@ export function useAuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カテゴリと表示件数
-  // カテゴリ
-  const [categories, setCategories] = useState<string[]>([]);
+  // カテゴリ - 直接定数からデフォルト値を設定
+  const [categories, setCategories] = useState<string[]>(AUCTION_CATEGORIES);
+
   // 表示件数
   const [pageSize, setPageSize] = useState(DISPLAY.PAGE_SIZE);
 
@@ -96,11 +97,23 @@ export function useAuctionListings() {
   // 初期設定データの取得
   useEffect(() => {
     async function loadInitialData() {
-      const categoriesData = await getAuctionCategories();
-      const pageSizeData = await getAuctionPageSize();
+      try {
+        const categoriesData = await getAuctionCategories();
+        const pageSizeData = await getAuctionPageSize();
 
-      setCategories(categoriesData);
-      setPageSize(pageSizeData);
+        console.log("Fetched categories:", categoriesData);
+
+        if (categoriesData && Array.isArray(categoriesData) && categoriesData.length > 0) {
+          setCategories(categoriesData);
+        } else {
+          console.error("Invalid categories data received:", categoriesData);
+        }
+
+        setPageSize(pageSizeData);
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+        // エラー時にはデフォルト値を使用（すでに設定済み）
+      }
     }
 
     loadInitialData();

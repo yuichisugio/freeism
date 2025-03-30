@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
+import { AUCTION_CATEGORIES } from "@/lib/auction/constants";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -36,6 +37,7 @@ type Task = {
   imageUrl: string | null;
   status: string;
   contributionType: contributionType;
+  category?: string;
   reporters: TaskParticipant[];
   executors: TaskParticipant[];
   group: {
@@ -45,6 +47,8 @@ type Task = {
 };
 
 const formSchema = taskFormSchema.extend({
+  // カテゴリを追加
+  category: z.string().optional(),
   // 実行者の配列（オプション）
   executors: z
     .array(
@@ -80,6 +84,7 @@ type TaskEditModalProps = {
 export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   const [executors, setExecutors] = useState<TaskParticipant[]>([]);
   const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
@@ -95,6 +100,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
       reference: "",
       info: "",
       contributionType: contributionType.REWARD,
+      category: "その他",
       executors: [],
       reporters: [],
       imageUrl: "",
@@ -110,10 +116,12 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     if (task) {
       form.reset({
         task: task.task,
+        detail: task.detail || "",
         reference: task.reference || "",
         info: task.info || "",
         imageUrl: task.imageUrl || "",
         contributionType: task.contributionType,
+        category: task.category || "その他",
       });
 
       // 実行者と報告者をセット
@@ -209,6 +217,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
         info: formData.info,
         imageUrl: formData.imageUrl,
         contributionType: formData.contributionType,
+        category: formData.category,
         executors: executors,
         reporters: reporters,
       });
@@ -303,6 +312,19 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
               label="タスクのタイトル"
               description="タスクのタイトルを入力してください"
               placeholder="タスクのタイトルを入力してください"
+            />
+
+            {/* カテゴリ選択を追加 */}
+            <CustomFormField
+              fieldType="combobox"
+              control={form.control}
+              name="category"
+              label="カテゴリ"
+              description="タスクのカテゴリを選択してください"
+              open={categoryOpen}
+              setOpen={setCategoryOpen}
+              options={AUCTION_CATEGORIES.slice(1).map((category) => ({ id: category, name: category }))}
+              placeholder="カテゴリを選択してください"
             />
 
             <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="タスクの詳細を入力してください" placeholder="タスクの詳細を入力してください" />

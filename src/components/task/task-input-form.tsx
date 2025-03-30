@@ -6,6 +6,7 @@ import { createTask } from "@/app/actions/task";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
+import { AUCTION_CATEGORIES } from "@/lib/auction/constants";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -33,6 +34,8 @@ const formSchema = taskFormSchema.extend({
   groupId: z.string({
     required_error: "グループに参加して下さい。",
   }),
+  // カテゴリを追加
+  category: z.string().optional(),
   // 実行者の配列（オプション）
   executors: z
     .array(
@@ -74,6 +77,7 @@ export function TaskInputForm({
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [executors, setExecutors] = useState<TaskParticipant[]>([]);
   const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
   const [reporters, setReporters] = useState<TaskParticipant[]>([]);
@@ -88,6 +92,7 @@ export function TaskInputForm({
       reference: "",
       info: "",
       contributionType: contributionType.REWARD,
+      category: "その他", // デフォルト値を設定
       executors: [],
       reporters: [],
       imageUrl: "",
@@ -176,6 +181,7 @@ export function TaskInputForm({
         info: data.info,
         imageUrl: data.imageUrl,
         contributionType: data.contributionType,
+        category: data.category, // カテゴリを追加
         groupId: data.groupId,
         executors: executors.length > 0 ? executors : undefined,
         reporters: reporters.length > 0 ? reporters : undefined,
@@ -236,6 +242,19 @@ export function TaskInputForm({
         label="タスクのタイトル"
         description="タスクのタイトルを入力してください"
         placeholder="タスクのタイトルを入力してください"
+      />
+
+      {/* カテゴリ選択を追加 */}
+      <CustomFormField
+        fieldType="combobox"
+        control={form.control}
+        name="category"
+        label="カテゴリ"
+        description="タスクのカテゴリを選択してください"
+        options={AUCTION_CATEGORIES.slice(1).map((category) => ({ id: category, name: category }))}
+        placeholder="カテゴリを選択してください"
+        open={categoryOpen}
+        setOpen={setCategoryOpen}
       />
 
       <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="具体的な行動内容を記載してください" placeholder="タスクの内容を入力してください" />

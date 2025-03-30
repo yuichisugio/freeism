@@ -22,7 +22,17 @@ const CACHE_TTL = 60 * 1000; // 1分キャッシュ
  * 定数を取得する関数（"use server"ファイルからエクスポートするため）
  */
 export const getAuctionCategories = cache(async () => {
-  return AUCTION_CATEGORIES;
+  try {
+    console.log("Server: Returning categories", AUCTION_CATEGORIES);
+    if (!AUCTION_CATEGORIES || !Array.isArray(AUCTION_CATEGORIES)) {
+      console.error("Server: Invalid AUCTION_CATEGORIES structure:", AUCTION_CATEGORIES);
+      return ["すべて", "その他"]; // フォールバック値を返す
+    }
+    return AUCTION_CATEGORIES;
+  } catch (error) {
+    console.error("Server: Error in getAuctionCategories:", error);
+    return ["すべて", "その他"]; // エラー時のフォールバック値
+  }
 });
 
 /**

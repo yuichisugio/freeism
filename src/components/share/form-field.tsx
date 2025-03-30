@@ -198,20 +198,16 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <Popover open={props.open} onOpenChange={props.setOpen}>
         <PopoverTrigger asChild>
-          <motion.div whileTap={{ scale: 0.98 }} transition={{ duration: 0.2 }}>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={props.open}
-              className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")}
-              type="button"
-            >
-              {field.value ? props.options.find((item) => item[valueProperty] === field.value)?.[labelProperty] || placeholder : placeholder}
-              <motion.div animate={{ rotate: props.open ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </motion.div>
-            </Button>
-          </motion.div>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={props.open}
+            className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")}
+            type="button"
+          >
+            {field.value ? props.options.find((item) => item[valueProperty] === field.value)?.[labelProperty] || placeholder : placeholder}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <Command className="rounded-lg border shadow-md">
