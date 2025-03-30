@@ -86,6 +86,29 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
     { value: "ended", label: "終了済み", icon: <Calendar className="h-4 w-4" /> },
   ];
 
+  // 残り時間のプリセット
+  const timePresets = [
+    { label: "1時間以内", start: 0, end: 1 },
+    { label: "24時間以内", start: 0, end: 24 },
+    { label: "3日以内", start: 0, end: 72 },
+    { label: "1週間以内", start: 0, end: 168 },
+    { label: "2週間以内", start: 0, end: 336 },
+    { label: "1ヶ月以内", start: 0, end: 720 },
+    { label: "3ヶ月以内", start: 0, end: 2160 },
+    { label: "すべて", start: 0, end: 100000 },
+  ];
+
+  // 価格のプリセット
+  const pricePresets = [
+    { label: "500P以下", start: 0, end: 500 },
+    { label: "1000P以下", start: 0, end: 1000 },
+    { label: "5000P以下", start: 0, end: 5000 },
+    { label: "10000P以下", start: 0, end: 10000 },
+    { label: "50000P以下", start: 0, end: 50000 },
+    { label: "100000P以下", start: 0, end: 100000 },
+    { label: "すべて", start: 0, end: 100000000 },
+  ];
+
   // 時間範囲の表示
   const formatTimeDisplay = (hours: number) => {
     if (hours < 1) return "即時";
@@ -246,7 +269,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                   </CardHeader>
                   <CardContent className="p-3">
                     <div className="space-y-5">
-                      <Slider defaultValue={timeRange} min={0} max={720} step={1} value={timeRange} onValueChange={handleTimeRangeChange} className="mt-6" />
+                      <Slider defaultValue={timeRange} min={0} max={2160} step={1} value={timeRange} onValueChange={handleTimeRangeChange} className="mt-6" />
 
                       <div className="flex justify-between text-sm">
                         <span>{formatTimeDisplay(timeRange[0])}</span>
@@ -267,14 +290,11 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                             }}
                             className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors focus:border-amber-300 focus:ring-2 focus:ring-amber-100 focus:outline-none"
                           >
-                            <option value="0">即時</option>
-                            <option value="1">1時間</option>
-                            <option value="6">6時間</option>
-                            <option value="12">12時間</option>
-                            <option value="24">1日</option>
-                            <option value="48">2日</option>
-                            <option value="72">3日</option>
-                            <option value="168">1週間</option>
+                            {timePresets.map((preset) => (
+                              <option key={preset.label} value={preset.start}>
+                                {preset.label}
+                              </option>
+                            ))}
                           </select>
                         </div>
                         <div>
@@ -290,32 +310,28 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                             }}
                             className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors focus:border-amber-300 focus:ring-2 focus:ring-amber-100 focus:outline-none"
                           >
-                            <option value="1">1時間</option>
-                            <option value="6">6時間</option>
-                            <option value="12">12時間</option>
-                            <option value="24">1日</option>
-                            <option value="48">2日</option>
-                            <option value="72">3日</option>
-                            <option value="168">1週間</option>
-                            <option value="336">2週間</option>
-                            <option value="720">30日</option>
+                            {timePresets.map((preset) => (
+                              <option key={preset.label} value={preset.start}>
+                                {preset.label}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-4 gap-2">
-                        <Button type="button" size="sm" variant="outline" onClick={() => setTimePreset(0, 1)} className="text-xs hover:border-amber-200 hover:bg-amber-50">
-                          1時間以内
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setTimePreset(0, 24)} className="text-xs hover:border-amber-200 hover:bg-amber-50">
-                          24時間以内
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setTimePreset(0, 168)} className="text-xs hover:border-amber-200 hover:bg-amber-50">
-                          1週間以内
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setTimePreset(0, 720)} className="text-xs hover:border-amber-200 hover:bg-amber-50">
-                          すべて
-                        </Button>
+                        {timePresets.map((preset) => (
+                          <Button
+                            key={preset.label}
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setTimePreset(preset.start, preset.end)}
+                            className="text-xs hover:border-amber-200 hover:bg-amber-50"
+                          >
+                            {preset.label}
+                          </Button>
+                        ))}
                       </div>
 
                       <Button type="button" size="sm" onClick={handleTimeRangeApply} className="w-full bg-amber-500 text-white hover:bg-amber-600">
@@ -332,7 +348,7 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                   </CardHeader>
                   <CardContent className="p-3">
                     <div className="space-y-5">
-                      <Slider defaultValue={priceRange} min={0} max={10000} step={100} value={priceRange} onValueChange={handlePriceRangeChange} className="mt-6" />
+                      <Slider defaultValue={priceRange} min={0} max={100000} step={100} value={priceRange} onValueChange={handlePriceRangeChange} className="mt-6" />
 
                       <div className="flex justify-between text-sm">
                         <span>{priceRange[0].toLocaleString()} ポイント</span>
@@ -379,27 +395,18 @@ export default function AuctionFilters({ filters, onFilterChangeAction, sortOpti
                       <Separator className="my-2" />
 
                       <div className="grid grid-cols-3 gap-2">
-                        <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(0, 500)} className="text-xs hover:border-red-200 hover:bg-red-50">
-                          ~500 P
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(500, 1000)} className="text-xs hover:border-red-200 hover:bg-red-50">
-                          500~1,000 P
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(1000, 2000)} className="text-xs hover:border-red-200 hover:bg-red-50">
-                          1,000~2,000 P
-                        </Button>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(2000, 3000)} className="text-xs hover:border-red-200 hover:bg-red-50">
-                          2,000~3,000 P
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(3000, 5000)} className="text-xs hover:border-red-200 hover:bg-red-50">
-                          3,000~5,000 P
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => setPricePreset(5000, 10000)} className="text-xs hover:border-red-200 hover:bg-red-50">
-                          5,000+ P
-                        </Button>
+                        {pricePresets.map((preset) => (
+                          <Button
+                            key={preset.label}
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setPricePreset(preset.start, preset.end)}
+                            className="text-xs hover:border-red-200 hover:bg-red-50"
+                          >
+                            {preset.label}
+                          </Button>
+                        ))}
                       </div>
 
                       <Button type="button" size="sm" onClick={handlePriceRangeApply} className="w-full bg-red-500 text-white hover:bg-red-600">
