@@ -42,6 +42,8 @@ model User {
   auctionNotifications AuctionNotification[]
   reviewsGiven         AuctionReview[]       @relation("ReviewerUser")
   reviewsReceived      AuctionReview[]       @relation("RevieweeUser")
+  sentMessages         AuctionMessage[]      @relation("MessageSender")
+  receivedMessages     AuctionMessage[]      @relation("MessageRecipient")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -329,6 +331,7 @@ model Auction {
   reviews              AuctionReview[]
   notifications        AuctionNotification[]
   autoBids             AutoBid[]
+  messages             AuctionMessage[]
 
   @@index([taskId])
   @@index([currentHighestBidderId])
@@ -432,4 +435,22 @@ model AuctionReview {
   @@index([auctionId])
   @@index([reviewerId])
   @@index([revieweeId])
+}
+
+// オークションメッセージモデル
+model AuctionMessage {
+  id          String   @id @default(cuid())
+  auctionId   String   @map("auction_id")
+  senderId    String   @map("sender_id")
+  recipientId String   @map("recipient_id")
+  message     String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  sender    User    @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User    @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@index([senderId])
+  @@index([recipientId])
 }

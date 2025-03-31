@@ -328,6 +328,7 @@ export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: Aucti
             </Card>
           </TabsContent>
 
+          {/* タイムライン */}
           <TabsContent value="timeline">
             <Card>
               <CardHeader>
@@ -364,6 +365,7 @@ export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: Aucti
             </Card>
           </TabsContent>
 
+          {/* メッセージ */}
           <TabsContent value="chat">
             <Card>
               <CardHeader>

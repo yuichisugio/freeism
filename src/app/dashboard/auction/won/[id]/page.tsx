@@ -5,15 +5,26 @@ import { AuctionWonDetail } from "@/components/auction/auction-history/auction-w
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 type WonAuctionPageProps = {
   params: Promise<{ id: string }>;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export const metadata: Metadata = {
   title: "落札商品詳細 | Freeism",
   description: "落札した商品の詳細や評価、配送状況を確認できます",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 落札商品詳細ページ
+ * @param params パラメータ
+ * @returns 落札商品詳細ページ
+ */
 export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
   const { id } = await params;
   const session = await auth();

@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -20,12 +19,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { completeTaskDelivery, createAuctionReview, updateDeliveryMethod } from "@/lib/auction/action/history";
+import { useDeliveryMethod } from "@/hooks/auction/history/use-delivery-method";
+import { useAuctionMessages } from "@/hooks/auction/history/use-messages";
+import { useAuctionReview } from "@/hooks/auction/history/use-review";
+import { useTaskCompletion } from "@/hooks/auction/history/use-task-completion";
 import { type Auction, type AuctionReview, type AuctionStatus, type TaskStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ArrowLeft, Edit, History, MessageSquare, ShoppingBag } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, Edit, History, MessageSquare, Send } from "lucide-react";
 
 import { Rating } from "../common/rating";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
@@ -80,102 +81,35 @@ type AuctionCreatedDetailProps = {
  * @param winnerReviews 落札者の評価履歴
  */
 export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: AuctionCreatedDetailProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const router = useRouter();
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState(auction.task.deliveryMethod ?? "");
-  const [isUpdatingDelivery, setIsUpdatingDelivery] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCompleting, setIsCompleting] = useState(false);
-  const [isEditingDelivery, setIsEditingDelivery] = useState(false);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // カスタムフックの使用
+  const { messages, newMessage, setNewMessage, isLoadingMessages, isSendingMessage, messagesEndRef, handleSendMessage } = useAuctionMessages(auction.id, auction.winner?.id);
 
-  // ユーザーがすでに評価を送信したかどうか
-  const hasReviewed = useMemo(() => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.task.creatorId && review.isSellerReview), [auction.reviews, auction.task.creatorId]);
+  const { rating, setRating, comment, setComment, isSubmitting, hasReviewed, handleReviewSubmit } = useAuctionReview({
+    auctionId: auction.id,
+    winnerId: auction.winner?.id,
+    creatorId: auction.task.creatorId,
+    reviews: auction.reviews,
+  });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } = useDeliveryMethod(
+    auction.task.id,
+    auction.task.deliveryMethod ?? "",
+  );
 
-  // 評価を送信する
-  const handleReviewSubmit = useCallback(async () => {
-    if (!auction.winner) {
-      toast.error("落札者がいないため評価できません");
-      return;
-    }
-
-    if (rating === 0) {
-      toast.error("評価を選択してください");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await createAuctionReview(
-        auction.id,
-        auction.winner.id,
-        rating,
-        comment,
-        true, // 出品者からの評価なのでtrue
-      );
-      toast.success("評価を送信しました");
-      router.refresh();
-    } catch (error) {
-      console.error("評価の送信に失敗しました", error);
-      toast.error("評価の送信に失敗しました");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [auction.id, auction.winner, comment, rating, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 商品の提供を完了する
-  const handleComplete = useCallback(async () => {
-    setIsCompleting(true);
-    try {
-      await completeTaskDelivery(auction.task.id);
-      toast.success("商品の提供を完了しました");
-      router.refresh();
-    } catch (error) {
-      console.error("完了処理に失敗しました", error);
-      toast.error("完了処理に失敗しました");
-    } finally {
-      setIsCompleting(false);
-    }
-  }, [auction.task.id, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 提供方法を更新する
-  const handleUpdateDeliveryMethod = useCallback(async () => {
-    if (!deliveryMethod.trim()) {
-      toast.error("提供方法を入力してください");
-      return;
-    }
-
-    setIsUpdatingDelivery(true);
-    try {
-      await updateDeliveryMethod(auction.task.id, deliveryMethod);
-      toast.success("提供方法を更新しました");
-      setIsEditingDelivery(false);
-      router.refresh();
-    } catch (error) {
-      console.error("提供方法の更新に失敗しました", error);
-      toast.error("提供方法の更新に失敗しました");
-    } finally {
-      setIsUpdatingDelivery(false);
-    }
-  }, [auction.task.id, deliveryMethod, router]);
+  const { isCompleting, handleComplete } = useTaskCompletion(auction.task.id);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="container mx-auto py-6">
+      {/* 履歴一覧に戻るボタン */}
       <Button variant="outline" className="mb-6" onClick={() => router.push("/dashboard/auction/history")}>
         <ArrowLeft className="mr-2 h-4 w-4" /> 履歴一覧に戻る
       </Button>
 
+      {/* 商品情報と落札者情報と評価 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* 左側: 商品情報 */}
         <div className="md:col-span-2">
@@ -202,15 +136,23 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
 
                 <div>
                   <h3 className="mb-2 text-lg font-medium">オークション情報</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                     <div>
                       <p className="text-sm text-gray-500">現在/落札額</p>
                       <p className="text-lg font-bold">{auction.currentHighestBid.toLocaleString()} ポイント</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">オークション期間</p>
-                      <p className="font-medium">
-                        {format(new Date(auction.startTime), "yyyy/MM/dd", { locale: ja })} 〜 {format(new Date(auction.endTime), "yyyy/MM/dd", { locale: ja })}
+                      <p className="text-sm text-gray-500">開始日時</p>
+                      <p>{format(new Date(auction.startTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">終了日時</p>
+                      <p>{format(new Date(auction.endTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">ステータス</p>
+                      <p>
+                        <AuctionStatusBadge status={auction.status} />
                       </p>
                     </div>
                   </div>
@@ -220,7 +162,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                   <div className="mb-2 flex items-center justify-between">
                     <h3 className="text-lg font-medium">提供方法</h3>
                     {!isEditingDelivery && (
-                      <Button variant="outline" size="sm" onClick={() => setIsEditingDelivery(true)}>
+                      <Button variant="outline" size="sm" onClick={startEditing}>
                         <Edit className="mr-1 h-4 w-4" /> 編集
                       </Button>
                     )}
@@ -235,17 +177,10 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                         className="h-24"
                       />
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setIsEditingDelivery(false);
-                            setDeliveryMethod(auction.task.deliveryMethod ?? "");
-                          }}
-                        >
+                        <Button variant="outline" size="sm" onClick={cancelEditing}>
                           キャンセル
                         </Button>
-                        <Button size="sm" onClick={handleUpdateDeliveryMethod} disabled={isUpdatingDelivery}>
+                        <Button size="sm" onClick={() => void handleUpdateDeliveryMethod()} disabled={isUpdatingDelivery}>
                           {isUpdatingDelivery ? "更新中..." : "更新する"}
                         </Button>
                       </div>
@@ -271,7 +206,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleComplete}>完了する</AlertDialogAction>
+                      <AlertDialogAction onClick={() => void handleComplete()}>完了する</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -328,7 +263,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
 
                       <Textarea placeholder="コメントを入力（任意）" value={comment} onChange={(e) => setComment(e.target.value)} className="h-24" />
 
-                      <Button className="w-full" onClick={handleReviewSubmit} disabled={rating === 0 || isSubmitting}>
+                      <Button className="w-full" onClick={() => void handleReviewSubmit()} disabled={rating === 0 || isSubmitting}>
                         {isSubmitting ? "送信中..." : "評価を送信"}
                       </Button>
                     </div>
@@ -356,18 +291,16 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
       {/* タブ付きセクション */}
       <div className="mt-8">
         <Tabs defaultValue="bids">
-          <TabsList className="mb-6 grid w-full grid-cols-3">
+          <TabsList className="mb-6 grid w-full grid-cols-2">
             <TabsTrigger value="bids">
               <History className="mr-2 h-4 w-4" /> 入札履歴
-            </TabsTrigger>
-            <TabsTrigger value="details">
-              <ShoppingBag className="mr-2 h-4 w-4" /> 詳細情報
             </TabsTrigger>
             <TabsTrigger value="chat">
               <MessageSquare className="mr-2 h-4 w-4" /> メッセージ
             </TabsTrigger>
           </TabsList>
 
+          {/* 入札履歴 */}
           <TabsContent value="bids">
             <Card>
               <CardHeader>
@@ -388,35 +321,23 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {auction.bidHistories.map(
-                        (bid: {
-                          id: string;
-                          amount: number;
-                          createdAt: Date | string;
-                          isAutoBid?: boolean;
-                          user: {
-                            id: string;
-                            name?: string | null;
-                            image?: string | null;
-                          };
-                        }) => (
-                          <TableRow key={bid.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={bid.user.image ?? ""} alt={bid.user.name ?? "入札者"} />
-                                  <AvatarFallback>{bid.user.name?.[0] ?? "入"}</AvatarFallback>
-                                </Avatar>
-                                <span>{bid.user.name ?? "入札者"}</span>
-                                {auction.winnerId === bid.user.id && <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">落札者</span>}
-                              </div>
-                            </TableCell>
-                            <TableCell>{bid.amount.toLocaleString()} ポイント</TableCell>
-                            <TableCell>{bid.isAutoBid ? "自動入札" : "通常入札"}</TableCell>
-                            <TableCell className="text-right">{format(new Date(bid.createdAt), "yyyy/MM/dd HH:mm", { locale: ja })}</TableCell>
-                          </TableRow>
-                        ),
-                      )}
+                      {auction.bidHistories.map((bid) => (
+                        <TableRow key={bid.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={bid.user.image ?? ""} alt={bid.user.name ?? "入札者"} />
+                                <AvatarFallback>{bid.user.name?.[0] ?? "入"}</AvatarFallback>
+                              </Avatar>
+                              <span>{bid.user.name ?? "入札者"}</span>
+                              {auction.winnerId === bid.user.id && <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">落札者</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell>{bid.amount.toLocaleString()} ポイント</TableCell>
+                          <TableCell>{bid.isAutoBid ? "自動入札" : "通常入札"}</TableCell>
+                          <TableCell className="text-right">{format(new Date(bid.createdAt), "yyyy/MM/dd HH:mm", { locale: ja })}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 )}
@@ -424,41 +345,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
             </Card>
           </TabsContent>
 
-          <TabsContent value="details">
-            <Card>
-              <CardHeader>
-                <CardTitle>詳細情報</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium">オークション情報</h3>
-                    <div className="mt-2 grid grid-cols-2 gap-4 md:grid-cols-4">
-                      <div>
-                        <p className="text-sm text-gray-500">開始日時</p>
-                        <p>{format(new Date(auction.startTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">終了日時</p>
-                        <p>{format(new Date(auction.endTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">現在/落札額</p>
-                        <p>{auction.currentHighestBid.toLocaleString()} ポイント</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">ステータス</p>
-                        <p>
-                          <AuctionStatusBadge status={auction.status} />
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
+          {/* メッセージ */}
           <TabsContent value="chat">
             <Card>
               <CardHeader>
@@ -466,7 +353,68 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                 <CardDescription>落札者とのメッセージのやり取り</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="py-8 text-center text-gray-500">この機能は現在準備中です</div>
+                {!auction.winner ? (
+                  <div className="py-8 text-center text-gray-500">落札者がいないためメッセージ機能は利用できません</div>
+                ) : (
+                  <div className="flex h-[400px] flex-col">
+                    <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                      {isLoadingMessages ? (
+                        <div className="flex h-full items-center justify-center">
+                          <p className="text-gray-500">メッセージを読み込み中...</p>
+                        </div>
+                      ) : messages.length === 0 ? (
+                        <div className="flex h-full items-center justify-center">
+                          <p className="text-gray-500">まだメッセージはありません</p>
+                        </div>
+                      ) : (
+                        messages.map((msg) => (
+                          <div key={msg.id} className={`flex ${msg.senderId === auction.task.creatorId ? "justify-end" : "justify-start"}`}>
+                            <div className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.senderId === auction.task.creatorId ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={msg.sender.image ?? ""} alt={msg.sender.name ?? "ユーザー"} />
+                                  <AvatarFallback>{msg.sender.name?.[0] ?? "U"}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs">{msg.sender.name ?? "ユーザー"}</span>
+                              </div>
+                              <p className="mt-1 break-words whitespace-pre-wrap">{msg.message}</p>
+                              <p className="mt-1 text-right text-xs opacity-70">{format(new Date(msg.createdAt), "MM/dd HH:mm", { locale: ja })}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="border-t p-4">
+                      <div className="flex gap-2">
+                        <Textarea
+                          placeholder="メッセージを入力..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          className="min-h-[80px]"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.ctrlKey) {
+                              e.preventDefault();
+                              void handleSendMessage();
+                            }
+                          }}
+                        />
+                        <Button className="h-auto" onClick={() => void handleSendMessage()} disabled={isSendingMessage || !newMessage.trim()}>
+                          {isSendingMessage ? (
+                            "送信中..."
+                          ) : (
+                            <>
+                              <Send className="mr-2 h-4 w-4" />
+                              送信
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500">Ctrl + Enterで送信できます</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
