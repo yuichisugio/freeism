@@ -297,8 +297,8 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
 
             {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
             {isRewardType && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">報酬画像</label>
+              <div className="space-y-2" role="group" aria-label="報酬画像">
+                <p className="text-sm font-medium">報酬画像</p>
                 <p className="text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
                 <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
               </div>

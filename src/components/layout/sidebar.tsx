@@ -50,7 +50,7 @@ const sidebarItems = [
       },
       {
         title: "入札・落札履歴",
-        href: "/dashboard/auction/mine",
+        href: "/dashboard/auction/history",
         icon: History,
       },
     ],
@@ -109,7 +109,16 @@ export function Sidebar() {
       </Button>
 
       {/* モバイル用オーバーレイ - ヘッダーを白色のままにする */}
-      {isOpen && <div className="fixed top-16 right-0 bottom-0 left-0 z-40 bg-black/20 backdrop-blur-sm sm:hidden" onClick={toggleSidebar} />}
+      {isOpen && (
+        <div
+          className="fixed top-16 right-0 bottom-0 left-0 z-40 bg-black/20 backdrop-blur-sm sm:hidden"
+          onClick={toggleSidebar}
+          onKeyDown={(e) => e.key === "Escape" && toggleSidebar()}
+          role="button"
+          tabIndex={0}
+          aria-label="閉じる"
+        />
+      )}
 
       {/* Sidebar本体 - スクロール機能を追加 */}
       <aside

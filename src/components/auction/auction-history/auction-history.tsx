@@ -13,12 +13,20 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Award, Clock, Loader2, Tag } from "lucide-react";
 
+/**
+ * 入札・落札履歴コンポーネント
+ * @returns 入札・落札履歴コンポーネント
+ */
 export function AuctionHistory() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const router = useRouter();
   const [bidHistory, setBidHistory] = useState<BidHistoryItem[]>([]);
   const [wonAuctions, setWonAuctions] = useState<WonAuctionItem[]>([]);
   const [createdAuctions, setCreatedAuctions] = useState<CreatedAuctionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // タブ切り替え時のデータ取得
   const handleTabChange = async (value: string) => {

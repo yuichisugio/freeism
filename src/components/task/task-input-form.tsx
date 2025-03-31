@@ -261,8 +261,8 @@ export function TaskInputForm({
 
       {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
       {isRewardType && (
-        <div className="space-y-2">
-          <label className="form-label-custom text-base font-medium text-gray-700">報酬画像</label>
+        <div className="space-y-2" role="group" aria-label="報酬画像">
+          <p className="form-label-custom text-base font-medium text-gray-700">報酬画像</p>
           <p className="form-description-custom text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
           <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
         </div>

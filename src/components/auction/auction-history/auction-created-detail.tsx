@@ -148,7 +148,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
 
   return (
     <div className="container mx-auto py-6">
-      <Button variant="outline" className="mb-6" onClick={() => router.push("/dashboard/auction/mine")}>
+      <Button variant="outline" className="mb-6" onClick={() => router.push("/dashboard/auction/history")}>
         <ArrowLeft className="mr-2 h-4 w-4" /> 履歴一覧に戻る
       </Button>
 

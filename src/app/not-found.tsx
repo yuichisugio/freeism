@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
  * - 装飾的な背景エフェクトを含む
  * - レスポンシブ対応（画面サイズに応じてサイズを調整）
  */
-export function NotFound() {
+export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* ヘッダー */}

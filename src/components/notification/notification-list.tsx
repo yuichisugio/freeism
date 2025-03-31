@@ -568,7 +568,14 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
 
   return (
     <li className={`flex flex-col rounded-lg border transition-colors ${backgroundClass} ${expandedPaddingClass}`}>
-      <div className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`} onClick={handleItemClick}>
+      <div
+        className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`}
+        onClick={handleItemClick}
+        onKeyDown={(e) => e.key === "Enter" && handleItemClick()}
+        role="button"
+        tabIndex={0}
+        aria-label={`通知: ${notification.title}`}
+      >
         <div className="mt-1">
           <NotificationIcon type={notification.NotificationType} />
         </div>

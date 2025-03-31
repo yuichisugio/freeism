@@ -4,6 +4,9 @@ import { FlatCompat } from "@eslint/eslintrc";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
+import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 import unicorn from "eslint-plugin-unicorn";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,20 +24,34 @@ const eslintConfig = [
       "@typescript-eslint": typescript,
       unicorn: unicorn,
       import: importPlugin,
+      react: reactPlugin,
+      "react-hooks": reactHooksPlugin,
+      "jsx-a11y": jsxA11yPlugin,
     },
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
         project: true,
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    settings: {
+      react: {
+        version: "detect",
       },
     },
     rules: {
       ...(typescript.configs?.["recommended-type-checked"]?.rules ?? {}),
       ...(typescript.configs?.["stylistic-type-checked"]?.rules ?? {}),
+      ...reactPlugin.configs.recommended.rules,
+      ...reactPlugin.configs["jsx-runtime"].rules,
+      ...reactHooksPlugin.configs.recommended.rules,
+      ...jsxA11yPlugin.configs.recommended.rules,
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+      "react/prop-types": "off",
       "@typescript-eslint/consistent-type-imports": [
-        "warn",
+        "error",
         {
           prefer: "type-imports",
           fixStyle: "inline-type-imports",
@@ -60,7 +77,7 @@ const eslintConfig = [
     },
   },
   {
-    files: ["**/page.tsx", "**/layout.tsx", "next.config.ts", "postcss.config.mjs", "tailwind.config.ts"],
+    files: ["**/page.tsx", "**/layout.tsx", "**/not-found.tsx", "next.config.ts", "postcss.config.mjs", "tailwind.config.ts"],
     rules: {
       "import/no-default-export": "off",
       "import/prefer-default-export": "error",
