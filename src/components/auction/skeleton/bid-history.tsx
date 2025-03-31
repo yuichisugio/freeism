@@ -1,7 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// スケルトンローダー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 入札履歴スケルトンローダー
+ */
 export function BidHistorySkeleton() {
   return (
     <div className="rounded-md border">

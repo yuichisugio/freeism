@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループを作成する関数
  * @param data - 作成するグループのデータ
@@ -47,6 +49,8 @@ export async function createGroup(data: CreateGroupFormData) {
     return { error: "エラーが発生しました" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループに参加する関数
@@ -101,6 +105,8 @@ export async function joinGroup(groupId: string) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループから脱退する関数
  * @param groupId - 脱退するグループのID
@@ -135,6 +141,8 @@ export async function leaveGroup(groupId: string) {
     return { error: "エラーが発生しました" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループを削除する関数
@@ -177,6 +185,8 @@ export async function deleteGroup(groupId: string) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループ名の重複をチェックする関数。Groupテーブル名の重複チェックはユニーク制約があるので、↓は不要。
  * @param name - チェックするグループ名
@@ -193,6 +203,8 @@ export async function checkGroupNameExists(name: string) {
     throw error;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループを編集する関数
@@ -259,6 +271,8 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループの詳細を取得する関数
  * @param groupId - 取得するグループのID
@@ -281,6 +295,8 @@ export async function getGroup(groupId: string) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 認証処理を行い、現在のユーザーIDを取得する関数
  * @returns 認証成功時はユーザーID、失敗時はnull
@@ -294,6 +310,8 @@ export async function checkAuth() {
     return null;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * アプリオーナー権限をチェックする関数
@@ -313,6 +331,8 @@ export async function checkAppOwner(userId: string) {
     return false;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループ参加チェックを行う関数
@@ -334,6 +354,8 @@ export async function checkGroupMembership(userId: string, groupId: string) {
     return null;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オーナー権限があるかどうかをチェックする関数
@@ -373,6 +395,8 @@ export async function checkGroupOwner(userId: string, groupId: string) {
     return false;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループオーナー権限を付与する関数
@@ -423,6 +447,8 @@ export async function grantOwnerPermission(groupId: string, userId: string) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループメンバーシップの型定義
  */
@@ -434,6 +460,8 @@ export type GroupMembership = {
   joinedAt: Date;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループメンバーの型定義（ユーザー情報を含む）
  */
@@ -444,6 +472,8 @@ export type GroupMemberWithUser = GroupMembership & {
     email: string;
   };
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループのメンバー一覧を取得する関数
@@ -476,6 +506,8 @@ export async function getGroupMembers(groupId: string): Promise<GroupMemberWithU
     throw error;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループからメンバーを削除する関数

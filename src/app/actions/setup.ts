@@ -8,6 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ユーザー設定を更新または作成する関数
  * @param data - フォームから送信されたデータ
@@ -47,6 +49,13 @@ export async function updateUserSetup(data: SetupForm) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループを作成する関数
+ * @param data - グループ作成フォームのデータ
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function createGroup(data: CreateGroupFormData) {
   console.log("createGroup", data);
   try {
@@ -83,6 +92,13 @@ export async function createGroup(data: CreateGroupFormData) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループに参加する関数
+ * @param groupId - 参加するグループのID
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function joinGroup(groupId: string) {
   try {
     const session = await auth();
@@ -137,6 +153,13 @@ export async function joinGroup(groupId: string) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループから脱退する関数
+ * @param groupId - 脱退するグループのID
+ * @returns 処理結果を含むオブジェクト
+ */
 export async function leaveGroup(groupId: string) {
   try {
     const session = await auth();

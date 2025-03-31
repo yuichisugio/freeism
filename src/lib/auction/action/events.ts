@@ -4,6 +4,8 @@ import type { AuctionWithDetails, BidHistoryWithUser } from "../type/types";
 import { AuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
   id: number;
@@ -11,6 +13,8 @@ type EventHistoryItem = {
   data: Record<string, unknown>;
   timestamp: number;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション更新イベントの送信ヘルパー関数
@@ -20,6 +24,8 @@ type EventHistoryItem = {
 export async function sendAuctionUpdateEvent(auctionId: string, auction: AuctionWithDetails): Promise<EventHistoryItem> {
   return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_UPDATE, auction);
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 新規入札イベントの送信ヘルパー関数
@@ -34,6 +40,8 @@ export async function sendNewBidEvent(auctionId: string, bid: BidHistoryWithUser
   };
   return sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithBid);
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション延長イベントの送信ヘルパー関数
@@ -50,6 +58,8 @@ export async function sendAuctionExtensionEvent(auctionId: string, newEndTime: s
   return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_EXTENSION, auctionWithNewEndTime);
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークション終了イベントの送信ヘルパー関数
  * @param auctionId オークションID
@@ -58,6 +68,8 @@ export async function sendAuctionExtensionEvent(auctionId: string, newEndTime: s
 export async function sendAuctionEndedEvent(auctionId: string, auction: AuctionWithDetails): Promise<EventHistoryItem> {
   return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_ENDED, auction);
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * エラーイベントの送信ヘルパー関数

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action/watchlist";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ウォッチリストの状態を取得
  * @param request リクエスト
@@ -26,6 +28,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "ウォッチリストの確認中にエラーが発生しました" }, { status: 500 });
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ウォッチリストの状態を切り替え
@@ -51,17 +55,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // GET, POST以外は許可しない
 export async function PUT() {
   return new NextResponse(null, { status: 405 });
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 export async function DELETE() {
   return new NextResponse(null, { status: 405 });
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 export async function PATCH() {
   return new NextResponse(null, { status: 405 });
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export const dynamic = "force-dynamic";

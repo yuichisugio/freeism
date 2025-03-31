@@ -4,6 +4,7 @@ import type { AuctionWithDetails, BidHistoryWithUser } from "../type/types";
 import { connectionManager } from "../server-sent-events/connection-manager-singleton";
 import { AuctionEventType } from "../type/types";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
   id: number;
@@ -11,6 +12,8 @@ type EventHistoryItem = {
   data: Record<string, unknown>;
   timestamp: number;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 特定のオークションの全接続に対してイベントを送信
@@ -23,6 +26,8 @@ export async function sendEventToAuctionSubscribers(auctionId: string, type: Auc
   console.log("sendEventToAuctionSubscribers", auctionId, type);
   return connectionManager.broadcastToAuction(auctionId, type, data);
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 入札イベントを送信する

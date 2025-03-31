@@ -2,6 +2,8 @@ import type { AuctionEventType, AuctionWithDetails } from "../type/types";
 
 const MAX_EVENT_HISTORY = 50; // オークションごとのイベント履歴最大数
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // イベント履歴データ型
 type EventHistoryItem = {
   id: number; // イベントID
@@ -10,8 +12,12 @@ type EventHistoryItem = {
   timestamp: number; // タイムスタンプ
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // 接続管理クラス
 export class ConnectionManager {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // インスタンスID
   public readonly instanceId: string;
   // オークションID => (クライアントID => コントローラー) の二層マップ
@@ -26,11 +32,15 @@ export class ConnectionManager {
   // エンコーダー
   private encoder = new TextEncoder();
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // コンストラクタ
   constructor() {
     this.instanceId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     console.log("[ConnectionManager Class] Instance created. ID:", this.instanceId);
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * インスタンスIDを取得
@@ -39,6 +49,8 @@ export class ConnectionManager {
   public getInstanceId(): string {
     return this.instanceId;
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * オークションごとの接続数を取得
@@ -51,6 +63,8 @@ export class ConnectionManager {
     return this.connections.get(normalizedAuctionId)?.size ?? 0;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 全ての接続数を取得
    * @returns 全ての接続数
@@ -62,6 +76,8 @@ export class ConnectionManager {
     }
     return total;
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * クライアント接続を追加
@@ -88,6 +104,8 @@ export class ConnectionManager {
     console.log(`[CM Class] SSE connection established: Client ${clientId} to auction ${normalizedAuctionId} (Count: ${currentCount})`);
     console.log("[CM Class] Current map keys:", Array.from(this.connections.keys()));
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * クライアント接続を削除
@@ -143,6 +161,8 @@ export class ConnectionManager {
     }
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * イベント履歴を記録
    * @param auctionId オークションID
@@ -180,6 +200,8 @@ export class ConnectionManager {
     return eventItem;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 特定イベントID以降のイベントを取得
    * @param auctionId オークションID
@@ -193,6 +215,8 @@ export class ConnectionManager {
     const history = this.eventHistories.get(normalizedAuctionId) ?? [];
     return history.filter((event) => event.id > lastEventId);
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * SSEメッセージ形式に変換
@@ -208,6 +232,8 @@ export class ConnectionManager {
 
     return message;
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * オークションの購読者全員にイベントを送信

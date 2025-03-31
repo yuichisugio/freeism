@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod"; // zodを使用して型検証を行います
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * CSVからインポートする評価データの検証スキーマ
  * すべてのフィールドを必須にして、データの完全性を確保
@@ -27,15 +29,21 @@ const evaluationDataSchema = z.object({
   evaluationLogic: z.string().min(1, "評価ロジックは必須です"),
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * CSVからインポートする評価データの型定義
  */
 type EvaluationImportData = z.infer<typeof evaluationDataSchema>;
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 評価結果の型定義
  */
 type EvaluationResult = { success: true; analyses: Array<{ count: number; message: string }> } | { success: false; error: string; details?: Record<string, unknown> };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * CSVから貢献評価を一括登録する関数

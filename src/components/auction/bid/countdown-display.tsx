@@ -11,6 +11,8 @@ import { AlertTriangle, Clock } from "lucide-react";
  * @returns カウントダウン表示
  */
 export function CountdownDisplay({ countdownState, countdownAction }: CountdownDisplayProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // オークション終了時の表示
   if (countdownState.isExpired) {
     return (
@@ -21,6 +23,8 @@ export function CountdownDisplay({ countdownState, countdownAction }: CountdownD
     );
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 残り時間が24時間以内の場合（急ぎ表示）
   if (countdownState.days === 0 && countdownState.hours < 24) {
     return (
@@ -30,6 +34,8 @@ export function CountdownDisplay({ countdownState, countdownAction }: CountdownD
       </motion.div>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通常表示（余裕がある場合）
   return (

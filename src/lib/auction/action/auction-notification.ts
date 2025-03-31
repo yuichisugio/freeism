@@ -3,6 +3,8 @@
 import { sendNewBidEvent } from "@/lib/auction/action/server-sent-events-broadcast";
 import { prisma } from "@/lib/prisma";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 新規入札通知を行う関数
  * @param auctionId オークションID

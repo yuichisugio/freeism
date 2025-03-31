@@ -9,6 +9,8 @@ import { prisma } from "@/lib/prisma";
 import { contributionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * タスクを作成する関数
  * @param data - タスクのデータ
@@ -126,6 +128,8 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループの詳細情報を取得する関数
  * @param groupId - グループID
@@ -190,6 +194,8 @@ export async function getTasksByGroupId(groupId: string) {
     throw new Error("タスク情報の取得中にエラーが発生しました");
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループのタスク情報をCSV形式でエクスポートする関数
@@ -340,6 +346,8 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // タスクとその関連データの型定義
 type TaskWithRelations = {
   id: string;
@@ -370,6 +378,8 @@ type TaskUserRelation = {
   name?: string | null;
   userId?: string;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループの分析結果をCSV形式でエクスポートする関数
@@ -646,6 +656,8 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * CSVからタスクを一括登録する関数
  * @param data - CSVから読み込んだタスクデータ
@@ -759,6 +771,8 @@ export async function bulkCreateTasks(
     return { error: "タスクの一括登録中にエラーが発生しました" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスクのステータスを更新する関数
@@ -911,6 +925,8 @@ export async function updateTaskStatus(taskId: string, status: string) {
     return { error: "タスクのステータスの更新中にエラーが発生しました" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスクを更新する関数
@@ -1070,6 +1086,8 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 type FixedEvaluationData = {
   id: string;
   fixedContributionPoint: string | number;
@@ -1079,6 +1097,8 @@ type FixedEvaluationData = {
   失敗理由?: string;
   [key: string]: unknown;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * FIXした分析結果データをCSVからアップロードして、タスクを更新する関数
@@ -1290,6 +1310,8 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * タスクステータスを一括更新する関数
  * @param data タスクIDとステータスを含むデータ配列
@@ -1492,7 +1514,12 @@ export async function bulkUpdateTaskStatuses(
     };
   }
 }
-// タスク一覧を取得する関数
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク一覧を取得する関数
+ */
 export async function getMyTasks() {
   try {
     const session = await auth();

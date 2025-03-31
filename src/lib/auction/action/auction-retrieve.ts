@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { AUCTION_CONSTANTS } from "../constants";
 import { type Auction, type AuctionWithDetails } from "../type/types";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 /**
  * オークションIDに関連するオークション情報を取得
  * @param auctionId オークションID
@@ -45,6 +46,8 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
     return null;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスクIDに関連するオークション情報を取得
@@ -94,6 +97,8 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
     return null;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * Prismaモデルから@/types/auctionで定義されたAuction型に変換

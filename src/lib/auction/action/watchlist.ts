@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 
 import { getCurrentUserId } from "./user";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * クライアントサイドからも呼び出せるウォッチリスト切り替え関数
  * @param auctionId オークションID
@@ -44,6 +46,8 @@ export async function toggleWatchlist(auctionId: string) {
     return { isWatched: true };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ウォッチリストの切り替え
@@ -85,6 +89,8 @@ export async function serverToggleWatchlist(auctionId: string, userId: string): 
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションがウォッチリストに登録されているか確認
  * @param auctionId オークションID
@@ -106,6 +112,8 @@ export async function serverIsAuctionWatched(auctionId: string, userId: string):
     return false;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ウォッチリストの切り替えを行うサーバーアクション
@@ -150,6 +158,8 @@ export async function toggleWatchlistAction(auctionId: string) {
     };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ウォッチリストの状態を取得するサーバーアクション

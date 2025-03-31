@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { setupSchema } from "@/lib/zod-schema";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ユーザー設定を更新または作成する関数
  * @param data - フォームから送信されたデータ
@@ -46,6 +48,8 @@ export async function updateUserSetup(data: SetupForm) {
     return { success: false, error: "設定の更新中にエラーが発生しました。" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 全ユーザーの一覧を取得する関数

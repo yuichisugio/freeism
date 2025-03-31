@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 
 import { type Auction, type AuctionWithDetails } from "../type/types";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションの現在のステータスを取得
  * @param auction オークション情報
@@ -21,6 +23,8 @@ export async function getAuctionStatus(auction: Auction | AuctionWithDetails): P
     return "active";
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ユーザーのポイント残高を取得
@@ -40,6 +44,8 @@ export async function getUserPointBalance(userId: string, groupId: string): Prom
 
   return groupPoint?.balance ?? 0;
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 入札可能か確認する

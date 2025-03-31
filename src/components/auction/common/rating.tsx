@@ -10,23 +10,39 @@ type RatingDisplayProps = {
   onChange?: (rating: number) => void;
 };
 
+/**
+ * 評価表示コンポーネント
+ * @param rating 評価
+ * @param size サイズ
+ * @param readonly 読み取り専用
+ * @param onChange 評価変更時のコールバック
+ */
 export function Rating({ rating, size = 20, readonly = true, onChange }: RatingDisplayProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const [hoverRating, setHoverRating] = useState(0);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const handleClick = (index: number) => {
     if (readonly) return;
     onChange?.(index);
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const handleMouseEnter = (index: number) => {
     if (readonly) return;
     setHoverRating(index);
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const handleMouseLeave = () => {
     if (readonly) return;
     setHoverRating(0);
   };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex">

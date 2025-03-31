@@ -5,6 +5,8 @@ import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { SSE_CONFIG } from "@/lib/auction/constants";
 import { connectionManager } from "@/lib/auction/server-sent-events/connection-manager-singleton";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * SSEエンドポイント
  * オークションの初期データと、新しい入札やオークション更新が発生した場合のイベントを送信
@@ -13,8 +15,11 @@ import { connectionManager } from "@/lib/auction/server-sent-events/connection-m
  * @returns レスポンス
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // パラメータを取得
   const { auctionId } = await params;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // クエリパラメータを取得
   const url = new URL(request.url);
@@ -35,6 +40,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (queryAuctionId && queryAuctionId !== auctionId) {
     console.warn(`route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`);
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 認証チェック
   const session = await auth();
@@ -58,6 +65,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     );
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   try {
     const connectionCount = connectionManager.getConnectionCount(auctionId);
     // 接続数制限チェック
@@ -80,8 +89,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // ストリームとエンコーダーの設定
     const encoder = new TextEncoder();
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // クライアントが接続を閉じた時の処理
     const handleAbort = () => {
@@ -97,6 +110,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // abortイベントリスナーを登録
     request.signal.addEventListener("abort", handleAbort);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     console.log(`route.ts_GET_オークション ${auctionId} のデータを取得します`);
     const auctionData = await getAuctionByAuctionId(auctionId);
     console.log(`route.ts_GET_オークションデータ取得結果:`, auctionData ? "成功" : "失敗");
@@ -105,12 +120,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return new Response(JSON.stringify({ error: "Auction not found" }), { status: 404 });
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // ストリームの設定
     const stream = new ReadableStream({
       start: async (controller) => {
         console.log(`[API Route Stream Start] Client ${clientId}, Auction ${auctionId}`);
         let heartbeatInterval: NodeJS.Timeout | null = null;
         let timeoutId: NodeJS.Timeout | null = null;
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // ハートビートタイマー設定
         heartbeatInterval = setInterval(() => {
@@ -127,6 +146,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }
         }, SSE_CONFIG.HEARTBEAT_INTERVAL);
 
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
         // 一定時間後にタイムアウト
         timeoutId = setTimeout(() => {
           try {
@@ -141,15 +162,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }
         }, SSE_CONFIG.CONNECTION_TIMEOUT);
 
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
         // コネクションの登録
         connectionManager.addConnection(auctionId, clientId, controller, heartbeatInterval, timeoutId);
         console.log(`route.ts_GET_クライアント ${clientId} の接続を登録しました (オークション: ${auctionId})`);
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         try {
           // 接続成功メッセージを送信
           const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify(auctionData)}\n\n`;
           controller.enqueue(encoder.encode(connectionMessage));
           console.log(`route.ts_GET_クライアント ${clientId} への接続確立メッセージを送信しました`);
+
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
           // 最後のイベントID以降のイベントを送信（再接続時）
           if (lastEventId > 0) {
@@ -165,6 +192,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               console.log(`route.ts_GET_クライアント ${clientId} の未受信イベントはありません (lastEventId: ${lastEventId})`);
             }
           }
+
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         } catch (error) {
           console.error("route.ts_GET_接続確立メッセージ送信中にエラーが発生しました:", error);
           if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -174,6 +203,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             controller.error(error);
           } catch {} // Signal error to the stream
         }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // クリーンアップ関数
         return () => {
@@ -191,6 +222,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     console.log(`route.ts_GET_クライアント ${clientId} にSSEストリームレスポンスを返します`);
     // レスポンスヘッダーの設定
     return new NextResponse(stream, {
@@ -200,6 +233,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         Connection: "keep-alive",
       },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("route.ts_GET_SSEセットアップエラー:", error);
     return new Response(
@@ -218,22 +253,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // GET以外のメソッドを禁止
 export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   // GETリクエストと同じロジックをコールする（HTTPメソッドの違いによる混乱を避けるため）
   return GET(request, { params });
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 export async function PUT() {
   return new NextResponse(null, { status: 405 });
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export async function DELETE() {
   return new NextResponse(null, { status: 405 });
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 export async function PATCH() {
   return new NextResponse(null, { status: 405 });
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export const dynamic = "force-dynamic";

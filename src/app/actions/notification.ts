@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { type CreateNotificationFormData } from "@/lib/zod-schema";
 import { Prisma } from "@prisma/client";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * フロントエンド用の通知データ型定義
  */
@@ -28,6 +30,8 @@ export type NotificationData = {
   groupName: string | null;
   taskName: string | null;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 未読通知の数を取得する - JSONB最適化版
@@ -83,6 +87,8 @@ export async function getUnreadNotificationsCount() {
     return 0; // エラー時は0を返す
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 通知とその未読数を取得する - ページング改善版
@@ -285,12 +291,8 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
   }
 }
 
-/**
- * 指定された通知の既読状態を更新する - JSONB最適化版
- * @param notificationId 通知ID
- * @param isRead 既読状態
- * @returns 成功したかどうか
- */
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 指定された通知の既読状態を更新する - JSONB最適化版
  * @param notificationId 通知ID
@@ -335,6 +337,8 @@ export async function apiUpdateNotificationStatus(notificationId: string, isRead
     };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * すべての通知を既読にする - JSONB最適化版
@@ -394,6 +398,8 @@ export async function markAllNotificationsAsRead() {
     };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 通知を作成する関数

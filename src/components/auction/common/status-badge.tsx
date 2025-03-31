@@ -1,10 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 type AuctionStatusBadgeProps = {
   status: AuctionStatus;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションステータスバッジ
+ * @param status オークションステータス
+ */
 export function AuctionStatusBadge({ status }: AuctionStatusBadgeProps) {
   const statusConfig = {
     [AuctionStatus.PENDING]: {
@@ -30,10 +38,18 @@ export function AuctionStatusBadge({ status }: AuctionStatusBadgeProps) {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 type BidStatusBadgeProps = {
   status: BidStatus;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 入札ステータスバッジ
+ * @param status 入札ステータス
+ */
 export function BidStatusBadge({ status }: BidStatusBadgeProps) {
   const statusConfig = {
     [BidStatus.BIDDING]: {
@@ -59,10 +75,18 @@ export function BidStatusBadge({ status }: BidStatusBadgeProps) {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 type TaskStatusBadgeProps = {
   status: TaskStatus;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクステータスバッジ
+ * @param status タスクステータス
+ */
 export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
   const statusConfig = {
     [TaskStatus.PENDING]: {

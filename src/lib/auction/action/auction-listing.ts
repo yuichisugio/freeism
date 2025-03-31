@@ -8,6 +8,8 @@ import { AUCTION_CONSTANTS } from "../constants";
 import { type AuctionListingResult, type GetAuctionListingsParams } from "../type/types";
 import { getCurrentUserId, getUserGroups, getUserTotalPoints } from "./user";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // AuctionWhereInput型の定義
 type AuctionWhereInput = {
   task?: {
@@ -43,7 +45,11 @@ type AuctionWhereInput = {
   };
 };
 
-// AuctionOrderByInput型の定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * AuctionOrderByInput型の定義
+ */
 type AuctionOrderByInput = {
   createdAt?: "asc" | "desc";
   endTime?: "asc" | "desc";
@@ -51,15 +57,28 @@ type AuctionOrderByInput = {
   bidHistories?: { _count: "asc" | "desc" };
 };
 
-// レスポンスをキャッシュするためのキーを生成
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * キャッシュキーを生成する関数
+ * @param params 取得パラメータ
+ * @param userGroupIds ユーザーが参加しているグループID
+ * @returns キャッシュキー
+ */
 function getCacheKey(params: GetAuctionListingsParams, userGroupIds: string[]): string {
   const { page, pageSize, filters, sort } = params;
   return `auctions-${page}-${pageSize}-${JSON.stringify(filters)}-${sort}-${userGroupIds.join(",")}`;
 }
 
-// キャッシュストア (サーバーメモリ)
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * キャッシュストア (サーバーメモリ)
+ */
 const auctionCache = new Map<string, { data: AuctionListingResult; timestamp: number }>();
 const CACHE_TTL = 60 * 1000; // 1分キャッシュ
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 定数を取得する関数（"use server"ファイルからエクスポートするため）
@@ -78,12 +97,16 @@ export const getAuctionCategories = cache(async () => {
   }
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 表示設定を取得する関数
  */
 export const getAuctionPageSize = cache(async () => {
   return AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション一覧を取得する関数

@@ -4,6 +4,8 @@ import { cache } from "react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ユーザーIDを取得
  * @returns 現在のユーザーID
@@ -13,6 +15,8 @@ export async function getCurrentUserId() {
   const session = await auth();
   return session?.user?.id;
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ユーザーの参加グループを取得
@@ -27,6 +31,8 @@ export const getUserGroups = cache(async () => {
     include: { group: true },
   });
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ユーザーのポイント総額を取得
@@ -43,6 +49,8 @@ export const getUserTotalPoints = cache(async () => {
 
   return points.reduce((total, point) => total + point.balance, 0);
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 出品者の評価スコアを取得

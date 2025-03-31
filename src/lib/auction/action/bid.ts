@@ -12,6 +12,8 @@ import type { AuctionWithDetails, BidFormData, BidHistory, BidHistoryWithUser } 
 import { AuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * サーバー側での入札処理
  * @param auctionId オークションID
@@ -102,6 +104,8 @@ export async function serverPlaceBid(auctionId: string, bidData: BidFormData, us
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションの入札履歴を取得
  * @param auctionId オークションID
@@ -144,6 +148,8 @@ export async function getAuctionBidHistory(auctionId: string, limit = 20): Promi
       : undefined,
   }));
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 入札を行うサーバーアクション
@@ -289,6 +295,8 @@ export async function placeBidAction(auctionId: string, bidData: BidFormData) {
     };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 入札処理を行うAPI

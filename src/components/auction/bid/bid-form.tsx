@@ -17,8 +17,11 @@ import { ArrowRight, Gavel, Minus, Plus } from "lucide-react";
  * @returns 入札フォーム
  */
 export function BidForm({ auction }: BidFormProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   useEffect(() => {
     // 最低入札額は現在価格の1ポイント増し。現在の入札額が、他社が入札して更新された額より小さい場合は1ポイント増し
@@ -27,11 +30,15 @@ export function BidForm({ auction }: BidFormProps) {
     }
   }, [auction, bidAmount]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 最低入札額は現在価格の1ポイント増し
   const [minBid] = useState(auction.currentHighestBid + 1);
 
   // 入札フォームのサブミットハンドラ
   const { clientPlaceBid, submitting, error } = useBidActions();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札フォームのサブミットハンドラ
   const onSubmit = async (e: React.FormEvent) => {
@@ -55,10 +62,14 @@ export function BidForm({ auction }: BidFormProps) {
     }
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 入札額をインクリメント
   const incrementBid = () => {
     setBidAmount((prev) => prev + 1);
   };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札額をデクリメント（最小入札額未満にはならないように）
   const decrementBid = () => {
@@ -66,6 +77,8 @@ export function BidForm({ auction }: BidFormProps) {
       setBidAmount((prev) => prev - 1);
     }
   };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <Card className="border-primary/20 overflow-hidden shadow-md">
