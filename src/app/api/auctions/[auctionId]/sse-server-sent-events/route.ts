@@ -2,12 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { SSE_CONFIG } from "@/lib/auction/constants";
 import { connectionManager } from "@/lib/auction/server-sent-events/connection-manager-singleton";
-
-// 設定パラメータ
-const MAX_CONNECTIONS_PER_AUCTION = 1000; // オークションごとの最大接続数
-const CONNECTION_TIMEOUT = 60 * 60 * 1000; // 60分タイムアウト
-const HEARTBEAT_INTERVAL = 30000; // 30秒ごとにハートビート
 
 /**
  * SSEエンドポイント
@@ -67,7 +63,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // 接続数制限チェック
     console.log(`route.ts_GET_オークション ${auctionId} の現在の接続数: ${connectionCount}`);
 
-    if (connectionCount >= MAX_CONNECTIONS_PER_AUCTION) {
+    if (connectionCount >= SSE_CONFIG.MAX_CONNECTIONS_PER_AUCTION) {
       return new Response(
         JSON.stringify({
           error: "接続数制限超過",
@@ -129,7 +125,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               controller.close();
             } catch {} // Attempt to close controller on error
           }
-        }, HEARTBEAT_INTERVAL);
+        }, SSE_CONFIG.HEARTBEAT_INTERVAL);
 
         // 一定時間後にタイムアウト
         timeoutId = setTimeout(() => {
@@ -143,7 +139,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           } catch (e) {
             console.error("route.ts_GET_コントローラーのクローズ中にエラーが発生しました:", e);
           }
-        }, CONNECTION_TIMEOUT);
+        }, SSE_CONFIG.CONNECTION_TIMEOUT);
 
         // コネクションの登録
         connectionManager.addConnection(auctionId, clientId, controller, heartbeatInterval, timeoutId);

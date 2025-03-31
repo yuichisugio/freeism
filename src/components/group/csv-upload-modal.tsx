@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectedFileCard } from "@/components/ui/upload-file-card";
-import { AUCTION_CATEGORIES } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { cn } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
@@ -174,7 +174,7 @@ const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
     requiredFields: `task（タスク内容）, contributionType（貢献タイプ: ${contributionType.REWARD} または ${contributionType.NON_REWARD}）`,
     optionalFields:
       "category（カテゴリ: " +
-      AUCTION_CATEGORIES.slice(1).join(", ") +
+      AUCTION_CONSTANTS.AUCTION_CATEGORIES.slice(1).join(", ") +
       "）, reference（参考にした内容）, info（証拠・結果・補足情報）, auctionStartTime（オークション開始日時, YYYY-MM-DD HH:MM形式）, auctionEndTime（オークション終了日時, YYYY-MM-DD HH:MM形式）, deliveryMethod（提供方法）",
     note: `報酬あり（${contributionType.REWARD}）のタスクはオークション関連の設定が必要です。未指定のカテゴリは「その他」として登録されます。`,
     example: `Webサイトのデザイン改修,${contributionType.REWARD},デザイン,https://example.com/design,プルリクURL: https://github.com/org/repo/pull/123,2023-04-01 12:00,2023-04-08 12:00,Amazonほしい物リスト`,

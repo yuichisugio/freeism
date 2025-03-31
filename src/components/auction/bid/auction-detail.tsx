@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { useWatchlistActions } from "@/hooks/auction/bid/use-watchlist-actions";
-import { DEFAULT_AUCTION_IMAGE_URL } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type Auction, type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
@@ -272,7 +272,13 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           {/* 左側: オークション画像 */}
           <div className="relative h-[250px] overflow-hidden rounded-lg">
-            <Image src={DEFAULT_AUCTION_IMAGE_URL} alt={auction.title ?? "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
+            <Image
+              src={auction.task.imageUrl ?? AUCTION_CONSTANTS.DEFAULT_AUCTION_IMAGE_URL}
+              alt={auction.title ?? "オークション画像"}
+              fill
+              className="object-cover transition-transform duration-500 hover:scale-105"
+              priority
+            />
           </div>
 
           {/* 右側: オークション情報ヘッダー部分 */}

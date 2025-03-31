@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
-import { AUCTION_CATEGORIES } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -323,7 +323,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
               description="タスクのカテゴリを選択してください"
               open={categoryOpen}
               setOpen={setCategoryOpen}
-              options={AUCTION_CATEGORIES.slice(1).map((category) => ({ id: category, name: category }))}
+              options={AUCTION_CONSTANTS.AUCTION_CATEGORIES.slice(1).map((category) => ({ id: category, name: category }))}
               placeholder="カテゴリを選択してください"
             />
 

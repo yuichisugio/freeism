@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { DEFAULT_AUCTION_IMAGE_URL } from "../constants";
+import { AUCTION_CONSTANTS } from "../constants";
 import { type Auction, type AuctionWithDetails } from "../type/types";
 
 /**
@@ -105,7 +105,7 @@ export async function convertAuctionToAuctionType(auctionData: AuctionWithDetail
     id: auctionData.id,
     title: auctionData.task.task,
     description: auctionData.task.detail ?? "",
-    imageUrl: auctionData.task.imageUrl ?? DEFAULT_AUCTION_IMAGE_URL,
+    imageUrl: auctionData.task.imageUrl ?? AUCTION_CONSTANTS.DEFAULT_AUCTION_IMAGE_URL,
     currentHighestBid: auctionData.currentHighestBid,
     startTime: auctionData.startTime.toISOString(),
     endTime: auctionData.endTime.toISOString(),

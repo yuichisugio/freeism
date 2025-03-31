@@ -4,7 +4,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
 
-import { AUCTION_CATEGORIES, DISPLAY } from "../constants";
+import { AUCTION_CONSTANTS } from "../constants";
 import { type AuctionListingResult, type GetAuctionListingsParams } from "../type/types";
 import { getCurrentUserId, getUserGroups, getUserTotalPoints } from "./user";
 
@@ -66,12 +66,12 @@ const CACHE_TTL = 60 * 1000; // 1分キャッシュ
  */
 export const getAuctionCategories = cache(async () => {
   try {
-    console.log("Server: Returning categories", AUCTION_CATEGORIES);
-    if (!AUCTION_CATEGORIES || !Array.isArray(AUCTION_CATEGORIES)) {
-      console.error("Server: Invalid AUCTION_CATEGORIES structure:", AUCTION_CATEGORIES);
+    console.log("Server: Returning categories", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
+    if (!AUCTION_CONSTANTS.AUCTION_CATEGORIES || !Array.isArray(AUCTION_CONSTANTS.AUCTION_CATEGORIES)) {
+      console.error("Server: Invalid AUCTION_CATEGORIES structure:", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
       return ["すべて", "その他"]; // フォールバック値を返す
     }
-    return AUCTION_CATEGORIES;
+    return AUCTION_CONSTANTS.AUCTION_CATEGORIES;
   } catch (error) {
     console.error("Server: Error in getAuctionCategories:", error);
     return ["すべて", "その他"]; // エラー時のフォールバック値
@@ -82,14 +82,14 @@ export const getAuctionCategories = cache(async () => {
  * 表示設定を取得する関数
  */
 export const getAuctionPageSize = cache(async () => {
-  return DISPLAY.PAGE_SIZE;
+  return AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 });
 
 /**
  * オークション一覧を取得する関数
  * @param params 取得パラメータ
  */
-export async function getAuctionListings({ page = 1, pageSize = DISPLAY.PAGE_SIZE, filters = {}, sort = "newest" }: GetAuctionListingsParams): Promise<AuctionListingResult> {
+export async function getAuctionListings({ page = 1, pageSize = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, filters = {}, sort = "newest" }: GetAuctionListingsParams): Promise<AuctionListingResult> {
   const userId = await getCurrentUserId();
   if (!userId) {
     return {

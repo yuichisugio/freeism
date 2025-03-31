@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/auction/bid/use-debounce";
 import { getAuctionCategories, getAuctionListings, getAuctionPageSize } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
-import { AUCTION_CATEGORIES, DISPLAY } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
 /**
  * オークション一覧画面のロジックを管理するカスタムフック
@@ -43,10 +43,10 @@ export function useAuctionListings() {
 
   // カテゴリと表示件数
   // カテゴリ - 直接定数からデフォルト値を設定
-  const [categories, setCategories] = useState<string[]>(AUCTION_CATEGORIES);
+  const [categories, setCategories] = useState<string[]>(AUCTION_CONSTANTS.AUCTION_CATEGORIES);
 
   // 表示件数
-  const [pageSize, setPageSize] = useState(DISPLAY.PAGE_SIZE);
+  const [pageSize, setPageSize] = useState(AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
