@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -29,6 +29,8 @@ import { toast } from "sonner";
 
 import { Rating } from "../common/rating";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 type BidHistory = {
   id: string;
@@ -69,7 +71,16 @@ type AuctionCreatedDetailProps = {
   winnerReviews: AuctionReview[];
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品商品詳細画面コンポーネント
+ * @param auction 出品商品の詳細情報
+ * @param winnerRating 落札者の評価
+ * @param winnerReviews 落札者の評価履歴
+ */
 export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: AuctionCreatedDetailProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const router = useRouter();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -79,10 +90,15 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
   const [isCompleting, setIsCompleting] = useState(false);
   const [isEditingDelivery, setIsEditingDelivery] = useState(false);
 
-  // ユーザーがすでに評価を送信したかどうか
-  const hasReviewed = auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.task.creatorId && review.isSellerReview);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const handleReviewSubmit = async () => {
+  // ユーザーがすでに評価を送信したかどうか
+  const hasReviewed = useMemo(() => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.task.creatorId && review.isSellerReview), [auction.reviews, auction.task.creatorId]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 評価を送信する
+  const handleReviewSubmit = useCallback(async () => {
     if (!auction.winner) {
       toast.error("落札者がいないため評価できません");
       return;
@@ -110,9 +126,12 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [auction.id, auction.winner, comment, rating, router]);
 
-  const handleComplete = async () => {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 商品の提供を完了する
+  const handleComplete = useCallback(async () => {
     setIsCompleting(true);
     try {
       await completeTaskDelivery(auction.task.id);
@@ -124,9 +143,12 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
     } finally {
       setIsCompleting(false);
     }
-  };
+  }, [auction.task.id, router]);
 
-  const handleUpdateDeliveryMethod = async () => {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 提供方法を更新する
+  const handleUpdateDeliveryMethod = useCallback(async () => {
     if (!deliveryMethod.trim()) {
       toast.error("提供方法を入力してください");
       return;
@@ -144,7 +166,9 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
     } finally {
       setIsUpdatingDelivery(false);
     }
-  };
+  }, [auction.task.id, deliveryMethod, router]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="container mx-auto py-6">

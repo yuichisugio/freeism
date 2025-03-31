@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -29,6 +29,9 @@ import { toast } from "sonner";
 import { Rating } from "../common/rating";
 import { TaskStatusBadge } from "../common/status-badge";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// 落札商品詳細画面コンポーネントのprops
 type AuctionWonDetailProps = {
   auction: Auction & {
     task: {
@@ -55,17 +58,37 @@ type AuctionWonDetailProps = {
   sellerReviews: AuctionReview[];
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 落札商品詳細画面コンポーネント
+ * @param auction 落札商品の詳細情報
+ * @param sellerRating 出品者の評価
+ * @param sellerReviews 出品者の評価履歴
+ */
 export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: AuctionWonDetailProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ルーター
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 評価
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
-  // ユーザーがすでに評価を送信したかどうか
-  const hasReviewed = auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.winnerId);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const handleReviewSubmit = async () => {
+  // ユーザーがすでに評価を送信したかどうか
+  const hasReviewed = useMemo(() => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.winnerId), [auction.reviews, auction.winnerId]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 評価を送信する
+  const handleReviewSubmit = useCallback(async () => {
     if (rating === 0) {
       toast.error("評価を選択してください");
       return;
@@ -88,9 +111,12 @@ export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: Aucti
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [auction.id, auction.task.creatorId, comment, rating, router]);
 
-  const handleComplete = async () => {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 商品の受け取りを完了する
+  const handleComplete = useCallback(async () => {
     setIsCompleting(true);
     try {
       await completeTaskDelivery(auction.task.id);
@@ -102,14 +128,19 @@ export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: Aucti
     } finally {
       setIsCompleting(false);
     }
-  };
+  }, [auction.task.id, router]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 落札商品詳細画面コンポーネント
   return (
     <div className="container mx-auto py-6">
+      {/* 履歴一覧に戻るボタン */}
       <Button variant="outline" className="mb-6" onClick={() => router.push("/dashboard/auction/mine")}>
         <ArrowLeft className="mr-2 h-4 w-4" /> 履歴一覧に戻る
       </Button>
 
+      {/* 商品情報と出品者情報を表示するカード */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* 左側: 商品情報 */}
         <div className="md:col-span-2">

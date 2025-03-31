@@ -1,5 +1,44 @@
 import { type AuctionReview, type AuctionStatus, type BidStatus, type Task, type TaskStatus } from "@prisma/client";
 
+// 入札履歴の基本型
+export type BidHistory = {
+  id: string;
+  auctionId: string;
+  userId: string;
+  amount: number;
+  createdAt: string; // ISO日付文字列
+  isAutoBid?: boolean;
+  status?: string;
+};
+
+// 出品商品詳細画面のprops
+export type AuctionCreatedDetailProps = {
+  auction: Auction & {
+    task: {
+      id: string;
+      task: string;
+      detail?: string | null;
+      status: TaskStatus;
+      imageUrl?: string | null;
+      creatorId: string;
+      deliveryMethod?: string | null;
+    };
+    winner?: {
+      id: string;
+      name?: string | null;
+      image?: string | null;
+    } | null;
+    reviews: AuctionReview[];
+    bidHistories: BidHistory[];
+    currentHighestBid: number;
+    status: AuctionStatus;
+    startTime: Date;
+    endTime: Date;
+  };
+  winnerRating: number;
+  winnerReviews: AuctionReview[];
+};
+
 // 入札履歴の型
 export type BidHistoryItem = {
   id: string;
@@ -234,17 +273,6 @@ export type Auction = {
   categories?: string[] | Category[];
   watchCount?: number;
   depositPeriod?: number;
-};
-
-// 入札履歴の基本型
-export type BidHistory = {
-  id: string;
-  auctionId: string;
-  userId: string;
-  amount: number;
-  createdAt: string; // ISO日付文字列
-  isAutoBid?: boolean;
-  status?: string;
 };
 
 // 入札履歴とユーザー情報を含む型
