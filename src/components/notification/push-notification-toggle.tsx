@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePushNotification } from "@/hooks/push-notification/use-push-notification";
 import { AlertCircle } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * プッシュ通知のトグル
+ */
 export function NotificationToggle() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // プッシュ通知のhookを使用
   const { isSupported, subscription, subscribe, unsubscribe, error } = usePushNotification();
+  // トグルの状態
   const [isEnabled, setIsEnabled] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新
   useEffect(() => {
@@ -21,21 +32,29 @@ export function NotificationToggle() {
     void checkPermission();
   }, [subscription]);
 
-  const handleToggleChange = async (checked: boolean) => {
-    if (checked) {
-      // トグルをONにしたとき
-      if (Notification.permission === "denied") {
-        // 通知許可が拒否されている場合はブラウザの設定を開くように促す
-        alert("通知が拒否されています。ブラウザの設定から通知を許可してください。");
-        return;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // トグルの状態を変更する
+  const handleToggleChange = useCallback(
+    async (checked: boolean) => {
+      if (checked) {
+        // トグルをONにしたとき
+        if (Notification.permission === "denied") {
+          // 通知許可が拒否されている場合はブラウザの設定を開くように促す
+          alert("通知が拒否されています。ブラウザの設定から通知を許可してください。");
+          return;
+        }
+        await subscribe();
+      } else {
+        // トグルをOFFにしたとき
+        await unsubscribe();
       }
-      await subscribe();
-    } else {
-      // トグルをOFFにしたとき
-      await unsubscribe();
-    }
-    setIsEnabled(checked);
-  };
+      setIsEnabled(checked);
+    },
+    [subscribe, unsubscribe],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ブラウザがプッシュ通知をサポートしていない場合
   if (!isSupported) {
@@ -54,6 +73,8 @@ export function NotificationToggle() {
       </Card>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <Card>

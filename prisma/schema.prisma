@@ -463,6 +463,7 @@ model PushSubscription {
   p256dh    String?
   auth      String?
   userId    String?
+  expirationTime DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)

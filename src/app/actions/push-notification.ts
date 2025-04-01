@@ -25,28 +25,45 @@ webPush.setVapidDetails(vapidDetails.subject, vapidDetails.publicKey, vapidDetai
  * @param subscription - 購読情報
  * @returns 成功した場合はtrue, 失敗した場合はfalse
  */
-export async function saveSubscription(subscription: PushSubscription) {
+export async function saveSubscription(subscription: {
+  endpoint: string;
+  expirationTime: number | null | undefined;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+}) {
   try {
+    // ユーザーIDを取得
     const session = await auth();
     const userId = session?.user?.id;
+    if (!userId) {
+      throw new Error("ユーザーが見つかりません");
+    }
 
-    // 購読情報をデータベースに保存
-    const result = await prisma.pushSubscription.upsert({
-      where: {
-        endpoint: subscription.endpoint,
-      },
-      update: {
-        userId: userId,
-        p256dh: subscription.toJSON().keys?.p256dh,
-        auth: subscription.toJSON().keys?.auth,
-        updatedAt: new Date(),
-      },
-      create: {
-        endpoint: subscription.endpoint,
-        userId: userId,
-        p256dh: subscription.toJSON().keys?.p256dh,
-        auth: subscription.toJSON().keys?.auth,
-      },
+    // データベース操作をトランザクションで行う
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. 同じユーザーIDを持つ既存の購読情報を削除 (同じユーザーIDを持つものすべて)
+      await tx.pushSubscription.deleteMany({
+        where: {
+          userId: userId,
+        },
+      });
+
+      // 2. 新しい購読情報を作成
+      const newSubscription = await tx.pushSubscription.create({
+        data: {
+          endpoint: subscription.endpoint,
+          p256dh: subscription.keys.p256dh,
+          auth: subscription.keys.auth,
+          userId: userId,
+          expirationTime:
+            typeof subscription.expirationTime === "number"
+              ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
+              : null, // nullまたはundefinedならnull
+        },
+      });
+      return newSubscription; // トランザクションの結果として新しい購読情報を返す
     });
 
     return { success: true, id: result.id };
@@ -115,7 +132,7 @@ export async function sendNotification({ title, body, icon, badge, url, userId }
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription) => {
         try {
-          // 購読情報を送信
+          // PushSubscriptionオブジェクトの形式に変換して送信
           await webPush.sendNotification(
             {
               endpoint: subscription.endpoint,

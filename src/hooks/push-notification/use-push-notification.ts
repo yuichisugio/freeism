@@ -142,8 +142,32 @@ export function usePushNotification() {
 
       console.log("通知を購読しました:", sub);
 
+      const subscriptionJson = sub.toJSON();
+
+      console.log("subscriptionJson", subscriptionJson);
+
+      if (!subscriptionJson.endpoint || !subscriptionJson.keys?.p256dh || !subscriptionJson.keys?.auth) {
+        // endpoint または keys が取得できなかった場合のエラーハンドリング
+        const errorMessage = "通知の有効化に失敗しました。有効な購読情報が取得できませんでした。";
+        console.error("Failed to get a valid push subscription object:", errorMessage, subscriptionJson);
+        setError(new Error(errorMessage)); // エラー状態を更新
+        setIsSubscribing(false); // 購読中フラグをリセット
+        // alert(errorMessage); // 必要であればアラート表示
+        return null; // ★★★ 処理を中断 ★★★
+      }
+
       // サーバーに購読情報を送信
-      await saveSubscription(sub);
+      // この時点では TypeScript は endpoint, keys.p256dh, keys.auth が string であると認識する
+      // saveSubscription に渡すオブジェクトの型を明示的に合わせる
+      await saveSubscription({
+        endpoint: subscriptionJson.endpoint,
+        // expirationTime は null | undefined の可能性があるため、nullish coalescing operator (??) を使って null にフォールバックさせる
+        expirationTime: subscriptionJson.expirationTime ?? null,
+        keys: {
+          p256dh: subscriptionJson.keys.p256dh,
+          auth: subscriptionJson.keys.auth,
+        },
+      });
 
       // 購読情報を更新
       setSubscription(sub);
