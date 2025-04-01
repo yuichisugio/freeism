@@ -111,9 +111,11 @@ export async function sendNotification({ title, body, icon, badge, url, userId }
       url,
     });
 
+    // 購読情報を送信
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription) => {
         try {
+          // 購読情報を送信
           await webPush.sendNotification(
             {
               endpoint: subscription.endpoint,

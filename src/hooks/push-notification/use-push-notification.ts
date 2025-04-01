@@ -5,8 +5,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { deleteSubscription, saveSubscription } from "@/app/actions/push-notification";
 
-import { useServiceWorker } from "./use-service-worker";
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -34,18 +32,56 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * @returns プッシュ通知の購読情報とエラー
  */
 export function usePushNotification() {
-  const { registration, isSupported, error: swError } = useServiceWorker();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 購読情報を管理
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  // 購読中かどうかを管理
   const [isSubscribing, setIsSubscribing] = useState(false);
-  const [error, setError] = useState<Error | null>(swError);
+  // エラー情報を管理
+  const [error, setError] = useState<Error | null>(null);
+  // registration: サービスワーカーの登録情報
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  // isSupported: サービスワーカーとPush APIがサポートされているかどうか
+  const [isSupported, setIsSupported] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  useEffect(() => {
+    // Service Workerがブラウザでサポートされているか確認
+    const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
+    setIsSupported(supported);
+
+    if (!supported) {
+      setError(new Error("このブラウザはService WorkerとPush APIをサポートしていません"));
+      return;
+    }
+
+    // Service Workerの登録
+    const registerServiceWorker = async () => {
+      try {
+        // Service Workerを登録
+        const reg = await navigator.serviceWorker.register("/service-worker.js");
+        console.log("Service Worker が登録されました:", reg);
+        setRegistration(reg);
+      } catch (err) {
+        console.error("Service Worker の登録に失敗しました:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
+    };
+
+    void registerServiceWorker();
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 現在の購読情報を取得
   const getSubscription = useCallback(async () => {
+    // サービスワーカーが登録されていない場合はnullを返す
     if (!registration) return null;
 
     try {
+      // 購読情報を取得
       const sub = await registration.pushManager.getSubscription();
       setSubscription(sub);
       return sub;
@@ -60,11 +96,13 @@ export function usePushNotification() {
 
   // 通知を購読
   const subscribe = useCallback(async () => {
+    // サービスワーカーが登録されていない場合はnullを返す
     if (!registration || !isSupported) {
       setError(new Error("Service WorkerまたはPush APIがサポートされていません"));
       return null;
     }
 
+    // 購読中かどうかを管理
     setIsSubscribing(true);
 
     try {
@@ -80,6 +118,7 @@ export function usePushNotification() {
       // プッシュ通知の許可を要求
       const permission = await Notification.requestPermission();
 
+      // 通知の許可が得られなかった場合はエラーを返す
       if (permission !== "granted") {
         throw new Error("通知の許可が得られませんでした");
       }
@@ -87,6 +126,7 @@ export function usePushNotification() {
       // VAPID 公開鍵を環境変数から取得
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
+      // VAPID 公開鍵が設定されていない場合はエラーを返す
       if (!vapidPublicKey) {
         throw new Error("VAPID 公開鍵が設定されていません");
       }
@@ -105,6 +145,7 @@ export function usePushNotification() {
       // サーバーに購読情報を送信
       await saveSubscription(sub);
 
+      // 購読情報を更新
       setSubscription(sub);
       setIsSubscribing(false);
       return sub;
@@ -120,8 +161,10 @@ export function usePushNotification() {
 
   // 通知の購読を解除
   const unsubscribe = useCallback(async () => {
+    // 購読情報を取得
     const sub = await getSubscription();
 
+    // 購読情報がない場合はtrueを返す
     if (!sub) {
       console.log("購読情報がありません");
       return true;
@@ -134,6 +177,7 @@ export function usePushNotification() {
       // プッシュサービスから購読を解除
       const result = await sub.unsubscribe();
 
+      // 購読情報を更新
       if (result) {
         setSubscription(null);
         console.log("通知の購読を解除しました");
@@ -149,8 +193,11 @@ export function usePushNotification() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // 購読情報を取得
   useEffect(() => {
+    // サービスワーカーが登録されている場合は購読情報を取得
     if (registration) {
+      // 購読情報を取得
       void getSubscription();
     }
   }, [registration, getSubscription]);
@@ -158,12 +205,21 @@ export function usePushNotification() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // サービスワーカーの登録情報
+    registration,
+    // 購読情報
     subscription,
+    // 購読中かどうか
     isSubscribing,
+    // サポートされているかどうか
     isSupported,
+    // エラー情報
     error,
+    // 購読
     subscribe,
+    // 購読解除
     unsubscribe,
+    // 購読情報を取得
     getSubscription,
   };
 }
