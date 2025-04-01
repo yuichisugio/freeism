@@ -2,7 +2,6 @@ import { type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { type FieldValues, type UseFormReturn } from "react-hook-form";
 
 type FormLayoutProps<T extends FieldValues> = {
@@ -18,37 +17,6 @@ type FormLayoutProps<T extends FieldValues> = {
   className?: string;
 };
 
-const formVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      when: "beforeChildren",
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const buttonVariants = {
-  hover: { scale: 1.05, transition: { duration: 0.2 } },
-  tap: { scale: 0.98 },
-  initial: { scale: 1 },
-};
-
-const errorVariants = {
-  hidden: { opacity: 0, height: 0 },
-  visible: {
-    opacity: 1,
-    height: "auto",
-    transition: {
-      duration: 0.3,
-      ease: "easeInOut",
-    },
-  },
-};
-
 export function FormLayout<T extends FieldValues>({
   form,
   onSubmit,
@@ -61,39 +29,33 @@ export function FormLayout<T extends FieldValues>({
 }: FormLayoutProps<T>) {
   return (
     <Form {...form}>
-      <motion.form onSubmit={form.handleSubmit(onSubmit)} className={`${className}`} initial="hidden" animate="visible" variants={formVariants}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`${className} opacity-100 transition-opacity duration-300`}>
         {children}
-        {form.formState.errors.root && (
-          <motion.div className="rounded-md border border-red-100 bg-red-50 p-3 text-center text-sm text-red-500 shadow-sm" variants={errorVariants} initial="hidden" animate="visible">
-            {form.formState.errors.root.message}
-          </motion.div>
-        )}
-        <motion.div className="flex gap-4">
-          <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
+        {form.formState.errors.root && <div className="rounded-md border border-red-100 bg-red-50 p-3 text-center text-sm text-red-500 shadow-sm">{form.formState.errors.root.message}</div>}
+        <div className="flex gap-4">
+          <div className="transition-transform hover:translate-y-[-2px] active:translate-y-[1px]">
             <Button
               type="submit"
               className={cn("button-default-custom", "mb-3", "relative overflow-hidden transition-all duration-300", form.formState.isSubmitting && "bg-opacity-80")}
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting && (
-                <motion.span className="absolute inset-0 flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+                <span className="absolute inset-0 flex items-center justify-center">
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
-                </motion.span>
+                </span>
               )}
-              <motion.span animate={{ opacity: form.formState.isSubmitting ? 0.7 : 1 }} transition={{ duration: 0.2 }}>
-                {form.formState.isSubmitting ? submittingLabel : submitLabel}
-              </motion.span>
+              <span className={form.formState.isSubmitting ? "opacity-70" : "opacity-100"}>{form.formState.isSubmitting ? submittingLabel : submitLabel}</span>
             </Button>
-          </motion.div>
+          </div>
           {showCancelButton && onCancel && (
-            <motion.div variants={buttonVariants} initial="initial" whileHover="hover" whileTap="tap">
+            <div className="transition-transform hover:translate-y-[-2px] active:translate-y-[1px]">
               <Button type="button" variant="outline" onClick={onCancel} className="transition-all duration-300 hover:bg-gray-100">
                 キャンセル
               </Button>
-            </motion.div>
+            </div>
           )}
-        </motion.div>
-      </motion.form>
+        </div>
+      </form>
     </Form>
   );
 }

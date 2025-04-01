@@ -56,6 +56,7 @@ export const createNotificationSchema = z.object({
   userId: z.string().nullable().optional(),
   groupId: z.string().nullable().optional(),
   taskId: z.string().nullable().optional(),
+  sendPushNotification: z.boolean().default(false),
 });
 
 export type CreateNotificationFormData = z.infer<typeof createNotificationSchema>;

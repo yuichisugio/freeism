@@ -28,17 +28,19 @@ self.addEventListener("push", (event) => {
 
   // 通知のデータを取得
   const data = event.data ? event.data.json() : {};
+  console.log("push_data", data);
   const title = data.title || "お知らせ";
   const options = {
     body: data.body || "お知らせがあります",
-    icon: data.icon || "/icon.png", // publicフォルダに配置したアイコン
-    badge: data.badge || "/badge.png", // publicフォルダに配置したバッジ
+    icon: data.icon || "/notification-icon.svg", // 通知専用アイコン
+    badge: data.badge || "/notification-badge.svg", // 通知専用バッジ
     data: {
       url: data.url || "/", // 通知がクリックされたときに開くURL
     },
     lang: "ja", // 通知の言語
     requireInteraction: true, // 通知を閉じない
   };
+  console.log("push_options", options);
   // 通知を表示
   event.waitUntil(self.registration.showNotification(title, options));
 });

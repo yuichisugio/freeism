@@ -1,14 +1,18 @@
 "use client";
 
+import type { RadioOption } from "@/components/share/form-field";
 import type { CreateNotificationFormData } from "@/lib/zod-schema";
 import { useEffect, useState } from "react";
 import { createNotification } from "@/app/actions/notification";
+import { sendNotification } from "@/app/actions/push-notification";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { createNotificationSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 type User = {
   id: string;
@@ -33,7 +37,18 @@ type CreateNotificationFormProps = {
   tasks: Task[];
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知作成フォーム
+ * @param isAppOwner アプリオーナー権限
+ * @param isGroupOwner グループオーナー権限
+ * @param users ユーザーリスト
+ * @param groups グループリスト
+ * @param tasks タスクリスト
+ */
 export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups, tasks }: CreateNotificationFormProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const form = useForm<CreateNotificationFormData>({
     resolver: zodResolver(createNotificationSchema),
     defaultValues: {
@@ -41,22 +56,30 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
       message: "",
       type: "INFO",
       targetType: "SYSTEM",
+      priority: 3,
       expiresAt: new Date(),
       actionUrl: "",
       userId: "",
       groupId: "",
       taskId: "",
+      sendPushNotification: false,
     },
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { watch, setValue, reset } = form;
   // watchでtargetTypeを監視して変更されたら即座に再レンダリングする
   const targetType = watch("targetType");
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ComboBox用のstate
   const [userComboOpen, setUserComboOpen] = useState(false);
   const [groupComboOpen, setGroupComboOpen] = useState(false);
   const [taskComboOpen, setTaskComboOpen] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // targetTypeが変わったら、↓の全部の設問をnullにする
   useEffect(() => {
@@ -65,15 +88,19 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
     setValue("taskId", "");
   }, [targetType, setValue]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 通知タイプのオプション
-  const notificationTypeOptions = [
+  const notificationTypeOptions: RadioOption[] = [
     { value: "INFO", label: "情報" },
     { value: "SUCCESS", label: "成功" },
     { value: "WARNING", label: "警告" },
   ];
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 通知対象タイプのオプション（権限によってフィルタリング）
-  const targetTypeOptions = isAppOwner
+  const targetTypeOptions: RadioOption[] = isAppOwner
     ? [
         { value: "SYSTEM", label: "システム全体" },
         { value: "USER", label: "ユーザー" },
@@ -85,29 +112,79 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
         { value: "TASK", label: "タスク" },
       ];
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 重要度のオプション
   const priorityOptions = [
-    { value: "5", label: "最高" },
-    { value: "4", label: "高" },
-    { value: "3", label: "中" },
-    { value: "2", label: "低" },
-    { value: "1", label: "最低" },
+    { value: 5, label: "最高" },
+    { value: 4, label: "高" },
+    { value: 3, label: "中" },
+    { value: 2, label: "低" },
+    { value: 1, label: "最低" },
   ];
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const handleSubmit = async (data: CreateNotificationFormData) => {
     try {
+      // アプリ内通知を作成
       const result = await createNotification(data, isAppOwner, isGroupOwner);
+
       if (result.error) {
         toast.error(result.error);
+        return;
+      }
+
+      // Push通知が有効な場合、Push通知も送信
+      if (data.sendPushNotification) {
+        try {
+          // 通知対象に応じたパラメータを設定
+          const pushParams = {
+            title: data.title,
+            body: data.message,
+            url: data.actionUrl ?? undefined,
+          };
+
+          // 通知対象タイプに応じてパラメータを追加
+          switch (data.targetType) {
+            case "USER":
+              if (data.userId) {
+                Object.assign(pushParams, { userId: data.userId });
+              }
+              break;
+            case "GROUP":
+              if (data.groupId) {
+                Object.assign(pushParams, { groupId: data.groupId });
+              }
+              break;
+            case "TASK":
+              if (data.taskId) {
+                Object.assign(pushParams, { taskId: data.taskId });
+              }
+              break;
+          }
+
+          // Push通知を送信
+          await sendNotification(pushParams);
+
+          toast.success("通知とプッシュ通知を作成しました");
+        } catch (pushError) {
+          console.error("プッシュ通知送信エラー:", pushError);
+          toast.error("通知は作成されましたが、プッシュ通知の送信に失敗しました");
+        }
       } else {
         toast.success("通知を作成しました");
-        reset();
       }
+
+      // フォームをリセット
+      reset();
     } catch (error) {
       console.error("通知作成エラー:", error);
       toast.error("通知の作成中にエラーが発生しました");
     }
   };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="h-full">
@@ -197,6 +274,8 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
         />
 
         <CustomFormField control={form.control} name="expiresAt" label="有効期限（オプション）" description="通知の有効期限を設定します" fieldType="date" placeholder="日付を選択" />
+
+        <CustomFormField control={form.control} name="sendPushNotification" label="プッシュ通知も送信" description="アプリ内通知と一緒にプッシュ通知も送信します" fieldType="switch" />
       </FormLayout>
     </div>
   );

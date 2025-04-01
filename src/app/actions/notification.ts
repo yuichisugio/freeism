@@ -514,7 +514,7 @@ export async function createNotification(data: CreateNotificationFormData, isApp
     });
 
     // 通知を保存
-    await prisma.notification.create({
+    const notification = await prisma.notification.create({
       data: {
         title: data.title,
         message: data.message,
@@ -532,7 +532,12 @@ export async function createNotification(data: CreateNotificationFormData, isApp
     });
 
     revalidatePath("/dashboard/notifications");
-    return { success: true };
+
+    return {
+      success: true,
+      notificationId: notification.id,
+      targetUserIds,
+    };
   } catch (error) {
     console.error("通知作成エラー:", error);
     return { error: "通知の作成中にエラーが発生しました" };

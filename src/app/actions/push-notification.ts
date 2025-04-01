@@ -1,5 +1,6 @@
 "use server";
 
+import type { PushSubscription } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import webPush from "web-push";
@@ -98,51 +99,133 @@ export async function deleteSubscription(endpoint: string) {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知を送信するサーバーアクション
- * @param title - 通知のタイトル
- * @param body - 通知の本文
- * @param icon - 通知のアイコン
- * @param badge - 通知のバッジ
- * @param url - 通知のURL
- * @param userId - 通知を送信するユーザーのID
+ * 通知送信用のパラメータ型
  */
-export async function sendNotification({ title, body, icon, badge, url, userId }: { title: string; body: string; icon?: string; badge?: string; url?: string; userId?: string }) {
+type SendNotificationParams = {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  url?: string;
+  userId?: string;
+  groupId?: string;
+  taskId?: string;
+};
+
+/**
+ * Web Push用のサブスクリプション型
+ */
+type WebPushSubscription = {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+};
+
+/**
+ * 通知を送信するサーバーアクション
+ * @param params - 通知のパラメータ
+ */
+export async function sendNotification(params: SendNotificationParams) {
   try {
-    // ユーザーIDが指定されている場合は、特定のユーザーに通知を送信
-    // 指定されていない場合は、すべての購読者に送信
-    const subscriptions = userId
-      ? await prisma.pushSubscription.findMany({
-          where: { userId },
-        })
-      : await prisma.pushSubscription.findMany();
+    // 購読情報を取得
+    let subscriptions: PushSubscription[] = [];
+
+    // 通知送信対象の決定
+    if (params.userId) {
+      // 特定のユーザーに送信
+      subscriptions = await prisma.pushSubscription.findMany({
+        where: { userId: params.userId },
+      });
+    } else if (params.groupId) {
+      // グループメンバー全員に送信
+      const groupMembers = await prisma.groupMembership.findMany({
+        where: { groupId: params.groupId },
+        select: { userId: true },
+      });
+
+      const userIds = groupMembers.map((member) => member.userId);
+
+      subscriptions = await prisma.pushSubscription.findMany({
+        where: { userId: { in: userIds } },
+      });
+    } else if (params.taskId) {
+      // タスク関連のユーザーに送信
+      const task = await prisma.task.findUnique({
+        where: { id: params.taskId },
+        select: {
+          creatorId: true,
+          groupId: true,
+          reporters: { select: { userId: true } },
+          executors: { select: { userId: true } },
+        },
+      });
+
+      if (task) {
+        const userIds = [task.creatorId, ...task.reporters.filter((r) => r.userId).map((r) => r.userId!), ...task.executors.filter((e) => e.userId).map((e) => e.userId!)];
+
+        // タスクのグループメンバーも追加
+        const groupMembers = await prisma.groupMembership.findMany({
+          where: { groupId: task.groupId },
+          select: { userId: true },
+        });
+
+        userIds.push(...groupMembers.map((member) => member.userId));
+
+        // 重複を削除
+        const uniqueUserIds = [...new Set(userIds)];
+
+        subscriptions = await prisma.pushSubscription.findMany({
+          where: { userId: { in: uniqueUserIds } },
+        });
+      }
+    } else {
+      // デフォルト: すべての購読者に送信
+      subscriptions = await prisma.pushSubscription.findMany();
+    }
 
     if (subscriptions.length === 0) {
       return { success: false, message: "購読者が見つかりませんでした" };
     }
 
+    // 通知ペイロードの作成
     const payload = JSON.stringify({
-      title,
-      body,
-      icon,
-      badge,
-      url,
+      title: params.title,
+      body: params.body,
+      icon: "/notification-icon.svg",
+      badge: "/notification-badge.svg",
+      url: params.url,
     });
+
+    console.log("sendNotification_payload", payload);
 
     // 購読情報を送信
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription) => {
         try {
-          // PushSubscriptionオブジェクトの形式に変換して送信
-          await webPush.sendNotification(
-            {
+          // p256dhとauthが存在することを確認
+          if (!subscription.p256dh || !subscription.auth) {
+            return {
+              success: false,
               endpoint: subscription.endpoint,
-              keys: {
-                p256dh: subscription.p256dh!,
-                auth: subscription.auth!,
-              },
+              error: "購読情報が不完全です",
+            };
+          }
+
+          // PushSubscriptionオブジェクトの形式に変換して送信
+          const webPushSubscription: WebPushSubscription = {
+            endpoint: subscription.endpoint,
+            keys: {
+              p256dh: subscription.p256dh,
+              auth: subscription.auth,
             },
-            payload,
-          );
+          };
+
+          console.log("sendNotification_webPushSubscription", webPushSubscription);
+
+          await webPush.sendNotification(webPushSubscription, payload);
+          console.log("sendNotification_success");
           return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           console.error(`通知の送信に失敗しました (${subscription.endpoint}):`, error);
@@ -161,6 +244,8 @@ export async function sendNotification({ title, body, icon, badge, url, userId }
     );
 
     const successCount = results.filter((result) => result.status === "fulfilled" && (result.value as { success: boolean }).success).length;
+
+    console.log("sendNotification_successCount", successCount);
 
     return {
       success: successCount > 0,

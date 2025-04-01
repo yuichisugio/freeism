@@ -3,7 +3,6 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AnimatePresence, motion } from "framer-motion";
 import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { type Control, type ControllerRenderProps, type FieldValues, type Path } from "react-hook-form";
 
@@ -14,11 +13,12 @@ import { FormControl, FormDescription, FormItem, FormLabel, FormMessage, FormFie
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 
 // 基本型定義
 export type RadioOption = {
-  value: string;
+  value: string | number;
   label: string;
 };
 
@@ -77,61 +77,39 @@ export type CalendarFieldProps<T extends FieldValues> = FormFieldBaseProps<T> & 
   dateFormat?: string;
 };
 
+// Switchフィールドのプロパティ
+export type SwitchFieldProps<T extends FieldValues> = FormFieldBaseProps<T> & {
+  // Switchフィールド特有のプロパティがあれば追加
+};
+
 // 判別共用体を使用した型定義
 export type CustomFormFieldProps<T extends FieldValues> =
   | ({ fieldType: "input" } & InputFieldProps<T>)
   | ({ fieldType: "textarea" } & TextareaFieldProps<T>)
   | ({ fieldType: "radio" } & RadioFieldProps<T>)
   | ({ fieldType: "combobox" } & ComboBoxFieldProps<T>)
-  | ({ fieldType: "date" } & CalendarFieldProps<T>);
-
-// アニメーション定義
-const fieldVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.3, ease: "easeOut" },
-  },
-  exit: {
-    opacity: 0,
-    y: -10,
-    transition: { duration: 0.2 },
-  },
-};
-
-const formMessageVariants = {
-  hidden: { opacity: 0, height: 0 },
-  visible: {
-    opacity: 1,
-    height: "auto",
-    transition: { duration: 0.2 },
-  },
-};
+  | ({ fieldType: "date" } & CalendarFieldProps<T>)
+  | ({ fieldType: "switch" } & SwitchFieldProps<T>);
 
 // 共通のフィールドレイアウトコンポーネント
 // すべてのフィールドタイプで共通のUIパターンを抽出
 function FieldLayout({ label, description, children, extraChildren }: { label: string; description?: string; error?: string; children: ReactNode; extraChildren?: ReactNode }) {
   return (
-    <motion.div variants={fieldVariants} initial="hidden" animate="visible" exit="exit">
+    <div className="mb-5 transition-all">
       <FormItem className="mb-4">
         <div className="flex flex-col gap-3">
           <FormLabel className="form-label-custom text-base font-medium text-gray-700">{label}</FormLabel>
           <FormControl>
-            <motion.div whileHover={{ scale: 1.01 }} transition={{ duration: 0.2 }}>
-              {children}
-            </motion.div>
+            <div className="transition-all hover:opacity-95">{children}</div>
           </FormControl>
         </div>
         {description && <FormDescription className="form-description-custom mt-2 text-sm text-gray-500">{description}</FormDescription>}
-        <AnimatePresence>
-          <motion.div variants={formMessageVariants} initial="hidden" animate="visible">
-            <FormMessage className="form-message-custom mt-2 text-sm" />
-          </motion.div>
-        </AnimatePresence>
+        <div className="mt-2">
+          <FormMessage className="form-message-custom text-sm" />
+        </div>
         {extraChildren}
       </FormItem>
-    </motion.div>
+    </div>
   );
 }
 
@@ -166,21 +144,44 @@ function renderTextareaField<T extends FieldValues>(props: TextareaFieldProps<T>
 }
 
 function renderRadioField<T extends FieldValues>(props: RadioFieldProps<T>, field: ControllerRenderProps<T, Path<T>>) {
+  // オプションの数に基づいて適切なグリッドレイアウトを決定
+  let gridClass = "grid-cols-1";
+  if (props.options.length >= 3) {
+    gridClass = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+  } else if (props.options.length === 2) {
+    gridClass = "grid-cols-1 sm:grid-cols-2";
+  }
+
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
-      <div className="border-input bg-background flex flex-col space-y-1 rounded-md border border-blue-200 px-3 py-2 shadow-sm transition-all duration-200 hover:border-blue-300">
-        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className={props.className ?? "flex flex-col space-y-2"}>
+      <div className={`grid gap-3 ${props.className ?? gridClass}`}>
+        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="contents">
           {props.options.map((option) => (
-            <motion.div key={option.value} whileHover={{ x: 3 }} transition={{ duration: 0.2 }}>
-              <FormItem key={option.value} className="flex items-center space-y-0 space-x-3">
-                <FormControl>
-                  <RadioGroupItem value={option.value} className="border-blue-300 text-blue-600 focus:ring-blue-500" />
-                </FormControl>
-                <FormLabel className="relative flex w-full cursor-pointer items-center font-normal before:absolute before:top-0 before:left-0 before:z-10 before:h-full before:w-full before:content-[''] hover:bg-blue-50">
-                  {option.label}
-                </FormLabel>
-              </FormItem>
-            </motion.div>
+            <div key={option.value} className="relative">
+              <RadioGroupItem value={String(option.value)} className="peer absolute opacity-0" id={`${props.name}-${option.value}`} />
+              <label
+                htmlFor={`${props.name}-${option.value}`}
+                className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-sm transition-all peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500 hover:bg-blue-50"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-gray-300 peer-checked:border-blue-500">
+                    <div className={`h-2.5 w-2.5 rounded-full bg-blue-500 ${String(field.value) === String(option.value) ? "opacity-100" : "opacity-0"} transition-opacity`}></div>
+                  </div>
+                  <span className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}>{option.label}</span>
+                </div>
+                {String(field.value) === String(option.value) && (
+                  <div className="text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </label>
+            </div>
           ))}
         </RadioGroup>
       </div>
@@ -223,38 +224,30 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-full p-0" align="start">
           <Command className="rounded-lg border shadow-md">
             <CommandInput placeholder={searchPlaceholder} className="border-b-0" />
             <CommandList>
               <CommandEmpty>{emptyMessage}</CommandEmpty>
               <CommandGroup>
-                <AnimatePresence>
-                  {props.options.map((item) => (
-                    <motion.div key={getKey(item, valueProperty)} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
-                      <CommandItem
-                        key={getKey(item, valueProperty)}
-                        value={getStringValue(item, labelProperty)}
-                        onSelect={() => {
-                          field.onChange(item[valueProperty]);
-                          props.setOpen(false);
-                        }}
-                        className="transition-colors duration-150 hover:bg-blue-50"
-                      >
-                        <motion.div
-                          animate={{
-                            scale: item[valueProperty] === field.value ? 1 : 0.8,
-                            opacity: item[valueProperty] === field.value ? 1 : 0,
-                          }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Check className="mr-2 h-4 w-4 text-blue-500" />
-                        </motion.div>
-                        {getStringValue(item, labelProperty)}
-                      </CommandItem>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                {props.options.map((item) => (
+                  <div key={getKey(item, valueProperty)} className="transition-all">
+                    <CommandItem
+                      key={getKey(item, valueProperty)}
+                      value={getStringValue(item, labelProperty)}
+                      onSelect={() => {
+                        field.onChange(item[valueProperty]);
+                        props.setOpen(false);
+                      }}
+                      className="transition-colors duration-150 hover:bg-blue-50"
+                    >
+                      <div className={item[valueProperty] === field.value ? "opacity-100" : "opacity-0"}>
+                        <Check className="mr-2 h-4 w-4 text-blue-500" />
+                      </div>
+                      {getStringValue(item, labelProperty)}
+                    </CommandItem>
+                  </div>
+                ))}
               </CommandGroup>
             </CommandList>
           </Command>
@@ -275,21 +268,15 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <Popover>
         <PopoverTrigger asChild>
-          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.2 }}>
+          <div className="transition-all hover:opacity-90">
             <Button variant="outline" className="w-full justify-start border-gray-300 text-left font-normal transition-all duration-200 hover:border-blue-400" type="button">
               <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
-              {field.value ? (
-                <motion.span initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                  {format(new Date(field.value), dateFormat, { locale })}
-                </motion.span>
-              ) : (
-                buttonText
-              )}
+              {field.value ? <span className="transition-all">{format(new Date(field.value), dateFormat, { locale })}</span> : buttonText}
             </Button>
-          </motion.div>
+          </div>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }}>
+          <div className="transition-all">
             <Calendar
               mode="single"
               selected={field.value ? new Date(field.value) : undefined}
@@ -340,9 +327,20 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         </PopoverContent>
       </Popover>
+    </FieldLayout>
+  );
+}
+
+// Switchフィールドレンダリング関数
+function renderSwitchField<T extends FieldValues>(props: SwitchFieldProps<T>, field: ControllerRenderProps<T, Path<T>>) {
+  return (
+    <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
+      <div className="flex items-center">
+        <Switch id={props.name} checked={field.value} onCheckedChange={field.onChange} className="focus:ring-blue-500" />
+      </div>
     </FieldLayout>
   );
 }
@@ -365,6 +363,8 @@ export function CustomFormField<T extends FieldValues>(props: CustomFormFieldPro
             return renderComboBoxField<T>(props, field);
           case "date":
             return renderCalendarField<T>(props, field);
+          case "switch":
+            return renderSwitchField<T>(props, field);
           default:
             // この行は型チェックを通すためのもので、正しい型定義であれば実行されません
             const exhaustiveCheck: never = props;
