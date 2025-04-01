@@ -99,11 +99,11 @@ export function usePushNotification() {
     // サービスワーカーが登録されていない場合はnullを返す
     if (!registration || !isSupported) {
       setError(new Error("Service WorkerまたはPush APIがサポートされていません"));
+      setIsSubscribing(false);
       return null;
     }
 
-    // 購読中かどうかを管理
-    setIsSubscribing(true);
+    setIsSubscribing(false);
 
     try {
       // 既存の購読を確認
@@ -147,7 +147,8 @@ export function usePushNotification() {
 
       // 購読情報を更新
       setSubscription(sub);
-      setIsSubscribing(false);
+      // 購読中かどうかを管理
+      setIsSubscribing(true);
       return sub;
     } catch (err) {
       console.error("通知の購読に失敗しました:", err);
