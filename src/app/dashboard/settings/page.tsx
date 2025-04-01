@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { NotificationToggle } from "@/components/notification/push-notification-toggle";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -45,6 +46,11 @@ export default async function SettingsPage() {
           </dl>
         </div>
       )}
+
+      {/* プッシュ通知設定 */}
+      <div className="mb-8">
+        <NotificationToggle />
+      </div>
 
       {/* フォームコンテナ */}
       <div className="rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
