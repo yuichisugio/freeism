@@ -101,7 +101,7 @@ export async function deleteSubscription(endpoint: string) {
 /**
  * 通知送信用のパラメータ型
  */
-type SendNotificationParams = {
+type SendPushNotificationParams = {
   title: string;
   body: string;
   icon?: string;
@@ -127,7 +127,7 @@ type WebPushSubscription = {
  * 通知を送信するサーバーアクション
  * @param params - 通知のパラメータ
  */
-export async function sendNotification(params: SendNotificationParams) {
+export async function sendPushNotification(params: SendPushNotificationParams) {
   try {
     // 購読情報を取得
     let subscriptions: PushSubscription[] = [];

@@ -4,7 +4,7 @@ import type { RadioOption } from "@/components/share/form-field";
 import type { CreateNotificationFormData } from "@/lib/zod-schema";
 import { useEffect, useState } from "react";
 import { createNotification } from "@/app/actions/notification";
-import { sendNotification } from "@/app/actions/push-notification";
+import { sendPushNotification } from "@/app/actions/push-notification";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { createNotificationSchema } from "@/lib/zod-schema";
@@ -165,7 +165,7 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
           }
 
           // Push通知を送信
-          await sendNotification(pushParams);
+          await sendPushNotification(pushParams);
 
           toast.success("通知とプッシュ通知を作成しました");
         } catch (pushError) {
