@@ -155,7 +155,15 @@ function renderRadioField<T extends FieldValues>(props: RadioFieldProps<T>, fiel
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <div className={`grid gap-3 ${props.className ?? gridClass}`}>
-        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="contents">
+        <RadioGroup
+          onValueChange={(value) => {
+            // 数値の場合は数値型に変換して設定
+            const numValue = Number(value);
+            field.onChange(!isNaN(numValue) && typeof props.options.find((opt) => String(opt.value) === String(value))?.value === "number" ? numValue : value);
+          }}
+          defaultValue={String(field.value)}
+          className="contents"
+        >
           {props.options.map((option) => (
             <div key={option.value} className="relative">
               <RadioGroupItem value={String(option.value)} className="peer absolute opacity-0" id={`${props.name}-${option.value}`} />
