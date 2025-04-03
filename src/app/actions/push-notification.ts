@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import webPush from "web-push";
 
+import { getNotificationTargetUserIds } from "./notification";
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // VAPID詳細を設定
@@ -178,77 +180,43 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 購読情報を取得
-    let subscriptions: PushSubscription[] = [];
-    const userIdsToSend = new Set<string>();
-    let targetSubscriptions: PushSubscription[] = [];
+    // 共通関数を使って通知対象のユーザーIDを取得
+    let targetUserIds: string[] = [];
+    let targetType: "SYSTEM" | "USER" | "GROUP" | "TASK" = "SYSTEM"; // デフォルト値
 
-    // 1.通知送信対象の決定
     if (params.userId) {
-      // 特定のユーザーに送信
-      userIdsToSend.add(params.userId);
-      subscriptions = await prisma.pushSubscription.findMany({
-        where: { userId: params.userId },
-      });
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 2.グループメンバー全員に送信
+      targetType = "USER";
     } else if (params.groupId) {
-      const groupMembers = await prisma.groupMembership.findMany({
-        where: { groupId: params.groupId },
-        select: { userId: true },
-      });
-      groupMembers.forEach((member) => userIdsToSend.add(member.userId));
-
-      const userIds = groupMembers.map((member) => member.userId);
-
-      await prisma.pushSubscription.findMany({
-        where: { userId: { in: userIds } },
-      });
-
-      // 3.タスク関連のユーザーに送信
+      targetType = "GROUP";
     } else if (params.taskId) {
-      const task = await prisma.task.findUnique({
-        where: { id: params.taskId },
-        select: {
-          creatorId: true,
-          groupId: true,
-          reporters: { select: { userId: true } },
-          executors: { select: { userId: true } },
-          // 必要に応じてタスクのウォッチャーなども追加
-        },
-      });
-
-      if (task) {
-        // タスク作成者
-        userIdsToSend.add(task.creatorId);
-        // 報告者 (userIdが存在する場合)
-        task.reporters.forEach((r) => r.userId && userIdsToSend.add(r.userId));
-        // 実行者 (userIdが存在する場合)
-        task.executors.forEach((e) => e.userId && userIdsToSend.add(e.userId));
-
-        // タスクが属するグループのメンバーも追加 (重複はSetが自動で処理)
-        const groupMembers = await prisma.groupMembership.findMany({
-          where: { groupId: task.groupId },
-          select: { userId: true },
-        });
-        groupMembers.forEach((member) => userIdsToSend.add(member.userId));
-      }
-    } else {
-      targetSubscriptions = await prisma.pushSubscription.findMany();
+      targetType = "TASK";
     }
 
-    if (userIdsToSend.size > 0) {
-      targetSubscriptions = await prisma.pushSubscription.findMany({
-        where: {
-          userId: { in: Array.from(userIdsToSend) },
-          // p256dh と auth が null でないことを確認 (不完全な購読情報は除外)
-          p256dh: { not: null },
-          auth: { not: null },
-        },
+    try {
+      targetUserIds = await getNotificationTargetUserIds(targetType, {
+        userId: params.userId,
+        groupId: params.groupId,
+        taskId: params.taskId,
       });
+    } catch (error) {
+      console.error("通知対象ユーザー取得エラー:", error);
+      return { success: false, message: "通知対象ユーザーの取得に失敗しました" };
     }
+
+    if (targetUserIds.length === 0) {
+      console.warn("通知対象ユーザーが見つかりません");
+      return { success: false, message: "通知対象ユーザーが見つかりません" };
+    }
+
+    // 対象ユーザーの購読情報を取得
+    const targetSubscriptions = await prisma.pushSubscription.findMany({
+      where: {
+        userId: { in: targetUserIds },
+        // p256dh と auth が null でないことを確認 (不完全な購読情報は除外)
+        p256dh: { not: null },
+        auth: { not: null },
+      },
+    });
 
     if (targetSubscriptions.length === 0) {
       console.log("No valid subscriptions found for the target users.");

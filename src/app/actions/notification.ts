@@ -34,6 +34,106 @@ export type NotificationData = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 通知対象のユーザーIDリストを取得する関数
+ * @param {string} targetType 通知対象タイプ
+ * @param {object} options オプション（userId, groupId, taskId）
+ * @returns {string[]} ユーザーIDの配列
+ */
+export async function getNotificationTargetUserIds(
+  targetType: "SYSTEM" | "USER" | "GROUP" | "TASK",
+  options: {
+    userId?: string;
+    groupId?: string;
+    taskId?: string;
+  },
+): Promise<string[]> {
+  let targetUserIds: string[] = [];
+
+  switch (targetType) {
+    case "SYSTEM":
+      // システム全体の通知の場合は全ユーザーを対象
+      const allUsers = await prisma.user.findMany({
+        select: { id: true },
+      });
+      targetUserIds = allUsers.map((user) => user.id);
+      break;
+
+    case "USER":
+      // ユーザー向け通知の場合
+      if (!options.userId) {
+        throw new Error("ユーザーIDが指定されていません");
+      }
+      targetUserIds = [options.userId];
+      break;
+
+    case "GROUP":
+      // グループ向け通知の場合
+      if (!options.groupId) {
+        throw new Error("グループIDが指定されていません");
+      }
+
+      // グループメンバー全員を対象に
+      const groupMembers = await prisma.groupMembership.findMany({
+        where: { groupId: options.groupId },
+        select: { userId: true },
+      });
+      targetUserIds = groupMembers.map((member) => member.userId);
+      break;
+
+    case "TASK":
+      // タスク向け通知の場合
+      if (!options.taskId) {
+        throw new Error("タスクIDが指定されていません");
+      }
+
+      // タスクの作成者と報告者、実行者を対象に
+      const task = await prisma.task.findUnique({
+        where: { id: options.taskId },
+        select: {
+          creatorId: true,
+          groupId: true,
+          reporters: {
+            select: {
+              userId: true,
+            },
+          },
+          executors: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (task) {
+        // タスク作成者を追加
+        targetUserIds.push(task.creatorId);
+
+        // タスク報告者を追加 (登録ユーザーのみ)
+        const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId!);
+        targetUserIds.push(...reporterUserIds);
+
+        // タスク実行者を追加 (登録ユーザーのみ)
+        const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId!);
+        targetUserIds.push(...executorUserIds);
+
+        // タスクが属するグループのメンバーも追加
+        const groupMembers = await prisma.groupMembership.findMany({
+          where: { groupId: task.groupId },
+          select: { userId: true },
+        });
+        targetUserIds.push(...groupMembers.map((member) => member.userId));
+      }
+      break;
+  }
+
+  // 重複を除去して返す
+  return [...new Set(targetUserIds)];
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 未読通知の数を取得する - JSONB最適化版
  */
 export async function getUnreadNotificationsCount() {
@@ -62,7 +162,7 @@ export async function getUnreadNotificationsCount() {
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Notification" n
-      WHERE 
+      WHERE
         (
           (n."target_type" = 'SYSTEM') OR
           (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
@@ -403,6 +503,10 @@ export async function markAllNotificationsAsRead() {
 
 /**
  * 通知を作成する関数
+ * @param {CreateNotificationFormData} data 通知データ
+ * @param {boolean} isAppOwner アプリオーナーかどうか
+ * @param {boolean} isGroupOwner グループオーナーかどうか
+ * @returns {success: boolean, notificationId: string, targetUserIds: string[]} 成功したかどうか
  */
 export async function createNotification(data: CreateNotificationFormData, isAppOwner: boolean, isGroupOwner: boolean) {
   try {
@@ -422,122 +526,56 @@ export async function createNotification(data: CreateNotificationFormData, isApp
       return { error: "この通知タイプを作成する権限がありません" };
     }
 
-    // isReadのJSONオブジェクト作成のための対象ユーザーIDを取得
-    let targetUserIds: string[] = [];
+    // 共通関数を使用してターゲットユーザーIDを取得
+    try {
+      const targetUserIds = await getNotificationTargetUserIds(data.targetType, {
+        userId: data.userId ?? undefined,
+        groupId: data.groupId ?? undefined,
+        taskId: data.taskId ?? undefined,
+      });
 
-    switch (data.targetType) {
-      case "SYSTEM":
-        // システム全体の通知の場合は全ユーザーを対象
-        const allUsers = await prisma.user.findMany({
-          select: { id: true },
-        });
-        targetUserIds = allUsers.map((user) => user.id);
-        break;
+      if (targetUserIds.length === 0) {
+        return { error: "通知の対象者が見つかりません" };
+      }
 
-      case "USER":
-        // ユーザー向け通知の場合
-        if (!data.userId) {
-          return { error: "ユーザーを選択してください" };
-        }
-        targetUserIds = [data.userId];
-        break;
+      // isReadのJSONオブジェクトを構築
+      const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
+      targetUserIds.forEach((targetUserId) => {
+        isReadJsonb[targetUserId] = { isRead: false, readAt: null };
+      });
 
-      case "GROUP":
-        // グループ向け通知の場合
-        if (!data.groupId) {
-          return { error: "グループを選択してください" };
-        }
+      // 通知を保存
+      const notification = await prisma.notification.create({
+        data: {
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          targetType: data.targetType,
+          priority: data.priority,
+          expiresAt: data.expiresAt ?? undefined,
+          actionUrl: data.actionUrl ?? undefined,
+          userId: session.user.id, // 通知作成者
+          groupId: data.targetType === "GROUP" ? data.groupId : null,
+          taskId: data.targetType === "TASK" ? data.taskId : null,
+          // isReadはPrismaが自動的にJSONB型に変換
+          isRead: isReadJsonb,
+        },
+      });
 
-        // グループメンバー全員を対象に
-        const groupMembers = await prisma.groupMembership.findMany({
-          where: { groupId: data.groupId },
-          select: { userId: true },
-        });
-        targetUserIds = groupMembers.map((member) => member.userId);
-        break;
+      revalidatePath("/dashboard/notifications");
 
-      case "TASK":
-        // タスク向け通知の場合
-        if (!data.taskId) {
-          return { error: "タスクを選択してください" };
-        }
-
-        // タスクの作成者と報告者、実行者を対象に
-        const task = await prisma.task.findUnique({
-          where: { id: data.taskId },
-          select: {
-            creatorId: true,
-            groupId: true,
-            reporters: {
-              select: {
-                userId: true,
-              },
-            },
-            executors: {
-              select: {
-                userId: true,
-              },
-            },
-          },
-        });
-
-        if (task) {
-          // タスク作成者を追加
-          targetUserIds.push(task.creatorId);
-
-          // タスク報告者を追加 (登録ユーザーのみ)
-          const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId!);
-          targetUserIds.push(...reporterUserIds);
-
-          // タスク実行者を追加 (登録ユーザーのみ)
-          const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId!);
-          targetUserIds.push(...executorUserIds);
-
-          // タスクが属するグループのメンバーも追加
-          const groupMembers = await prisma.groupMembership.findMany({
-            where: { groupId: task.groupId },
-            select: { userId: true },
-          });
-          targetUserIds.push(...groupMembers.map((member) => member.userId));
-        }
-        break;
+      return {
+        success: true,
+        notificationId: notification.id,
+        targetUserIds,
+      };
+    } catch (error) {
+      console.error("ターゲットユーザー取得エラー:", error);
+      if (error instanceof Error) {
+        return { error: error.message };
+      }
+      return { error: "ターゲットユーザーの取得に失敗しました" };
     }
-
-    if (targetUserIds.length === 0) {
-      return { error: "通知の対象者が見つかりません" };
-    }
-
-    // isReadのJSONオブジェクトを構築
-    const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
-    targetUserIds.forEach((targetUserId) => {
-      isReadJsonb[targetUserId] = { isRead: false, readAt: null };
-    });
-
-    // 通知を保存
-    const notification = await prisma.notification.create({
-      data: {
-        title: data.title,
-        message: data.message,
-        type: data.type,
-        targetType: data.targetType,
-        priority: data.priority,
-        expiresAt: data.expiresAt ?? undefined,
-        actionUrl: data.actionUrl ?? undefined,
-        userId: session.user.id, // 通知作成者
-        groupId: data.targetType === "GROUP" ? data.groupId : null,
-        taskId: data.targetType === "TASK" ? data.taskId : null,
-        // isReadはPrismaが自動的にJSONB型に変換
-        isRead: isReadJsonb,
-      },
-    });
-
-    revalidatePath("/dashboard/notifications");
-
-    return {
-      success: true,
-      notificationId: notification.id,
-      targetUserIds,
-    };
   } catch (error) {
     console.error("通知作成エラー:", error);
     return { error: "通知の作成中にエラーが発生しました" };
