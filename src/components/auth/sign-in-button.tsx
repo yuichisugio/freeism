@@ -22,7 +22,11 @@ type SignInButtonProps = ComponentPropsWithoutRef<"button">;
  */
 export function SignInButton({ children, ...props }: SignInButtonProps) {
   function handleClick() {
-    void signIn("google", { callbackUrl: "/dashboard/grouplist" });
+    try {
+      void signIn("google", { callbackUrl: "/dashboard/grouplist" });
+    } catch (error) {
+      console.error("サインインに失敗しました:", error);
+    }
   }
 
   return (

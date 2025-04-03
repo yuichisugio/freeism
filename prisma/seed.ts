@@ -24,7 +24,7 @@ const SEED_CONFIG = {
 };
 
 // 保持する固定ユーザーID
-const PRESERVED_USER_IDS = ["cm8ftmmtg0000mccb2pwdzd6n", "cm8odp55e0004mckyvhfo8ezy"];
+const PRESERVED_USER_IDS = ["cm91hfk750000g5u88pnoc4i4", "cm8odp55e0004mckyvhfo8ezy"];
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";

@@ -4,7 +4,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { deleteSubscription, saveSubscription } from "@/app/actions/push-notification";
-import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,8 +51,6 @@ export function usePushNotification() {
   const [permissionState, setPermissionState] = useState<NotificationPermission>("default");
   // デバイスID
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  // セッション情報
-  const { status } = useSession();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -63,16 +60,12 @@ export function usePushNotification() {
    */
   const getSubscription = useCallback(async () => {
     // サービスワーカーが登録されていない場合はnullを返す
-    if (!subscriptionState) {
+    if (!registrationState) {
       console.error("サービスワーカーが登録されていません");
       return null;
     }
 
     try {
-      if (!registrationState) {
-        console.error("サービスワーカーが登録されていません");
-        return null;
-      }
       // 購読情報を取得
       const sub = await registrationState.pushManager.getSubscription();
       // stateに購読情報を保存
@@ -83,7 +76,7 @@ export function usePushNotification() {
       setError(err instanceof Error ? err : new Error(String(err)));
       return null;
     }
-  }, [subscriptionState, registrationState]);
+  }, [registrationState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -137,7 +130,7 @@ export function usePushNotification() {
       // service workerを登録・取得・stateに保存
       void initializeServiceWorker();
     }
-  }, [status, subscriptionState, initializeServiceWorker]);
+  }, [subscriptionState, initializeServiceWorker]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -157,24 +150,30 @@ export function usePushNotification() {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 通知の許可が得られていない場合はnullを返す
-    if (!permissionState) {
+    // 通知の許可が"denied"の場合はnullを返す（許可ダイアログは表示されない）
+    if (permissionState === "denied") {
       setError(new Error("通知の許可が得られませんでした"));
-      setPermissionState(Notification.permission);
       return null;
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     try {
-      const registration = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
-      console.log("Service Worker registered:", registration);
+      // サービスワーカーの登録がない場合は登録を行う（二重登録を避ける）
+      let registration = registrationState;
+      if (!registration) {
+        // Service Workerの登録を試みる
+        registration = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
+        setRegistrationState(registration);
+        console.log("Service Worker registered:", registration);
+      }
 
       // 既存の購読を確認
       let sub = await getSubscription();
 
       // 既に購読している場合は、その情報を返す
       if (sub) {
+        console.log("既存の購読が見つかりました:", sub);
         setSubscriptionState(sub);
         return sub;
       }
@@ -182,22 +181,17 @@ export function usePushNotification() {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 通知の許可が得られていない場合は、通知の許可を要求
-      if (!permissionState) {
+      if (permissionState !== "granted") {
+        console.log("通知の許可を要求します");
         // プッシュ通知の許可を要求
         const permission = await Notification.requestPermission();
         setPermissionState(permission);
-      }
 
-      // 通知の許可が得られなかった場合はエラーを返す
-      if (permissionState !== "granted") {
-        throw new Error("通知の許可が得られませんでした");
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      if (!registrationState) {
-        console.error("サービスワーカーが登録されていません");
-        return null;
+        // 許可が得られなかった場合はエラーを返す
+        if (permission !== "granted") {
+          console.log("通知の許可が得られませんでした:", permission);
+          throw new Error("通知の許可が得られませんでした");
+        }
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -223,8 +217,14 @@ export function usePushNotification() {
 
       //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      // サービスワーカーの登録状態を再確認
+      if (!registration) {
+        console.error("サービスワーカーが登録されていません");
+        return null;
+      }
+
       // プッシュサービスに購読
-      sub = await registrationState.pushManager.subscribe({
+      sub = await registration.pushManager.subscribe({
         userVisibleOnly: true, // 通知は常にユーザーに表示される
         applicationServerKey,
       });
@@ -260,6 +260,13 @@ export function usePushNotification() {
         deviceId: deviceId,
       });
       console.log("購読情報を保存しました:", result);
+
+      // エラーレスポンスをチェック
+      if ("error" in result) {
+        console.warn("購読情報の保存中にエラーが発生しました:", result.error);
+        // エラーがあってもクライアント側の購読は維持する
+        return sub;
+      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -346,8 +353,6 @@ export function usePushNotification() {
     deviceId,
     // デバイスIDを更新
     setDeviceId,
-    // セッション情報
-    status,
     // 通知許可
     permissionState,
   };

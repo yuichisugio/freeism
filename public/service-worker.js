@@ -27,6 +27,27 @@ self.addEventListener("activate", (event) => {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * リクエスト時の処理
+ * 認証関連のパスは処理せず、そのままブラウザの通常の処理に任せる
+ */
+self.addEventListener("fetch", (event) => {
+  // URL情報を取得
+  const url = new URL(event.request.url);
+  const pathname = url.pathname;
+
+  // 認証関連のパスやAPIリクエストの場合は何もせず通常の動作を維持
+  if (pathname.startsWith("/api/auth/") || pathname === "/api/auth") {
+    console.log(`[SW] 認証関連リクエストをパススルー: ${pathname}`);
+    return;
+  }
+
+  // その他のリクエストも基本的にはパススルーする
+  // 必要に応じてキャッシュ戦略などを実装できる
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * プッシュ通知を受け取ったときに実行されるイベントハンドラ
  */
 self.addEventListener("push", (event) => {
@@ -39,6 +60,9 @@ self.addEventListener("push", (event) => {
     badge: "favicon.svg", // デフォルトバッジ
     data: { url: "/" }, // デフォルトの遷移先
   };
+
+  // 通知データの初期化（defaultから開始）
+  let notificationData = { ...defaultNotificationData };
 
   if (event.data) {
     try {
@@ -130,11 +154,23 @@ self.addEventListener("pushsubscriptionchange", (event) => {
   console.log(`[SW ${SW_VERSION}] Push Subscription Change`);
   // 購読情報が期限切れなどで変更された場合に発生
   // 新しい購読情報をサーバーに再送信する必要がある
+
+  // 環境変数の取得はServiceWorkerでは直接できないので、
+  // 再購読処理はメインスレッドに任せるべき
   event.waitUntil(
-    self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: "YOUR_VAPID_PUBLIC_KEY" }).then((newSubscription) => {
+    // デフォルトのサブスクリプションオプションを使用して再購読
+    self.registration.pushManager.subscribe({ userVisibleOnly: true }).then((newSubscription) => {
       console.log("[SW] New subscription obtained after change:", newSubscription.endpoint);
-      // TODO: このnewSubscriptionをサーバーに送信する処理
-      // return sendSubscriptionToServer(newSubscription);
+      // この新しい購読情報をクライアントに通知するなどの処理が必要
+      return self.clients.matchAll().then((clients) => {
+        if (clients.length > 0) {
+          // クライアントに新しい購読情報を通知
+          clients[0].postMessage({
+            type: "subscription-changed",
+            subscription: newSubscription,
+          });
+        }
+      });
     }),
   );
 });

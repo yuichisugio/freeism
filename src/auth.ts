@@ -74,7 +74,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // データベース接続情報
   pages: {
     signIn: "/auth/signin",
-    error: "/auth/error",
   },
   // 認証関連のコールバック設定
   callbacks: {

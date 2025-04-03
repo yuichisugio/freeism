@@ -36,7 +36,7 @@ export async function saveSubscription(subscription: {
     auth: string;
   };
   deviceId: string;
-}): Promise<PushSubscription> {
+}): Promise<PushSubscription | { error: string }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
@@ -46,7 +46,8 @@ export async function saveSubscription(subscription: {
     const session = await auth();
     const userId = session?.user?.id;
     if (!userId) {
-      throw new Error("ユーザーが見つかりません");
+      console.log("未認証ユーザーです。プッシュ通知の購読はスキップします。");
+      return { error: "ユーザーが認証されていません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -89,7 +90,7 @@ export async function saveSubscription(subscription: {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("購読情報の保存に失敗しました:", error);
-    throw new Error("購読情報の保存に失敗しました");
+    return { error: "購読情報の保存に失敗しました" };
   }
 }
 

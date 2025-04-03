@@ -3,14 +3,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 // 認証が必要なパスを設定
-// 認証が必要なパスを設定
 export const config = {
   matcher: [
     // 特定の保護されたルート
     "/dashboard/:path*",
     "/protected/user/:path*",
-    // 特定のパターンにのみマッチ（ルートパスを除外）
-    "/((?!^/$|api|_next/static|_next/image|favicon.ico|auth).+)",
+    // 明示的にauth関連のパスを除外
+    "/((?!|_next|auth|favicon.ico).+)",
   ],
 };
 
@@ -19,19 +18,22 @@ export const middleware = auth((req) => {
     // 現在のパスを取得
     const pathname = new URL(req.url).pathname;
 
-    // ルートパス「/」の場合は認証をスキップ
-    if (pathname === "/") {
+    // ルートパスや認証関連パスをスキップ
+    // /auth または /api/auth で始まるパスは認証をスキップ
+    if (pathname.startsWith("/service-worker.js") || pathname === "/" || pathname.startsWith("/auth/") || pathname.startsWith("/api/auth/")) {
       return NextResponse.next();
     }
 
     const isLoggedIn = !!req.auth;
 
     if (!isLoggedIn) {
+      console.log("認証されていないユーザーを検出しました:", pathname);
       const url = new URL("/auth/signin", req.url);
       // 相対パスを使用してURLエンコーディングを簡略化
-      url.searchParams.set("callbackUrl", new URL(req.url).pathname);
+      url.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(url);
     }
+
     // 認証済みの場合は次の処理に進む
     const response = NextResponse.next();
 
