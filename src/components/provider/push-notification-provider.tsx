@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePushNotification } from "@/hooks/push-notification/use-push-notification";
 import { v4 as uuidv4 } from "uuid";
 
@@ -22,9 +22,7 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
-  const { subscribe, isSupported, isSubscribing, setDeviceId, status } = usePushNotification();
-  // 通知許可を要求したかどうかのフラグ
-  const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
+  const { subscribe, isSupported, isSubscribing, setDeviceId, status, hasRequestedPermission, setHasRequestedPermission } = usePushNotification();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -33,7 +31,7 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
     // ローカルストレージから許可要求状態を読み込む
     const hasRequested = localStorage.getItem("push-notification-requested") === "true";
     setHasRequestedPermission(hasRequested);
-  }, []);
+  }, [setHasRequestedPermission]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -55,8 +53,8 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   useEffect(() => {
-    // 認証済みで、サポートされており、まだ購読していない、かつ許可を要求していない、かつ通知許可が拒否されていない場合
-    if (status === "authenticated" && isSupported && !isSubscribing && !hasRequestedPermission && Notification.permission !== "denied") {
+    // 認証済みで、サポートされており、まだ購読していない、かつ通知を許可している、かつ通知許可が拒否されていない場合
+    if (status === "authenticated" && isSupported && !isSubscribing && hasRequestedPermission && Notification.permission !== "denied") {
       // 通知許可を要求するタイミングを遅らせる（ユーザーがサイトにアクセスして少し経ってから）
       const timer = setTimeout(() => {
         // 購読を要求する
@@ -70,7 +68,7 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
       // タイムアウトをクリア
       return () => clearTimeout(timer);
     }
-  }, [status, subscribe, isSupported, isSubscribing, hasRequestedPermission]);
+  }, [status, subscribe, isSupported, isSubscribing, hasRequestedPermission, setHasRequestedPermission]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

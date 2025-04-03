@@ -16,7 +16,7 @@ export function NotificationToggle() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
-  const { isSupported, subscription, subscribe, unsubscribe, error } = usePushNotification();
+  const { isSupported, subscriptionState, subscribe, unsubscribe, error, permissionState } = usePushNotification();
   // トグルの状態
   const [isEnabled, setIsEnabled] = useState(false);
 
@@ -25,25 +25,26 @@ export function NotificationToggle() {
   // ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新
   useEffect(() => {
     const checkPermission = async () => {
-      const permission = Notification.permission;
-      setIsEnabled(permission === "granted" && !!subscription);
+      setIsEnabled(permissionState === "granted" && !!subscriptionState);
     };
 
     void checkPermission();
-  }, [subscription]);
+  }, [subscriptionState, permissionState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // トグルの状態を変更する
+  // トグルの状態を変更する関数
   const handleToggleChange = useCallback(
     async (checked: boolean) => {
+      // トグルをONにしたとき
       if (checked) {
-        // トグルをONにしたとき
-        if (Notification.permission === "denied") {
+        // 通知許可が拒否されている場合はブラウザの設定を開くように促す
+        if (permissionState === "denied") {
           // 通知許可が拒否されている場合はブラウザの設定を開くように促す
           alert("通知が拒否されています。ブラウザの設定から通知を許可してください。");
           return;
         }
+        // 購読を要求する
         await subscribe();
       } else {
         // トグルをOFFにしたとき
@@ -51,7 +52,7 @@ export function NotificationToggle() {
       }
       setIsEnabled(checked);
     },
-    [subscribe, unsubscribe],
+    [subscribe, unsubscribe, permissionState],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
