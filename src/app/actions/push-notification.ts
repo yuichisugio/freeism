@@ -165,8 +165,8 @@ type PushNotificationResult = {
 
 /**
  * 通知を送信するサーバーアクション
- * @param params - 通知のパラメータ
- * @returns {success: boolean, sent: number, total: number, results: {success: boolean, endpoint: string, error: string}[]} 成功した場合はtrue, 失敗した場合はfalse
+ * @param {SendPushNotificationParams} params (title, body, icon, badge, url, userId, groupId, taskId) 通知のパラメータ
+ * @returns {PushNotificationResult} (success, sent, failed, totalTargets, message) 成功した場合はtrue, 失敗した場合はfalse
  */
 export async function sendPushNotification(params: SendPushNotificationParams): Promise<PushNotificationResult> {
   try {
