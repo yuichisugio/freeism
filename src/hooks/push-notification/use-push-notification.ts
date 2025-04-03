@@ -35,7 +35,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 /**
  * プッシュ通知を管理するフック
- * @returns プッシュ通知の購読情報とエラー
+ * @returns {Object} プッシュ通知の購読情報とエラー
  */
 export function usePushNotification() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -102,14 +102,17 @@ export function usePushNotification() {
       setRegistrationState(reg);
       console.log("initializeServiceWorker_navigator.serviceWorker.register", reg);
 
-      // Service Workerを登録
-      const swRegistration = await navigator.serviceWorker.ready;
-      console.log("initializeServiceWorker_navigator.serviceWorker.ready", swRegistration);
+      // Service Workerの登録状態と既存の購読を確認
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
 
-      // 購読情報を取得
-      const subscription = await swRegistration.pushManager.getSubscription();
-      setSubscriptionState(subscription);
-      console.log("initializeServiceWorker_getSubscription", subscription);
+      if (subscription) {
+        setSubscriptionState(subscription);
+        console.log("initializeServiceWorker_getSubscription", subscription);
+      } else {
+        setSubscriptionState(null);
+        console.log("initializeServiceWorker_getSubscription_null");
+      }
     } catch (error) {
       console.error("initializeServiceWorker_error", error);
       setError(error instanceof Error ? error : new Error(String(error)));
@@ -164,6 +167,9 @@ export function usePushNotification() {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     try {
+      const registration = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
+      console.log("Service Worker registered:", registration);
+
       // 既存の購読を確認
       let sub = await getSubscription();
 

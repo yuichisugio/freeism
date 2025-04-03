@@ -208,6 +208,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       return { success: false, message: "通知対象ユーザーが見つかりません" };
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // 対象ユーザーの購読情報を取得
     const targetSubscriptions = await prisma.pushSubscription.findMany({
       where: {
@@ -223,17 +225,21 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       return { success: false, message: "有効な購読者が見つかりませんでした" };
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // 通知ペイロードの作成
     const payload = JSON.stringify({
       title: params.title,
       body: params.body,
-      icon: params.icon ?? "/icons/icon-192x192.png", // デフォルトアイコンパス
-      badge: params.badge ?? "/icons/badge-72x72.png", // デフォルトバッジパス
+      icon: params.icon ?? "favicon.svg", // デフォルトアイコンパス
+      badge: params.badge ?? "favicon.svg", // デフォルトバッジパス
       // urlは指定された場合のみ含める
       ...(params.url && { data: { url: params.url } }), // Service Workerで扱いやすいようにdataプロパティに入れる
     });
 
     console.log(`Sending push notification to ${targetSubscriptions.length} subscriptions. Payload:`, payload);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 購読情報を送信 (Promise.allSettledで個々の送信結果を取得)
     const results = await Promise.allSettled(
@@ -248,6 +254,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
           };
         }
 
+        // push通知の購読情報を作成
         const webPushSubscription: WebPushSubscription = {
           endpoint: subscription.endpoint!,
           keys: {
@@ -257,10 +264,9 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
         };
 
         try {
-          await webPush.sendNotification(webPushSubscription, payload, {
-            TTL: 60 * 60 * 24, // Time To Live: 1日 (秒単位)
-          });
-          // console.log(`Notification sent successfully to ${subscription.endpoint}`);
+          // push通知を送信
+          await webPush.sendNotification(webPushSubscription, payload);
+          console.log(`Notification sent successfully to ${subscription.endpoint}`);
           return { success: true, endpoint: subscription.endpoint! };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
@@ -271,11 +277,9 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
           if (typedError.statusCode === 404 || typedError.statusCode === 410) {
             console.log(`Deleting expired/invalid subscription: ${subscription.endpoint}`);
             // deleteSubscriptionを呼び出す (エラーハンドリングはdeleteSubscription内で行う)
-            if (subscription.endpoint) {
-              await deleteSubscription(subscription.endpoint).catch((delErr) => {
-                console.error(`Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
-              });
-            }
+            await deleteSubscription(subscription.endpoint).catch((delErr) => {
+              console.error(`Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
+            });
             // 送信自体は失敗としてマーク
             return { success: false, endpoint: subscription.endpoint ?? "", error: `Subscription expired or invalid (status code: ${typedError.statusCode})` };
           } else {
@@ -290,6 +294,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       }),
     );
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // 結果の集計
     const fulfilledResults = results.filter((result): result is PromiseFulfilledResult<{ success: boolean; endpoint: string; error?: string }> => result.status === "fulfilled");
     const successCount = fulfilledResults.filter((result) => result.value.success).length;
@@ -297,6 +303,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
     const rejectedCount = results.filter((result) => result.status === "rejected").length;
 
     console.log(`Push notification results: ${successCount} sent, ${failedCount} failed, ${rejectedCount} rejected.`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 詳細な失敗理由もログ出力やデバッグ用に保持しておくと良い
     const failures = fulfilledResults.filter((result) => !result.value.success).map((result) => result.value);
@@ -311,6 +319,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       );
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // 結果を返す
     return {
       success: successCount > 0, // 1件でも成功すればtrue
@@ -319,6 +329,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       totalTargets: targetSubscriptions.length,
       // results: results // 詳細な結果が必要な場合はこれも返す
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("通知の送信に失敗しました:", error);
     return {

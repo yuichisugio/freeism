@@ -35,8 +35,8 @@ self.addEventListener("push", (event) => {
   const defaultNotificationData = {
     title: "新しい通知",
     body: "メッセージが届きました。",
-    icon: "/icons/icon-192x192.png", // デフォルトアイコン
-    badge: "/icons/badge-72x72.png", // デフォルトバッジ
+    icon: "favicon.svg", // デフォルトアイコン
+    badge: "favicon.svg", // デフォルトバッジ
     data: { url: "/" }, // デフォルトの遷移先
   };
 
@@ -99,16 +99,6 @@ self.addEventListener("notificationclick", (event) => {
   // 通知に関連付けられたURLを開く
   const urlToOpen = event.notification.data?.url || "/"; // デフォルトはルート
   console.log("[SW] Notification click: URL to open:", urlToOpen);
-
-  // アクションボタンがクリックされた場合の処理 (オプション)
-  // if (event.action === 'open_url') {
-  //   console.log('[SW] Open URL action clicked');
-  // } else if (event.action === 'dismiss') {
-  //    console.log('[SW] Dismiss action clicked');
-  //    return; // 何もしないで閉じる
-  // } else {
-  //    console.log('[SW] Notification body clicked');
-  // }
 
   // 適切なクライアント（タブ/ウィンドウ）を探してフォーカスまたは開く
   event.waitUntil(

@@ -291,8 +291,8 @@ model TaskWatchList {
   auctionId String   @map("auction_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
   @@index([userId])
@@ -457,9 +457,9 @@ model AuctionMessage {
   message     String   @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  sender    User    @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  recipient User    @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
 
   @@index([auctionId])
   @@index([senderId])
