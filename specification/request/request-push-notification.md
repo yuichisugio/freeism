@@ -8,13 +8,14 @@
 ## 2. 追加実装したいpush通知の仕様
 
 1. (済み)アプリ内通知の作成form内に、push通知Toggleを配置して、ONにすると、push通知も送れるようにする
+
 2. endpointが有効かの事前チェックを実装
 
    - 有効かチェックしてから通知を送る処理を開始する
    - 有効チェックしたら、pushSubscriptionテーブルの、last_healthcheck_timestampカラムに、チェックした日を記載
    - last_healthcheck_timestampカラムが1日以上前のユーザーにだけ事前チェックを入れる
    - さらに、通知送信前に事前チェックして、送信後にerrorになれば、その通知idを保存して、push通知のendpointなどの情報更新処理してretryする処理を入れる
-   - https://claude.ai/chat/c6739b9d-9a58-440b-8fef-b29618c0e043
+   - https://gemini.google.com/app/46efc2e7ab430bac
 
 3. pushSubscriptionのidカラム(cuid)をlocalstorageに保存する処理を追加
 4. push通知の文字数の上限が制限になるよう、zodスキーマを修正。
