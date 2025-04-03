@@ -22,38 +22,6 @@ webPush.setVapidDetails(vapidDetails.subject, vapidDetails.publicKey, vapidDetai
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * プッシュ通知のエンドポイントを登録するサーバーアクション
- * @param userId - ユーザーID
- * @param deviceId - デバイスID
- * @param endpoint - エンドポイント
- */
-export async function registerPushEndpoint(id: string, endpoint: string): Promise<string> {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) {
-    throw new Error("ユーザーが見つかりません");
-  }
-
-  // Prismaを使用してDBに保存
-  const result = await prisma.pushSubscription.upsert({
-    where: {
-      id: id,
-    },
-    update: {
-      endpoint: endpoint,
-    },
-    create: {
-      userId: userId,
-      endpoint: endpoint,
-    },
-  });
-
-  return result.id;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 購読情報を保存するサーバーアクション
  * @param subscription - 購読情報
  * @returns {id: string} 購読情報のID
@@ -65,10 +33,13 @@ export async function saveSubscription(subscription: {
     p256dh: string;
     auth: string;
   };
-}) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  deviceId: string;
+}): Promise<PushSubscription> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // ユーザーIDを取得
     const session = await auth();
     const userId = session?.user?.id;
@@ -76,22 +47,27 @@ export async function saveSubscription(subscription: {
       throw new Error("ユーザーが見つかりません");
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     const expirationTimeDate =
       typeof subscription.expirationTime === "number"
         ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
         : null; // nullまたはundefinedならnull
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // Prismaを使用してDBに保存
     const result = await prisma.pushSubscription.upsert({
       where: {
-        endpoint: subscription.endpoint,
+        userId: userId,
+        deviceId: subscription.deviceId,
       },
       update: {
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
+        deviceId: subscription.deviceId,
+        expirationTime: expirationTimeDate,
         userId: userId,
       },
       create: {
@@ -99,11 +75,16 @@ export async function saveSubscription(subscription: {
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
+        deviceId: subscription.deviceId,
         expirationTime: expirationTimeDate,
       },
     });
 
-    return result.id;
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    return result;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("購読情報の保存に失敗しました:", error);
     throw new Error("購読情報の保存に失敗しました");
@@ -119,13 +100,19 @@ export async function saveSubscription(subscription: {
  */
 export async function deleteSubscription(endpoint: string) {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     await prisma.pushSubscription.delete({
       where: {
         endpoint: endpoint,
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     // レコードが見つからない場合(P2025)はエラーとしないことが多いが、ここでは念のためログ出力
     if (error instanceof Error && (error as { code?: string }).code === "P2025") {
@@ -164,8 +151,6 @@ type WebPushSubscription = {
   };
 };
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 type PushNotificationResult = {
   success: boolean;
   sent?: number;
@@ -174,6 +159,8 @@ type PushNotificationResult = {
   message?: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 通知を送信するサーバーアクション
  * @param params - 通知のパラメータ
@@ -181,7 +168,7 @@ type PushNotificationResult = {
  */
 export async function sendPushNotification(params: SendPushNotificationParams): Promise<PushNotificationResult> {
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // VAPIDキーが設定されていない場合は送信処理を中断
     if (!vapidDetails.publicKey || !vapidDetails.privateKey) {
@@ -189,7 +176,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       return { success: false, message: "VAPIDキーが設定されていません。" };
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 購読情報を取得
     let subscriptions: PushSubscription[] = [];
@@ -203,6 +190,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       subscriptions = await prisma.pushSubscription.findMany({
         where: { userId: params.userId },
       });
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 2.グループメンバー全員に送信
     } else if (params.groupId) {
@@ -292,7 +281,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
         }
 
         const webPushSubscription: WebPushSubscription = {
-          endpoint: subscription.endpoint,
+          endpoint: subscription.endpoint!,
           keys: {
             p256dh: subscription.p256dh,
             auth: subscription.auth,
@@ -304,7 +293,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
             TTL: 60 * 60 * 24, // Time To Live: 1日 (秒単位)
           });
           // console.log(`Notification sent successfully to ${subscription.endpoint}`);
-          return { success: true, endpoint: subscription.endpoint };
+          return { success: true, endpoint: subscription.endpoint! };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
           console.error(`通知の送信に失敗しました (${subscription.endpoint}):`, typedError.statusCode, typedError.body);
@@ -314,16 +303,18 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
           if (typedError.statusCode === 404 || typedError.statusCode === 410) {
             console.log(`Deleting expired/invalid subscription: ${subscription.endpoint}`);
             // deleteSubscriptionを呼び出す (エラーハンドリングはdeleteSubscription内で行う)
-            await deleteSubscription(subscription.endpoint).catch((delErr) => {
-              console.error(`Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
-            });
+            if (subscription.endpoint) {
+              await deleteSubscription(subscription.endpoint).catch((delErr) => {
+                console.error(`Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
+              });
+            }
             // 送信自体は失敗としてマーク
-            return { success: false, endpoint: subscription.endpoint, error: `Subscription expired or invalid (status code: ${typedError.statusCode})` };
+            return { success: false, endpoint: subscription.endpoint ?? "", error: `Subscription expired or invalid (status code: ${typedError.statusCode})` };
           } else {
             // その他のエラー (レート制限、認証エラーなど)
             return {
               success: false,
-              endpoint: subscription.endpoint,
+              endpoint: subscription.endpoint ?? "",
               error: typedError.body ?? `Unknown error (status code: ${typedError.statusCode ?? "unknown"})`,
             };
           }

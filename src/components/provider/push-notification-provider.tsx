@@ -22,16 +22,7 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
-  const { subscribe, isSupported, isSubscribing, setDeviceId, status, hasRequestedPermission, setHasRequestedPermission } = usePushNotification();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 許可要求状態を読み込む
-  useEffect(() => {
-    // ローカルストレージから許可要求状態を読み込む
-    const hasRequested = localStorage.getItem("push-notification-requested") === "true";
-    setHasRequestedPermission(hasRequested);
-  }, [setHasRequestedPermission]);
+  const { subscribe, isSupported, subscriptionState, setDeviceId, status } = usePushNotification();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -53,22 +44,18 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   useEffect(() => {
-    // 認証済みで、サポートされており、まだ購読していない、かつ通知を許可している、かつ通知許可が拒否されていない場合
-    if (status === "authenticated" && isSupported && !isSubscribing && hasRequestedPermission && Notification.permission !== "denied") {
-      // 通知許可を要求するタイミングを遅らせる（ユーザーがサイトにアクセスして少し経ってから）
+    // 認証済みで、サポートされており、まだ購読していない、かつ通知許可が拒否されていない場合
+    if (status === "authenticated" && isSupported && !subscriptionState && Notification.permission !== "denied") {
+      // 3秒後に表示。通知許可を要求するタイミングを遅らせる（ユーザーがサイトにアクセスして少し経ってから）
       const timer = setTimeout(() => {
         // 購読を要求する
         if (subscribe) void subscribe();
-        // 許可要求状態をローカルストレージに保存
-        localStorage.setItem("push-notification-requested", "true");
-        // 許可要求状態を更新
-        setHasRequestedPermission(true);
-      }, 3000); // 3秒後に表示
+      }, 3000);
 
       // タイムアウトをクリア
       return () => clearTimeout(timer);
     }
-  }, [status, subscribe, isSupported, isSubscribing, hasRequestedPermission, setHasRequestedPermission]);
+  }, [status, subscribe, isSupported, subscriptionState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

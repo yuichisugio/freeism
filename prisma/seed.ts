@@ -1,5 +1,6 @@
+import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { contributionType, NotificationTargetType, NotificationType, PrismaClient, TaskStatus } from "@prisma/client";
+import { NotificationTargetType, NotificationType, PrismaClient, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -135,12 +136,75 @@ async function createUsers(count: number) {
   return users;
 }
 
+// 型定義を修正
+type SeedUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  image?: string | null;
+  isAppOwner: boolean;
+  emailVerified?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+type SeedGroup = {
+  id: string;
+  name: string;
+  goal: string;
+  evaluationMethod: string;
+  depositPeriod: number;
+  maxParticipants: number;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  isBlackList: JsonValue; // JSONBの型
+};
+
+type SeedTask = {
+  id: string;
+  task: string;
+  detail?: string | null;
+  reference?: string | null;
+  category?: string | null;
+  status: string;
+  fixedContributionPoint?: number | null;
+  fixedEvaluator?: string | null;
+  fixedEvaluationLogic?: string | null;
+  fixedEvaluationDate?: Date | null;
+  userFixedSubmitterId?: string | null;
+  info?: string | null;
+  imageUrl?: string | null;
+  contributionType: string;
+  deliveryMethod?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  creatorId: string;
+  groupId: string;
+  userId?: string; // 一部の関数で使用されている
+};
+
+type SeedAuction = {
+  id: string;
+  taskId: string;
+  startTime: Date;
+  endTime: Date;
+  currentHighestBid: number;
+  currentHighestBidderId?: string | null;
+  winnerId?: string | null;
+  status: string;
+  extensionCount: number;
+  version: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 /**
  * ユーザーに関連するアカウントデータを生成する関数
  * @param users ユーザーの配列
  * @returns 生成されたアカウントの配列
  */
-async function createAccounts(users: any[]) {
+async function createAccounts(users: SeedUser[]) {
   const accounts = [];
   const providers: OAuthProvider[] = ["google", "github", "facebook"];
 
@@ -172,7 +236,7 @@ async function createAccounts(users: any[]) {
  * @param users ユーザーの配列
  * @returns 生成されたセッションの配列
  */
-async function createSessions(users: any[]) {
+async function createSessions(users: SeedUser[]) {
   const sessions = [];
 
   for (const user of users) {
@@ -195,7 +259,7 @@ async function createSessions(users: any[]) {
  * @param users ユーザーの配列
  * @returns 生成されたユーザー設定の配列
  */
-async function createUserSettings(users: any[]) {
+async function createUserSettings(users: SeedUser[]) {
   const userSettings = [];
 
   for (const user of users) {
@@ -251,7 +315,7 @@ async function createVerificationTokens(count: number) {
  * @param users ユーザーの配列（作成者として使用）
  * @returns 生成されたグループと所属メンバーの配列
  */
-async function createGroups(users: any[]) {
+async function createGroups(users: SeedUser[]) {
   const groups = [];
   const evaluationMethods: EvaluationMethod[] = ["360度評価", "相互評価", "目標達成度", "KPI評価", "コンピテンシー評価"];
 
@@ -302,7 +366,7 @@ async function createGroups(users: any[]) {
  * @param maxMembersPerGroup グループごとの最大メンバー数
  * @returns 生成されたグループメンバーシップの配列
  */
-async function createGroupMemberships(groups: any[], users: any[], minMembersPerGroup: number, maxMembersPerGroup: number) {
+async function createGroupMemberships(groups: SeedGroup[], users: SeedUser[], minMembersPerGroup: number, maxMembersPerGroup: number) {
   const memberships = [];
   const membershipSet = new Set<string>(); // 重複チェック用
   const preservedUserIds = new Set(PRESERVED_USER_IDS);
@@ -384,15 +448,14 @@ const CATEGORY_DELIVERY_METHODS: Record<string, string[]> = {
  * @param users ユーザーの配列（評価者として使用）
  * @returns 生成されたタスクの配列
  */
-async function createTasks(count: number, groupMemberships: any[], users: any[]) {
+async function createTasks(count: number, groupMemberships: { userId: string; groupId: string }[], users: SeedUser[]) {
   const tasks = [];
   const taskStatuses = Object.values(TaskStatus);
-  const contributionTypes = Object.values(contributionType);
 
   for (let i = 0; i < count; i++) {
     // ランダムにメンバーシップを選択
     const membership = faker.helpers.arrayElement(groupMemberships);
-    const creator = users.find((u) => u.id === membership.userId) || faker.helpers.arrayElement(users);
+    const creator = users.find((u) => u.id === membership.userId) ?? faker.helpers.arrayElement(users);
     const groupId = membership.groupId;
 
     // タスクの詳細を生成
@@ -535,7 +598,7 @@ async function createTasks(count: number, groupMemberships: any[], users: any[])
  * @param users ユーザーの配列（評価者として使用）
  * @returns 生成された分析データの配列
  */
-async function createAnalytics(tasks: any[], users: any[]) {
+async function createAnalytics(tasks: SeedTask[], users: SeedUser[]) {
   const analytics = [];
 
   // 完了したタスクのみ分析対象とする（一部のタスクのみ評価対象とする）
@@ -555,7 +618,7 @@ async function createAnalytics(tasks: any[], users: any[]) {
 
       // 貢献ポイントは1〜100の範囲でランダムに設定
       // タスクに固定貢献ポイントがある場合は、その周辺の値を使用
-      const basePoint = task.fixedContributionPoint || faker.number.int({ min: 10, max: 50 });
+      const basePoint = task.fixedContributionPoint ?? faker.number.int({ min: 10, max: 50 });
       const variation = faker.number.int({ min: -5, max: 10 });
       const contributionPoint = Math.max(1, Math.min(100, basePoint + variation));
 
@@ -601,7 +664,7 @@ async function createAnalytics(tasks: any[], users: any[]) {
  * @param tasks タスクの配列
  * @returns 生成された通知の配列
  */
-async function createNotifications(users: any[], groups: any[], tasks: any[]) {
+async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks: SeedTask[]) {
   const notifications = [];
   const notificationTypes = Object.values(NotificationType);
   const targetTypes = Object.values(NotificationTargetType);
@@ -762,23 +825,55 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
       // 通知をデータベースに追加
       try {
         // JSONB型のカラムはPrismaのJSON型として保存
-        // @ts-ignore - isReadプロパティはスキーマには存在するがTyped Prisma Clientが認識していない場合
+        // Prismaの型定義に合わせた通知データの型を定義
+        type NotificationData = {
+          title: string;
+          message: string;
+          type: string;
+          targetType: string;
+          priority: number;
+          sentAt: Date;
+          expiresAt: Date | null;
+          actionUrl?: string | null;
+          userId: string;
+          groupId?: string | null;
+          taskId?: string | null;
+          isRead: Record<string, { isRead: boolean; readAt: string | null }>;
+        };
+
+        const notificationData: NotificationData = {
+          title,
+          message,
+          type: notificationType,
+          targetType,
+          priority,
+          sentAt,
+          expiresAt,
+          actionUrl,
+          userId: user.id,
+          groupId,
+          taskId,
+          isRead: isReadJsonb,
+        };
+
+        // Prismaのスキーマに合わせて必要なプロパティのみを抽出して型安全に渡す
         const notification = await prisma.notification.create({
           data: {
-            title,
-            message,
-            type: notificationType,
-            targetType,
-            priority,
-            sentAt,
-            expiresAt,
-            actionUrl,
-            userId: user.id,
-            groupId,
-            taskId,
-            isRead: isReadJsonb,
+            title: notificationData.title,
+            message: notificationData.message,
+            type: notificationData.type as NotificationType,
+            targetType: notificationData.targetType as NotificationTargetType,
+            priority: notificationData.priority,
+            sentAt: notificationData.sentAt,
+            expiresAt: notificationData.expiresAt,
+            actionUrl: notificationData.actionUrl,
+            userId: notificationData.userId,
+            groupId: notificationData.groupId,
+            taskId: notificationData.taskId,
+            isRead: isReadJsonb, // Prismaの型定義とJSONBの互換性問題に対応
           },
         });
+
         notifications.push(notification);
       } catch (error) {
         console.error("通知作成エラー:", error);
@@ -828,10 +923,10 @@ async function createNotifications(users: any[], groups: any[], tasks: any[]) {
 }
 
 // オークションの生成
-async function createAuctions(tasks: any[], users: any[]): Promise<any[]> {
+async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<SeedAuction[]> {
   console.log("Creating auctions...");
 
-  const auctions: any[] = [];
+  const auctions: SeedAuction[] = [];
 
   // タスクから報酬タイプのタスクのみ抽出（contributionType が "REWARD" のもの）
   const rewardTasks = tasks.filter((task) => task.contributionType === "REWARD");
@@ -844,9 +939,9 @@ async function createAuctions(tasks: any[], users: any[]): Promise<any[]> {
 
     for (const task of tasksToConvert) {
       // カテゴリを確認
-      const category = task.category || "その他";
+      const category = task.category ?? "その他";
       // カテゴリに合った提供方法を選択
-      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS;
+      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] ?? DELIVERY_METHODS;
       const deliveryMethod = faker.helpers.arrayElement(categoryMethods);
 
       await prisma.task.update({
@@ -918,8 +1013,8 @@ async function createAuctions(tasks: any[], users: any[]): Promise<any[]> {
 
     // 提供方法が未設定の場合、カテゴリに応じた提供方法をランダムに選択
     if (!deliveryMethod) {
-      const category = task.category || "その他";
-      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS;
+      const category = task.category ?? "その他";
+      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] ?? DELIVERY_METHODS;
       deliveryMethod = faker.helpers.arrayElement(categoryMethods);
 
       // タスク情報に提供方法を更新
@@ -952,7 +1047,7 @@ async function createAuctions(tasks: any[], users: any[]): Promise<any[]> {
 }
 
 // 入札履歴の生成
-async function createBidHistories(auctions: any[], users: any[]) {
+async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
   console.log("Creating bid histories...");
 
   const bidHistories = [];
@@ -1031,7 +1126,7 @@ async function createBidHistories(auctions: any[], users: any[]) {
 }
 
 // 自動入札設定の生成
-async function createAutoBids(auctions: any[], users: any[]) {
+async function createAutoBids(auctions: SeedAuction[], users: SeedUser[]) {
   console.log("Creating auto bids...");
 
   const autoBids = [];
@@ -1089,7 +1184,7 @@ async function createAutoBids(auctions: any[], users: any[]) {
 }
 
 // オークション通知の生成
-async function createAuctionNotifications(auctions: any[], users: any[]) {
+async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUser[]) {
   console.log("Creating auction notifications...");
 
   const notifications = [];
@@ -1196,9 +1291,9 @@ function generateNotificationTitle(type: string): string {
 }
 
 // 通知メッセージの生成ヘルパー関数
-function generateNotificationMessage(type: string, auction: any, task?: any, pointReturnDate?: Date | null): string {
+function generateNotificationMessage(type: string, auction: SeedAuction, task?: { task?: string; deliveryMethod?: string | null } | null, pointReturnDate?: Date | null): string {
   const taskTitle = task?.task ? task.task.substring(0, 30) + (task.task.length > 30 ? "..." : "") : "商品";
-  const deliveryMethod = task?.deliveryMethod || "未定";
+  const deliveryMethod = task?.deliveryMethod ?? "未定";
   const bidAmount = auction.currentHighestBid.toLocaleString();
 
   switch (type) {
@@ -1228,7 +1323,7 @@ function generateNotificationMessage(type: string, auction: any, task?: any, poi
 }
 
 // オークションレビューの生成
-async function createAuctionReviews(auctions: any[]) {
+async function createAuctionReviews(auctions: SeedAuction[]) {
   console.log("Creating auction reviews...");
 
   const reviews = [];
@@ -1278,7 +1373,7 @@ async function createAuctionReviews(auctions: any[]) {
         data: {
           auction: { connect: { id: auction.id } },
           reviewer: { connect: { id: task.creatorId } },
-          reviewee: { connect: { id: auction.winnerId } },
+          reviewee: { connect: { id: auction.winnerId! } }, // winnerIdが確実に存在することを型アサーションで保証
           rating: faker.number.int({ min: 3, max: 5 }), // 売り手からは比較的高評価
           comment: faker.helpers.arrayElement(sellerReviewComments),
           completionProofUrl,
@@ -1315,7 +1410,7 @@ async function createAuctionReviews(auctions: any[]) {
         const buyerReview = await prisma.auctionReview.create({
           data: {
             auction: { connect: { id: auction.id } },
-            reviewer: { connect: { id: auction.winnerId } },
+            reviewer: { connect: { id: auction.winnerId! } }, // winnerIdが確実に存在することを型アサーションで保証
             reviewee: { connect: { id: task.creatorId } },
             rating: faker.number.int({ min: 2, max: 5 }), // 買い手からの評価は若干ばらつきがある
             comment: faker.helpers.arrayElement(buyerReviewComments),
@@ -1337,7 +1432,7 @@ async function createAuctionReviews(auctions: any[]) {
 }
 
 // オークションのウォッチリスト生成
-async function createTaskWatchLists(auctions: any[], users: any[]) {
+async function createTaskWatchLists(auctions: SeedAuction[], users: SeedUser[]) {
   console.log("Creating task watch lists...");
 
   const watchLists = [];
@@ -1365,20 +1460,42 @@ async function createTaskWatchLists(auctions: any[], users: any[]) {
 
     for (const watcher of watchers) {
       try {
-        const watchList = await prisma.taskWatchList.create({
-          data: {
-            userId: watcher.id,
-            auctionId: auction.id,
-            createdAt: new Date(
-              faker.date.between({
-                from: auction.createdAt,
-                to: new Date(),
-              }),
-            ),
-          },
-        });
+        // 日付の比較: auction.createdAtが現在時刻より後の場合、調整する
+        const now = new Date();
+        const fromDate = new Date(auction.createdAt);
+        const toDate = now;
 
-        watchLists.push(watchList);
+        // fromがtoより後の場合、fromをtoよりも前に調整
+        if (fromDate > toDate) {
+          // 現在時刻から過去24時間以内でランダムな時間を設定
+          const createdAtTime = new Date(now.getTime() - faker.number.int({ min: 0, max: 24 * 60 * 60 * 1000 }));
+
+          const watchList = await prisma.taskWatchList.create({
+            data: {
+              userId: watcher.id,
+              auctionId: auction.id,
+              createdAt: createdAtTime,
+            },
+          });
+
+          watchLists.push(watchList);
+        } else {
+          // 通常通り処理
+          const watchList = await prisma.taskWatchList.create({
+            data: {
+              userId: watcher.id,
+              auctionId: auction.id,
+              createdAt: new Date(
+                faker.date.between({
+                  from: fromDate,
+                  to: toDate,
+                }),
+              ),
+            },
+          });
+
+          watchLists.push(watchList);
+        }
       } catch (error) {
         // ユニーク制約に違反した場合はスキップ
         if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -1395,7 +1512,7 @@ async function createTaskWatchLists(auctions: any[], users: any[]) {
 }
 
 // グループポイントの生成
-async function createGroupPoints(users: any[], auctions: any[]) {
+async function createGroupPoints(users: SeedUser[], auctions: SeedAuction[]) {
   console.log("Creating group points...");
 
   const groupPoints = [];
@@ -1432,7 +1549,7 @@ async function createGroupPoints(users: any[], auctions: any[]) {
 
       // 基本のポイント残高と合計ポイント
       let balance = faker.number.int({ min: 100, max: 10000 });
-      let fixedTotalPoints = balance;
+      const fixedTotalPoints = balance;
 
       // ユーザーが落札者であるオークションを取得
       const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === "ENDED");
@@ -1550,4 +1667,4 @@ async function main() {
 }
 
 // プログラム実行
-main();
+void main();

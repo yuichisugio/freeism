@@ -87,6 +87,8 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@unique([identifier, token])
 }
@@ -130,6 +132,9 @@ model GroupMembership {
   isGroupOwner Boolean  @default(false) @map("is_group_owner")
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([userId, groupId])
   @@index([userId])
@@ -241,6 +246,9 @@ model Notification {
   taskId String? @map("task_id")
   task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@index([userId])
   @@index([groupId])
   @@index([taskId])
@@ -282,7 +290,7 @@ model TaskWatchList {
   userId    String   @map("user_id")
   auctionId String   @map("auction_id")
   createdAt DateTime @default(now()) @map("created_at")
-
+  updatedAt DateTime @updatedAt @map("updated_at")
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
@@ -398,6 +406,7 @@ model AuctionNotification {
   isRead    Boolean                 @default(false) @map("is_read")
   createdAt DateTime                @default(now()) @map("created_at")
   expiresAt DateTime                @map("expires_at")
+  updatedAt DateTime                @updatedAt @map("updated_at")
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
@@ -427,6 +436,7 @@ model AuctionReview {
   completionProofUrl String?  @map("completion_proof_url") // 完了証明の添付URL
   isSellerReview     Boolean  @map("is_seller_review") // 出品者による評価か買い手による評価か
   createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   auction  Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   reviewer User    @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
@@ -446,7 +456,7 @@ model AuctionMessage {
   recipientId String   @map("recipient_id")
   message     String   @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
-
+  updatedAt   DateTime @updatedAt @map("updated_at")
   auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   sender    User    @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   recipient User    @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
@@ -459,14 +469,14 @@ model AuctionMessage {
 // プッシュ通知のサブスクリプションを管理するモデル
 model PushSubscription {
   id             String    @id @default(cuid())
-  deviceId       String    @unique
-  endpoint       String    @unique
+  deviceId       String?   @unique @map("device_id")
+  endpoint       String?   @unique @map("endpoint")
   p256dh         String?
   auth           String?
-  userId         String?
-  expirationTime DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  userId         String?   @map("user_id")
+  expirationTime DateTime? @map("expiration_time")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
   user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
