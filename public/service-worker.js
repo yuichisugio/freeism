@@ -27,27 +27,6 @@ self.addEventListener("activate", (event) => {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * リクエスト時の処理
- * 認証関連のパスは処理せず、そのままブラウザの通常の処理に任せる
- */
-self.addEventListener("fetch", (event) => {
-  // URL情報を取得
-  const url = new URL(event.request.url);
-  const pathname = url.pathname;
-
-  // 認証関連のパスやAPIリクエストの場合は何もせず通常の動作を維持
-  if (pathname.startsWith("/api/auth/") || pathname === "/api/auth") {
-    console.log(`[SW] 認証関連リクエストをパススルー: ${pathname}`);
-    return;
-  }
-
-  // その他のリクエストも基本的にはパススルーする
-  // 必要に応じてキャッシュ戦略などを実装できる
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * プッシュ通知を受け取ったときに実行されるイベントハンドラ
  */
 self.addEventListener("push", (event) => {
@@ -149,28 +128,67 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// (オプション) プッシュ購読が変更されたときのイベント (ブラウザによっては未サポート)
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * endpointなどのプッシュ購読が変更されたときのイベント
+ */
 self.addEventListener("pushsubscriptionchange", (event) => {
   console.log(`[SW ${SW_VERSION}] Push Subscription Change`);
   // 購読情報が期限切れなどで変更された場合に発生
   // 新しい購読情報をサーバーに再送信する必要がある
 
-  // 環境変数の取得はServiceWorkerでは直接できないので、
-  // 再購読処理はメインスレッドに任せるべき
   event.waitUntil(
-    // デフォルトのサブスクリプションオプションを使用して再購読
-    self.registration.pushManager.subscribe({ userVisibleOnly: true }).then((newSubscription) => {
-      console.log("[SW] New subscription obtained after change:", newSubscription.endpoint);
-      // この新しい購読情報をクライアントに通知するなどの処理が必要
-      return self.clients.matchAll().then((clients) => {
-        if (clients.length > 0) {
-          // クライアントに新しい購読情報を通知
-          clients[0].postMessage({
-            type: "subscription-changed",
-            subscription: newSubscription,
-          });
-        }
-      });
-    }),
+    // 新しい購読情報を取得
+    self.registration.pushManager
+      .subscribe({
+        userVisibleOnly: true,
+        // applicationServerKeyは元の購読から取得（oldSubscriptionがある場合）
+        applicationServerKey: event.oldSubscription ? event.oldSubscription.options.applicationServerKey : undefined,
+      })
+      .then((newSubscription) => {
+        console.log("[SW] New subscription generated:", newSubscription);
+
+        // matchAllで、アプリを開いているユーザーがあればそれらにメッセージを送信して、subscriptionを更新
+        return clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+          // アクティブなクライアントが見つかった場合はメッセージング経由で購読情報を更新
+          if (clientList.length > 0) {
+            console.log(`[SW] Found ${clientList.length} active clients, sending message`);
+            const message = {
+              type: "SUBSCRIPTION_CHANGED",
+              oldEndpoint: event.oldSubscription ? event.oldSubscription.endpoint : null,
+              newSubscription: newSubscription,
+            };
+
+            // すべてのクライアントにメッセージを送信
+            return Promise.all(
+              clientList.map((client) => {
+                console.log("[SW] Sending message to client:", client.id);
+                return client.postMessage(message);
+              }),
+            ).then(() => newSubscription);
+          } else {
+            console.log("[SW] No active clients found, falling back to API");
+            // クライアントが見つからない場合はAPIを使用
+            return fetch("/api/push-notification/update", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                oldEndpoint: event.oldSubscription ? event.oldSubscription.endpoint : null,
+                newSubscription: newSubscription,
+              }),
+            }).then(() => newSubscription);
+          }
+        });
+      })
+      .then((subscription) => {
+        console.log("[SW] Subscription update processed successfully:", subscription.endpoint);
+      })
+      .catch((error) => {
+        console.error("[SW] Failed to resubscribe or update subscription:", error);
+        // エラーがあっても次のプッシュが届くように、できるだけ多くの処理を試みる
+      }),
   );
 });

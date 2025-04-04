@@ -1,14 +1,23 @@
-// hooks/usePushNotification.ts
-
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { deleteSubscription, saveSubscription } from "@/app/actions/push-notification";
+import { deleteSubscription, getRecordId, saveSubscription } from "@/app/actions/push-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // サービスワーカーのパス
 const SERVICE_WORKER_PATH = "/service-worker.js";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * サービスワーカーのメッセージイベントの型定義
+ */
+type ServiceWorkerMessageEvent = {
+  type: string;
+  oldEndpoint?: string;
+  newSubscription?: PushSubscription;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -49,8 +58,8 @@ export function usePushNotification() {
   const [registrationState, setRegistrationState] = useState<ServiceWorkerRegistration | null>(null);
   // 通知の許可
   const [permissionState, setPermissionState] = useState<NotificationPermission>("default");
-  // デバイスID
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+  // レコードID
+  const [recordId, setRecordId] = useState<string | null>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -81,24 +90,62 @@ export function usePushNotification() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * クライアント側で購読情報を更新する関数
+   * Service Workerからpushsubscriptionchangeイベントが発生した際に、
+   * メッセージングを通じて呼び出される
+   */
+  const handleSubscriptionChange = useCallback(async (oldEndpoint: string, newSubscription: PushSubscription) => {
+    try {
+      console.log("購読情報の変更を検出しました。更新します...");
+
+      // 新しい購読情報をステートに設定
+      setSubscriptionState(newSubscription);
+
+      // 購読情報をJSONに変換
+      const subscriptionJson = newSubscription.toJSON();
+
+      // サーバーに購読情報を送信
+      if (subscriptionJson.endpoint && subscriptionJson.keys?.p256dh && subscriptionJson.keys?.auth) {
+        const result = await saveSubscription({
+          endpoint: subscriptionJson.endpoint,
+          expirationTime: subscriptionJson.expirationTime ?? null,
+          keys: {
+            p256dh: subscriptionJson.keys.p256dh,
+            auth: subscriptionJson.keys.auth,
+          },
+        });
+
+        console.log("購読情報の更新が完了しました:", result);
+      }
+    } catch (err) {
+      console.error("購読情報の更新に失敗しました:", err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+    }
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * Service Workerの初期化
    * 1. Service Workerの登録
    * 2. readyでactiveなService Workerを取得
    * 3. getSubscriptionで購読情報を取得
    * 4. 購読情報がある場合は購読中フラグをtrueにする
+   * 5. メッセージングのためのイベントリスナーを設定
    * @returns {void}
    */
   const initializeServiceWorker = useCallback(async () => {
     try {
-      // Service Workerを登録
+      // 1. Service Workerを登録
       const reg = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
       setRegistrationState(reg);
       console.log("initializeServiceWorker_navigator.serviceWorker.register", reg);
 
-      // Service Workerの登録状態と既存の購読を確認
+      // 2. Service Workerの登録状態と既存の購読を確認
       const registration = await navigator.serviceWorker.ready;
+      // 3. 購読情報を取得
       const subscription = await registration.pushManager.getSubscription();
-
+      // 4. 購読情報がある場合は購読中フラグをtrueにする
       if (subscription) {
         setSubscriptionState(subscription);
         console.log("initializeServiceWorker_getSubscription", subscription);
@@ -106,17 +153,30 @@ export function usePushNotification() {
         setSubscriptionState(null);
         console.log("initializeServiceWorker_getSubscription_null");
       }
+
+      // 5. メッセージングのためのイベントリスナーを設定
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        // Service Workerからのメッセージを処理
+        const messageData = event.data as ServiceWorkerMessageEvent;
+        if (messageData && messageData.type === "SUBSCRIPTION_CHANGED") {
+          if (messageData.oldEndpoint && messageData.newSubscription) {
+            // 購読情報が変更された場合の処理を非同期で実行
+            void handleSubscriptionChange(messageData.oldEndpoint, messageData.newSubscription);
+          }
+        }
+      });
     } catch (error) {
       console.error("initializeServiceWorker_error", error);
       setError(error instanceof Error ? error : new Error(String(error)));
     }
-  }, []);
+  }, [handleSubscriptionChange]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 1. Service WorkerとPush APIがサポートされているかどうか確認を管理
    * 2. サービスワーカーを登録
+   * 3. デバイスIDを読み込む
    * @returns {void}
    */
   useEffect(() => {
@@ -130,6 +190,13 @@ export function usePushNotification() {
       // service workerを登録・取得・stateに保存
       void initializeServiceWorker();
     }
+
+    // pushSubscriptionテーブルのrecord_idを読み込む
+    const loadRecordId = async () => {
+      const recordId = await getRecordId(subscriptionState?.endpoint ?? "");
+      setRecordId(recordId);
+    };
+    void loadRecordId();
   }, [subscriptionState, initializeServiceWorker]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -196,14 +263,6 @@ export function usePushNotification() {
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // デバイスIDがない場合はエラーを返す
-      if (!deviceId) {
-        console.error("デバイスIDがありません");
-        throw new Error("デバイスIDがありません");
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
       // VAPID 公開鍵を環境変数から取得
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -249,6 +308,14 @@ export function usePushNotification() {
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      // recordIdがない場合はエラーを返す
+      if (!recordId) {
+        console.error("レコードIDがありません");
+        throw new Error("レコードIDがありません");
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       // サーバーに購読情報を送信
       const result = await saveSubscription({
         endpoint: subscriptionJson.endpoint,
@@ -257,7 +324,7 @@ export function usePushNotification() {
           p256dh: subscriptionJson.keys.p256dh,
           auth: subscriptionJson.keys.auth,
         },
-        deviceId: deviceId,
+        recordId: recordId,
       });
       console.log("購読情報を保存しました:", result);
 
@@ -278,7 +345,7 @@ export function usePushNotification() {
       setError(err instanceof Error ? err : new Error(String(err)));
       return null;
     }
-  }, [registrationState, isSupported, getSubscription, permissionState, deviceId]);
+  }, [registrationState, isSupported, getSubscription, permissionState, recordId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -316,12 +383,6 @@ export function usePushNotification() {
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // デバイスIDを削除
-      localStorage.removeItem("device_id");
-      setDeviceId(null);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
       return result;
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -349,11 +410,9 @@ export function usePushNotification() {
     unsubscribe,
     // 購読情報を取得
     getSubscription,
-    // デバイスID
-    deviceId,
-    // デバイスIDを更新
-    setDeviceId,
     // 通知許可
     permissionState,
+    // 購読情報の変更を処理する関数
+    handleSubscriptionChange,
   };
 }

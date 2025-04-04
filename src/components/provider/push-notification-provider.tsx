@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePushNotification } from "@/hooks/push-notification/use-push-notification";
-import { v4 as uuidv4 } from "uuid";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -22,28 +21,7 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
-  const { subscribe, isSupported, subscriptionState, setDeviceId, permissionState } = usePushNotification();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // デバイスIDを読み込む
-  useEffect(() => {
-    try {
-      // デバイスIDを読み込む
-      let deviceId = localStorage.getItem("device_id");
-      // デバイスIDが存在しない場合
-      if (!deviceId) {
-        // デバイスIDを生成
-        deviceId = uuidv4();
-        // デバイスIDをlocalstorageに保存
-        localStorage.setItem("device_id", deviceId);
-      }
-      // デバイスIDを設定
-      setDeviceId(deviceId);
-    } catch (error) {
-      console.error("デバイスIDの設定に失敗しました:", error);
-    }
-  }, [setDeviceId]);
+  const { subscribe, isSupported, subscriptionState, permissionState } = usePushNotification();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

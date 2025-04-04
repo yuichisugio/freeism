@@ -24,6 +24,26 @@ webPush.setVapidDetails(vapidDetails.subject, vapidDetails.publicKey, vapidDetai
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 購読情報を取得するサーバーアクション
+ * @param endpoint - 購読情報のエンドポイント
+ * @returns {string | null} 購読情報のID
+ */
+export async function getRecordId(endpoint: string): Promise<string | null> {
+  const recordId = await prisma.pushSubscription.findUnique({
+    where: {
+      endpoint: endpoint,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return recordId?.id ?? null;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 購読情報を保存するサーバーアクション
  * @param subscription - 購読情報
  * @returns {id: string} 購読情報のID
@@ -35,7 +55,7 @@ export async function saveSubscription(subscription: {
     p256dh: string;
     auth: string;
   };
-  deviceId: string;
+  recordId?: string;
 }): Promise<PushSubscription | { error: string }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,6 +72,17 @@ export async function saveSubscription(subscription: {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    if (!subscription.recordId) {
+      const recordId = await getRecordId(subscription.endpoint);
+      if (!recordId) {
+        console.log("購読情報が見つかりません。新規作成します。");
+        throw new Error("購読情報が見つかりません。新規作成します。");
+      }
+      subscription.recordId = recordId;
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     const expirationTimeDate =
       typeof subscription.expirationTime === "number"
         ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
@@ -62,14 +93,12 @@ export async function saveSubscription(subscription: {
     // Prismaを使用してDBに保存
     const result = await prisma.pushSubscription.upsert({
       where: {
-        userId: userId,
-        deviceId: subscription.deviceId,
+        id: subscription.recordId,
       },
       update: {
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
-        deviceId: subscription.deviceId,
         expirationTime: expirationTimeDate,
         userId: userId,
       },
@@ -78,7 +107,6 @@ export async function saveSubscription(subscription: {
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
-        deviceId: subscription.deviceId,
         expirationTime: expirationTimeDate,
       },
     });
