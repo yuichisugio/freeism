@@ -15,9 +15,11 @@
     - 現状では、可能な限りStateで管理
   - 型の情報は、全て「lib/auction/type」ファイルにまとめて下さい。
   - `||`を使用せず、`??`を使用して下さい。
-  - **UIとロジックを完全に分離**
-    - クライアントコンポーネントの場合は、カスタムフックにロジックをまとめる。など
-    - 画面やModalを非表示にする際のみ、DBに保存する。など
+
+- **UIとロジックを完全に分離**
+
+  - クライアントコンポーネントの場合は、カスタムフックにロジックをまとめる。など
+  - 画面やModalを非表示にする際のみ、DBに保存する。など
 
 - **保守性・可読性の向上:**
   - 通知の種類を `AuctionEventType` として明確に定義し、イベントタイプに基づいて通知内容を決定する。
@@ -119,7 +121,7 @@ export const getAuctionNotificationMessage = (eventType: AuctionEventType, data:
 };
 ```
 
-## 5. 通知送信方法指定オブジェクト (NotificationMethodType)どの方法で通知を送信するかを指定するオブジェクトの型。// lib/auction/type/notification.ts
+## 5. 通知送信方法指定オブジェクト (NotificationMethodType)どの方法で通知を送信するかを指定するオブジェクトの型。
 
 ```typescript
 // lib/auction/type/notification.ts
@@ -130,17 +132,21 @@ export interface NotificationMethodType {
 }
 ```
 
-## 6. 通知送信関数 (sendAuctionNotification)オークション関連の通知を一元的に送信する関数。// server/auction/notificationService.ts
+## 6. 通知送信関数 (sendAuctionNotification)オークション関連の通知を一元的に送信する関数。
 
 ```typescript
+// server/auction/notificationService.ts
 // 正しいパスに修正
 import { getAuctionNotificationMessage } from "@/lib/auction/notificationUtils"; // 正しいパスに修正
 import { AuctionEventType, NotificationMethodType } from "@/lib/auction/type/notification"; // 正しいパスに修正
 import { Auction, BidHistory, PrismaClient, Task, User } from "@prisma/client"; // Task を追加
 
-// import { sendPushNotification } from './pushNotification'; // プッシュ通知送信関数 (別途実装)
-// import { sendMailNotification } from './mailNotification'; // メール通知送信関数 (別途実装)
-// import { sendInAppNotification } from './inAppNotification'; // アプリ内通知送信関数 (別途実装)
+// プッシュ通知送信関数 (別途実装)
+import { sendPushNotification } from './pushNotification';
+// メール通知送信関数 (別途実装)
+import { sendMailNotification } from './mailNotification';
+// アプリ内通知送信関数 (別途実装)
+import { sendInAppNotification } from './inAppNotification';
 
 const prisma = new PrismaClient();
 
@@ -255,24 +261,24 @@ const sendPushNotification = async (data: any) => {
   // TODO: 実際のプッシュ通知送信処理を実装
 };
 
-// const calculateExpiryDate = (eventType: AuctionEventType): Date | null => {
-//   const now = new Date();
-//   switch (eventType) {
-//     case AuctionEventType.NEW_BID_ON_OWN_ITEM:
-//     case AuctionEventType.OUTBID:
-//     case AuctionEventType.QUESTION_RECEIVED:
-//       return null; // オークション終了時に削除するため、ここでは設定しない (別途削除処理を実装)
-//     case AuctionEventType.AUTO_BID_LIMIT_REACHED:
-//     case AuctionEventType.AUCTION_ENDED_OWN_ITEM:
-//     case AuctionEventType.AUCTION_WON:
-//     case AuctionEventType.AUCTION_LOST:
-//     case AuctionEventType.POINT_RETURNED:
-//       // 1ヶ月後に削除
-//       return new Date(now.setMonth(now.getMonth() + 1));
-//     default:
-//       return null;
-//   }
-// };
+const calculateExpiryDate = (eventType: AuctionEventType): Date | null => {
+  const now = new Date();
+  switch (eventType) {
+    case AuctionEventType.NEW_BID_ON_OWN_ITEM:
+    case AuctionEventType.OUTBID:
+    case AuctionEventType.QUESTION_RECEIVED:
+      return null; // オークション終了時に削除するため、ここでは設定しない (別途削除処理を実装)
+    case AuctionEventType.AUTO_BID_LIMIT_REACHED:
+    case AuctionEventType.AUCTION_ENDED_OWN_ITEM:
+    case AuctionEventType.AUCTION_WON:
+    case AuctionEventType.AUCTION_LOST:
+    case AuctionEventType.POINT_RETURNED:
+      // 1ヶ月後に削除
+      return new Date(now.setMonth(now.getMonth() + 1));
+    default:
+      return null;
+  }
+};
 ```
 
 ## 7. 通知トリガー条件と送信内容
@@ -326,58 +332,6 @@ const sendPushNotification = async (data: any) => {
      - **(代替案)** `expiresAt` カラムを追加し、削除予定日時を保存。`expiresAt` が現在時刻を過ぎているレコードを削除する (`calculateExpiryDate` 関数の実装例参照)。
   3. 削除対象のレコードを `DELETE` 文で削除する。
   4. 処理結果（削除件数など）をログに出力する。
-
-## 10. AuctionNotification テーブルスキーマ// prisma/schema.prisma
-
-```
-model AuctionNotification {
-  id        String           @id @default(uuid())
-  userId    String           // 通知受信者のID
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  auctionId String?          // 関連するオークションID (任意)
-  // auction   Auction?         @relation(fields: [auctionId], references: [id], onDelete: Cascade) // 必要であればリレーション追加
-  type      String           // AuctionEventType に対応する文字列
-  title     String           // 通知タイトル
-  body      String           // 通知本文
-  isRead    Boolean          @default(false) // 既読フラグ
-  createdAt DateTime         @default(now())
-  // expiresAt DateTime?     // 自動削除日時 (任意)
-
-  @@index([userId, createdAt])
-  @@index([userId, isRead, createdAt])
-}
-
-// Userモデルにリレーションを追加
-model User {
-  // ... 他のカラム
-  auctionNotifications AuctionNotification[]
-  languagePreference   String? // 仮の言語設定フィールド
-}
-
-// 他の関連モデル (例)
-model Auction {
-  id     String @id @default(uuid())
-  task   Task   @relation(fields: [taskId], references: [id])
-  taskId String @unique
-  // ... 他のカラム
-  status String // 例: PENDING, ACTIVE, ENDED, CANCELED
-}
-
-model Task {
-  id   String @id @default(uuid())
-  name String
-  // ... 他のカラム
-  auction Auction?
-}
-
-model BidHistory {
-  id     String @id @default(uuid())
-  amount Int
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-  // ... 他のカラム
-}
-```
 
 ```mermaid
 sequenceDiagram
