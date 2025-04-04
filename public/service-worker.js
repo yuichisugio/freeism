@@ -54,7 +54,6 @@ self.addEventListener("push", (event) => {
         body: payload.body || defaultNotificationData.body,
         icon: payload.icon || defaultNotificationData.icon,
         badge: payload.badge || defaultNotificationData.badge,
-        // urlはpayload.data.urlにあることを期待 (サーバーアクション側と合わせる)
         data: {
           url: payload.data?.url || defaultNotificationData.data.url,
         },
@@ -73,8 +72,6 @@ self.addEventListener("push", (event) => {
     body: notificationData.body,
     icon: notificationData.icon,
     badge: notificationData.badge,
-    tag: "general-notification",
-    renotify: false,
     data: notificationData.data,
     actions: [
       { action: "open_url", title: "開く" },

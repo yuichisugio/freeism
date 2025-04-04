@@ -239,6 +239,8 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       return { success: false, message: "通知対象ユーザーが見つかりません" };
     }
 
+    console.log("sendPushNotification_targetUserIds", targetUserIds);
+
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 対象ユーザーの購読情報を取得
@@ -251,8 +253,10 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       },
     });
 
+    console.log("sendPushNotification_targetSubscriptions", targetSubscriptions);
+
     if (targetSubscriptions.length === 0) {
-      console.log("No valid subscriptions found for the target users.");
+      console.log("sendPushNotification_No valid subscriptions found for the target users.");
       return { success: false, message: "有効な購読者が見つかりませんでした" };
     }
 
@@ -268,7 +272,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
       ...(params.url && { data: { url: params.url } }), // Service Workerで扱いやすいようにdataプロパティに入れる
     });
 
-    console.log(`Sending push notification to ${targetSubscriptions.length} subscriptions. Payload:`, payload);
+    console.log(`sendPushNotification_Sending push notification to ${targetSubscriptions.length} subscriptions. Payload:`, payload);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -297,19 +301,19 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
         try {
           // push通知を送信
           await webPush.sendNotification(webPushSubscription, payload);
-          console.log(`Notification sent successfully to ${subscription.endpoint}, ${subscription.id}`);
+          console.log(`sendPushNotification_Notification sent successfully to ${subscription.endpoint}, ${subscription.id}`);
           return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
-          console.error(`通知の送信に失敗しました (${subscription.endpoint}):`, typedError.statusCode, typedError.body);
+          console.error(`sendPushNotification_Notification sent failed to ${subscription.endpoint}:`, typedError.statusCode, typedError.body);
 
           // エラーの種類に応じて処理（購読が無効になっている場合はDBから削除）
           // 404 Not Found, 410 Gone は購読が無効と判断
           if (typedError.statusCode === 404 || typedError.statusCode === 410) {
-            console.log(`Deleting expired/invalid subscription: ${subscription.endpoint}`);
+            console.log(`sendPushNotification_Deleting expired/invalid subscription: ${subscription.endpoint}`);
             // deleteSubscriptionを呼び出す (エラーハンドリングはdeleteSubscription内で行う)
             await deleteSubscription(subscription.endpoint).catch((delErr) => {
-              console.error(`Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
+              console.error(`sendPushNotification_Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
             });
             // 送信自体は失敗としてマーク
             return { success: false, endpoint: subscription.endpoint ?? "", error: `Subscription expired or invalid (status code: ${typedError.statusCode})` };
@@ -333,19 +337,19 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
     const failedCount = fulfilledResults.length - successCount;
     const rejectedCount = results.filter((result) => result.status === "rejected").length;
 
-    console.log(`Push notification results: ${successCount} sent, ${failedCount} failed, ${rejectedCount} rejected.`);
+    console.log(`sendPushNotification_Push notification results: ${successCount} sent, ${failedCount} failed, ${rejectedCount} rejected.`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 詳細な失敗理由もログ出力やデバッグ用に保持しておくと良い
     const failures = fulfilledResults.filter((result) => !result.value.success).map((result) => result.value);
     if (failures.length > 0) {
-      console.warn("Failed endpoints:", failures);
+      console.warn("sendPushNotification_Failed endpoints:", failures);
     }
     const rejections = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
     if (rejections.length > 0) {
       console.error(
-        "Rejected promises:",
+        "sendPushNotification_Rejected promises:",
         rejections.map((r) => r.reason as Error),
       );
     }
@@ -363,7 +367,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    console.error("通知の送信に失敗しました:", error);
+    console.error("sendPushNotification_Failed to send push notification:", error);
     return {
       success: false,
       message: "通知の送信に失敗しました",
