@@ -51,6 +51,10 @@ export const createNotificationSchema = z.object({
   targetType: z.enum(["SYSTEM", "USER", "GROUP", "TASK"], {
     errorMap: () => ({ message: "通知対象タイプを選択してください" }),
   }),
+  sendTiming: z.enum(["NOW", "SCHEDULED"], {
+    errorMap: () => ({ message: "送信タイミングを選択してください" }),
+  }),
+  sendScheduledDate: z.date().nullable().optional(),
   expiresAt: z.date().nullable().optional(),
   actionUrl: z.string().url("有効なURLを入力してください").nullable().optional(),
   userId: z.string().nullable().optional(),

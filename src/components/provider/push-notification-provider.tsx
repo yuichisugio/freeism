@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePushNotification } from "@/hooks/push-notification/use-push-notification";
+import { usePushNotification } from "@/hooks/notification/use-push-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

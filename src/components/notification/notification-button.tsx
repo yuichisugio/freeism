@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { getUnreadNotificationsCount } from "@/app/actions/notification";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNotificationButton } from "@/hooks/notification/use-notification-button";
 import { Bell } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { NotificationList } from "./notification-list";
 
@@ -16,54 +14,7 @@ import { NotificationList } from "./notification-list";
  * - 未読通知がある場合はバッジを表示（通知リストと連動）
  */
 export function NotificationButton() {
-  // モーダルの開閉状態を管理
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { data: session, status } = useSession();
-
-  // 未読通知の有無。Actionを名前につけないと、CLからサーバーに渡せないらしい。普通は、JSONに変換して渡すが、Actionの場合は、そのまま渡せる。
-  const [hasUnreadNotifications, setHasUnreadNotificationsAction] = useState(false);
-
-  // 通知リストからの未読状態更新を処理する関数
-  const handleUnreadStatusChange = useCallback((hasUnread: boolean) => {
-    setHasUnreadNotificationsAction(hasUnread);
-  }, []);
-
-  // 初期ロード時に未読通知を確認
-  // すべてのレンダリングパスで同じ順序でフックを呼び出す
-  useEffect(() => {
-    // セッションがある場合のみ通知取得処理を実行
-    if (status === "authenticated" && session?.user?.id) {
-      function checkNotifications() {
-        try {
-          // useEffectの中では、非同期関数を使用できないので、promiseを返さないthenを記載する
-          void getUnreadNotificationsCount().then((unreadCount: number) => {
-            setHasUnreadNotificationsAction(unreadCount > 0);
-          });
-        } catch (error) {
-          console.error("通知取得エラー:", error);
-        }
-      }
-
-      // 初回実行
-      checkNotifications();
-
-      // 定期実行の設定
-      const intervalId = setInterval(checkNotifications, 30 * 60 * 1000); // 30分ごと
-
-      return () => clearInterval(intervalId);
-    }
-  }, [status, session]); // statusとsessionを依存配列に追加
-
-  // モーダルが開かれたときに最新の通知を取得
-  useEffect(() => {
-    if (isOpen && status === "authenticated") {
-      // モーダルを開いたときに最新の状態を取得
-      void getUnreadNotificationsCount().then((unreadCount: number) => {
-        setHasUnreadNotificationsAction(unreadCount > 0);
-      });
-    }
-  }, [isOpen, status]);
+  const { isOpen, setIsOpen, hasUnreadNotifications, handleUnreadStatusChange, status } = useNotificationButton();
 
   // 未認証の場合は何も表示しない
   if (status === "unauthenticated" || status === "loading") {

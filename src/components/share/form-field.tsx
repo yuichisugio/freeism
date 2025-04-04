@@ -75,6 +75,7 @@ export type CalendarFieldProps<T extends FieldValues> = FormFieldBaseProps<T> & 
   buttonText?: string;
   locale?: Locale;
   dateFormat?: string;
+  disablePastDates?: boolean;
 };
 
 // Switchフィールドのプロパティ
@@ -272,6 +273,10 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
   const locale = props.locale ?? ja;
   const includeTime = dateFormat.includes("HH") || dateFormat.includes("mm") || dateFormat.includes("ss");
 
+  // 今日の日付（00:00:00の時点）を取得
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <Popover>
@@ -301,6 +306,7 @@ function renderCalendarField<T extends FieldValues>(props: CalendarFieldProps<T>
               initialFocus
               locale={locale}
               className="rounded-md border shadow-lg"
+              fromDate={props.disablePastDates ? today : undefined}
             />
             {includeTime && (
               <div className="border-t p-3">

@@ -24,7 +24,7 @@ const SEED_CONFIG = {
 };
 
 // 保持する固定ユーザーID
-const PRESERVED_USER_IDS = ["cm91hfk750000g5u88pnoc4i4", "cm8odp55e0004mckyvhfo8ezy"];
+const PRESERVED_USER_IDS = ["cm91hfk750000g5u88pnoc4i4", "cm92f9pwb0004mc38yitjkigg"];
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
@@ -831,6 +831,7 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
           message: string;
           type: string;
           targetType: string;
+          sendTimingType: string;
           priority: number;
           sentAt: Date;
           expiresAt: Date | null;
@@ -846,6 +847,7 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
           message,
           type: notificationType,
           targetType,
+          sendTimingType: "NOW", // 既存データはすべて即時送信として設定
           priority,
           sentAt,
           expiresAt,
@@ -863,6 +865,7 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
             message: notificationData.message,
             type: notificationData.type as NotificationType,
             targetType: notificationData.targetType as NotificationTargetType,
+            sendTimingType: "NOW", // 既存データはすべて即時送信として設定
             priority: notificationData.priority,
             sentAt: notificationData.sentAt,
             expiresAt: notificationData.expiresAt,
@@ -885,10 +888,10 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
           try {
             const result = await prisma.$executeRaw`
               INSERT INTO "Notification" (
-                "id", "title", "message", "type", "targetType", "priority", 
+                "id", "title", "message", "type", "targetType", "sendTimingType", "priority", 
                 "sentAt", "expiresAt", "actionUrl", "userId", "groupId", "taskId", "isRead"
               ) VALUES (
-                ${id}, ${title}, ${message}, ${notificationType}, ${targetType}, ${priority}, 
+                ${id}, ${title}, ${message}, ${notificationType}, ${targetType}, ${"NOW"}, ${priority}, 
                 ${sentAt}, ${expiresAt}, ${actionUrl}, ${user.id}, ${groupId}, ${taskId}, 
                 ${JSON.stringify(isReadJsonb)}::jsonb
               )
@@ -900,6 +903,7 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
                 message,
                 type: notificationType,
                 targetType,
+                sendTimingType: "NOW", // 既存データはすべて即時送信として設定
                 priority,
                 sentAt,
                 expiresAt,

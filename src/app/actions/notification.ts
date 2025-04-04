@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { type CreateNotificationFormData } from "@/lib/zod-schema";
-import { Prisma } from "@prisma/client";
+import { NotificationSendTiming, Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -170,6 +170,11 @@ export async function getUnreadNotificationsCount() {
         )
         AND
         (
+          (n."send_timing_type" = 'NOW') OR
+          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
+        )
+        AND
+        (
           n."isRead" IS NULL
           OR
           NOT (n."isRead" ? ${userId})
@@ -238,10 +243,17 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         SELECT n.id
         FROM "Notification" n
         WHERE
-          (n."target_type" = 'SYSTEM') OR
-          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
-          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
+          (
+            (n."target_type" = 'SYSTEM') OR
+            (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+            (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
+            (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
+          )
+          AND
+          (
+            (n."send_timing_type" = 'NOW') OR
+            (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
+          )
         ORDER BY n."sent_at" DESC
         LIMIT ${(page - 1) * limit}
       `;
@@ -290,6 +302,11 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
           (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
           (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
           (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
+        )
+        AND
+        (
+          (n."send_timing_type" = 'NOW') OR
+          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
         )
         ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.sql``}
       ORDER BY n."sent_at" DESC
@@ -353,6 +370,11 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
         )
         AND
         (
+          (n."send_timing_type" = 'NOW') OR
+          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
+        )
+        AND
+        (
           n."isRead" IS NULL
           OR
           NOT (n."isRead" ? ${userId})
@@ -368,10 +390,17 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       SELECT COUNT(*) as count
       FROM "Notification" n
       WHERE
-        (n."target_type" = 'SYSTEM') OR
-        (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-        (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
-        (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
+        (
+          (n."target_type" = 'SYSTEM') OR
+          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
+          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
+          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
+        )
+        AND
+        (
+          (n."send_timing_type" = 'NOW') OR
+          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
+        )
     `;
 
     const totalCount = Number(totalCountResult[0]?.count ?? 0);
@@ -551,6 +580,9 @@ export async function createNotification(data: CreateNotificationFormData, isApp
           message: data.message,
           type: data.type,
           targetType: data.targetType,
+          sendTimingType: data.sendTiming === "SCHEDULED" ? NotificationSendTiming.SCHEDULED : NotificationSendTiming.NOW,
+          sendScheduledDate: data.sendTiming === "SCHEDULED" ? data.sendScheduledDate : null,
+          sentAt: data.sendTiming === "NOW" ? new Date() : null, // 即時送信の場合は現在時刻、予約送信の場合はnull
           priority: data.priority,
           expiresAt: data.expiresAt ?? undefined,
           actionUrl: data.actionUrl ?? undefined,
