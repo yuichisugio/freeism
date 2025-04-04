@@ -19,6 +19,19 @@ type ServiceWorkerMessageEvent = {
   newSubscription?: PushSubscription;
 };
 
+/**
+ * データベースに保存する購読情報の型定義
+ */
+type SaveSubscriptionParams = {
+  endpoint: string;
+  expirationTime: number | null;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+  recordId?: string;
+};
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -37,6 +50,44 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+/**
+ * PushSubscriptionオブジェクトからサーバーに送信するデータを整形する関数
+ * @param subscription - PushSubscriptionオブジェクト
+ * @param recordId - 購読情報のレコードID（オプション）
+ * @returns サーバーに送信する購読情報
+ */
+function formatSubscriptionForServer(subscription: PushSubscription | null, recordId?: string): SaveSubscriptionParams | null {
+  if (!subscription) {
+    return null;
+  }
+
+  // 購読情報をJSONに変換
+  const subscriptionJSON = subscription.toJSON();
+
+  // キーが不足している場合はnullを返す
+  if (!subscriptionJSON.endpoint || !subscriptionJSON.keys?.p256dh || !subscriptionJSON.keys?.auth) {
+    console.error("有効な購読情報が取得できませんでした", subscriptionJSON);
+    return null;
+  }
+
+  // サーバーに送信するデータを整形
+  const subscriptionData: SaveSubscriptionParams = {
+    endpoint: subscriptionJSON.endpoint,
+    expirationTime: subscriptionJSON.expirationTime ?? null,
+    keys: {
+      p256dh: subscriptionJSON.keys.p256dh,
+      auth: subscriptionJSON.keys.auth,
+    },
+  };
+
+  // recordIdが指定されている場合は追加
+  if (recordId) {
+    subscriptionData.recordId = recordId;
+  }
+
+  return subscriptionData;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -101,22 +152,16 @@ export function usePushNotification() {
       // 新しい購読情報をステートに設定
       setSubscriptionState(newSubscription);
 
-      // 購読情報をJSONに変換
-      const subscriptionJson = newSubscription.toJSON();
+      // 購読情報を整形
+      const subscriptionData = formatSubscriptionForServer(newSubscription);
+      if (!subscriptionData) {
+        throw new Error("有効な購読情報を整形できませんでした");
+      }
 
       // サーバーに購読情報を送信
-      if (subscriptionJson.endpoint && subscriptionJson.keys?.p256dh && subscriptionJson.keys?.auth) {
-        const result = await saveSubscription({
-          endpoint: subscriptionJson.endpoint,
-          expirationTime: subscriptionJson.expirationTime ?? null,
-          keys: {
-            p256dh: subscriptionJson.keys.p256dh,
-            auth: subscriptionJson.keys.auth,
-          },
-        });
+      const result = await saveSubscription(subscriptionData);
 
-        console.log("購読情報の更新が完了しました:", result);
-      }
+      console.log("購読情報の更新が完了しました:", result);
     } catch (err) {
       console.error("購読情報の更新に失敗しました:", err);
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -137,21 +182,42 @@ export function usePushNotification() {
   const initializeServiceWorker = useCallback(async () => {
     try {
       // 1. Service Workerを登録
-      const reg = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
-      setRegistrationState(reg);
-      console.log("initializeServiceWorker_navigator.serviceWorker.register", reg);
+      console.log("initializeServiceWorker_navigator.serviceWorker.register_start");
+      // 既に登録されているService Workerを取得
+      const existingRegistration = await navigator.serviceWorker.getRegistration(SERVICE_WORKER_PATH);
+      // 既に登録されている場合は、その情報を保存
+      if (existingRegistration) {
+        console.log("initializeServiceWorker_navigator.serviceWorker.register_existingRegistration", existingRegistration);
+        setRegistrationState(existingRegistration);
+      } else {
+        // 既に登録されていない場合は、新しく登録
+        const reg = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
+        setRegistrationState(reg);
+        console.log("initializeServiceWorker_navigator.serviceWorker.register", reg);
+      }
 
       // 2. Service Workerの登録状態と既存の購読を確認
       const registration = await navigator.serviceWorker.ready;
+      console.log("initializeServiceWorker_navigator.serviceWorker.ready", registration);
+
       // 3. 購読情報を取得
       const subscription = await registration.pushManager.getSubscription();
+      console.log("initializeServiceWorker_getSubscription", subscription);
+
       // 4. 購読情報がある場合は購読中フラグをtrueにする
       if (subscription) {
         setSubscriptionState(subscription);
-        console.log("initializeServiceWorker_getSubscription", subscription);
+        console.log("initializeServiceWorker_getSubscription_existing", subscription);
       } else {
         setSubscriptionState(null);
         console.log("initializeServiceWorker_getSubscription_null");
+      }
+
+      // 5. 購読情報をDBに保存
+      const subscriptionData = formatSubscriptionForServer(subscription);
+      if (subscriptionData) {
+        await saveSubscription(subscriptionData);
+        console.log("initializeServiceWorker_saveSubscription", subscriptionData);
       }
 
       // 5. メッセージングのためのイベントリスナーを設定
@@ -165,6 +231,7 @@ export function usePushNotification() {
           }
         }
       });
+      console.log("initializeServiceWorker_addEventListener_message");
     } catch (error) {
       console.error("initializeServiceWorker_error", error);
       setError(error instanceof Error ? error : new Error(String(error)));
@@ -293,39 +360,16 @@ export function usePushNotification() {
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 購読情報をJSONに変換
-      const subscriptionJson = sub.toJSON();
-      console.log("subscriptionJson", subscriptionJson);
-
-      // endpoint または keys が取得できなかった場合のエラーハンドリング
-      if (!subscriptionJson.endpoint || !subscriptionJson.keys?.p256dh || !subscriptionJson.keys?.auth) {
-        // endpoint または keys が取得できなかった場合のエラーハンドリング
-        const errorMessage = "通知の有効化に失敗しました。有効な購読情報が取得できませんでした。";
-        console.error("Failed to get a valid push subscription object:", errorMessage, subscriptionJson);
-        setError(new Error(errorMessage)); // エラー状態を更新
-        return null; //  処理を中断
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // recordIdがない場合はエラーを返す
-      if (!recordId) {
-        console.error("レコードIDがありません");
-        throw new Error("レコードIDがありません");
+      // 購読情報を整形
+      const subscriptionData = formatSubscriptionForServer(sub, recordId ?? undefined);
+      if (!subscriptionData) {
+        throw new Error("有効な購読情報が取得できませんでした");
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // サーバーに購読情報を送信
-      const result = await saveSubscription({
-        endpoint: subscriptionJson.endpoint,
-        expirationTime: subscriptionJson.expirationTime ?? null,
-        keys: {
-          p256dh: subscriptionJson.keys.p256dh,
-          auth: subscriptionJson.keys.auth,
-        },
-        recordId: recordId,
-      });
+      const result = await saveSubscription(subscriptionData);
       console.log("購読情報を保存しました:", result);
 
       // エラーレスポンスをチェック

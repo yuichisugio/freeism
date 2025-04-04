@@ -26,22 +26,25 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   useEffect(() => {
+    console.log("PushNotificationProvider_useEffect", isSupported, !subscriptionState, permissionState !== "denied");
     // サポートされており、まだ購読していない、かつ通知許可が拒否されていない場合
     // status が "loading" または "unauthenticated" の場合は実行しない
-    if (isSupported && !subscriptionState && permissionState !== "denied") {
-      console.log("プッシュ通知の購読を試みます", {
-        isSupported,
-        hasSubscription: !!subscriptionState,
-        permissionState,
-      });
-    }
     // 3秒後に表示。通知許可を要求するタイミングを遅らせる（ユーザーがサイトにアクセスして少し経ってから）
     const timer = setTimeout(() => {
-      // 購読を要求する
-      if (subscribe)
-        void subscribe().catch((err) => {
-          console.error("購読に失敗しました:", err);
-        });
+      console.log("PushNotificationProvider_useEffect_timer_start");
+
+      if (isSupported && !subscriptionState && permissionState !== "denied") {
+        console.log("プッシュ通知の購読を試みます", { isSupported, subscriptionState, permissionState });
+
+        // 購読を要求する
+        if (subscribe) {
+          void subscribe().catch((err) => {
+            console.error("購読に失敗しました:", err);
+          });
+        }
+      } else {
+        console.log("PushNotificationProvider_useEffect_timer_skip");
+      }
     }, 3000);
     // タイムアウトをクリア
     return () => clearTimeout(timer);

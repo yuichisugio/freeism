@@ -469,7 +469,6 @@ model AuctionMessage {
 // プッシュ通知のサブスクリプションを管理するモデル
 model PushSubscription {
   id             String    @id @default(cuid())
-  deviceId       String?   @unique @map("device_id")
   endpoint       String?   @unique @map("endpoint")
   p256dh         String?
   auth           String?

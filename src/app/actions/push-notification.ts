@@ -74,11 +74,13 @@ export async function saveSubscription(subscription: {
 
     if (!subscription.recordId) {
       const recordId = await getRecordId(subscription.endpoint);
-      if (!recordId) {
-        console.log("購読情報が見つかりません。新規作成します。");
-        throw new Error("購読情報が見つかりません。新規作成します。");
+      if (recordId === null || recordId === undefined) {
+        // ダミーを入れる
+        subscription.recordId = "00000000000000000000000000000000";
+        console.log("購読情報が見つからないため、ダミーを入れます。", subscription.recordId);
+      } else {
+        subscription.recordId = recordId;
       }
-      subscription.recordId = recordId;
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -295,7 +297,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
         try {
           // push通知を送信
           await webPush.sendNotification(webPushSubscription, payload);
-          console.log(`Notification sent successfully to ${subscription.endpoint}`);
+          console.log(`Notification sent successfully to ${subscription.endpoint}, ${subscription.id}`);
           return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
