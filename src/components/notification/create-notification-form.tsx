@@ -24,8 +24,12 @@ type CreateNotificationFormProps = {
  * @param users ユーザーリスト
  * @param groups グループリスト
  * @param tasks タスクリスト
+ * @returns {JSX.Element} 通知作成フォーム
  */
 export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups, tasks }: CreateNotificationFormProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 通知作成フォームのフォームオブジェクト
   const {
     form,
     targetType,

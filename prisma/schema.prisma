@@ -104,22 +104,23 @@ model UserSettings {
 }
 
 model Group {
-  id               String            @id @default(cuid())
-  name             String            @unique
-  goal             String
-  evaluationMethod String            @map("evaluation_method")
-  depositPeriod    Int               @default(30) @map("deposit_period") // ポイント預け入れ期間
-  maxParticipants  Int               @default(100) @map("max_participants") // 最大参加者数
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
-  createdBy        String            @map("created_by")
-  isBlackList      Json?             @map("is_black_list") @db.JsonB // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
-  user             User              @relation(fields: [createdBy], references: [id])
-  members          GroupMembership[]
-  tasks            Task[]
-  analytics        Analytics[]
-  notifications    Notification[]
-  groupPoints      GroupPoint[]
+  id                   String                @id @default(cuid())
+  name                 String                @unique
+  goal                 String
+  evaluationMethod     String                @map("evaluation_method")
+  depositPeriod        Int                   @default(30) @map("deposit_period") // ポイント預け入れ期間
+  maxParticipants      Int                   @default(100) @map("max_participants") // 最大参加者数
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+  createdBy            String                @map("created_by")
+  isBlackList          Json?                 @map("is_black_list") @db.JsonB // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
+  user                 User                  @relation(fields: [createdBy], references: [id])
+  members              GroupMembership[]
+  tasks                Task[]
+  analytics            Analytics[]
+  notifications        Notification[]
+  groupPoints          GroupPoint[]
+  auctionNotifications AuctionNotification[] @relation("GroupAuctionNotification")
 
   @@index([createdBy])
 }
@@ -142,33 +143,34 @@ model GroupMembership {
 }
 
 model Task {
-  id                     String           @id @default(cuid())
+  id                     String                @id @default(cuid())
   task                   String // タスクのタイトル
   detail                 String? // タスクの詳細
   reference              String? // 参考にした内容
-  category               String?          @default("その他") // タスクのカテゴリ
-  status                 TaskStatus       @default(PENDING)
-  fixedContributionPoint Int?             @map("fixed_contribution_point")
-  fixedEvaluator         String?          @map("fixed_evaluator")
-  fixedEvaluationLogic   String?          @map("fixed_evaluation_logic")
-  fixedEvaluationDate    DateTime?        @map("fixed_evaluation_date")
-  userFixedSubmitter     User?            @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade) // 固定評価者
-  userFixedSubmitterId   String?          @map("user_fixed_submitter_id")
+  category               String?               @default("その他") // タスクのカテゴリ
+  status                 TaskStatus            @default(PENDING)
+  fixedContributionPoint Int?                  @map("fixed_contribution_point")
+  fixedEvaluator         String?               @map("fixed_evaluator")
+  fixedEvaluationLogic   String?               @map("fixed_evaluation_logic")
+  fixedEvaluationDate    DateTime?             @map("fixed_evaluation_date")
+  userFixedSubmitter     User?                 @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade) // 固定評価者
+  userFixedSubmitterId   String?               @map("user_fixed_submitter_id")
   info                   String? // 証拠・結果・補足情報
-  imageUrl               String?          @map("image_url") // 報酬画像のURL
-  contributionType       contributionType @default(NON_REWARD) @map("contribution_type") // "REWARD" or "NON_REWARD"
-  deliveryMethod         String?          @map("delivery_method") // 提供方法
-  createdAt              DateTime         @default(now()) @map("created_at")
-  updatedAt              DateTime         @updatedAt @map("updated_at")
-  creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  creatorId              String           @map("creator_id")
+  imageUrl               String?               @map("image_url") // 報酬画像のURL
+  contributionType       contributionType      @default(NON_REWARD) @map("contribution_type") // "REWARD" or "NON_REWARD"
+  deliveryMethod         String?               @map("delivery_method") // 提供方法
+  createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @updatedAt @map("updated_at")
+  creator                User                  @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId              String                @map("creator_id")
   reporters              TaskReporter[]
   executors              TaskExecutor[]
-  group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group                  Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId                String
   analytics              Analytics[]
   notifications          Notification[]
   auction                Auction?
+  auctionNotifications   AuctionNotification[] @relation("TaskAuctionNotification")
 
   @@index([creatorId])
   @@index([groupId])
@@ -228,18 +230,18 @@ enum NotificationSendTiming {
 
 // 通知テーブル
 model Notification {
-  id              String                 @id @default(cuid())
-  title           String // 通知タイトル
-  message         String                 @db.Text // 通知メッセージ内容
-  type            NotificationType       // 通知の重要度/種類
-  targetType      NotificationTargetType @map("target_type") // 通知対象の種類
-  sendTimingType  NotificationSendTiming @map("send_timing_type") // 通知の送信タイミング
-  sendScheduledDate DateTime?       @map("send_scheduled_date") // 通知の予定送信時間
-  sentAt          DateTime?         @map("sent_at") // 送付時間
-  expiresAt       DateTime?         @map("expires_at") // 通知の有効期限（オプション）
-  actionUrl       String?           @map("action_url") // クリック時の遷移先URL（オプション）
-  priority        Float             @default(1.0) // 通知の優先度 (1-5, 5が最高)
-  isRead          Json              @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
+  id                String                 @id @default(cuid())
+  title             String // 通知タイトル
+  message           String                 @db.Text // 通知メッセージ内容
+  type              NotificationType // 通知の重要度/種類
+  targetType        NotificationTargetType @map("target_type") // 通知対象の種類
+  sendTimingType    NotificationSendTiming @map("send_timing_type") // 通知の送信タイミング
+  sendScheduledDate DateTime?              @map("send_scheduled_date") // 通知の予定送信時間
+  sentAt            DateTime?              @map("sent_at") // 送付時間
+  expiresAt         DateTime?              @map("expires_at") // 通知の有効期限（オプション）
+  actionUrl         String?                @map("action_url") // クリック時の遷移先URL（オプション）
+  priority          Float                  @default(1.0) // 通知の優先度 (1-5, 5が最高)
+  isRead            Json                   @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
   // user宛の場合は、userIdを入れる。
   userId String? @map("user_id") // 通知の送信者/作成者
@@ -404,19 +406,33 @@ model AutoBid {
 }
 
 model AuctionNotification {
-  id        String                  @id @default(cuid())
-  userId    String                  @map("user_id")
-  auctionId String                  @map("auction_id")
-  title     String
-  message   String                  @db.Text
-  type      AuctionNotificationType
-  isRead    Boolean                 @default(false) @map("is_read")
-  createdAt DateTime                @default(now()) @map("created_at")
-  expiresAt DateTime                @map("expires_at")
-  updatedAt DateTime                @updatedAt @map("updated_at")
+  id                String                  @id @default(cuid())
+  title             String
+  message           String                  @db.Text
+  type              AuctionNotificationType
+  targetType        NotificationTargetType  @map("target_type")
+  sendTimingType    NotificationSendTiming  @map("send_timing_type")
+  sendScheduledDate DateTime?               @map("send_scheduled_date")
+  sentAt            DateTime?               @map("sent_at")
+  expiresAt         DateTime?               @map("expires_at")
+  actionUrl         String?                 @map("action_url")
+  priority          Float                   @default(1.0)
+  isRead            Json                    @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  groupId String? @map("group_id")
+  group   Group?  @relation("GroupAuctionNotification", fields: [groupId], references: [id], onDelete: SetNull)
+
+  taskId String? @map("task_id")
+  task   Task?   @relation("TaskAuctionNotification", fields: [taskId], references: [id], onDelete: SetNull)
+
+  auctionId String  @map("auction_id")
+  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([auctionId])

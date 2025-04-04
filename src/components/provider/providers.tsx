@@ -9,7 +9,7 @@ import { PushNotificationProvider } from "./push-notification-provider";
 
 type ProvidersProps = {
   children: React.ReactNode;
-  session: Session;
+  session: Session | null;
 };
 
 export function Providers({ children, session }: ProvidersProps) {
