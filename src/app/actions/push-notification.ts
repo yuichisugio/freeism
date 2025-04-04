@@ -246,7 +246,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
     const results = await Promise.allSettled(
       targetSubscriptions.map(async (subscription) => {
         // p256dhとauthがnullでないことを再確認 (findManyのwhere条件でフィルタ済みだが念のため)
-        if (!subscription.p256dh || !subscription.auth) {
+        if (!subscription.p256dh || !subscription.auth || !subscription.endpoint) {
           console.warn(`Skipping subscription ${subscription.id} due to missing keys.`);
           return {
             success: false,
@@ -257,7 +257,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
 
         // push通知の購読情報を作成
         const webPushSubscription: WebPushSubscription = {
-          endpoint: subscription.endpoint!,
+          endpoint: subscription.endpoint,
           keys: {
             p256dh: subscription.p256dh,
             auth: subscription.auth,
@@ -268,7 +268,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
           // push通知を送信
           await webPush.sendNotification(webPushSubscription, payload);
           console.log(`Notification sent successfully to ${subscription.endpoint}`);
-          return { success: true, endpoint: subscription.endpoint! };
+          return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
           console.error(`通知の送信に失敗しました (${subscription.endpoint}):`, typedError.statusCode, typedError.body);
