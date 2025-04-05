@@ -4,10 +4,10 @@ import type { Column } from "@/components/share/data-table";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { checkAppOwner, checkAuth } from "@/app/actions/group";
-import { getMyTasks } from "@/app/actions/task";
-import { getAllUsers } from "@/app/actions/user";
 import { DataTable } from "@/components/share/data-table";
+import { checkAppOwner, checkAuth } from "@/lib/actions/group";
+import { getMyTasks } from "@/lib/actions/task";
+import { getAllUsers } from "@/lib/actions/user";
 import { type contributionType } from "@prisma/client";
 import { toast } from "react-hot-toast";
 

@@ -56,6 +56,13 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
  */
 export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDetails | null> {
   try {
+    if (!taskId) {
+      console.error("getAuctionWithTask: タスクIDが指定されていません");
+      return null;
+    }
+
+    console.log(`getAuctionWithTask: タスクID=${taskId}の検索を実行`);
+
     const auction = await prisma.auction.findUnique({
       where: { taskId },
       include: {
@@ -66,6 +73,8 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
                 id: true,
                 name: true,
                 image: true,
+                email: true,
+                createdAt: true,
               },
             },
             group: true,
@@ -88,12 +97,17 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
       },
     });
 
-    if (!auction) return null;
+    if (!auction) {
+      console.error(`getAuctionWithTask: タスクID=${taskId}のオークションが見つかりませんでした`);
+      return null;
+    }
+
+    console.log(`getAuctionWithTask: タスクID=${taskId}のオークション情報を取得しました`);
 
     // 必要なプロパティを持つオブジェクトとして返す
     return auction as unknown as AuctionWithDetails;
   } catch (error) {
-    console.error("オークション取得エラー:", error);
+    console.error(`オークション取得エラー: タスクID=${taskId}`, error);
     return null;
   }
 }

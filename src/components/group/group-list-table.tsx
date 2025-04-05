@@ -3,8 +3,8 @@
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import { useState } from "react";
 import Link from "next/link";
-import { joinGroup } from "@/app/actions/group";
 import { DataTable } from "@/components/share/data-table";
+import { joinGroup } from "@/lib/actions/group";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 

@@ -1,6 +1,7 @@
+import type { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { NotificationTargetType, NotificationType, PrismaClient, TaskStatus } from "@prisma/client";
+import { NotificationTargetType, PrismaClient, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -24,7 +25,7 @@ const SEED_CONFIG = {
 };
 
 // 保持する固定ユーザーID
-const PRESERVED_USER_IDS = ["cm91hfk750000g5u88pnoc4i4", "cm92f9pwb0004mc38yitjkigg"];
+const PRESERVED_USER_IDS = ["cm91hfk750000g5u88pnoc4i4", "cm945uygy0002g5wf5hxe44f0"];
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
@@ -666,7 +667,6 @@ async function createAnalytics(tasks: SeedTask[], users: SeedUser[]) {
  */
 async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks: SeedTask[]) {
   const notifications = [];
-  const notificationTypes = Object.values(NotificationType);
   const targetTypes = Object.values(NotificationTargetType);
 
   // 保持されたユーザーを取得
@@ -689,7 +689,6 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
 
     for (let i = 0; i < notificationCount; i++) {
       // 通知の基本情報を生成
-      const notificationType = faker.helpers.arrayElement(notificationTypes);
       const targetType = faker.helpers.arrayElement(targetTypes);
 
       // 生成から現在までの時間をランダムに設定（過去の通知を表現）
@@ -703,9 +702,11 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
       sentAt.setMinutes(sentAt.getMinutes() - minutesPast);
 
       // 通知タイプに応じたタイトルとメッセージを生成
-      let title, message, actionUrl;
-      let groupId = null;
-      let taskId = null;
+      let title: string,
+        message: string,
+        actionUrl: string | null = null;
+      let groupId: string | null = null;
+      let taskId: string | null = null;
 
       switch (targetType) {
         case "SYSTEM":
@@ -752,6 +753,11 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
           message = faker.lorem.paragraph();
           actionUrl = `/dashboard/tasks/${randomTask.id}`;
           break;
+
+        default:
+          title = "お知らせ";
+          message = faker.lorem.paragraph();
+          break;
       }
 
       // 通知期限（オプション、一部の通知のみ）
@@ -762,9 +768,6 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
         expiresAt = new Date(sentAt);
         expiresAt.setDate(expiresAt.getDate() + daysToExpiry);
       }
-
-      // 通知の優先度（1-5）
-      const priority = faker.number.int({ min: 1, max: 5 });
 
       // 既読状態のJSONBデータを生成
       // 保持されたユーザーは必ず既読状態を持つようにする
@@ -824,38 +827,35 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
 
       // 通知をデータベースに追加
       try {
-        // JSONB型のカラムはPrismaのJSON型として保存
         // Prismaの型定義に合わせた通知データの型を定義
         type NotificationData = {
           title: string;
           message: string;
-          type: string;
-          targetType: string;
-          sendTimingType: string;
-          priority: number;
-          sentAt: Date;
+          targetType: NotificationTargetType;
+          sendTimingType: NotificationSendTiming;
+          sentAt: Date | null;
           expiresAt: Date | null;
-          actionUrl?: string | null;
-          userId: string;
-          groupId?: string | null;
-          taskId?: string | null;
+          actionUrl: string | null;
           isRead: Record<string, { isRead: boolean; readAt: string | null }>;
+          senderUserId: string | null;
+          groupId: string | null;
+          taskId: string | null;
+          sendMethods: NotificationSendMethod[];
         };
 
         const notificationData: NotificationData = {
           title,
           message,
-          type: notificationType,
-          targetType,
-          sendTimingType: "NOW", // 既存データはすべて即時送信として設定
-          priority,
+          targetType: targetType as NotificationTargetType,
+          sendTimingType: "NOW",
           sentAt,
           expiresAt,
           actionUrl,
-          userId: user.id,
+          isRead: isReadJsonb,
+          senderUserId: user.id,
           groupId,
           taskId,
-          isRead: isReadJsonb,
+          sendMethods: ["IN_APP"],
         };
 
         // Prismaのスキーマに合わせて必要なプロパティのみを抽出して型安全に渡す
@@ -863,67 +863,28 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
           data: {
             title: notificationData.title,
             message: notificationData.message,
-            type: notificationData.type as NotificationType,
-            targetType: notificationData.targetType as NotificationTargetType,
-            sendTimingType: "NOW", // 既存データはすべて即時送信として設定
-            priority: notificationData.priority,
+            targetType: notificationData.targetType,
+            sendTimingType: "NOW",
             sentAt: notificationData.sentAt,
             expiresAt: notificationData.expiresAt,
             actionUrl: notificationData.actionUrl,
-            userId: notificationData.userId,
+            senderUserId: notificationData.senderUserId,
             groupId: notificationData.groupId,
             taskId: notificationData.taskId,
-            isRead: isReadJsonb, // Prismaの型定義とJSONBの互換性問題に対応
+            isRead: isReadJsonb,
+            sendMethods: notificationData.sendMethods,
           },
         });
 
         notifications.push(notification);
       } catch (error) {
         console.error("通知作成エラー:", error);
-
-        // JSONB型がサポートされていない場合は、rawクエリで対応
-        if (error instanceof Error && error.message.includes("JsonB")) {
-          const id = faker.string.uuid();
-
-          try {
-            const result = await prisma.$executeRaw`
-              INSERT INTO "Notification" (
-                "id", "title", "message", "type", "targetType", "sendTimingType", "priority", 
-                "sentAt", "expiresAt", "actionUrl", "userId", "groupId", "taskId", "isRead"
-              ) VALUES (
-                ${id}, ${title}, ${message}, ${notificationType}, ${targetType}, ${"NOW"}, ${priority}, 
-                ${sentAt}, ${expiresAt}, ${actionUrl}, ${user.id}, ${groupId}, ${taskId}, 
-                ${JSON.stringify(isReadJsonb)}::jsonb
-              )
-            `;
-            if (result) {
-              notifications.push({
-                id,
-                title,
-                message,
-                type: notificationType,
-                targetType,
-                sendTimingType: "NOW", // 既存データはすべて即時送信として設定
-                priority,
-                sentAt,
-                expiresAt,
-                actionUrl,
-                userId: user.id,
-                groupId,
-                taskId,
-                isRead: isReadJsonb,
-              });
-            }
-          } catch (rawError) {
-            console.error("Raw SQLエラー:", rawError);
-          }
-        }
       }
     }
   }
 
   console.log(`${notifications.length}件の通知を作成しました`);
-  return { notifications, notificationReadStatuses: [] };
+  return notifications;
 }
 
 // オークションの生成
@@ -1266,26 +1227,25 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           const title = generateNotificationTitle(notificationType);
           const message = generateNotificationMessage(notificationType, auction, task, pointReturnDate);
 
-          const notification = await prisma.auctionNotification.create({
+          const notification = await prisma.notification.create({
             data: {
               title,
               message,
               auctionEventType: notificationType,
-              targetType: "USER",
+              targetType: "AUCTION_BIDDER",
               sendTimingType: "NOW",
               sendMethods,
               sendScheduledDate: null,
               sentAt: createdAt,
               expiresAt,
               actionUrl: `/dashboard/auction/${auction.id}`,
-              priority: faker.number.float({ min: 1.0, max: 5.0 }),
               isRead: isReadJson,
               createdAt,
               updatedAt: new Date(),
-              user: { connect: { id: user.id } },
-              auction: { connect: { id: auction.id } },
-              task: { connect: { id: auction.taskId } },
-              group: task?.groupId ? { connect: { id: task.groupId } } : undefined,
+              senderUserId: user.id,
+              auctionId: auction.id,
+              taskId: auction.taskId,
+              groupId: task?.groupId ?? null,
             },
           });
 
@@ -1669,7 +1629,7 @@ async function main() {
     const analytics = await createAnalytics(tasks, users);
 
     // 6. 通知データの作成
-    const { notifications, notificationReadStatuses } = await createNotifications(users, groups, tasks);
+    const notifications = await createNotifications(users, groups, tasks);
 
     // 7. オークション関連データの作成
     const auctions = await createAuctions(tasks, users);
@@ -1695,13 +1655,11 @@ async function main() {
     console.log(`グループメンバーシップ: ${groupMemberships.length}件`);
     console.log(`タスク: ${tasks.length}件`);
     console.log(`分析データ: ${analytics.length}件`);
-    console.log(`通知: ${notifications.length}件`);
-    console.log(`通知既読状態: ${notificationReadStatuses.length}件`);
+    console.log(`通知: ${notifications.length + auctionNotifications.length}件`);
     console.log(`オークション: ${auctions.length}件`);
     console.log(`入札履歴: ${bidHistories.length}件`);
     console.log(`自動入札設定: ${autoBids.length}件`);
     console.log(`ウォッチリスト: ${watchLists.length}件`);
-    console.log(`オークション通知: ${auctionNotifications.length}件`);
     console.log(`オークションレビュー: ${auctionReviews.length}件`);
     console.log(`グループポイント: ${groupPoints.length}件`);
     console.log("-------------------------------------");

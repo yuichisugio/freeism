@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { bulkCreateEvaluations } from "@/app/actions/evaluation";
-import { checkAppOwner, checkGroupOwner } from "@/app/actions/group";
-import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/app/actions/task";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectedFileCard } from "@/components/ui/upload-file-card";
+import { bulkCreateEvaluations } from "@/lib/actions/evaluation";
+import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
+import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/lib/actions/task";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { cn } from "@/lib/utils";
 import { contributionType } from "@prisma/client";

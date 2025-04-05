@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/lib/actions/notification/notification-utilities";
 
 // 型定義
-export type NotificationType = "INFO" | "SUCCESS" | "WARNING";
 export type NotificationTargetType = "SYSTEM" | "USER" | "GROUP" | "TASK";
 export type FilterType = "all" | "unread" | "read";
 
@@ -13,19 +12,18 @@ export type NotificationData = {
   id: string;
   title: string;
   message: string;
-  NotificationType: NotificationType;
   NotificationTargetType: NotificationTargetType;
   isRead: boolean;
-  priority: number;
   sentAt: Date;
   readAt: Date | null;
   actionUrl: string | null;
-  userId: string | null;
   groupId: string | null;
   taskId: string | null;
   userName: string | null;
   groupName: string | null;
   taskName: string | null;
+  expiresAt?: Date | null;
+  senderUserId: string | null;
 };
 
 // 返り値の型を定義
@@ -156,13 +154,15 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
         }
 
         // 通知データの正規化
-        const processedNotifications = result.notifications.map((notification) => ({
+        const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
           ...notification,
           sentAt: new Date(notification.sentAt),
           readAt: notification.readAt ? new Date(notification.readAt) : null,
+          expiresAt: notification.expiresAt ? new Date(notification.expiresAt) : null,
           userName: notification.userName ?? null,
           groupName: notification.groupName ?? null,
           taskName: notification.taskName ?? null,
+          senderUserId: notification.senderUserId ?? null,
         }));
 
         // 通知リストの更新

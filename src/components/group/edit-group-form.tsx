@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkGroupNameExists, checkGroupOwner, updateGroup } from "@/app/actions/group";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
+import { checkGroupNameExists, checkGroupOwner, updateGroup } from "@/lib/actions/group";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";

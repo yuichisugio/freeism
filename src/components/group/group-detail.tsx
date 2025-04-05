@@ -1,12 +1,9 @@
 "use client";
 
-import type { GroupMemberWithUser } from "@/app/actions/group";
 import type { Column, DataTableProps } from "@/components/share/data-table";
+import type { GroupMemberWithUser } from "@/lib/actions/group";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkAppOwner, checkAuth, checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, leaveGroup, removeMember } from "@/app/actions/group";
-import { getTasksByGroupId } from "@/app/actions/task";
-import { getAllUsers } from "@/app/actions/user";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { EditGroupForm } from "@/components/group/edit-group-form";
 import { ExportDataModal } from "@/components/group/export-data-modal";
@@ -18,6 +15,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { checkAppOwner, checkAuth, checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, leaveGroup, removeMember } from "@/lib/actions/group";
+import { getTasksByGroupId } from "@/lib/actions/task";
+import { getAllUsers } from "@/lib/actions/user";
 import { contributionType } from "@prisma/client";
 import { Award, Check, ChevronsUpDown, ClipboardCheck, ClipboardList, Download, Edit, Loader2, LogOut, ShieldCheck, TargetIcon, Trash2, Upload, UserMinus, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";

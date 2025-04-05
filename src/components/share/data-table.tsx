@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { updateTaskStatus } from "@/app/actions/task";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { updateTaskStatus } from "@/lib/actions/task";
 import { cn } from "@/lib/utils";
 import { type contributionType } from "@prisma/client";
 import { ArrowUpDown, Check, ChevronsUpDown, Edit } from "lucide-react";

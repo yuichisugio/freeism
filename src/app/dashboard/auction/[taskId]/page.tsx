@@ -16,7 +16,14 @@ export async function generateMetadata({ params }: { params: Promise<{ taskId: s
   const { taskId } = await params;
   try {
     const auction = await getAuctionWithTask(taskId);
-    if (!auction) return notFound();
+
+    if (!auction) {
+      console.error(`オークションが見つかりません: taskId=${taskId}`);
+      return {
+        title: "オークション詳細 | Freeism",
+        description: "オークション商品の詳細情報",
+      };
+    }
 
     return {
       title: `${auction.task.task} | オークション | Freeism`,
@@ -40,25 +47,32 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
   // タスクIDを取得
   const { taskId } = await params;
 
-  // オークションデータを取得
-  const auctionData = await getAuctionWithTask(taskId);
+  try {
+    // オークションデータを取得
+    const auctionData = await getAuctionWithTask(taskId);
 
-  // オークションデータが存在しない場合は404エラーを返す
-  if (!auctionData) {
-    notFound();
+    // オークションデータが存在しない場合は404エラーを返す
+    if (!auctionData) {
+      console.error(`オークションが見つかりません: taskId=${taskId}`);
+      return notFound();
+    }
+
+    // 現在のユーザー情報を取得
+    const session = await auth();
+
+    // ユーザー情報が存在しない場合は404エラーを返す
+    if (!session?.user) {
+      console.error("ユーザーセッションが見つかりません");
+      return notFound();
+    }
+
+    return (
+      <MainTemplate title={auctionData.task.task} description={auctionData.task.detail ?? ""}>
+        <AuctionDetailWrapper initialAuction={auctionData} />
+      </MainTemplate>
+    );
+  } catch (error) {
+    console.error("オークション詳細ページエラー:", error);
+    return notFound();
   }
-
-  // 現在のユーザー情報を取得
-  const session = await auth();
-
-  // ユーザー情報が存在しない場合は404エラーを返す
-  if (!session?.user) {
-    notFound();
-  }
-
-  return (
-    <MainTemplate title={auctionData.task.task} description={auctionData.task.detail ?? ""}>
-      <AuctionDetailWrapper initialAuction={auctionData} />
-    </MainTemplate>
-  );
 }

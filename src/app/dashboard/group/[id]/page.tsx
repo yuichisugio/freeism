@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getTasksByGroupId } from "@/app/actions/task";
 import { GroupDetail } from "@/components/group/group-detail";
 import { GroupDetailSkeleton } from "@/components/group/group-detail-skeleton";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { getTasksByGroupId } from "@/lib/actions/task";
 
 export const metadata: Metadata = {
   title: "グループ詳細 - Freeism App",

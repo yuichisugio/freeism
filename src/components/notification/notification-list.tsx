@@ -1,47 +1,13 @@
 "use client";
 
-import type { FilterType, NotificationData, NotificationType } from "@/hooks/notification/use-notification-list";
+import type { FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, Bell, CheckCircle2, Info, MoreHorizontal, RefreshCw } from "lucide-react";
-
-/**
- * 通知アイコンコンポーネント
- */
-function NotificationIcon({ type }: { type: NotificationType }) {
-  if (type === "INFO") {
-    return <Info className="h-4 w-4 text-blue-500" />;
-  }
-  if (type === "SUCCESS") {
-    return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-  }
-  if (type === "WARNING") {
-    return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-  }
-
-  return <Bell className="h-4 w-4" />;
-}
-
-/**
- * 優先度を星の数で表示するコンポーネント
- */
-function PriorityStars({ priority }: { priority: number }) {
-  const stars = Math.min(5, Math.max(1, Math.round(priority)));
-
-  return (
-    <div className="mt-0.5 flex items-center gap-0.5" title={`優先度: ${stars}`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={`star-${i}`} className={i < stars ? "text-xs text-yellow-500" : "text-xs text-gray-300"}>
-          ★
-        </span>
-      ))}
-    </div>
-  );
-}
+import { AlertCircle, CheckCircle2, MoreHorizontal, RefreshCw } from "lucide-react";
 
 /**
  * ローディングインジケーター
@@ -133,15 +99,10 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
         tabIndex={0}
         aria-label={`通知: ${notification.title}`}
       >
-        <div className="mt-1">
-          <NotificationIcon type={notification.NotificationType} />
-        </div>
-
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
             <div>
               <h4 className="font-semibold">{notification.title}</h4>
-              {notification.priority > 0 && <PriorityStars priority={notification.priority} />}
             </div>
             <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
               {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
@@ -149,10 +110,10 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
           </div>
 
           <div className="mt-1 flex items-center text-sm text-gray-500">
-            {notification.NotificationTargetType === "USER" && notification.userId && (
+            {notification.NotificationTargetType === "USER" && notification.senderUserId && (
               <>
                 <span className="mr-1">👤</span>
-                <span>ユーザー: {notification.userName ?? notification.userId}</span>
+                <span>ユーザー: {notification.userName ?? notification.senderUserId}</span>
               </>
             )}
             {notification.NotificationTargetType === "GROUP" && notification.groupId && (

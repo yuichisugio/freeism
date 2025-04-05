@@ -30,22 +30,8 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知作成フォームのフォームオブジェクト
-  const {
-    form,
-    targetType,
-    sendTiming,
-    userComboOpen,
-    setUserComboOpen,
-    groupComboOpen,
-    setGroupComboOpen,
-    taskComboOpen,
-    setTaskComboOpen,
-    notificationTypeOptions,
-    sendTimingOptions,
-    targetTypeOptions,
-    priorityOptions,
-    handleSubmit,
-  } = useCreateNotification({ isAppOwner, isGroupOwner, users, groups, tasks });
+  const { form, targetType, sendTiming, userComboOpen, setUserComboOpen, groupComboOpen, setGroupComboOpen, taskComboOpen, setTaskComboOpen, sendTimingOptions, targetTypeOptions, handleSubmit } =
+    useCreateNotification({ isAppOwner, isGroupOwner, users, groups, tasks });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -71,10 +57,6 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
           fieldType="textarea"
           placeholder="例：2025年3月1日午前2時から5時までシステムメンテナンスを実施します。"
         />
-
-        <CustomFormField control={form.control} name="type" label="通知タイプ" description="通知の種類を選択してください" fieldType="radio" options={notificationTypeOptions} />
-
-        <CustomFormField control={form.control} name="priority" label="重要度" description="通知の重要度を選択してください" fieldType="radio" options={priorityOptions} />
 
         <CustomFormField control={form.control} name="targetType" label="通知単位" description="通知の送信単位を選択してください" fieldType="radio" options={targetTypeOptions} />
 
@@ -153,6 +135,8 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
         <CustomFormField control={form.control} name="expiresAt" label="有効期限（オプション）" description="通知の有効期限を設定します" fieldType="date" placeholder="日付を選択" />
 
         <CustomFormField control={form.control} name="sendPushNotification" label="プッシュ通知も送信" description="アプリ内通知と一緒にプッシュ通知も送信します" fieldType="switch" />
+
+        <CustomFormField control={form.control} name="sendEmailNotification" label="メール通知も送信" description="アプリ内通知と一緒にメール通知も送信します" fieldType="switch" />
       </FormLayout>
     </div>
   );

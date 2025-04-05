@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { type CreateNotificationFormData } from "@/lib/zod-schema";
-import { NotificationSendTiming, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+
+//TODO auctionNotificationにも対応させる
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -15,21 +16,117 @@ export type NotificationData = {
   id: string;
   title: string;
   message: string;
-  NotificationType: "INFO" | "SUCCESS" | "WARNING";
   NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
   isRead: boolean;
-  priority: number;
-  sentAt: Date;
-  readAt: Date | null;
-  expiresAt: Date | null;
+  sentAt: string;
+  readAt: string | null;
+  expiresAt: string | null;
   actionUrl: string | null;
-  userId: string;
+  senderUserId: string | null;
   groupId: string | null;
   taskId: string | null;
   userName: string | null;
   groupName: string | null;
   taskName: string | null;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 認証済みユーザーのIDを取得する共通関数
+ * @returns ユーザーID
+ * @throws 認証されていない場合はエラー
+ */
+async function getAuthenticatedUserId(): Promise<string> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("認証が必要です");
+  }
+  return session.user.id;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザーがアクセス可能なグループIDを取得する共通関数
+ * @param userId ユーザーID
+ * @returns グループIDの配列
+ */
+async function getUserAccessibleGroupIds(userId: string): Promise<string[]> {
+  // アクセス可能なグループIDを取得
+  const userGroupList = await prisma.groupMembership.findMany({
+    where: { userId },
+    select: { groupId: true },
+  });
+
+  // グループIDを配列に格納
+  const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
+
+  // 空のグループリストの場合の処理
+  if (groupIds.length === 0) {
+    groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
+  }
+
+  return groupIds;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループIDに紐づくタスクIDを取得する共通関数
+ * @param groupIds グループIDの配列
+ * @returns タスクIDの配列
+ */
+async function getTaskIdsByGroupIds(groupIds: string[]): Promise<string[]> {
+  const taskList = await prisma.task.findMany({
+    where: {
+      groupId: { in: groupIds },
+    },
+    select: { id: true },
+  });
+
+  return taskList.map((t) => t.id).filter(Boolean);
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知クエリの共通条件を生成する関数
+ * @param userId ユーザーID
+ * @param groupIds グループIDの配列
+ * @param taskIds タスクIDの配列 (オプション)
+ * @returns Prisma.sqlでラップされたSQL条件文
+ */
+function buildNotificationWhereCondition(userId: string, groupIds: string[], taskIds?: string[]): Prisma.Sql {
+  const taskCondition = taskIds && taskIds.length > 0 ? Prisma.sql`OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))` : Prisma.sql``;
+
+  return Prisma.sql`
+    (
+      (n."target_type" = 'SYSTEM') OR
+      (n."target_type" = 'USER' AND n."sender_user_id" = ${userId}) OR
+      (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
+      ${taskCondition}
+    )
+    AND
+    (
+      (n."send_timing_type" = 'NOW') OR
+      (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
+    )
+  `;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 日付またはnullをISOString形式に変換する関数
+ * @param date 日付オブジェクトか文字列かnull
+ * @param defaultNow デフォルト値として現在時刻を使うかどうか
+ * @returns ISO文字列またはnull
+ */
+function formatDateToISOString(date: string | Date | null, defaultNow = false): string | null {
+  if (!date && !defaultNow) return null;
+  return date ? new Date(date).toISOString() : defaultNow ? new Date().toISOString() : null;
+}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -135,61 +232,39 @@ export async function getNotificationTargetUserIds(
 
 /**
  * 未読通知の数を取得する - JSONB最適化版
+ * @returns 未読通知の数
  */
-export async function getUnreadNotificationsCount() {
+export async function getUnreadNotificationsCount(): Promise<number> {
   try {
-    const session = await auth();
+    const userId = await getAuthenticatedUserId();
 
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
+    // ユーザーがアクセスできるグループID一覧を取得
+    const groupIds = await getUserAccessibleGroupIds(userId);
 
-    const userId = session.user.id;
-
-    // アクセス可能なグループIDを取得
-    const userGroupList = await prisma.groupMembership.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
-    const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
-
-    // 空のグループリストの場合の処理
-    if (groupIds.length === 0) {
-      groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
-    }
+    // グループに関連するタスクID一覧を取得
+    const taskIds = await getTaskIdsByGroupIds(groupIds);
 
     // PostgreSQLのJSONB演算子を使用した効率的なクエリ
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Notification" n
-      WHERE
-        (
-          (n."target_type" = 'SYSTEM') OR
-          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
-        )
-        AND
-        (
-          (n."send_timing_type" = 'NOW') OR
-          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
-        )
-        AND
-        (
-          n."isRead" IS NULL
-          OR
-          NOT (n."isRead" ? ${userId})
-          OR
-          (n."isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
-        )
+      WHERE (
+        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
+      )
+      AND
+      (
+        n."is_read" IS NULL
+        OR
+        NOT (n."is_read" ? ${userId})
+        OR
+        (n."is_read" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
+      )
     `;
 
-    // bigintを安全にnumberに変換
-    const unreadCount = countResult?.[0] ? Number(countResult[0].count) : 0;
-
-    return unreadCount;
+    return Number(countResult[0].count);
   } catch (error) {
     console.error("未読通知カウントエラー:", error);
-    return 0; // エラー時は0を返す
+    return 0;
   }
 }
 
@@ -201,153 +276,92 @@ export async function getUnreadNotificationsCount() {
  * @param limit 1ページあたりの表示件数
  * @returns 通知リストと未読数
  */
-export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
+export async function getNotificationsAndUnreadCount(
+  page = 1,
+  limit = 20,
+): Promise<{
+  notifications: NotificationData[];
+  totalCount: number;
+  unreadCount: number;
+}> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
-    const userId = session.user.id;
+    const userId = await getAuthenticatedUserId();
 
-    // アクセス可能なグループIDを取得
-    const userGroupList = await prisma.groupMembership.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
-    // グループIDを配列に格納
-    const groupIds = userGroupList.map((g) => g.groupId).filter(Boolean);
+    // ユーザーがアクセスできるグループID一覧を取得
+    const groupIds = await getUserAccessibleGroupIds(userId);
 
-    // 空のグループリストの場合の処理
-    if (groupIds.length === 0) {
-      groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
-    }
+    // グループに関連するタスクID一覧を取得
+    const taskIds = await getTaskIdsByGroupIds(groupIds);
 
-    // 取得したGroupに紐づくタスクを取得
-    const taskList = await prisma.task.findMany({
-      where: {
-        groupId: { in: groupIds },
-      },
-      select: { id: true },
-    });
-
-    // タスクIDを配列に格納
-    const taskIds = taskList.map((t) => t.id).filter(Boolean);
-
-    // クライアントから指定されたIDを除外するためのパラメータを追加
-    const excludeIds = new Set<string>();
-
-    // ページ番号が2以上の場合は、前回取得した通知IDを除外リストに追加
-    if (page > 1) {
-      // 前のページの通知を取得して除外リストに追加
-      const previousNotifications = await prisma.$queryRaw`
-        SELECT n.id
-        FROM "Notification" n
-        WHERE
-          (
-            (n."target_type" = 'SYSTEM') OR
-            (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-            (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
-            (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
-          )
-          AND
-          (
-            (n."send_timing_type" = 'NOW') OR
-            (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
-          )
-        ORDER BY n."sent_at" DESC
-        LIMIT ${(page - 1) * limit}
-      `;
-
-      if (Array.isArray(previousNotifications)) {
-        previousNotifications.forEach((n: { id: string }) => excludeIds.add(n.id));
-      }
-    }
+    // オフセットを計算
+    const offset = (page - 1) * limit;
 
     // JSONB演算子を使用して直接DBレベルで既読状態を計算
-    // 修正：SQL関数をPrisma.sql関数に置き換え
     const notificationsRaw = await prisma.$queryRaw`
       SELECT
         n.id,
         n.title,
         n.message,
-        n.type as "type",
-        n."target_type" as "target_type",
-        n."task_id" as "task_id",
-        n.priority,
-        n."sent_at" as "sent_at",
-        n."expires_at" as "expires_at",
-        n."action_url" as "action_url",
-        n."user_id" as "user_id",
-        n."group_id" as "group_id",
-        n."task_id" as "task_id",
+        n."target_type" as "NotificationTargetType",
         CASE
-          WHEN n."isRead" ? ${userId} AND (n."isRead" -> ${userId} ->> 'isRead')::boolean = TRUE
-          THEN TRUE
-          ELSE FALSE
+          WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE
+          THEN true
+          ELSE false
         END as "isRead",
+        n."sent_at" as "sentAt",
         CASE
-          WHEN n."isRead" ? ${userId} THEN (n."isRead" -> ${userId} ->> 'readAt')::timestamp 
-          ELSE NULL 
+          WHEN n."is_read" ? ${userId} THEN (n."is_read" -> ${userId} ->> 'readAt')::timestamp
+          ELSE null
         END as "readAt",
+        n."expires_at" as "expiresAt",
+        n."action_url" as "actionUrl",
+        n."sender_user_id" as "senderUserId",
+        n."group_id" as "groupId",
+        n."task_id" as "taskId",
         u.name as "userName",
         g.name as "groupName",
         t.task as "taskName"
       FROM "Notification" n
-      LEFT JOIN "User" u ON n."user_id" = u.id
+      LEFT JOIN "User" u ON n."sender_user_id" = u.id
       LEFT JOIN "Group" g ON n."group_id" = g.id
       LEFT JOIN "Task" t ON n."task_id" = t.id
-      WHERE 
-        (
-          (n."target_type" = 'SYSTEM') OR
-          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
-          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
-        )
-        AND
-        (
-          (n."send_timing_type" = 'NOW') OR
-          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
-        )
-        ${excludeIds.size > 0 ? Prisma.sql`AND n.id NOT IN (${Prisma.join(Array.from(excludeIds))})` : Prisma.sql``}
-      ORDER BY n."sent_at" DESC
-      LIMIT ${page * limit}
+      WHERE (
+        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
+      )
+      ORDER BY n."sent_at" DESC, n.id DESC
+      LIMIT ${limit} OFFSET ${offset}
     `;
-    // 上記で、limitのみになっていたので修正した
 
-    // 以下のコードは変更なし
+    // 通知データを変換する
     const notifications = Array.isArray(notificationsRaw)
       ? notificationsRaw.map(
           (n: {
             id: string;
             title: string | null;
             message: string | null;
-            type: "INFO" | "SUCCESS" | "WARNING";
-            targetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
+            NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
             isRead: boolean;
-            priority: number | string;
             sentAt: string | Date | null;
             readAt: string | Date | null;
             expiresAt: string | Date | null;
             actionUrl: string | null;
-            userId: string | null;
+            senderUserId: string | null;
             groupId: string | null;
             taskId: string | null;
             userName: string | null;
             groupName: string | null;
             taskName: string | null;
-          }) => ({
+          }): NotificationData => ({
             id: n.id,
             title: n.title ?? "",
             message: n.message ?? "",
-            NotificationType: n.type,
-            NotificationTargetType: n.targetType,
+            NotificationTargetType: n.NotificationTargetType,
             isRead: n.isRead === true,
-            priority: Number(n.priority) ?? 1.0,
-            sentAt: n.sentAt ? new Date(n.sentAt).toISOString() : new Date().toISOString(),
-            readAt: n.readAt ? new Date(n.readAt).toISOString() : null,
-            expiresAt: n.expiresAt ? new Date(n.expiresAt).toISOString() : null,
+            sentAt: formatDateToISOString(n.sentAt, true)!,
+            readAt: formatDateToISOString(n.readAt, false),
+            expiresAt: formatDateToISOString(n.expiresAt, false),
             actionUrl: n.actionUrl ?? null,
-            userId: n.userId ?? null,
+            senderUserId: n.senderUserId ?? null,
             groupId: n.groupId ?? null,
             taskId: n.taskId ?? null,
             userName: n.userName ?? null,
@@ -362,24 +376,14 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       SELECT COUNT(*) as count
       FROM "Notification" n
       WHERE
-        (
-          (n."target_type" = 'SYSTEM') OR
-          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
-          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
-        )
+        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
         AND
         (
-          (n."send_timing_type" = 'NOW') OR
-          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
-        )
-        AND
-        (
-          n."isRead" IS NULL
+          n."is_read" IS NULL
           OR
-          NOT (n."isRead" ? ${userId})
+          NOT (n."is_read" ? ${userId})
           OR
-          (n."isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
+          (n."is_read" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
         )
     `;
 
@@ -390,17 +394,7 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
       SELECT COUNT(*) as count
       FROM "Notification" n
       WHERE
-        (
-          (n."target_type" = 'SYSTEM') OR
-          (n."target_type" = 'USER' AND n."user_id" = ${userId}) OR
-          (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds})) OR
-          (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))
-        )
-        AND
-        (
-          (n."send_timing_type" = 'NOW') OR
-          (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
-        )
+        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
     `;
 
     const totalCount = Number(totalCountResult[0]?.count ?? 0);
@@ -428,15 +422,9 @@ export async function getNotificationsAndUnreadCount(page = 1, limit = 20) {
  * @param isRead 既読状態
  * @returns 成功したかどうか
  */
-export async function apiUpdateNotificationStatus(notificationId: string, isRead: boolean) {
+export async function apiUpdateNotificationStatus(notificationId: string, isRead: boolean): Promise<{ success: boolean }> {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
-
-    const userId = session.user.id;
+    const userId = await getAuthenticatedUserId();
 
     // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
     if (isRead) {
@@ -444,25 +432,24 @@ export async function apiUpdateNotificationStatus(notificationId: string, isRead
       const readAt = new Date().toISOString();
       await prisma.$executeRaw`
         UPDATE "Notification"
-        SET "isRead" = "isRead" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+        SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
         WHERE id = ${notificationId}
       `;
     } else {
       // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
       await prisma.$executeRaw`
         UPDATE "Notification"
-        SET "isRead" = "isRead" || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
+        SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
         WHERE id = ${notificationId}
       `;
     }
 
-    revalidatePath("/notifications");
+    revalidatePath("/dashboard/notifications");
     return { success: true };
   } catch (error) {
     console.error("通知状態更新エラー:", error);
     return {
       success: false,
-      error: "通知の更新中にエラーが発生しました。",
     };
   }
 }
@@ -470,146 +457,30 @@ export async function apiUpdateNotificationStatus(notificationId: string, isRead
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * すべての通知を既読にする - JSONB最適化版
- * @returns 成功したかどうか
+ * 全ての通知を既読にする関数
+ * @returns 処理結果
  */
-export async function markAllNotificationsAsRead() {
+export async function markAllNotificationsAsRead(): Promise<{ success: boolean }> {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("認証が必要です");
-    }
-
-    const userId = session.user.id;
+    const userId = await getAuthenticatedUserId();
+    const groupIds = await getUserAccessibleGroupIds(userId);
     const readAt = new Date().toISOString();
 
-    // ユーザーがアクセス可能なグループを取得
-    const userGroupList = await prisma.groupMembership.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
-    const groupIds = userGroupList.map((g) => g.groupId);
-
-    // 空のグループリストの場合の処理
-    if (groupIds.length === 0) {
-      groupIds.push("00000000-0000-0000-0000-000000000000"); // 存在しないダミーID
-    }
-
-    // 一括でJSONB更新をSQLレベルで実行
+    // 全ての通知を一括で既読に設定
     await prisma.$executeRaw`
       UPDATE "Notification"
-      SET "isRead" = 
-        COALESCE("isRead", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+      SET "is_read" = 
+        COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
       WHERE 
-        (
-          ("target_type" = 'SYSTEM') OR
-          ("target_type" = 'USER' AND "user_id" = ${userId}) OR
-          ("target_type" = 'GROUP' AND "group_id" = ANY(${groupIds}))
-        )
-        AND
-        (
-          "isRead" IS NULL
-          OR
-          NOT ("isRead" ? ${userId})
-          OR
-          ("isRead" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
-        )
+        ${buildNotificationWhereCondition(userId, groupIds)}
     `;
 
-    revalidatePath("/notifications");
+    // キャッシュを更新
+    revalidatePath("/dashboard/notifications");
+
     return { success: true };
   } catch (error) {
-    console.error("全通知既読化エラー:", error);
-    return {
-      success: false,
-      error: "通知の一括既読化に失敗しました。",
-    };
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 通知を作成する関数
- * @param {CreateNotificationFormData} data 通知データ
- * @param {boolean} isAppOwner アプリオーナーかどうか
- * @param {boolean} isGroupOwner グループオーナーかどうか
- * @returns {success: boolean, notificationId: string, targetUserIds: string[]} 成功したかどうか
- */
-export async function sendInAppNotification(data: CreateNotificationFormData, isAppOwner: boolean, isGroupOwner: boolean) {
-  try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return { error: "認証が必要です" };
-    }
-
-    // アプリオーナーかグループオーナーでなければエラー
-    if (!isAppOwner && !isGroupOwner) {
-      return { error: "通知を作成する権限がありません" };
-    }
-
-    // グループオーナーのみの場合、SYSTEM/USERは作成不可
-    if (!isAppOwner && (data.targetType === "SYSTEM" || data.targetType === "USER")) {
-      return { error: "この通知タイプを作成する権限がありません" };
-    }
-
-    // 共通関数を使用してターゲットユーザーIDを取得
-    try {
-      const targetUserIds = await getNotificationTargetUserIds(data.targetType, {
-        userIds: data.userId ? (Array.isArray(data.userId) ? data.userId : [data.userId]) : undefined,
-        groupId: data.groupId ?? undefined,
-        taskId: data.taskId ?? undefined,
-      });
-
-      if (targetUserIds.length === 0) {
-        return { error: "通知の対象者が見つかりません" };
-      }
-
-      // isReadのJSONオブジェクトを構築
-      const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
-      targetUserIds.forEach((targetUserId) => {
-        isReadJsonb[targetUserId] = { isRead: false, readAt: null };
-      });
-
-      // 通知を保存
-      const notification = await prisma.notification.create({
-        data: {
-          title: data.title,
-          message: data.message,
-          type: data.type,
-          targetType: data.targetType,
-          sendTimingType: data.sendTiming === "SCHEDULED" ? NotificationSendTiming.SCHEDULED : NotificationSendTiming.NOW,
-          sendScheduledDate: data.sendTiming === "SCHEDULED" ? data.sendScheduledDate : null,
-          sentAt: data.sendTiming === "NOW" ? new Date() : null, // 即時送信の場合は現在時刻、予約送信の場合はnull
-          priority: data.priority,
-          expiresAt: data.expiresAt ?? undefined,
-          actionUrl: data.actionUrl ?? undefined,
-          userId: session.user.id, // 通知作成者
-          groupId: data.targetType === "GROUP" ? data.groupId : null,
-          taskId: data.targetType === "TASK" ? data.taskId : null,
-          // isReadはPrismaが自動的にJSONB型に変換
-          isRead: isReadJsonb,
-        },
-      });
-
-      revalidatePath("/dashboard/notifications");
-
-      return {
-        success: true,
-        notificationId: notification.id,
-        targetUserIds,
-      };
-    } catch (error) {
-      console.error("ターゲットユーザー取得エラー:", error);
-      if (error instanceof Error) {
-        return { error: error.message };
-      }
-      return { error: "ターゲットユーザーの取得に失敗しました" };
-    }
-  } catch (error) {
-    console.error("通知作成エラー:", error);
-    return { error: "通知の作成中にエラーが発生しました" };
+    console.error("全通知既読マークエラー:", error);
+    return { success: false };
   }
 }
