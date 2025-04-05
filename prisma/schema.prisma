@@ -409,14 +409,15 @@ model AuctionNotification {
   id                      String                  @id @default(cuid())
   title                   String
   message                 String                  @db.Text
-  auctionNotificationType AuctionNotificationType @map("auction_notification_type")
-  targetType              NotificationTargetType  @map("target_type")
-  sendTimingType          NotificationSendTiming  @map("send_timing_type")
-  sendScheduledDate       DateTime?               @map("send_scheduled_date")
-  sentAt                  DateTime?               @map("sent_at")
-  expiresAt               DateTime?               @map("expires_at")
-  actionUrl               String?                 @map("action_url")
-  priority                Float?                  @default(1.0)
+  auctionEventType        AuctionEventType        @map("auction_event_type") // オークションイベントの種類
+  targetType              NotificationTargetType  @map("target_type") // 通知の送信先
+  sendTimingType          NotificationSendTiming  @map("send_timing_type") // 通知の送信タイミング
+  sendMethods             NotificationSendMethod[]  @map("send_methods") // 通知の送信方法
+  sendScheduledDate       DateTime?               @map("send_scheduled_date") // 通知の予定送信時間
+  sentAt                  DateTime?               @map("sent_at") // 通知の送信時間
+  expiresAt               DateTime?               @map("expires_at") // 通知の有効期限
+  actionUrl               String?                 @map("action_url") // 通知のクリック時の遷移先URL
+  priority                Float?                  @default(1.0) // 通知の優先度
   isRead                  Json?                   @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -440,14 +441,23 @@ model AuctionNotification {
   @@index([taskId])
 }
 
-enum AuctionNotificationType {
-  BID_PLACED // 自分の出品に入札があった
+enum NotificationSendMethod {
+  WEB_PUSH // ウェブプッシュ通知
+  APP_PUSH // アプリプッシュ通知
+  EMAIL // メール通知
+  IN_APP // アプリ内通知
+  SMS // 短信通知
+}
+
+enum AuctionEventType {
+  ITEM_SOLD // 商品が落札された
+  NO_WINNER // 落札者がいなかった
+  ENDED // オークションが終了した
   OUTBID // 自分の入札が他者に上回られた
   QUESTION_RECEIVED // 質問を受け取った
-  MAX_BID_REACHED // 設定した最大入札額に達した
-  AUCTION_ENDED // オークション終了
-  WON_AUCTION // オークション落札
-  LOST_AUCTION // オークション落札失敗
+  AUTO_BID_LIMIT_REACHED // 設定した最大入札額に達した
+  AUCTION_WIN // オークション落札
+  AUCTION_LOST // オークション落札失敗
   POINT_RETURNED // ポイント返還
 }
 

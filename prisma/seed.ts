@@ -1204,28 +1204,25 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
     for (const auction of relevantAuctions) {
       const notificationCount = faker.number.int({ min: 1, max: 3 }); // 最低1件は通知を生成
 
-      // 通知タイプのリスト (Prismaのスキーマに合わせる)
-      let notificationTypes: ("BID_PLACED" | "OUTBID" | "QUESTION_RECEIVED" | "MAX_BID_REACHED" | "AUCTION_ENDED" | "WON_AUCTION" | "LOST_AUCTION" | "POINT_RETURNED")[] = [
-        "BID_PLACED",
+      // 通知タイプのリスト (schema.prismaのAuctionEventTypeに合わせる)
+      let notificationTypes: ("OUTBID" | "ENDED" | "QUESTION_RECEIVED" | "AUCTION_WIN" | "AUCTION_LOST" | "POINT_RETURNED" | "ITEM_SOLD" | "NO_WINNER" | "AUTO_BID_LIMIT_REACHED")[] = [
         "OUTBID",
-        "AUCTION_ENDED",
+        "ENDED",
+        "QUESTION_RECEIVED",
       ];
 
       // 落札者の場合
       if (auction.winnerId === user.id) {
-        notificationTypes = ["WON_AUCTION", "POINT_RETURNED"];
+        notificationTypes = ["AUCTION_WIN", "POINT_RETURNED"];
       }
       // 最高入札者だが落札者ではない場合
       else if (auction.currentHighestBidderId === user.id && auction.status === "ENDED" && auction.winnerId !== user.id) {
-        notificationTypes = ["LOST_AUCTION", "POINT_RETURNED"];
+        notificationTypes = ["AUCTION_LOST", "POINT_RETURNED"];
       }
 
       for (let i = 0; i < notificationCount; i++) {
         // ランダムな通知タイプを選択
         const notificationType = faker.helpers.arrayElement(notificationTypes);
-
-        // 既読状態をランダムに決定
-        const isRead = faker.datatype.boolean(0.6); // 60%の確率で既読
 
         // 通知の作成日時と有効期限（過去1週間以内の通知で、30日後に期限切れ）
         const createdAt = new Date(new Date().getTime() - faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000);
@@ -1237,6 +1234,7 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           select: {
             task: true,
             deliveryMethod: true,
+            groupId: true,
           },
         });
 
@@ -1248,19 +1246,46 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           pointReturnDate = twoMonthsLater;
         }
 
+        // 送信方法をランダムに選択（1〜3種類）
+        const sendMethodsCount = faker.number.int({ min: 1, max: 3 });
+        const allSendMethods = ["WEB_PUSH", "APP_PUSH", "EMAIL", "IN_APP", "SMS"] as const;
+        const sendMethods = faker.helpers.arrayElements(allSendMethods, sendMethodsCount) as unknown as Array<"WEB_PUSH" | "APP_PUSH" | "EMAIL" | "IN_APP" | "SMS">;
+
+        // 既読状態をランダムに決定
+        const isReadJson = {} as Record<string, { isRead: boolean; readAt: string | null }>;
+        // 一部のユーザーのみ既読状態を持つように設定
+        if (faker.datatype.boolean(0.6)) {
+          // 60%の確率で既読
+          isReadJson[user.id] = {
+            isRead: true,
+            readAt: new Date().toISOString(),
+          };
+        }
+
         try {
+          const title = generateNotificationTitle(notificationType);
+          const message = generateNotificationMessage(notificationType, auction, task, pointReturnDate);
+
           const notification = await prisma.auctionNotification.create({
             data: {
+              title,
+              message,
+              auctionEventType: notificationType,
+              targetType: "USER",
+              sendTimingType: "NOW",
+              sendMethods,
+              sendScheduledDate: null,
+              sentAt: createdAt,
+              expiresAt,
+              actionUrl: `/dashboard/auction/${auction.id}`,
+              priority: faker.number.float({ min: 1.0, max: 5.0 }),
+              isRead: isReadJson,
+              createdAt,
+              updatedAt: new Date(),
               user: { connect: { id: user.id } },
               auction: { connect: { id: auction.id } },
-              title: generateNotificationTitle(notificationType),
-              message: generateNotificationMessage(notificationType, auction, task, pointReturnDate),
-              auctionNotificationType: notificationType,
-              targetType: "USER", // 追加：通知対象タイプ
-              sendTimingType: "NOW", // 修正：送信タイミングタイプを正しい値に
-              isRead,
-              createdAt,
-              expiresAt,
+              task: { connect: { id: auction.taskId } },
+              group: task?.groupId ? { connect: { id: task.groupId } } : undefined,
             },
           });
 
@@ -1279,15 +1304,21 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
 // 通知タイトルの生成ヘルパー関数
 function generateNotificationTitle(type: string): string {
   switch (type) {
-    case "BID_PLACED":
-      return "入札完了";
+    case "ITEM_SOLD":
+      return "商品が落札されました";
+    case "NO_WINNER":
+      return "落札者がいませんでした";
+    case "ENDED":
+      return "オークション終了";
     case "OUTBID":
       return "入札が上回られました";
-    case "AUCTION_ENDED":
-      return "オークション終了";
-    case "WON_AUCTION":
+    case "QUESTION_RECEIVED":
+      return "質問を受け取りました";
+    case "AUTO_BID_LIMIT_REACHED":
+      return "自動入札上限に達しました";
+    case "AUCTION_WIN":
       return "オークション落札成功";
-    case "LOST_AUCTION":
+    case "AUCTION_LOST":
       return "オークション落札失敗";
     case "POINT_RETURNED":
       return "ポイント返還予定のお知らせ";
@@ -1297,25 +1328,35 @@ function generateNotificationTitle(type: string): string {
 }
 
 // 通知メッセージの生成ヘルパー関数
-function generateNotificationMessage(type: string, auction: SeedAuction, task?: { task?: string; deliveryMethod?: string | null } | null, pointReturnDate?: Date | null): string {
+function generateNotificationMessage(type: string, auction: SeedAuction, task?: { task?: string; deliveryMethod?: string | null; groupId?: string } | null, pointReturnDate?: Date | null): string {
   const taskTitle = task?.task ? task.task.substring(0, 30) + (task.task.length > 30 ? "..." : "") : "商品";
   const deliveryMethod = task?.deliveryMethod ?? "未定";
   const bidAmount = auction.currentHighestBid.toLocaleString();
 
   switch (type) {
-    case "BID_PLACED":
-      return `「${taskTitle}」のオークションに${bidAmount}ポイントで入札しました。`;
-    case "OUTBID":
-      return `「${taskTitle}」のオークションで、あなたの入札が他のユーザーに上回られました。再入札を検討してください。`;
-    case "AUCTION_ENDED":
-      return `「${taskTitle}」のオークションが終了しました。結果を確認してください。`;
-    case "WON_AUCTION":
+    case "ITEM_SOLD":
       if (pointReturnDate) {
         const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
         return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。\n預けたポイントは${formattedDate}に返還される予定です。`;
       }
       return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。`;
-    case "LOST_AUCTION":
+    case "NO_WINNER":
+      return `残念ながら「${taskTitle}」のオークションで落札できませんでした。入札したポイントは返還されました。`;
+    case "ENDED":
+      return `「${taskTitle}」のオークションが終了しました。結果を確認してください。`;
+    case "OUTBID":
+      return `「${taskTitle}」のオークションで、あなたの入札が他のユーザーに上回られました。再入札を検討してください。`;
+    case "QUESTION_RECEIVED":
+      return `「${taskTitle}」のオークションに関する質問を受け取りました。`;
+    case "AUTO_BID_LIMIT_REACHED":
+      return `「${taskTitle}」のオークションで自動入札上限に達しました。`;
+    case "AUCTION_WIN":
+      if (pointReturnDate) {
+        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+        return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。\n預けたポイントは${formattedDate}に返還される予定です。`;
+      }
+      return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。`;
+    case "AUCTION_LOST":
       return `残念ながら「${taskTitle}」のオークションで落札できませんでした。入札したポイントは返還されました。`;
     case "POINT_RETURNED":
       if (pointReturnDate) {

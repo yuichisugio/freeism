@@ -94,6 +94,16 @@ export function getAuctionNotificationMessage(eventType: AuctionEventType, messa
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * オークション通知を送信する関数
+ * @param auctionEventType オークションイベントタイプ
+ * @param send 通知内容生成に必要なデータ
+ * @returns 通知処理の結果
+ */
+export function sendAuctionNotification(auctionId: string, bidId: string): Promise<{ success: boolean }> {
+  return notifyNewBid(auctionId, bidId);
+}
+
+/**
  * 新規入札通知を行う関数
  * @param auctionId オークションID
  * @param bidId 入札ID
