@@ -2,8 +2,8 @@
 
 import type { CreateNotificationFormData } from "@/lib/zod-schema";
 import { useEffect, useState } from "react";
-import { createNotification } from "@/app/actions/notification";
-import { sendPushNotification } from "@/app/actions/push-notification";
+import { sendInAppNotification } from "@/lib/actions/notification/notification-utilities";
+import { sendPushNotification } from "@/lib/actions/notification/push-notification";
 import { createNotificationSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -138,7 +138,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
       }
 
       // アプリ内通知を作成
-      const result = await createNotification(data, isAppOwner, isGroupOwner);
+      const result = await sendInAppNotification(data, isAppOwner, isGroupOwner);
 
       if (result.error) {
         toast.error(result.error);

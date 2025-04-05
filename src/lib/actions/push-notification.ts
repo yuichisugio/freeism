@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import webPush from "web-push";
 
-import { getNotificationTargetUserIds } from "./notification";
+import { getNotificationTargetUserIds } from "./notification/notification-utilities";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -168,7 +168,7 @@ type SendPushNotificationParams = {
   icon?: string;
   badge?: string;
   url?: string;
-  userId?: string;
+  userId?: string | string[];
   groupId?: string;
   taskId?: string;
 };
@@ -225,7 +225,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
 
     try {
       targetUserIds = await getNotificationTargetUserIds(targetType, {
-        userId: params.userId,
+        userIds: params.userId ? (Array.isArray(params.userId) ? params.userId : [params.userId]) : undefined,
         groupId: params.groupId,
         taskId: params.taskId,
       });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRecordId, saveSubscription } from "@/app/actions/push-notification";
 import { auth } from "@/auth";
+import { getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
 
 // リクエストボディの型定義
 type SubscriptionUpdateRequest = {

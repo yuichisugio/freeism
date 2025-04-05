@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getUnreadNotificationsCount } from "@/app/actions/notification";
+import { getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
 import { useSession } from "next-auth/react";
 
 /**

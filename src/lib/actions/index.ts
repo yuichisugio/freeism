@@ -11,4 +11,4 @@ export * from "./task";
 export * from "./evaluation";
 
 // 通知関連のアクション
-export * from "./notification";
+export * from "./notification/notification-utilities";

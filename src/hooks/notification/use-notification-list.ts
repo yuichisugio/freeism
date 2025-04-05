@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/app/actions/notification";
+import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/lib/actions/notification/notification-utilities";
 
 // 型定義
 export type NotificationType = "INFO" | "SUCCESS" | "WARNING";

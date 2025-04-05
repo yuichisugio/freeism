@@ -42,7 +42,7 @@ export type NotificationData = {
 export async function getNotificationTargetUserIds(
   targetType: "SYSTEM" | "USER" | "GROUP" | "TASK",
   options: {
-    userId?: string;
+    userIds?: string[];
     groupId?: string;
     taskId?: string;
   },
@@ -60,10 +60,10 @@ export async function getNotificationTargetUserIds(
 
     case "USER":
       // ユーザー向け通知の場合
-      if (!options.userId) {
+      if (!options.userIds) {
         throw new Error("ユーザーIDが指定されていません");
       }
-      targetUserIds = [options.userId];
+      targetUserIds = [...options.userIds];
       break;
 
     case "GROUP":
@@ -537,7 +537,7 @@ export async function markAllNotificationsAsRead() {
  * @param {boolean} isGroupOwner グループオーナーかどうか
  * @returns {success: boolean, notificationId: string, targetUserIds: string[]} 成功したかどうか
  */
-export async function createNotification(data: CreateNotificationFormData, isAppOwner: boolean, isGroupOwner: boolean) {
+export async function sendInAppNotification(data: CreateNotificationFormData, isAppOwner: boolean, isGroupOwner: boolean) {
   try {
     const session = await auth();
 
@@ -558,7 +558,7 @@ export async function createNotification(data: CreateNotificationFormData, isApp
     // 共通関数を使用してターゲットユーザーIDを取得
     try {
       const targetUserIds = await getNotificationTargetUserIds(data.targetType, {
-        userId: data.userId ?? undefined,
+        userIds: data.userId ? (Array.isArray(data.userId) ? data.userId : [data.userId]) : undefined,
         groupId: data.groupId ?? undefined,
         taskId: data.taskId ?? undefined,
       });

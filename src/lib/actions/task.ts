@@ -3,8 +3,8 @@
 import type { TaskFormValuesAndGroupId } from "@/components/task/task-input-form";
 import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { checkAppOwner, checkGroupOwner } from "@/app/actions/group";
 import { auth } from "@/auth";
+import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
 import { prisma } from "@/lib/prisma";
 import { contributionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";

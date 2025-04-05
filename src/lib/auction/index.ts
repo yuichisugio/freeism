@@ -12,4 +12,4 @@ export { sendAuctionUpdateEvent, sendAuctionExtensionEvent, sendAuctionEndedEven
 export * from "./action/user";
 export * from "./action/watchlist";
 // AuctionEventTypeの重複を避けるために個別に関数をエクスポート
-export { getAuctionNotificationMessage, notifyNewBid } from "./action/auction-notification";
+export { getAuctionNotificationMessage, notifyNewBid } from "../actions/notification/auction-notification";

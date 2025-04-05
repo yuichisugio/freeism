@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { deleteSubscription, getRecordId, saveSubscription } from "@/app/actions/push-notification";
+import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
