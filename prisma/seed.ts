@@ -1255,7 +1255,9 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
               auction: { connect: { id: auction.id } },
               title: generateNotificationTitle(notificationType),
               message: generateNotificationMessage(notificationType, auction, task, pointReturnDate),
-              type: notificationType,
+              auctionNotificationType: notificationType,
+              targetType: "USER", // 追加：通知対象タイプ
+              sendTimingType: "NOW", // 修正：送信タイミングタイプを正しい値に
               isRead,
               createdAt,
               expiresAt,

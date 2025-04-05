@@ -67,6 +67,9 @@ self.addEventListener("push", (event) => {
     // データがない場合もデフォルト通知を表示
   }
 
+  notificationData.title = notificationData.title.length > 20 ? `${notificationData.title.substring(0, 20)}...` : notificationData.title;
+  notificationData.body = notificationData.body.length > 40 ? `${notificationData.body.substring(0, 40)}...` : notificationData.body;
+
   // 通知を表示
   const options = {
     body: notificationData.body,

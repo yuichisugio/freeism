@@ -406,33 +406,33 @@ model AutoBid {
 }
 
 model AuctionNotification {
-  id                      String                    @id @default(cuid())
+  id                      String                  @id @default(cuid())
   title                   String
-  message                 String                    @db.Text
-  auctionNotificationType AuctionNotificationType   @map("auction_notification_type")
-  targetType              NotificationTargetType    @map("target_type")
-  sendTimingType          NotificationSendTiming    @map("send_timing_type")
-  sendScheduledDate       DateTime?                 @map("send_scheduled_date")
-  sentAt                  DateTime?                 @map("sent_at")
-  expiresAt               DateTime?                 @map("expires_at")
-  actionUrl               String?                   @map("action_url")
-  priority                Float?                    @default(1.0)
-  isRead                  Json?                     @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
+  message                 String                  @db.Text
+  auctionNotificationType AuctionNotificationType @map("auction_notification_type")
+  targetType              NotificationTargetType  @map("target_type")
+  sendTimingType          NotificationSendTiming  @map("send_timing_type")
+  sendScheduledDate       DateTime?               @map("send_scheduled_date")
+  sentAt                  DateTime?               @map("sent_at")
+  expiresAt               DateTime?               @map("expires_at")
+  actionUrl               String?                 @map("action_url")
+  priority                Float?                  @default(1.0)
+  isRead                  Json?                   @default("{}") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
-  createdAt               DateTime                  @default(now()) @map("created_at")
-  updatedAt               DateTime                  @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  userId                  String?                   @map("user_id")
-  user                    User?                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  groupId                 String?                   @map("group_id")
-  group                   Group?                    @relation("GroupAuctionNotification", fields: [groupId], references: [id], onDelete: SetNull)
+  groupId String? @map("group_id")
+  group   Group?  @relation("GroupAuctionNotification", fields: [groupId], references: [id], onDelete: SetNull)
 
-  taskId                  String?                   @map("task_id")
-  task                    Task?                     @relation("TaskAuctionNotification", fields: [taskId], references: [id], onDelete: SetNull)
+  taskId String? @map("task_id")
+  task   Task?   @relation("TaskAuctionNotification", fields: [taskId], references: [id], onDelete: SetNull)
 
-  auctionId               String?                   @map("auction_id")
-  auction                 Auction?                  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  auctionId String?  @map("auction_id")
+  auction   Auction? @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([auctionId])

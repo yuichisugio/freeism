@@ -30,10 +30,35 @@
   - `sendAuctionNotification` 関数の引数で、通知を送信する方法（アプリ内、メール、プッシュ）を選択できるようにする。
 - **データベース:**
   - 通知データは `AuctionNotification` テーブルに保存する。
+- **その他**
+  - 「通知から１ヶ月後に自動削除」トリガーの実装
+    - GitHub Actionsを使用して、リポジトリ内のコードを定期的に実行する方法で、通知を確認して、通知から1ヶ月経っている場合は、通知のデータをDBから削除する
+    - 定期的な実行処理は、1週間に一回で、日本時間の深夜1時ごろに行うようにする。
+  - 通知の削除機能
+  - ページネーション機能
+  - 入札に伴い、関係するユーザーへ通知を行う機能
 
 ## 3. 通知イベントタイプ (`AuctionEventType`)
 
 オークションで発生する通知トリガーとなるイベントタイプを定義する。
+
+- 通知を行う条件
+  1. (不要)自分が出品した商品に、他者が入札した場合
+     - この通知は、その商品のオークション終了後に自動で削除する
+  2. 自分が入札した商品に、別の人が入札して追い越された場合
+     - この通知は、その商品のオークション終了後に自動で削除する
+  3. 自分が出品した商品に、質問が来た場合
+     - この通知は、その商品のオークション終了後に自動で削除する
+  4. 設定した上限金額に達した場合。
+     - 通知から１ヶ月後に自動削除。
+  5. 自分が出品した商品の、オークション期間が終了した場合
+     - 通知から１ヶ月後に自動削除。
+  6. 落札者（最高入札者）および出品者に対して、オークション終了時に結果（落札者と落札額）を通知する。
+     - 通知から１ヶ月後に自動削除。
+  7. `balance`カラムのポイントが返還された時
+     - 通知から１ヶ月後に自動削除。
+  8. オークション終了時に、落札できなかった場合、その旨を通知
+     - 通知から１ヶ月後に自動削除。
 
 ```typescript
 // lib/auction/type/notification.ts
@@ -52,74 +77,10 @@ export const AuctionEventType = {
 export type AuctionEventType = (typeof AuctionEventType)[keyof typeof AuctionEventType];
 ```
 
-## 4. 通知メッセージ取得関数 (getAuctionNotificationMessage)イベントタイプと言語に応じた通知メッセージを返す関数
+## 関数
 
-```typescript
-// lib/auction/notificationUtils.ts
-import { Auction, BidHistory, Task, User } from "@prisma/client"; // 仮の型インポート
-
-import { AuctionEventType } from "./type/notification";
-
-interface NotificationData {
-  auction?: Auction & { task: Task };
-  bid?: BidHistory & { user: User };
-  question?: any; // 質問データの型
-  recipient?: User;
-  [key: string]: any; // その他のデータ
-}
-
-/**
- * オークションイベントタイプに応じた通知メッセージを取得する
- * @param eventType - オークションイベントタイプ
- * @param data - 通知内容生成に必要なデータ
- * @param lang - 言語 ('ja', 'en', etc.)
- * @returns 通知タイトルと本文のオブジェクト
- */
-export const getAuctionNotificationMessage = (eventType: AuctionEventType, data: NotificationData, lang: string = "ja"): { title: string; body: string } => {
-  const taskTitle = data.auction?.task?.name ?? "オークション商品";
-  const bidderName = data.bid?.user?.name ?? "他のユーザー";
-  const bidAmount = data.bid?.amount ?? 0;
-  const recipientName = data.recipient?.name ?? "あなた";
-
-  // 言語に応じたメッセージテンプレート (例)
-  const messages: { [key in AuctionEventType]: { ja: { title: string; body: string }; en: { title: string; body: string } } } = {
-    [AuctionEventType.NEW_BID_ON_OWN_ITEM]: {
-      ja: { title: `[${taskTitle}] に新しい入札がありました`, body: `${bidderName}さんが ${bidAmount} ポイントで入札しました。` },
-      en: { title: `New bid on [${taskTitle}]`, body: `${bidderName} bid ${bidAmount} points.` },
-    },
-    [AuctionEventType.OUTBID]: {
-      ja: { title: `[${taskTitle}] の最高入札額が更新されました`, body: `${bidderName}さんが ${bidAmount} ポイントで入札し、${recipientName}は最高入札者ではなくなりました。` },
-      en: { title: `Outbid on [${taskTitle}]`, body: `${bidderName} bid ${bidAmount} points. You are no longer the highest bidder.` },
-    },
-    [AuctionEventType.QUESTION_RECEIVED]: {
-      ja: { title: `[${taskTitle}] に新しい質問が届きました`, body: `出品した商品「${taskTitle}」に新しい質問があります。確認してください。` },
-      en: { title: `New question on [${taskTitle}]`, body: `There is a new question on your item "${taskTitle}". Please check.` },
-    },
-    [AuctionEventType.AUTO_BID_LIMIT_REACHED]: {
-      ja: { title: `[${taskTitle}] の自動入札が上限に達しました`, body: `設定した自動入札の上限額に達したため、自動入札を停止しました。` },
-      en: { title: `Auto-bid limit reached for [${taskTitle}]`, body: `Auto-bidding stopped as the maximum limit you set was reached.` },
-    },
-    [AuctionEventType.AUCTION_ENDED_OWN_ITEM]: {
-      ja: { title: `[${taskTitle}] のオークションが終了しました`, body: `出品した商品「${taskTitle}」のオークション期間が終了しました。結果を確認してください。` },
-      en: { title: `Auction ended for [${taskTitle}]`, body: `The auction for your item "${taskTitle}" has ended. Please check the results.` },
-    },
-    [AuctionEventType.AUCTION_WON]: {
-      ja: { title: `[${taskTitle}] を落札しました！`, body: `おめでとうございます！「${taskTitle}」を ${data.winningBidAmount ?? "最終"} ポイントで落札しました。` },
-      en: { title: `You won [${taskTitle}]!`, body: `Congratulations! You won "${taskTitle}" for ${data.winningBidAmount ?? "the final"} points.` },
-    },
-    [AuctionEventType.AUCTION_LOST]: {
-      ja: { title: `[${taskTitle}] のオークションは落札できませんでした`, body: `残念ながら、「${taskTitle}」のオークションは他のユーザーが落札しました。` },
-      en: { title: `You did not win the auction for [${taskTitle}]`, body: `Unfortunately, another user won the auction for "${taskTitle}".` },
-    },
-    [AuctionEventType.POINT_RETURNED]: {
-      ja: { title: `オークションポイントが返還されました`, body: `[${taskTitle}] のオークションで預けていたポイントが返還されました。` },
-      en: { title: `Auction points returned`, body: `The points deposited for the auction "[${taskTitle}]" have been returned.` },
-    },
-  };
-
-  return messages[eventType]?.[lang] ?? messages[eventType]?.["ja"] ?? { title: "通知", body: "新しい通知があります。" };
-};
-```
+- イベントタイプに応じた、通知メッセージを返す関数
+  - getAuctionNotificationMessage
 
 ## 5. 通知送信方法指定オブジェクト (NotificationMethodType)どの方法で通知を送信するかを指定するオブジェクトの型。
 

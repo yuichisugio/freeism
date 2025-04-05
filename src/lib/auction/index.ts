@@ -11,4 +11,5 @@ export * from "./action/server-sent-events-broadcast";
 export { sendAuctionUpdateEvent, sendAuctionExtensionEvent, sendAuctionEndedEvent, sendErrorEvent } from "./action/events";
 export * from "./action/user";
 export * from "./action/watchlist";
-export * from "./action/auction-notification";
+// AuctionEventTypeの重複を避けるために個別に関数をエクスポート
+export { getAuctionNotificationMessage, notifyNewBid } from "./action/auction-notification";
