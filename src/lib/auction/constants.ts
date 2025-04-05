@@ -1,6 +1,17 @@
-// オークション関連の定数を定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// SSE設定パラメータ
+/**
+ * 通知関連の定数
+ */
+export const NOTIFICATION_CONSTANTS = {
+  ITEMS_PER_PAGE: 20,
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * SSE設定パラメータ
+ */
 export const SSE_CONFIG = {
   MAX_CONNECTIONS_PER_AUCTION: 1000, // オークションごとの最大接続数
   CONNECTION_TIMEOUT: 60 * 60 * 1000, // 60分タイムアウト
@@ -12,7 +23,11 @@ export const SSE_CONFIG = {
   MAX_RETRIES: 5, // オークションSSEの最大リトライ回数
 };
 
-// オークションの定数
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション関連の定数
+ */
 export const AUCTION_CONSTANTS = {
   // オークションのデフォルトイメージURL
   DEFAULT_AUCTION_IMAGE_URL: "/images/default-auction-image.jpg",

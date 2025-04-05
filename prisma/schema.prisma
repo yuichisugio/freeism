@@ -255,7 +255,8 @@ model Notification {
   actionUrl         String?                  @map("action_url") // クリック時の遷移先URL（オプション）
   isRead            Json                     @default("{}") @map("is_read") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
-  // 通知の送信者/作成者。GitHub Actionsで定期実行の場合はuserIdがないため、オプショナル(null)にする
+  // 通知の送信者/作成者。GitHub Actionsで定期実行の場合はuserIdがないため、オプショナル(null)にする。
+  // SYSTEMなどのdefaultを入れると、relationカラムとの外部キーのエラーになるため、入れない
   senderUserId String? @map("sender_user_id")
   senderUser   User?   @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
 

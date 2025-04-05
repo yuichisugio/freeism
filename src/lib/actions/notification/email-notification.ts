@@ -1,3 +1,5 @@
+import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -11,10 +13,11 @@ export type NotificationParams = {
   message: string;
   senderUserId: string | null;
   actionUrl: string | null;
-  targetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
+  targetType: NotificationTargetType;
   groupId: string | null;
   taskId: string | null;
-  sendTiming: "NOW" | "SCHEDULED";
+  auctionId: string | null;
+  sendTiming: NotificationSendTiming;
   sendScheduledDate: Date | null;
   expiresAt: Date | null;
 };

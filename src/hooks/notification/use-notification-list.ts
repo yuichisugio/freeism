@@ -1,13 +1,23 @@
 "use client";
 
+import type { NotificationTargetType } from "@prisma/client";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/lib/actions/notification/notification-utilities";
+import { NOTIFICATION_CONSTANTS } from "@/lib/auction/constants";
 
-// 型定義
-export type NotificationTargetType = "SYSTEM" | "USER" | "GROUP" | "TASK";
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知フィルターの型
+ */
 export type FilterType = "all" | "unread" | "read";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知データの型
+ */
 export type NotificationData = {
   id: string;
   title: string;
@@ -26,7 +36,11 @@ export type NotificationData = {
   senderUserId: string | null;
 };
 
-// 返り値の型を定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知管理カスタムフックの返り値の型
+ */
 export type NotificationManagerResult = {
   notifications: NotificationData[];
   isLoading: boolean;
@@ -44,13 +58,14 @@ export type NotificationManagerResult = {
   pendingUpdateCount: number;
 };
 
-// 定数の定義
-const ITEMS_PER_PAGE = 20;
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 通知管理カスタムフック
  */
 export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boolean) => void): NotificationManagerResult {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 基本的な状態
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,8 +87,12 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
   // 初期読み込みが完了したかどうか
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ルーター（パス変更監視用）
   const pathname = usePathname();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // タブ変更でフィルター内容が変更された時に呼び出す
   const filteredNotifications = useCallback(() => {
@@ -86,6 +105,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     // 既読フィルター
     return notifications.filter((notification) => notification.isRead);
   }, [notifications, activeFilter]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // サーバーに、既読/未読の通知のデータを登録する
   const syncWithServer = useCallback(
@@ -117,6 +138,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     [pendingUpdates],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 通知を取得する関数（初回のみ実行される）
   const fetchNotifications = useCallback(
     async (page = 1, append = false) => {
@@ -147,7 +170,7 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
         setError(null);
 
         // APIからデータ取得
-        const result = await getNotificationsAndUnreadCount(page, ITEMS_PER_PAGE);
+        const result = await getNotificationsAndUnreadCount(page, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
         if (!result?.notifications) {
           throw new Error("APIからの応答が無効です");
@@ -225,7 +248,7 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
         });
 
         setUnreadCount(adjustedUnreadCount);
-        setHasMore((result.totalCount || 0) > page * ITEMS_PER_PAGE);
+        setHasMore((result.totalCount || 0) > page * NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
         setCurrentPage(page);
 
         // 初回読み込み完了をマーク
@@ -252,6 +275,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     [notifications, pendingUpdates, onUnreadStatusChangeAction, isRequestInProgress, initialLoadDone],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 追加データの読み込み
   // 「もっと読み込む」ボタンを押した時に呼び出す関数。追加の通知データを取得するために使用する。pageに+1して、fetchNotificationsを呼び出す
   const loadMoreNotifications = useCallback(() => {
@@ -260,6 +285,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     }
     void fetchNotifications(currentPage + 1, true);
   }, [currentPage, fetchNotifications, hasMore, isLoadingMore]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 既読/未読状態の切り替え。既読/未読ボタンを押した時に呼ばれる関数で、stateのnotificationsの通知のisReadを更新する
   const toggleReadStatus = useCallback(
@@ -313,6 +340,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     [notifications, unreadCount, onUnreadStatusChangeAction],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // すべての通知を既読にする
   const markAllAsRead = useCallback(() => {
     console.log("[通知] すべて既読にする");
@@ -353,6 +382,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     }
   }, [notifications, onUnreadStatusChangeAction]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // フィルター変更ハンドラー
   const handleFilterChange = useCallback(
     (filter: FilterType) => {
@@ -369,6 +400,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     },
     [notifications, hasMore, isLoading, isLoadingMore, loadMoreNotifications],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 手動更新ハンドラー
   const handleManualRefresh = useCallback(() => {
@@ -387,6 +420,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     void fetchNotifications(1, false);
   }, [pendingUpdates, syncWithServer, fetchNotifications]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 初期データ取得
   useEffect(() => {
     console.log("[通知] 初期データ取得");
@@ -399,6 +434,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
       }
     };
   }, [fetchNotifications, pendingUpdates.size, syncWithServer]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // パス変更を検知して保留中の更新を同期
   useEffect(() => {
@@ -420,6 +457,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     // 依存配列にpathname追加
   }, [pathname, pendingUpdates, syncWithServer]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // クリーンアップ時に保留中の更新を同期
   useEffect(() => {
     return () => {
@@ -428,6 +467,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
       }
     };
   }, [pendingUpdates.size, syncWithServer]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     notifications: filteredNotifications(),

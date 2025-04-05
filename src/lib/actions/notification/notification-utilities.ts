@@ -1,5 +1,6 @@
 "use server";
 
+import type { NotificationTargetType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +17,7 @@ export type NotificationData = {
   id: string;
   title: string;
   message: string;
-  NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
+  NotificationTargetType: NotificationTargetType;
   isRead: boolean;
   sentAt: string;
   readAt: string | null;
@@ -137,7 +138,7 @@ function formatDateToISOString(date: string | Date | null, defaultNow = false): 
  * @returns {string[]} ユーザーIDの配列
  */
 export async function getNotificationTargetUserIds(
-  targetType: "SYSTEM" | "USER" | "GROUP" | "TASK",
+  targetType: NotificationTargetType,
   options: {
     userIds?: string[];
     groupId?: string;

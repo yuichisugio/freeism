@@ -1,14 +1,17 @@
 "use server";
 
 // プッシュ通知送信関数
+import type { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 import { sendPushNotification } from "@/lib/actions/notification/push-notification";
 // prismaClient
 import { prisma } from "@/lib/prisma";
+import { AuctionEventType } from "@prisma/client";
+
+import type { NotificationParams } from "./email-notification";
 // メール通知送信関数
 // import { sendMailNotification } from './mailNotification';
 // アプリ内通知送信関数
-// import { sendInAppNotification } from './inAppNotification';
-import { Auction, AuctionEventType, BidHistory, NotificationSendMethod, PrismaClient, Task, User } from "@prisma/client";
+import { sendInAppNotification } from "./in-app-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -19,157 +22,221 @@ import { Auction, AuctionEventType, BidHistory, NotificationSendMethod, PrismaCl
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション通知を送信する関数
- * @param auctionEventType オークションイベントタイプ
- * @param  通知内容生成に必要なデータ
- * @returns 通知処理の結果
+ * オークション関連の通知メッセージデータ
  */
-export async function sendAuctionNotification(): Promise<{ success: boolean }> {
-  return {
-    success: true,
-  };
+export type AuctionNotificationParams = {
+  auctionEventType: AuctionEventType;
+  auctionId: string;
+  recipientUserId: string[];
+  sendMethod: NotificationSendMethod[];
+  actionUrl: string | null;
+  sendTiming: NotificationSendTiming;
+  sendScheduledDate: Date | null;
+  expiresAt: Date | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション通知を送信する関数
+ * @param {AuctionNotificationParams} params オークションイベントタイプ
+ * @returns {success: boolean, error?: string} 通知処理の結果
+ * GitHub Actionsで呼び出すため、auth()は使用しない
+ */
+export async function sendAuctionNotification(params: AuctionNotificationParams): Promise<{ success: boolean; error?: string }> {
+  try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    if (params.recipientUserId?.length === 0) {
+      console.error(`sendAuctionNotification_recipientUserId_エラー_stack:`, new Error().stack);
+      console.error(`sendAuctionNotification_recipientUserId_エラー:`, "通知の対象者が見つかりません");
+      throw new Error("通知の対象者が見つかりません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // オークションのイベントタイプごとのメッセージを作成
+    let auctionNotificationTitle: string;
+    let auctionNotificationMessage: string;
+    try {
+      // メッセージ作成に必要な情報をデータベースから取得
+      // const { title, message } = await getAuctionNotificationMessage(params.auctionEventType, {
+      // first:
+      // second:
+      // third:
+      // fourth:
+      // });
+      // auctionNotificationTitle = title;
+      // auctionNotificationMessage = message;
+    } catch (error) {
+      console.error(`sendAuctionNotification_getAuctionNotificationMessage_エラー:`, error);
+      console.error(`sendAuctionNotification_getAuctionNotificationMessage_エラー_stack:`, new Error().stack);
+      throw new Error("オークション通知のメッセージを作成できませんでした");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 通知する内容を作成
+    // const notificationParams: NotificationParams = {
+    //   recipientUserIds: params.recipientUserId,
+    //   title: auctionNotificationTitle,
+    //   message: auctionNotificationMessage,
+    //   actionUrl: params.actionUrl,
+    //   targetType: NotificationTargetType.AUCTION_BIDDER,
+    //   senderUserId: null,
+    //   groupId: null,
+    //   taskId: null,
+    //   auctionId: null,
+    //   sendTiming: params.sendTiming,
+    //   sendScheduledDate: params.sendScheduledDate,
+    //   expiresAt: params.expiresAt,
+    // };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // push通知を送信
+    // sendPushNotification()
+
+    // メール通知を送信
+    // sendEmailNotification()
+
+    // アプリ内通知を送信
+    // sendAppNotification()
+
+    //   return notifyNewBid(auctionId, bidId);
+    // }
+
+    // /**
+    //  * オークション関連の通知を送信する
+    //  * @param params - 通知送信に必要なパラメータ
+    //  */
+    // export const sendAuctionNotification = async (params: SendAuctionNotificationParams): Promise<void> => {
+    //   const { eventType, recipientId, auctionId, relatedData = {}, methods } = params;
+
+    //   try {
+    //     const recipient = await prisma.user.findUnique({ where: { id: recipientId } });
+    //     if (!recipient) {
+    //       console.error(`Recipient user not found: ${recipientId}`);
+    //       return;
+    //     }
+
+    //     let auctionData: (Auction & { task: Task }) | null = null;
+    //     if (auctionId) {
+    //       // auctionId を string として渡す
+    //       auctionData = await prisma.auction.findUnique({
+    //         where: { id: auctionId },
+    //         include: { task: true },
+    //       });
+    //     }
+
+    //     // 通知内容生成に必要なデータを統合
+    //     const notificationData = {
+    //       recipient,
+    //       auction: auctionData,
+    //       ...relatedData, // bid, question などの情報を含む
+    //     };
+
+    //     // 言語設定を取得 (ユーザー設定やデフォルト言語など)
+    //     const lang = recipient.languagePreference ?? "ja"; // 仮の言語設定フィールド
+
+    //     // 通知メッセージを取得
+    //     const { title, body } = getAuctionNotificationMessage(eventType, notificationData, lang);
+
+    //     // 通知データをDBに保存 (アプリ内通知用)
+    //     if (methods.in_app_notification) {
+    //       // auctionId が string であることを確認
+    //       await sendInAppNotification({ recipientId, auctionId: auctionId, eventType, title, body });
+    //     }
+
+    //     // メール通知を送信
+    //     if (methods.mail_notification && recipient.email) {
+    //       // メール送信の条件チェック（ユーザー設定など）
+    //       // if (recipient.notificationSettings?.email?.[eventType]) { // より詳細な設定がある場合
+    //       await sendMailNotification({ to: recipient.email, subject: title, body });
+    //       // }
+    //     }
+
+    //     // プッシュ通知を送信
+    //     if (methods.push_notification) {
+    //       // プッシュ通知送信の条件チェック（ユーザー設定、デバイストークン存在確認など）
+    //       // if (recipient.notificationSettings?.push?.[eventType] && recipient.pushToken) {
+    //       // auctionId が string であることを確認
+    //       await sendPushNotification({ userId: recipientId, title, body, data: { auctionId: auctionId, eventType } });
+    //       // }
+    //     }
+    //   } catch (error) {
+    //     console.error(`Failed to send auction notification (${eventType}) for user ${recipientId}:`, error);
+    //     // エラーハンドリング (ログ記録、リトライなど)
+    //   }
+    // };
+
+    // // --- 各通知方法の送信関数 (スタブ) ---
+
+    // const sendInAppNotification = async (data: {
+    //   recipientId: string;
+    //   auctionId?: string; // auctionId を Optional に変更
+    //   eventType: AuctionEventType;
+    //   title: string;
+    //   body: string;
+    // }) => {
+    //   // Prismaを使って AuctionNotification テーブルにレコードを作成
+    //   console.log("Sending In-App Notification:", data);
+    //   // const expiryDate = calculateExpiryDate(data.eventType); // 自動削除日時を計算
+    //   // await prisma.auctionNotification.create({ data: { ...data, expiresAt: expiryDate } });
+    //   // TODO: 実際のDB保存処理を実装
+    //   await prisma.auctionNotification.create({
+    //     data: {
+    //       userId: data.recipientId,
+    //       auctionId: data.auctionId, // auctionId をそのまま渡す
+    //       type: data.eventType,
+    //       title: data.title,
+    //       body: data.body,
+    //       isRead: false,
+    //       // expiresAt: calculateExpiryDate(data.eventType), // 自動削除日時を設定
+    //     },
+    //   });
+    // };
+
+    // const sendMailNotification = async (data: any) => {
+    //   // メール送信ライブラリ (SendGrid, Nodemailerなど) を使用
+    //   console.log("Sending Mail Notification:", data);
+    //   // TODO: 実際のメール送信処理を実装
+    // };
+
+    // const sendPushNotification = async (data: any) => {
+    //   // プッシュ通知サービス (FCM, APNSなど) を使用
+    //   console.log("Sending Push Notification:", data);
+    //   // TODO: 実際のプッシュ通知送信処理を実装
+    // };
+
+    // const calculateExpiryDate = (eventType: AuctionEventType): Date | null => {
+    //   const now = new Date();
+    //   switch (eventType) {
+    //     case AuctionEventType.NEW_BID_ON_OWN_ITEM:
+    //     case AuctionEventType.OUTBID:
+    //     case AuctionEventType.QUESTION_RECEIVED:
+    //       return null; // オークション終了時に削除するため、ここでは設定しない (別途削除処理を実装)
+    //     case AuctionEventType.AUTO_BID_LIMIT_REACHED:
+    //     case AuctionEventType.AUCTION_ENDED_OWN_ITEM:
+    //     case AuctionEventType.AUCTION_WON:
+    //     case AuctionEventType.AUCTION_LOST:
+    //     case AuctionEventType.POINT_RETURNED:
+    //       // 1ヶ月後に削除
+    //       return new Date(now.setMonth(now.getMonth() + 1));
+    //     default:
+    //       return null;
+    //   }
+    // };
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error(`sendAuctionNotification_エラー:`, error);
+    console.error(`sendAuctionNotification_エラー_stack:`, new Error().stack);
+    return { success: false, error: "オークション通知の送信に失敗しました" };
+  }
 }
-//   // push通知を送信
-//   // sendPushNotification()
-
-//   // メール通知を送信
-//   // sendEmailNotification()
-
-//   // アプリ内通知を送信
-//   // sendAppNotification()
-
-//   return notifyNewBid(auctionId, bidId);
-// }
-
-// interface SendAuctionNotificationParams {
-//   eventType: AuctionEventType;
-//   recipientId: string; // 通知受信者のユーザーID
-//   auctionId?: string; // 関連するオークションID
-//   relatedData?: any; // 通知内容生成に必要な追加データ (入札情報、質問情報など)
-//   methods: NotificationMethodType; // 送信方法
-// }
-
-// /**
-//  * オークション関連の通知を送信する
-//  * @param params - 通知送信に必要なパラメータ
-//  */
-// export const sendAuctionNotification = async (params: SendAuctionNotificationParams): Promise<void> => {
-//   const { eventType, recipientId, auctionId, relatedData = {}, methods } = params;
-
-//   try {
-//     const recipient = await prisma.user.findUnique({ where: { id: recipientId } });
-//     if (!recipient) {
-//       console.error(`Recipient user not found: ${recipientId}`);
-//       return;
-//     }
-
-//     let auctionData: (Auction & { task: Task }) | null = null;
-//     if (auctionId) {
-//       // auctionId を string として渡す
-//       auctionData = await prisma.auction.findUnique({
-//         where: { id: auctionId },
-//         include: { task: true },
-//       });
-//     }
-
-//     // 通知内容生成に必要なデータを統合
-//     const notificationData = {
-//       recipient,
-//       auction: auctionData,
-//       ...relatedData, // bid, question などの情報を含む
-//     };
-
-//     // 言語設定を取得 (ユーザー設定やデフォルト言語など)
-//     const lang = recipient.languagePreference ?? "ja"; // 仮の言語設定フィールド
-
-//     // 通知メッセージを取得
-//     const { title, body } = getAuctionNotificationMessage(eventType, notificationData, lang);
-
-//     // 通知データをDBに保存 (アプリ内通知用)
-//     if (methods.in_app_notification) {
-//       // auctionId が string であることを確認
-//       await sendInAppNotification({ recipientId, auctionId: auctionId, eventType, title, body });
-//     }
-
-//     // メール通知を送信
-//     if (methods.mail_notification && recipient.email) {
-//       // メール送信の条件チェック（ユーザー設定など）
-//       // if (recipient.notificationSettings?.email?.[eventType]) { // より詳細な設定がある場合
-//       await sendMailNotification({ to: recipient.email, subject: title, body });
-//       // }
-//     }
-
-//     // プッシュ通知を送信
-//     if (methods.push_notification) {
-//       // プッシュ通知送信の条件チェック（ユーザー設定、デバイストークン存在確認など）
-//       // if (recipient.notificationSettings?.push?.[eventType] && recipient.pushToken) {
-//       // auctionId が string であることを確認
-//       await sendPushNotification({ userId: recipientId, title, body, data: { auctionId: auctionId, eventType } });
-//       // }
-//     }
-//   } catch (error) {
-//     console.error(`Failed to send auction notification (${eventType}) for user ${recipientId}:`, error);
-//     // エラーハンドリング (ログ記録、リトライなど)
-//   }
-// };
-
-// // --- 各通知方法の送信関数 (スタブ) ---
-
-// const sendInAppNotification = async (data: {
-//   recipientId: string;
-//   auctionId?: string; // auctionId を Optional に変更
-//   eventType: AuctionEventType;
-//   title: string;
-//   body: string;
-// }) => {
-//   // Prismaを使って AuctionNotification テーブルにレコードを作成
-//   console.log("Sending In-App Notification:", data);
-//   // const expiryDate = calculateExpiryDate(data.eventType); // 自動削除日時を計算
-//   // await prisma.auctionNotification.create({ data: { ...data, expiresAt: expiryDate } });
-//   // TODO: 実際のDB保存処理を実装
-//   await prisma.auctionNotification.create({
-//     data: {
-//       userId: data.recipientId,
-//       auctionId: data.auctionId, // auctionId をそのまま渡す
-//       type: data.eventType,
-//       title: data.title,
-//       body: data.body,
-//       isRead: false,
-//       // expiresAt: calculateExpiryDate(data.eventType), // 自動削除日時を設定
-//     },
-//   });
-// };
-
-// const sendMailNotification = async (data: any) => {
-//   // メール送信ライブラリ (SendGrid, Nodemailerなど) を使用
-//   console.log("Sending Mail Notification:", data);
-//   // TODO: 実際のメール送信処理を実装
-// };
-
-// const sendPushNotification = async (data: any) => {
-//   // プッシュ通知サービス (FCM, APNSなど) を使用
-//   console.log("Sending Push Notification:", data);
-//   // TODO: 実際のプッシュ通知送信処理を実装
-// };
-
-// const calculateExpiryDate = (eventType: AuctionEventType): Date | null => {
-//   const now = new Date();
-//   switch (eventType) {
-//     case AuctionEventType.NEW_BID_ON_OWN_ITEM:
-//     case AuctionEventType.OUTBID:
-//     case AuctionEventType.QUESTION_RECEIVED:
-//       return null; // オークション終了時に削除するため、ここでは設定しない (別途削除処理を実装)
-//     case AuctionEventType.AUTO_BID_LIMIT_REACHED:
-//     case AuctionEventType.AUCTION_ENDED_OWN_ITEM:
-//     case AuctionEventType.AUCTION_WON:
-//     case AuctionEventType.AUCTION_LOST:
-//     case AuctionEventType.POINT_RETURNED:
-//       // 1ヶ月後に削除
-//       return new Date(now.setMonth(now.getMonth() + 1));
-//     default:
-//       return null;
-//   }
-// };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

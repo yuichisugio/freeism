@@ -10,26 +10,57 @@ import { NotificationSendMethod } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知作成フォーム用のカスタムフック
+ */
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ラジオボタン用のオプション
+ */
 export type RadioOption = {
   value: string | number;
   label: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザー用の型
+ */
 export type User = {
   id: string;
   name: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループ用の型
+ */
 export type Group = {
   id: string;
   name: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク用の型
+ */
 export type Task = {
   id: string;
   task: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知作成フォーム用の型
+ */
 export type UseCreateNotificationProps = {
   isAppOwner: boolean;
   isGroupOwner: boolean;
@@ -38,6 +69,11 @@ export type UseCreateNotificationProps = {
   tasks: Task[];
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知作成フォーム用の型
+ */
 export type UseCreateNotificationResult = {
   form: ReturnType<typeof useForm<CreateNotificationFormData>>;
   targetType: string;
@@ -48,15 +84,17 @@ export type UseCreateNotificationResult = {
   setGroupComboOpen: (open: boolean) => void;
   taskComboOpen: boolean;
   setTaskComboOpen: (open: boolean) => void;
-  notificationTypeOptions: RadioOption[];
   sendTimingOptions: RadioOption[];
   targetTypeOptions: RadioOption[];
-  priorityOptions: RadioOption[];
   handleSubmit: (data: CreateNotificationFormData) => Promise<void>;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 通知作成フォーム用のカスタムフック
+ * @param {UseCreateNotificationProps} props 通知作成フォーム用のプロップス
+ * @returns {UseCreateNotificationResult} 通知作成フォーム用の結果
  */
 export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNotificationProps): UseCreateNotificationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -103,15 +141,6 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 通知タイプのオプション
-  const notificationTypeOptions: RadioOption[] = [
-    { value: "INFO", label: "情報" },
-    { value: "SUCCESS", label: "成功" },
-    { value: "WARNING", label: "警告" },
-  ];
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // 送信タイミングのオプション
   const sendTimingOptions: RadioOption[] = [
     { value: "NOW", label: "即時送信" },
@@ -132,17 +161,6 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
         { value: "GROUP", label: "グループ" },
         { value: "TASK", label: "タスク" },
       ];
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 重要度のオプション
-  const priorityOptions = [
-    { value: 5, label: "最高" },
-    { value: 4, label: "高" },
-    { value: 3, label: "中" },
-    { value: 2, label: "低" },
-    { value: 1, label: "最低" },
-  ];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -179,6 +197,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
         userId: data.userId ? [data.userId] : null,
         groupId: data.groupId ?? null,
         taskId: data.taskId ?? null,
+        auctionId: null,
         actionUrl: data.actionUrl ?? null,
         sendTiming: data.sendTiming,
         sendScheduledDate: data.sendScheduledDate ?? null,
@@ -187,12 +206,15 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // プッシュ通知を送信するかどうかを設定
-      if (data.sendTiming === "NOW" && data.sendPushNotification) {
+      // プッシュ通知ONの場合は、WEB_PUSHを入れる
+      if (data.sendPushNotification) {
         sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.WEB_PUSH);
       }
 
-      if (data.sendTiming === "NOW" && data.sendEmailNotification) {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // メール通知ONの場合は、EMAILを入れる
+      if (data.sendEmailNotification) {
         sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.EMAIL);
       }
 
@@ -242,10 +264,8 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
     setGroupComboOpen,
     taskComboOpen,
     setTaskComboOpen,
-    notificationTypeOptions,
     sendTimingOptions,
     targetTypeOptions,
-    priorityOptions,
     handleSubmit,
   };
 }
