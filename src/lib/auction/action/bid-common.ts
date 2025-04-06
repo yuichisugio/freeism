@@ -188,23 +188,6 @@ type AuctionWithRelations = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 自動入札実行の前処理結果型
- */
-type AutoBidPreCheckResult = {
-  success: boolean;
-  message?: string;
-  nextBidAmount?: number;
-  autoBid?: {
-    id: string;
-    maxBidAmount: number;
-    bidIncrement: number;
-  };
-  autoBidLimitReached?: boolean;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * オークションの基本的な検証を行う共通関数
  * @param auctionId オークションID
  * @param options 検証オプション
@@ -492,8 +475,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       messagePrefix: "入札",
     });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // バリデーションエラーチェック
     const validationError = processValidationResult(validation, isAutoBid);
     if (validationError) return validationError;
 
@@ -520,6 +504,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         throw new Error("オークションが見つかりません");
       }
 
+      // versionを取得
+      const initialVersion = auctionWithVersion.version;
+
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 入札履歴を作成
@@ -535,11 +522,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // オークション情報を更新
-      const updatedAuctioVersion = await tx.auction.update({
+      // オークション情報を更新（楽観的ロックを使用）
+      const updatedAuctionVersion = await tx.auction.update({
         where: {
           id: auctionId,
-          version: auctionWithVersion.version, // 楽観的ロック
+          version: initialVersion, // 楽観的ロック
         },
         data: {
           currentHighestBid: amount,
@@ -551,7 +538,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         },
       });
 
-      if (!updatedAuctioVersion) {
+      if (!updatedAuctionVersion) {
         throw new Error("オークション情報を更新できませんでした");
       }
 
@@ -691,6 +678,27 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      // 楽観的ロックのためのバージョン取得
+      const auctionWithEndVersion = await tx.auction.findUnique({
+        where: { id: auctionId },
+        select: { version: true },
+      });
+
+      // バージョン取得できない場合
+      if (!auctionWithEndVersion) {
+        throw new Error("オークションが見つかりません");
+      }
+
+      // 楽観的ロックのためのバージョンで、データ更新後にインクリメントしているので、開始時と同じ値になるように-1する
+      const endVersion = auctionWithEndVersion.version - 1;
+
+      // 楽観的ロックのためのバージョンが開始時と同じ値になっていない場合は、エラーを投げてロールバックする
+      if (endVersion !== initialVersion) {
+        throw new Error("他者によってオークション情報が変更されています");
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       // SSEでリアルタイム更新を通知。$transaction内で実行したい
       await sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithDetails);
 
@@ -719,6 +727,8 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       isAutoBid,
       auction: result.auctionWithDetails,
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     return handleBidError(error, "入札処理", isAutoBid);
   }
@@ -729,11 +739,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 /**
  * 自動入札を設定する
  * @param auctionId オークションID
- * @param maxBidAmount 最大入札額
- * @param bidIncrement 入札単位
+ * @param limitBidAmount 自動入札の上限入札額
+ * @param bidIncrement 自動入札の入札単位
  * @returns 処理結果
  */
-export async function setAutoBid(auctionId: string, maxBidAmount: number, bidIncrement: number): Promise<AutoBidResponse> {
+export async function setAutoBid(auctionId: string, limitBidAmount: number, bidIncrement: number): Promise<AutoBidResponse> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -763,8 +773,8 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 最大入札額が現在の最高入札額より高いか確認
-    if (maxBidAmount <= auction.currentHighestBid) {
+    // 自動入札の上限入札額が現在の最高入札額より高いか確認
+    if (limitBidAmount <= auction.currentHighestBid) {
       return {
         success: false,
         message: "最大入札額は現在の最高入札額より高く設定してください",
@@ -785,6 +795,8 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
 
     // トランザクションで自動入札の設定を保存
     const result = await prisma.$transaction(async (tx) => {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       // 既存の自動入札設定を確認
       const existingAutoBid = await tx.autoBid.findFirst({
         where: {
@@ -793,14 +805,19 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
         },
       });
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       let autoBid;
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 既存の自動入札設定が存在する場合
       if (existingAutoBid) {
         // 既存の設定を更新
         autoBid = await tx.autoBid.update({
           where: { id: existingAutoBid.id },
           data: {
-            maxBidAmount,
+            maxBidAmount: limitBidAmount,
             bidIncrement,
             isActive: true,
             updatedAt: new Date(),
@@ -812,12 +829,14 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
           data: {
             auctionId,
             userId,
-            maxBidAmount,
+            maxBidAmount: limitBidAmount,
             bidIncrement,
             isActive: true,
           },
         });
       }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       return autoBid;
     });
@@ -875,6 +894,8 @@ export async function getAutoBid(auctionId: string): Promise<AutoBidResponse> {
 
     // この時点でuserIdは必ず存在する
     const userId = validation.userId;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // トランザクションで自動入札設定を取得
     const autoBid = await prisma.$transaction(async (tx) => {
@@ -998,6 +1019,169 @@ export async function cancelAutoBid(auctionId: string): Promise<AutoBidResponse>
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 自動入札の前処理を行う関数
+ * @param auctionId オークションID
+ * @param currentHighestBid 現在の最高入札額
+ * @param currentHighestBidderId 現在の最高入札者ID
+ * @param userId ユーザーID
+ * @param auction オークション情報
+ * @returns 前処理結果
+ */
+async function prepareAutoBid(
+  auctionId: string,
+  currentHighestBid: number,
+  currentHighestBidderId: string | null,
+  userId: string,
+  auction: AuctionValidationData,
+): Promise<{
+  success: boolean;
+  message?: string;
+  nextBidAmount?: number;
+  autoBid?: {
+    id: string;
+    maxBidAmount: number;
+    bidIncrement: number;
+  };
+  autoBidLimitReached?: boolean;
+}> {
+  try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // すべての処理をトランザクションで実行
+    return await prisma.$transaction(async (tx) => {
+      // 自分が現在の最高入札者の場合は実行しない
+      if (currentHighestBidderId === userId) {
+        return { success: false, message: "あなたが現在の最高入札者です" };
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 自動入札設定を取得
+      const autoBid = await tx.autoBid.findFirst({
+        where: {
+          auctionId,
+          userId,
+          isActive: true,
+        },
+      });
+
+      if (!autoBid) {
+        return { success: false, message: "自動入札設定がありません" };
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // オークションが終了していないか確認
+      if (auction.endTime < new Date() || auction.status !== "ACTIVE") {
+        // 自動入札を無効化
+        await tx.autoBid.update({
+          where: { id: autoBid.id },
+          data: { isActive: false },
+        });
+
+        return { success: false, message: "このオークションは終了しています" };
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 入札履歴を取得して最後の入札時間をチェック
+      const lastBid = await tx.bidHistory.findFirst({
+        where: {
+          auctionId,
+          userId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 前回の入札から10分経過していない場合は実行しない
+      if (lastBid) {
+        const TEN_MINUTES = 10 * 60 * 1000; // 10分をミリ秒で表現
+        const timeSinceLastBid = Date.now() - lastBid.createdAt.getTime();
+
+        if (timeSinceLastBid < TEN_MINUTES) {
+          return { success: false, message: "前回の入札から10分経過していないため、自動入札できません" };
+        }
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 次の入札額を計算
+      const nextBidAmount = currentHighestBid + autoBid.bidIncrement;
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 上限額を超える場合
+      if (nextBidAmount > autoBid.maxBidAmount) {
+        // 自動入札を無効化
+        await tx.autoBid.update({
+          where: { id: autoBid.id },
+          data: { isActive: false },
+        });
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // 上限到達の通知を送信
+        const notification = {
+          text: {
+            first: getSafeTaskText(auction),
+            second: `${autoBid.maxBidAmount}`,
+          },
+          auctionEventType: PrismaAuctionEventType.AUTO_BID_LIMIT_REACHED,
+          auctionId,
+          recipientUserId: [userId],
+          sendMethod: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+          actionUrl: `/auctions/${auctionId}`,
+          sendTiming: NotificationSendTiming.NOW,
+          sendScheduledDate: null,
+          expiresAt: null,
+        };
+
+        await sendAuctionNotification(notification);
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        return {
+          success: false,
+          message: "自動入札の上限金額に達しました",
+          autoBidLimitReached: true,
+          autoBid: {
+            id: autoBid.id,
+            maxBidAmount: autoBid.maxBidAmount,
+            bidIncrement: autoBid.bidIncrement,
+          },
+        };
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      return {
+        success: true,
+        nextBidAmount,
+        autoBid: {
+          id: autoBid.id,
+          maxBidAmount: autoBid.maxBidAmount,
+          bidIncrement: autoBid.bidIncrement,
+        },
+      };
+    });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  } catch (error) {
+    console.error("自動入札前処理エラー:", error);
+    return {
+      success: false,
+      message: "自動入札の前処理中にエラーが発生しました",
+    };
+  }
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 自動入札を実行する
  * @param auctionId オークションID
  * @param currentHighestBid 現在の最高入札額
@@ -1007,6 +1191,7 @@ export async function cancelAutoBid(auctionId: string): Promise<AutoBidResponse>
 export async function executeAutoBid(auctionId: string, currentHighestBid: number, currentHighestBidderId: string | null): Promise<AutoBidResponse> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // オークションの検証
     const validation = await validateAuction(auctionId, {
       requireActive: true,
@@ -1033,143 +1218,34 @@ export async function executeAutoBid(auctionId: string, currentHighestBid: numbe
       };
     }
 
-    const auctionData = auction;
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // トランザクションで自動入札の前処理を実行
-    const preCheckResult: AutoBidPreCheckResult = await prisma.$transaction(async (tx) => {
-      // 自分が現在の最高入札者の場合は実行しない
-      if (currentHighestBidderId === userId) {
-        return { success: false, message: "あなたが現在の最高入札者です" };
-      }
-
-      // 自動入札設定を取得
-      const autoBid = await tx.autoBid.findFirst({
-        where: {
-          auctionId,
-          userId,
-          isActive: true,
-        },
-      });
-
-      if (!autoBid) {
-        return { success: false, message: "自動入札設定がありません" };
-      }
-
-      // オークションが終了していないか確認
-      if (auctionData.endTime < new Date() || auctionData.status !== "ACTIVE") {
-        // 自動入札を無効化
-        await tx.autoBid.update({
-          where: { id: autoBid.id },
-          data: { isActive: false },
-        });
-
-        return { success: false, message: "このオークションは終了しています" };
-      }
-
-      // 入札履歴を取得して最後の入札時間をチェック
-      const lastBid = await tx.bidHistory.findFirst({
-        where: {
-          auctionId,
-          userId,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      // 前回の入札から10分経過していない場合は実行しない
-      if (lastBid) {
-        const TEN_MINUTES = 10 * 60 * 1000; // 10分をミリ秒で表現
-        const timeSinceLastBid = Date.now() - lastBid.createdAt.getTime();
-
-        if (timeSinceLastBid < TEN_MINUTES) {
-          return { success: false, message: "前回の入札から10分経過していないため、自動入札できません" };
-        }
-      }
-
-      // 次の入札額を計算
-      const nextBidAmount = currentHighestBid + autoBid.bidIncrement;
-
-      // 上限額を超える場合
-      if (nextBidAmount > autoBid.maxBidAmount) {
-        // 自動入札を無効化
-        await tx.autoBid.update({
-          where: { id: autoBid.id },
-          data: { isActive: false },
-        });
-
-        return {
-          success: false,
-          message: "自動入札の上限金額に達しました",
-          autoBidLimitReached: true,
-          autoBid: {
-            id: autoBid.id,
-            maxBidAmount: autoBid.maxBidAmount,
-            bidIncrement: autoBid.bidIncrement,
-          },
-        };
-      }
-
-      return {
-        success: true,
-        nextBidAmount,
-        autoBid: {
-          id: autoBid.id,
-          maxBidAmount: autoBid.maxBidAmount,
-          bidIncrement: autoBid.bidIncrement,
-        },
-      };
-    });
+    // 自動入札の前処理を実行
+    const preparationResult = await prepareAutoBid(auctionId, currentHighestBid, currentHighestBidderId, userId, auction);
 
     // 前処理の結果をチェック
-    if (!preCheckResult.success) {
-      // 上限到達の場合は通知を送信
-      if (preCheckResult.autoBidLimitReached && preCheckResult.autoBid) {
-        const notification = {
-          text: {
-            first: getSafeTaskText(auctionData),
-            second: `${preCheckResult.autoBid.maxBidAmount}`,
-          },
-          auctionEventType: PrismaAuctionEventType.AUTO_BID_LIMIT_REACHED,
-          auctionId,
-          recipientUserId: [userId],
-          sendMethod: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-          actionUrl: `/auctions/${auctionId}`,
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: null,
-        };
-
-        // 上限到達の通知を送信
-        await sendAuctionNotification(notification);
-
-        // パスの再検証
-        revalidatePath(`/auctions/${auctionId}`);
-      }
-
+    if (!preparationResult.success) {
       return {
         success: false,
-        message: preCheckResult.message ?? "自動入札の前処理中にエラーが発生しました",
+        message: preparationResult.message ?? "自動入札の前処理中にエラーが発生しました",
+        autoBid: preparationResult.autoBid,
       };
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // nextBidAmount と autoBid は preCheckResult が success の場合は必ず存在する
-    if (!preCheckResult.nextBidAmount || !preCheckResult.autoBid) {
+    // この時点でnextBidAmountとautoBidは必ず存在する
+    if (!preparationResult.nextBidAmount || !preparationResult.autoBid) {
       return {
         success: false,
         message: "自動入札の処理中にエラーが発生しました",
       };
     }
 
-    // 共通入札処理を実行
-    const bidResult = await executeBid(auctionId, preCheckResult.nextBidAmount, true);
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 共通入札処理を実行
+    const bidResult = await executeBid(auctionId, preparationResult.nextBidAmount, true);
+
+    // 処理結果をチェック
     if (!bidResult.success) {
       return {
         success: false,
@@ -1181,12 +1257,8 @@ export async function executeAutoBid(auctionId: string, currentHighestBid: numbe
 
     return {
       success: true,
-      message: `${preCheckResult.nextBidAmount}ポイントで自動入札しました`,
-      autoBid: {
-        id: preCheckResult.autoBid.id,
-        maxBidAmount: preCheckResult.autoBid.maxBidAmount,
-        bidIncrement: preCheckResult.autoBid.bidIncrement,
-      },
+      message: `${preparationResult.nextBidAmount}ポイントで自動入札しました`,
+      autoBid: preparationResult.autoBid,
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -1212,3 +1284,5 @@ function getSafeTaskText(auction: AuctionValidationData): string {
   }
   return "オークション";
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

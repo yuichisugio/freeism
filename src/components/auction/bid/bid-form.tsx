@@ -62,7 +62,7 @@ export function BidForm({ auction }: BidFormProps) {
         console.error("Bid failed:", error);
       }
     },
-    [auction, bidAmount, clientPlaceBid],
+    [auction, bidAmount, clientPlaceBid, minBid],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
