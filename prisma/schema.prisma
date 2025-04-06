@@ -238,6 +238,7 @@ enum AuctionEventType {
   AUCTION_WIN // オークション落札
   AUCTION_LOST // オークション落札失敗
   POINT_RETURNED // ポイント返還
+  AUCTION_CANCELED // オークションキャンセル
 }
 
 // 通知テーブル
@@ -251,7 +252,7 @@ model Notification {
   sendScheduledDate DateTime?                @map("send_scheduled_date") // 通知の予定送信時間
   sendMethods       NotificationSendMethod[] @map("send_methods") // 通知の送信方法
   sentAt            DateTime?                @map("sent_at") // 送付時間
-  expiresAt         DateTime?                @map("expires_at") // 通知の有効期限（オプション）
+  expiresAt         DateTime?                @map("expires_at") // 通知の有効期限。自動で削除する日付（オプション）
   actionUrl         String?                  @map("action_url") // クリック時の遷移先URL（オプション）
   isRead            Json                     @default("{}") @map("is_read") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
 
