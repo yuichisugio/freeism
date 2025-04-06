@@ -82,8 +82,7 @@ For example:
 
 - Shared Components: The /src/components folder should contain reusable components used across multiple pages or features.
 
-- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has its own folder containing components, hooks, and utilities specific to that
-  feature.
+- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has its own folder containing components, hooks, and utilities specific to that feature.
 
 - "params should be awaitedのエラーが出ないようにparamsをawaitしてください。例：const { id } = await params; "
 - "paramsもPromiseで受け取ってください。例：{ params: Promise<{ id: string }> }"

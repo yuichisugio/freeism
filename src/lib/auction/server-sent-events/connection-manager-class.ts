@@ -21,10 +21,7 @@ export class ConnectionManager {
   // インスタンスID
   public readonly instanceId: string;
   // オークションID => (クライアントID => コントローラー) の二層マップ
-  private connections = new Map<
-    string,
-    Map<string, { controller: ReadableStreamController<Uint8Array>; heartbeatInterval: NodeJS.Timeout | null; timeoutId: NodeJS.Timeout | null; isActive: boolean }>
-  >();
+  private connections = new Map<string, Map<string, { controller: ReadableStreamController<Uint8Array>; heartbeatInterval: NodeJS.Timeout | null; timeoutId: NodeJS.Timeout | null; isActive: boolean }>>();
   // オークションID => イベント履歴 のマップ
   private eventHistories = new Map<string, EventHistoryItem[]>();
   // グローバルイベントIDカウンター

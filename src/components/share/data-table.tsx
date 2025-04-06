@@ -1,15 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -256,16 +246,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
         }
 
         // undefined、関数、シンボル、nullなど、その他の型は変更なしとする
-        if (
-          aValue === undefined ||
-          bValue === undefined ||
-          aValue === null ||
-          bValue === null ||
-          typeof aValue === "function" ||
-          typeof bValue === "function" ||
-          typeof aValue === "symbol" ||
-          typeof bValue === "symbol"
-        ) {
+        if (aValue === undefined || bValue === undefined || aValue === null || bValue === null || typeof aValue === "function" || typeof bValue === "function" || typeof aValue === "symbol" || typeof bValue === "symbol") {
           return 0;
         }
 
@@ -368,13 +349,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                             const canEdit = editTask.canEdit(row);
 
                             return (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditTask(row)}
-                                disabled={!canEdit}
-                                className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}
-                              >
+                              <Button variant="outline" size="sm" onClick={() => handleEditTask(row)} disabled={!canEdit} className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}>
                                 <Edit className="h-4 w-4" />
                                 編集
                               </Button>

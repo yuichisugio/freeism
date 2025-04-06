@@ -22,23 +22,14 @@ function LoadingIndicator() {
 function FilterTabs({ activeFilter, onFilterChange, unreadCount }: { activeFilter: FilterType; onFilterChange: (filter: FilterType) => void; unreadCount: number }) {
   return (
     <div className="sticky top-0 z-10 mb-3 flex border-b bg-white">
-      <button
-        onClick={() => onFilterChange("all")}
-        className={activeFilter === "all" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}
-      >
+      <button onClick={() => onFilterChange("all")} className={activeFilter === "all" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
         全て
       </button>
-      <button
-        onClick={() => onFilterChange("unread")}
-        className={activeFilter === "unread" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}
-      >
+      <button onClick={() => onFilterChange("unread")} className={activeFilter === "unread" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
         未読
         {unreadCount > 0 && <span className="ml-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs text-white">{unreadCount}</span>}
       </button>
-      <button
-        onClick={() => onFilterChange("read")}
-        className={activeFilter === "read" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}
-      >
+      <button onClick={() => onFilterChange("read")} className={activeFilter === "read" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
         既読
       </button>
     </div>
@@ -91,14 +82,7 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
 
   return (
     <li className={`flex flex-col rounded-lg border transition-colors ${backgroundClass} ${expandedPaddingClass}`}>
-      <div
-        className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`}
-        onClick={handleItemClick}
-        onKeyDown={(e) => e.key === "Enter" && handleItemClick()}
-        role="button"
-        tabIndex={0}
-        aria-label={`通知: ${notification.title}`}
-      >
+      <div className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`} onClick={handleItemClick} onKeyDown={(e) => e.key === "Enter" && handleItemClick()} role="button" tabIndex={0} aria-label={`通知: ${notification.title}`}>
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -226,21 +210,8 @@ function NotificationsEmpty({ hasMore, onLoadMore, isLoadingMore, activeFilter }
  * @param {function} onUnreadStatusChangeAction - 未読状態変更時のコールバック
  */
 export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
-  const {
-    notifications,
-    isLoading,
-    isLoadingMore,
-    error,
-    unreadCount,
-    hasMore,
-    activeFilter,
-    toggleReadStatus,
-    loadMoreNotifications,
-    markAllAsRead,
-    handleFilterChange,
-    handleManualRefresh,
-    requestCounter,
-  } = useNotificationList(onUnreadStatusChangeAction);
+  const { notifications, isLoading, isLoadingMore, error, unreadCount, hasMore, activeFilter, toggleReadStatus, loadMoreNotifications, markAllAsRead, handleFilterChange, handleManualRefresh, requestCounter } =
+    useNotificationList(onUnreadStatusChangeAction);
 
   return (
     <div className="flex flex-col overflow-hidden">

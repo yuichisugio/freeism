@@ -1069,8 +1069,8 @@
      - フォーカス可視化と管理
      - ARIAロールと属性の適切な使用
 3. **パフォーマンス目標**
-   - 指標と目標: | 指標 | 目標値 | | ------------------------ | --------- | | First Contentful Paint | 1.0秒以下 | | Largest Contentful Paint | 2.5秒以下 | | Cumulative Layout Shift | 0.1以下 | | Time
-     to Interactive | 3.5秒以下 | | Total Blocking Time | 200ms以下 |
+   - 指標と目標: | 指標 | 目標値 | | ------------------------ | --------- | | First Contentful Paint | 1.0秒以下 | | Largest Contentful Paint | 2.5秒以下 | | Cumulative Layout Shift | 0.1以下 | | Time to Interactive | 3.5秒以下 | | Total Blocking
+     Time | 200ms以下 |
    - ユーザー体感速度:
      - スケルトンUIによる読み込み表現
      - 先行データ取得と事前レンダリング

@@ -30,8 +30,13 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知作成フォームのフォームオブジェクト
-  const { form, targetType, sendTiming, userComboOpen, setUserComboOpen, groupComboOpen, setGroupComboOpen, taskComboOpen, setTaskComboOpen, sendTimingOptions, targetTypeOptions, handleSubmit } =
-    useCreateNotification({ isAppOwner, isGroupOwner, users, groups, tasks });
+  const { form, targetType, sendTiming, userComboOpen, setUserComboOpen, groupComboOpen, setGroupComboOpen, taskComboOpen, setTaskComboOpen, sendTimingOptions, targetTypeOptions, handleSubmit } = useCreateNotification({
+    isAppOwner,
+    isGroupOwner,
+    users,
+    groups,
+    tasks,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -39,40 +44,15 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
     <div className="h-full">
       <div className="text-muted-foreground mb-6 text-sm">{isAppOwner ? "アプリオーナー権限" : "グループオーナー権限"}で操作しています。</div>
       <FormLayout form={form} onSubmit={handleSubmit} submitLabel="通知を作成" submittingLabel="作成中..." className="space-y-6">
-        <CustomFormField
-          control={form.control}
-          name="title"
-          label="通知タイトル"
-          description="通知のタイトルを入力してください"
-          fieldType="input"
-          type="text"
-          placeholder="例：システムメンテナンスのお知らせ"
-        />
+        <CustomFormField control={form.control} name="title" label="通知タイトル" description="通知のタイトルを入力してください" fieldType="input" type="text" placeholder="例：システムメンテナンスのお知らせ" />
 
-        <CustomFormField
-          control={form.control}
-          name="message"
-          label="通知内容"
-          description="通知の本文を入力してください"
-          fieldType="textarea"
-          placeholder="例：2025年3月1日午前2時から5時までシステムメンテナンスを実施します。"
-        />
+        <CustomFormField control={form.control} name="message" label="通知内容" description="通知の本文を入力してください" fieldType="textarea" placeholder="例：2025年3月1日午前2時から5時までシステムメンテナンスを実施します。" />
 
         <CustomFormField control={form.control} name="targetType" label="通知単位" description="通知の送信単位を選択してください" fieldType="radio" options={targetTypeOptions} />
 
         <CustomFormField control={form.control} name="sendTiming" label="送信タイミング" description="通知の送信タイミングを選択してください" fieldType="radio" options={sendTimingOptions} />
 
-        {sendTiming === "SCHEDULED" && (
-          <CustomFormField
-            control={form.control}
-            name="sendScheduledDate"
-            label="送信予定日"
-            description="通知を送信する日付を選択してください"
-            fieldType="date"
-            placeholder="日付を選択"
-            disablePastDates={true}
-          />
-        )}
+        {sendTiming === "SCHEDULED" && <CustomFormField control={form.control} name="sendScheduledDate" label="送信予定日" description="通知を送信する日付を選択してください" fieldType="date" placeholder="日付を選択" disablePastDates={true} />}
 
         {targetType === "USER" && (
           <CustomFormField
@@ -122,15 +102,7 @@ export function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups
           />
         )}
 
-        <CustomFormField
-          control={form.control}
-          name="actionUrl"
-          label="アクションURL（オプション）"
-          description="通知をクリックした時に遷移するURLを入力してください"
-          fieldType="input"
-          type="url"
-          placeholder="例：https://example.com/page"
-        />
+        <CustomFormField control={form.control} name="actionUrl" label="アクションURL（オプション）" description="通知をクリックした時に遷移するURLを入力してください" fieldType="input" type="url" placeholder="例：https://example.com/page" />
 
         <CustomFormField control={form.control} name="expiresAt" label="有効期限（オプション）" description="通知の有効期限を設定します" fieldType="date" placeholder="日付を選択" />
 

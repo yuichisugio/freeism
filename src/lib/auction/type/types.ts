@@ -260,6 +260,8 @@ export type Auction = {
   startTime: string;
   endTime: string;
   sellerId: string;
+  highestBidderId?: string | null; // 非推奨: 今後はcurrentHighestBidderIdを使用
+  currentHighestBidderId?: string | null; // 最高入札者ID
   seller?:
     | {
         id: string;

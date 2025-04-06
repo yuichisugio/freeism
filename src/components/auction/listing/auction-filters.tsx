@@ -156,17 +156,12 @@ export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSo
                       {sortOptions.map((option) => (
                         <label
                           key={option.value}
-                          className={cn(
-                            "flex cursor-pointer items-center rounded-md border p-3 transition-all hover:border-blue-200 hover:bg-blue-50",
-                            sortOption === option.value ? "border-blue-500 bg-blue-50 shadow-sm" : "border-gray-200",
-                          )}
+                          className={cn("flex cursor-pointer items-center rounded-md border p-3 transition-all hover:border-blue-200 hover:bg-blue-50", sortOption === option.value ? "border-blue-500 bg-blue-50 shadow-sm" : "border-gray-200")}
                         >
                           <RadioGroupItem value={option.value} id={`sort-${option.value}`} className="sr-only" />
                           <div className="flex w-full items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className={cn("flex h-8 w-8 items-center justify-center rounded-full", sortOption === option.value ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500")}>
-                                {option.icon}
-                              </div>
+                              <div className={cn("flex h-8 w-8 items-center justify-center rounded-full", sortOption === option.value ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500")}>{option.icon}</div>
                               <span className="text-sm font-medium">{option.label}</span>
                             </div>
                             {sortOption === option.value && <Check className="h-4 w-4 text-blue-500" />}
@@ -187,19 +182,12 @@ export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSo
                       {statusOptions.map((option) => (
                         <label
                           key={option.value}
-                          className={cn(
-                            "flex cursor-pointer items-center rounded-md border p-3 transition-all hover:border-green-200 hover:bg-green-50",
-                            filters.status === option.value ? "border-green-500 bg-green-50 shadow-sm" : "border-gray-200",
-                          )}
+                          className={cn("flex cursor-pointer items-center rounded-md border p-3 transition-all hover:border-green-200 hover:bg-green-50", filters.status === option.value ? "border-green-500 bg-green-50 shadow-sm" : "border-gray-200")}
                         >
                           <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
                           <div className="flex w-full items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div
-                                className={cn("flex h-8 w-8 items-center justify-center rounded-full", filters.status === option.value ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500")}
-                              >
-                                {option.icon}
-                              </div>
+                              <div className={cn("flex h-8 w-8 items-center justify-center rounded-full", filters.status === option.value ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500")}>{option.icon}</div>
                               <span className="text-sm font-medium">{option.label}</span>
                             </div>
                             {filters.status === option.value && <Check className="h-4 w-4 text-green-500" />}
@@ -321,14 +309,7 @@ export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSo
 
                       <div className="grid grid-cols-4 gap-2">
                         {timePresets.map((preset) => (
-                          <Button
-                            key={preset.label}
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setTimePreset(preset.start, preset.end)}
-                            className="text-xs hover:border-amber-200 hover:bg-amber-50"
-                          >
+                          <Button key={preset.label} type="button" size="sm" variant="outline" onClick={() => setTimePreset(preset.start, preset.end)} className="text-xs hover:border-amber-200 hover:bg-amber-50">
                             {preset.label}
                           </Button>
                         ))}
@@ -396,14 +377,7 @@ export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSo
 
                       <div className="grid grid-cols-3 gap-2">
                         {pricePresets.map((preset) => (
-                          <Button
-                            key={preset.label}
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setPricePreset(preset.start, preset.end)}
-                            className="text-xs hover:border-red-200 hover:bg-red-50"
-                          >
+                          <Button key={preset.label} type="button" size="sm" variant="outline" onClick={() => setPricePreset(preset.start, preset.end)} className="text-xs hover:border-red-200 hover:bg-red-50">
                             {preset.label}
                           </Button>
                         ))}

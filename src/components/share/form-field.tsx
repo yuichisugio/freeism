@@ -134,12 +134,7 @@ function renderInputField<T extends FieldValues>(props: InputFieldProps<T>, fiel
 function renderTextareaField<T extends FieldValues>(props: TextareaFieldProps<T>, field: ControllerRenderProps<T, Path<T>>) {
   return (
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
-      <Textarea
-        id={props.name}
-        placeholder={props.placeholder ?? ""}
-        {...field}
-        className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
-      />
+      <Textarea id={props.name} placeholder={props.placeholder ?? ""} {...field} className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500" />
     </FieldLayout>
   );
 }
@@ -181,11 +176,7 @@ function renderRadioField<T extends FieldValues>(props: RadioFieldProps<T>, fiel
                 {String(field.value) === String(option.value) && (
                   <div className="text-blue-600">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
                 )}
@@ -222,13 +213,7 @@ function renderComboBoxField<T extends FieldValues>(props: ComboBoxFieldProps<T>
     <FieldLayout label={props.label} description={props.description} extraChildren={props.children}>
       <Popover open={props.open} onOpenChange={props.setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={props.open}
-            className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")}
-            type="button"
-          >
+          <Button variant="outline" role="combobox" aria-expanded={props.open} className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")} type="button">
             {field.value ? (props.options.find((item) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder) : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>

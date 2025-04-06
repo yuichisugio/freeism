@@ -319,15 +319,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
       {/* グローバルドロップゾーンオーバーレイ */}
       <AnimatePresence>
         {isFileOver && (
-          <motion.div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={globalDropOverlay}
-            role="region"
-            aria-label="画像ドロップエリア"
-          >
+          <motion.div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]" initial="hidden" animate="visible" exit="exit" variants={globalDropOverlay} role="region" aria-label="画像ドロップエリア">
             <motion.div
               className="mx-auto flex h-[300px] w-[600px] max-w-[95vw] flex-col items-center justify-center rounded-xl border-2 border-dashed border-blue-500 bg-white/95 shadow-2xl"
               initial={{ scale: 0.9, y: 20 }}
@@ -353,12 +345,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
 
             {/* 削除ボタン */}
             {!disabled && (
-              <button
-                onClick={handleRemoveImage}
-                className="absolute top-2 right-2 rounded-full bg-white/80 p-1 text-gray-700 shadow-md hover:bg-white hover:text-red-500"
-                disabled={isUploading}
-                aria-label="画像を削除"
-              >
+              <button onClick={handleRemoveImage} className="absolute top-2 right-2 rounded-full bg-white/80 p-1 text-gray-700 shadow-md hover:bg-white hover:text-red-500" disabled={isUploading} aria-label="画像を削除">
                 <Trash2 className="h-5 w-5" />
               </button>
             )}

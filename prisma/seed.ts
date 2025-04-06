@@ -1166,11 +1166,7 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
       const notificationCount = faker.number.int({ min: 1, max: 3 }); // 最低1件は通知を生成
 
       // 通知タイプのリスト (schema.prismaのAuctionEventTypeに合わせる)
-      let notificationTypes: ("OUTBID" | "ENDED" | "QUESTION_RECEIVED" | "AUCTION_WIN" | "AUCTION_LOST" | "POINT_RETURNED" | "ITEM_SOLD" | "NO_WINNER" | "AUTO_BID_LIMIT_REACHED")[] = [
-        "OUTBID",
-        "ENDED",
-        "QUESTION_RECEIVED",
-      ];
+      let notificationTypes: ("OUTBID" | "ENDED" | "QUESTION_RECEIVED" | "AUCTION_WIN" | "AUCTION_LOST" | "POINT_RETURNED" | "ITEM_SOLD" | "NO_WINNER" | "AUTO_BID_LIMIT_REACHED")[] = ["OUTBID", "ENDED", "QUESTION_RECEIVED"];
 
       // 落札者の場合
       if (auction.winnerId === user.id) {

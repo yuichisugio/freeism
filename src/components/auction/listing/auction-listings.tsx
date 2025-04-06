@@ -63,9 +63,7 @@ export function AuctionListings() {
               categories.map((category: string) => (
                 <button
                   key={category}
-                  className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${
-                    filters.category === category ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${filters.category === category ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
                   onClick={() => handleFilterChange({ category })}
                 >
                   {category}
@@ -83,14 +81,7 @@ export function AuctionListings() {
 
       {/* フィルター */}
       <div className="w-full">
-        <AuctionFilters
-          filters={filters}
-          onFilterChangeAction={handleFilterChange}
-          sortOption={sortOption}
-          onSortChangeAction={handleSortChange}
-          categories={categories}
-          onResetFilters={handleResetFilters}
-        />
+        <AuctionFilters filters={filters} onFilterChangeAction={handleFilterChange} sortOption={sortOption} onSortChangeAction={handleSortChange} categories={categories} onResetFilters={handleResetFilters} />
       </div>
 
       {/* ローディング状態または結果表示 */}

@@ -16,12 +16,8 @@ export async function HeroSection() {
 
       <div className="relative container mx-auto">
         <div className="mx-auto text-center sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
-          <h1 className="mb-4 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl dark:from-blue-400 dark:to-blue-500">
-            新しい経済の仕組みを提案
-          </h1>
-          <p className="mx-auto mb-6 text-base leading-relaxed text-neutral-600 sm:mb-8 sm:text-lg md:text-xl dark:text-neutral-400">
-            Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。
-          </p>
+          <h1 className="mb-4 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl dark:from-blue-400 dark:to-blue-500">新しい経済の仕組みを提案</h1>
+          <p className="mx-auto mb-6 text-base leading-relaxed text-neutral-600 sm:mb-8 sm:text-lg md:text-xl dark:text-neutral-400">Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。</p>
 
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Button

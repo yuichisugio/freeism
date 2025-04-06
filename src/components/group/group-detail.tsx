@@ -646,9 +646,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">グループオーナー権限付与</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
-              {isGroupOwner || isAppOwner ? "グループオーナー権限を付与するユーザーを選択してください。" : "グループオーナー権限がないため、権限を付与することができません。"}
-            </AlertDialogDescription>
+            <AlertDialogDescription className="text-gray-600">{isGroupOwner || isAppOwner ? "グループオーナー権限を付与するユーザーを選択してください。" : "グループオーナー権限がないため、権限を付与することができません。"}</AlertDialogDescription>
           </AlertDialogHeader>
           {(isGroupOwner || isAppOwner) && (
             <div className="py-4">
@@ -705,9 +703,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">グループを削除しますか？</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
-              {isGroupOwner || isAppOwner
-                ? "グループを削除すると、そのグループに関連するデータも全て削除されます。\nこの操作は元に戻せません。"
-                : "グループオーナー権限がないため、グループを削除することができません。"}
+              {isGroupOwner || isAppOwner ? "グループを削除すると、そのグループに関連するデータも全て削除されます。\nこの操作は元に戻せません。" : "グループオーナー権限がないため、グループを削除することができません。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -729,9 +725,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">メンバー除名</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
-              {isGroupOwner || isAppOwner
-                ? `除名するメンバーを選択してください。ブラックリストに追加すると、今後このメンバーは、${tasks[0].group.name}に参加できなくなります。`
-                : "グループオーナー権限がないため、メンバーを除名することができません。"}
+              {isGroupOwner || isAppOwner ? `除名するメンバーを選択してください。ブラックリストに追加すると、今後このメンバーは、${tasks[0].group.name}に参加できなくなります。` : "グループオーナー権限がないため、メンバーを除名することができません。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {(isGroupOwner || isAppOwner) && (

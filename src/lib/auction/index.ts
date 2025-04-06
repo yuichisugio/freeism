@@ -5,7 +5,7 @@ export * from "./type/types";
 export * from "./action/auction-listing";
 export * from "./action/auction-retrieve";
 export * from "./action/auction-status";
-export * from "./action/bid";
+export * from "./action/bid-common";
 export * from "./action/server-sent-events-broadcast";
 // events.ts の関数は connection.ts と一部重複しているため、個別にエクスポート
 export { sendAuctionUpdateEvent, sendAuctionExtensionEvent, sendAuctionEndedEvent, sendErrorEvent } from "./action/events";

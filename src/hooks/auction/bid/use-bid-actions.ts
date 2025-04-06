@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { placeBidAction } from "@/lib/auction/action/bid";
+import { executeBid } from "@/lib/auction/action/bid-common";
 import { type BidFormData } from "@/lib/auction/type/types";
 import { toast } from "sonner";
 
@@ -45,7 +45,7 @@ export function useBidActions() {
       }
 
       // サーバーアクションを呼び出し
-      const result = await placeBidAction(bidData.auctionId, bidData);
+      const result = await executeBid(bidData.auctionId, bidData.amount, bidData.isAutoBid ?? false);
 
       if (!result.success) {
         setError(result.message ?? "入札に失敗しました");

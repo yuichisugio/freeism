@@ -304,15 +304,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
               </div>
             )}
 
-            <CustomFormField
-              fieldType="input"
-              type="text"
-              control={form.control}
-              name="task"
-              label="タスクのタイトル"
-              description="タスクのタイトルを入力してください"
-              placeholder="タスクのタイトルを入力してください"
-            />
+            <CustomFormField fieldType="input" type="text" control={form.control} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
 
             {/* カテゴリ選択を追加 */}
             <CustomFormField
@@ -329,14 +321,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
 
             <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="タスクの詳細を入力してください" placeholder="タスクの詳細を入力してください" />
 
-            <CustomFormField
-              fieldType="textarea"
-              control={form.control}
-              name="reference"
-              label="参考にした内容"
-              description="タスクを実行する際に参考にした情報があれば記載してください"
-              placeholder="参考にした内容を入力してください"
-            />
+            <CustomFormField fieldType="textarea" control={form.control} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
 
             <CustomFormField
               fieldType="textarea"
@@ -368,13 +353,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
 
               {/* 未登録ユーザー入力 */}
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 rounded-md border p-2"
-                  placeholder="未登録ユーザー名を入力..."
-                  value={nonRegisteredExecutor}
-                  onChange={(e) => setNonRegisteredExecutor(e.target.value)}
-                />
+                <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredExecutor} onChange={(e) => setNonRegisteredExecutor(e.target.value)} />
                 <Button
                   type="button"
                   className="bg-blue-500 text-white"
@@ -429,13 +408,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
 
               {/* 未登録ユーザー入力 */}
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 rounded-md border p-2"
-                  placeholder="未登録ユーザー名を入力..."
-                  value={nonRegisteredReporter}
-                  onChange={(e) => setNonRegisteredReporter(e.target.value)}
-                />
+                <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredReporter} onChange={(e) => setNonRegisteredReporter(e.target.value)} />
                 <Button
                   type="button"
                   className="bg-blue-500 text-white"

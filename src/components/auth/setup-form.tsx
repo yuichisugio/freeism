@@ -77,14 +77,7 @@ export function SetupForm({ initialData }: SetupFormProps) {
       <FormLayout form={form} onSubmit={onSubmit} submitLabel="設定を保存">
         <CustomFormField fieldType="input" control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" type="text" />
 
-        <CustomFormField
-          fieldType="textarea"
-          control={form.control}
-          name="lifeGoal"
-          label="自分の人生の目標"
-          placeholder="自分の人生の目標を入力"
-          description="自分が達成したい人生の目標を記入してください"
-        />
+        <CustomFormField fieldType="textarea" control={form.control} name="lifeGoal" label="自分の人生の目標" placeholder="自分の人生の目標を入力" description="自分が達成したい人生の目標を記入してください" />
       </FormLayout>
     </>
   );

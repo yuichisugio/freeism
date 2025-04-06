@@ -10,10 +10,7 @@ function Separator({ className, orientation = "horizontal", decorative = true, .
       data-slot="separator-root"
       decorative={decorative}
       orientation={orientation}
-      className={cn(
-        "shrink-0 bg-neutral-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px dark:bg-neutral-800",
-        className,
-      )}
+      className={cn("shrink-0 bg-neutral-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px dark:bg-neutral-800", className)}
       {...props}
     />
   );

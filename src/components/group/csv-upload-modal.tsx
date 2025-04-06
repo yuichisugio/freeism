@@ -1041,21 +1041,11 @@ function ActionButtons({ isUploading, canUpload, onCancel, onUpload }: ActionBut
  * CSVアップロードモーダル
  */
 export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModalProps) {
-  const {
-    uploadType,
-    isUploading,
-    uploadProgress,
-    currentFiles,
-    isFileOver,
-    hasPermissionForUploadType,
-    dropzoneProps,
-    setUploadType,
-    handleRemoveFile,
-    handleRemoveAll,
-    handleUpload,
-    onCancel,
-    renderFileFormatInfo,
-  } = useCsvUpload({ groupId, isOpen, onCloseAction });
+  const { uploadType, isUploading, uploadProgress, currentFiles, isFileOver, hasPermissionForUploadType, dropzoneProps, setUploadType, handleRemoveFile, handleRemoveAll, handleUpload, onCancel, renderFileFormatInfo } = useCsvUpload({
+    groupId,
+    isOpen,
+    onCloseAction,
+  });
 
   return (
     <>
@@ -1067,12 +1057,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
         <DialogContent className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[800px]" closeButton={false}>
           {/* ヘッダー */}
           <div className="relative flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
-            <button
-              onClick={() => !isUploading && onCloseAction(false)}
-              className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none"
-              disabled={isUploading}
-              aria-label="閉じる"
-            >
+            <button onClick={() => !isUploading && onCloseAction(false)} className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none" disabled={isUploading} aria-label="閉じる">
               <X className="h-5 w-5" />
             </button>
 
@@ -1088,14 +1073,7 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
               <RadioGroup value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)} className="pt-2">
                 <div className="grid grid-cols-1 gap-4">
                   {Object.entries(UPLOAD_TYPE_INFO).map(([type, info]) => (
-                    <UploadTypeRadio
-                      key={type}
-                      type={type as UploadType}
-                      info={info}
-                      isSelected={uploadType === type}
-                      canUse={hasPermissionForUploadType(type as UploadType)}
-                      onSelect={setUploadType}
-                    />
+                    <UploadTypeRadio key={type} type={type as UploadType} info={info} isSelected={uploadType === type} canUse={hasPermissionForUploadType(type as UploadType)} onSelect={setUploadType} />
                   ))}
                 </div>
               </RadioGroup>

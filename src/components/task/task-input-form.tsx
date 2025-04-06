@@ -234,15 +234,7 @@ export function TaskInputForm({
         ]}
       />
 
-      <CustomFormField
-        fieldType="input"
-        type="text"
-        control={form.control}
-        name="task"
-        label="タスクのタイトル"
-        description="タスクのタイトルを入力してください"
-        placeholder="タスクのタイトルを入力してください"
-      />
+      <CustomFormField fieldType="input" type="text" control={form.control} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
 
       {/* カテゴリ選択を追加 */}
       <CustomFormField
@@ -307,14 +299,7 @@ export function TaskInputForm({
         </div>
       )}
 
-      <CustomFormField
-        fieldType="textarea"
-        control={form.control}
-        name="reference"
-        label="参考にした内容"
-        description="タスクを実行する際に参考にした情報があれば記載してください"
-        placeholder="参考にした内容を入力してください"
-      />
+      <CustomFormField fieldType="textarea" control={form.control} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
 
       <CustomFormField
         fieldType="textarea"
@@ -346,13 +331,7 @@ export function TaskInputForm({
 
         {/* 未登録ユーザー入力 */}
         <div className="flex gap-2">
-          <input
-            type="text"
-            className="flex-1 rounded-md border p-2"
-            placeholder="未登録ユーザー名を入力..."
-            value={nonRegisteredExecutor}
-            onChange={(e) => setNonRegisteredExecutor(e.target.value)}
-          />
+          <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredExecutor} onChange={(e) => setNonRegisteredExecutor(e.target.value)} />
           <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addExecutor(undefined, nonRegisteredExecutor)}>
             追加
           </button>
@@ -399,13 +378,7 @@ export function TaskInputForm({
 
         {/* 未登録ユーザー入力 */}
         <div className="flex gap-2">
-          <input
-            type="text"
-            className="flex-1 rounded-md border p-2"
-            placeholder="未登録ユーザー名を入力..."
-            value={nonRegisteredReporter}
-            onChange={(e) => setNonRegisteredReporter(e.target.value)}
-          />
+          <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredReporter} onChange={(e) => setNonRegisteredReporter(e.target.value)} />
           <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addReporter(undefined, nonRegisteredReporter)}>
             追加
           </button>

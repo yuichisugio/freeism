@@ -81,13 +81,7 @@ export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardPro
       <Link href={`/dashboard/auction/${auction.taskId}`} className="block">
         <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
           {auction.imageUrl ? (
-            <Image
-              src={auction.imageUrl}
-              alt={auction.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            />
+            <Image src={auction.imageUrl} alt={auction.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-400 dark:bg-gray-600 dark:text-gray-300">
               <Tag className="h-12 w-12 opacity-50" />
@@ -165,9 +159,7 @@ export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardPro
           </TooltipProvider>
 
           {/* カテゴリ表示（モック） */}
-          <div className="text-2xs max-w-full truncate rounded bg-gray-50 px-2 py-1 text-gray-500 sm:text-xs dark:bg-gray-700/50 dark:text-gray-400">
-            カテゴリ: {auction.group.name.includes("開発") ? "開発" : "その他"}
-          </div>
+          <div className="text-2xs max-w-full truncate rounded bg-gray-50 px-2 py-1 text-gray-500 sm:text-xs dark:bg-gray-700/50 dark:text-gray-400">カテゴリ: {auction.group.name.includes("開発") ? "開発" : "その他"}</div>
         </div>
       </div>
     </div>

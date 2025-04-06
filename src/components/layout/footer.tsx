@@ -38,21 +38,11 @@ export function Footer() {
               <h3 className="mb-3 text-lg font-semibold text-blue-900 sm:mb-4 dark:text-blue-100">About</h3>
               <div className="flex justify-center space-x-4 sm:justify-start">
                 {/* Twitterリンク */}
-                <a
-                  href="https://x.com/sugi_sugi_329"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300"
-                >
+                <a href="https://x.com/sugi_sugi_329" target="_blank" rel="noopener noreferrer" className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300">
                   <TwitterLogoSvg />
                 </a>
                 {/* GitHubリンク */}
-                <a
-                  href="https://github.com/yuichisugio"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300"
-                >
+                <a href="https://github.com/yuichisugio" target="_blank" rel="noopener noreferrer" className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300">
                   <GitHubLogoSvg />
                 </a>
               </div>

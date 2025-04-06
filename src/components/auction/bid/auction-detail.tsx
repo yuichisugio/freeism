@@ -161,6 +161,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
                   startTime: auction.startTime.toString(),
                   endTime: auction.endTime.toString(),
                   sellerId: auction.sellerId,
+                  currentHighestBidderId: auction.currentHighestBidderId,
                 } as Auction
               }
             />
@@ -222,9 +223,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
             <ShoppingBag className="mt-1 h-5 w-5 text-green-500" />
             <div>
               <h3 className="mb-2 text-lg font-medium text-green-900">支払い方法</h3>
-              <p className="text-green-700">
-                落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{(auction.task.group as { depositPeriod?: number }).depositPeriod ?? 7}日後に返還されます。
-              </p>
+              <p className="text-green-700">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{(auction.task.group as { depositPeriod?: number }).depositPeriod ?? 7}日後に返還されます。</p>
             </div>
           </div>
         </div>
@@ -272,13 +271,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           {/* 左側: オークション画像 */}
           <div className="relative h-[250px] overflow-hidden rounded-lg">
-            <Image
-              src={auction.task.imageUrl ?? AUCTION_CONSTANTS.DEFAULT_AUCTION_IMAGE_URL}
-              alt={auction.title ?? "オークション画像"}
-              fill
-              className="object-cover transition-transform duration-500 hover:scale-105"
-              priority
-            />
+            <Image src={auction.task.imageUrl ?? AUCTION_CONSTANTS.DEFAULT_AUCTION_IMAGE_URL} alt={auction.title ?? "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
           </div>
 
           {/* 右側: オークション情報ヘッダー部分 */}
@@ -291,9 +284,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
                   whileTap={{ scale: 0.9 }}
                   onClick={handleWatchlistToggle}
                   disabled={submitting || auction.sellerId === currentUserId}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                    isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"
-                  } transition-colors duration-200`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
                 >
                   <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
                 </motion.button>

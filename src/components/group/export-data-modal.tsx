@@ -14,19 +14,7 @@ import { ja } from "date-fns/locale";
 import { zip } from "fflate";
 import { saveAs } from "file-saver";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowLeft,
-  ArrowRight,
-  BarChart as BarChartIcon,
-  CalendarIcon,
-  Check as CheckIcon,
-  Download as DownloadIcon,
-  Eye as EyeIcon,
-  FileIcon,
-  Loader2 as Loader2Icon,
-  PackageCheck,
-  X as XIcon,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, BarChart as BarChartIcon, CalendarIcon, Check as CheckIcon, Download as DownloadIcon, Eye as EyeIcon, FileIcon, Loader2 as Loader2Icon, PackageCheck, X as XIcon } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -416,11 +404,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   // サブコンポーネント: ステップサークル
   const StepCircle = ({ step, currentStep }: { step: number; currentStep: number }) => (
     <motion.div
-      className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-semibold",
-        step === currentStep ? "bg-white text-blue-600" : "bg-blue-400/30 text-white",
-        step === 1 ? "ml-4" : "mr-4",
-      )}
+      className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-semibold", step === currentStep ? "bg-white text-blue-600" : "bg-blue-400/30 text-white", step === 1 ? "ml-4" : "mr-4")}
       variants={ANIMATION_VARIANTS.circle}
       animate={step === currentStep ? "active" : "inactive"}
     >
@@ -551,9 +535,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
             </div>
             <span className="font-medium text-gray-900">分析結果データ</span>
           </div>
-          <p className="mt-2 text-sm text-gray-500">
-            グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。 評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。
-          </p>
+          <p className="mt-2 text-sm text-gray-500">グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。 評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。</p>
           <div className="mt-2 flex items-center text-xs text-purple-600">
             <PackageCheck className="mr-1 h-3.5 w-3.5" />
             <span className="italic">ページ指定のみ必要です（期間指定は不要）</span>
@@ -570,12 +552,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
     return (
       <div className="mt-3 rounded-lg border border-purple-100 bg-purple-50 p-4">
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="onlyFixed"
-            checked={state.onlyFixed}
-            onCheckedChange={(checked) => updateState({ onlyFixed: checked === true })}
-            className="border-purple-300 text-purple-600 data-[state=checked]:bg-purple-600"
-          />
+          <Checkbox id="onlyFixed" checked={state.onlyFixed} onCheckedChange={(checked) => updateState({ onlyFixed: checked === true })} className="border-purple-300 text-purple-600 data-[state=checked]:bg-purple-600" />
           <label htmlFor="onlyFixed" className="text-sm leading-none font-medium text-purple-800 peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             <p>FIX済みの分析結果のみエクスポート</p>
             <p className="mt-1 text-xs text-purple-600">ステータスが「POINTS_AWARDED」のタスクのみエクスポートされます</p>
@@ -599,12 +576,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
         <RadioGroupItem value={value} id={`purpose-${value}`} className="absolute mt-1 mr-4 opacity-0" />
         <div className="flex-1">
           <div className="flex items-center">
-            <div
-              className={cn(
-                "mr-2 flex h-6 w-6 items-center justify-center rounded-full",
-                state.exportPurpose === value ? (icon === "eye" ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600") : "bg-gray-100 text-gray-500",
-              )}
-            >
+            <div className={cn("mr-2 flex h-6 w-6 items-center justify-center rounded-full", state.exportPurpose === value ? (icon === "eye" ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600") : "bg-gray-100 text-gray-500")}>
               {icon === "eye" ? <EyeIcon className="h-3.5 w-3.5" /> : <BarChartIcon className="h-3.5 w-3.5" />}
             </div>
             <span className="font-medium text-gray-900">{label}</span>
@@ -649,21 +621,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   );
 
   // サブコンポーネント: 日付選択
-  const DateSelector = ({
-    label,
-    date,
-    isOpen,
-    onOpenChange,
-    onSelect,
-    disabled,
-  }: {
-    label: string;
-    date?: Date;
-    isOpen: boolean;
-    onOpenChange: (isOpen: boolean) => void;
-    onSelect: (date?: Date) => void;
-    disabled: (date: Date) => boolean;
-  }) => (
+  const DateSelector = ({ label, date, isOpen, onOpenChange, onSelect, disabled }: { label: string; date?: Date; isOpen: boolean; onOpenChange: (isOpen: boolean) => void; onSelect: (date?: Date) => void; disabled: (date: Date) => boolean }) => (
     <div className="space-y-2">
       <Label htmlFor={`${label}-date`} className="text-sm font-medium text-gray-700">
         {label}
@@ -671,11 +629,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       <Popover open={isOpen} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-            <Button
-              variant="outline"
-              className={cn("w-full justify-start text-left font-normal shadow-sm transition-all", !date && "text-gray-400", date && "border-blue-200 bg-blue-50 text-blue-800")}
-              id={`${label}-date`}
-            >
+            <Button variant="outline" className={cn("w-full justify-start text-left font-normal shadow-sm transition-all", !date && "text-gray-400", date && "border-blue-200 bg-blue-50 text-blue-800")} id={`${label}-date`}>
               <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-blue-500" : "text-gray-400")} />
               {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
             </Button>
@@ -692,13 +646,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   const DateRangeSummary = () => (
     <AnimatePresence>
       {state.startDate && state.endDate && (
-        <motion.div
-          className="mt-6 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
+        <motion.div className="mt-6 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
           <div className="flex items-start">
             <CheckIcon className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0 text-blue-500" />
             <div>
@@ -747,13 +695,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
 
   // サブコンポーネント: ページサマリー
   const PageSummary = () => (
-    <motion.div
-      className="mt-6 rounded-md border border-purple-100 bg-purple-50 p-4 text-sm text-purple-800"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
-    >
+    <motion.div className="mt-6 rounded-md border border-purple-100 bg-purple-50 p-4 text-sm text-purple-800" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
       <div className="flex items-start">
         <PackageCheck className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0 text-purple-500" />
         <div>
@@ -826,12 +768,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
       <DialogContent className="h-[95vh] overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
         <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-          <button
-            onClick={() => onCloseAction(false)}
-            className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none"
-            disabled={state.isExporting}
-            aria-label="閉じる"
-          >
+          <button onClick={() => onCloseAction(false)} className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none" disabled={state.isExporting} aria-label="閉じる">
             <XIcon className="h-5 w-5" />
           </button>
 
