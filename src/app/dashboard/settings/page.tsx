@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { NotificationToggle } from "@/components/notification/push-notification-toggle";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Settings - Freeism App",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   // セッションを取得
-  const session = await auth();
+  const session = await getAuthSession();
 
   // ユーザーが認証されていない場合は早期リターン
   if (!session?.user?.id) {

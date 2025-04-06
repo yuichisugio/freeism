@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 import { type Auction, type AuctionWithDetails } from "../type/types";
 
@@ -55,7 +55,7 @@ export async function getUserPointBalance(userId: string, groupId: string): Prom
  */
 export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number): Promise<{ canBid: boolean; message?: string }> {
   // セッションからユーザー情報を取得
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     return { canBid: false, message: "認証が必要です" };
   }

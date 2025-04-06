@@ -3,8 +3,8 @@
 import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
@@ -18,7 +18,7 @@ import { z } from "zod";
 export async function updateUserSetup(data: SetupForm) {
   try {
     // 認証セッションを取得
-    const session = await auth();
+    const session = await getAuthSession();
     // ユーザーが認証されていない場合
     if (!session?.user?.id) {
       return { success: false, error: "ユーザーが認証されていません。" };
@@ -59,7 +59,7 @@ export async function updateUserSetup(data: SetupForm) {
 export async function createGroup(data: CreateGroupFormData) {
   console.log("createGroup", data);
   try {
-    const session = await auth();
+    const session = await getAuthSession();
     console.log("createGroup session", session);
 
     if (!session?.user?.id) {
@@ -101,7 +101,7 @@ export async function createGroup(data: CreateGroupFormData) {
  */
 export async function joinGroup(groupId: string) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     if (!session?.user?.id) {
       return { error: "認証エラーが発生しました" };
@@ -162,7 +162,7 @@ export async function joinGroup(groupId: string) {
  */
 export async function leaveGroup(groupId: string) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     if (!session?.user?.id) {
       return { error: "認証エラーが発生しました" };

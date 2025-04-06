@@ -3,9 +3,9 @@
 import type { TaskFormValuesAndGroupId } from "@/components/task/task-input-form";
 import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 
@@ -19,7 +19,7 @@ import { endOfDay, startOfDay } from "date-fns";
 export async function createTask(data: TaskFormValuesAndGroupId) {
   try {
     // 認証セッションを取得
-    const session = await auth();
+    const session = await getAuthSession();
 
     // 認証セッションが取得できない場合
     if (!session?.user?.id) {
@@ -207,7 +207,7 @@ export async function getTasksByGroupId(groupId: string) {
  */
 export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted = false) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     if (!session?.user?.id) {
       throw new Error("認証エラーが発生しました");
@@ -680,7 +680,7 @@ export async function bulkCreateTasks(
 ) {
   try {
     // 認証セッションを取得
-    const session = await auth();
+    const session = await getAuthSession();
 
     // 認証セッションが取得できない場合
     if (!session?.user?.id) {
@@ -782,7 +782,7 @@ export async function bulkCreateTasks(
  */
 export async function updateTaskStatus(taskId: string, status: string) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     if (!session?.user?.id) {
       throw new Error("認証エラーが発生しました");
@@ -936,7 +936,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
  */
 export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGroupId, "groupId">) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     if (!session?.user?.id) {
       return { error: "認証エラーが発生しました" };
@@ -1108,7 +1108,7 @@ type FixedEvaluationData = {
  */
 export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], groupId: string) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     // 認証セッションが取得できない場合
     if (!session?.user?.id) {
@@ -1325,7 +1325,7 @@ export async function bulkUpdateTaskStatuses(
   }>,
 ) {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
 
     if (!session?.user?.id) {
       return { success: false, error: "認証エラーが発生しました" };
@@ -1522,7 +1522,7 @@ export async function bulkUpdateTaskStatuses(
  */
 export async function getMyTasks() {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
     const userId = session?.user?.id;
 
     if (!userId) {

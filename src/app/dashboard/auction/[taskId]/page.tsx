@@ -1,9 +1,9 @@
 import React from "react";
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { getAuctionWithTask } from "@/lib/auction/action/auction-retrieve";
+import { getAuthSession } from "@/lib/utils";
 
 import AuctionDetailWrapper from "./client";
 
@@ -58,7 +58,7 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
     }
 
     // 現在のユーザー情報を取得
-    const session = await auth();
+    const session = await getAuthSession();
 
     // ユーザー情報が存在しない場合は404エラーを返す
     if (!session?.user) {

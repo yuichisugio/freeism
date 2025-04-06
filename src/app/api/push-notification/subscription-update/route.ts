@@ -1,6 +1,7 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
+import { getAuthSession } from "@/lib/utils";
 
 // リクエストボディの型定義
 type SubscriptionUpdateRequest = {
@@ -18,10 +19,13 @@ type SubscriptionUpdateRequest = {
 /**
  * Service Workerからの購読情報更新リクエストを処理するAPI
  */
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // 認証セッションを取得
+    const session = await getAuthSession();
+
     // リクエストボディを取得
-    const body = (await request.json()) as SubscriptionUpdateRequest;
+    const body = (await req.json()) as SubscriptionUpdateRequest;
     const { oldEndpoint, newSubscription } = body;
 
     if (!newSubscription?.endpoint) {
@@ -29,7 +33,6 @@ export async function POST(request: Request) {
     }
 
     // ユーザーIDを取得
-    const session = await auth();
     const userId = session?.user?.id;
 
     if (!userId) {

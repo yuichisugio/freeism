@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { auth } from "@/auth";
 import { LoginButton } from "@/components/auth/login-button";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { NotificationButton } from "@/components/notification/notification-button";
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { getAuthSession } from "@/lib/utils";
 
 /**
  * ヘッダーコンポーネント
@@ -18,7 +18,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
  */
 export async function Header() {
   // 認証状態を取得
-  const session = await auth();
+  const session = await getAuthSession();
 
   return (
     <header className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-colors duration-200 dark:border-blue-900 dark:bg-gray-950/80">

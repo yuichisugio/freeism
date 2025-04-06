@@ -2,9 +2,9 @@
 
 import type { Session } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType, TaskStatus } from "@prisma/client";
 
 import type { AuctionWithDetails, BidHistory, User, WatchlistItem } from "../type/types";
@@ -115,17 +115,6 @@ type AuctionValidationData = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * Prismaクエリの型
- */
-type PrismaQueryOptions = {
-  where: { id: string };
-  select?: Record<string, unknown>;
-  include?: Record<string, unknown>;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * トランザクション内で実行する入札処理の結果型
  */
 type BidTransactionResult = {
@@ -211,7 +200,7 @@ async function validateAuction(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 認証チェック
-    const session = await auth();
+    const session = await getAuthSession();
     const userId = session?.user?.id;
 
     if (!userId) {

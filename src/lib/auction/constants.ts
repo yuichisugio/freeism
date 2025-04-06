@@ -30,7 +30,7 @@ export const SSE_CONFIG = {
  */
 export const AUCTION_CONSTANTS = {
   // オークションのデフォルトイメージURL
-  DEFAULT_AUCTION_IMAGE_URL: "/images/default-auction-image.jpg",
+  DEFAULT_AUCTION_IMAGE_URL: "/images/default-auction-image.png",
 
   // オークションカテゴリ
   AUCTION_CATEGORIES: ["すべて", "食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"],

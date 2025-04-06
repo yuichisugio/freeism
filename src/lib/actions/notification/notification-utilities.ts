@@ -2,8 +2,8 @@
 
 import type { NotificationTargetType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 
 //TODO auctionNotificationにも対応させる
@@ -39,7 +39,7 @@ export type NotificationData = {
  * @throws 認証されていない場合はエラー
  */
 async function getAuthenticatedUserId(): Promise<string> {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }

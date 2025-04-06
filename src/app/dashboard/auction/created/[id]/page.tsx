@@ -1,9 +1,9 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
 import { AuctionCreatedDetail } from "@/components/auction/auction-history/auction-created-detail";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { type AuctionReview } from "@prisma/client";
 
 type CreatedAuctionPageProps = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default async function CreatedAuctionPage({ params }: CreatedAuctionPageProps) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
     notFound();

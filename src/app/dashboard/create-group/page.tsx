@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
 import { CreateGroupForm } from "@/components/group/create-group-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { getAuthSession } from "@/lib/utils";
 
 /**
  * 新規Group作成ページのメタデータ
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
  * @returns 新規Group作成ページ
  */
 export default async function CreateGroupPage() {
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session) {
     return (

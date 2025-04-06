@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth } from "@/auth";
 import { GroupListTable } from "@/components/group/group-list-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { Plus } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GroupListPage() {
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
     return null;

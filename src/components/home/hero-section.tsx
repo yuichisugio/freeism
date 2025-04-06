@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { auth, signIn } from "@/auth";
+import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { getAuthSession } from "@/lib/utils";
 
 export async function HeroSection() {
   // 認証状態を取得
-  const session = await auth();
+  const session = await getAuthSession();
 
   return (
     <section className="relative bg-gradient-to-b from-blue-50 via-white to-white py-16 sm:py-24 lg:py-32 dark:from-blue-950 dark:via-gray-950 dark:to-gray-950">

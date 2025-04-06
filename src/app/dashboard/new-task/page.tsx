@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { TaskInputForm } from "@/components/task/task-input-form";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "新規Task作成 - Freeism App",
@@ -19,7 +19,7 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
   const groupId = params.groupId;
   console.log("page.tsxのgroupId: ", groupId);
 
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
     return null;

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
 import { MyGroupsTable } from "@/components/group/my-groups-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "参加Group一覧 - Freeism App",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MyGroupsPage() {
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
     return null;

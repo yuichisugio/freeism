@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
@@ -17,6 +16,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Clock, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
+import { AuctionQA } from "./auction-qa";
 import { BidForm } from "./bid-form";
 import { BidHistory } from "./bid-history";
 import { CountdownDisplay } from "./countdown-display";
@@ -189,22 +189,6 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 質問と回答タブの内容
-  function renderQaTab() {
-    return (
-      <div className="py-4">
-        <div className="bg-muted/30 rounded-xl border border-dashed p-8 text-center">
-          <p className="text-muted-foreground">現在、質問はありません。</p>
-          <Button className="mt-4" variant="outline">
-            質問する
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // 配送・支払いタブの内容
   function renderShippingTab() {
     return (
@@ -273,7 +257,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           {/* 左側: オークション画像 */}
           <div className="relative h-[250px] overflow-hidden rounded-lg">
-            <Image src={auction.task.imageUrl ?? AUCTION_CONSTANTS.DEFAULT_AUCTION_IMAGE_URL} alt={auction.title ?? "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
+            <Image src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""} alt={auction.title ?? "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
           </div>
 
           {/* 右側: オークション情報ヘッダー部分 */}
@@ -354,7 +338,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
             {activeTab === "qa" && (
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
                 <TabsContent value="qa" className="mt-0">
-                  {renderQaTab()}
+                  {<AuctionQA auctionId={auction.id} />}
                 </TabsContent>
               </motion.div>
             )}

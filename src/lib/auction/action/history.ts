@@ -1,8 +1,8 @@
 "use server";
 
-import { auth } from "@/auth";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { AuctionStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,7 +15,7 @@ export async function getUserBidHistory(): Promise<BidHistoryItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 認証
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -58,7 +58,7 @@ export async function getUserLatestBids(): Promise<BidHistoryItem[]> {
   console.log("getUserLatestBids_start");
 
   // 認証
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -110,7 +110,7 @@ export async function getUserLatestBids(): Promise<BidHistoryItem[]> {
  */
 export async function getUserWonAuctions(): Promise<WonAuctionItem[]> {
   console.log("getUserWonAuctions_start");
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -160,7 +160,7 @@ export async function getUserWonAuctions(): Promise<WonAuctionItem[]> {
  */
 export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
   console.log("getUserCreatedAuctions_start");
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -220,7 +220,7 @@ export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
  * @param isSellerReview セラーレビューかどうか
  */
 export async function createAuctionReview(auctionId: string, revieweeId: string, rating: number, comment: string | null, isSellerReview: boolean) {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -247,7 +247,7 @@ export async function createAuctionReview(auctionId: string, revieweeId: string,
  * @param deliveryMethod 提供方法
  */
 export async function updateDeliveryMethod(taskId: string, deliveryMethod: string) {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -283,7 +283,7 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
  * @param taskId タスクID
  */
 export async function completeTaskDelivery(taskId: string) {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -348,7 +348,7 @@ export type AuctionMessage = {
  */
 export async function getAuctionMessages(auctionId: string): Promise<AuctionMessage[]> {
   // 認証
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }
@@ -413,7 +413,7 @@ export async function getAuctionMessages(auctionId: string): Promise<AuctionMess
  */
 export async function sendAuctionMessage(auctionId: string, recipientId: string, message: string): Promise<AuctionMessage> {
   // 認証
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     throw new Error("認証が必要です");
   }

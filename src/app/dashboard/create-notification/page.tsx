@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { CreateNotificationForm } from "@/components/notification/create-notification-form";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateNotificationPage() {
-  const session = await auth();
+  const session = await getAuthSession();
   const sessionUserId = session?.user?.id;
 
   if (!sessionUserId) {

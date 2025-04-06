@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action/watchlist";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,7 +12,7 @@ import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/act
  * @returns レスポンス
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  * @returns レスポンス
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }

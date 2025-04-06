@@ -1,9 +1,9 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
 import { AuctionWonDetail } from "@/components/auction/auction-history/auction-won-detail";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
  */
 export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
     notFound();

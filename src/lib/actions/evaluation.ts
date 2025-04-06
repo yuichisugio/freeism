@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { z } from "zod"; // zodを使用して型検証を行います
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -54,7 +54,7 @@ type EvaluationResult = { success: true; analyses: Array<{ count: number; messag
 export async function bulkCreateEvaluations(rawData: EvaluationImportData[], groupId: string): Promise<EvaluationResult> {
   try {
     // 認証セッションを取得
-    const session = await auth();
+    const session = await getAuthSession();
 
     // 認証セッションが取得できない場合
     if (!session?.user?.id) {

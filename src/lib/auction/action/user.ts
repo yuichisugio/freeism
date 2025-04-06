@@ -1,8 +1,8 @@
 "use server";
 
 import { cache } from "react";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
  */
 export async function getCurrentUserId() {
   // next-authの最新バージョンに合わせて修正
-  const session = await auth();
+  const session = await getAuthSession();
   return session?.user?.id;
 }
 

@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { SSE_CONFIG } from "@/lib/auction/constants";
 import { connectionManager } from "@/lib/auction/server-sent-events/connection-manager-singleton";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 認証チェック
-  const session = await auth();
+  const session = await getAuthSession();
   console.log(`route.ts_GET_セッション: ${session ? "あり" : "なし"}, ユーザーID: ${session?.user?.id ?? "なし"}`);
 
   // ログインしていない場合は401エラーを返す

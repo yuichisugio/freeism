@@ -1,8 +1,8 @@
 "use server";
 
 import type { SetupForm } from "@/components/auth/setup-form";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { setupSchema } from "@/lib/zod-schema";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,7 +15,7 @@ import { setupSchema } from "@/lib/zod-schema";
 export async function updateUserSetup(data: SetupForm) {
   try {
     // 認証セッションを取得
-    const session = await auth();
+    const session = await getAuthSession();
     // ユーザーが認証されていない場合
     if (!session?.user?.id) {
       return { success: false, error: "ユーザーが認証されていません。" };
@@ -72,5 +72,18 @@ export async function getAllUsers() {
   } catch (error) {
     console.error("Error fetching users:", error);
     throw error;
+  }
+}
+
+export async function getUserProfile() {
+  try {
+    const session = await getAuthSession();
+
+    if (!session?.user?.id) {
+      return { error: "認証が必要です" };
+    }
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return { error: "ユーザー情報の取得中にエラーが発生しました。" };
   }
 }

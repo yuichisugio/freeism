@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth } from "@/auth";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { MyTasksTable } from "@/components/task/my-tasks-table";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { PlusCircle } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
  */
 export default async function MyTasksPage() {
   // ログインしているユーザーの情報を取得
-  const session = await auth();
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
     return null;

@@ -2,8 +2,8 @@
 
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
@@ -303,7 +303,7 @@ export async function getGroup(groupId: string) {
  */
 export async function checkAuth() {
   try {
-    const session = await auth();
+    const session = await getAuthSession();
     return session?.user?.id ?? null;
   } catch (error) {
     console.error("[CHECK_AUTH]", error);

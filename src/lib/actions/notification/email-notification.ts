@@ -26,10 +26,10 @@ export type NotificationParams = {
 
 /**
  * メール通知送信関数
- * @param params メール通知送信パラメータ
+ * @param _params メール通知送信パラメータ
  * @returns メール通知送信結果
  */
-export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; message: string }> {
+export async function sendEmailNotification(_params: NotificationParams): Promise<{ success: boolean; message: string }> {
   return {
     success: true,
     message: "メール通知は準備中です",

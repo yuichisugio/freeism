@@ -1,5 +1,5 @@
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
-import { auth } from "@/auth";
+import { getAuthSession } from "@/lib/utils";
 import { NotificationSendMethod } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
@@ -47,7 +47,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
     let senderUserId: string | null = null;
     try {
       // 通知のデータを取得
-      const session = await auth();
+      const session = await getAuthSession();
       senderUserId = session?.user?.id ?? null;
     } catch (error) {
       // 認証エラーが発生した場合は、定期実行なので、nullを入れて、senderUserIdをnull(空欄)にする

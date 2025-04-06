@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
+
+import "../styles/globals.css";
+
 import { Providers } from "@/components/provider/providers";
+import { getAuthSession } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 
 import "../styles/globals.css";
@@ -14,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const session = await getAuthSession();
   return (
     <html lang="ja" suppressHydrationWarning className="overflow-hidden">
       {/* suppressHydrationWarning={true} を追加することで、ブラウザ拡張機能（Grammarlyなど）が追加する属性によるハイドレーション警告を抑制します */}

@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 
 import { getCurrentUserId } from "./user";
 
@@ -122,7 +122,7 @@ export async function serverIsAuctionWatched(auctionId: string, userId: string):
  */
 export async function toggleWatchlistAction(auctionId: string) {
   // 認証セッションを取得
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user) {
     return {
       success: false,
@@ -168,7 +168,7 @@ export async function toggleWatchlistAction(auctionId: string) {
  */
 export async function getWatchlistStatusAction(auctionId: string) {
   // 認証セッションを取得
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session?.user) {
     return {
       success: false,
