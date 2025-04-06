@@ -515,6 +515,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         select: { version: true },
       });
 
+      // バージョン取得できない場合
       if (!auctionWithVersion) {
         throw new Error("オークションが見つかりません");
       }
@@ -525,7 +526,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       const bidHistory = await tx.bidHistory.create({
         data: {
           auctionId,
-          userId, // この時点でuserIdは必ず存在する
+          userId,
           amount: amount,
           status: BidStatus.BIDDING,
           isAutoBid: isAutoBid,
@@ -535,7 +536,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // オークション情報を更新
-      await tx.auction.update({
+      const updatedAuctioVersion = await tx.auction.update({
         where: {
           id: auctionId,
           version: auctionWithVersion.version, // 楽観的ロック
@@ -545,7 +546,14 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           currentHighestBidderId: userId,
           version: { increment: 1 }, // バージョンをインクリメント
         },
+        select: {
+          version: true,
+        },
       });
+
+      if (!updatedAuctioVersion) {
+        throw new Error("オークション情報を更新できませんでした");
+      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
