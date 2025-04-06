@@ -493,7 +493,10 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // 楽観的ロックのためのバージョン取得
       const auctionWithVersion = await tx.auction.findUnique({
         where: { id: auctionId },
-        select: { version: true },
+        select: {
+          version: true,
+          currentHighestBidderId: true,
+        },
       });
 
       // バージョン取得できない場合
@@ -503,6 +506,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // versionを取得
       const initialVersion = auctionWithVersion.version;
+      const initialHighestBidderId: string | null = auctionWithVersion.currentHighestBidderId;
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -692,6 +696,26 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // 楽観的ロックのためのバージョンが開始時と同じ値になっていない場合は、エラーを投げてロールバックする
       if (endVersion !== initialVersion) {
         throw new Error("他者によってオークション情報が変更されています");
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 以前の最高入札者が自分以外の場合は、以前の最高入札者に、AuctionEventType.OUTBIDの通知を送信
+      if (initialHighestBidderId !== userId && initialHighestBidderId !== null) {
+        await sendAuctionNotification({
+          text: {
+            first: auctionWithDetails.title,
+            second: auctionWithDetails.currentHighestBid.toString(),
+          },
+          auctionEventType: PrismaAuctionEventType.OUTBID,
+          auctionId,
+          recipientUserId: [initialHighestBidderId],
+          sendMethod: [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP],
+          actionUrl: null,
+          sendTiming: NotificationSendTiming.NOW,
+          sendScheduledDate: null,
+          expiresAt: null,
+        });
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
