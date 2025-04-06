@@ -31,6 +31,8 @@ export type AuctionNotificationParams = {
   expiresAt: Date | null;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークション関連の通知メッセージデータ
  */
@@ -177,6 +179,8 @@ export async function calculateExpiryDate(eventType: AuctionEventType): Promise<
  */
 export async function getAuctionNotificationMessage(eventType: AuctionEventType, messageData: MessageData): Promise<{ title: string; body: string; targetType: NotificationTargetType }> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // イベントタイプごとに通知メッセージを生成
     switch (eventType) {
       // 入札：自分が入札した商品を落札できた時
@@ -245,6 +249,8 @@ export async function getAuctionNotificationMessage(eventType: AuctionEventType,
       default:
         throw new Error(`未対応のオークションイベントタイプです: ${String(eventType)}`);
     }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error(`getAuctionNotificationMessage_エラー:`, error);
     console.error(`getAuctionNotificationMessage_エラー_stack:`, new Error().stack);

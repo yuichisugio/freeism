@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,29 @@ import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
 import { Bot, HelpCircle, Info } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 自動入札フォームの型
+ */
 type AutoBidFormProps = {
   auctionId: string;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 自動入札フォーム
+ * @param auctionId オークションID
+ * @param currentHighestBid 現在の最高入札額
+ * @param currentHighestBidderId 現在の最高入札者ID
+ * @returns 自動入札フォーム
+ */
 export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidderId }: AutoBidFormProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 最大入札額の入力値
   const [maxBidAmount, setMaxBidAmount] = useState<number>(currentHighestBid + 1);
 
@@ -28,34 +44,47 @@ export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidder
   // 自動入札フォームの表示状態
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 自動入札のカスタムフック
   const { autoBidSettings, loading, error, isAutoBidding, setupAutoBid, cancelAutoBidding } = useAutoBid(auctionId, currentHighestBid, currentHighestBidderId);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 自動入札フォームの表示切り替え
-  const toggleForm = () => {
+  const toggleForm = useCallback(() => {
     setIsFormExpanded(!isFormExpanded);
-  };
+  }, [isFormExpanded]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札の設定を保存
-  const handleSetupAutoBid = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSetupAutoBid = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    if (maxBidAmount <= currentHighestBid) {
-      return; // バリデーションエラー
-    }
+      if (maxBidAmount <= currentHighestBid) {
+        return; // バリデーションエラー
+      }
 
-    // 自動入札を設定
-    const success = await setupAutoBid(maxBidAmount, bidIncrement);
+      // 自動入札を設定
+      const success = await setupAutoBid(maxBidAmount, bidIncrement);
 
-    if (success) {
-      setIsFormExpanded(false); // フォームを閉じる
-    }
-  };
+      if (success) {
+        setIsFormExpanded(false); // フォームを閉じる
+      }
+    },
+    [maxBidAmount, bidIncrement, currentHighestBid, setupAutoBid],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札のキャンセル
-  const handleCancelAutoBid = async () => {
+  const handleCancelAutoBid = useCallback(async () => {
     await cancelAutoBidding();
-  };
+  }, [cancelAutoBidding]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札が設定されている場合の表示
   if (isAutoBidding && autoBidSettings) {
@@ -89,6 +118,8 @@ export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidder
       </Card>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札フォーム
   return (

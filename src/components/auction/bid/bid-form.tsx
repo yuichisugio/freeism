@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,12 @@ export function BidForm({ auction }: BidFormProps) {
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
 
+  // 最低入札額は現在価格の1ポイント増し
+  const [minBid] = useState(auction.currentHighestBid + 1);
+
+  // 入札フォームのサブミットハンドラ
+  const { clientPlaceBid, submitting, error } = useBidActions();
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   useEffect(() => {
@@ -34,35 +40,30 @@ export function BidForm({ auction }: BidFormProps) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 最低入札額は現在価格の1ポイント増し
-  const [minBid] = useState(auction.currentHighestBid + 1);
-
   // 入札フォームのサブミットハンドラ
-  const { clientPlaceBid, submitting, error } = useBidActions();
+  const onSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      if (bidAmount < minBid) {
+        return;
+      }
 
-  // 入札フォームのサブミットハンドラ
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      try {
+        // 入札を実行（入札状態変更のコールバックを渡す）
+        await clientPlaceBid({
+          auctionId: auction.id,
+          amount: bidAmount,
+        });
 
-    if (bidAmount < minBid) {
-      return;
-    }
-
-    try {
-      // 入札を実行（入札状態変更のコールバックを渡す）
-      await clientPlaceBid({
-        auctionId: auction.id,
-        amount: bidAmount,
-      });
-
-      // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
-      setBidAmount(bidAmount + 1);
-    } catch (error) {
-      console.error("Bid failed:", error);
-    }
-  };
+        // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
+        setBidAmount(bidAmount + 1);
+      } catch (error) {
+        console.error("Bid failed:", error);
+      }
+    },
+    [auction, bidAmount, clientPlaceBid],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

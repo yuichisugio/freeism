@@ -5,12 +5,19 @@ import { cancelAutoBid, executeAutoBid, getAutoBid, setAutoBid } from "@/lib/auc
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 自動入札設定の型
+ */
 type AutoBidSettings = {
   id?: string;
   maxBidAmount: number;
   bidIncrement: number;
   isActive: boolean;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 自動入札のカスタムフック
@@ -20,6 +27,8 @@ type AutoBidSettings = {
  * @returns 自動入札に関する状態と操作関数
  */
 export function useAutoBid(auctionId: string, currentHighestBid: number, currentHighestBidderId: string | null) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // セッション情報を取得
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -41,6 +50,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
 
   // 最後の入札時刻
   const lastBidTimeRef = useRef<Date | null>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 自動入札設定を初期化
@@ -71,6 +82,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       setLoading(false);
     }
   }, [auctionId, userId]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 自動入札を設定
@@ -149,6 +162,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     }
   }, [auctionId, userId]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 自動入札を実行する
    */
@@ -186,6 +201,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     }
   }, [auctionId, userId, autoBidSettings, isAutoBidding, currentHighestBid, currentHighestBidderId]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 自動入札の監視を開始
    */
@@ -201,6 +218,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     }, 30 * 1000); // 30秒ごとに確認
   }, [executeAutoBidding]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 自動入札の監視を停止
    */
@@ -211,6 +230,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     }
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // マウント時に自動入札設定を取得
   useEffect(() => {
     void initializeAutoBid();
@@ -220,6 +241,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       stopAutoBidMonitoring();
     };
   }, [initializeAutoBid, stopAutoBidMonitoring]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札設定が存在する場合は監視を開始
   useEffect(() => {
@@ -233,12 +256,16 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     }
   }, [isAutoBidding, startAutoBidMonitoring, stopAutoBidMonitoring, executeAutoBidding]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 現在の最高入札価格や入札者が変わったとき、自動入札を評価
   useEffect(() => {
     if (isAutoBidding && currentHighestBidderId !== userId) {
       void executeAutoBidding();
     }
   }, [currentHighestBid, currentHighestBidderId, userId, isAutoBidding, executeAutoBidding]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     autoBidSettings,

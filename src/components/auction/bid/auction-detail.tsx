@@ -245,6 +245,8 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
     );
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // エラー状態の表示
   if (error) {
     return (
