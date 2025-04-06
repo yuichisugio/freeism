@@ -2,7 +2,7 @@
 
 import type { NotificationSendTiming } from "@prisma/client";
 import { sendPushNotification } from "@/lib/actions/notification/push-notification";
-import { AuctionEventType, AuctionStatus, NotificationSendMethod, NotificationTargetType } from "@prisma/client";
+import { AuctionEventType, NotificationSendMethod, NotificationTargetType } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
 import { sendEmailNotification } from "./email-notification";

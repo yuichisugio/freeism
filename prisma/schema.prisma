@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 datasource db {
   provider  = "postgresql"
@@ -10,10 +6,14 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 generator client {
   provider = "prisma-client-js"
   plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model User {
   id                 String             @id @default(cuid())
@@ -49,6 +49,8 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
@@ -72,6 +74,8 @@ model Account {
   @@index([userId])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique @map("session_token")
@@ -81,6 +85,8 @@ model Session {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model VerificationToken {
   identifier String
@@ -92,6 +98,8 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 model UserSettings {
   id        String   @id @default(cuid())
   userId    String   @unique @map("user_id")
@@ -101,6 +109,8 @@ model UserSettings {
   updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model Group {
   id               String            @id @default(cuid())
@@ -123,6 +133,8 @@ model Group {
   @@index([createdBy])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 model GroupMembership {
   id           String   @id @default(cuid())
   userId       String   @map("user_id")
@@ -139,6 +151,8 @@ model GroupMembership {
   @@index([userId])
   @@index([groupId])
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model Task {
   id                     String           @id @default(cuid())
@@ -178,6 +192,8 @@ enum contributionType {
   NON_REWARD // 報酬なしタスク
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 model Analytics {
   id                String   @id @default(cuid())
   contributionPoint Int      @map("contribution_point")
@@ -195,6 +211,8 @@ model Analytics {
   @@index([groupId])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 enum TaskStatus {
   PENDING // タスク実施予定
   BIDDED // 落札済み。報酬あり専用
@@ -204,6 +222,8 @@ enum TaskStatus {
   POINTS_AWARDED // ポイントの付与が完了したときに使用
   ARCHIVED // タスクをアーカイブしたときに使用
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 通知対象の種類を定義
 enum NotificationTargetType {
@@ -215,10 +235,14 @@ enum NotificationTargetType {
   AUCTION_BIDDER // オークションの入札者に関する通知
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 enum NotificationSendTiming {
   NOW // 即時送信
   SCHEDULED // 予定時間送信
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 enum NotificationSendMethod {
   WEB_PUSH // ウェブプッシュ通知
@@ -227,6 +251,8 @@ enum NotificationSendMethod {
   IN_APP // アプリ内通知
   SMS // 短信通知
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 enum AuctionEventType {
   ITEM_SOLD // 商品が落札された
@@ -240,6 +266,8 @@ enum AuctionEventType {
   POINT_RETURNED // ポイント返還
   AUCTION_CANCELED // オークションキャンセル
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 通知テーブル
 model Notification {
@@ -282,7 +310,9 @@ model Notification {
   @@index([auctionId])
 }
 
-// 新しく追加: タスク報告者モデル
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// タスク報告者モデル
 model TaskReporter {
   id        String   @id @default(cuid())
   name      String? // 未登録ユーザーの場合は名前のみ
@@ -297,7 +327,9 @@ model TaskReporter {
   @@index([taskId])
 }
 
-// 新しく追加: タスク実行者モデル
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// タスク実行者モデル
 model TaskExecutor {
   id        String   @id @default(cuid())
   name      String? // 未登録ユーザーの場合は名前のみ
@@ -311,6 +343,8 @@ model TaskExecutor {
   @@index([userId])
   @@index([taskId])
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // Auction関連テーブル追加
 model TaskWatchList {
@@ -326,6 +360,8 @@ model TaskWatchList {
   @@index([userId])
   @@index([auctionId])
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 各ユーザーのGroupごとのポイントを管理する
 model GroupPoint {
@@ -344,6 +380,8 @@ model GroupPoint {
   @@index([userId])
   @@index([groupId])
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // オークション関連テーブル
 model Auction {
@@ -379,12 +417,16 @@ model Auction {
   @@index([winnerId])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 enum AuctionStatus {
   PENDING // オークション開始前
   ACTIVE // オークション進行中
   ENDED // オークション終了
   CANCELED // オークションキャンセル
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model BidHistory {
   id        String    @id @default(cuid())
@@ -405,12 +447,16 @@ model BidHistory {
   @@index([userId])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 enum BidStatus {
   BIDDING // 入札中
   WON // 落札済み
   LOST // 落札失敗
   INSUFFICIENT // 残高不足
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model AutoBid {
   id           String    @id @default(cuid())
@@ -432,6 +478,8 @@ model AutoBid {
   @@index([userId])
   @@index([auctionId])
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model AuctionReview {
   id                 String  @id @default(cuid())
@@ -460,6 +508,8 @@ model AuctionReview {
   @@index([revieweeId])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // オークションメッセージモデル
 model AuctionMessage {
   id      String @id @default(cuid())
@@ -482,6 +532,8 @@ model AuctionMessage {
   @@index([recipientId])
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // プッシュ通知のサブスクリプションを管理するモデル
 model PushSubscription {
   id             String    @id @default(cuid())
@@ -498,3 +550,5 @@ model PushSubscription {
 
   @@index([userId])
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
