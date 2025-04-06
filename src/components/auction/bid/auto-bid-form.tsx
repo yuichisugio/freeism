@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAutoBid } from "@/hooks/auction/bid/use-auto-bid";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { formatCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
 import { Bot, HelpCircle, Info } from "lucide-react";
@@ -92,7 +93,7 @@ export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidder
               <p className="text-sm font-medium">入札単位:</p>
               <p className="font-medium">{formatCurrency(autoBidSettings.bidIncrement)}</p>
             </div>
-            <div className="text-muted-foreground mt-2 text-xs">他のユーザーが入札すると自動的に入札されます（10分間隔）</div>
+            <div className="text-muted-foreground mt-2 text-xs">他のユーザーが入札すると自動的に入札されます（{AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分間隔）</div>
           </div>
         </CardContent>
         <CardFooter className="bg-secondary/5 flex justify-center pt-2 pb-3">
@@ -162,7 +163,7 @@ export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidder
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500" />
                   <div>
-                    <p>他のユーザーが入札すると、最大入札額まであなたの代わりに自動的に入札します。自動入札は10分間隔で実行されます。</p>
+                    <p>他のユーザーが入札すると、最大入札額まであなたの代わりに自動的に入札します。自動入札は{AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分間隔で実行されます。</p>
                   </div>
                 </div>
               </div>

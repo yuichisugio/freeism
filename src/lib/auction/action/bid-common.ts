@@ -752,6 +752,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
     });
 
     if (!validation.success || !validation.userId) {
+      console.log("bid-common_setAutoBid_validation_error_!validation.success || !validation.userId", validation);
       return {
         success: false,
         message: validation.message ?? "検証エラー",
@@ -762,6 +763,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
     const auction = validation.auction;
 
     if (!auction) {
+      console.log("bid-common_setAutoBid_error_!auction", !auction);
       return {
         success: false,
         message: "オークション情報が取得できませんでした",
@@ -772,6 +774,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
 
     // 自動入札の上限入札額が現在の最高入札額より高いか確認
     if (limitBidAmount <= auction.currentHighestBid) {
+      console.log("bid-common_setAutoBid_error_limitBidAmount <= auction.currentHighestBid", limitBidAmount, auction.currentHighestBid);
       return {
         success: false,
         message: "最大入札額は現在の最高入札額より高く設定してください",
@@ -782,6 +785,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
 
     // 入札単位が正の整数か確認
     if (bidIncrement < 1) {
+      console.log("bid-common_setAutoBid_error_bidIncrement < 1", bidIncrement);
       return {
         success: false,
         message: "入札単位は1以上の整数で設定してください",
@@ -802,6 +806,8 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
         },
       });
 
+      console.log("bid-common_setAutoBid_existingAutoBid", existingAutoBid);
+
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       let autoBid;
@@ -810,6 +816,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
 
       // 既存の自動入札設定が存在する場合
       if (existingAutoBid) {
+        console.log("bid-common_setAutoBid_existingAutoBid_if_update");
         // 既存の設定を更新
         autoBid = await tx.autoBid.update({
           where: { id: existingAutoBid.id },
@@ -821,6 +828,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
           },
         });
       } else {
+        console.log("bid-common_setAutoBid_existingAutoBid_else_create");
         // 新規設定を作成
         autoBid = await tx.autoBid.create({
           data: {
@@ -832,6 +840,8 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
           },
         });
       }
+
+      console.log("bid-common_setAutoBid_autoBid", autoBid);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -858,6 +868,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("自動入札設定エラー:", error);
+    console.log("setAutoBid_error_stack", new Error().stack);
     return {
       success: false,
       message: "自動入札の設定中にエラーが発生しました",

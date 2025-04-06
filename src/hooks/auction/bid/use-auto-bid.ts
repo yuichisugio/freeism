@@ -63,7 +63,10 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
    */
   const initializeAutoBid = useCallback(async () => {
     // auctionId or userIdがない場合は何もしない
-    if (!auctionId || !userId) return;
+    if (!auctionId || !userId) {
+      console.log("initializeAutoBid_end_!auctionId, !userId", !auctionId, !userId);
+      return;
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -73,6 +76,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
 
       // 自動入札設定を取得
       const result = await getAutoBid(auctionId);
+      console.log("initializeAutoBid_getAutoBid_result", result);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       // 自動入札設定を取得できて、自動入札設定が存在する場合
@@ -86,10 +90,12 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
 
         // 自動入札中フラグをtrueにする
         setIsAutoBidding(true);
+        console.log("initializeAutoBid_setAutoBidSettings_result.success", result.success);
       } else {
         // 自動入札設定を取得できて、自動入札設定が存在しない場合
         setAutoBidSettings(null);
         setIsAutoBidding(false);
+        console.log("initializeAutoBid_setAutoBidSettings_result.success_false", result.success);
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -126,6 +132,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
 
         // 自動入札を設定をDBに保存
         const result = await setAutoBid(auctionId, maxBidAmount, bidIncrement);
+        console.log("setupAutoBid_setAutoBid_result", result);
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -143,11 +150,13 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
           setIsAutoBidding(true);
 
           toast.success(result.message || "自動入札を設定しました");
+          console.log("setupAutoBid_end_result.success", result.success);
           return true;
         } else {
           // 自動入札を設定できなかった場合
           setError(result.message || "自動入札の設定に失敗しました");
           toast.error(result.message || "自動入札の設定に失敗しました");
+          console.log("setupAutoBid_end_result.success_false", result.success);
           return false;
         }
       } catch (err) {
@@ -171,7 +180,10 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
    */
   const cancelAutoBidding = useCallback(async () => {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    if (!auctionId || !userId) return false;
+    if (!auctionId || !userId) {
+      console.log("cancelAutoBidding_end_!auctionId, !userId", !auctionId, !userId);
+      return false;
+    }
 
     try {
       // ローディング状態をtrueにする
@@ -180,6 +192,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
 
       // 自動入札を取り消す
       const result = await cancelAutoBid(auctionId);
+      console.log("cancelAutoBidding_cancelAutoBid_result", result);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       if (result.success) {
@@ -188,11 +201,13 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
         setIsAutoBidding(false);
 
         toast.success(result.message || "自動入札を取り消しました");
+        console.log("cancelAutoBidding_end_result.success", result.success);
         return true;
       } else {
         // 自動入札を取り消すことができなかった場合
         setError(result.message || "自動入札の取り消しに失敗しました");
         toast.error(result.message || "自動入札の取り消しに失敗しました");
+        console.log("cancelAutoBidding_end_result.success_false", result.success);
         return false;
       }
     } catch (err) {
@@ -213,25 +228,34 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
    * 自動入札を実行する
    */
   const executeAutoBidding = useCallback(async () => {
+    console.log("executeAutoBidding_start");
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    if (!auctionId || !userId || !isAutoBidding || !autoBidSettings) return;
+    if (!auctionId || !userId || !isAutoBidding || !autoBidSettings) {
+      console.log("executeAutoBidding_end_!auctionId, !userId, !isAutoBidding, !autoBidSettings", !auctionId, !userId, !isAutoBidding, !autoBidSettings);
+      return;
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 自分が最高入札者の場合は何もしない
-    if (currentHighestBidderId === userId) return;
+    if (currentHighestBidderId === userId) {
+      console.log("executeAutoBidding_end_currentHighestBidderId === userId", currentHighestBidderId === userId);
+      return;
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 前回の入札から10分経過していない場合は何もしない
     const TEN_MINUTES = AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MS; // constansts.tsから自動入札の間隔を取得
     if (lastBidTimeRef.current && new Date().getTime() - lastBidTimeRef.current.getTime() < TEN_MINUTES) {
+      console.log("executeAutoBidding_end_10分経過していない", lastBidTimeRef.current && new Date().getTime() - lastBidTimeRef.current.getTime() < TEN_MINUTES);
       return;
     }
 
     try {
       // サーバーサイドの自動入札実行関数を呼び出し
       const result = await executeAutoBid(auctionId, currentHighestBid, currentHighestBidderId);
+      console.log("executeAutoBidding_executeAutoBid_result", result);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -239,18 +263,19 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       if (result.success) {
         lastBidTimeRef.current = new Date();
         toast.success(result.message || "自動入札を実行しました");
-
+        console.log("executeAutoBidding_end_result.success", result.success);
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       } else if (result.message === "自動入札の上限金額に達しました") {
         // 上限に達した場合
         toast.warning(result.message);
         setIsAutoBidding(false);
         setAutoBidSettings(null);
-
+        console.log("executeAutoBidding_end_result.message === 自動入札の上限金額に達しました", result.message === "自動入札の上限金額に達しました");
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       } else if (result.message !== "あなたが現在の最高入札者です") {
         // その他のエラー（最高入札者である場合を除く）
-        console.error("自動入札実行エラー:", result.message);
+        console.log("自動入札実行エラー:", result.message);
+        console.log("executeAutoBidding_end_result.message !== あなたが現在の最高入札者です", result.message !== "あなたが現在の最高入札者です");
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -269,10 +294,12 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     // 既存のインターバルがあれば停止
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
+      console.log("startAutoBidMonitoring_既存のインターバルがあれば停止");
     }
 
     // 30秒ごとに自動入札の条件を確認
     intervalRef.current = setInterval(() => {
+      console.log("startAutoBidMonitoring_自動入札の定期実行");
       void executeAutoBidding();
     }, 30 * 1000); // 30秒ごとに確認
   }, [executeAutoBidding]);
@@ -287,6 +314,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
+      console.log("stopAutoBidMonitoring_インターバルが存在する場合は停止");
     }
   }, []);
 
@@ -296,6 +324,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
    * マウント時に自動入札設定を取得
    */
   useEffect(() => {
+    console.log("use-auto-bid_useEffect_マウント時に自動入札設定を取得");
     // 自動入札設定を取得
     void initializeAutoBid();
 
@@ -311,6 +340,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
    * 自動入札設定が存在する場合は監視を開始
    */
   useEffect(() => {
+    console.log("use-auto-bid_useEffect_自動入札設定が存在する場合は監視を開始");
     // 自動入札設定が存在する場合は監視を開始
     if (isAutoBidding) {
       // 自動入札の定期実行を開始
@@ -330,6 +360,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
    * 現在の最高入札価格や入札者が変わったとき、自動入札を評価
    */
   useEffect(() => {
+    console.log("use-auto-bid_useEffect_現在の最高入札価格や入札者が変わったとき、自動入札を評価");
     // 自動入札設定が存在する場合は自動入札を評価
     if (isAutoBidding && currentHighestBidderId !== userId) {
       void executeAutoBidding();

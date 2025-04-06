@@ -102,7 +102,7 @@ export function BidForm({ auction }: BidFormProps) {
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-muted-foreground text-sm font-medium">最低入札額:</p>
-                  <p className="text-primary font-medium">{formatCurrency(minBid)}</p>
+                  <p className="text-primary font-medium">{formatCurrency(auction.currentHighestBid + 1)}</p>
                 </div>
               </div>
 
