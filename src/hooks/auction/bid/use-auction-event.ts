@@ -255,6 +255,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    */
   const editSSEdata = useCallback(
     (text: string) => {
+      console.log("SSE_editSSEdata_start", text);
       // text が空や空白文字だけの場合は処理しない
       if (!text || text.trim() === "") {
         console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);

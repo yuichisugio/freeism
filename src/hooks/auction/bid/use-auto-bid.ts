@@ -78,7 +78,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       if (result.success && result.autoBid) {
         setAutoBidSettings({
           id: result.autoBid.id,
-          maxBidAmount: result.autoBid.maxBidAmount,
+          maxBidAmount: result.autoBid.maxBidAmount + 100,
           bidIncrement: result.autoBid.bidIncrement,
           isActive: true,
         });

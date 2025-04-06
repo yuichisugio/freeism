@@ -223,23 +223,14 @@ async function validateAuction(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // オークション情報を取得するためのクエリを構築
-    const query: PrismaQueryOptions = {
-      where: { id: auctionId },
-      select: {
-        id: true,
-        status: true,
-        currentHighestBid: true,
-        currentHighestBidderId: true,
-        endTime: true,
-      },
-    };
+    let auction;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // タスク情報やBidHistoriesを含める場合はincludeを使用
+    if (options.includeTask || options.includeBidHistories) {
+      const includeQuery: Record<string, unknown> = {};
 
-    // タスク情報を含める場合
-    if (options.includeTask) {
-      query.include = {
-        task: {
+      if (options.includeTask) {
+        includeQuery.task = {
           include: {
             creator: {
               select: {
@@ -250,49 +241,54 @@ async function validateAuction(
             },
             group: true,
           },
-        },
-      };
-    } else {
-      if (query.select) {
-        query.select.task = {
-          select: {
-            creator: {
+        };
+      }
+
+      if (options.includeBidHistories) {
+        includeQuery.bidHistories = {
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            user: {
               select: {
                 id: true,
                 name: true,
                 image: true,
               },
             },
-            task: true,
           },
         };
       }
-    }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 入札履歴を含める場合
-    if (options.includeBidHistories) {
-      if (!query.include) query.include = {};
-      query.include.bidHistories = {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: {
-          user: {
+      auction = await prisma.auction.findUnique({
+        where: { id: auctionId },
+        include: includeQuery,
+      });
+    } else {
+      // 基本情報のみを取得する場合はselectを使用
+      auction = await prisma.auction.findUnique({
+        where: { id: auctionId },
+        select: {
+          id: true,
+          status: true,
+          currentHighestBid: true,
+          currentHighestBidderId: true,
+          endTime: true,
+          task: {
             select: {
-              id: true,
-              name: true,
-              image: true,
+              creator: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+              task: true,
             },
           },
         },
-      };
+      });
     }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // オークション情報を取得
-    const auction = await prisma.auction.findUnique(query);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -1263,7 +1259,8 @@ export async function executeAutoBid(auctionId: string, currentHighestBid: numbe
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    console.error("自動入札実行エラー:", error);
+    console.error("executeAutoBid_自動入札実行エラー", error);
+    console.log("executeAutoBid_エラースタック", new Error().stack);
     return {
       success: false,
       message: "自動入札の実行中にエラーが発生しました",
