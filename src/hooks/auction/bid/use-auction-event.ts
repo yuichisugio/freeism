@@ -124,31 +124,35 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     (eventData: AuctionEventData) => {
       console.log("SSE_processEventDataByType_start", eventData);
 
+      // 受信データがAuctionWithDetails型として直接来る場合と、
+      // data.dataとしてネストされている場合の両方に対応
+      const receivedData = eventData.data;
+
       // AuctionWithDetails型に変換
       const auctionData: AuctionWithDetails = {
-        id: eventData.data?.id ?? initialAuction.id,
-        createdAt: eventData.data?.createdAt ?? initialAuction.createdAt,
-        updatedAt: eventData.data?.updatedAt ?? initialAuction.updatedAt,
-        status: eventData.data?.status ?? initialAuction.status,
-        taskId: eventData.data?.taskId ?? initialAuction.taskId,
-        startTime: eventData.data?.startTime ?? initialAuction.startTime,
-        endTime: eventData.data?.endTime ?? initialAuction.endTime,
-        currentHighestBid: eventData.data?.currentHighestBid ?? initialAuction.currentHighestBid,
-        currentHighestBidderId: eventData.data?.currentHighestBidderId ?? initialAuction.currentHighestBidderId,
-        bidHistories: eventData.data?.bidHistories ?? initialAuction.bidHistories,
-        winnerId: eventData.data?.winnerId ?? initialAuction.winnerId,
-        extensionCount: eventData.data?.extensionCount ?? initialAuction.extensionCount,
-        version: eventData.data?.version ?? initialAuction.version,
-        title: eventData.data?.title ?? initialAuction.title,
-        description: eventData.data?.description ?? initialAuction.description,
-        task: eventData.data?.task ?? initialAuction.task,
-        currentPrice: eventData.data?.currentPrice ?? initialAuction.currentPrice,
-        sellerId: eventData.data?.sellerId ?? initialAuction.sellerId,
-        depositPeriod: eventData.data?.depositPeriod ?? initialAuction.depositPeriod,
-        currentHighestBidder: eventData.data?.currentHighestBidder ?? initialAuction.currentHighestBidder,
-        winner: eventData.data?.winner ?? initialAuction.winner,
-        watchlists: eventData.data?.watchlists ?? initialAuction.watchlists,
-        bid: eventData.data?.bid ?? initialAuction.bid,
+        id: receivedData?.id ?? initialAuction.id,
+        createdAt: receivedData?.createdAt ?? initialAuction.createdAt,
+        updatedAt: receivedData?.updatedAt ?? initialAuction.updatedAt,
+        status: receivedData?.status ?? initialAuction.status,
+        taskId: receivedData?.taskId ?? initialAuction.taskId,
+        startTime: receivedData?.startTime ?? initialAuction.startTime,
+        endTime: receivedData?.endTime ?? initialAuction.endTime,
+        currentHighestBid: receivedData?.currentHighestBid ?? initialAuction.currentHighestBid,
+        currentHighestBidderId: receivedData?.currentHighestBidderId ?? initialAuction.currentHighestBidderId,
+        bidHistories: receivedData?.bidHistories ?? initialAuction.bidHistories,
+        winnerId: receivedData?.winnerId ?? initialAuction.winnerId,
+        extensionCount: receivedData?.extensionCount ?? initialAuction.extensionCount,
+        version: receivedData?.version ?? initialAuction.version,
+        title: receivedData?.title ?? initialAuction.title,
+        description: receivedData?.description ?? initialAuction.description,
+        task: receivedData?.task ?? initialAuction.task,
+        currentPrice: receivedData?.currentPrice ?? initialAuction.currentPrice,
+        sellerId: receivedData?.sellerId ?? initialAuction.sellerId,
+        depositPeriod: receivedData?.depositPeriod ?? initialAuction.depositPeriod,
+        currentHighestBidder: receivedData?.currentHighestBidder ?? initialAuction.currentHighestBidder,
+        winner: receivedData?.winner ?? initialAuction.winner,
+        watchlists: receivedData?.watchlists ?? initialAuction.watchlists,
+        bid: receivedData?.bid ?? initialAuction.bid,
         options: {
           reconnectOnVisibility: true,
           clientId: clientId,
@@ -261,7 +265,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         console.log("SSE_editSSEdata_空のメッセージのためスキップ:", text);
         return;
       }
-      console.log("SSE_editSSEdata_start processing:", text);
 
       // SSEメッセージを解析
       const lines = text.split("\n");
@@ -318,8 +321,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
 
       // data フィールドが存在し、空でない場合のみパースを試みる
       try {
-        const eventData = JSON.parse(data) as { data: AuctionWithDetails };
-        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", eventData.data);
+        console.log("SSE_editSSEdata_パース開始", data);
+        const parsedData = JSON.parse(data) as AuctionWithDetails;
+        console.log("SSE_editSSEdata_パース成功 type:", event, "eventData:", parsedData);
 
         // イベントIDの設定 (パース成功後)
         if (id) {
@@ -335,7 +339,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
           JSON.stringify({
             type: event,
             lastEventId: id,
-            parsedDataAttempt: eventData,
+            parsedDataAttempt: parsedData,
             timestamp: new Date().toISOString(),
           }),
         );
@@ -343,7 +347,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
         // イベントキューに追加
         processEventDataByType({
           type: event as AuctionEventType,
-          data: eventData.data,
+          data: parsedData,
         });
 
         console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);

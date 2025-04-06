@@ -38,6 +38,9 @@ export const AUCTION_CONSTANTS = {
   // 自動入札の最小間隔（分）
   AUTO_BID_MIN_INTERVAL_MINUTES: 10,
 
+  // 自動入札の最小間隔（ミリ秒）
+  AUTO_BID_MIN_INTERVAL_MS: 1 * 60 * 1000, //1秒
+
   // オークション終了時間の延長
   AUCTION_END_EXTENSION: {
     // 終了時間の延長が発生する残り時間（分）

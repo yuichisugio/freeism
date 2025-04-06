@@ -413,7 +413,7 @@ export type UserAuth = {
 // オークションSSEイベントデータ
 export type AuctionEventData = {
   type: AuctionEventType;
-  data?: AuctionWithDetails;
+  data?: AuctionWithDetails; // サーバーから直接AuctionWithDetailsを受け取る
   error?: string;
 };
 

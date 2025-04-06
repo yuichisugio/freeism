@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cancelAutoBid, executeAutoBid, getAutoBid, setAutoBid } from "@/lib/auction/action/bid-common";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -223,7 +224,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 前回の入札から10分経過していない場合は何もしない
-    const TEN_MINUTES = 10 * 60 * 1000; // 10分をミリ秒で表現
+    const TEN_MINUTES = AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MS; // constansts.tsから自動入札の間隔を取得
     if (lastBidTimeRef.current && new Date().getTime() - lastBidTimeRef.current.getTime() < TEN_MINUTES) {
       return;
     }

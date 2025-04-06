@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType, TaskStatus } from "@prisma/client";
 
 import type { AuctionWithDetails, BidHistory, User, WatchlistItem } from "../type/types";
+import { AUCTION_CONSTANTS } from "../constants";
 import { AuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
@@ -1093,13 +1094,13 @@ async function prepareAutoBid(
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 前回の入札から10分経過していない場合は実行しない
+      // 前回の入札から指定時間経過していない場合は実行しない
       if (lastBid) {
-        const TEN_MINUTES = 10 * 60 * 1000; // 10分をミリ秒で表現
+        const MIN_BID_INTERVAL_MS = AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MS;
         const timeSinceLastBid = Date.now() - lastBid.createdAt.getTime();
 
-        if (timeSinceLastBid < TEN_MINUTES) {
-          return { success: false, message: "前回の入札から10分経過していないため、自動入札できません" };
+        if (timeSinceLastBid < MIN_BID_INTERVAL_MS) {
+          return { success: false, message: `前回の入札から${AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分経過していないため、自動入札できません` };
         }
       }
 
