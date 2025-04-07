@@ -8,12 +8,28 @@ import { toast } from "sonner";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * オークションメッセージのカスタムフックの型
+ */
+type UseAuctionMessagesResult = {
+  messages: AuctionMessage[];
+  newMessage: string;
+  setNewMessage: (message: string) => void;
+  isLoadingMessages: boolean;
+  isSendingMessage: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  handleSendMessage: () => Promise<void>;
+  fetchMessages: () => Promise<void>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * オークションメッセージのカスタムフック
  * @param auctionId オークションID
  * @param winnerId 落札者ID（存在する場合）
  * @returns メッセージ関連の状態と関数
  */
-export function useAuctionMessages(auctionId: string, winnerId: string | undefined) {
+export function useAuctionMessages(auctionId: string, winnerId: string | undefined): UseAuctionMessagesResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // メッセージ

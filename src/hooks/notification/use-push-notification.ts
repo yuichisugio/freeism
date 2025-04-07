@@ -59,6 +59,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * @returns サーバーに送信する購読情報
  */
 function formatSubscriptionForServer(subscription: PushSubscription | null, recordId?: string): SaveSubscriptionParams | null {
+  // 購読情報がない場合はnullを返す
   if (!subscription) {
     return null;
   }

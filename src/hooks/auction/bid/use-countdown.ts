@@ -3,25 +3,41 @@
 import { useCallback, useEffect, useState } from "react";
 import { type CountdownState } from "@/lib/auction/type/types";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カウントダウンタイマー用カスタムフックの型
+ */
+type UseCountdownResult = {
+  countdownState: CountdownState;
+  countdown: () => string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * カウントダウンタイマー用カスタムフック
- * @param targetDate カウントダウンのターゲット日時
- * @returns カウントダウンの状態とフォーマットされたカウントダウン
+ * @param {Date | string} targetDate カウントダウンのターゲット日時
+ * @returns {UseCountdownResult} カウントダウンの状態とフォーマットされたカウントダウン
  */
-export function useCountdown(targetDate: Date | string) {
+export function useCountdown(targetDate: Date | string): UseCountdownResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * カウントダウンの状態を計算する関数
-   * @returns カウントダウンの状態
+   * @returns {CountdownState} カウントダウンの状態
    */
   const calculateTimeLeft = useCallback((): CountdownState => {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     const now = new Date();
     const target = typeof targetDate === "string" ? new Date(targetDate) : targetDate;
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     // ターゲット日時と現在の日時の差を計算
     const difference = target.getTime() - now.getTime();
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     // タイマーが終了している場合
     if (difference <= 0) {
       return {

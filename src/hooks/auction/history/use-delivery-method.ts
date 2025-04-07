@@ -7,14 +7,26 @@ import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+type UseDeliveryMethodResult = {
+  deliveryMethod: string;
+  setDeliveryMethod: (deliveryMethod: string) => void;
+  isEditingDelivery: boolean;
+  isUpdatingDelivery: boolean;
+  handleUpdateDeliveryMethod: () => Promise<void>;
+  cancelEditing: () => void;
+  startEditing: () => void;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 提供方法管理のカスタムフック
  * @param taskId タスクID
  * @param initialDeliveryMethod 初期提供方法
  * @returns 提供方法関連の状態と関数
  */
-export function useDeliveryMethod(taskId: string, initialDeliveryMethod: string) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export function useDeliveryMethod(taskId: string, initialDeliveryMethod: string): UseDeliveryMethodResult {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ルーター
   const router = useRouter();
@@ -28,7 +40,7 @@ export function useDeliveryMethod(taskId: string, initialDeliveryMethod: string)
   // 更新モード
   const [isUpdatingDelivery, setIsUpdatingDelivery] = useState(false);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 提供方法を更新する
   const handleUpdateDeliveryMethod = useCallback(async () => {

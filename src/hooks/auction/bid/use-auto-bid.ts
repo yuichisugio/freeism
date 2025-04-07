@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cancelAutoBid, executeAutoBid, getAutoBid, setAutoBid } from "@/lib/auction/action/bid-common";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { useSession } from "next-auth/react";
@@ -21,18 +21,32 @@ type AutoBidSettings = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 自動入札のカスタムフック
- * @param auctionId オークションID
- * @param currentHighestBid 現在の最高入札額
- * @param currentHighestBidderId 現在の最高入札者ID
- * @returns 自動入札に関する状態と操作関数
+ * 自動入札のカスタムフックの型
  */
-export function useAutoBid(auctionId: string, currentHighestBid: number, currentHighestBidderId: string | null) {
+type UseAutoBidResult = {
+  autoBidSettings: AutoBidSettings | null;
+  loading: boolean;
+  error: string | null;
+  isAutoBidding: boolean;
+  setupAutoBid: (maxBidAmount: number, bidIncrement: number) => Promise<boolean>;
+  cancelAutoBidding: () => Promise<boolean>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 自動入札のカスタムフック
+ * @param {string} auctionId オークションID
+ * @param {number} currentHighestBid 現在の最高入札額
+ * @param {string | null} currentHighestBidderId 現在の最高入札者ID
+ * @returns {UseAutoBidResult} 自動入札に関する状態と操作関数
+ */
+export function useAutoBid(auctionId: string, currentHighestBid: number, currentHighestBidderId: string | null): UseAutoBidResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // セッション情報を取得
   const { data: session } = useSession();
-  const userId = session?.user?.id;
+  const userId = useMemo(() => session?.user?.id, [session]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

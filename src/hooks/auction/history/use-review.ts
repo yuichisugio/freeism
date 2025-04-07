@@ -8,6 +8,9 @@ import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * オークションレビューのカスタムフックの型
+ */
 type UseAuctionReviewProps = {
   auctionId: string;
   winnerId?: string | null;

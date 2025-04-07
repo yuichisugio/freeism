@@ -62,6 +62,8 @@ export type NotificationManagerResult = {
 
 /**
  * 通知管理カスタムフック
+ * @param {Function} onUnreadStatusChangeAction - 未読通知の状態が変更された時に呼び出す関数
+ * @returns {NotificationManagerResult} 通知管理カスタムフックの返り値
  */
 export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boolean) => void): NotificationManagerResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

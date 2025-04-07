@@ -2,7 +2,7 @@
 
 import type { GeneralNotificationParams } from "@/lib/actions/notification/general-notification";
 import type { CreateNotificationFormData } from "@/lib/zod-schema";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { sendGeneralNotification } from "@/lib/actions/notification/general-notification";
 import { createNotificationSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -99,8 +99,11 @@ export type UseCreateNotificationResult = {
 export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNotificationProps): UseCreateNotificationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // フォームの作成
   const form = useForm<CreateNotificationFormData>({
+    // フォームのスキーマ
     resolver: zodResolver(createNotificationSchema),
+    // フォームのデフォルト値
     defaultValues: {
       title: "",
       message: "",
@@ -119,6 +122,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // フォームの監視
   const { watch, setValue, reset } = form;
   const targetType = watch("targetType");
   const sendTiming = watch("sendTiming");
@@ -142,115 +146,134 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 送信タイミングのオプション
-  const sendTimingOptions: RadioOption[] = [
-    { value: "NOW", label: "即時送信" },
-    { value: "SCHEDULED", label: "送信予約" },
-  ];
+  const sendTimingOptions: RadioOption[] = useMemo(
+    () => [
+      { value: "NOW", label: "即時送信" },
+      { value: "SCHEDULED", label: "送信予約" },
+    ],
+    [],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知対象タイプのオプション（権限によってフィルタリング）
-  const targetTypeOptions: RadioOption[] = isAppOwner
-    ? [
-        { value: "SYSTEM", label: "システム全体" },
-        { value: "USER", label: "ユーザー" },
-        { value: "GROUP", label: "グループ" },
-        { value: "TASK", label: "タスク" },
-      ]
-    : [
-        { value: "GROUP", label: "グループ" },
-        { value: "TASK", label: "タスク" },
-      ];
+  const targetTypeOptions: RadioOption[] = useMemo(() => {
+    return isAppOwner
+      ? [
+          { value: "SYSTEM", label: "システム全体" },
+          { value: "USER", label: "ユーザー" },
+          { value: "GROUP", label: "グループ" },
+          { value: "TASK", label: "タスク" },
+        ]
+      : [
+          { value: "GROUP", label: "グループ" },
+          { value: "TASK", label: "タスク" },
+        ];
+  }, [isAppOwner]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フォーム送信処理
-  const handleSubmit = async (data: CreateNotificationFormData) => {
-    try {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const handleSubmit = useCallback(
+    async (data: CreateNotificationFormData) => {
+      try {
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 予約送信の場合に送信日が設定されていないとエラー
-      if (data.sendTiming === "SCHEDULED" && !data.sendScheduledDate) {
-        toast.error("送信予約の場合は日付を選択してください");
-        return;
-      }
-
-      // アプリオーナーかグループオーナーでなければエラー
-      if (!isAppOwner && !isGroupOwner) {
-        toast.error("通知を作成する権限がありません");
-        return;
-      }
-
-      // グループオーナーのみの場合、SYSTEMは作成不可
-      if (!isAppOwner && data.targetType === "SYSTEM") {
-        toast.error("この通知タイプを作成する権限がありません");
-        return;
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      const sendGeneralNotificationParams: GeneralNotificationParams = {
-        title: data.title,
-        message: data.message,
-        targetType: data.targetType,
-        sendMethod: [NotificationSendMethod.IN_APP],
-        userId: data.userId ? [data.userId] : null,
-        groupId: data.groupId ?? null,
-        taskId: data.taskId ?? null,
-        auctionId: null,
-        actionUrl: data.actionUrl ?? null,
-        sendTiming: data.sendTiming,
-        sendScheduledDate: data.sendScheduledDate ?? null,
-        expiresAt: data.expiresAt ?? null,
-      };
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // プッシュ通知ONの場合は、WEB_PUSHを入れる
-      if (data.sendPushNotification) {
-        sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.WEB_PUSH);
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // メール通知ONの場合は、EMAILを入れる
-      if (data.sendEmailNotification) {
-        sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.EMAIL);
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // アプリ内通知を作成
-      const result = await sendGeneralNotification(sendGeneralNotificationParams);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      } else {
-        if (data.sendTiming === "NOW") {
-          if (data.sendPushNotification) {
-            toast.success("通知とプッシュ通知を作成しました");
-          } else {
-            toast.success("通知を作成しました");
-          }
-        } else if (data.sendTiming === "SCHEDULED") {
-          toast.success("通知の予約送信を設定しました");
+        // 予約送信の場合に送信日が設定されていないとエラー
+        if (data.sendTiming === "SCHEDULED" && !data.sendScheduledDate) {
+          toast.error("送信予約の場合は日付を選択してください");
+          return;
         }
+
+        // アプリオーナーかグループオーナーでなければエラー
+        if (!isAppOwner && !isGroupOwner) {
+          toast.error("通知を作成する権限がありません");
+          return;
+        }
+
+        // グループオーナーのみの場合、SYSTEMは作成不可
+        if (!isAppOwner && data.targetType === "SYSTEM") {
+          toast.error("この通知タイプを作成する権限がありません");
+          return;
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // 通知作成パラメータ
+        const sendGeneralNotificationParams: GeneralNotificationParams = {
+          title: data.title,
+          message: data.message,
+          targetType: data.targetType,
+          sendMethod: [NotificationSendMethod.IN_APP],
+          userId: data.userId ? [data.userId] : null,
+          groupId: data.groupId ?? null,
+          taskId: data.taskId ?? null,
+          auctionId: null,
+          actionUrl: data.actionUrl ?? null,
+          sendTiming: data.sendTiming,
+          sendScheduledDate: data.sendScheduledDate ?? null,
+          expiresAt: data.expiresAt ?? null,
+        };
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // プッシュ通知ONの場合は、WEB_PUSHを入れる
+        if (data.sendPushNotification) {
+          sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.WEB_PUSH);
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // メール通知ONの場合は、EMAILを入れる
+        if (data.sendEmailNotification) {
+          sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.EMAIL);
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // アプリ内通知を送信
+        const result = await sendGeneralNotification(sendGeneralNotificationParams);
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // エラーがあればエラーメッセージを表示
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        } else {
+          // 送信タイミングがNOWの場合は、通知とプッシュ通知を作成したときのメッセージを表示
+          if (data.sendTiming === "NOW") {
+            // プッシュ通知とメール通知がONの場合
+            if (data.sendPushNotification && data.sendEmailNotification) {
+              toast.success("「アプリ内通知」と「プッシュ通知」と「メール通知」を作成しました");
+              // プッシュ通知がONの場合
+            } else if (data.sendPushNotification) {
+              toast.success("「アプリ内通知」と「プッシュ通知」を作成しました");
+              // メール通知がONの場合
+            } else if (data.sendEmailNotification) {
+              toast.success("「アプリ内通知」と「メール通知」を作成しました");
+              // プッシュ通知とメール通知がOFFの場合
+            } else {
+              toast.success("「アプリ内通知」を作成しました");
+            }
+          } else if (data.sendTiming === "SCHEDULED") {
+            toast.success("通知の予約送信を設定しました");
+          }
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // フォームをリセット
+        reset();
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      } catch (error) {
+        console.error("通知作成エラー:", error);
+        toast.error("通知の作成中にエラーが発生しました");
       }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // フォームをリセット
-      reset();
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    } catch (error) {
-      console.error("通知作成エラー:", error);
-      toast.error("通知の作成中にエラーが発生しました");
-    }
-  };
+    },
+    [isAppOwner, isGroupOwner, reset],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -4,11 +4,24 @@ import { useCallback, useState } from "react";
 import { getWatchlistStatusAction, toggleWatchlistAction } from "@/lib/auction/action/watchlist";
 import { toast } from "sonner";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ウォッチリスト操作用カスタムフックの型
+ */
+type UseWatchlistActionsResult = {
+  submitting: boolean;
+  toggleWatchlist: (auctionId: string | undefined) => Promise<boolean | null>;
+  getWatchlistStatus: (auctionId: string | undefined) => Promise<boolean>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ウォッチリスト操作用カスタムフック
- * @returns ウォッチリスト操作用の関数群
+ * @returns {UseWatchlistActionsResult} ウォッチリスト操作用の関数群
  */
-export function useWatchlistActions() {
+export function useWatchlistActions(): UseWatchlistActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 処理中フラグ

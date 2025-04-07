@@ -1,15 +1,34 @@
 "use client";
 
 import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/type/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuctionEventType } from "@/lib/auction/type/types";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションSSEを購読するカスタムフック（拡張版）の型
+ */
+type UseAuctionEventResult = {
+  auction: AuctionWithDetails | undefined;
+  bidHistory: BidHistoryWithUser[];
+  loading: boolean;
+  error: string | null;
+  lastEventId: number;
+  reconnect: () => void;
+  disconnect: () => Promise<void>;
+  clientId: string;
+  lastReceivedMessage: string | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションSSEを購読するカスタムフック（拡張版）
- * @param initialAuction 初期オークションデータ
- * @returns オークション情報、入札履歴、接続状態、ユーティリティ関数
+ * @param {AuctionWithDetails} 初期オークションデータ
+ * @returns {UseAuctionEventResult} オークション情報、入札履歴、接続状態、ユーティリティ関数
  */
-export function useAuctionEvent(initialAuction: AuctionWithDetails) {
+export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionEventResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークション情報
@@ -43,10 +62,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークションID
-  const auctionId = initialAuction.id;
+  const auctionId = useMemo(() => initialAuction.id, [initialAuction.id]);
 
   // オプション
-  const { reconnectOnVisibility = true } = initialAuction.options ?? {};
+  const { reconnectOnVisibility = true } = useMemo(() => initialAuction.options ?? {}, [initialAuction.options]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -57,7 +76,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * @param receivedClientId 受信したクライアントID（オプション）
    */
   const giveAuctionDataToState = useCallback(
-    (auctionData: AuctionWithDetails, receivedClientId: string | null = null) => {
+    (auctionData: AuctionWithDetails, receivedClientId: string | null = null): void => {
       console.log("SSE_giveAuctionDataToState_start", auctionData);
 
       // サーバーから受け取ったデータがない場合は処理しない
@@ -116,12 +135,14 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
     [clientId, initialAuction],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * イベントデータを処理する関数
    * @param eventData イベントデータ
    */
   const processEventDataByType = useCallback(
-    (eventData: AuctionEventData) => {
+    (eventData: AuctionEventData): void => {
       console.log("SSE_processEventDataByType_start", eventData);
 
       // 受信データがAuctionWithDetails型として直接来る場合と、
@@ -231,7 +252,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
   /**
    * 再接続関数
    */
-  const reconnect = useCallback(() => {
+  const reconnect = useCallback((): void => {
     console.log("SSE_reconnect_接続を手動で再接続します");
     void disconnect();
 
@@ -258,7 +279,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * @param text SSEメッセージ (単一の message ブロック、\n\n で区切られた後の部分)
    */
   const editSSEdata = useCallback(
-    (text: string) => {
+    (text: string): void => {
       console.log("SSE_editSSEdata_start", text);
       // text が空や空白文字だけの場合は処理しない
       if (!text || text.trim() === "") {
@@ -368,7 +389,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * @param response レスポンス
    */
   const handleSSEStream = useCallback(
-    async (response: Response) => {
+    async (response: Response): Promise<void> => {
       console.log("SSE_handleSSEStream_start");
       const reader = response.body?.getReader();
       if (!reader) {
@@ -590,12 +611,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails) {
    * connectRef に connect 関数を格納
    * 初めて開いたときに、接続を確立するための処理
    */
-  useEffect(() => {
+  useEffect((): void => {
     disconnectFuncRef.current = disconnect;
     console.log("SSE_useEffect_disconnectFuncRef.current", disconnectFuncRef.current);
   }, [disconnect]);
 
-  useEffect(() => {
+  useEffect((): void => {
     connectFuncRef.current = connect;
     console.log("SSE_useEffect_connectFuncRef.current", connectFuncRef.current);
   }, [connect]);

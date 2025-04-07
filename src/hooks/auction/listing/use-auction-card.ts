@@ -6,11 +6,12 @@ import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションカード用フック
- * @param auction オークション
- * @param onToggleWatchlistAction ウォッチリスト更新アクション
- * @returns オークションカードの状態とハンドラー
+ * @param {AuctionCardHookProps} props オークションカード用フックのプロップ
+ * @returns {AuctionCardHookResult} オークションカードの状態とハンドラー
  */
 export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardHookProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -40,7 +41,10 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ウォッチリストの切り替え
+  /**
+   * ウォッチリストの切り替え
+   * @returns {void} ウォッチリストの切り替え
+   */
   const handleToggleWatchlist = useCallback(async () => {
     if (isUpdating) return;
 
@@ -54,14 +58,20 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 開始前の場合のメッセージ
+  /**
+   * 開始前の場合のメッセージ
+   * @returns {string} 開始前の場合のメッセージ
+   */
   const getStartMessage = useCallback(() => {
     return `開始まで${formatDistanceToNow(new Date(auction.startTime), { locale: ja })}`;
   }, [auction.startTime]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 出品者の評価を計算
+  /**
+   * 出品者の評価を計算
+   * @returns {SellerRating} 出品者の評価
+   */
   const getSellerRating = useCallback((): SellerRating => {
     if (auction.seller.rating === null) {
       return {

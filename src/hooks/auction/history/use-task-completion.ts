@@ -8,11 +8,21 @@ import { toast } from "sonner";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * タスク完了処理のカスタムフックの型
+ */
+type UseTaskCompletionResult = {
+  isCompleting: boolean;
+  handleComplete: () => Promise<void>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * タスク完了処理のカスタムフック
  * @param taskId タスクID
  * @returns タスク完了関連の状態と関数
  */
-export function useTaskCompletion(taskId: string) {
+export function useTaskCompletion(taskId: string): UseTaskCompletionResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ルーター

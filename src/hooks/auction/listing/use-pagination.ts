@@ -2,20 +2,38 @@
 
 import { useMemo } from "react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ページネーションフックのプロップ
+ */
 type UsePaginationProps = {
   currentPage: number;
   totalPages: number;
   maxPageToShow?: number;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ページネーションフックの返り値
+ */
+type UsePaginationResult = {
+  pageNumbers: number[];
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+  totalPages: number;
+  currentPage: number;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ページネーションフック
- * @param currentPage 現在のページ
- * @param totalPages 総ページ数
- * @param maxPageToShow 表示するページ数
- * @returns ページネーションフック
+ * @param {UsePaginationProps} props ページネーションフックのプロップ
+ * @returns {UsePaginationResult} ページネーションフックの返り値
  */
-export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: UsePaginationProps) {
+export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: UsePaginationProps): UsePaginationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 表示するページ番号を生成
@@ -60,10 +78,12 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: Us
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 前のページに進むかどうか
-  const hasPreviousPage = currentPage > 1;
+  const hasPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 次のページに進むかどうか
-  const hasNextPage = currentPage < totalPages;
+  const hasNextPage = useMemo(() => currentPage < totalPages, [currentPage, totalPages]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

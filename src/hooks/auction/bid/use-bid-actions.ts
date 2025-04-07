@@ -5,11 +5,25 @@ import { executeBid } from "@/lib/auction/action/bid-common";
 import { type BidFormData } from "@/lib/auction/type/types";
 import { toast } from "sonner";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 入札操作用カスタムフックの型
+ */
+type UseBidActionsResult = {
+  submitting: boolean;
+  error: string | null;
+  warningMessage: string | null;
+  clientPlaceBid: (bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) => Promise<boolean>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 入札操作用カスタムフック
- * @returns 入札操作用の関数群
+ * @returns {UseBidActionsResult} 入札操作用の関数群
  */
-export function useBidActions() {
+export function useBidActions(): UseBidActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // 入札中フラグ
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -22,27 +36,36 @@ export function useBidActions() {
 
   /**
    * 入札を実行
-   * @param bidData 入札データ
-   * @param onBiddingStatusChange 入札状態変更時のコールバック（オプション）
-   * @returns 入札成功時true, 失敗時false
+   * @param {BidFormData} bidData 入札データ
+   * @param {Function} onBiddingStatusChange 入札状態変更時のコールバック（オプション）
+   * @returns {boolean} 入札成功時true, 失敗時false
    */
   const clientPlaceBid = useCallback(async (bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) => {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     setSubmitting(true);
     setError(null);
     setWarningMessage(null);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 外部コールバックがあれば入札開始を通知
     if (onBiddingStatusChange) {
       onBiddingStatusChange(true);
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     try {
       console.log("useBidActions_clientPlaceBid_入札サーバーアクション実行", bidData);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // bidData.auctionIdがない場合、エラーを投げる
       if (!bidData.auctionId) {
         throw new Error("オークションIDが指定されていません");
       }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // サーバーアクションを呼び出し
       const result = await executeBid(bidData.auctionId, bidData.amount, bidData.isAutoBid ?? false);
@@ -64,7 +87,11 @@ export function useBidActions() {
         toast.success("入札が完了しました");
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       return true;
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     } catch (err) {
       console.error("useBidActions_clientPlaceBid_入札サーバーアクション呼び出しエラー:", err);
       setError("useBidActions_clientPlaceBid_入札処理中にエラーが発生しました");

@@ -237,13 +237,22 @@ export async function getNotificationTargetUserIds(
  */
 export async function getUnreadNotificationsCount(): Promise<number> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 認証済みユーザーのIDを取得
     const userId = await getAuthenticatedUserId();
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーがアクセスできるグループID一覧を取得
     const groupIds = await getUserAccessibleGroupIds(userId);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // グループに関連するタスクID一覧を取得
     const taskIds = await getTaskIdsByGroupIds(groupIds);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // PostgreSQLのJSONB演算子を使用した効率的なクエリ
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
@@ -262,7 +271,11 @@ export async function getUnreadNotificationsCount(): Promise<number> {
       )
     `;
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     return Number(countResult[0].count);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("未読通知カウントエラー:", error);
     return 0;
@@ -286,16 +299,27 @@ export async function getNotificationsAndUnreadCount(
   unreadCount: number;
 }> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 認証済みユーザーのIDを取得
     const userId = await getAuthenticatedUserId();
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーがアクセスできるグループID一覧を取得
     const groupIds = await getUserAccessibleGroupIds(userId);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // グループに関連するタスクID一覧を取得
     const taskIds = await getTaskIdsByGroupIds(groupIds);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // オフセットを計算
     const offset = (page - 1) * limit;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // JSONB演算子を使用して直接DBレベルで既読状態を計算
     const notificationsRaw = await prisma.$queryRaw`
@@ -332,6 +356,8 @@ export async function getNotificationsAndUnreadCount(
       ORDER BY n."sent_at" DESC, n.id DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 通知データを変換する
     const notifications = Array.isArray(notificationsRaw)
@@ -372,6 +398,8 @@ export async function getNotificationsAndUnreadCount(
         )
       : [];
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // 未読カウント取得
     const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
@@ -388,7 +416,11 @@ export async function getNotificationsAndUnreadCount(
         )
     `;
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 合計数取得
     const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
@@ -398,13 +430,19 @@ export async function getNotificationsAndUnreadCount(
         ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
     `;
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     const totalCount = Number(totalCountResult[0]?.count ?? 0);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     return {
       notifications,
       totalCount,
       unreadCount,
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("通知取得エラー:", error);
     return {
