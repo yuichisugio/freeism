@@ -12,17 +12,29 @@ import Papa from "papaparse";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
-// --------------------------------------------------
-// 型定義
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アップロードタイプ
+ */
 export type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION" | "FIXED_CONTRIBUTION" | "TASK_STATUS";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カスタムフックの引数型
+ */
 export type UseCsvUploadOptions = {
   groupId: string;
   isOpen: boolean;
   onCloseAction: (isOpen: boolean) => void;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アップロードタイプの情報
+ */
 export type UploadTypeInfo = {
   title: string;
   description: string;
@@ -32,39 +44,67 @@ export type UploadTypeInfo = {
   example: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * CSV行の型
+ */
 type CsvRow = Record<string, string>;
 
-// APIレスポンス型
-// 各種APIの戻り値に対応する共通型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * APIレスポンス型
+ */
 type ApiResponseBase = {
   success: boolean;
   error?: string;
 };
 
-// タスク作成API用のレスポンス型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク作成API用のレスポンス型
+ */
 type TasksApiResponse = ApiResponseBase & {
   tasks?: unknown[];
 };
 
-// 評価API用のレスポンス型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 評価API用のレスポンス型
+ */
 type EvaluationsApiResponse = ApiResponseBase & {
   analyses?: Array<{ count: number; message: string }>;
 };
 
-// 固定評価API用のレスポンス型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 固定評価API用のレスポンス型
+ */
 type FixedEvaluationsApiResponse = ApiResponseBase & {
   successData?: unknown[];
   failedData?: Record<string, unknown>[];
 };
 
-// タスクステータスAPI用のレスポンス型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクステータスAPI用のレスポンス型
+ */
 type TaskStatusesApiResponse = ApiResponseBase & {
   updatedCount?: number;
   failedCount?: number;
   failedData?: Record<string, unknown>[] | null;
 };
 
-// TaskReport用データ型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * TaskReport用データ型
+ */
 type TaskReportData = {
   task: string;
   detail?: string | null;
@@ -76,14 +116,22 @@ type TaskReportData = {
   auctionEndTime?: string | Date;
 };
 
-// ContributionEvaluation用データ型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ContributionEvaluation用データ型
+ */
 type ContributionEvaluationData = {
   taskId: string;
   contributionPoint: number;
   evaluationLogic: string;
 };
 
-// FixedContribution用データ型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * FixedContribution用データ型
+ */
 type FixedContributionData = {
   id: string;
   fixedContributionPoint: string | number;
@@ -93,19 +141,30 @@ type FixedContributionData = {
   [key: string]: unknown;
 };
 
-// TaskStatus用データ型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * TaskStatus用データ型
+ */
 type TaskStatusData = {
   taskId: string;
   status: string;
   [key: string]: unknown;
 };
 
-// --------------------------------------------------
-// 定数
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 定数
+ */
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 export const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 必須カラム
+ */
 const REQUIRED_COLUMNS: Record<UploadType, string[]> = {
   TASK_REPORT: ["task", "contributionType"],
   CONTRIBUTION_EVALUATION: ["taskId", "contributionPoint", "evaluationLogic"],
@@ -113,6 +172,11 @@ const REQUIRED_COLUMNS: Record<UploadType, string[]> = {
   TASK_STATUS: ["taskId", "status"],
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アップロードタイプの情報
+ */
 export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   TASK_REPORT: {
     title: "タスク報告",
@@ -148,6 +212,11 @@ export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   },
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グローバルドロップオーバーレイ
+ */
 export const globalDropOverlay = {
   hidden: { opacity: 0 },
   visible: {
@@ -160,15 +229,14 @@ export const globalDropOverlay = {
   },
 };
 
-// --------------------------------------------------
-// ユーティリティ関数
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * CSVファイルをパースしてデータを検証
  * @param file パースするCSVファイル
  * @returns パースされたデータ
  */
-const parseAndValidateCSV = async (file: File): Promise<CsvRow[]> => {
+export async function parseAndValidateCSV(file: File): Promise<CsvRow[]> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -177,13 +245,15 @@ const parseAndValidateCSV = async (file: File): Promise<CsvRow[]> => {
       error: (error) => reject(error),
     });
   });
-};
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 失敗したデータをCSVとしてエクスポート
  * @param failedData エクスポートする失敗データ
  */
-const exportFailedData = (failedData: Record<string, unknown>[]) => {
+export function exportFailedData(failedData: Record<string, unknown>[]): void {
   if (!failedData.length) return;
 
   const csv = Papa.unparse(failedData);
@@ -198,20 +268,17 @@ const exportFailedData = (failedData: Record<string, unknown>[]) => {
 
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-};
+}
 
-// --------------------------------------------------
-// カスタムフック
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
- * CSVアップロードの状態とロジックを管理するカスタムフック
+ * CSVアップロードの状態とロジックを管理するカスタムフックの戻り値
  * @param groupId グループID
  * @param isOpen モーダルが開いているかどうか
  * @param onCloseAction モーダルを閉じるアクション
  * @returns アップロードの状態とハンドラー
  */
-
-// フックの戻り値型を定義
 export type CsvUploadHookReturn = {
   // 状態
   uploadType: UploadType;

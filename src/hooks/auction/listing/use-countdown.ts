@@ -9,7 +9,10 @@ import { type TimeRemaining, type UseCountdownProps } from "@/lib/auction/type/t
  * @param onExpire 終了時のコールバック関数
  * @returns 残り時間の状態とフォーマットされた残り時間
  */
-export function useCountdown({ endTime, onExpire }: UseCountdownProps) {
+export function useCountdown({ endTime, onExpire }: UseCountdownProps): {
+  timeRemaining: TimeRemaining;
+  formatTimeRemaining: () => string;
+} {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

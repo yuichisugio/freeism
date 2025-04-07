@@ -1,6 +1,7 @@
 "use client";
 
-import type { Task, User } from "@/hooks/modal/use-task-edit-modal";
+import type { User, UseTaskEditModalReturn } from "@/hooks/modal/use-task-edit-modal";
+import type { Task, TaskParticipant } from "@/types/group";
 import React from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ type TaskEditModalProps = {
 };
 
 export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps) {
+  // useTaskEditModal フックからの返り値を適切に型付けする
   const {
     form,
     isSubmitting,
@@ -40,7 +42,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     handleImageUploaded,
     handleImageRemoved,
     handleUpdate,
-  } = useTaskEditModal({ open, onOpenChangeAction, task, users, onTaskUpdated });
+  }: UseTaskEditModalReturn = useTaskEditModal({ open, onOpenChangeAction, task, users, onTaskUpdated });
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -139,7 +141,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                 <div className="mt-2">
                   <h4 className="text-sm font-medium">選択された実行者:</h4>
                   <ul className="mt-1 space-y-1">
-                    {executors.map((executor, index) => (
+                    {executors.map((executor: TaskParticipant, index: number) => (
                       <li key={`executor-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
                           {executor.name ?? "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
@@ -194,7 +196,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                 <div className="mt-2">
                   <h4 className="text-sm font-medium">選択された報告者:</h4>
                   <ul className="mt-1 space-y-1">
-                    {reporters.map((reporter, index) => (
+                    {reporters.map((reporter: TaskParticipant, index: number) => (
                       <li key={`reporter-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
                           {reporter.name ?? "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}

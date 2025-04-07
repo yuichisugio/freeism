@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import type { Task, TaskParticipant } from "@/types/group";
+import type { UseFormReturn } from "react-hook-form";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateTask } from "@/lib/actions/task";
 import { taskFormSchema } from "@/lib/zod-schema";
@@ -8,34 +12,23 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// 型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク編集モーダーのカスタムフック
+ */
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * User型
+ */
 export type User = {
   id: string;
   name: string;
 };
 
-export type TaskParticipant = {
-  userId?: string;
-  name?: string;
-};
-
-export type Task = {
-  id: string;
-  task: string;
-  detail: string | null;
-  reference: string | null;
-  info: string | null;
-  imageUrl: string | null;
-  status: string;
-  contributionType: contributionType;
-  category?: string;
-  reporters: TaskParticipant[];
-  executors: TaskParticipant[];
-  group: {
-    id: string;
-    name: string;
-  };
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // フォームスキーマ
 const formSchema = taskFormSchema.extend({
@@ -59,9 +52,18 @@ const formSchema = taskFormSchema.extend({
   imageUrl: z.string().optional(),
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * TaskFormValues型
+ */
 export type TaskFormValues = z.infer<typeof formSchema>;
 
-// カスタムフックの引数
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * UseTaskEditModalProps型
+ */
 export type UseTaskEditModalProps = {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
@@ -70,15 +72,56 @@ export type UseTaskEditModalProps = {
   onTaskUpdated?: () => void;
 };
 
-export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskUpdated }: UseTaskEditModalProps) {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * useTaskEditModal関数の戻り値
+ */
+export type UseTaskEditModalReturn = {
+  form: UseFormReturn<TaskFormValues>;
+  isSubmitting: boolean;
+  isRewardType: boolean;
+  categoryOpen: boolean;
+  setCategoryOpen: (open: boolean) => void;
+  executors: TaskParticipant[];
+  nonRegisteredExecutor: string;
+  setNonRegisteredExecutor: (value: string) => void;
+  reporters: TaskParticipant[];
+  nonRegisteredReporter: string;
+  setNonRegisteredReporter: (value: string) => void;
+  handleOpenChange: (isOpen: boolean) => void;
+  addExecutor: (userId?: string, name?: string) => void;
+  removeExecutor: (index: number) => void;
+  addReporter: (userId?: string, name?: string) => void;
+  removeReporter: (index: number) => void;
+  handleImageUploaded: (imageUrl: string) => void;
+  handleImageRemoved: () => void;
+  handleUpdate: () => Promise<void>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * useTaskEditModal関数
+ */
+export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskUpdated }: UseTaskEditModalProps): UseTaskEditModalReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
-
   const [executors, setExecutors] = useState<TaskParticipant[]>([]);
   const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
   const [reporters, setReporters] = useState<TaskParticipant[]>([]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [nonRegisteredReporter, setNonRegisteredReporter] = useState("");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フォーム初期化
   const form = useForm<TaskFormValues>({
@@ -96,15 +139,19 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 現在選択されている貢献タイプを監視
-  const selectedContributionType = form.watch("contributionType");
-  const isRewardType = selectedContributionType === contributionType.REWARD;
+  const selectedContributionType = useMemo(() => form.watch("contributionType"), [form]);
+  const isRewardType = useMemo(() => selectedContributionType === contributionType.REWARD, [selectedContributionType]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // タスクデータが変更されたときにフォームをリセット
   useEffect(() => {
     if (task) {
       form.reset({
-        task: task.task,
+        task: task.task ?? "",
         detail: task.detail ?? "",
         reference: task.reference ?? "",
         info: task.info ?? "",
@@ -114,154 +161,227 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
       });
 
       // 実行者と報告者をセット
-      setExecutors(task.executors ?? []);
-      setReporters(task.reporters ?? []);
+      if (Array.isArray(task.executors)) {
+        setExecutors(
+          task.executors.map((executor) => ({
+            id: executor.id,
+            userId: executor.userId,
+            name: executor.name,
+            user: executor.user,
+          })),
+        );
+      }
+      if (Array.isArray(task.reporters)) {
+        setReporters(
+          task.reporters.map((reporter) => ({
+            id: reporter.id,
+            userId: reporter.userId,
+            name: reporter.name,
+            user: reporter.user,
+          })),
+        );
+      }
     }
   }, [task, form]);
 
-  // 実行者を追加する関数
-  const addExecutor = (userId?: string, name?: string) => {
-    if (userId) {
-      // 登録済みユーザーの場合
-      const user = users.find((u) => u.id === userId);
-      if (user && !executors.some((e) => e.userId === userId)) {
-        const newExecutors = [...executors, { userId, name: user.name }];
-        setExecutors(newExecutors);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 実行者を追加する関数
+   * @param userId {string} ユーザーID
+   * @param name {string} ユーザー名
+   */
+  const addExecutor = useCallback(
+    (userId?: string, name?: string) => {
+      if (userId) {
+        // 登録済みユーザーの場合
+        const user = users.find((u) => u.id === userId);
+        if (user && !executors.some((e) => e.userId === userId)) {
+          const newExecutor: TaskParticipant = {
+            id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            userId,
+            name: user.name,
+            user: {
+              id: userId,
+              name: user.name,
+            },
+          };
+          setExecutors((prev) => [...prev, newExecutor]);
+        }
+      } else if (name && name.trim() !== "") {
+        // 未登録ユーザーの場合
+        const newExecutor: TaskParticipant = {
+          id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          userId: null,
+          name,
+          user: null,
+        };
+        setExecutors((prev) => [...prev, newExecutor]);
+        setNonRegisteredExecutor("");
       }
-    } else if (name && name.trim() !== "") {
-      // 未登録ユーザーの場合
-      const newExecutors = [...executors, { name }];
+    },
+    [executors, users],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 報告者を追加する関数
+   * @param userId {string} ユーザーID
+   * @param name {string} ユーザー名
+   */
+  const addReporter = useCallback(
+    (userId?: string, name?: string) => {
+      if (userId) {
+        // 登録済みユーザーの場合
+        const user = users.find((u) => u.id === userId);
+        if (user && !reporters.some((r) => r.userId === userId)) {
+          const newReporter: TaskParticipant = {
+            id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            userId,
+            name: user.name,
+            user: {
+              id: userId,
+              name: user.name,
+            },
+          };
+          setReporters((prev) => [...prev, newReporter]);
+        }
+      } else if (name && name.trim() !== "") {
+        // 未登録ユーザーの場合
+        const newReporter: TaskParticipant = {
+          id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          userId: null,
+          name,
+          user: null,
+        };
+        setReporters((prev) => [...prev, newReporter]);
+        setNonRegisteredReporter("");
+      }
+    },
+    [reporters, users],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 実行者を削除する関数
+   * @param index {number} 削除する実行者のインデックス
+   */
+  const removeExecutor = useCallback(
+    (index: number) => {
+      const newExecutors = executors.filter((_, i) => i !== index);
       setExecutors(newExecutors);
-      setNonRegisteredExecutor("");
-    }
-  };
+    },
+    [executors],
+  );
 
-  // 報告者を追加する関数
-  const addReporter = (userId?: string, name?: string) => {
-    if (userId) {
-      // 登録済みユーザーの場合
-      const user = users.find((u) => u.id === userId);
-      if (user && !reporters.some((r) => r.userId === userId)) {
-        const newReporters = [...reporters, { userId, name: user.name }];
-        setReporters(newReporters);
-      }
-    } else if (name && name.trim() !== "") {
-      // 未登録ユーザーの場合
-      const newReporters = [...reporters, { name }];
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 報告者を削除する関数
+   * @param index {number} 削除する報告者のインデックス
+   */
+  const removeReporter = useCallback(
+    (index: number) => {
+      const newReporters = reporters.filter((_, i) => i !== index);
       setReporters(newReporters);
-      setNonRegisteredReporter("");
-    }
-  };
+    },
+    [reporters],
+  );
 
-  // 実行者を削除する関数
-  const removeExecutor = (index: number) => {
-    const newExecutors = executors.filter((_, i) => i !== index);
-    setExecutors(newExecutors);
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 報告者を削除する関数
-  const removeReporter = (index: number) => {
-    const newReporters = reporters.filter((_, i) => i !== index);
-    setReporters(newReporters);
-  };
+  /**
+   * 画像アップロード完了時のハンドラー
+   * @param imageUrl {string} 画像URL
+   */
+  const handleImageUploaded = useCallback(
+    (imageUrl: string) => {
+      form.setValue("imageUrl", imageUrl);
+    },
+    [form],
+  );
 
-  // 画像アップロード完了時のハンドラー
-  const handleImageUploaded = (imageUrl: string) => {
-    form.setValue("imageUrl", imageUrl);
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 画像削除時のハンドラー
-  const handleImageRemoved = () => {
+  /**
+   * 画像削除時のハンドラー
+   */
+  const handleImageRemoved = useCallback(() => {
     form.setValue("imageUrl", "");
-  };
+  }, [form]);
 
-  // 更新を実行する関数
-  const handleUpdate = async () => {
-    if (!task) {
-      console.error("タスクが存在しません");
-      return;
-    }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // フォームのバリデーション
-    const isValid = await form.trigger();
-    if (!isValid) {
-      console.error("フォームバリデーションエラー:", form.formState.errors);
-      return;
-    }
-
-    const formData = form.getValues();
-    console.log("更新データ:", formData);
-    console.log("executors:", executors);
-    console.log("reporters:", reporters);
-
+  /**
+   * 更新を実行する関数
+   */
+  const handleUpdate = useCallback(async () => {
     setIsSubmitting(true);
-    toast.loading("タスクを更新中...");
 
     try {
-      // タスクを更新
-      const result = await updateTask(task.id, {
-        task: formData.task,
-        detail: formData.detail,
-        reference: formData.reference,
-        info: formData.info,
-        imageUrl: formData.imageUrl,
-        contributionType: formData.contributionType,
-        category: formData.category,
-        executors: executors,
-        reporters: reporters,
+      // フォームから直接データを取得
+      const formData = form.getValues();
+
+      // executorsとreportersを適切な形式に変換
+      const formattedExecutors = executors.map((executor) => {
+        return {
+          userId: executor.userId ?? undefined,
+          name: executor.name ?? undefined,
+        };
       });
 
-      console.log("更新結果:", result);
-      toast.dismiss();
+      const formattedReporters = reporters.map((reporter) => {
+        return {
+          userId: reporter.userId ?? undefined,
+          name: reporter.name ?? undefined,
+        };
+      });
 
-      if (result?.success) {
-        toast.success("タスクを更新しました");
+      // タスク更新APIを呼び出し
+      if (task) {
+        await updateTask(task.id, {
+          ...formData,
+          executors: formattedExecutors,
+          reporters: formattedReporters,
+        });
+
+        // 成功メッセージを表示
+        toast.success("タスクが更新されました");
 
         // モーダルを閉じる
         onOpenChangeAction(false);
 
-        // データの更新を親コンポーネントに通知
+        // タスク更新後のコールバックがあれば実行
         if (onTaskUpdated) {
           onTaskUpdated();
         }
 
-        // Next.jsのルーターキャッシュを更新
+        // ルーターをリフレッシュ
         router.refresh();
-
-        // リアルタイム更新を促進するため、URLに小さな変更を加えて戻す
-        const currentPath = window.location.pathname;
-        const hasQuery = window.location.search.length > 0;
-        const refreshParam = `_t=${Date.now()}`;
-
-        const newPath = hasQuery ? `${currentPath}${window.location.search}&${refreshParam}` : `${currentPath}?${refreshParam}`;
-
-        // URLを一時的に変更して元に戻す（画面のチラつきを防ぐため遅延実行）
-        setTimeout(() => {
-          router.replace(newPath);
-          setTimeout(() => {
-            router.replace(currentPath + (window.location.search ?? ""));
-          }, 100);
-        }, 100);
-      } else {
-        const errorMessage = result?.error ?? "タスクの更新に失敗しました（不明なエラー）";
-        toast.error(errorMessage);
-        console.error("更新失敗:", result);
       }
     } catch (error) {
       console.error("タスク更新エラー:", error);
-      toast.dismiss();
       toast.error("タスクの更新に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [executors, reporters, form, task, onOpenChangeAction, onTaskUpdated, router]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // モーダルの開閉ハンドラー
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isSubmitting) {
-      onOpenChangeAction(isOpen);
-    }
-  };
+  const handleOpenChange = useCallback(
+    (isOpen: boolean) => {
+      if (!isSubmitting) {
+        onOpenChangeAction(isOpen);
+      }
+    },
+    [isSubmitting, onOpenChangeAction],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     form,

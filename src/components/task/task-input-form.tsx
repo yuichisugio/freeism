@@ -38,7 +38,13 @@ export function TaskInputForm({
     handleImageUploaded,
     handleImageRemoved,
     onSubmit,
-  } = useTaskInputForm({ groups, users });
+  } = useTaskInputForm({ users });
+
+  // 型安全性のため form の型を明示的に指定
+  const typedControl = form.control;
+  const typedExecutors = executors;
+  const typedReporters = reporters;
+  const typedGetValues = form.getValues;
 
   return (
     <FormLayout form={form} onSubmit={onSubmit} submitLabel="保存" submittingLabel="保存中...">
@@ -48,7 +54,7 @@ export function TaskInputForm({
           open={open}
           setOpen={setOpen}
           fieldType="combobox"
-          control={form.control}
+          control={typedControl}
           name="groupId"
           label="グループ選択"
           description="タスクを登録するグループを選択してください"
@@ -61,7 +67,7 @@ export function TaskInputForm({
 
       <CustomFormField
         fieldType="radio"
-        control={form.control}
+        control={typedControl}
         name="contributionType"
         label="貢献の種類"
         options={[
@@ -70,12 +76,12 @@ export function TaskInputForm({
         ]}
       />
 
-      <CustomFormField fieldType="input" type="text" control={form.control} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
+      <CustomFormField fieldType="input" type="text" control={typedControl} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
 
       {/* カテゴリ選択を追加 */}
       <CustomFormField
         fieldType="combobox"
-        control={form.control}
+        control={typedControl}
         name="category"
         label="カテゴリ"
         description="タスクのカテゴリを選択してください"
@@ -85,14 +91,14 @@ export function TaskInputForm({
         setOpen={setCategoryOpen}
       />
 
-      <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="具体的な行動内容を記載してください" placeholder="タスクの内容を入力してください" />
+      <CustomFormField fieldType="textarea" control={typedControl} name="detail" label="タスクの詳細" description="具体的な行動内容を記載してください" placeholder="タスクの内容を入力してください" />
 
       {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
       {isRewardType && (
         <div className="space-y-2" role="group" aria-label="報酬画像">
           <p className="form-label-custom text-base font-medium text-gray-700">報酬画像</p>
           <p className="form-description-custom text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
-          <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
+          <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={typedGetValues("imageUrl")} />
         </div>
       )}
 
@@ -104,7 +110,7 @@ export function TaskInputForm({
           {/* オークション開始日時 - CustomFormFieldを使用 */}
           <CustomFormField
             fieldType="date"
-            control={form.control}
+            control={typedControl}
             name="auctionStartTime"
             label="オークション開始日時"
             description="オークションの開始日時を設定してください。未設定の場合は現在の日時が適用されます。"
@@ -115,7 +121,7 @@ export function TaskInputForm({
           {/* オークション終了日時 - CustomFormFieldを使用 */}
           <CustomFormField
             fieldType="date"
-            control={form.control}
+            control={typedControl}
             name="auctionEndTime"
             label="オークション終了日時"
             description="オークションの終了日時を設定してください。未設定の場合は開始から1週間後が適用されます。"
@@ -126,7 +132,7 @@ export function TaskInputForm({
           {/* 提供方法 */}
           <CustomFormField
             fieldType="textarea"
-            control={form.control}
+            control={typedControl}
             name="deliveryMethod"
             label="提供方法"
             description="商品・サービスの提供方法を記載してください（例：Amazonほしい物リスト、Githubリポジトリ共有など）"
@@ -135,11 +141,11 @@ export function TaskInputForm({
         </div>
       )}
 
-      <CustomFormField fieldType="textarea" control={form.control} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
+      <CustomFormField fieldType="textarea" control={typedControl} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
 
       <CustomFormField
         fieldType="textarea"
-        control={form.control}
+        control={typedControl}
         name="info"
         label="証拠・結果・補足情報"
         description="貢献度を評価するための証拠や結果、補足情報（プルリクURL等）を記載してください"
@@ -174,11 +180,11 @@ export function TaskInputForm({
         </div>
 
         {/* 選択された実行者のリスト */}
-        {executors.length > 0 && (
+        {typedExecutors.length > 0 && (
           <div className="mt-2">
             <h4 className="text-sm font-medium">選択された実行者:</h4>
             <ul className="mt-1 space-y-1">
-              {executors.map((executor, index) => (
+              {typedExecutors.map((executor, index) => (
                 <li key={index} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                   <span>
                     {executor.name ?? "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
@@ -221,11 +227,11 @@ export function TaskInputForm({
         </div>
 
         {/* 選択された報告者のリスト */}
-        {reporters.length > 0 && (
+        {typedReporters.length > 0 && (
           <div className="mt-2">
             <h4 className="text-sm font-medium">選択された報告者:</h4>
             <ul className="mt-1 space-y-1">
-              {reporters.map((reporter, index) => (
+              {typedReporters.map((reporter, index) => (
                 <li key={index} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                   <span>
                     {reporter.name ?? "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}

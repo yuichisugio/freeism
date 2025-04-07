@@ -1,4 +1,6 @@
-import type { TaskParticipant } from "@/hooks/table/use-task-editor";
+"use client";
+
+import type { Task } from "@/types/group";
 import { useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +10,6 @@ import { useSortableTable } from "@/hooks/table/use-sortable-table";
 import { useTaskEditor } from "@/hooks/table/use-task-editor";
 import { taskStatuses, useTaskStatus } from "@/hooks/table/use-task-status";
 import { cn } from "@/lib/utils";
-import { type contributionType } from "@prisma/client";
 import { ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -325,32 +326,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
       )}
 
       {/* タスク編集モーダル */}
-      {editingTask && (
-        <TaskEditModal
-          open={editModalOpen}
-          onOpenChangeAction={setEditModalOpen}
-          task={
-            prepareTaskForEdit(editingTask) as {
-              id: string;
-              task: string;
-              detail: string | null;
-              reference: string | null;
-              info: string | null;
-              status: string;
-              contributionType: contributionType;
-              reporters: TaskParticipant[];
-              executors: TaskParticipant[];
-              imageUrl: string | null;
-              group: {
-                id: string;
-                name: string;
-              };
-            }
-          }
-          users={editTask?.users ?? []}
-          onTaskUpdated={handleTaskUpdated}
-        />
-      )}
+      {editingTask && <TaskEditModal open={editModalOpen} onOpenChangeAction={setEditModalOpen} task={prepareTaskForEdit(editingTask) as Task} users={editTask?.users ?? []} onTaskUpdated={handleTaskUpdated} />}
     </div>
   );
 }

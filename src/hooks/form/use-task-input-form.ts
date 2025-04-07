@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createTask } from "@/lib/actions/task";
 import { taskFormSchema } from "@/lib/zod-schema";
@@ -10,24 +11,41 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// 型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 型定義
+ */
 export type Group = {
   id: string;
   name: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザー型定義
+ */
 export type User = {
   id: string;
   name: string;
 };
 
-// タスク実行者または報告者の型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク実行者または報告者の型定義
+ */
 export type TaskParticipant = {
   userId?: string;
   name?: string;
 };
 
-// フォームスキーマの拡張
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * フォームスキーマの拡張
+ */
 const formSchema = taskFormSchema.extend({
   groupId: z.string({
     required_error: "グループに参加して下さい。",
@@ -56,21 +74,70 @@ const formSchema = taskFormSchema.extend({
   imageUrl: z.string().optional(),
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * フォーム値の型定義
+ */
 export type TaskFormValues = z.infer<typeof formSchema>;
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * フォーム値とグループIDの型定義
+ */
 export type TaskFormValuesAndGroupId = TaskFormValues & {
   groupId: string;
 };
 
-// カスタムフック
-export function useTaskInputForm({
-  users = [], // デフォルト値を空配列に設定
-}: {
-  groups: Group[];
-  users?: User[]; // オプショナルにする
-}) {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カスタムフックの引数の型定義
+ */
+type UseTaskInputFormProps = {
+  users?: User[];
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カスタムフックの戻り値の型定義
+ */
+type UseTaskInputFormReturn = {
+  form: UseFormReturn<TaskFormValues>;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  categoryOpen: boolean;
+  setCategoryOpen: (open: boolean) => void;
+  executors: TaskParticipant[];
+  nonRegisteredExecutor: string;
+  setNonRegisteredExecutor: (value: string) => void;
+  reporters: TaskParticipant[];
+  nonRegisteredReporter: string;
+  setNonRegisteredReporter: (value: string) => void;
+  isRewardType: boolean;
+  addExecutor: (userId?: string, name?: string) => void;
+  removeExecutor: (index: number) => void;
+  addReporter: (userId?: string, name?: string) => void;
+  removeReporter: (index: number) => void;
+  handleImageUploaded: (imageUrl: string) => void;
+  handleImageRemoved: () => void;
+  onSubmit: (data: TaskFormValues) => Promise<void>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カスタムフック
+ */
+export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTaskInputFormReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ルーター
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 状態管理
   const [open, setOpen] = useState(false);
@@ -79,6 +146,8 @@ export function useTaskInputForm({
   const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
   const [reporters, setReporters] = useState<TaskParticipant[]>([]);
   const [nonRegisteredReporter, setNonRegisteredReporter] = useState("");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フォーム
   const form = useForm<TaskFormValues>({
@@ -99,107 +168,165 @@ export function useTaskInputForm({
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 現在選択されている貢献タイプ
   const selectedContributionType = form.watch("contributionType");
-  const isRewardType = selectedContributionType === contributionType.REWARD;
+  const isRewardType = useMemo(() => selectedContributionType === contributionType.REWARD, [selectedContributionType]);
 
-  // 実行者を追加する関数
-  const addExecutor = (userId?: string, name?: string) => {
-    if (userId) {
-      // 登録済みユーザーの場合
-      const user = users.find((u) => u.id === userId);
-      if (user && !executors.some((e) => e.userId === userId)) {
-        const newExecutors = [...executors, { userId, name: user.name }];
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 実行者を追加する関数
+   * @param userId {string | undefined} ユーザーID
+   * @param name {string | undefined} ユーザー名
+   */
+  const addExecutor = useCallback(
+    (userId?: string, name?: string) => {
+      if (userId) {
+        // 登録済みユーザーの場合
+        const user = users.find((u) => u.id === userId);
+        if (user && !executors.some((e) => e.userId === userId)) {
+          const newExecutors = [...executors, { userId, name: user.name }];
+          setExecutors(newExecutors);
+          form.setValue("executors", newExecutors);
+        }
+      } else if (name && name.trim() !== "") {
+        // 未登録ユーザーの場合
+        const newExecutors = [...executors, { name }];
         setExecutors(newExecutors);
         form.setValue("executors", newExecutors);
+        setNonRegisteredExecutor("");
       }
-    } else if (name && name.trim() !== "") {
-      // 未登録ユーザーの場合
-      const newExecutors = [...executors, { name }];
-      setExecutors(newExecutors);
-      form.setValue("executors", newExecutors);
-      setNonRegisteredExecutor("");
-    }
-  };
+    },
+    [executors, form, users, setNonRegisteredExecutor],
+  );
 
-  // 報告者を追加する関数
-  const addReporter = (userId?: string, name?: string) => {
-    if (userId) {
-      // 登録済みユーザーの場合
-      const user = users.find((u) => u.id === userId);
-      if (user && !reporters.some((r) => r.userId === userId)) {
-        const newReporters = [...reporters, { userId, name: user.name }];
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 報告者を追加する関数
+   * @param userId {string | undefined} ユーザーID
+   * @param name {string | undefined} ユーザー名
+   */
+  const addReporter = useCallback(
+    (userId?: string, name?: string) => {
+      if (userId) {
+        // 登録済みユーザーの場合
+        const user = users.find((u) => u.id === userId);
+        if (user && !reporters.some((r) => r.userId === userId)) {
+          const newReporters = [...reporters, { userId, name: user.name }];
+          setReporters(newReporters);
+          form.setValue("reporters", newReporters);
+        }
+      } else if (name && name.trim() !== "") {
+        // 未登録ユーザーの場合
+        const newReporters = [...reporters, { name }];
         setReporters(newReporters);
         form.setValue("reporters", newReporters);
+        setNonRegisteredReporter("");
       }
-    } else if (name && name.trim() !== "") {
-      // 未登録ユーザーの場合
-      const newReporters = [...reporters, { name }];
+    },
+    [reporters, form, users, setNonRegisteredReporter],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 実行者を削除する関数
+   * @param index {number} インデックス
+   */
+  const removeExecutor = useCallback(
+    (index: number) => {
+      const newExecutors = executors.filter((_, i) => i !== index);
+      setExecutors(newExecutors);
+      form.setValue("executors", newExecutors);
+    },
+    [executors, form],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 報告者を削除する関数
+   * @param index {number} インデックス
+   */
+  const removeReporter = useCallback(
+    (index: number) => {
+      const newReporters = reporters.filter((_, i) => i !== index);
       setReporters(newReporters);
       form.setValue("reporters", newReporters);
-      setNonRegisteredReporter("");
-    }
-  };
+    },
+    [reporters, form],
+  );
 
-  // 実行者を削除する関数
-  const removeExecutor = (index: number) => {
-    const newExecutors = executors.filter((_, i) => i !== index);
-    setExecutors(newExecutors);
-    form.setValue("executors", newExecutors);
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 報告者を削除する関数
-  const removeReporter = (index: number) => {
-    const newReporters = reporters.filter((_, i) => i !== index);
-    setReporters(newReporters);
-    form.setValue("reporters", newReporters);
-  };
+  /**
+   * 画像アップロード完了時のハンドラー
+   * @param imageUrl {string} 画像URL
+   */
+  const handleImageUploaded = useCallback(
+    (imageUrl: string) => {
+      form.setValue("imageUrl", imageUrl);
+    },
+    [form],
+  );
 
-  // 画像アップロード完了時のハンドラー
-  const handleImageUploaded = (imageUrl: string) => {
-    form.setValue("imageUrl", imageUrl);
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 画像削除時のハンドラー
-  const handleImageRemoved = () => {
+  /**
+   * 画像削除時のハンドラー
+   */
+  const handleImageRemoved = useCallback(() => {
     form.setValue("imageUrl", "");
-  };
+  }, [form]);
 
-  // フォーム送信
-  async function onSubmit(data: TaskFormValues) {
-    console.log("フォーム送信データ:", data);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    try {
-      // タスクを保存
-      const result = await createTask({
-        task: data.task,
-        detail: data.detail,
-        reference: data.reference,
-        info: data.info,
-        imageUrl: data.imageUrl,
-        contributionType: data.contributionType,
-        category: data.category, // カテゴリを追加
-        groupId: data.groupId,
-        executors: executors.length > 0 ? executors : undefined,
-        reporters: reporters.length > 0 ? reporters : undefined,
-        // オークション関連のデータを追加
-        auctionStartTime: data.contributionType === contributionType.REWARD ? data.auctionStartTime : undefined,
-        auctionEndTime: data.contributionType === contributionType.REWARD ? data.auctionEndTime : undefined,
-        deliveryMethod: data.contributionType === contributionType.REWARD ? data.deliveryMethod : undefined,
-      });
+  /**
+   * フォーム送信
+   * @param data {TaskFormValues} フォームデータ
+   */
+  const onSubmit = useCallback(
+    async (data: TaskFormValues) => {
+      console.log("フォーム送信データ:", data);
 
-      if (result.success) {
-        toast.success("タスクを保存しました");
-        router.push(result.task.groupId ? `/dashboard/group/${result.task.groupId}` : "/dashboard/my-tasks");
-        router.refresh();
-      } else if (result.error) {
-        toast.error(result.error);
+      try {
+        // タスクを保存
+        const result = await createTask({
+          task: data.task,
+          detail: data.detail,
+          reference: data.reference,
+          info: data.info,
+          imageUrl: data.imageUrl,
+          contributionType: data.contributionType,
+          category: data.category, // カテゴリを追加
+          groupId: data.groupId,
+          executors: executors.length > 0 ? executors : undefined,
+          reporters: reporters.length > 0 ? reporters : undefined,
+          // オークション関連のデータを追加
+          auctionStartTime: data.contributionType === contributionType.REWARD ? data.auctionStartTime : undefined,
+          auctionEndTime: data.contributionType === contributionType.REWARD ? data.auctionEndTime : undefined,
+          deliveryMethod: data.contributionType === contributionType.REWARD ? data.deliveryMethod : undefined,
+        });
+
+        if (result.success) {
+          toast.success("タスクを保存しました");
+          router.push(result.task.groupId ? `/dashboard/group/${result.task.groupId}` : "/dashboard/my-tasks");
+          router.refresh();
+        } else if (result.error) {
+          toast.error(result.error);
+        }
+      } catch (error) {
+        console.error("フォーム送信エラー:", error);
+        toast.error("タスクの保存に失敗しました");
       }
-    } catch (error) {
-      console.error("フォーム送信エラー:", error);
-      toast.error("タスクの保存に失敗しました");
-    }
-  }
+    },
+    [executors, reporters, router],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     form,

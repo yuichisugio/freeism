@@ -9,11 +9,26 @@ import { ja } from "date-fns/locale";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * オークションカード用フックの型定義
+ */
+type UseAuctionCardReturn = {
+  isUpdating: boolean;
+  isStarted: boolean;
+  isEnded: boolean;
+  isNew: boolean;
+  isEndingSoon: boolean;
+  setIsEnded: (isEnded: boolean) => void;
+  handleToggleWatchlist: () => Promise<void>;
+  getStartMessage: () => string;
+  sellerRating: SellerRating;
+};
+
+/**
  * オークションカード用フック
  * @param {AuctionCardHookProps} props オークションカード用フックのプロップ
  * @returns {AuctionCardHookResult} オークションカードの状態とハンドラー
  */
-export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardHookProps) {
+export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardHookProps): UseAuctionCardReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリスト更新中の状態

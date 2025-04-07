@@ -4,6 +4,30 @@ import type { AuctionFilterParams, UseAuctionFiltersProps } from "@/lib/auction/
 import { useCallback, useEffect, useState } from "react";
 import { getUserGroups } from "@/lib/auction/action/user";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションフィルター用カスタムフックの型定義
+ */
+type UseAuctionFiltersReturn = {
+  priceRange: [number, number];
+  timeRange: [number, number];
+  groups: { id: string; name: string }[];
+  showFilters: boolean;
+  activeFilterCount: number;
+  openGroupCombobox: boolean;
+  setOpenGroupCombobox: (open: boolean) => void;
+  handlePriceRangeChange: (value: [number, number]) => void;
+  handlePriceRangeApply: () => void;
+  handleTimeRangeChange: (value: [number, number]) => void;
+  handleTimeRangeApply: () => void;
+  toggleFilterDisplay: () => void;
+  setPricePreset: (min: number, max: number) => void;
+  setTimePreset: (min: number, max: number) => void;
+  resetPriceRange: () => void;
+  resetTimeRange: () => void;
+};
+
 /**
  * オークションフィルター用カスタムフック
  * @param props フィルターのprops
@@ -14,7 +38,7 @@ import { getUserGroups } from "@/lib/auction/action/user";
  * @param onResetFilters フィルターのリセットアクション
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _sortOption, onSortChangeAction: _onSortChangeAction, onResetFilters: _onResetFilters }: UseAuctionFiltersProps) {
+export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _sortOption, onSortChangeAction: _onSortChangeAction, onResetFilters: _onResetFilters }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲フィルター

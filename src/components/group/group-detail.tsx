@@ -43,8 +43,15 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     handleOpenEditDialog,
     handleOpenDeleteDialog,
     handleDeleteGroup,
-  } = useGroupDetail(tasks);
+  } = useGroupDetail({ tasks });
 
+  const groupMembersResult = useGroupMembers({
+    groupId: tasks.length > 0 ? tasks[0].group.id : "",
+    isGroupOwner,
+    isAppOwner,
+  });
+
+  // useGroupMembersフックからの戻り値
   const {
     groupMembers,
     showPermissionDialog,
@@ -69,12 +76,16 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     handleGrantPermission,
     handleOpenRemoveMemberDialog,
     handleRemoveMember,
-  } = useGroupMembers({
-    groupId: tasks.length > 0 ? tasks[0].group.id : "",
+  } = groupMembersResult;
+
+  const groupTasksResult = useGroupTasks({
+    initialTasks: tasks,
+    userId,
     isGroupOwner,
     isAppOwner,
   });
 
+  // useGroupTasksフックからの戻り値
   const {
     nonRewardTasks,
     rewardTasks,
@@ -91,12 +102,7 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     handleTaskEdited,
     updateNonRewardTasks,
     updateRewardTasks,
-  } = useGroupTasks({
-    initialTasks: tasks,
-    userId,
-    isGroupOwner,
-    isAppOwner,
-  });
+  } = groupTasksResult;
 
   // 共通のテーブル列定義（contributionType列を含まない）
   const commonColumns: Column<Task>[] = [
@@ -115,13 +121,23 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     {
       key: "reporters" as keyof Task,
       header: "報告者",
-      cell: (row: Task) => getReporterNames(row.reporters),
+      cell: (row: Task) => {
+        if (typeof getReporterNames === "function") {
+          return getReporterNames(row.reporters);
+        }
+        return "-";
+      },
       sortable: false,
     },
     {
       key: "executors" as keyof Task,
       header: "実行者",
-      cell: (row: Task) => getExecutorNames(row.executors),
+      cell: (row: Task) => {
+        if (typeof getExecutorNames === "function") {
+          return getExecutorNames(row.executors);
+        }
+        return "-";
+      },
       sortable: false,
     },
     {
@@ -237,10 +253,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     editTask: {
       canEdit: canEditTask,
       onEdit: handleTaskEdited,
-      users: users.map((user) => ({
-        id: user.id,
-        name: user.name ?? "",
-      })),
+      users: Array.isArray(users)
+        ? users.map((user) => ({
+            id: user.id,
+            name: user.name ?? "",
+          }))
+        : [],
     },
     deleteModal: {
       title: "タスクを削除",
@@ -258,10 +276,12 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     editTask: {
       canEdit: canEditTask,
       onEdit: handleTaskEdited,
-      users: users.map((user) => ({
-        id: user.id,
-        name: user.name ?? "",
-      })),
+      users: Array.isArray(users)
+        ? users.map((user) => ({
+            id: user.id,
+            name: user.name ?? "",
+          }))
+        : [],
     },
     deleteModal: {
       title: "タスクを削除",

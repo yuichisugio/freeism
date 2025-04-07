@@ -8,12 +8,34 @@ import { getAuctionCategories, getAuctionListings, getAuctionPageSize } from "@/
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+type UseAuctionListingsReturn = {
+  isPending: boolean;
+  categories: string[];
+  pageSize: number;
+  auctions: AuctionListingResult["items"];
+  totalCount: number;
+  totalPages: number;
+  searchQuery: string;
+  filters: AuctionFilterParams;
+  sortOption: AuctionSortOption;
+  page: number;
+  userPoints: number;
+  setSearchQuery: (query: string) => void;
+  handlePageChange: (newPage: number) => void;
+  handleFilterChange: (newFilters: Partial<AuctionFilterParams>) => void;
+  handleSortChange: (newSort: AuctionSortOption) => void;
+  handleResetFilters: () => void;
+  handleToggleWatchlist: (auctionId: string) => Promise<void>;
+};
+
 /**
  * オークション一覧画面のロジックを管理するカスタムフック
  * @returns オークション一覧画面のロジック
  * @description オークション一覧画面のロジックを管理するカスタムフック
  */
-export function useAuctionListings() {
+export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // Next.js関連
   const router = useRouter();

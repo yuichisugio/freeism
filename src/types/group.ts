@@ -33,6 +33,10 @@ export type Task = {
   fixedEvaluator: string | null;
   fixedEvaluationLogic: string | null;
   contributionType: contributionType;
+  // 情報・画像URL・カテゴリを追加
+  info: string | null;
+  imageUrl: string | null;
+  category: string | null;
   // 作成者情報
   creator: {
     id: string;

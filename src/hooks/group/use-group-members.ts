@@ -1,36 +1,84 @@
 "use client";
 
 import type { GroupMemberWithUser } from "@/lib/actions/group";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getGroupMembers, grantOwnerPermission, removeMember } from "@/lib/actions/group";
 import { toast } from "sonner";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループメンバーのフック
+ */
 type UseGroupMembersProps = {
   groupId: string;
   isGroupOwner: boolean;
   isAppOwner: boolean;
 };
 
-export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupMembersProps) {
-  const router = useRouter();
-  const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 権限付与関連
+type UseGroupMembersReturn = {
+  groupMembers: GroupMemberWithUser[];
+  showPermissionDialog: boolean;
+  setShowPermissionDialog: (showPermissionDialog: boolean) => void;
+  selectedUserId: string | null;
+  setSelectedUserId: (selectedUserId: string | null) => void;
+  selectedUserName: string | null;
+  setSelectedUserName: (selectedUserName: string | null) => void;
+  isComboboxOpen: boolean;
+  setIsComboboxOpen: (isComboboxOpen: boolean) => void;
+  removeMemberDialogOpen: boolean;
+  setRemoveMemberDialogOpen: (removeMemberDialogOpen: boolean) => void;
+  selectedMemberForRemoval: string | null;
+  setSelectedMemberForRemoval: (selectedMemberForRemoval: string | null) => void;
+  selectedMemberNameForRemoval: string | null;
+  setSelectedMemberNameForRemoval: (selectedMemberNameForRemoval: string | null) => void;
+  isRemovalComboboxOpen: boolean;
+  setIsRemovalComboboxOpen: (isRemovalComboboxOpen: boolean) => void;
+  addToBlackList: boolean;
+  setAddToBlackList: (addToBlackList: boolean) => void;
+  handleOpenPermissionDialog: () => Promise<void>;
+  handleGrantPermission: () => Promise<void>;
+  handleOpenRemoveMemberDialog: () => Promise<void>;
+  handleRemoveMember: () => Promise<void>;
+};
+
+/**
+ * グループメンバーのフック
+ * @param groupId {string} グループID
+ * @param isGroupOwner {boolean} グループオーナーかどうか
+ * @param isAppOwner {boolean} アプリオーナーかどうか
+ */
+export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupMembersProps): UseGroupMembersReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
 
-  // メンバー除名関連
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
   const [selectedMemberForRemoval, setSelectedMemberForRemoval] = useState<string | null>(null);
   const [selectedMemberNameForRemoval, setSelectedMemberNameForRemoval] = useState<string | null>(null);
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
   const [addToBlackList, setAddToBlackList] = useState(false);
 
-  // 権限付与ダイアログを開く処理
-  async function handleOpenPermissionDialog() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 権限付与ダイアログを開く処理
+   */
+  const handleOpenPermissionDialog = useCallback(async () => {
     if (!isGroupOwner && !isAppOwner) {
       toast.error("権限がありません");
       return;
@@ -45,10 +93,14 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
       console.error(error);
       toast.error("メンバー情報の取得に失敗しました");
     }
-  }
+  }, [groupId, isGroupOwner, isAppOwner]);
 
-  // 権限付与処理
-  async function handleGrantPermission() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 権限付与処理
+   */
+  const handleGrantPermission = useCallback(async () => {
     try {
       if (!isGroupOwner && !isAppOwner) {
         toast.error("権限がありません");
@@ -75,10 +127,14 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
       toast.error("エラーが発生しました");
       console.error(error);
     }
-  }
+  }, [groupId, isGroupOwner, isAppOwner, selectedUserId, router]);
 
-  // メンバー除名ダイアログを開く処理
-  async function handleOpenRemoveMemberDialog() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メンバー除名ダイアログを開く処理
+   */
+  const handleOpenRemoveMemberDialog = useCallback(async () => {
     if (!isGroupOwner && !isAppOwner) {
       toast.error("権限がありません");
       return;
@@ -93,10 +149,14 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
       console.error(error);
       toast.error("メンバー情報の取得に失敗しました");
     }
-  }
+  }, [groupId, isGroupOwner, isAppOwner]);
 
-  // メンバー除名処理
-  async function handleRemoveMember() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メンバー除名処理
+   */
+  const handleRemoveMember = useCallback(async () => {
     try {
       if (!isGroupOwner && !isAppOwner) {
         toast.error("権限がありません");
@@ -122,7 +182,9 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
       toast.error("エラーが発生しました");
       console.error(error);
     }
-  }
+  }, [groupId, isGroupOwner, isAppOwner, selectedMemberForRemoval, addToBlackList, router]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     groupMembers,

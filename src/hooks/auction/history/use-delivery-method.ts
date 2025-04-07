@@ -7,6 +7,9 @@ import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 提供方法管理のカスタムフックの型定義
+ */
 type UseDeliveryMethodResult = {
   deliveryMethod: string;
   setDeliveryMethod: (deliveryMethod: string) => void;
