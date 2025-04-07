@@ -1,6 +1,6 @@
 "use server";
 
-import type { TaskFormValuesAndGroupId } from "@/components/task/task-input-form";
+import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use-task-input-form";
 import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
@@ -50,7 +50,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
           create:
             data.reporters && data.reporters.length > 0
               ? // 報告者が指定されている場合
-                data.reporters.map((reporter) => ({
+                data.reporters.map((reporter: TaskParticipant) => ({
                   name: reporter.name,
                   userId: reporter.userId,
                 }))
@@ -62,7 +62,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
           create:
             data.executors && data.executors.length > 0
               ? // 実行者が指定されている場合
-                data.executors.map((executor) => ({
+                data.executors.map((executor: TaskParticipant) => ({
                   name: executor.name,
                   userId: executor.userId,
                 }))
@@ -1078,7 +1078,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
           // 3. 新しい報告者を登録
           reporters: data.reporters
             ? {
-                create: data.reporters.map((reporter) => ({
+                create: data.reporters.map((reporter: TaskParticipant) => ({
                   name: reporter.name,
                   userId: reporter.userId,
                 })),
@@ -1087,7 +1087,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
           // 4. 新しい実行者を登録
           executors: data.executors
             ? {
-                create: data.executors.map((executor) => ({
+                create: data.executors.map((executor: TaskParticipant) => ({
                   name: executor.name,
                   userId: executor.userId,
                 })),

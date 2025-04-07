@@ -413,7 +413,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
       {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
-      <DialogContent className="h-[95vh] overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
+      <DialogContent className="max-h-[95vh] overflow-y-auto rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
         <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
           <button onClick={() => onCloseAction(false)} className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none" disabled={state.isExporting} aria-label="閉じる">
             <XIcon className="h-5 w-5" />
@@ -429,7 +429,7 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
 
         {/* コンテンツエリア */}
         <div className="flex h-full flex-col">
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 p-6">
             <AnimatePresence custom={state.direction} mode="wait">
               {/* ステップに応じたコンポーネントを直接レンダリング */}
               {state.step === 1 && <ExportTypeSelectionStep />}
