@@ -1,12 +1,10 @@
 "use client";
 
 import type { Column, DataTableProps } from "@/components/share/data-table";
-import { useState } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { joinGroup } from "@/lib/actions/group";
+import { useGroupJoiner } from "@/hooks/table/use-group-actions";
 import { UserPlus } from "lucide-react";
-import { toast } from "sonner";
 
 // グループのデータの型を定義
 type Group = {
@@ -26,37 +24,8 @@ type GroupListTableProps = {
 
 // 各要素のデータとしてグループデータが入ったオブジェクトを引数として渡す
 export function GroupListTable({ groups: initialGroups }: GroupListTableProps) {
-  // 初期値としてpropsに渡したグループのデータ(groupsキーに配列で格納)を取得したグループデータを格納する
-  const [groups, setGroups] = useState<Group[]>(initialGroups);
-
-  // グループ参加処理
-  async function handleJoin(groupId: string) {
-    try {
-      // グループに参加する。
-      const result = await joinGroup(groupId);
-
-      if (result.success) {
-        toast.success("グループに参加しました");
-        // 参加状態を更新。prevは現在のstate。
-        setGroups((prev) =>
-          // グループを一つずつチェック。
-          prev.map((group) =>
-            // チェックしたグループのidが、設定したハンドラーのgroupIdと同じ場合は、参加者を追加。
-            group.id === groupId
-              ? // 同じ場合は、参加者を追加。
-                { ...group, members: [{ id: "temp" }] }
-              : // 同じでない場合は、そのままのグループを返す。
-                group,
-          ),
-        );
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error("エラーが発生しました");
-      console.error(error);
-    }
-  }
+  // カスタムフックを使用してグループ参加機能を実装
+  const { groups, setGroups, handleJoin } = useGroupJoiner<Group>(initialGroups);
 
   // グループリストのテーブルの列を定義
   const columns: Column<Group>[] = [

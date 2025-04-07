@@ -1,28 +1,10 @@
 "use client";
 
 import type { Column } from "@/components/share/data-table";
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/share/data-table";
-import { checkAppOwner, checkAuth } from "@/lib/actions/group";
-import { getMyTasks } from "@/lib/actions/task";
-import { getAllUsers } from "@/lib/actions/user";
+import { useMyTasks } from "@/hooks/table/use-my-tasks";
 import { type contributionType } from "@prisma/client";
-import { toast } from "react-hot-toast";
-
-// User型（getAllUsersが返す形式に合わせる）
-type BasicUser = {
-  id: string;
-  name: string | null;
-  email: string;
-};
-
-// DataTable用のユーザータイプ（必要なプロパティのみを含む）
-type SimpleUser = {
-  id: string;
-  name: string;
-};
 
 // 報告者と実行者の型
 type TaskParticipant = {
@@ -61,97 +43,8 @@ type MyTasksTableProps = {
 };
 
 export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
-  const router = useRouter();
-  const [tasks, setTasks] = useState(initialTasks);
-  const [users, setUsers] = useState<BasicUser[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isAppOwner, setIsAppOwner] = useState(false);
-
-  // ユーザー一覧を取得
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const allUsers = await getAllUsers();
-        setUsers(allUsers as BasicUser[]);
-      } catch (error) {
-        console.error("ユーザー一覧取得エラー:", error);
-      }
-    }
-
-    void fetchUsers();
-  }, []);
-
-  // 権限情報を取得
-  useEffect(() => {
-    async function checkPermissions() {
-      try {
-        const currentUserId = await checkAuth();
-        if (currentUserId) {
-          setUserId(currentUserId);
-          const isOwner = await checkAppOwner(currentUserId);
-          setIsAppOwner(isOwner);
-        }
-      } catch (error) {
-        console.error("権限チェックエラー:", error);
-      }
-    }
-
-    void checkPermissions();
-  }, []);
-
-  // 報告者名を連結する関数
-  const getReporterNames = (reporters: TaskParticipant[]): string => {
-    if (!reporters || reporters.length === 0) return "-";
-    return reporters.map((r) => (r.user ? r.user.name : r.name) ?? "不明").join(", ");
-  };
-
-  // 実行者名を連結する関数
-  const getExecutorNames = (executors: TaskParticipant[]): string => {
-    if (!executors || executors.length === 0) return "-";
-    return executors.map((e) => (e.user ? e.user.name : e.name) ?? "不明").join(", ");
-  };
-
-  // タスク編集可能かどうかの判定
-  const canEditTask = (task: Task): boolean => {
-    // 変更不可のステータスチェック
-    const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
-    if (immutableStatuses.includes(task.status)) {
-      return false;
-    }
-
-    // 権限チェック - 報告者、実行者、アプリオーナーのみ編集可能
-    if (!userId) return false;
-
-    // 報告者チェック
-    const isReporter = task.reporters.some((r) => r.userId === userId);
-
-    // 実行者チェック
-    const isExecutor = task.executors.some((e) => e.userId === userId);
-
-    // アプリオーナーの場合は編集可能
-    return isAppOwner || isReporter || isExecutor;
-  };
-
-  // タスク編集後の更新処理
-  const handleTaskEdited = () => {
-    // 非同期処理を即時実行関数として実行
-    void (async () => {
-      try {
-        // タスクデータを再取得
-        const updatedTasks = await getMyTasks();
-
-        // 表示用のタスクデータを更新
-        if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
-          setTasks(updatedTasks);
-          toast.success("タスクデータを更新しました");
-        }
-      } catch (error) {
-        console.error("タスクデータ更新エラー:", error);
-      } finally {
-        router.refresh(); // バックアップとしてのrefresh
-      }
-    })();
-  };
+  // カスタムフックを使用してタスク管理機能を実装
+  const { tasks, setTasks, getReporterNames, getExecutorNames, canEditTask, handleTaskEdited, getSimpleUsers } = useMyTasks<Task>(initialTasks);
 
   const columns: Column<Task>[] = [
     {
@@ -228,10 +121,7 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps) {
         editTask: {
           canEdit: canEditTask,
           onEdit: handleTaskEdited,
-          users: users.map((user) => ({
-            id: user.id,
-            name: user.name ?? "",
-          })) as SimpleUser[],
+          users: getSimpleUsers(),
         },
       }}
     />

@@ -775,6 +775,85 @@ export async function bulkCreateTasks(
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * タスクを削除するサーバーアクション
+ * @param taskId 削除するタスクのID
+ * @returns 処理結果を含むオブジェクト
+ */
+export async function deleteTask(taskId: string) {
+  try {
+    // 現在のユーザーを取得
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: "ログインが必要です" };
+    }
+
+    const currentUserId = session.user.id;
+
+    // タスクを取得（関連エンティティも含む）
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        reporters: true,
+        executors: true,
+        group: {
+          include: {
+            members: {
+              where: {
+                userId: currentUserId,
+                isGroupOwner: true,
+              },
+            },
+          },
+        },
+        auction: true,
+      },
+    });
+
+    if (!task) {
+      return { success: false, error: "タスクが見つかりません" };
+    }
+
+    // 権限チェック（グループオーナー、タスク報告者、タスク実行者のいずれかであること）
+    const isGroupOwner = task.group.members.length > 0;
+    const isReporter = task.reporters.some((reporter) => reporter.userId === currentUserId);
+    const isExecutor = task.executors.some((executor) => executor.userId === currentUserId);
+
+    if (!isGroupOwner && !isReporter && !isExecutor) {
+      return { success: false, error: "このタスクを削除する権限がありません" };
+    }
+
+    // タスク状態のチェック
+    if (task.contributionType === contributionType.REWARD) {
+      // 報酬タスクの場合、オークションがPENDINGの場合のみ削除可能
+      if (!task.auction || task.auction.status !== "PENDING") {
+        return { success: false, error: "オークションが開始されているタスクは削除できません" };
+      }
+    } else {
+      // 非報酬タスクの場合、ステータスがPENDINGの場合のみ削除可能
+      if (task.status !== "PENDING") {
+        return { success: false, error: "進行中または完了したタスクは削除できません" };
+      }
+    }
+
+    // タスクを削除（カスケード削除により関連エンティティも削除される）
+    await prisma.task.delete({
+      where: { id: taskId },
+    });
+
+    // キャッシュを再検証
+    revalidatePath(`/groups/${task.groupId}`);
+    revalidatePath(`/dashboard/group/${task.groupId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("タスク削除エラー:", error);
+    return { success: false, error: "タスクの削除中にエラーが発生しました" };
+  }
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * タスクのステータスを更新する関数
  * @param taskId - 更新するタスクのID
  * @param status - 新しいステータス
@@ -936,153 +1015,160 @@ export async function updateTaskStatus(taskId: string, status: string) {
  */
 export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGroupId, "groupId">) {
   try {
+    // 認証セッションを取得
     const session = await getAuthSession();
 
+    // 認証セッションが取得できない場合
     if (!session?.user?.id) {
       return { error: "認証エラーが発生しました" };
     }
 
-    // 更新前にタスクを取得して権限とステータスを確認
-    const task = await prisma.task.findUnique({
+    // 既存のタスクを取得
+    const existingTask = await prisma.task.findUnique({
       where: { id: taskId },
       include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        reporters: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        executors: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        group: {
-          select: {
-            id: true,
-            // ownerIdはGroupSelect型に存在しない可能性があるので削除
-          },
-        },
+        group: true,
+        reporters: true,
+        executors: true,
       },
     });
 
-    if (!task) {
-      return { error: "タスクが見つかりません" };
+    if (!existingTask) {
+      return { error: "更新対象のタスクが見つかりません" };
     }
 
-    // 変更不可のステータスチェック
-    const immutableStatuses: TaskStatus[] = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
-    if (immutableStatuses.includes(task.status)) {
-      return { error: "このステータスのタスクは変更できません" };
+    // グループ所有者またはアプリ所有者か確認
+    const isGroupOwner = await checkGroupOwner(session.user.id, existingTask.groupId);
+    const isAppOwner = await checkAppOwner(session.user.id);
+    const isTaskCreator = existingTask.creatorId === session.user.id;
+
+    // 権限チェック（タスク作成者、グループ所有者、またはアプリ所有者のみ更新可能）
+    if (!isTaskCreator && !isGroupOwner && !isAppOwner) {
+      return { error: "このタスクを更新する権限がありません" };
     }
 
-    // 権限チェック - 報告者、実行者、アプリオーナー、グループオーナーのみ編集可能
-    const userId = session.user.id;
-    const isAppOwner = await checkAppOwner(userId);
+    // タスクと関連データの更新をトランザクションで行う
+    const updatedTask = await prisma.$transaction(async (prismaClient) => {
+      // 1. 既存の報告者と実行者を削除
+      if (data.reporters || data.executors) {
+        if (data.reporters) {
+          await prismaClient.taskReporter.deleteMany({
+            where: { taskId: taskId },
+          });
+        }
 
-    // グループオーナーのチェックは別の方法で行う
-    // isGroupOwnerをfalseとして初期化し、必要に応じて別途取得する
-    let isGroupOwner = false;
+        if (data.executors) {
+          await prismaClient.taskExecutor.deleteMany({
+            where: { taskId: taskId },
+          });
+        }
+      }
 
-    // グループIDを取得
-    const groupId = task.groupId;
-
-    // グループオーナーかどうかをチェック
-    if (groupId) {
-      isGroupOwner = await checkGroupOwner(userId, groupId);
-    }
-
-    // task.reporters と task.executors は include で取得したプロパティのため、型アサーションが必要
-    const taskWithRelations = task as unknown as {
-      reporters: { userId: string | null }[];
-      executors: { userId: string | null }[];
-    };
-
-    const isReporter = taskWithRelations.reporters.some((r) => r.userId === userId);
-    const isExecutor = taskWithRelations.executors.some((e) => e.userId === userId);
-
-    if (!isAppOwner && !isGroupOwner && !isReporter && !isExecutor) {
-      return { error: "このタスクを編集する権限がありません" };
-    }
-
-    // 既存の報告者と実行者を削除する準備
-    await prisma.taskReporter.deleteMany({
-      where: { taskId },
-    });
-
-    await prisma.taskExecutor.deleteMany({
-      where: { taskId },
-    });
-
-    // タスクを更新
-    const updatedTask = await prisma.task.update({
-      where: { id: taskId },
-      data: {
-        task: data.task,
-        detail: data.detail,
-        reference: data.reference,
-        info: data.info,
-        imageUrl: data.imageUrl,
-        contributionType: data.contributionType,
-        // 報告者の設定
-        reporters: {
-          create:
-            data.reporters && data.reporters.length > 0
-              ? data.reporters.map((reporter) => ({
+      // 2. タスクの基本情報を更新
+      const result = await prismaClient.task.update({
+        where: { id: taskId },
+        data: {
+          task: data.task,
+          detail: data.detail,
+          reference: data.reference,
+          info: data.info,
+          imageUrl: data.imageUrl,
+          contributionType: data.contributionType,
+          category: data.category,
+          // 3. 新しい報告者を登録
+          reporters: data.reporters
+            ? {
+                create: data.reporters.map((reporter) => ({
                   name: reporter.name,
                   userId: reporter.userId,
-                }))
-              : [],
-        },
-        // 実行者の設定
-        executors: {
-          create:
-            data.executors && data.executors.length > 0
-              ? data.executors.map((executor) => ({
+                })),
+              }
+            : undefined,
+          // 4. 新しい実行者を登録
+          executors: data.executors
+            ? {
+                create: data.executors.map((executor) => ({
                   name: executor.name,
                   userId: executor.userId,
-                }))
-              : [],
+                })),
+              }
+            : undefined,
         },
-      },
-      include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          reporters: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          executors: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
           },
         },
-      },
+      });
+
+      // オークションの情報更新またはオークション作成
+      const existingAuction = await prismaClient.auction.findUnique({
+        where: { taskId: taskId },
+      });
+
+      // 貢献タイプがREWARDに変更され、オークションが存在しない場合は新規作成
+      if (data.contributionType === contributionType.REWARD && !existingAuction) {
+        await prismaClient.auction.create({
+          data: {
+            taskId: taskId,
+            startTime: new Date(),
+            endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // デフォルト1週間後
+            status: "PENDING",
+            currentHighestBid: 0,
+            extensionCount: 0,
+          },
+        });
+      }
+      // 貢献タイプがNON_REWARDに変更され、オークションが存在する場合は削除
+      else if (data.contributionType === contributionType.NON_REWARD && existingAuction) {
+        // オークションに入札がある場合は削除しない
+        const hasBids = await prismaClient.bidHistory.findFirst({
+          where: { auctionId: existingAuction.id },
+        });
+
+        if (!hasBids) {
+          await prismaClient.auction.delete({
+            where: { id: existingAuction.id },
+          });
+        } else {
+          // 入札がある場合は警告を追加（タスクの更新自体は行う）
+          console.warn(`タスク ${taskId} は入札があるため、オークションは削除されませんでした`);
+        }
+      }
+
+      return result;
     });
 
-    // キャッシュを更新
-    revalidatePath(`/dashboard/group/${groupId}`);
-    revalidatePath("/dashboard/my-tasks");
+    revalidatePath(`/dashboard/group/${existingTask.groupId}`);
+    // revalidatePath('/dashboard/my-tasks');
 
-    return {
-      success: true,
-      task: updatedTask,
-    };
+    return { success: true, task: updatedTask };
   } catch (error) {
-    console.error("タスク更新エラー:", error);
-    return {
-      error: "タスクの更新に失敗しました",
-    };
+    console.error("[UPDATE_TASK]", error);
+    return { error: "タスクの更新中にエラーが発生しました" };
   }
 }
 

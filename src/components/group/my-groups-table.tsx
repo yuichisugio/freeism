@@ -1,12 +1,10 @@
 "use client";
 
 import type { Column, DataTableProps } from "@/components/share/data-table";
-import { useState } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { leaveGroup } from "@/lib/actions/group";
+import { useGroupLeaver, useGroupPoints } from "@/hooks/table/use-group-actions";
 import { LogOut } from "lucide-react";
-import { toast } from "sonner";
 
 type GroupMembership = {
   id: string;
@@ -27,37 +25,14 @@ type MyGroupsTableProps = {
 };
 
 export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTableProps) {
-  // グループ一覧を取得
-  const [memberships, setMemberships] = useState(initialMemberships);
+  // カスタムフックを使用してグループ脱退機能を実装
+  const { memberships, setMemberships, handleLeave } = useGroupLeaver<GroupMembership>(initialMemberships);
 
-  // グループごとの自分の保有ポイントを計算。グループごとに保有ポイントを計算して、グループIDをキーとして保有ポイントをオブジェクトに格納する。
-  const totalContributionPointsByGroup = memberships.reduce(
-    (acc, membership) => {
-      const groupId = membership.group.id;
-      const groupContributionPoints = membership.group.tasks.reduce((sum, task) => sum + (task.fixedContributionPoint ?? 0), 0);
-      acc[groupId] = groupContributionPoints;
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
+  // カスタムフックを使用してグループポイント計算を実装
+  const { calculateTotalPointsByGroup } = useGroupPoints<GroupMembership>(memberships);
 
-  // グループ脱退処理
-  async function handleLeave(groupId: string) {
-    try {
-      const result = await leaveGroup(groupId);
-
-      if (result.success) {
-        toast.success("グループから脱退しました");
-        // 脱退したグループを一覧から削除
-        setMemberships((prev) => prev.filter((membership) => membership.group.id !== groupId));
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error("エラーが発生しました");
-      console.error(error);
-    }
-  }
+  // ポイントを計算
+  const totalContributionPointsByGroup = calculateTotalPointsByGroup();
 
   const columns: Column<GroupMembership>[] = [
     {

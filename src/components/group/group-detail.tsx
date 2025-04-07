@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { checkAppOwner, checkAuth, checkGroupOwner, deleteGroup, getGroupMembers, grantOwnerPermission, joinGroup, leaveGroup, removeMember } from "@/lib/actions/group";
-import { getTasksByGroupId } from "@/lib/actions/task";
+import { deleteTask, getTasksByGroupId } from "@/lib/actions/task";
 import { getAllUsers } from "@/lib/actions/user";
 import { contributionType } from "@prisma/client";
 import { Award, Check, ChevronsUpDown, ClipboardCheck, ClipboardList, Download, Edit, Loader2, LogOut, ShieldCheck, TargetIcon, Trash2, Upload, UserMinus, UserPlus, Users } from "lucide-react";
@@ -419,6 +419,64 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     },
   ];
 
+  // タスク削除ハンドラー
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      setIsLoading(true);
+      const result = await deleteTask(taskId);
+
+      if (result.success) {
+        toast.success("タスクを削除しました");
+
+        // タスクデータを更新
+        if (tasks.length > 0) {
+          const groupId = tasks[0].group.id;
+          const updatedTasks = await getTasksByGroupId(groupId);
+
+          // 表示用のタスクデータを更新
+          if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
+            const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
+            const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
+
+            setRewardTasks(newRewardTasks);
+            setNonRewardTasks(newNonRewardTasks);
+          }
+        }
+
+        router.refresh(); // UIを更新
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      console.error("タスク削除エラー:", error);
+      toast.error("タスクの削除中にエラーが発生しました");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // タスク削除可能かどうかの判定
+  const canDeleteTask = (task: Task): boolean => {
+    // 権限チェック - 報告者、実行者、グループオーナーのみ削除可能
+    if (!userId) return false;
+
+    // 報告者チェック
+    const isReporter = task.reporters.some((r) => r.userId === userId);
+
+    // 実行者チェック
+    const isExecutor = task.executors.some((e) => e.userId === userId);
+
+    // ステータスチェック
+    if (task.contributionType === contributionType.REWARD) {
+      // 報酬タスクは、AuctionがPENDINGの場合のみ削除可能
+      // 注: ここではAuction情報を持っていないため、ステータスでPENDINGかどうかを判断
+      return (isGroupOwner || isReporter || isExecutor) && task.status === "PENDING";
+    } else {
+      // 非報酬タスクは、TaskStatusがPENDINGの場合のみ削除可能
+      return (isGroupOwner || isReporter || isExecutor) && task.status === "PENDING";
+    }
+  };
+
   // 非報酬タスク用のカラム
   const nonRewardColumns: Column<Task>[] = [
     ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
@@ -428,7 +486,26 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
       sortable: true,
     },
-    ...commonColumns.slice(4), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+    ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+    {
+      key: "action" as keyof Task,
+      header: "アクション",
+      editTask: true,
+    },
+    {
+      key: "delete" as keyof Task,
+      header: "削除",
+      deleteTask: {
+        canDelete: canDeleteTask,
+        onDelete: handleDeleteTask,
+      },
+    },
+    {
+      key: "detail" as keyof Task,
+      header: "詳細",
+      cell: (row: Task) => row.detail ?? "-",
+      sortable: false,
+    },
   ];
 
   // 報酬タスク用のカラム
@@ -450,7 +527,26 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
       cell: (row: Task) => `${row.fixedContributionPoint ?? 0}p`,
       sortable: true,
     },
-    ...commonColumns.slice(4), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+    ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+    {
+      key: "action" as keyof Task,
+      header: "アクション",
+      editTask: true,
+    },
+    {
+      key: "delete" as keyof Task,
+      header: "削除",
+      deleteTask: {
+        canDelete: canDeleteTask,
+        onDelete: handleDeleteTask,
+      },
+    },
+    {
+      key: "detail" as keyof Task,
+      header: "詳細",
+      cell: (row: Task) => row.detail ?? "-",
+      sortable: false,
+    },
   ];
 
   // タスク編集可能かどうかの判定
@@ -521,6 +617,11 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         name: user.name ?? "",
       })),
     },
+    deleteModal: {
+      title: "タスクを削除",
+      description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
+      actionLabel: "削除する",
+    },
   };
 
   const rewardTaskDataTableProps: DataTableProps<Task> = {
@@ -536,6 +637,11 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
         id: user.id,
         name: user.name ?? "",
       })),
+    },
+    deleteModal: {
+      title: "タスクを削除",
+      description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
+      actionLabel: "削除する",
     },
   };
 
