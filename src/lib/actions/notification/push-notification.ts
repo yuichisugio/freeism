@@ -238,19 +238,28 @@ export async function saveSubscription(subscription: {
       console.log("未認証ユーザーです。プッシュ通知の購読はスキップします。");
       return { error: "ユーザーが認証されていません" };
     }
+    console.log("push-notification_saveSubscription_userId", userId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // ダミーのレコードID
+    const dummyRecordId = "00000000000000000000000000000000";
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 購読情報のレコードIDがない場合は、購読情報を取得する
     if (!subscription.recordId) {
       const recordId = await getRecordId(subscription.endpoint);
       if (recordId === null || recordId === undefined) {
         // ダミーを入れる
-        subscription.recordId = "00000000000000000000000000000000";
+        subscription.recordId = dummyRecordId;
         console.log("購読情報が見つからないため、ダミーを入れます。", subscription.recordId);
       } else {
         subscription.recordId = recordId;
       }
     }
+
+    console.log("push-notification_saveSubscription_subscription.recordId", subscription.recordId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -259,28 +268,40 @@ export async function saveSubscription(subscription: {
         ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
         : null; // nullまたはundefinedならnull
 
+    console.log("push-notification_saveSubscription_expirationTimeDate", expirationTimeDate);
+
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // Prismaを使用してDBに保存
-    const result = await prisma.pushSubscription.upsert({
-      where: {
-        id: subscription.recordId,
-      },
-      update: {
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        expirationTime: expirationTimeDate,
-        userId: userId,
-      },
-      create: {
-        userId: userId,
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        expirationTime: expirationTimeDate,
-      },
-    });
+    let result = null;
+
+    if (dummyRecordId === subscription.recordId) {
+      console.log("push-notification_saveSubscription_dummyRecordId", subscription.recordId);
+      result = await prisma.pushSubscription.create({
+        data: {
+          userId: userId,
+          endpoint: subscription.endpoint,
+          p256dh: subscription.keys.p256dh,
+          auth: subscription.keys.auth,
+          expirationTime: expirationTimeDate,
+        },
+      });
+    } else {
+      // Prismaを使用してDBに保存
+      result = await prisma.pushSubscription.update({
+        where: {
+          id: subscription.recordId,
+        },
+        data: {
+          endpoint: subscription.endpoint,
+          p256dh: subscription.keys.p256dh,
+          auth: subscription.keys.auth,
+          expirationTime: expirationTimeDate,
+          userId: userId,
+        },
+      });
+    }
+
+    console.log("push-notification_saveSubscription_result", result);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
