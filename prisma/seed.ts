@@ -1,7 +1,7 @@
 import type { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { NotificationTargetType, PrismaClient, TaskStatus } from "@prisma/client";
+import { AuctionStatus, NotificationTargetType, PrismaClient, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -887,7 +887,12 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
   return notifications;
 }
 
-// オークションの生成
+/**
+ * オークションを生成する関数
+ * @param tasks タスクの配列
+ * @param users ユーザーの配列
+ * @returns 生成されたオークションの配列
+ */
 async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<SeedAuction[]> {
   console.log("Creating auctions...");
 
@@ -934,13 +939,13 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
     const initialPrice = faker.number.int({ min: 500, max: 5000 });
 
     // オークションの状態を決定（開始前、進行中、終了済み）
-    let status: "PENDING" | "ACTIVE" | "ENDED" | "CANCELED";
+    let status: AuctionStatus;
     if (startTime > now) {
-      status = "PENDING"; // 開始前
+      status = AuctionStatus.PENDING; // 開始前
     } else if (endTime > now) {
-      status = "ACTIVE"; // 進行中
+      status = AuctionStatus.ACTIVE; // 進行中
     } else {
-      status = "ENDED"; // 終了済み
+      status = AuctionStatus.ENDED; // 終了済み
     }
 
     // 現在の最高入札額を設定（初期値は開始価格）
@@ -948,7 +953,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
     let currentHighestBidderId = null;
 
     // 入札者がいる場合に備えて、ランダムな最高入札者を選択
-    if (status === "ACTIVE" || status === "ENDED") {
+    if (status === AuctionStatus.ACTIVE || status === AuctionStatus.ENDED) {
       // 入札できるユーザーはタスク作成者以外
       const potentialBidders = users.filter((user) => user.id !== task.creatorId);
       if (potentialBidders.length > 0) {
@@ -968,7 +973,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
 
     // 落札者を設定（終了済みの場合のみ）
     let winnerId = null;
-    if (status === "ENDED" && currentHighestBidderId) {
+    if (status === AuctionStatus.ENDED && currentHighestBidderId) {
       // 最高入札者がいる場合は落札者として設定
       winnerId = currentHighestBidderId;
     }
@@ -1019,7 +1024,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
 
   for (const auction of auctions) {
     // 開始前のオークションはスキップ
-    if (auction.status === "PENDING") continue;
+    if (auction.status === AuctionStatus.PENDING) continue;
 
     // 関連するタスクを取得
     const task = await prisma.task.findUnique({
@@ -1034,7 +1039,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
     if (potentialBidders.length === 0) continue;
 
     // 入札数を0〜10の範囲でランダムに決定
-    const bidCount = auction.status === "ENDED" ? faker.number.int({ min: 1, max: 10 }) : faker.number.int({ min: 0, max: 10 });
+    const bidCount = auction.status === AuctionStatus.ENDED ? faker.number.int({ min: 1, max: 10 }) : faker.number.int({ min: 0, max: 10 });
 
     if (bidCount === 0) continue;
 
@@ -1097,7 +1102,7 @@ async function createAutoBids(auctions: SeedAuction[], users: SeedUser[]) {
   const autoBids = [];
 
   // アクティブなオークションのみを対象
-  const activeAuctions = auctions.filter((auction) => auction.status === "ACTIVE");
+  const activeAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ACTIVE);
 
   for (const auction of activeAuctions) {
     // 関連するタスクを取得
@@ -1148,7 +1153,12 @@ async function createAutoBids(auctions: SeedAuction[], users: SeedUser[]) {
   return autoBids;
 }
 
-// オークション通知の生成
+/**
+ * オークション通知を生成する関数
+ * @param auctions オークションの配列
+ * @param users ユーザーの配列
+ * @returns 生成された通知の配列
+ */
 async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUser[]) {
   console.log("Creating auction notifications...");
 
@@ -1173,7 +1183,7 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
         notificationTypes = ["AUCTION_WIN", "POINT_RETURNED"];
       }
       // 最高入札者だが落札者ではない場合
-      else if (auction.currentHighestBidderId === user.id && auction.status === "ENDED" && auction.winnerId !== user.id) {
+      else if (auction.currentHighestBidderId === user.id && auction.status === AuctionStatus.ENDED && auction.winnerId !== user.id) {
         notificationTypes = ["AUCTION_LOST", "POINT_RETURNED"];
       }
 
@@ -1197,7 +1207,7 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
 
         // 預けたポイントが返ってくる期間（落札日の2ヶ月後）
         let pointReturnDate = null;
-        if (auction.status === "ENDED" && auction.winnerId) {
+        if (auction.status === AuctionStatus.ENDED && auction.winnerId) {
           const twoMonthsLater = new Date(auction.endTime);
           twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
           pointReturnDate = twoMonthsLater;
@@ -1223,6 +1233,7 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           const title = generateNotificationTitle(notificationType);
           const message = generateNotificationMessage(notificationType, auction, task, pointReturnDate);
 
+          // データベースに通知を作成
           const notification = await prisma.notification.create({
             data: {
               title,
@@ -1332,7 +1343,7 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
   const reviews = [];
 
   // 終了したオークションのみを対象
-  const endedAuctions = auctions.filter((auction) => auction.status === "ENDED" && auction.winnerId !== null);
+  const endedAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ENDED && auction.winnerId !== null);
 
   // 完了証明URLのパターン
   const proofUrlPatterns = [
@@ -1555,7 +1566,7 @@ async function createGroupPoints(users: SeedUser[], auctions: SeedAuction[]) {
       const fixedTotalPoints = balance;
 
       // ユーザーが落札者であるオークションを取得
-      const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === "ENDED");
+      const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === AuctionStatus.ENDED);
 
       // オークションの落札情報からポイント残高を調整
       for (const auction of wonAuctions) {
@@ -1597,6 +1608,123 @@ async function createGroupPoints(users: SeedUser[], auctions: SeedAuction[]) {
   return groupPoints;
 }
 
+// オークションメッセージの生成
+async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[]) {
+  console.log("Creating auction messages...");
+
+  const messages = [];
+
+  // アクティブなオークションを対象に処理
+  const targetAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ACTIVE || auction.status === AuctionStatus.ENDED);
+
+  for (const auction of targetAuctions) {
+    // 関連するタスクを取得して出品者(タスク作成者)を特定
+    const task = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { creatorId: true },
+    });
+
+    if (!task) continue;
+
+    const sellerId = task.creatorId;
+
+    // 入札者を取得（出品者以外のユーザーから選択）
+    const potentialBidders = users.filter((user) => user.id !== sellerId);
+    if (potentialBidders.length === 0) continue;
+
+    // このオークションの入札者を最大2人選ぶ
+    const bidderCount = Math.min(2, potentialBidders.length);
+    const bidders = faker.helpers.arrayElements(potentialBidders, bidderCount);
+
+    // 各入札者に対してメッセージをやり取り
+    for (const bidder of bidders) {
+      // 入札者からのメッセージ（質問）を2件生成
+      const bidderMessages = [
+        "こちらの商品の状態について教えていただけますか？",
+        "発送方法や配送にかかる日数はどれくらいでしょうか？",
+        "他にも同様の商品を出品予定はありますか？",
+        "この商品のサイズや重さなど、詳細を教えていただけますか？",
+        "保証やサポートはありますか？",
+        "商品の使用歴について教えていただけますか？",
+        "支払いが完了した後、いつ頃発送される予定ですか？",
+        "色や素材についてより詳しい情報はありますか？",
+      ];
+
+      // 出品者からの返信メッセージを2件生成
+      const sellerMessages = [
+        "商品は新品同様の状態です。目立った傷や汚れはありません。",
+        "発送は落札後2-3営業日以内に行います。配送方法は商品説明に記載の通りです。",
+        "現在のところ、同様の商品の出品予定はありません。",
+        "詳細な情報は商品説明に記載していますが、不明点があればお気軽にお尋ねください。",
+        "はい、メーカー保証が残っています。詳細は商品到着後にお伝えします。",
+        "商品は数回使用しただけで、ほぼ新品の状態です。",
+        "ご入金確認後、すぐに発送手続きを行います。通常は1-2営業日以内の発送となります。",
+        "もちろんです。商品は黒色で素材は高品質なアルミニウムを使用しています。",
+      ];
+
+      try {
+        // 基準となる時間を設定（オークション開始から現在までの間）
+        const now = new Date();
+        const auctionStartTime = new Date(auction.startTime);
+        const messageBaseTime = auctionStartTime < now ? auctionStartTime : new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+        // メッセージ1: 入札者からの質問
+        const bidderQuestion1 = await prisma.auctionMessage.create({
+          data: {
+            message: faker.helpers.arrayElement(bidderMessages),
+            auctionId: auction.id,
+            senderId: bidder.id,
+            recipientId: sellerId,
+            createdAt: new Date(messageBaseTime.getTime() + faker.number.int({ min: 1, max: 4 }) * 60 * 60 * 1000),
+          },
+        });
+        messages.push(bidderQuestion1);
+
+        // メッセージ2: 出品者からの回答
+        const sellerAnswer1 = await prisma.auctionMessage.create({
+          data: {
+            message: faker.helpers.arrayElement(sellerMessages),
+            auctionId: auction.id,
+            senderId: sellerId,
+            recipientId: bidder.id,
+            createdAt: new Date(bidderQuestion1.createdAt.getTime() + faker.number.int({ min: 1, max: 3 }) * 60 * 60 * 1000),
+          },
+        });
+        messages.push(sellerAnswer1);
+
+        // メッセージ3: 入札者からの追加質問
+        const bidderQuestion2 = await prisma.auctionMessage.create({
+          data: {
+            message: faker.helpers.arrayElement(bidderMessages.filter((msg) => msg !== bidderQuestion1.message)),
+            auctionId: auction.id,
+            senderId: bidder.id,
+            recipientId: sellerId,
+            createdAt: new Date(sellerAnswer1.createdAt.getTime() + faker.number.int({ min: 2, max: 6 }) * 60 * 60 * 1000),
+          },
+        });
+        messages.push(bidderQuestion2);
+
+        // メッセージ4: 出品者からの追加回答
+        const sellerAnswer2 = await prisma.auctionMessage.create({
+          data: {
+            message: faker.helpers.arrayElement(sellerMessages.filter((msg) => msg !== sellerAnswer1.message)),
+            auctionId: auction.id,
+            senderId: sellerId,
+            recipientId: bidder.id,
+            createdAt: new Date(bidderQuestion2.createdAt.getTime() + faker.number.int({ min: 1, max: 4 }) * 60 * 60 * 1000),
+          },
+        });
+        messages.push(sellerAnswer2);
+      } catch (error) {
+        console.error("オークションメッセージ作成エラー:", error);
+      }
+    }
+  }
+
+  console.log(`Created ${messages.length} auction messages`);
+  return messages;
+}
+
 /**
  * メイン関数
  * シードデータを生成する全体の流れを制御します
@@ -1630,6 +1758,7 @@ async function main() {
     // 7. オークション関連データの作成
     const auctions = await createAuctions(tasks, users);
     const bidHistories = await createBidHistories(auctions, users);
+    const auctionMessages = await createAuctionMessages(auctions, users);
     const autoBids = await createAutoBids(auctions, users);
     const watchLists = await createTaskWatchLists(auctions, users);
     const auctionNotifications = await createAuctionNotifications(auctions, users);
@@ -1654,6 +1783,7 @@ async function main() {
     console.log(`通知: ${notifications.length + auctionNotifications.length}件`);
     console.log(`オークション: ${auctions.length}件`);
     console.log(`入札履歴: ${bidHistories.length}件`);
+    console.log(`オークションメッセージ: ${auctionMessages.length}件`);
     console.log(`自動入札設定: ${autoBids.length}件`);
     console.log(`ウォッチリスト: ${watchLists.length}件`);
     console.log(`オークションレビュー: ${auctionReviews.length}件`);
