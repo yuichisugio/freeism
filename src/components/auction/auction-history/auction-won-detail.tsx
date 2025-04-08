@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -56,7 +56,7 @@ type AuctionWonDetailProps = {
  * @param sellerRating 出品者の評価
  * @param sellerReviews 出品者の評価履歴
  */
-export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: AuctionWonDetailProps) {
+export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, sellerRating, sellerReviews }: AuctionWonDetailProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ルーター
@@ -371,4 +371,4 @@ export function AuctionWonDetail({ auction, sellerRating, sellerReviews }: Aucti
       </div>
     </div>
   );
-}
+});

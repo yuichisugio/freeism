@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
+import { memo } from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
+// --------------------------------------------------
+
+/**
+ * プライバシーポリシーページのメタデータ
+ */
 export const metadata: Metadata = {
   title: "プライバシーポリシー | Freeism-App",
   description: "Freeism-Appのプライバシーポリシーをご確認ください。",
 };
 
-export default function PrivacyPage() {
+// --------------------------------------------------
+
+/**
+ * プライバシーポリシーページのコンポーネント
+ */
+export default memo(function PrivacyPage() {
   return (
     <>
       <Header />
@@ -75,4 +86,4 @@ export default function PrivacyPage() {
       <Footer />
     </>
   );
-}
+});

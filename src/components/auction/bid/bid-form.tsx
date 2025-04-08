@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { AutoBidForm } from "./auto-bid-form";
  * @param onCancel キャンセルボタンのクリックハンドラ
  * @returns 入札フォーム
  */
-export function BidForm({ auction }: BidFormProps) {
+export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
@@ -152,4 +152,4 @@ export function BidForm({ auction }: BidFormProps) {
       <AutoBidForm auctionId={auction.id} currentHighestBid={auction.currentHighestBid} currentHighestBidderId={auction.currentHighestBidderId ?? null} />
     </div>
   );
-}
+});

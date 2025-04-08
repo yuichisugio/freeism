@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
  * - 装飾的な背景エフェクトを含む
  * - レスポンシブ対応（画面サイズに応じてサイズを調整）
  */
-export default function NotFound() {
+export default memo(function NotFound() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* ヘッダー */}
@@ -43,4 +44,4 @@ export default function NotFound() {
       <Footer />
     </div>
   );
-}
+});

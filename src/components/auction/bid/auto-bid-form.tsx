@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ type AutoBidFormProps = {
  * @param currentHighestBidderId 現在の最高入札者ID
  * @returns 自動入札フォーム
  */
-export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidderId }: AutoBidFormProps): JSX.Element {
+export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidderId }: AutoBidFormProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 最大入札額の入力値
@@ -181,4 +181,4 @@ export function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidder
       </motion.div>
     </Card>
   );
-}
+});

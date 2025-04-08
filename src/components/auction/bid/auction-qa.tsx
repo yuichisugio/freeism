@@ -2,7 +2,7 @@
 
 import type { AuctionMessage } from "@/hooks/auction/bid/use-auction-message";
 import type { KeyboardEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,7 @@ type MessageFormValues = z.infer<typeof messageFormSchema>;
 /**
  * オークションの質問と回答コンポーネント
  */
-export function AuctionQA({ auctionId }: { auctionId: string }) {
+export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const { messages, sellerId, loading, error, submitting, sendMessage, reloadMessages, currentUserId, isSeller } = useAuctionMessage(auctionId);
 
@@ -309,4 +309,4 @@ export function AuctionQA({ auctionId }: { auctionId: string }) {
       </Card>
     </div>
   );
-}
+});

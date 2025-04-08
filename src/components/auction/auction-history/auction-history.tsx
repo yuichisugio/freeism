@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Rating } from "@/components/auction/common/rating";
 import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
@@ -42,7 +42,7 @@ type HistoryCardProps = {
  * @param {HistoryCardProps} props - 履歴カードのプロパティ
  * @returns {React.ReactNode} 履歴カードのReactノード
  */
-function HistoryCard({ id, title, timestampIcon, timestampText, amount, amountLabel, avatarSrc, avatarName, deliveryMethod, leftBadge, rightBadge, onClick, extraContent }: HistoryCardProps) {
+const HistoryCard = memo(function HistoryCard({ id, title, timestampIcon, timestampText, amount, amountLabel, avatarSrc, avatarName, deliveryMethod, leftBadge, rightBadge, onClick, extraContent }: HistoryCardProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
@@ -82,7 +82,7 @@ function HistoryCard({ id, title, timestampIcon, timestampText, amount, amountLa
       </CardFooter>
     </Card>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -92,9 +92,9 @@ function HistoryCard({ id, title, timestampIcon, timestampText, amount, amountLa
  * @param {string} props.message - 表示するメッセージ
  * @returns {React.ReactNode} 空の履歴メッセージのReactノード
  */
-function EmptyHistoryMessage({ message }: { message: string }) {
+const EmptyHistoryMessage = memo(function EmptyHistoryMessage({ message }: { message: string }) {
   return <div className="py-10 text-center text-gray-500">{message}</div>;
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -113,18 +113,19 @@ type HistoryGridProps<T> = {
  * @param {HistoryGridProps<T>} props - 履歴グリッドのプロパティ
  * @returns {React.ReactNode} 履歴グリッドのReactノード
  */
-function HistoryGrid<T>({ items, renderItem, emptyMessage, loading }: HistoryGridProps<T>) {
+const HistoryGrid = memo(function HistoryGrid<T>({ items, renderItem, emptyMessage, loading }: HistoryGridProps<T>) {
   if (loading) return null;
   if (items.length === 0) return <EmptyHistoryMessage message={emptyMessage} />;
 
   return <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{items.map(renderItem)}</div>;
-}
+}) as <T>(props: HistoryGridProps<T>) => React.ReactNode;
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 /**
  * 入札・落札履歴コンポーネント
  * @returns 入札・落札履歴コンポーネント
  */
-export function AuctionHistory() {
+export const AuctionHistory = memo(function AuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const router = useRouter();
@@ -310,4 +311,4 @@ export function AuctionHistory() {
       </Tabs>
     </div>
   );
-}
+});

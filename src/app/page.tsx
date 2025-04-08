@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { DescriptionSection } from "@/components/home/description-section";
 import { HeroSection } from "@/components/home/hero-section";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
-export default function Home() {
+export default memo(function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -16,4 +17,4 @@ export default function Home() {
       <Footer />
     </div>
   );
-}
+});

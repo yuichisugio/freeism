@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,7 @@ import { CountdownDisplay } from "./countdown-display";
  * @param initialAuction オークション情報
  * @returns オークション詳細ページ
  */
-export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
+export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリストの状態
@@ -54,7 +54,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
 
   // オークションが終了しているかどうか
-  const isAuctionEnded = countdownState.isExpired;
+  const isAuctionEnded = useMemo(() => countdownState.isExpired, [countdownState.isExpired]);
 
   // ウォッチリストアクション
   const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
@@ -355,4 +355,4 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
       </div>
     </motion.div>
   );
-}
+});

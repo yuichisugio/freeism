@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
+import { memo } from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
+// --------------------------------------------------
+
+/**
+ * 利用規約ページのメタデータ
+ */
 export const metadata: Metadata = {
   title: "利用規約 | Freeism-App",
   description: "Freeism-Appの利用規約をご確認ください。",
 };
 
-export default function TermsPage() {
+// --------------------------------------------------
+
+/**
+ * 利用規約ページのコンポーネント
+ */
+export default memo(function TermsPage() {
   return (
     <>
       <Header />
@@ -61,4 +72,4 @@ export default function TermsPage() {
       <Footer />
     </>
   );
-}
+});

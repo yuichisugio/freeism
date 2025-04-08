@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,7 +28,7 @@ type User = {
  * @param initialBids 初期の入札履歴
  * @returns 入札履歴
  */
-export function BidHistory({ initialBids = [] }: BidHistoryProps) {
+export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHistoryProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const [bids] = useState<BidHistoryWithUser[]>(initialBids);
@@ -129,4 +129,4 @@ export function BidHistory({ initialBids = [] }: BidHistoryProps) {
       </div>
     </div>
   );
-}
+});
