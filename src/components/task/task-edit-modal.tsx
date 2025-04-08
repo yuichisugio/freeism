@@ -1,8 +1,10 @@
 "use client";
 
-import type { User, UseTaskEditModalReturn } from "@/hooks/modal/use-task-edit-modal";
-import type { Task, TaskParticipant } from "@/types/group";
-import React from "react";
+import type { TaskFormValues, User } from "@/hooks/modal/use-task-edit-modal";
+import type { EditableTask } from "@/hooks/table/use-task-editor";
+import type { Task } from "@/types/group";
+import type { Control } from "react-hook-form";
+import { memo } from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,7 +22,7 @@ import { contributionType } from "@prisma/client";
 type TaskEditModalProps = {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
-  task: Task | null;
+  task: Task | EditableTask | null;
   users?: User[];
   onTaskUpdated?: () => void;
 };
@@ -36,7 +38,7 @@ type TaskEditModalProps = {
  * @param onTaskUpdated タスク更新時のコールバック
  * @returns タスク編集モーダル
  */
-export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps): JSX.Element {
+export const TaskEditModal = memo(function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useTaskEditModal フックからの返り値を適切に型付けする
@@ -60,7 +62,10 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     handleImageUploaded,
     handleImageRemoved,
     handleUpdate,
-  }: UseTaskEditModalReturn = useTaskEditModal({ open, onOpenChangeAction, task, users, onTaskUpdated });
+  } = useTaskEditModal({ open, onOpenChangeAction, task, users, onTaskUpdated });
+
+  // 型キャストをtypeスクリプトに合わせて修正
+  const typedControl = form.control as Control<TaskFormValues>;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -75,7 +80,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
           <div className="space-y-6">
             <CustomFormField
               fieldType="radio"
-              control={form.control}
+              control={typedControl}
               name="contributionType"
               label="貢献の種類"
               options={[
@@ -93,12 +98,12 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
               </div>
             )}
 
-            <CustomFormField fieldType="input" type="text" control={form.control} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
+            <CustomFormField fieldType="input" type="text" control={typedControl} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
 
             {/* カテゴリ選択を追加 */}
             <CustomFormField
               fieldType="combobox"
-              control={form.control}
+              control={typedControl}
               name="category"
               label="カテゴリ"
               description="タスクのカテゴリを選択してください"
@@ -108,13 +113,13 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
               placeholder="カテゴリを選択してください"
             />
 
-            <CustomFormField fieldType="textarea" control={form.control} name="detail" label="タスクの詳細" description="タスクの詳細を入力してください" placeholder="タスクの詳細を入力してください" />
+            <CustomFormField fieldType="textarea" control={typedControl} name="detail" label="タスクの詳細" description="タスクの詳細を入力してください" placeholder="タスクの詳細を入力してください" />
 
-            <CustomFormField fieldType="textarea" control={form.control} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
+            <CustomFormField fieldType="textarea" control={typedControl} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
 
             <CustomFormField
               fieldType="textarea"
-              control={form.control}
+              control={typedControl}
               name="info"
               label="証拠・結果・補足情報"
               description="貢献度を評価するための証拠や結果、補足情報（プルリクURL等）を記載してください"
@@ -161,7 +166,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                 <div className="mt-2">
                   <h4 className="text-sm font-medium">選択された実行者:</h4>
                   <ul className="mt-1 space-y-1">
-                    {executors.map((executor: TaskParticipant, index: number) => (
+                    {executors.map((executor, index) => (
                       <li key={`executor-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
                           {executor.name ?? "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
@@ -216,7 +221,7 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
                 <div className="mt-2">
                   <h4 className="text-sm font-medium">選択された報告者:</h4>
                   <ul className="mt-1 space-y-1">
-                    {reporters.map((reporter: TaskParticipant, index: number) => (
+                    {reporters.map((reporter, index) => (
                       <li key={`reporter-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
                           {reporter.name ?? "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
@@ -245,4 +250,4 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
       </DialogContent>
     </Dialog>
   );
-}
+});

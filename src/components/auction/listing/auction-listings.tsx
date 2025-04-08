@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import { AuctionCard } from "@/components/auction/listing/auction-card";
 import { AuctionFilters } from "@/components/auction/listing/auction-filters";
 import { AuctionPagination } from "@/components/auction/listing/auction-pagination";
@@ -14,7 +14,7 @@ import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings
  * オークション商品一覧コンポーネント
  * @returns オークション商品一覧コンポーネント
  */
-export function AuctionListings() {
+export const AuctionListings = memo(function AuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックと状態を取得
@@ -152,4 +152,4 @@ export function AuctionListings() {
       )}
     </div>
   );
-}
+});

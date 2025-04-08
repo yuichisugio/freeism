@@ -1,7 +1,7 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
-import { useMemo } from "react";
+import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
 import { useGroupLeaver, useGroupPoints } from "@/hooks/table/use-group-actions";
@@ -24,6 +24,8 @@ type GroupMembership = {
       fixedContributionPoint: number | null;
     }[];
   };
+  // インデックスシグネチャを追加して、Record<string, unknown>と互換性を持たせる
+  [key: string]: unknown;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -42,7 +44,7 @@ type MyGroupsTableProps = {
  * @param memberships グループメンバーシップ
  * @returns マイグループテーブル
  */
-export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTableProps): JSX.Element {
+export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTableProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックを使用してグループ脱退機能を実装
@@ -130,5 +132,8 @@ export function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTable
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return <DataTable dataTableProps={dataTableProps} />;
-}
+  // unknownを経由して型を変換
+  const propsForDataTable = dataTableProps as unknown as { dataTableProps: DataTableProps<BaseRecord> };
+
+  return <DataTable {...propsForDataTable} />;
+});

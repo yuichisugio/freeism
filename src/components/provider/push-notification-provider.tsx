@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { usePushNotification } from "@/hooks/notification/use-push-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,7 +17,7 @@ type PushNotificationProviderProps = {
  * @param children
  * @returns
  */
-export function PushNotificationProvider({ children }: PushNotificationProviderProps) {
+export const PushNotificationProvider = memo(function PushNotificationProvider({ children }: PushNotificationProviderProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
@@ -53,4 +53,4 @@ export function PushNotificationProvider({ children }: PushNotificationProviderP
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return <>{children}</>;
-}
+});

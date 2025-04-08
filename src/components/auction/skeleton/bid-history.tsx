@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -6,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 /**
  * 入札履歴スケルトンローダー
  */
-export function BidHistorySkeleton() {
+export const BidHistorySkeleton = memo(function BidHistorySkeleton() {
   return (
     <div className="rounded-md border">
       <Table>
@@ -40,4 +41,4 @@ export function BidHistorySkeleton() {
       </Table>
     </div>
   );
-}
+});

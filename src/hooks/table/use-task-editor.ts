@@ -1,16 +1,21 @@
-import { useState } from "react";
-import { type contributionType } from "@prisma/client";
+import { useCallback, useState } from "react";
 
 export type TaskParticipant = {
   id: string;
   name: string;
 };
 
+// 編集用の汎用タスクインターフェース
+export type EditableTask = {
+  id: string;
+  [key: string]: unknown;
+};
+
 /**
  * タスク編集機能のためのカスタムフック
  * @returns タスク編集関連の状態と処理
  */
-export function useTaskEditor<T extends Record<string, unknown>>() {
+export function useTaskEditor<T extends { id: string; [key: string]: unknown }>() {
   // 現在編集中のタスク
   const [editingTask, setEditingTask] = useState<T | null>(null);
 
@@ -22,53 +27,28 @@ export function useTaskEditor<T extends Record<string, unknown>>() {
    * @param row - 編集対象のタスク行
    * @param canEdit - 編集可能かどうかを判定する関数
    */
-  const handleEditTask = (row: T, canEdit: (row: T) => boolean) => {
+  const handleEditTask = useCallback((row: T, canEdit: (row: T) => boolean) => {
     if (canEdit(row)) {
       setEditingTask(row);
       setEditModalOpen(true);
     }
-  };
+  }, []);
 
   /**
    * タスク編集用のデータを準備
    * @param task - 編集対象のタスク
+   * @returns 編集用に整形されたタスクデータ
    */
-  const prepareTaskForEdit = (task: T) => {
-    if (!task) return null;
-
-    return {
-      id: task.id as string,
-      task: task.task as string,
-      detail: task.detail as string | null,
-      reference: task.reference as string | null,
-      info: task.info as string | null,
-      status: task.status as string,
-      contributionType: task.contributionType as contributionType,
-      reporters: (task.reporters ?? []) as TaskParticipant[],
-      executors: (task.executors ?? []) as TaskParticipant[],
-      imageUrl: task.imageUrl as string | null,
-      group: {
-        id: (task.group as { id: string; name: string })?.id ?? "",
-        name: (task.group as { id: string; name: string })?.name ?? "",
-      },
-    };
-  };
-
-  /**
-   * モーダルを閉じる処理
-   */
-  const closeEditModal = () => {
-    setEditModalOpen(false);
-    setEditingTask(null);
-  };
+  const prepareTaskForEdit = useCallback((task: T): T => {
+    // クローンを作成して返す
+    return { ...task };
+  }, []);
 
   return {
     editingTask,
-    setEditingTask,
     editModalOpen,
     setEditModalOpen,
     handleEditTask,
     prepareTaskForEdit,
-    closeEditModal,
   };
 }

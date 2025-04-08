@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Star } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -24,7 +24,7 @@ type RatingDisplayProps = {
  * @param readonly 読み取り専用
  * @param onChange 評価変更時のコールバック
  */
-export function Rating({ rating, size = 20, readonly = true, onChange }: RatingDisplayProps) {
+export const Rating = memo(function Rating({ rating, size = 20, readonly = true, onChange }: RatingDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const [hoverRating, setHoverRating] = useState(0);
@@ -72,4 +72,4 @@ export function Rating({ rating, size = 20, readonly = true, onChange }: RatingD
       ))}
     </div>
   );
-}
+});

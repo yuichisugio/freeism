@@ -51,6 +51,7 @@ export default async function MyTasksPage() {
       creator: {
         select: {
           name: true,
+          id: true,
         },
       },
       reporters: {

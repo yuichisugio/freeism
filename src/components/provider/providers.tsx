@@ -1,6 +1,7 @@
 "use client";
 
 import type { Session } from "next-auth";
+import { memo } from "react";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
@@ -12,7 +13,7 @@ type ProvidersProps = {
   session: Session | null;
 };
 
-export function Providers({ children, session }: ProvidersProps) {
+export const Providers = memo(function Providers({ children, session }: ProvidersProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <SessionProvider session={session}>
@@ -23,4 +24,4 @@ export function Providers({ children, session }: ProvidersProps) {
       </SessionProvider>
     </ThemeProvider>
   );
-}
+});

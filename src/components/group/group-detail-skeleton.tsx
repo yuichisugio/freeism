@@ -1,8 +1,14 @@
 "use client";
 
+import { memo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function GroupDetailSkeleton() {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループ詳細のスケルトン
+ */
+export const GroupDetailSkeleton = memo(function GroupDetailSkeleton() {
   return (
     <div className="space-y-6">
       {/* グループ情報のスケルトン */}
@@ -113,4 +119,4 @@ export function GroupDetailSkeleton() {
       </div>
     </div>
   );
-}
+});

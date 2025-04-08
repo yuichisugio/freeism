@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNotificationButton } from "@/hooks/notification/use-notification-button";
@@ -13,7 +14,7 @@ import { NotificationList } from "./notification-list";
  * - クリック時に通知モーダルを表示
  * - 未読通知がある場合はバッジを表示（通知リストと連動）
  */
-export function NotificationButton() {
+export const NotificationButton = memo(function NotificationButton() {
   const { isOpen, setIsOpen, hasUnreadNotifications, handleUnreadStatusChange, status } = useNotificationButton();
 
   // 未認証の場合は何も表示しない
@@ -42,4 +43,4 @@ export function NotificationButton() {
       </Dialog>
     </>
   );
-}
+});

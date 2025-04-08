@@ -1,7 +1,7 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
-import { useMemo } from "react";
+import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
 import { useGroupJoiner } from "@/hooks/table/use-group-actions";
@@ -12,8 +12,7 @@ import { UserPlus } from "lucide-react";
 /**
  * グループのデータの型
  */
-type Group = {
-  id: string;
+type Group = BaseRecord & {
   name: string;
   goal: string;
   evaluationMethod: string;
@@ -36,7 +35,7 @@ type GroupListTableProps = {
 /**
  * グループのデータの型
  */
-export function GroupListTable({ groups: initialGroups }: GroupListTableProps): JSX.Element {
+export const GroupListTable = memo(function GroupListTable({ groups: initialGroups }: GroupListTableProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // カスタムフックを使用してグループ参加機能を実装
   const { groups, setGroups, handleJoin } = useGroupJoiner<Group>(initialGroups);
@@ -97,12 +96,12 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps): 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const dataTableProps: DataTableProps<Group> = useMemo(
+  const dataTableProps: DataTableProps<BaseRecord> = useMemo(
     () => ({
-      data: groups,
-      columns: columns,
+      data: groups as unknown as BaseRecord[],
+      columns: columns as unknown as Column<BaseRecord>[],
       pagination: true,
-      onDataChange: setGroups,
+      onDataChange: (data) => setGroups(data as unknown as Group[]),
     }),
     [groups, setGroups, columns],
   );
@@ -111,4 +110,4 @@ export function GroupListTable({ groups: initialGroups }: GroupListTableProps): 
 
   // DataTableコンポーネントを返す。onDataChangeは、データが更新されたときに呼び出される関数で、DataTable内でデータ更新したらsetGroupsをDataTable内で呼び出し、↑のgroupsのStateを使用している部分も更新できるようにする。
   return <DataTable dataTableProps={dataTableProps} />;
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { memo } from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/auction/listing/use-pagination";
 
@@ -25,7 +25,7 @@ type AuctionPaginationProps = {
  * @param onPageChangeAction ページ変更アクション
  * @param showPageInfo ページ情報表示有無
  */
-export function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
+export const AuctionPagination = memo(function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからページネーションロジックを取得
@@ -76,4 +76,4 @@ export function AuctionPagination({ currentPage, totalPages, onPageChangeAction,
       )}
     </div>
   );
-}
+});

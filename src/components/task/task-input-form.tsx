@@ -1,6 +1,8 @@
 "use client";
 
 import type { Group, User } from "@/hooks/form/use-task-input-form";
+import type { Control, FieldValues, UseFormReturn } from "react-hook-form";
+import { memo } from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
@@ -17,7 +19,7 @@ import { contributionType } from "@prisma/client";
  * @param users ユーザー
  * @returns タスク入力フォーム
  */
-export function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: { groups: Group[]; groupComboBoxFlag: boolean; users?: User[] }): JSX.Element {
+export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: { groups: Group[]; groupComboBoxFlag: boolean; users?: User[] }): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -46,15 +48,18 @@ export function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: { group
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 型安全性のため form の型を明示的に指定
-  const typedControl = form.control;
+  const typedControl = form.control as unknown as Control<FieldValues>;
   const typedExecutors = executors;
   const typedReporters = reporters;
   const typedGetValues = form.getValues;
+  // FormLayoutに渡すための型変換
+  const typedForm = form as unknown as UseFormReturn<FieldValues>;
+  const typedOnSubmit = onSubmit as (data: FieldValues) => Promise<void>;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <FormLayout form={form} onSubmit={onSubmit} submitLabel="保存" submittingLabel="保存中...">
+    <FormLayout form={typedForm} onSubmit={typedOnSubmit} submitLabel="保存" submittingLabel="保存中...">
       {/* グループ選択が必要な場合 */}
       {groupComboBoxFlag && (
         <CustomFormField
@@ -254,4 +259,4 @@ export function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: { group
       </div>
     </FormLayout>
   );
-}
+});

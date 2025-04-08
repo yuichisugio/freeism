@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import type { Control, FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
@@ -41,7 +42,7 @@ type EditGroupFormProps = {
 /**
  * グループを編集するフォーム
  */
-export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
+export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ルーティング
@@ -132,6 +133,13 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // FormLayoutに渡すための型変換
+  const typedForm = form as unknown as UseFormReturn<FieldValues>;
+  const typedOnSubmit = onSubmit as SubmitHandler<FieldValues>;
+  const typedControl = form.control as unknown as Control<FieldValues>;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // グループオーナーでない場合は権限がない旨を表示
   if (!isGroupOwner) {
     return (
@@ -161,8 +169,8 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
   return (
     <div className="space-y-4">
       <FormLayout
-        form={form}
-        onSubmit={onSubmit}
+        form={typedForm}
+        onSubmit={typedOnSubmit}
         submitLabel="変更を保存"
         submittingLabel="保存中..."
         showCancelButton={true}
@@ -174,13 +182,13 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
         }
         className="max-h-[90vh]"
       >
-        <CustomFormField fieldType="input" control={form.control} name="name" label="グループ名" placeholder="グループ名を入力してください" description="グループの名前を入力してください" type="text" />
-        <CustomFormField fieldType="textarea" control={form.control} name="goal" label="最終目標" placeholder="グループの最終目標を入力してください" description="グループの最終目標を入力してください" />
-        <CustomFormField fieldType="textarea" control={form.control} name="evaluationMethod" label="最終目標に貢献したか判断する方法" placeholder="目標達成の評価方法を入力してください" description="目標達成の評価方法を入力してください" />
-        <CustomFormField fieldType="input" control={form.control} name="maxParticipants" label="参加上限人数" placeholder="参加上限人数を入力してください" description="参加上限人数を入力してください" type="number" />
+        <CustomFormField fieldType="input" control={typedControl} name="name" label="グループ名" placeholder="グループ名を入力してください" description="グループの名前を入力してください" type="text" />
+        <CustomFormField fieldType="textarea" control={typedControl} name="goal" label="最終目標" placeholder="グループの最終目標を入力してください" description="グループの最終目標を入力してください" />
+        <CustomFormField fieldType="textarea" control={typedControl} name="evaluationMethod" label="最終目標に貢献したか判断する方法" placeholder="目標達成の評価方法を入力してください" description="目標達成の評価方法を入力してください" />
+        <CustomFormField fieldType="input" control={typedControl} name="maxParticipants" label="参加上限人数" placeholder="参加上限人数を入力してください" description="参加上限人数を入力してください" type="number" />
         <CustomFormField
           fieldType="input"
-          control={form.control}
+          control={typedControl}
           name="depositPeriod"
           label="ポイント預け入れ期間（日数）"
           placeholder="ポイント預け入れ期間を入力してください"
@@ -192,4 +200,4 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
       </FormLayout>
     </div>
   );
-}
+});

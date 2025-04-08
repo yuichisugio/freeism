@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
@@ -17,7 +17,7 @@ type AuctionStatusBadgeProps = {
  * オークションステータスバッジ
  * @param status オークションステータス
  */
-export function AuctionStatusBadge({ status }: AuctionStatusBadgeProps) {
+export const AuctionStatusBadge = memo(function AuctionStatusBadge({ status }: AuctionStatusBadgeProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const statusConfig = useMemo(() => {
@@ -48,7 +48,7 @@ export function AuctionStatusBadge({ status }: AuctionStatusBadgeProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -65,7 +65,7 @@ type BidStatusBadgeProps = {
  * 入札ステータスバッジ
  * @param status 入札ステータス
  */
-export function BidStatusBadge({ status }: BidStatusBadgeProps) {
+export const BidStatusBadge = memo(function BidStatusBadge({ status }: BidStatusBadgeProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const statusConfig = useMemo(() => {
@@ -96,7 +96,7 @@ export function BidStatusBadge({ status }: BidStatusBadgeProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -113,7 +113,7 @@ type TaskStatusBadgeProps = {
  * タスクステータスバッジ
  * @param status タスクステータス
  */
-export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
+export const TaskStatusBadge = memo(function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const statusConfig = useMemo(() => {
@@ -156,4 +156,4 @@ export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
-}
+});

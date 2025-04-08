@@ -1,7 +1,7 @@
 "use client";
 
 import type { Task } from "@/types/group";
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -13,48 +13,70 @@ import { cn } from "@/lib/utils";
 import { ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+// 必要なコンポーネントのインポート
 import { TaskEditModal } from "../task/task-edit-modal";
 
-// TaskStatus型の定義をuse-task-statusからインポートするので削除
+// 基本的なインターフェース
+export type BaseRecord = Record<string, unknown> & {
+  id: string;
+  task?: string;
+  status?: string;
+  contributionType?: string;
+  reference?: string | null;
+  fixedContributionPoint?: number | null;
+  fixedEvaluator?: string | null;
+  fixedEvaluationLogic?: string | null;
+  reporters?: unknown[];
+  executors?: unknown[];
+  group?: {
+    id: string;
+    name: string;
+    [key: string]: unknown;
+  };
+  creator?: {
+    id: string;
+    name: string | null;
+    [key: string]: unknown;
+  };
+  members?: unknown[];
+};
 
 export type TaskStatus = {
   label: string;
   value: string;
 };
 
-// taskStatusesはuse-task-statusからインポートするので削除
+// ModalList型
+export type ModalListType = {
+  title: string;
+  description: string;
+  action: (rowId: string) => Promise<void>;
+  actionLabel: string;
+  triggerIcon?: React.ReactNode;
+  triggerContent: string[];
+  triggerClassName?: string;
+  joinModal?: boolean;
+};
 
-// 列の型定義。
-export type Column<T extends Record<string, unknown>> = {
-  key: keyof T; // 指定オブジェクトのキーの中の文言しか受け付けないユニオン型のリテラル型をプロパティとして受け取る
+// 列の型定義を修正
+export type Column<T extends BaseRecord> = {
+  key: keyof T;
   header: string;
   cell?: (row: T) => React.ReactNode;
   sortable?: boolean;
   className?: string;
-  // Statusのコンボボックスの設定
   statusCombobox?: boolean;
-  // モーダルの設定
-  modalList?: {
-    title: string;
-    description: string;
-    action: (rowId: string) => Promise<void>;
-    actionLabel: string;
-    triggerIcon?: React.ReactNode;
-    triggerContent: string[];
-    triggerClassName?: string;
-    joinModal?: boolean;
-  }[];
-  // タスク編集ボタンの設定
+  modalList?: ModalListType[];
   editTask?: boolean;
-  // タスク削除ボタンの設定
   deleteTask?: {
     canDelete: (row: T) => boolean;
     onDelete: (rowId: string) => Promise<void>;
   };
+  [key: string]: unknown;
 };
 
-// テーブル全体の型定義。columsに↑のColumn型がカラムの数だけ入った配列を格納する
-export type DataTableProps<T extends Record<string, unknown>> = {
+// テーブル全体の型定義も修正
+export type DataTableProps<T extends BaseRecord> = {
   data: T[];
   columns: Column<T>[];
   className?: string;
@@ -66,22 +88,28 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   headerClassName?: string;
   cellClassName?: string;
   stickyHeader?: boolean;
-  // タスク編集用のプロパティ
   editTask?: {
     canEdit: (row: T) => boolean;
     onEdit: (row: T) => void;
-    users?: { id: string; name: string }[]; // ユーザー一覧を追加
+    users?: { id: string; name: string }[];
   };
-  // 削除用の確認モーダルのプロパティ
   deleteModal?: {
     title: string;
     description: string;
     actionLabel: string;
   };
+  // 任意の型情報を保持するためのプロパティ
+  renderEditModal?: (props: { editingTask: T | null; modalOpen: boolean; setModalOpen: (open: boolean) => void; onTaskUpdated: () => void; users?: { id: string; name: string }[] }) => React.ReactNode;
 };
 
-// DataTableコンポーネント
-export function DataTable<T extends Record<string, unknown>>(props: { dataTableProps: DataTableProps<T> }) {
+// 編集可能なレコードのインターフェース
+export type EditableRecord = {
+  status?: string;
+  [key: string]: unknown;
+} & BaseRecord;
+
+// DataTableコンポーネントのジェネリック型制約を修正
+export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { dataTableProps: DataTableProps<T> }) {
   // コンポーネントの引数
   const {
     data: initialData,
@@ -100,16 +128,17 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
       description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。",
       actionLabel: "削除する",
     },
+    renderEditModal,
   } = props.dataTableProps;
 
   // カスタムフックを使用してデータとソート機能を管理
   const { data, handleSort } = useSortableTable<T>(initialData);
 
   // タスクステータス管理フック
-  const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange);
+  const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange ? (updatedData) => onDataChange(updatedData) : undefined);
 
   // タスク編集フック
-  const { editingTask, editModalOpen, setEditModalOpen, handleEditTask: handleEditTaskBase, prepareTaskForEdit } = useTaskEditor<T>();
+  const { editingTask, editModalOpen, setEditModalOpen, handleEditTask: handleEditTaskBase } = useTaskEditor<T>();
 
   // タスク編集ハンドララッパー
   const handleEditTask = (row: T) => {
@@ -134,13 +163,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
 
   return (
     <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
-      <div
-        className={cn(
-          "relative w-full table-auto overflow-x-auto overflow-y-auto",
-          // maxHeightの値をそのままmax-heightに設定。h-[calc(...)]形式をmax-h-[calc(...)]に変換
-          maxHeight ? maxHeight.replace(/^h-/, "max-h-") : pagination ? "max-h-[calc(100vh-16rem)]" : "",
-        )}
-      >
+      <div className={cn("relative w-full table-auto overflow-x-auto overflow-y-auto", maxHeight ? maxHeight.replace(/^h-/, "max-h-") : pagination ? "max-h-[calc(100vh-16rem)]" : "")}>
         <table>
           <thead className={cn(headerClassName, "bg-white")}>
             <tr>
@@ -167,10 +190,12 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                     {column.statusCombobox
                       ? (() => {
                           const safeList = Array.isArray(taskStatuses) ? taskStatuses : [];
-                          const selectedLabel = safeList.find((option) => option.value === String(row[column.key]))?.label ?? "ステータスを選択";
+                          const rowValue = String(row[column.key]);
+                          const selectedLabel = safeList.find((option) => option.value === rowValue)?.label ?? "ステータスを選択";
+                          const rowId = row.id;
 
                           return (
-                            <Popover open={openStatus === (row.id as string)} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? (row.id as string) : null)}>
+                            <Popover open={openStatus === rowId} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? rowId : null)}>
                               <PopoverTrigger asChild>
                                 <Button variant="outline" role="combobox" className="mr-3">
                                   {selectedLabel}
@@ -188,7 +213,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                                           key={option.value}
                                           value={option.label}
                                           onSelect={() => {
-                                            handleStatusChange(row.id as string, option.value, data)
+                                            handleStatusChange(rowId, option.value, data)
                                               .catch((error) => {
                                                 console.error(error);
                                               })
@@ -197,7 +222,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                                               });
                                           }}
                                         >
-                                          <Check className={cn("mr-2 h-4 w-4", String(row[column.key]) === option.value ? "opacity-100" : "opacity-0")} />
+                                          <Check className={cn("mr-2 h-4 w-4", rowValue === option.value ? "opacity-100" : "opacity-0")} />
                                           {option.label}
                                         </CommandItem>
                                       ))}
@@ -207,8 +232,6 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                               </PopoverContent>
                             </Popover>
                           );
-
-                          // combobox ブロックは 即時実行関数(IIFE)を用いて、ブロック内の変数定義と JSX をひとまとめにすることで、可読性と局所的な変数管理を向上させています。
                         })()
                       : column.editTask && editTask
                         ? (() => {
@@ -226,6 +249,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                           ? (() => {
                               // 削除可能かどうかを判定
                               const canDelete = column.deleteTask?.canDelete(row);
+                              const rowId = row.id;
 
                               return (
                                 <AlertDialog>
@@ -245,7 +269,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                                       <AlertDialogAction
                                         onClick={() => {
                                           column.deleteTask
-                                            ?.onDelete(row.id as string)
+                                            ?.onDelete(rowId)
                                             .then(() => {
                                               toast.success("タスクを削除しました");
                                             })
@@ -265,14 +289,17 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                             })()
                           : column.modalList
                             ? column.modalList.map((modal, modalIndex) => {
-                                // 参加モーダルの場合のみ、ボタンを無効化する。ここでは join モーダルが modalList の最初の要素（modalIndex === 0）であると仮定しています
+                                // 参加モーダルの場合のみ、ボタンを無効化する
                                 const isJoinModal = modal.joinModal;
-                                // row.members が配列で、かつ1件以上あれば「参加中」とみなす
-                                const hasMembers = row && typeof row === "object" && "members" in row && Array.isArray(row.members) && row.members.length > 0;
-                                // 参加モーダルなら、参加中の場合は [0] を、未参加の場合は [1] を表示。それ以外（編集・削除）の場合は常に [0] を表示する例（必要に応じて変更可）
+                                // members を型安全に取得
+                                const members = row.members;
+                                const hasMembers = members !== undefined && Array.isArray(members) && members.length > 0;
+                                // 参加モーダルなら、参加中の場合は [0] を、未参加の場合は [1] を表示
                                 const buttonText = isJoinModal ? (hasMembers ? modal.triggerContent[0] : modal.triggerContent[1]) : modal.triggerContent[0];
                                 // 参加モーダーの場合、参加中の場合はボタンを無効化する
                                 const isDisabled = isJoinModal && hasMembers;
+                                const rowId = row.id;
+
                                 return (
                                   <AlertDialog key={modalIndex}>
                                     <AlertDialogTrigger asChild>
@@ -289,7 +316,7 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>キャンセル</AlertDialogCancel>
                                         <AlertDialogAction asChild>
-                                          <Button onClick={() => modal.action(row.id as string)} className="button-default-custom" disabled={isDisabled}>
+                                          <Button onClick={() => modal.action(rowId)} className="button-default-custom" disabled={isDisabled}>
                                             {modal.actionLabel}
                                           </Button>
                                         </AlertDialogAction>
@@ -325,8 +352,19 @@ export function DataTable<T extends Record<string, unknown>>(props: { dataTableP
         </div>
       )}
 
-      {/* タスク編集モーダル */}
-      {editingTask && <TaskEditModal open={editModalOpen} onOpenChangeAction={setEditModalOpen} task={prepareTaskForEdit(editingTask) as Task} users={editTask?.users ?? []} onTaskUpdated={handleTaskUpdated} />}
+      {/* カスタム編集モーダル */}
+      {renderEditModal &&
+        editingTask &&
+        renderEditModal({
+          editingTask,
+          modalOpen: editModalOpen,
+          setModalOpen: setEditModalOpen,
+          onTaskUpdated: handleTaskUpdated,
+          users: editTask?.users,
+        })}
+
+      {/* デフォルトの編集モーダル（renderEditModalが提供されていない場合） */}
+      {!renderEditModal && editingTask && editTask?.users && <TaskEditModal open={editModalOpen} onOpenChangeAction={setEditModalOpen} task={editingTask as unknown as Task} users={editTask.users} onTaskUpdated={handleTaskUpdated} />}
     </div>
   );
-}
+});

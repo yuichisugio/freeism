@@ -1,7 +1,7 @@
 "use client";
 
 import type { FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
@@ -12,14 +12,14 @@ import { AlertCircle, CheckCircle2, MoreHorizontal, RefreshCw } from "lucide-rea
 /**
  * ローディングインジケーター
  */
-function LoadingIndicator() {
+const LoadingIndicator = memo(function LoadingIndicator() {
   return <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />;
-}
+});
 
 /**
  * フィルタータブコンポーネント
  */
-function FilterTabs({ activeFilter, onFilterChange, unreadCount }: { activeFilter: FilterType; onFilterChange: (filter: FilterType) => void; unreadCount: number }) {
+const FilterTabs = memo(function FilterTabs({ activeFilter, onFilterChange, unreadCount }: { activeFilter: FilterType; onFilterChange: (filter: FilterType) => void; unreadCount: number }) {
   return (
     <div className="sticky top-0 z-10 mb-3 flex border-b bg-white">
       <button onClick={() => onFilterChange("all")} className={activeFilter === "all" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
@@ -34,12 +34,12 @@ function FilterTabs({ activeFilter, onFilterChange, unreadCount }: { activeFilte
       </button>
     </div>
   );
-}
+});
 
 /**
  * 通知アイテムコンポーネント
  */
-function NotificationItem({ notification, onToggleReadStatus }: { notification: NotificationData; onToggleReadStatus: (id: string, isRead: boolean) => void }) {
+const NotificationItem = memo(function NotificationItem({ notification, onToggleReadStatus }: { notification: NotificationData; onToggleReadStatus: (id: string, isRead: boolean) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [localIsRead, setLocalIsRead] = useState(notification.isRead);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,35 +50,53 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
     }
   }, [notification.isRead, localIsRead]);
 
-  function truncateMessage(message: string, maxLength = 50) {
+  const truncateMessage = useCallback(function truncateMessage(message: string, maxLength = 50) {
     if (!message) return "";
     return message.length > maxLength ? message.substring(0, maxLength) + "..." : message;
-  }
+  }, []);
 
-  function handleItemClick() {
+  const handleItemClick = useCallback(function handleItemClick() {
     setIsExpanded((prev) => !prev);
-  }
+  }, []);
 
-  function handleStatusButtonClick(e: React.MouseEvent) {
-    e.stopPropagation();
+  const handleStatusButtonClick = useCallback(
+    function handleStatusButtonClick(e: React.MouseEvent) {
+      e.stopPropagation();
 
-    if (isProcessing) {
-      return;
-    }
+      if (isProcessing) {
+        return;
+      }
 
-    const newStatus = !localIsRead;
-    setIsProcessing(true);
-    setLocalIsRead(newStatus);
-    onToggleReadStatus(notification.id, newStatus);
+      const newStatus = !localIsRead;
+      setIsProcessing(true);
+      setLocalIsRead(newStatus);
+      onToggleReadStatus(notification.id, newStatus);
 
-    setTimeout(() => setIsProcessing(false), 300);
-  }
+      setTimeout(() => setIsProcessing(false), 300);
+    },
+    [isProcessing, localIsRead, notification.id, onToggleReadStatus],
+  );
 
-  const backgroundClass = localIsRead ? "bg-gray-50 dark:bg-gray-800/50" : "bg-white dark:bg-blue-950/20";
+  const backgroundClass = useMemo(
+    function backgroundClass() {
+      return localIsRead ? "bg-gray-50 dark:bg-gray-800/50" : "bg-white dark:bg-blue-950/20";
+    },
+    [localIsRead],
+  );
 
-  const expandedPaddingClass = isExpanded ? "p-0" : "p-3";
+  const expandedPaddingClass = useMemo(
+    function expandedPaddingClass() {
+      return isExpanded ? "p-0" : "p-3";
+    },
+    [isExpanded],
+  );
 
-  const expandedHeaderClass = isExpanded ? "border-b p-3" : "";
+  const expandedHeaderClass = useMemo(
+    function expandedHeaderClass() {
+      return isExpanded ? "border-b p-3" : "";
+    },
+    [isExpanded],
+  );
 
   return (
     <li className={`flex flex-col rounded-lg border transition-colors ${backgroundClass} ${expandedPaddingClass}`}>
@@ -166,19 +184,26 @@ function NotificationItem({ notification, onToggleReadStatus }: { notification: 
       </div>
     </li>
   );
-}
+});
 
 /**
  * 通知が空の場合に表示するコンポーネント
  */
-function NotificationsEmpty({ hasMore, onLoadMore, isLoadingMore, activeFilter }: { hasMore: boolean; onLoadMore: () => void; isLoadingMore: boolean; activeFilter: FilterType }) {
-  let emptyMessage = "通知はありません";
+const NotificationsEmpty = memo(function NotificationsEmpty({ hasMore, onLoadMore, isLoadingMore, activeFilter }: { hasMore: boolean; onLoadMore: () => void; isLoadingMore: boolean; activeFilter: FilterType }) {
+  const emptyMessage = useMemo(
+    function emptyMessage() {
+      let emptyMessage = "通知はありません";
 
-  if (activeFilter === "unread") {
-    emptyMessage = "未読の通知はありません";
-  } else if (activeFilter === "read") {
-    emptyMessage = "既読の通知はありません";
-  }
+      if (activeFilter === "unread") {
+        emptyMessage = "未読の通知はありません";
+      } else if (activeFilter === "read") {
+        emptyMessage = "既読の通知はありません";
+      }
+
+      return emptyMessage;
+    },
+    [activeFilter],
+  );
 
   return (
     <div className="flex h-[300px] flex-col items-center justify-center text-gray-500">
@@ -203,13 +228,13 @@ function NotificationsEmpty({ hasMore, onLoadMore, isLoadingMore, activeFilter }
       )}
     </div>
   );
-}
+});
 
 /**
  * 通知リストコンポーネント
  * @param {function} onUnreadStatusChangeAction - 未読状態変更時のコールバック
  */
-export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
+export const NotificationList = memo(function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
   const { notifications, isLoading, isLoadingMore, error, unreadCount, hasMore, activeFilter, toggleReadStatus, loadMoreNotifications, markAllAsRead, handleFilterChange, handleManualRefresh, requestCounter } =
     useNotificationList(onUnreadStatusChangeAction);
 
@@ -295,4 +320,4 @@ export function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatu
       </div>
     </div>
   );
-}
+});

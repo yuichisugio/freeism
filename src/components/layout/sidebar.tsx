@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Bell, History, Home, Menu, PlusCircle, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
 import { signOut } from "next-auth/react";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 const sidebarItems = [
   {
@@ -93,13 +95,22 @@ const sidebarItems = [
   },
 ];
 
-export function Sidebar() {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * サイドバー
+ * @returns サイドバー
+ */
+export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  function toggleSidebar() {
-    setIsOpen(!isOpen);
-  }
+  const toggleSidebar = useCallback(
+    function toggleSidebar() {
+      setIsOpen(!isOpen);
+    },
+    [isOpen],
+  );
 
   return (
     <AlertDialog>
@@ -174,4 +185,4 @@ export function Sidebar() {
       </AlertDialogContent>
     </AlertDialog>
   );
-}
+});

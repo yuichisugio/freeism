@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { type CountdownDisplayProps } from "@/lib/auction/type/types";
 import { motion } from "framer-motion";
 import { AlertTriangle, Clock } from "lucide-react";
@@ -12,7 +13,7 @@ import { AlertTriangle, Clock } from "lucide-react";
  * @param formattedCountdown カウントダウンの表示形式
  * @returns カウントダウン表示
  */
-export function CountdownDisplay({ countdownState, countdownAction }: CountdownDisplayProps) {
+export const CountdownDisplay = memo(function CountdownDisplay({ countdownState, countdownAction }: CountdownDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークション終了時の表示
@@ -46,4 +47,4 @@ export function CountdownDisplay({ countdownState, countdownAction }: CountdownD
       <span>{countdownAction()}</span>
     </div>
   );
-}
+});

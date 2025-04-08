@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -12,7 +12,7 @@ import { AlertCircle } from "lucide-react";
 /**
  * プッシュ通知のトグル
  */
-export function NotificationToggle() {
+export const NotificationToggle = memo(function NotificationToggle() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
@@ -94,4 +94,4 @@ export function NotificationToggle() {
       </CardContent>
     </Card>
   );
-}
+});

@@ -1,3 +1,7 @@
+import { memo } from "react";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 説明セクションコンポーネント
  * - サービスの特徴を説明するセクション
@@ -5,7 +9,7 @@
  * - 装飾的な背景エフェクトを含む
  * - レスポンシブ対応（画面サイズに応じて高さと幅を調整）
  */
-export function DescriptionSection() {
+export const DescriptionSection = memo(function DescriptionSection() {
   return (
     <section className="relative overflow-hidden border-t border-blue-100 bg-gradient-to-b from-white via-blue-50 to-white py-16 sm:py-20 lg:py-24 dark:border-blue-900 dark:from-gray-950 dark:via-blue-950 dark:to-gray-950" id="features">
       {/* 装飾的な背景要素（大きな円形のブラーエフェクト） */}
@@ -32,4 +36,4 @@ export function DescriptionSection() {
       </div>
     </section>
   );
-}
+});

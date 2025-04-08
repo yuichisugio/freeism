@@ -2,7 +2,7 @@
 
 import type { UploadType } from "@/hooks/modal/use-csv-upload";
 import type { DropzoneInputProps, DropzoneRootProps } from "react-dropzone";
-import React, { useCallback } from "react";
+import React, { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -98,7 +98,7 @@ type ActionButtonsProps = {
 /**
  * グローバルドロップゾーンオーバーレイ
  */
-function GlobalDropZoneOverlay({ isVisible }: GlobalDropZoneOverlayProps) {
+const GlobalDropZoneOverlay = memo(function GlobalDropZoneOverlay({ isVisible }: GlobalDropZoneOverlayProps) {
   if (!isVisible) return null;
 
   return (
@@ -118,14 +118,14 @@ function GlobalDropZoneOverlay({ isVisible }: GlobalDropZoneOverlayProps) {
       </motion.div>
     </AnimatePresence>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * アップロードタイプのラジオボタン
  */
-function UploadTypeRadio({ type, info, isSelected, canUse, onSelect }: UploadTypeRadioProps) {
+const UploadTypeRadio = memo(function UploadTypeRadio({ type, info, isSelected, canUse, onSelect }: UploadTypeRadioProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const handleSelect = useCallback(() => {
@@ -162,14 +162,14 @@ function UploadTypeRadio({ type, info, isSelected, canUse, onSelect }: UploadTyp
       </div>
     </motion.div>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ファイル一覧
  */
-function FileList({ files, isUploading, onRemoveFile, onRemoveAll }: FileListProps) {
+const FileList = memo(function FileList({ files, isUploading, onRemoveFile, onRemoveAll }: FileListProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   if (files.length === 0) return null;
@@ -195,14 +195,14 @@ function FileList({ files, isUploading, onRemoveFile, onRemoveAll }: FileListPro
       </div>
     </motion.div>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ファイルアップロードエリア
  */
-function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFileFormatInfo }: FileUploadAreaProps) {
+const FileUploadArea = memo(function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFileFormatInfo }: FileUploadAreaProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { getRootProps, getInputProps, isDragActive } = dropzoneProps;
@@ -263,14 +263,14 @@ function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFile
       </AnimatePresence>
     </div>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * アクションボタン
  */
-function ActionButtons({ isUploading, canUpload, onCancel, onUpload }: ActionButtonsProps) {
+const ActionButtons = memo(function ActionButtons({ isUploading, canUpload, onCancel, onUpload }: ActionButtonsProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
@@ -297,14 +297,14 @@ function ActionButtons({ isUploading, canUpload, onCancel, onUpload }: ActionBut
       </motion.div>
     </div>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * CSVアップロードモーダル
  */
-export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModalProps) {
+export const CsvUploadModal = memo(function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModalProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const csvUploadHook = useCsvUpload({
@@ -364,4 +364,4 @@ export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModa
       </Dialog>
     </>
   );
-}
+});

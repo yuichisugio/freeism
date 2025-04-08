@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CardCountdown } from "@/components/auction/listing/auction-countdown";
@@ -19,7 +19,7 @@ import { Clock, Heart, Star, Tag, Users } from "lucide-react";
  * @param auction オークション
  * @param onToggleWatchlistAction ウォッチリスト更新アクション
  */
-export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
+export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -167,4 +167,4 @@ export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardPro
       </div>
     </div>
   );
-}
+});

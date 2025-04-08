@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Link from "next/link";
 import { LoginButton } from "@/components/auth/login-button";
 import { LogoutButton } from "@/components/auth/logout-button";
@@ -6,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { getAuthSession } from "@/lib/utils";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ヘッダーコンポーネント
@@ -16,9 +19,13 @@ import { getAuthSession } from "@/lib/utils";
  *   - スマホ: ハンバーガーメニュー(左) + ロゴ(中央) + 通知(右)
  *   - タブレット/PC: ロゴ(左) + ナビゲーション要素(右)
  */
-export async function Header() {
+export const Header = memo(async function Header() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 認証状態を取得
   const session = await getAuthSession();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <header className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-colors duration-200 dark:border-blue-900 dark:bg-gray-950/80">
@@ -75,4 +82,4 @@ export async function Header() {
       </div>
     </header>
   );
-}
+});

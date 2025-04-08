@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/type/types";
-import { useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -25,7 +25,7 @@ import { ArrowDownCircle, ArrowUpCircle, BarChart4, Calendar, Check, ChevronsUpD
  * @param onSortChangeAction ソート変更アクション
  * @param onResetFilters フィルターリセットアクション
  */
-export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: AuctionFiltersProps) {
+export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: AuctionFiltersProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -408,4 +408,4 @@ export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSo
       )}
     </div>
   );
-}
+});

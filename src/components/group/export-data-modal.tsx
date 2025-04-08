@@ -1,5 +1,5 @@
 import type { ExportPurpose, ExportType, UseExportDataModalProps } from "@/hooks/modal/use-export-data-modal";
-import React, { useCallback } from "react";
+import React, { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,7 +32,7 @@ type ExportDataModalProps = UseExportDataModalProps;
  * @param {ExportDataModalProps} props - モーダルのプロパティ
  * @returns {React.ReactNode} - モーダルのコンポーネント
  */
-export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: ExportDataModalProps) {
+export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: ExportDataModalProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { state, updateState, dateUtils, exportFunctions, navigationFunctions } = useExportDataModal({
@@ -493,4 +493,4 @@ export function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: E
       </DialogContent>
     </Dialog>
   );
-}
+});

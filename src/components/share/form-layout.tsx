@@ -1,12 +1,13 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { type FieldValues, type UseFormReturn } from "react-hook-form";
+import { type FieldValues, type SubmitHandler, type UseFormReturn } from "react-hook-form";
 
-type FormLayoutProps<T extends FieldValues> = {
-  form: UseFormReturn<T>;
-  onSubmit: (data: T) => Promise<void>;
+export type FormLayoutProps<TFieldValues extends FieldValues> = {
+  form: UseFormReturn<TFieldValues>;
+  onSubmit: SubmitHandler<TFieldValues>;
   /** 送信ボタンのラベル */
   submitLabel: string;
   /** 送信中のラベル（デフォルト: "送信中..."） */
@@ -17,7 +18,16 @@ type FormLayoutProps<T extends FieldValues> = {
   className?: string;
 };
 
-export function FormLayout<T extends FieldValues>({ form, onSubmit, submitLabel, submittingLabel = "送信中...", children, showCancelButton = false, onCancel, className = "space-y-6" }: FormLayoutProps<T>) {
+export const FormLayout = memo(function FormLayout<TFieldValues extends FieldValues>({
+  form,
+  onSubmit,
+  submitLabel,
+  submittingLabel = "送信中...",
+  children,
+  showCancelButton = false,
+  onCancel,
+  className = "space-y-6",
+}: FormLayoutProps<TFieldValues>): JSX.Element {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={`${className} opacity-100 transition-opacity duration-300`}>
@@ -45,4 +55,4 @@ export function FormLayout<T extends FieldValues>({ form, onSubmit, submitLabel,
       </form>
     </Form>
   );
-}
+});

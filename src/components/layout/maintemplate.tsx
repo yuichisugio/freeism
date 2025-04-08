@@ -1,7 +1,16 @@
-import { Suspense } from "react";
+import { memo, Suspense } from "react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メインテンプレート
+ * @param title タイトル
+ * @param description 説明
+ * @param component コンポーネント
+ * @param children 子コンポーネント
+ */
 type MainTemplateProps = {
   title: string | boolean;
   description: string | boolean;
@@ -9,7 +18,16 @@ type MainTemplateProps = {
   children: React.ReactNode;
 };
 
-export function MainTemplate({ title, description, component, children }: MainTemplateProps) {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メインテンプレート
+ * @param title タイトル
+ * @param description 説明
+ * @param component コンポーネント
+ * @param children 子コンポーネント
+ */
+export const MainTemplate = memo(function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Fixed header */}
@@ -41,4 +59,4 @@ export function MainTemplate({ title, description, component, children }: MainTe
       </div>
     </div>
   );
-}
+});

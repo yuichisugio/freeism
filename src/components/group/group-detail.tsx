@@ -1,8 +1,9 @@
 "use client";
 
 import type { Column, DataTableProps } from "@/components/share/data-table";
+import type { BaseRecord } from "@/components/share/data-table";
 import type { Task } from "@/types/group";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { EditGroupForm } from "@/components/group/edit-group-form";
@@ -35,7 +36,7 @@ type GroupDetailProps = {
  * @param tasks {Task[]} タスクデータ
  * @returns {JSX.Element} グループ詳細ページのコンポーネント
  */
-export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
+export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const router = useRouter();
 
@@ -132,69 +133,71 @@ export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 共通のテーブル列定義（contributionType列を含まない）
-  const commonColumns: Column<Task>[] = useMemo(
+  const commonColumns: Column<BaseRecord>[] = useMemo(
     () => [
       {
-        key: "task" as keyof Task,
+        key: "task" as keyof BaseRecord,
         header: "TASK",
-        cell: (row: Task) => row.task ?? "不明",
+        cell: (row: BaseRecord) => (row as unknown as Task).task ?? "不明",
         sortable: true,
       },
       {
-        key: "name" as keyof Task,
+        key: "name" as keyof BaseRecord,
         header: "作成者",
-        cell: (row: Task) => row.creator.name ?? "-",
+        cell: (row: BaseRecord) => (row as unknown as Task).creator.name ?? "-",
         sortable: true,
       },
       {
-        key: "reporters" as keyof Task,
+        key: "reporters" as keyof BaseRecord,
         header: "報告者",
-        cell: (row: Task) => {
+        cell: (row: BaseRecord) => {
+          const typedRow = row as unknown as Task;
           if (typeof getReporterNames === "function") {
-            return getReporterNames(row.reporters);
+            return getReporterNames(typedRow.reporters);
           }
           return "-";
         },
         sortable: false,
       },
       {
-        key: "executors" as keyof Task,
+        key: "executors" as keyof BaseRecord,
         header: "実行者",
-        cell: (row: Task) => {
+        cell: (row: BaseRecord) => {
+          const typedRow = row as unknown as Task;
           if (typeof getExecutorNames === "function") {
-            return getExecutorNames(row.executors);
+            return getExecutorNames(typedRow.executors);
           }
           return "-";
         },
         sortable: false,
       },
       {
-        key: "fixedEvaluator" as keyof Task,
+        key: "fixedEvaluator" as keyof BaseRecord,
         header: "評価者",
-        cell: (row: Task) => row.fixedEvaluator ?? "-",
+        cell: (row: BaseRecord) => (row as unknown as Task).fixedEvaluator ?? "-",
         sortable: true,
       },
       {
-        key: "fixedEvaluationLogic" as keyof Task,
+        key: "fixedEvaluationLogic" as keyof BaseRecord,
         header: "評価ロジック",
-        cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
+        cell: (row: BaseRecord) => (row as unknown as Task).fixedEvaluationLogic ?? "-",
         sortable: true,
       },
       {
-        key: "status" as keyof Task,
+        key: "status" as keyof BaseRecord,
         header: "ステータス",
         statusCombobox: true,
         sortable: true,
       },
       {
-        key: "action" as keyof Task,
+        key: "action" as keyof BaseRecord,
         header: "アクション",
         editTask: true,
       },
       {
-        key: "detail" as keyof Task,
+        key: "detail" as keyof BaseRecord,
         header: "詳細",
-        cell: (row: Task) => row.detail ?? "-",
+        cell: (row: BaseRecord) => (row as unknown as Task).detail ?? "-",
         sortable: false,
       },
     ],
@@ -204,33 +207,36 @@ export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 非報酬タスク用のカラム
-  const nonRewardColumns: Column<Task>[] = useMemo(
+  const nonRewardColumns: Column<BaseRecord>[] = useMemo(
     () => [
       ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
       {
-        key: "contributionPoint" as keyof Task,
+        key: "contributionPoint" as keyof BaseRecord,
         header: "貢献ポイント",
-        cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
+        cell: (row: BaseRecord) => {
+          const typedRow = row as unknown as Task;
+          return typedRow.fixedContributionPoint ? `${typedRow.fixedContributionPoint}p` : "評価待ち";
+        },
         sortable: true,
       },
       ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
-        key: "action" as keyof Task,
+        key: "action" as keyof BaseRecord,
         header: "アクション",
         editTask: true,
       },
       {
-        key: "delete" as keyof Task,
+        key: "delete" as keyof BaseRecord,
         header: "削除",
         deleteTask: {
-          canDelete: canDeleteTask,
+          canDelete: (row: BaseRecord) => canDeleteTask(row as unknown as Task),
           onDelete: handleDeleteTask,
         },
       },
       {
-        key: "detail" as keyof Task,
+        key: "detail" as keyof BaseRecord,
         header: "詳細",
-        cell: (row: Task) => row.detail ?? "-",
+        cell: (row: BaseRecord) => (row as unknown as Task).detail ?? "-",
         sortable: false,
       },
     ],
@@ -240,43 +246,46 @@ export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 報酬タスク用のカラム
-  const rewardColumns: Column<Task>[] = useMemo(
+  const rewardColumns: Column<BaseRecord>[] = useMemo(
     () => [
       {
-        key: "auction" as keyof Task,
+        key: "auction" as keyof BaseRecord,
         header: "オークション",
-        cell: (row: Task) => (
-          <Button onClick={() => router.push(`/dashboard/group/${row.group.id}/auction/${row.id}`)} className="button-default-custom" size="sm">
-            オークションに参加
-          </Button>
-        ),
+        cell: (row: BaseRecord) => {
+          const typedRow = row as unknown as Task;
+          return (
+            <Button onClick={() => router.push(`/dashboard/group/${typedRow.group.id}/auction/${typedRow.id}`)} className="button-default-custom" size="sm">
+              オークションに参加
+            </Button>
+          );
+        },
         className: "w-32",
       },
       ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
       {
-        key: "contributionPoint" as keyof Task,
+        key: "contributionPoint" as keyof BaseRecord,
         header: "現在の入札額",
-        cell: (row: Task) => `${row.fixedContributionPoint ?? 0}p`,
+        cell: (row: BaseRecord) => `${(row as unknown as Task).fixedContributionPoint ?? 0}p`,
         sortable: true,
       },
       ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
-        key: "action" as keyof Task,
+        key: "action" as keyof BaseRecord,
         header: "アクション",
         editTask: true,
       },
       {
-        key: "delete" as keyof Task,
+        key: "delete" as keyof BaseRecord,
         header: "削除",
         deleteTask: {
-          canDelete: canDeleteTask,
+          canDelete: (row: BaseRecord) => canDeleteTask(row as unknown as Task),
           onDelete: handleDeleteTask,
         },
       },
       {
-        key: "detail" as keyof Task,
+        key: "detail" as keyof BaseRecord,
         header: "詳細",
-        cell: (row: Task) => row.detail ?? "-",
+        cell: (row: BaseRecord) => (row as unknown as Task).detail ?? "-",
         sortable: false,
       },
     ],
@@ -286,16 +295,16 @@ export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // DataTableコンポーネントのpropsを設定
-  const taskDataTableProps: DataTableProps<Task> = useMemo(
+  const taskDataTableProps: DataTableProps<BaseRecord> = useMemo(
     () => ({
-      data: nonRewardTasks,
-      columns: nonRewardColumns,
+      data: nonRewardTasks as unknown as BaseRecord[],
+      columns: nonRewardColumns as unknown as Column<BaseRecord>[],
       pagination: true,
-      onDataChange: updateNonRewardTasks,
+      onDataChange: (data) => updateNonRewardTasks(data as unknown as Task[]),
       stickyHeader: true,
       editTask: {
-        canEdit: canEditTask,
-        onEdit: handleTaskEdited,
+        canEdit: (row) => canEditTask(row as unknown as Task),
+        onEdit: () => handleTaskEdited(),
         users: Array.isArray(users)
           ? users.map((user) => ({
               id: user.id,
@@ -314,16 +323,16 @@ export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const rewardTaskDataTableProps: DataTableProps<Task> = useMemo(
+  const rewardTaskDataTableProps: DataTableProps<BaseRecord> = useMemo(
     () => ({
-      data: rewardTasks,
-      columns: rewardColumns,
+      data: rewardTasks as unknown as BaseRecord[],
+      columns: rewardColumns as unknown as Column<BaseRecord>[],
       pagination: true,
-      onDataChange: updateRewardTasks,
+      onDataChange: (data) => updateRewardTasks(data as unknown as Task[]),
       stickyHeader: true,
       editTask: {
-        canEdit: canEditTask,
-        onEdit: handleTaskEdited,
+        canEdit: (row) => canEditTask(row as unknown as Task),
+        onEdit: () => handleTaskEdited(),
         users: Array.isArray(users)
           ? users.map((user) => ({
               id: user.id,
@@ -631,4 +640,4 @@ export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
       <CsvUploadModal isOpen={isUploadModalOpen} groupId={tasks[0].group.id} onCloseAction={() => setIsUploadModalOpen(false)} />
     </div>
   );
-}
+});

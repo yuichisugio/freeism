@@ -1,9 +1,16 @@
+import { memo } from "react";
 import Link from "next/link";
 import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { getAuthSession } from "@/lib/utils";
 
-export async function HeroSection() {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ヒーローセクション
+ * @returns ヒーローセクション
+ */
+export const HeroSection = memo(async function HeroSection() {
   // 認証状態を取得
   const session = await getAuthSession();
 
@@ -58,4 +65,4 @@ export async function HeroSection() {
       </div>
     </section>
   );
-}
+});

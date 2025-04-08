@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
+import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
@@ -25,7 +26,7 @@ export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
  * グループを作成するフォーム
  * @returns グループを作成するフォーム
  */
-export function CreateGroupForm(): JSX.Element {
+export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // ルーティング
   const router = useRouter();
@@ -84,10 +85,14 @@ export function CreateGroupForm(): JSX.Element {
     [form, router],
   );
 
+  // 型安全性のため form の型を明示的に指定
+  const typedForm = form as unknown as UseFormReturn<FieldValues>;
+  const typedOnSubmit = onSubmit as (data: FieldValues) => Promise<void>;
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <FormLayout form={form} onSubmit={onSubmit} submitLabel="グループを作成" submittingLabel="作成中...">
+    <FormLayout form={typedForm} onSubmit={typedOnSubmit} submitLabel="グループを作成" submittingLabel="作成中...">
       <CustomFormField fieldType="input" control={form.control} name="name" label="グループ名" placeholder="グループ名を入力してください" description="グループの名前を入力してください" type="text" />
       <CustomFormField fieldType="textarea" control={form.control} name="goal" label="最終目標" placeholder="グループの最終目標を入力してください" description="グループの最終目標を入力してください" />
       <CustomFormField fieldType="textarea" control={form.control} name="evaluationMethod" label="最終目標に貢献したか判断する方法" placeholder="目標達成の評価方法を入力してください" description="目標達成の評価方法を入力してください" />
@@ -107,4 +112,4 @@ export function CreateGroupForm(): JSX.Element {
       />
     </FormLayout>
   );
-}
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import type { EditableTask } from "@/hooks/table/use-task-editor";
 import type { Task, TaskParticipant } from "@/types/group";
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -67,7 +68,7 @@ export type TaskFormValues = z.infer<typeof formSchema>;
 export type UseTaskEditModalProps = {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
-  task: Task | null;
+  task: Task | EditableTask | null;
   users?: User[];
   onTaskUpdated?: () => void;
 };
@@ -150,34 +151,43 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
   // タスクデータが変更されたときにフォームをリセット
   useEffect(() => {
     if (task) {
+      // EditableTaskとTaskの両方に対応するため、安全にアクセス
+      const taskName = typeof task.task === "string" ? task.task : "";
+      const taskDetail = typeof task.detail === "string" ? task.detail : "";
+      const taskReference = typeof task.reference === "string" ? task.reference : "";
+      const taskInfo = typeof task.info === "string" ? task.info : "";
+      const taskImageUrl = typeof task.imageUrl === "string" ? task.imageUrl : "";
+      const taskContributionType = task.contributionType as contributionType;
+      const taskCategory = typeof task.category === "string" ? task.category : "その他";
+
       form.reset({
-        task: task.task ?? "",
-        detail: task.detail ?? "",
-        reference: task.reference ?? "",
-        info: task.info ?? "",
-        imageUrl: task.imageUrl ?? "",
-        contributionType: task.contributionType,
-        category: task.category ?? "その他",
+        task: taskName,
+        detail: taskDetail,
+        reference: taskReference,
+        info: taskInfo,
+        imageUrl: taskImageUrl,
+        contributionType: taskContributionType,
+        category: taskCategory,
       });
 
       // 実行者と報告者をセット
       if (Array.isArray(task.executors)) {
         setExecutors(
-          task.executors.map((executor) => ({
-            id: executor.id,
-            userId: executor.userId,
-            name: executor.name,
-            user: executor.user,
+          task.executors.map((executor: Partial<TaskParticipant>) => ({
+            id: typeof executor?.id === "string" ? executor.id : `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            userId: typeof executor?.userId === "string" ? executor.userId : null,
+            name: typeof executor?.name === "string" ? executor.name : null,
+            user: executor?.user ?? null,
           })),
         );
       }
       if (Array.isArray(task.reporters)) {
         setReporters(
-          task.reporters.map((reporter) => ({
-            id: reporter.id,
-            userId: reporter.userId,
-            name: reporter.name,
-            user: reporter.user,
+          task.reporters.map((reporter: Partial<TaskParticipant>) => ({
+            id: typeof reporter?.id === "string" ? reporter.id : `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            userId: typeof reporter?.userId === "string" ? reporter.userId : null,
+            name: typeof reporter?.name === "string" ? reporter.name : null,
+            user: reporter?.user ?? null,
           })),
         );
       }

@@ -1,7 +1,7 @@
 "use client";
 
-import type { Column } from "@/components/share/data-table";
-import { useMemo } from "react";
+import type { BaseRecord, Column } from "@/components/share/data-table";
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
 import { useMyTasks } from "@/hooks/table/use-my-tasks";
@@ -24,9 +24,9 @@ type TaskParticipant = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * タスクの型
+ * MyTasksTable用のタスク型
  */
-type Task = {
+type MyTask = {
   id: string;
   task: string;
   detail: string | null;
@@ -38,14 +38,18 @@ type Task = {
   contributionType: contributionType;
   // 作成者・報告者・実行者情報
   creator: {
+    id: string;
     name: string | null;
+    [key: string]: unknown;
   };
   reporters: TaskParticipant[];
   executors: TaskParticipant[];
   group: {
-    name: string;
     id: string;
+    name: string;
+    [key: string]: unknown;
   };
+  [key: string]: unknown;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -54,7 +58,7 @@ type Task = {
  * タスクテーブルの型
  */
 type MyTasksTableProps = {
-  tasks: Task[];
+  tasks: MyTask[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -64,76 +68,82 @@ type MyTasksTableProps = {
  * @param tasks タスク
  * @returns タスクテーブル
  */
-export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps): JSX.Element {
+export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックを使用してタスク管理機能を実装
-  const { tasks, setTasks, getReporterNames, getExecutorNames, canEditTask, handleTaskEdited, getSimpleUsers } = useMyTasks<Task>(initialTasks);
+  const { tasks, setTasks, getReporterNames, getExecutorNames, canEditTask, handleTaskEdited, getSimpleUsers } = useMyTasks<MyTask>(initialTasks);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const columns: Column<Task>[] = useMemo(
+  const columns = useMemo<Column<BaseRecord>[]>(
     () => [
       {
-        key: "group" as keyof Task,
+        key: "group",
         header: "GROUP NAME",
         sortable: true,
-        cell: (row: Task) => (
-          <Link href={`/dashboard/group/${row.group.id}`} className="text-app hover:underline">
-            {row.group.name}
-          </Link>
-        ),
+        cell: (row) => {
+          const typedRow = row as MyTask;
+          return (
+            <Link href={`/dashboard/group/${typedRow.group.id}`} className="text-app hover:underline">
+              {typedRow.group.name}
+            </Link>
+          );
+        },
       },
       {
-        key: "task" as keyof Task,
+        key: "task",
         header: "TASK",
         sortable: true,
-        cell: (row: Task) => row.task,
+        cell: (row) => (row as MyTask).task,
       },
       {
-        key: "detail" as keyof Task,
+        key: "detail",
         header: "DETAIL",
         sortable: true,
-        cell: (row: Task) => row.detail,
+        cell: (row) => (row as MyTask).detail,
       },
       {
-        key: "reporters" as keyof Task,
+        key: "reporters",
         header: "報告者",
         sortable: false,
-        cell: (row: Task) => getReporterNames(row.reporters),
+        cell: (row) => getReporterNames((row as MyTask).reporters),
       },
       {
-        key: "executors" as keyof Task,
+        key: "executors",
         header: "実行者",
         sortable: false,
-        cell: (row: Task) => getExecutorNames(row.executors),
+        cell: (row) => getExecutorNames((row as MyTask).executors),
       },
       {
-        key: "contributionPoint" as keyof Task,
+        key: "contributionPoint",
         header: "Contribution Point",
         sortable: true,
-        cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
+        cell: (row) => {
+          const typedRow = row as MyTask;
+          return typedRow.fixedContributionPoint ? `${typedRow.fixedContributionPoint}p` : "評価待ち";
+        },
       },
       {
-        key: "fixedEvaluator" as keyof Task,
+        key: "fixedEvaluator",
         header: "算出者",
         sortable: true,
-        cell: (row: Task) => row.fixedEvaluator ?? "-",
+        cell: (row) => (row as MyTask).fixedEvaluator ?? "-",
       },
       {
-        key: "fixedEvaluationLogic" as keyof Task,
+        key: "fixedEvaluationLogic",
         header: "算出ロジック",
         sortable: true,
-        cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
+        cell: (row) => (row as MyTask).fixedEvaluationLogic ?? "-",
       },
       {
-        key: "status" as keyof Task,
+        key: "status",
         header: "ステータス",
         statusCombobox: true,
         sortable: true,
       },
       {
-        key: "action" as keyof Task,
+        key: "action",
         header: "アクション",
         editTask: true,
       },
@@ -146,15 +156,15 @@ export function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps): JSX.El
   return (
     <DataTable
       dataTableProps={{
-        data: tasks,
+        data: tasks as unknown as BaseRecord[],
         columns,
-        onDataChange: (data) => setTasks(data),
+        onDataChange: (changedData) => setTasks(changedData as unknown as MyTask[]),
         editTask: {
-          canEdit: canEditTask,
-          onEdit: handleTaskEdited,
+          canEdit: (row) => canEditTask(row as MyTask),
+          onEdit: () => handleTaskEdited(),
           users: getSimpleUsers(),
         },
       }}
     />
   );
-}
+});
