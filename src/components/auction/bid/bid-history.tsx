@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,12 +9,19 @@ import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, HandCoins } from "lucide-react";
 
+// --------------------------------------------------
+
+/**
+ * ユーザー
+ */
 type User = {
   id: string;
   username?: string | null;
   name?: string | null;
   image?: string | null;
 };
+
+// --------------------------------------------------
 
 /**
  * 入札履歴
@@ -23,23 +30,26 @@ type User = {
  */
 export function BidHistory({ initialBids = [] }: BidHistoryProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [bids] = useState<BidHistoryWithUser[]>(initialBids);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザー名を安全に取得するヘルパー関数
-  function getUserName(user: User | undefined): string {
+  const getUserName = useCallback((user: User | undefined): string => {
     if (!user) return "不明なユーザー";
     return user.username ?? user.name ?? "不明なユーザー";
-  }
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザーのイニシャルを取得するヘルパー関数
-  function getUserInitials(user: User | undefined): string {
+  const getUserInitials = useCallback((user: User | undefined): string => {
     if (!user) return "?";
     const name = user.username ?? user.name ?? "";
     if (!name) return "?";
     return name.charAt(0).toUpperCase();
-  }
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

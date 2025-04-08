@@ -16,6 +16,7 @@ export const env = createEnv({
     CLOUDFLARE_R2_BUCKET: z.string().optional(),
     CLOUDFLARE_PUBLIC_URL: z.string().url().optional(),
     ENABLE_IMAGE_UPLOAD: z.enum(["true", "false"]).default("false"),
+    RESEND_API_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -39,6 +40,7 @@ export const env = createEnv({
     CLOUDFLARE_PUBLIC_URL: process.env.CLOUDFLARE_PUBLIC_URL,
     ENABLE_IMAGE_UPLOAD: process.env.ENABLE_IMAGE_UPLOAD,
     NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD: process.env.NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,

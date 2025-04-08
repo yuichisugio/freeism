@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -104,7 +104,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
   /**
    * ウォッチリストボタンのクリックハンドラ
    */
-  async function handleWatchlistToggle() {
+  const handleWatchlistToggle = useCallback(async () => {
     if (!auction.id) return;
     try {
       const newStatus = await toggleWatchlist(auction.id);
@@ -112,14 +112,14 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
     } catch (err) {
       console.error("ウォッチリスト更新エラー:", err);
     }
-  }
+  }, [auction.id, toggleWatchlist]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * オークション詳細タブの内容
    */
-  function renderDetailsTab() {
+  const renderDetailsTab = useCallback(() => {
     return (
       <div className="space-y-6">
         {/* 現在価格、開始価格、入札数を表示するカード */}
@@ -185,12 +185,12 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
         )}
       </div>
     );
-  }
+  }, [auction, currentUserId, isAuctionEnded, bidHistory.length, countdownState, countdown]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 配送・支払いタブの内容
-  function renderShippingTab() {
+  const renderShippingTab = useCallback(() => {
     return (
       <div className="space-y-6 py-4">
         <div className="rounded-lg bg-blue-50 p-4">
@@ -213,7 +213,7 @@ export function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithD
         </div>
       </div>
     );
-  }
+  }, [auction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

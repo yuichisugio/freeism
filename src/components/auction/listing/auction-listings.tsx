@@ -8,6 +8,8 @@ import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークション商品一覧コンポーネント
  * @returns オークション商品一覧コンポーネント

@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterParams, AuctionSortOption } from "@/lib/auction/type/types";
-import React from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -57,65 +57,77 @@ export function AuctionFilters({ filters, onFilterChangeAction, sortOption, onSo
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フィルターのリセット
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     resetPriceRange();
     resetTimeRange();
     if (onResetFilters) {
       onResetFilters();
     }
-  };
+  }, [resetPriceRange, resetTimeRange, onResetFilters]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ソートオプション設定
-  const sortOptions = [
-    { value: "newest", label: "新着順", icon: <Sparkles className="h-4 w-4" /> },
-    { value: "time_remaining", label: "終了時間が近い順", icon: <Clock className="h-4 w-4" /> },
-    { value: "price_asc", label: "価格が安い順", icon: <ArrowDownCircle className="h-4 w-4" /> },
-    { value: "price_desc", label: "価格が高い順", icon: <ArrowUpCircle className="h-4 w-4" /> },
-    { value: "bids", label: "入札数順", icon: <BarChart4 className="h-4 w-4" /> },
-  ];
+  const sortOptions = useMemo(
+    () => [
+      { value: "newest", label: "新着順", icon: <Sparkles className="h-4 w-4" /> },
+      { value: "time_remaining", label: "終了時間が近い順", icon: <Clock className="h-4 w-4" /> },
+      { value: "price_asc", label: "価格が安い順", icon: <ArrowDownCircle className="h-4 w-4" /> },
+      { value: "price_desc", label: "価格が高い順", icon: <ArrowUpCircle className="h-4 w-4" /> },
+      { value: "bids", label: "入札数順", icon: <BarChart4 className="h-4 w-4" /> },
+    ],
+    [],
+  );
 
   // ステータスオプション設定
-  const statusOptions = [
-    { value: "all", label: "すべて", icon: <EyeIcon className="h-4 w-4" /> },
-    { value: "watchlist", label: "ウォッチリスト", icon: <ShieldCheck className="h-4 w-4" /> },
-    { value: "not_bidded", label: "未入札", icon: <ShieldAlert className="h-4 w-4" /> },
-    { value: "bidded", label: "入札済み", icon: <Check className="h-4 w-4" /> },
-    { value: "not_ended", label: "終了済み以外", icon: <TimerIcon className="h-4 w-4" /> },
-    { value: "ended", label: "終了済み", icon: <Calendar className="h-4 w-4" /> },
-  ];
+  const statusOptions = useMemo(
+    () => [
+      { value: "all", label: "すべて", icon: <EyeIcon className="h-4 w-4" /> },
+      { value: "watchlist", label: "ウォッチリスト", icon: <ShieldCheck className="h-4 w-4" /> },
+      { value: "not_bidded", label: "未入札", icon: <ShieldAlert className="h-4 w-4" /> },
+      { value: "bidded", label: "入札済み", icon: <Check className="h-4 w-4" /> },
+      { value: "not_ended", label: "終了済み以外", icon: <TimerIcon className="h-4 w-4" /> },
+      { value: "ended", label: "終了済み", icon: <Calendar className="h-4 w-4" /> },
+    ],
+    [],
+  );
 
   // 残り時間のプリセット
-  const timePresets = [
-    { label: "1時間以内", start: 0, end: 1 },
-    { label: "24時間以内", start: 0, end: 24 },
-    { label: "3日以内", start: 0, end: 72 },
-    { label: "1週間以内", start: 0, end: 168 },
-    { label: "2週間以内", start: 0, end: 336 },
-    { label: "1ヶ月以内", start: 0, end: 720 },
-    { label: "3ヶ月以内", start: 0, end: 2160 },
-    { label: "すべて", start: 0, end: 100000 },
-  ];
+  const timePresets = useMemo(
+    () => [
+      { label: "1時間以内", start: 0, end: 1 },
+      { label: "24時間以内", start: 0, end: 24 },
+      { label: "3日以内", start: 0, end: 72 },
+      { label: "1週間以内", start: 0, end: 168 },
+      { label: "2週間以内", start: 0, end: 336 },
+      { label: "1ヶ月以内", start: 0, end: 720 },
+      { label: "3ヶ月以内", start: 0, end: 2160 },
+      { label: "すべて", start: 0, end: 100000 },
+    ],
+    [],
+  );
 
   // 価格のプリセット
-  const pricePresets = [
-    { label: "500P以下", start: 0, end: 500 },
-    { label: "1000P以下", start: 0, end: 1000 },
-    { label: "5000P以下", start: 0, end: 5000 },
-    { label: "10000P以下", start: 0, end: 10000 },
-    { label: "50000P以下", start: 0, end: 50000 },
-    { label: "100000P以下", start: 0, end: 100000 },
-    { label: "すべて", start: 0, end: 100000000 },
-  ];
+  const pricePresets = useMemo(
+    () => [
+      { label: "500P以下", start: 0, end: 500 },
+      { label: "1000P以下", start: 0, end: 1000 },
+      { label: "5000P以下", start: 0, end: 5000 },
+      { label: "10000P以下", start: 0, end: 10000 },
+      { label: "50000P以下", start: 0, end: 50000 },
+      { label: "100000P以下", start: 0, end: 100000 },
+      { label: "すべて", start: 0, end: 100000000 },
+    ],
+    [],
+  );
 
   // 時間範囲の表示
-  const formatTimeDisplay = (hours: number) => {
+  const formatTimeDisplay = useCallback((hours: number) => {
     if (hours < 1) return "即時";
     if (hours < 24) return `${hours}時間`;
     const days = Math.floor(hours / 24);
     return `${days}日`;
-  };
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

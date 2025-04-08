@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
@@ -10,19 +11,26 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
 
+// --------------------------------------------------
+
 /**
  * グループを作成するフォームのデータ型
  * @returns グループを作成するフォームのデータ型
  */
 export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
 
+// --------------------------------------------------
+
 /**
  * グループを作成するフォーム
  * @returns グループを作成するフォーム
  */
-export function CreateGroupForm() {
+export function CreateGroupForm(): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // ルーティング
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フォーム
   const form = useForm<CreateGroupFormData>({
@@ -36,40 +44,47 @@ export function CreateGroupForm() {
     },
   });
 
-  async function onSubmit(data: CreateGroupFormData) {
-    try {
-      // グループ名の重複チェック
-      const existingGroup = await checkGroupNameExists(data.name); // actionsに実装する必要があります
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      if (existingGroup) {
-        form.setError("name", {
-          message: "このグループ名は既に使用されています",
-        });
-        return;
-      }
+  const onSubmit = useCallback(
+    async (data: CreateGroupFormData) => {
+      try {
+        // グループ名の重複チェック
+        const existingGroup = await checkGroupNameExists(data.name); // actionsに実装する必要があります
 
-      const result = await createGroup(data);
-
-      if (result.success) {
-        toast.success("グループを作成しました");
-        router.push("/dashboard/grouplist");
-      } else if (result.error) {
-        // 重複エラーの場合はフォームにエラーを表示
-        if (result.error === "このグループ名は既に使用されています") {
+        if (existingGroup) {
           form.setError("name", {
-            message: result.error,
+            message: "このグループ名は既に使用されています",
           });
-        } else {
-          toast.error(result.error);
-          console.error(result.error);
-          form.setError("root", { message: result.error });
+          return;
         }
+
+        const result = await createGroup(data);
+
+        if (result.success) {
+          toast.success("グループを作成しました");
+          router.push("/dashboard/grouplist");
+        } else if (result.error) {
+          // 重複エラーの場合はフォームにエラーを表示
+          if (result.error === "このグループ名は既に使用されています") {
+            form.setError("name", {
+              message: result.error,
+            });
+          } else {
+            toast.error(result.error);
+            console.error(result.error);
+            form.setError("root", { message: result.error });
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error("エラーが発生しました");
       }
-    } catch (error) {
-      console.log(error);
-      toast.error("エラーが発生しました");
-    }
-  }
+    },
+    [form, router],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <FormLayout form={form} onSubmit={onSubmit} submitLabel="グループを作成" submittingLabel="作成中...">

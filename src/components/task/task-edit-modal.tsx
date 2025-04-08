@@ -12,6 +12,11 @@ import { useTaskEditModal } from "@/hooks/modal/use-task-edit-modal";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { contributionType } from "@prisma/client";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク編集モーダルの型
+ */
 type TaskEditModalProps = {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
@@ -20,7 +25,20 @@ type TaskEditModalProps = {
   onTaskUpdated?: () => void;
 };
 
-export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps) {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク編集モーダル
+ * @param open モーダルの表示状態
+ * @param onOpenChangeAction モーダルの表示状態を変更するアクション
+ * @param task タスク
+ * @param users ユーザー
+ * @param onTaskUpdated タスク更新時のコールバック
+ * @returns タスク編集モーダル
+ */
+export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // useTaskEditModal フックからの返り値を適切に型付けする
   const {
     form,
@@ -43,6 +61,8 @@ export function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTa
     handleImageRemoved,
     handleUpdate,
   }: UseTaskEditModalReturn = useTaskEditModal({ open, onOpenChangeAction, task, users, onTaskUpdated });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

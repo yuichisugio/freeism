@@ -15,7 +15,9 @@ import { Award, Clock, Loader2, Tag } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 共通の履歴表示コンポーネント
+/**
+ * 共通の履歴表示コンポーネントのprops
+ */
 type HistoryCardProps = {
   id: string;
   title: string;
@@ -41,6 +43,8 @@ type HistoryCardProps = {
  * @returns {React.ReactNode} 履歴カードのReactノード
  */
 function HistoryCard({ id, title, timestampIcon, timestampText, amount, amountLabel, avatarSrc, avatarName, deliveryMethod, leftBadge, rightBadge, onClick, extraContent }: HistoryCardProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <Card key={id} className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => onClick(id)}>
       <CardHeader className="pb-2">

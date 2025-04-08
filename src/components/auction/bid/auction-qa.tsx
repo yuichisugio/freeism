@@ -2,7 +2,7 @@
 
 import type { AuctionMessage } from "@/hooks/auction/bid/use-auction-message";
 import type { KeyboardEvent } from "react";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,21 +17,40 @@ import { Loader2, MessageSquare, RefreshCw, SendHorizonal } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-// メッセージフォームのバリデーションスキーマ
+// --------------------------------------------------
+
+/**
+ * メッセージフォームのバリデーションスキーマ
+ */
 const messageFormSchema = z.object({
   message: z.string().min(1, "メッセージを入力してください"),
 });
 
+// --------------------------------------------------
+
+/**
+ * メッセージフォームの値の型
+ */
 type MessageFormValues = z.infer<typeof messageFormSchema>;
+
+// --------------------------------------------------
 
 /**
  * オークションの質問と回答コンポーネント
  */
 export function AuctionQA({ auctionId }: { auctionId: string }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const { messages, sellerId, loading, error, submitting, sendMessage, reloadMessages, currentUserId, isSeller } = useAuctionMessage(auctionId);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [reloading, setReloading] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フォームの初期化
   const form = useForm<MessageFormValues>({
@@ -41,65 +60,91 @@ export function AuctionQA({ auctionId }: { auctionId: string }) {
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // メッセージ送信処理
-  async function onSubmit(data: MessageFormValues) {
-    // 出品者へのメッセージを送信する
-    const success = await sendMessage(data.message, sellerId ?? "");
-    if (success) {
-      // フォームをリセット
-      form.reset();
-      // 最新のメッセージにスクロール
+  const onSubmit = useCallback(
+    async (data: MessageFormValues) => {
+      // 出品者へのメッセージを送信する
+      const success = await sendMessage(data.message, sellerId ?? "");
+      if (success) {
+        // フォームをリセット
+        form.reset();
+        // 最新のメッセージにスクロール
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    },
+    [form, messagesEndRef, sendMessage, sellerId],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // Command+Enterでのメッセージ送信
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      // Enter単体での送信を防止
+      if (e.key === "Enter" && !e.metaKey) {
+        e.preventDefault();
+      }
+
+      // Command+Enterでフォーム送信
+      if (e.key === "Enter" && e.metaKey) {
+        e.preventDefault();
+        void form.handleSubmit(onSubmit)();
+      }
+    },
+    [form, onSubmit],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // メッセージリロード処理
+  const handleReload = useCallback(async () => {
+    setReloading(true);
+    await reloadMessages();
+    setReloading(false);
+  }, [reloadMessages]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // メッセージをグループ化する（自分/相手のメッセージ）
+  const groupedMessages = useMemo(() => {
+    return messages.reduce<Record<string, AuctionMessage[]>>((groups, message) => {
+      // 自分のメッセージか相手のメッセージかでグループ化
+      const key = message.senderId === currentUserId ? "self" : message.senderId;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(message);
+      return groups;
+    }, {});
+  }, [messages, currentUserId]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
+  const sortedGroupKeys = useMemo(() => {
+    return Object.keys(groupedMessages).sort((a, b) => {
+      const timeA = new Date(groupedMessages[a][0].createdAt).getTime();
+      const timeB = new Date(groupedMessages[b][0].createdAt).getTime();
+      return timeA - timeB;
+    });
+  }, [groupedMessages]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // メッセージがロード後に最下部にスクロール
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }
+  }, [loading, messages.length]);
 
-  // Command+Enterでのメッセージ送信
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter単体での送信を防止
-    if (e.key === "Enter" && !e.metaKey) {
-      e.preventDefault();
-    }
-
-    // Command+Enterでフォーム送信
-    if (e.key === "Enter" && e.metaKey) {
-      e.preventDefault();
-      void form.handleSubmit(onSubmit)();
-    }
-  };
-
-  // メッセージリロード処理
-  const handleReload = async () => {
-    setReloading(true);
-    await reloadMessages();
-    setReloading(false);
-  };
-
-  // メッセージをグループ化する（自分/相手のメッセージ）
-  const groupedMessages = messages.reduce<Record<string, AuctionMessage[]>>((groups, message) => {
-    // 自分のメッセージか相手のメッセージかでグループ化
-    const key = message.senderId === currentUserId ? "self" : message.senderId;
-    if (!groups[key]) {
-      groups[key] = [];
-    }
-    groups[key].push(message);
-    return groups;
-  }, {});
-
-  // 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
-  const sortedGroupKeys = Object.keys(groupedMessages).sort((a, b) => {
-    const timeA = new Date(groupedMessages[a][0].createdAt).getTime();
-    const timeB = new Date(groupedMessages[b][0].createdAt).getTime();
-    return timeA - timeB;
-  });
-
-  // メッセージがロード後に最下部にスクロール
-  if (!loading && messages.length > 0) {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ローディング表示
   if (loading) {
@@ -110,6 +155,8 @@ export function AuctionQA({ auctionId }: { auctionId: string }) {
       </div>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // エラー表示
   if (error) {
@@ -122,6 +169,8 @@ export function AuctionQA({ auctionId }: { auctionId: string }) {
       </div>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex h-full flex-col space-y-4">

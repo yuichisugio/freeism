@@ -68,18 +68,18 @@ export function BidForm({ auction }: BidFormProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札額をインクリメント
-  const incrementBid = () => {
+  const incrementBid = useCallback(() => {
     setBidAmount((prev) => prev + 1);
-  };
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札額をデクリメント（最小入札額未満にはならないように）
-  const decrementBid = () => {
+  const decrementBid = useCallback(() => {
     if (bidAmount > minBid) {
       setBidAmount((prev) => prev - 1);
     }
-  };
+  }, [bidAmount, minBid]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

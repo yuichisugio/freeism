@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
@@ -12,10 +12,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
 
+// --------------------------------------------------
+
 /**
  * グループを編集するフォームのデータ型
  */
 export type EditGroupFormData = z.infer<typeof createGroupSchema>;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループ編集フォームのプロパティ型定義
@@ -32,13 +36,27 @@ type EditGroupFormProps = {
   onCloseAction?: () => void;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グループを編集するフォーム
  */
 export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ルーティング
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // セッション
   const { data: session } = useSession();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [isGroupOwner, setIsGroupOwner] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // コンポーネントがマウントされた時にグループオーナー権限をチェック
   useEffect(() => {
@@ -56,6 +74,8 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
     void checkOwnerPermission();
   }, [group.id, session?.user?.id]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const form = useForm<EditGroupFormData>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
@@ -67,43 +87,50 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
     },
   });
 
-  async function onSubmit(data: EditGroupFormData) {
-    try {
-      // グループオーナーでない場合は処理を中断
-      if (!isGroupOwner) {
-        toast.error("グループオーナー権限がないため編集できません");
-        return;
-      }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 名前が変更されている場合のみ重複チェックを行う
-      if (data.name !== group.name) {
-        const existingGroup = await checkGroupNameExists(data.name);
-        if (existingGroup) {
-          form.setError("name", {
-            message: "このグループ名は既に使用されています",
-          });
+  const onSubmit = useCallback(
+    async (data: EditGroupFormData) => {
+      try {
+        // グループオーナーでない場合は処理を中断
+        if (!isGroupOwner) {
+          toast.error("グループオーナー権限がないため編集できません");
           return;
         }
-      }
 
-      // グループを更新
-      const result = await updateGroup(group.id, data);
+        // 名前が変更されている場合のみ重複チェックを行う
+        if (data.name !== group.name) {
+          const existingGroup = await checkGroupNameExists(data.name);
+          if (existingGroup) {
+            form.setError("name", {
+              message: "このグループ名は既に使用されています",
+            });
+            return;
+          }
+        }
 
-      // 更新に成功した場合
-      if (result.success) {
-        toast.success("グループ情報を更新しました");
-        if (onCloseAction) onCloseAction(); // ダイアログを閉じる
-        router.refresh(); // 画面を更新
-      } else if (result.error) {
-        toast.error(result.error);
-        console.error(result.error);
-        form.setError("root", { message: result.error });
+        // グループを更新
+        const result = await updateGroup(group.id, data);
+
+        // 更新に成功した場合
+        if (result.success) {
+          toast.success("グループ情報を更新しました");
+          if (onCloseAction) onCloseAction(); // ダイアログを閉じる
+          router.refresh(); // 画面を更新
+        } else if (result.error) {
+          toast.error(result.error);
+          console.error(result.error);
+          form.setError("root", { message: result.error });
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error("エラーが発生しました");
       }
-    } catch (error) {
-      console.log(error);
-      toast.error("エラーが発生しました");
-    }
-  }
+    },
+    [form, group.id, group.name, isGroupOwner, onCloseAction, router],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // グループオーナーでない場合は権限がない旨を表示
   if (!isGroupOwner) {
@@ -128,6 +155,8 @@ export function EditGroupForm({ group, onCloseAction }: EditGroupFormProps) {
       </div>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="space-y-4">

@@ -4,13 +4,19 @@ import React from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/auction/listing/use-pagination";
 
-// ページネーションのprops
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションページネーションのprops
+ */
 type AuctionPaginationProps = {
   currentPage: number;
   totalPages: number;
   onPageChangeAction: (page: number) => void;
   showPageInfo?: boolean;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションページネーションコンポーネント

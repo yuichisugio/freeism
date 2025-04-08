@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Star } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 評価表示コンポーネントのprops
+ */
 type RatingDisplayProps = {
   rating: number;
   size?: number;
   readonly?: boolean;
   onChange?: (rating: number) => void;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 評価表示コンポーネント
@@ -19,28 +26,35 @@ type RatingDisplayProps = {
  */
 export function Rating({ rating, size = 20, readonly = true, onChange }: RatingDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const [hoverRating, setHoverRating] = useState(0);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const handleClick = (index: number) => {
-    if (readonly) return;
-    onChange?.(index);
-  };
+  const handleClick = useCallback(
+    (index: number) => {
+      if (readonly) return;
+      onChange?.(index);
+    },
+    [readonly, onChange],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const handleMouseEnter = (index: number) => {
-    if (readonly) return;
-    setHoverRating(index);
-  };
+  const handleMouseEnter = useCallback(
+    (index: number) => {
+      if (readonly) return;
+      setHoverRating(index);
+    },
+    [readonly],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (readonly) return;
     setHoverRating(0);
-  };
+  }, [readonly]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

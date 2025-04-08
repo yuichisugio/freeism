@@ -23,6 +23,9 @@ import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 入札履歴の型
+ */
 type BidHistory = {
   id: string;
   amount: number;
@@ -35,6 +38,11 @@ type BidHistory = {
   };
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品商品詳細画面コンポーネントのprops
+ */
 type AuctionCreatedDetailProps = {
   auction: Auction & {
     task: {
@@ -71,10 +79,15 @@ type AuctionCreatedDetailProps = {
  * @param winnerReviews 落札者の評価履歴
  */
 export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: AuctionCreatedDetailProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックの使用
   const { messages, newMessage, setNewMessage, isLoadingMessages, isSendingMessage, messagesEndRef, handleSendMessage } = useAuctionMessages(auction.id, auction.winner?.id);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { rating, setRating, comment, setComment, isSubmitting, hasReviewed, handleReviewSubmit } = useAuctionReview({
     auctionId: auction.id,
@@ -83,11 +96,15 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
     reviews: auction.reviews,
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } = useDeliveryMethod(auction.task.id, auction.task.deliveryMethod ?? "");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { isCompleting, handleComplete } = useTaskCompletion(auction.task.id);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="container mx-auto py-6">

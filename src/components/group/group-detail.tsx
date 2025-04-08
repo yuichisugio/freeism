@@ -2,6 +2,7 @@
 
 import type { Column, DataTableProps } from "@/components/share/data-table";
 import type { Task } from "@/types/group";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { EditGroupForm } from "@/components/group/edit-group-form";
@@ -17,12 +18,28 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useGroupDetail, useGroupMembers, useGroupTasks } from "@/hooks/group";
 import { Award, Check, ChevronsUpDown, ClipboardCheck, ClipboardList, Download, Edit, Loader2, LogOut, ShieldCheck, TargetIcon, Trash2, Upload, UserMinus, UserPlus, Users } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループ詳細ページのコンポーネントのprops
+ * @param tasks {Task[]} タスクデータ
+ */
 type GroupDetailProps = {
   tasks: Task[];
 };
 
-export function GroupDetail({ tasks }: GroupDetailProps) {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループ詳細ページのコンポーネント
+ * @param tasks {Task[]} タスクデータ
+ * @returns {JSX.Element} グループ詳細ページのコンポーネント
+ */
+export function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックを使用
   const {
@@ -45,11 +62,15 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     handleDeleteGroup,
   } = useGroupDetail({ tasks });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const groupMembersResult = useGroupMembers({
     groupId: tasks.length > 0 ? tasks[0].group.id : "",
     isGroupOwner,
     isAppOwner,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useGroupMembersフックからの戻り値
   const {
@@ -78,12 +99,16 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     handleRemoveMember,
   } = groupMembersResult;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const groupTasksResult = useGroupTasks({
     initialTasks: tasks,
     userId,
     isGroupOwner,
     isAppOwner,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useGroupTasksフックからの戻り値
   const {
@@ -104,191 +129,218 @@ export function GroupDetail({ tasks }: GroupDetailProps) {
     updateRewardTasks,
   } = groupTasksResult;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 共通のテーブル列定義（contributionType列を含まない）
-  const commonColumns: Column<Task>[] = [
-    {
-      key: "task" as keyof Task,
-      header: "TASK",
-      cell: (row: Task) => row.task ?? "不明",
-      sortable: true,
-    },
-    {
-      key: "name" as keyof Task,
-      header: "作成者",
-      cell: (row: Task) => row.creator.name ?? "-",
-      sortable: true,
-    },
-    {
-      key: "reporters" as keyof Task,
-      header: "報告者",
-      cell: (row: Task) => {
-        if (typeof getReporterNames === "function") {
-          return getReporterNames(row.reporters);
-        }
-        return "-";
+  const commonColumns: Column<Task>[] = useMemo(
+    () => [
+      {
+        key: "task" as keyof Task,
+        header: "TASK",
+        cell: (row: Task) => row.task ?? "不明",
+        sortable: true,
       },
-      sortable: false,
-    },
-    {
-      key: "executors" as keyof Task,
-      header: "実行者",
-      cell: (row: Task) => {
-        if (typeof getExecutorNames === "function") {
-          return getExecutorNames(row.executors);
-        }
-        return "-";
+      {
+        key: "name" as keyof Task,
+        header: "作成者",
+        cell: (row: Task) => row.creator.name ?? "-",
+        sortable: true,
       },
-      sortable: false,
-    },
-    {
-      key: "fixedEvaluator" as keyof Task,
-      header: "評価者",
-      cell: (row: Task) => row.fixedEvaluator ?? "-",
-      sortable: true,
-    },
-    {
-      key: "fixedEvaluationLogic" as keyof Task,
-      header: "評価ロジック",
-      cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
-      sortable: true,
-    },
-    {
-      key: "status" as keyof Task,
-      header: "ステータス",
-      statusCombobox: true,
-      sortable: true,
-    },
-    {
-      key: "action" as keyof Task,
-      header: "アクション",
-      editTask: true,
-    },
-    {
-      key: "detail" as keyof Task,
-      header: "詳細",
-      cell: (row: Task) => row.detail ?? "-",
-      sortable: false,
-    },
-  ];
+      {
+        key: "reporters" as keyof Task,
+        header: "報告者",
+        cell: (row: Task) => {
+          if (typeof getReporterNames === "function") {
+            return getReporterNames(row.reporters);
+          }
+          return "-";
+        },
+        sortable: false,
+      },
+      {
+        key: "executors" as keyof Task,
+        header: "実行者",
+        cell: (row: Task) => {
+          if (typeof getExecutorNames === "function") {
+            return getExecutorNames(row.executors);
+          }
+          return "-";
+        },
+        sortable: false,
+      },
+      {
+        key: "fixedEvaluator" as keyof Task,
+        header: "評価者",
+        cell: (row: Task) => row.fixedEvaluator ?? "-",
+        sortable: true,
+      },
+      {
+        key: "fixedEvaluationLogic" as keyof Task,
+        header: "評価ロジック",
+        cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
+        sortable: true,
+      },
+      {
+        key: "status" as keyof Task,
+        header: "ステータス",
+        statusCombobox: true,
+        sortable: true,
+      },
+      {
+        key: "action" as keyof Task,
+        header: "アクション",
+        editTask: true,
+      },
+      {
+        key: "detail" as keyof Task,
+        header: "詳細",
+        cell: (row: Task) => row.detail ?? "-",
+        sortable: false,
+      },
+    ],
+    [getReporterNames, getExecutorNames],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 非報酬タスク用のカラム
-  const nonRewardColumns: Column<Task>[] = [
-    ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
-    {
-      key: "contributionPoint" as keyof Task,
-      header: "貢献ポイント",
-      cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
-      sortable: true,
-    },
-    ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
-    {
-      key: "action" as keyof Task,
-      header: "アクション",
-      editTask: true,
-    },
-    {
-      key: "delete" as keyof Task,
-      header: "削除",
-      deleteTask: {
-        canDelete: canDeleteTask,
-        onDelete: handleDeleteTask,
+  const nonRewardColumns: Column<Task>[] = useMemo(
+    () => [
+      ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
+      {
+        key: "contributionPoint" as keyof Task,
+        header: "貢献ポイント",
+        cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
+        sortable: true,
       },
-    },
-    {
-      key: "detail" as keyof Task,
-      header: "詳細",
-      cell: (row: Task) => row.detail ?? "-",
-      sortable: false,
-    },
-  ];
+      ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+      {
+        key: "action" as keyof Task,
+        header: "アクション",
+        editTask: true,
+      },
+      {
+        key: "delete" as keyof Task,
+        header: "削除",
+        deleteTask: {
+          canDelete: canDeleteTask,
+          onDelete: handleDeleteTask,
+        },
+      },
+      {
+        key: "detail" as keyof Task,
+        header: "詳細",
+        cell: (row: Task) => row.detail ?? "-",
+        sortable: false,
+      },
+    ],
+    [canDeleteTask, handleDeleteTask, commonColumns],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 報酬タスク用のカラム
-  const rewardColumns: Column<Task>[] = [
-    {
-      key: "auction" as keyof Task,
-      header: "オークション",
-      cell: (row: Task) => (
-        <Button onClick={() => router.push(`/dashboard/group/${row.group.id}/auction/${row.id}`)} className="button-default-custom" size="sm">
-          オークションに参加
-        </Button>
-      ),
-      className: "w-32",
-    },
-    ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
-    {
-      key: "contributionPoint" as keyof Task,
-      header: "現在の入札額",
-      cell: (row: Task) => `${row.fixedContributionPoint ?? 0}p`,
-      sortable: true,
-    },
-    ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
-    {
-      key: "action" as keyof Task,
-      header: "アクション",
-      editTask: true,
-    },
-    {
-      key: "delete" as keyof Task,
-      header: "削除",
-      deleteTask: {
-        canDelete: canDeleteTask,
-        onDelete: handleDeleteTask,
+  const rewardColumns: Column<Task>[] = useMemo(
+    () => [
+      {
+        key: "auction" as keyof Task,
+        header: "オークション",
+        cell: (row: Task) => (
+          <Button onClick={() => router.push(`/dashboard/group/${row.group.id}/auction/${row.id}`)} className="button-default-custom" size="sm">
+            オークションに参加
+          </Button>
+        ),
+        className: "w-32",
       },
-    },
-    {
-      key: "detail" as keyof Task,
-      header: "詳細",
-      cell: (row: Task) => row.detail ?? "-",
-      sortable: false,
-    },
-  ];
+      ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
+      {
+        key: "contributionPoint" as keyof Task,
+        header: "現在の入札額",
+        cell: (row: Task) => `${row.fixedContributionPoint ?? 0}p`,
+        sortable: true,
+      },
+      ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
+      {
+        key: "action" as keyof Task,
+        header: "アクション",
+        editTask: true,
+      },
+      {
+        key: "delete" as keyof Task,
+        header: "削除",
+        deleteTask: {
+          canDelete: canDeleteTask,
+          onDelete: handleDeleteTask,
+        },
+      },
+      {
+        key: "detail" as keyof Task,
+        header: "詳細",
+        cell: (row: Task) => row.detail ?? "-",
+        sortable: false,
+      },
+    ],
+    [canDeleteTask, router, handleDeleteTask, commonColumns],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // DataTableコンポーネントのpropsを設定
-  const taskDataTableProps: DataTableProps<Task> = {
-    data: nonRewardTasks,
-    columns: nonRewardColumns,
-    pagination: true,
-    onDataChange: updateNonRewardTasks,
-    stickyHeader: true,
-    editTask: {
-      canEdit: canEditTask,
-      onEdit: handleTaskEdited,
-      users: Array.isArray(users)
-        ? users.map((user) => ({
-            id: user.id,
-            name: user.name ?? "",
-          }))
-        : [],
-    },
-    deleteModal: {
-      title: "タスクを削除",
-      description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
-      actionLabel: "削除する",
-    },
-  };
+  const taskDataTableProps: DataTableProps<Task> = useMemo(
+    () => ({
+      data: nonRewardTasks,
+      columns: nonRewardColumns,
+      pagination: true,
+      onDataChange: updateNonRewardTasks,
+      stickyHeader: true,
+      editTask: {
+        canEdit: canEditTask,
+        onEdit: handleTaskEdited,
+        users: Array.isArray(users)
+          ? users.map((user) => ({
+              id: user.id,
+              name: user.name ?? "",
+            }))
+          : [],
+      },
+      deleteModal: {
+        title: "タスクを削除",
+        description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
+        actionLabel: "削除する",
+      },
+    }),
+    [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
+  );
 
-  const rewardTaskDataTableProps: DataTableProps<Task> = {
-    data: rewardTasks,
-    columns: rewardColumns,
-    pagination: true,
-    onDataChange: updateRewardTasks,
-    stickyHeader: true,
-    editTask: {
-      canEdit: canEditTask,
-      onEdit: handleTaskEdited,
-      users: Array.isArray(users)
-        ? users.map((user) => ({
-            id: user.id,
-            name: user.name ?? "",
-          }))
-        : [],
-    },
-    deleteModal: {
-      title: "タスクを削除",
-      description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
-      actionLabel: "削除する",
-    },
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const rewardTaskDataTableProps: DataTableProps<Task> = useMemo(
+    () => ({
+      data: rewardTasks,
+      columns: rewardColumns,
+      pagination: true,
+      onDataChange: updateRewardTasks,
+      stickyHeader: true,
+      editTask: {
+        canEdit: canEditTask,
+        onEdit: handleTaskEdited,
+        users: Array.isArray(users)
+          ? users.map((user) => ({
+              id: user.id,
+              name: user.name ?? "",
+            }))
+          : [],
+      },
+      deleteModal: {
+        title: "タスクを削除",
+        description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
+        actionLabel: "削除する",
+      },
+    }),
+    [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="space-y-8">

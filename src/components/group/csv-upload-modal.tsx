@@ -2,7 +2,7 @@
 
 import type { UploadType } from "@/hooks/modal/use-csv-upload";
 import type { DropzoneInputProps, DropzoneRootProps } from "react-dropzone";
-import React from "react";
+import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -15,18 +15,30 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Cloud, File, Loader2, X } from "lucide-react";
 
 // --------------------------------------------------
-// 型定義
-// --------------------------------------------------
+
+/**
+ * CSVアップロードモーダルのprops
+ */
 type CsvUploadModalProps = {
   isOpen: boolean;
   onCloseAction: (isOpen: boolean) => void;
   groupId: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グローバルドロップゾーンオーバーレイのprops
+ */
 type GlobalDropZoneOverlayProps = {
   isVisible: boolean;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アップロードタイプのラジオボタンのprops
+ */
 type UploadTypeRadioProps = {
   type: string;
   info: {
@@ -39,6 +51,11 @@ type UploadTypeRadioProps = {
   onSelect: (type: UploadType) => void;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ファイル一覧のprops
+ */
 type FileListProps = {
   files: File[];
   isUploading: boolean;
@@ -46,6 +63,11 @@ type FileListProps = {
   onRemoveAll: () => void;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ファイルアップロードエリアのprops
+ */
 type FileUploadAreaProps = {
   uploadType: string;
   isUploading: boolean;
@@ -59,6 +81,11 @@ type FileUploadAreaProps = {
   renderFileFormatInfo: () => React.ReactNode;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アクションボタンのprops
+ */
 type ActionButtonsProps = {
   isUploading: boolean;
   canUpload: boolean;
@@ -66,9 +93,8 @@ type ActionButtonsProps = {
   onUpload: () => void;
 };
 
-// --------------------------------------------------
-// サブコンポーネント
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * グローバルドロップゾーンオーバーレイ
  */
@@ -94,15 +120,21 @@ function GlobalDropZoneOverlay({ isVisible }: GlobalDropZoneOverlayProps) {
   );
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * アップロードタイプのラジオボタン
  */
 function UploadTypeRadio({ type, info, isSelected, canUse, onSelect }: UploadTypeRadioProps) {
-  const handleSelect = () => {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const handleSelect = useCallback(() => {
     if (canUse) {
       onSelect(type as UploadType);
     }
-  };
+  }, [canUse, onSelect, type]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <motion.div
@@ -132,11 +164,17 @@ function UploadTypeRadio({ type, info, isSelected, canUse, onSelect }: UploadTyp
   );
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ファイル一覧
  */
 function FileList({ files, isUploading, onRemoveFile, onRemoveAll }: FileListProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   if (files.length === 0) return null;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <motion.div className="space-y-3" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
@@ -159,11 +197,17 @@ function FileList({ files, isUploading, onRemoveFile, onRemoveAll }: FileListPro
   );
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ファイルアップロードエリア
  */
 function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFileFormatInfo }: FileUploadAreaProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const { getRootProps, getInputProps, isDragActive } = dropzoneProps;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="space-y-4">
@@ -221,10 +265,14 @@ function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFile
   );
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * アクションボタン
  */
 function ActionButtons({ isUploading, canUpload, onCancel, onUpload }: ActionButtonsProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <div className="flex flex-shrink-0 items-center justify-between border-t bg-gray-50 px-6 py-4">
       <Button variant="outline" onClick={onCancel} disabled={isUploading} className="text-gray-700">
@@ -251,20 +299,25 @@ function ActionButtons({ isUploading, canUpload, onCancel, onUpload }: ActionBut
   );
 }
 
-// --------------------------------------------------
-// メインコンポーネント
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * CSVアップロードモーダル
  */
 export function CsvUploadModal({ isOpen, onCloseAction, groupId }: CsvUploadModalProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const csvUploadHook = useCsvUpload({
     groupId,
     isOpen,
     onCloseAction,
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const { uploadType, isUploading, uploadProgress, currentFiles, isFileOver, hasPermissionForUploadType, dropzoneProps, setUploadType, handleRemoveFile, handleRemoveAll, handleUpload, onCancel, renderFileFormatInfo } = csvUploadHook;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <>

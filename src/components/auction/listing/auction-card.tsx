@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CardCountdown } from "@/components/auction/listing/auction-countdown";
@@ -10,6 +11,8 @@ import { useAuctionCard } from "@/hooks/auction/listing/use-auction-card";
 import { type AuctionCardProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import { Clock, Heart, Star, Tag, Users } from "lucide-react";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションカードコンポーネント
@@ -25,7 +28,7 @@ export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardPro
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 出品者の評価表示
-  const renderRating = () => {
+  const renderRating = useCallback(() => {
     if (sellerRating.ratingValue === null) {
       return <span className="text-gray-400 dark:text-gray-500">未評価</span>;
     }
@@ -55,7 +58,7 @@ export function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardPro
         <span className="ml-1 text-xs text-gray-600 dark:text-gray-400">{sellerRating.ratingValue.toFixed(1)}</span>
       </div>
     );
-  };
+  }, [sellerRating]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

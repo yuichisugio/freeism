@@ -4,6 +4,8 @@ import { type CountdownDisplayProps } from "@/lib/auction/type/types";
 import { motion } from "framer-motion";
 import { AlertTriangle, Clock } from "lucide-react";
 
+// --------------------------------------------------
+
 /**
  * カウントダウン表示
  * @param countdownState カウントダウンの状態

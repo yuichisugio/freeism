@@ -8,15 +8,18 @@ import { useTaskInputForm } from "@/hooks/form/use-task-input-form";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { contributionType } from "@prisma/client";
 
-export function TaskInputForm({
-  groups,
-  groupComboBoxFlag,
-  users = [], // デフォルト値を空配列に設定
-}: {
-  groups: Group[];
-  groupComboBoxFlag: boolean;
-  users?: User[]; // オプショナルにする
-}) {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク入力フォーム
+ * @param groups グループ
+ * @param groupComboBoxFlag グループ選択フラグ
+ * @param users ユーザー
+ * @returns タスク入力フォーム
+ */
+export function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: { groups: Group[]; groupComboBoxFlag: boolean; users?: User[] }): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックを取得
   const {
     form,
@@ -40,11 +43,15 @@ export function TaskInputForm({
     onSubmit,
   } = useTaskInputForm({ users });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 型安全性のため form の型を明示的に指定
   const typedControl = form.control;
   const typedExecutors = executors;
   const typedReporters = reporters;
   const typedGetValues = form.getValues;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <FormLayout form={form} onSubmit={onSubmit} submitLabel="保存" submittingLabel="保存中...">
