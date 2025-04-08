@@ -1,4 +1,7 @@
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
+import NotificationEmail from "@/emails/notification";
+import { env } from "@/env";
+import { resend } from "@/lib/resend";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -20,6 +23,10 @@ export type NotificationParams = {
   sendTiming: NotificationSendTiming;
   sendScheduledDate: Date | null;
   expiresAt: Date | null;
+  fromEmail?: string;
+  toEmail?: string;
+  subjectEmail?: string;
+  usernameEmail?: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,9 +36,48 @@ export type NotificationParams = {
  * @param _params メール通知送信パラメータ
  * @returns メール通知送信結果
  */
-export async function sendEmailNotification(_params: NotificationParams): Promise<{ success: boolean; message: string }> {
-  return {
-    success: true,
-    message: "メール通知は準備中です",
-  };
+export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; error?: string }> {
+  try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // メール送信に必要なパラメータを設定
+    const fromEmail = params.fromEmail ?? `noreply@${env.DOMAIN}`;
+    const toEmail = params.toEmail ?? params.recipientUserIds.join(",");
+    const subjectEmail = params.subjectEmail ?? params.title;
+    const usernameEmail = params.usernameEmail ?? params.recipientUserIds.join(",");
+    const reactEmail = NotificationEmail({ title: params.title, message: params.message, username: usernameEmail });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // Resendでメール送信
+    const { data, error } = await resend.emails.send({
+      from: fromEmail,
+      to: toEmail,
+      subject: subjectEmail,
+      react: reactEmail,
+    });
+
+    console.log("email-notification.ts_sendEmailNotification_data", data);
+
+    if (error) {
+      const errorMessage = `${error.name}: ${error.message}`;
+      console.error("Resend API Error:", error);
+      return { success: false, error: `メール通知を送信できませんでした: ${errorMessage}` };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // メール送信に成功した場合
+    return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // メール送信に失敗した場合
+  } catch (error) {
+    console.error("email-notification.ts_sendEmailNotification_error", error);
+    return {
+      success: false,
+      error: "メール通知を送信できませんでした",
+    };
+  }
 }
