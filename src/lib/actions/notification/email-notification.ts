@@ -1,6 +1,7 @@
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 import NotificationEmail from "@/emails/notification";
 import { env } from "@/env";
+import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -24,7 +25,6 @@ export type NotificationParams = {
   sendScheduledDate: Date | null;
   expiresAt: Date | null;
   fromEmail?: string;
-  toEmail?: string;
   subjectEmail?: string;
   usernameEmail?: string;
 };
@@ -40,9 +40,64 @@ export async function sendEmailNotification(params: NotificationParams): Promise
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 受信者のメールアドレスを取得
+    const recipientUserEmails = await prisma.user.findMany({
+      where: {
+        id: { in: params.recipientUserIds },
+      },
+      select: {
+        email: true,
+      },
+    });
+
+    console.log("email-notification.ts_sendEmailNotification_recipientUserEmails", recipientUserEmails);
+
+    // 受信者リストの検証
+    if (!recipientUserEmails || recipientUserEmails.length === 0) {
+      return { success: false, error: "受信者リストが空です" };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // // 各受信者へのメール送信を非同期で実行
+    // const sendPromises = recipientUserEmails.map(async (recipient) => {
+    //   try {
+    //     const data = await resend.emails.send({
+    //       from,
+    //       to: recipient,
+    //       subject,
+    //       html: htmlContent,
+    //     });
+
+    //     return { email: recipient, success: true, id: data };
+    //   } catch (error) {
+    //     console.error(`Failed to send email to ${recipient}:`, error);
+    //     return { email: recipient, success: false, error };
+    //   }
+    // });
+
+    // // すべての送信処理を待機
+    // const results = await Promise.all(sendPromises);
+
+    // // 送信成功と失敗の数をカウント
+    // const successful = results.filter(r => r.success).length;
+    // const failed = results.length - successful;
+
+    // return {
+    //   success: true,
+    //   summary: {
+    //     total: recipients.length,
+    //     successful,
+    //     failed
+    //   },
+    //   results
+    // };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // メール送信に必要なパラメータを設定
     const fromEmail = params.fromEmail ?? `noreply@${env.DOMAIN}`;
-    const toEmail = params.toEmail ?? params.recipientUserIds.join(",");
+    const toEmail = recipientUserEmails.map((user) => user.email).join(",");
     const subjectEmail = params.subjectEmail ?? params.title;
     const usernameEmail = params.usernameEmail ?? params.recipientUserIds.join(",");
     const reactEmail = NotificationEmail({ title: params.title, message: params.message, username: usernameEmail });
