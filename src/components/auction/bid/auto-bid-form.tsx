@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAutoBid } from "@/hooks/auction/bid/use-auto-bid";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Bot, HelpCircle, Info } from "lucide-react";
 

@@ -11,7 +11,7 @@ import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { useWatchlistActions } from "@/hooks/auction/bid/use-watchlist-actions";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type Auction, type AuctionWithDetails } from "@/lib/auction/type/types";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Clock, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";

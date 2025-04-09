@@ -1,7 +1,6 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
-import type { BaseRecord } from "@/components/share/data-table";
+import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
 import type { Task } from "@/types/group";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";

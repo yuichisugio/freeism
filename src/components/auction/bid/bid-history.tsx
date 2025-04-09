@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { type BidHistoryProps, type BidHistoryWithUser } from "@/lib/auction/type/types";
-import { formatCurrency, formatRelativeTime } from "@/lib/formatters";
+import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, HandCoins } from "lucide-react";
 

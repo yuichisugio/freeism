@@ -2,7 +2,7 @@ import { Body, Column, Container, Head, Hr, Html, Img, Link, Preview, Row, Secti
 
 const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
 
-export default function NotificationEmail({ title, message, username }: { title: string; message: string; username: string }) {
+export default function NotificationEmail({ title, message }: { title: string; message: string; username: string }) {
   return (
     <Html>
       <Head />
