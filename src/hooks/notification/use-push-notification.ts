@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
+import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -127,6 +128,9 @@ export function usePushNotification() {
   const [recordId, setRecordId] = useState<string | null>(null);
   // デバイスID
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  // userId
+  const session = useSession();
+  const userId = useMemo(() => session.data?.user?.id ?? null, [session.data?.user?.id]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -171,13 +175,13 @@ export function usePushNotification() {
     }
 
     // デバイスIDを生成（プラットフォームとモバイルフラグを組み合わせた簡易的なもの）同一デバイスで識別できる程度の精度があればよい
-    const deviceId = `${deviceInfo.platform}-${deviceInfo.mobile ? "mobile" : "desktop"}-${deviceInfo.brands?.map((b) => b.brand).join("-") || "unknown"}`;
+    const deviceId = `${deviceInfo.platform}-${deviceInfo.mobile ? "mobile" : "desktop"}-${deviceInfo.brands?.map((b) => b.brand).join("-") || "unknown"}-${userId}`;
 
     // デバイスIDを保存
     setDeviceId(deviceId);
 
     return deviceId;
-  }, []);
+  }, [userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -345,7 +349,7 @@ export function usePushNotification() {
       setDeviceId(deviceId);
     };
     void loadDeviceId();
-  }, [subscriptionState, initializeServiceWorker, getDeviceId]);
+  }, [subscriptionState, initializeServiceWorker, getDeviceId, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
