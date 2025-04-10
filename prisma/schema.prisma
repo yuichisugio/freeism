@@ -11,6 +11,7 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
   plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
+  output   = "../node_modules/.prisma/client"
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -22,6 +23,8 @@ model User {
   emailVerified      DateTime?          @map("email_verified")
   image              String?
   isAppOwner         Boolean            @default(false) @map("is_app_owner")
+  isEmailEnabled     Boolean            @default(false) @map("is_email_enabled")
+  isPushEnabled      Boolean            @default(false) @map("is_push_enabled")
   accounts           Account[]
   sessions           Session[]
   settings           UserSettings?

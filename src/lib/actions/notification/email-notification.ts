@@ -1,8 +1,9 @@
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
-import NotificationEmail from "@/emails/notification";
-import { env } from "@/env";
-import { prisma } from "@/lib/prisma";
-import { resend } from "@/lib/resend";
+
+// import NotificationEmail from "@/emails/notification";
+// import { env } from "@/env";
+// import { prisma } from "@/lib/prisma";
+// import { resend } from "@/lib/resend";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -36,7 +37,7 @@ export type NotificationParams = {
  * @param {NotificationParams} params 通知のパラメータ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; error?: string }> {
+export async function sendEmailNotification(_params: NotificationParams): Promise<{ success: boolean; error?: string }> {
   "use server"; // Server Actions としてマーク
 
   try {
@@ -59,41 +60,41 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     //   return { success: false, error: "受信者リストが空です" };
     // }
 
-    // // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // // // 各受信者へのメール送信を非同期で実行
-    // // const sendPromises = recipientUserEmails.map(async (recipient) => {
-    // //   try {
-    // //     const data = await resend.emails.send({
-    // //       from,
-    // //       to: recipient,
-    // //       subject,
-    // //       html: htmlContent,
-    // //     });
+    // // 各受信者へのメール送信を非同期で実行
+    // const sendPromises = recipientUserEmails.map(async (recipient) => {
+    //   try {
+    //     const data = await resend.emails.send({
+    //       from,
+    //       to: recipient,
+    //       subject,
+    //       html: htmlContent,
+    //     });
 
-    // //     return { email: recipient, success: true, id: data };
-    // //   } catch (error) {
-    // //     console.error(`Failed to send email to ${recipient}:`, error);
-    // //     return { email: recipient, success: false, error };
-    // //   }
-    // // });
+    //     return { email: recipient, success: true, id: data };
+    //   } catch (error) {
+    //     console.error(`Failed to send email to ${recipient}:`, error);
+    //     return { email: recipient, success: false, error };
+    //   }
+    // });
 
-    // // // すべての送信処理を待機
-    // // const results = await Promise.all(sendPromises);
+    // // すべての送信処理を待機
+    // const results = await Promise.all(sendPromises);
 
-    // // // 送信成功と失敗の数をカウント
-    // // const successful = results.filter(r => r.success).length;
-    // // const failed = results.length - successful;
+    // // 送信成功と失敗の数をカウント
+    // const successful = results.filter(r => r.success).length;
+    // const failed = results.length - successful;
 
-    // // return {
-    // //   success: true,
-    // //   summary: {
-    // //     total: recipients.length,
-    // //     successful,
-    // //     failed
-    // //   },
-    // //   results
-    // // };
+    // return {
+    //   success: true,
+    //   summary: {
+    //     total: recipients.length,
+    //     successful,
+    //     failed
+    //   },
+    //   results
+    // };
 
     // // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
