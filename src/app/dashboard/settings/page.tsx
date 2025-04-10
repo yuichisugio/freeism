@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { NotificationToggle } from "@/components/notification/push-notification-toggle";
+import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
+import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 
@@ -23,6 +24,12 @@ export default async function SettingsPage() {
   const userSettings = await prisma.userSettings.findUnique({
     where: { userId: session.user.id },
   });
+
+  if (!userSettings) {
+    return <div>ユーザー設定が見つかりません</div>;
+  }
+
+  console.log(userSettings);
 
   return (
     <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
@@ -49,7 +56,11 @@ export default async function SettingsPage() {
 
       {/* プッシュ通知設定 */}
       <div className="mb-8">
-        <NotificationToggle />
+        <WebPushNotificationToggle userSettings={userSettings} />
+      </div>
+
+      <div className="mb-8">
+        <EmailNotificationToggle userSettings={userSettings} />
       </div>
 
       {/* フォームコンテナ */}

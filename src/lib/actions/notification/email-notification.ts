@@ -1,8 +1,8 @@
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
-
 // import NotificationEmail from "@/emails/notification";
 // import { env } from "@/env";
-// import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+
 // import { resend } from "@/lib/resend";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -37,11 +37,34 @@ export type NotificationParams = {
  * @param {NotificationParams} params 通知のパラメータ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendEmailNotification(_params: NotificationParams): Promise<{ success: boolean; error?: string }> {
-  "use server"; // Server Actions としてマーク
+export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; error?: string }> {
+  // Server Actions としてマーク
+  "use server";
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 受信者のメール通知設定を取得
+  const isEmailNotificationEnabled = await prisma.userSettings.findMany({
+    where: {
+      userId: { in: params.recipientUserIds },
+    },
+    select: {
+      isEmailEnabled: true,
+    },
+  });
+
+  console.log("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", isEmailNotificationEnabled);
+
+  if (isEmailNotificationEnabled.length === 0) {
+    return { success: false, error: "メール通知設定が見つかりません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // TODO: 受信者のメールの受信拒否設定の場合は、メールを送信しない分岐を行う
 
     // // 受信者のメールアドレスを取得
     // const recipientUserEmails = await prisma.user.findMany({

@@ -1,10 +1,12 @@
 "use client";
 
+import type { UserSettings } from "@prisma/client";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePushNotification } from "@/hooks/notification/use-push-notification";
+import { updateUserSettings } from "@/lib/actions/user-settings";
 import { AlertCircle } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -12,13 +14,13 @@ import { AlertCircle } from "lucide-react";
 /**
  * プッシュ通知のトグル
  */
-export const NotificationToggle = memo(function NotificationToggle() {
+export const WebPushNotificationToggle = memo(function PushNotificationToggle({ userSettings }: { userSettings: UserSettings }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // プッシュ通知のhookを使用
   const { isSupported, subscriptionState, subscribe, unsubscribe, error, permissionState } = usePushNotification();
-  // トグルの状態
-  const [isEnabled, setIsEnabled] = useState(false);
+  // pushトグルの状態
+  const [isEnabled, setIsEnabled] = useState<boolean>(userSettings.isPushEnabled);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -46,13 +48,25 @@ export const NotificationToggle = memo(function NotificationToggle() {
         }
         // 購読を要求する
         await subscribe();
+
+        // ユーザー設定を更新
+        const result = await updateUserSettings(userSettings.userId, true, "isPushEnabled");
+        if (!result.success) {
+          console.error("プッシュ通知設定の更新に失敗しました:", result.error);
+        }
       } else {
         // トグルをOFFにしたとき
         await unsubscribe();
+
+        // ユーザー設定を更新
+        const result = await updateUserSettings(userSettings.userId, false, "isPushEnabled");
+        if (!result.success) {
+          console.error("プッシュ通知設定の更新に失敗しました:", result.error);
+        }
       }
       setIsEnabled(checked);
     },
-    [subscribe, unsubscribe, permissionState],
+    [subscribe, unsubscribe, permissionState, userSettings.userId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -80,13 +94,13 @@ export const NotificationToggle = memo(function NotificationToggle() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>通知設定</CardTitle>
+        <CardTitle className="text-app dark:text-app-dark">プッシュ通知設定</CardTitle>
         <CardDescription>プッシュ通知の受信設定を管理します</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
           <Switch id="notification-toggle" checked={isEnabled} onCheckedChange={handleToggleChange} />
-          <Label htmlFor="notification-toggle">プッシュ通知を{isEnabled ? "受信する" : "受信しない"}</Label>
+          <Label htmlFor="notification-toggle">現在：{isEnabled ? "受信中" : "受信拒否中"}</Label>
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。</p>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。</p>

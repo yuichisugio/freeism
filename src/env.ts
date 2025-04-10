@@ -17,12 +17,12 @@ export const env = createEnv({
     ENABLE_IMAGE_UPLOAD: z.enum(["true", "false"]).default("false"),
     RESEND_API_KEY: z.string(),
     DOMAIN: z.string(),
-    IS_RESEND_ENABLED: z.enum(["true", "false"]).default("false"),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
     NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD: z.enum(["true", "false"]).default("false"),
+    NEXT_PUBLIC_IS_RESEND_ENABLED: z.enum(["true", "false"]).default("false"),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -42,7 +42,7 @@ export const env = createEnv({
     NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD: process.env.NEXT_PUBLIC_ENABLE_IMAGE_UPLOAD,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     DOMAIN: process.env.DOMAIN,
-    IS_RESEND_ENABLED: process.env.IS_RESEND_ENABLED,
+    NEXT_PUBLIC_IS_RESEND_ENABLED: process.env.NEXT_PUBLIC_IS_RESEND_ENABLED,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,

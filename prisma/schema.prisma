@@ -11,7 +11,6 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
   plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
-  output   = "../node_modules/.prisma/client"
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -23,8 +22,6 @@ model User {
   emailVerified      DateTime?          @map("email_verified")
   image              String?
   isAppOwner         Boolean            @default(false) @map("is_app_owner")
-  isEmailEnabled     Boolean            @default(false) @map("is_email_enabled")
-  isPushEnabled      Boolean            @default(false) @map("is_push_enabled")
   accounts           Account[]
   sessions           Session[]
   settings           UserSettings?
@@ -110,6 +107,8 @@ model UserSettings {
   lifeGoal  String   @map("life_goal") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  isEmailEnabled     Boolean            @default(false) @map("is_email_enabled")
+  isPushEnabled      Boolean            @default(false) @map("is_push_enabled")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
