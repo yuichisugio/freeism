@@ -101,15 +101,15 @@ model VerificationToken {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model UserSettings {
-  id        String   @id @default(cuid())
-  userId    String   @unique @map("user_id")
-  username  String
-  lifeGoal  String   @map("life_goal") @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isEmailEnabled     Boolean            @default(false) @map("is_email_enabled")
-  isPushEnabled      Boolean            @default(false) @map("is_push_enabled")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  userId         String   @unique @map("user_id")
+  username       String
+  lifeGoal       String   @map("life_goal") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  isEmailEnabled Boolean  @default(false) @map("is_email_enabled")
+  isPushEnabled  Boolean  @default(false) @map("is_push_enabled")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

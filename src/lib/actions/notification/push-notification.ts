@@ -34,6 +34,10 @@ type WebPushSubscription = {
   };
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+/**
+ * sendPushNotificationの結果
+ */
 type PushNotificationResult = {
   success: boolean;
   sent?: number;
@@ -55,6 +59,28 @@ export async function sendPushNotification(params: NotificationParams): Promise<
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 受信者のプッシュ通知設定を取得
+    const isPushNotificationEnabled = await prisma.userSettings.findMany({
+      where: {
+        userId: { in: params.recipientUserIds },
+      },
+      select: {
+        isPushEnabled: true,
+        userId: true,
+      },
+    });
+
+    console.log("push-notification.ts_sendPushNotification_isPushNotificationEnabled", isPushNotificationEnabled);
+
+    if (isPushNotificationEnabled.length === 0) {
+      return { success: false, message: "プッシュ通知設定が見つかりません" };
+    }
+
+    // 設定画面で受信拒否しているユーザーを除外したuserIdのリストを作成
+    const recipientUserIds = isPushNotificationEnabled.filter((user) => user.isPushEnabled === true).map((user) => user.userId);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // VAPIDキーが設定されていない場合は送信処理を中断
     if (!vapidDetails.publicKey || !vapidDetails.privateKey) {
       console.error("VAPID keys are not configured. Cannot send push notification.");
@@ -66,7 +92,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     // 対象ユーザーの購読情報を取得
     const targetSubscriptions = await prisma.pushSubscription.findMany({
       where: {
-        userId: { in: params.recipientUserIds },
+        userId: { in: recipientUserIds }, // 設定画面で受信拒否しているユーザーを除外したuserIdのリスト
         // p256dh と auth が null でないことを確認 (不完全な購読情報は除外)
         p256dh: { not: null },
         auth: { not: null },

@@ -24,47 +24,85 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新
-  useEffect(() => {
-    const checkPermission = async () => {
-      setIsEnabled(permissionState === "granted" && !!subscriptionState);
-    };
-
-    void checkPermission();
-  }, [subscriptionState, permissionState]);
+  /**
+   * ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新する関数
+   */
+  const checkPermission = useCallback(async () => {
+    setIsEnabled(permissionState === "granted" && !!subscriptionState);
+  }, [permissionState, subscriptionState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // トグルの状態を変更する関数
+  // ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新するリスナーとして設定
+  useEffect(() => {
+    void checkPermission();
+  }, [subscriptionState, permissionState, checkPermission]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * トグルの状態を変更する関数
+   * @param {boolean} checked トグルの状態
+   */
   const handleToggleChange = useCallback(
     async (checked: boolean) => {
       // トグルをONにしたとき
       if (checked) {
+        // ーーーーーーーーーーーーーーーーーーーーー
+
         // 通知許可が拒否されている場合はブラウザの設定を開くように促す
         if (permissionState === "denied") {
           // 通知許可が拒否されている場合はブラウザの設定を開くように促す
           alert("通知が拒否されています。ブラウザの設定から通知を許可してください。");
           return;
         }
+
+        // ーーーーーーーーーーーーーーーーーーーーー
+
         // 購読を要求する
         await subscribe();
 
-        // ユーザー設定を更新
-        const result = await updateUserSettings(userSettings.userId, true, "isPushEnabled");
-        if (!result.success) {
-          console.error("プッシュ通知設定の更新に失敗しました:", result.error);
-        }
-      } else {
-        // トグルをOFFにしたとき
-        await unsubscribe();
+        // ーーーーーーーーーーーーーーーーーーーーー
 
         // ユーザー設定を更新
-        const result = await updateUserSettings(userSettings.userId, false, "isPushEnabled");
-        if (!result.success) {
+        const result = await updateUserSettings(userSettings.userId, checked, "isPushEnabled");
+
+        // ーーーーーーーーーーーーーーーーーーーーー
+
+        // 成功した場合のみ状態を更新
+        if (result.success) {
+          setIsEnabled(checked);
+        } else {
+          // エラーの場合は元の状態に戻す
           console.error("プッシュ通知設定の更新に失敗しました:", result.error);
+          setIsEnabled(!checked);
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーー
+
+        // OFFにしたとき
+      } else {
+        // ーーーーーーーーーーーーーーーーーーーーー
+
+        // 購読を解除する
+        await unsubscribe();
+
+        // ーーーーーーーーーーーーーーーーーーーーー
+
+        // ユーザー設定を更新
+        const result = await updateUserSettings(userSettings.userId, checked, "isPushEnabled");
+
+        // ーーーーーーーーーーーーーーーーーーーーー
+
+        // 成功した場合のみ状態を更新
+        if (result.success) {
+          setIsEnabled(checked);
+        } else {
+          // エラーの場合は元の状態に戻す
+          console.error("プッシュ通知設定の更新に失敗しました:", result.error);
+          setIsEnabled(!checked);
         }
       }
-      setIsEnabled(checked);
     },
     [subscribe, unsubscribe, permissionState, userSettings.userId],
   );
