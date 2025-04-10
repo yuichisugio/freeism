@@ -12,6 +12,8 @@ import type { NotificationParams } from "./email-notification";
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
 export async function sendInAppNotification(notificationParams: NotificationParams): Promise<{ success: boolean; error?: string }> {
+  "use server"; // Server Actions としてマーク
+
   try {
     // isReadのJSONオブジェクトを構築
     const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};

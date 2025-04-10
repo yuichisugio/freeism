@@ -99,6 +99,7 @@ type AuctionValidationData = {
   currentHighestBid: number;
   currentHighestBidderId: string | null;
   endTime: Date;
+  taskId?: string;
   task?: TaskBasicInfo;
   bidHistories?: Array<{
     user?: {
@@ -264,6 +265,7 @@ async function validateAuction(
           currentHighestBid: true,
           currentHighestBidderId: true,
           endTime: true,
+          taskId: true,
           task: {
             select: {
               creator: {
@@ -473,7 +475,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     const userId = validation.userId!;
     const session = validation.session;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // すべての処理をトランザクションで実行
     const result: BidTransactionResult = await prisma.$transaction(async (tx) => {
@@ -1155,7 +1157,7 @@ async function prepareAutoBid(
           auctionId,
           recipientUserId: [userId],
           sendMethod: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-          actionUrl: `/auctions/${auctionId}`,
+          actionUrl: `/dashboard/auction/${auction.taskId}`,
           sendTiming: NotificationSendTiming.NOW,
           sendScheduledDate: null,
           expiresAt: null,

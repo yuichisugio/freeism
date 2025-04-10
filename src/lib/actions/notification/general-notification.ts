@@ -40,6 +40,9 @@ export type GeneralNotificationParams = {
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
 export async function sendGeneralNotification(params: GeneralNotificationParams): Promise<{ success: boolean; error?: string }> {
+  "use server"; // Server Actions としてマーク
+  console.log("src/lib/actions/notification/general-notification.ts_sendGeneralNotification_start");
+
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

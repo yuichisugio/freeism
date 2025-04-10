@@ -45,11 +45,12 @@ type MessageData = {
 
 /**
  * オークション通知を送信する関数
- * @param {AuctionNotificationParams} params オークションイベントタイプ
- * @returns {success: boolean, error?: string} 通知処理の結果
- * GitHub Actionsで呼び出すため、auth()は使用しない
+ * @param {AuctionNotificationParams} params 通知メッセージデータ
+ * @returns {success: boolean, error?: string} 成功したかどうか
  */
 export async function sendAuctionNotification(params: AuctionNotificationParams): Promise<{ success: boolean; error?: string }> {
+  "use server"; // Server Actions としてマーク
+
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

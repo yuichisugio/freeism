@@ -54,6 +54,7 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
     // オークションデータが存在しない場合は404エラーを返す
     if (!auctionData) {
       console.error(`オークションが見つかりません: taskId=${taskId}`);
+      console.log("src/app/dashboard/auction/[taskId]/page.tsx_stack", new Error().stack);
       return notFound();
     }
 

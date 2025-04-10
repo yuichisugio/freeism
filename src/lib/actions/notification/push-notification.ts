@@ -50,6 +50,8 @@ type PushNotificationResult = {
  * @returns {PushNotificationResult} (success, sent, failed, totalTargets, message) 成功した場合はtrue, 失敗した場合はfalse
  */
 export async function sendPushNotification(params: NotificationParams): Promise<PushNotificationResult> {
+  "use server"; // Server Actions としてマーク
+
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

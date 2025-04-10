@@ -49,6 +49,7 @@ export function useNotificationButton(): {
    */
   const checkNotifications = useCallback(async () => {
     try {
+      console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_start");
       // セッションがある場合のみ通知取得処理を実行
       if (status === "authenticated" && session?.user?.id) {
         // 未読通知を取得
@@ -68,8 +69,10 @@ export function useNotificationButton(): {
   useEffect(() => {
     // セッションがある場合のみ通知取得処理を実行
     if (status === "authenticated" && session?.user?.id) {
+      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start_stack", new Error().stack);
       // 初回実行
       void checkNotifications();
+      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start");
 
       // 定期実行の設定
       const intervalId = setInterval(() => void checkNotifications(), 30 * 60 * 1000); // 30分ごと

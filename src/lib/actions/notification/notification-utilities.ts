@@ -6,8 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 
-//TODO auctionNotificationにも対応させる
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -132,19 +130,24 @@ function formatDateToISOString(date: string | Date | null, defaultNow = false): 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知対象のユーザーIDリストを取得する関数
- * @param {string} targetType 通知対象タイプ
- * @param {object} options オプション（userId, groupId, taskId）
- * @returns {string[]} ユーザーIDの配列
+ * 通知対象のユーザーIDを取得する関数
+ * @param {NotificationTargetType} targetType 通知対象タイプ
+ * @param {Object} params パラメータ
+ * @param {string[]} params.userIds 対象ユーザーID
+ * @param {string} params.groupId 対象グループID
+ * @param {string} params.taskId 対象タスクID
+ * @returns {string[]} 通知対象のユーザーID配列
  */
 export async function getNotificationTargetUserIds(
   targetType: NotificationTargetType,
-  options: {
+  params: {
     userIds?: string[];
     groupId?: string;
     taskId?: string;
   },
 ): Promise<string[]> {
+  "use server"; // Server Actions としてマーク
+
   let targetUserIds: string[] = [];
 
   switch (targetType) {
@@ -158,21 +161,21 @@ export async function getNotificationTargetUserIds(
 
     case "USER":
       // ユーザー向け通知の場合
-      if (!options.userIds) {
+      if (!params.userIds) {
         throw new Error("ユーザーIDが指定されていません");
       }
-      targetUserIds = [...options.userIds];
+      targetUserIds = [...params.userIds];
       break;
 
     case "GROUP":
       // グループ向け通知の場合
-      if (!options.groupId) {
+      if (!params.groupId) {
         throw new Error("グループIDが指定されていません");
       }
 
       // グループメンバー全員を対象に
       const groupMembers = await prisma.groupMembership.findMany({
-        where: { groupId: options.groupId },
+        where: { groupId: params.groupId },
         select: { userId: true },
       });
       targetUserIds = groupMembers.map((member) => member.userId);
@@ -180,13 +183,13 @@ export async function getNotificationTargetUserIds(
 
     case "TASK":
       // タスク向け通知の場合
-      if (!options.taskId) {
+      if (!params.taskId) {
         throw new Error("タスクIDが指定されていません");
       }
 
       // タスクの作成者と報告者、実行者を対象に
       const task = await prisma.task.findUnique({
-        where: { id: options.taskId },
+        where: { id: params.taskId },
         select: {
           creatorId: true,
           groupId: true,
@@ -236,6 +239,8 @@ export async function getNotificationTargetUserIds(
  * @returns 未読通知の数
  */
 export async function getUnreadNotificationsCount(): Promise<number> {
+  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
+  // console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start_stack", new Error().stack);
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

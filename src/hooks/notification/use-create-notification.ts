@@ -3,7 +3,6 @@
 import type { GeneralNotificationParams } from "@/lib/actions/notification/general-notification";
 import type { CreateNotificationFormData } from "@/lib/zod-schema";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { sendGeneralNotification } from "@/lib/actions/notification/general-notification";
 import { createNotificationSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NotificationSendMethod } from "@prisma/client";
@@ -231,14 +230,22 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-        // アプリ内通知を送信
-        const result = await sendGeneralNotification(sendGeneralNotificationParams);
+        // サーバーアクションを直接呼び出す代わりに、APIエンドポイントを使用
+        const response = await fetch("/api/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(sendGeneralNotificationParams),
+        });
+
+        const result = (await response.json()) as { success: boolean; error?: string };
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // エラーがあればエラーメッセージを表示
-        if (result.error) {
-          toast.error(result.error);
+        if (!result.success) {
+          toast.error(result.error ?? "通知の作成に失敗しました");
           return;
         } else {
           // 送信タイミングがNOWの場合は、通知とプッシュ通知を作成したときのメッセージを表示

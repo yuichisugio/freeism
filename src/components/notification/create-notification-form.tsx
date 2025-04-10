@@ -116,6 +116,8 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({ isA
         <CustomFormField control={typedControl} name="sendPushNotification" label="プッシュ通知も送信" description="アプリ内通知と一緒にプッシュ通知も送信します" fieldType="switch" />
 
         <CustomFormField control={typedControl} name="sendEmailNotification" label="メール通知も送信" description="アプリ内通知と一緒にメール通知も送信します" fieldType="switch" />
+
+        {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && <div className="text-muted-foreground text-sm">メール通知は後ほど開発予定です。</div>}
       </FormLayout>
     </div>
   );
