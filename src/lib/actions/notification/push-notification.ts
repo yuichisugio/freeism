@@ -54,7 +54,8 @@ type PushNotificationResult = {
  * @returns {PushNotificationResult} (success, sent, failed, totalTargets, message) 成功した場合はtrue, 失敗した場合はfalse
  */
 export async function sendPushNotification(params: NotificationParams): Promise<PushNotificationResult> {
-  "use server"; // Server Actions としてマーク
+  // Server Actions としてマーク
+  "use server";
 
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -115,13 +116,44 @@ export async function sendPushNotification(params: NotificationParams): Promise<
       ...(params.actionUrl && { data: { url: params.actionUrl } }), // Service Workerで扱いやすいようにdataプロパティに入れる
     });
 
-    console.log(`sendPushNotification_Sending push notification to ${targetSubscriptions.length} subscriptions. Payload:`, payload);
+    console.log(`push-notification.ts_sendPushNotification_Payload:`, payload);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 端末の重複削除。new Setを使用しないのはupdatedAtで降順で並び替えたいため。
+    const deviceGroups = new Map<string, typeof targetSubscriptions>();
+
+    targetSubscriptions.forEach((subscription) => {
+      if (!subscription.deviceId || subscription.deviceId === null) {
+        console.warn("sendPushNotification_No deviceId found for subscription:", subscription);
+        return;
+      }
+      if (!deviceGroups.has(subscription.deviceId)) {
+        deviceGroups.set(subscription.deviceId, []);
+      }
+      deviceGroups.get(subscription.deviceId)!.push(subscription);
+    });
+
+    console.log(`${recipientUserIds.length}人のユーザーに通知を送信します。`);
+    console.log(`重複排除前のサブスクリプション数: ${targetSubscriptions.length}`);
+    console.log(`重複排除後のデバイス数: ${deviceGroups.size}`);
+
+    const noDuplicationTargetSubscriptions = [];
+
+    // デバイスごとに1つのサブスクリプションにのみ通知を送信
+    for (const deviceSubscriptions of deviceGroups.values()) {
+      // デバイスごとに最新のサブスクリプションを使用（最新 = 最後に更新されたもの）
+      const sortedSubscriptions = deviceSubscriptions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+      const subscription = sortedSubscriptions[0];
+      noDuplicationTargetSubscriptions.push(subscription);
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 購読情報を送信 (Promise.allSettledで個々の送信結果を取得)
     const results = await Promise.allSettled(
-      targetSubscriptions.map(async (subscription) => {
+      noDuplicationTargetSubscriptions.map(async (subscription) => {
         // p256dhとauthがnullでないことを再確認 (findManyのwhere条件でフィルタ済みだが念のため)
         if (!subscription.p256dh || !subscription.auth || !subscription.endpoint) {
           console.warn(`Skipping subscription ${subscription.id} due to missing keys.`);
@@ -253,6 +285,7 @@ export async function saveSubscription(subscription: {
     auth: string;
   };
   recordId?: string;
+  deviceId?: string;
 }): Promise<PushSubscription | { error: string }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -312,6 +345,7 @@ export async function saveSubscription(subscription: {
           p256dh: subscription.keys.p256dh,
           auth: subscription.keys.auth,
           expirationTime: expirationTimeDate,
+          deviceId: subscription.deviceId,
         },
       });
     } else {
@@ -326,6 +360,7 @@ export async function saveSubscription(subscription: {
           auth: subscription.keys.auth,
           expirationTime: expirationTimeDate,
           userId: userId,
+          deviceId: subscription.deviceId,
         },
       });
     }

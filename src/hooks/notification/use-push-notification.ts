@@ -30,6 +30,18 @@ type SaveSubscriptionParams = {
     auth: string;
   };
   recordId?: string;
+  deviceId?: string;
+};
+
+/**
+ * デバイス情報の型定義
+ */
+export type DeviceInfo = {
+  brands: Array<{ brand: string; version: string }>;
+  platform: string;
+  mobile: boolean;
+  userAgent: string;
+  deviceId: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -58,7 +70,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * @param recordId - 購読情報のレコードID（オプション）
  * @returns サーバーに送信する購読情報
  */
-function formatSubscriptionForServer(subscription: PushSubscription | null, recordId?: string): SaveSubscriptionParams | null {
+function formatSubscriptionForServer(subscription: PushSubscription | null, recordId?: string, deviceId?: string): SaveSubscriptionParams | null {
   // 購読情報がない場合はnullを返す
   if (!subscription) {
     return null;
@@ -81,6 +93,7 @@ function formatSubscriptionForServer(subscription: PushSubscription | null, reco
       p256dh: subscriptionJSON.keys.p256dh,
       auth: subscriptionJSON.keys.auth,
     },
+    deviceId: deviceId,
   };
 
   // recordIdが指定されている場合は追加
@@ -112,6 +125,59 @@ export function usePushNotification() {
   const [permissionState, setPermissionState] = useState<NotificationPermission>("default");
   // レコードID
   const [recordId, setRecordId] = useState<string | null>(null);
+  // デバイスID
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * デバイスIDを作成
+   * @returns {string} デバイスID
+   */
+  const getDeviceId = useCallback(async (): Promise<string> => {
+    const deviceInfo: Partial<DeviceInfo> = {
+      userAgent: navigator.userAgent,
+    };
+
+    // userAgentDataがサポートされているか確認
+    if ("userAgentData" in navigator && navigator.userAgentData) {
+      // userAgentDataを取得
+      const uaData = navigator.userAgentData as {
+        brands?: Array<{ brand: string; version: string }>;
+        platform?: string;
+        mobile?: boolean;
+      };
+
+      // deviceInfoにuserAgentDataの情報をセット
+      deviceInfo.brands = uaData.brands ?? [];
+      deviceInfo.platform = uaData.platform ?? "";
+      deviceInfo.mobile = !!uaData.mobile;
+    } else {
+      // フォールバック: userAgentから情報を抽出
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      deviceInfo.brands = [{ brand: "unknown", version: "0" }];
+      deviceInfo.platform = /Win/i.test(navigator.userAgent)
+        ? "Windows"
+        : /Mac/i.test(navigator.userAgent)
+          ? "macOS"
+          : /Linux/i.test(navigator.userAgent)
+            ? "Linux"
+            : /Android/i.test(navigator.userAgent)
+              ? "Android"
+              : /iOS/i.test(navigator.userAgent)
+                ? "iOS"
+                : "unknown";
+      deviceInfo.mobile = isMobile;
+    }
+
+    // デバイスIDを生成（プラットフォームとモバイルフラグを組み合わせた簡易的なもの）同一デバイスで識別できる程度の精度があればよい
+    const deviceId = `${deviceInfo.platform}-${deviceInfo.mobile ? "mobile" : "desktop"}-${deviceInfo.brands?.map((b) => b.brand).join("-") || "unknown"}`;
+
+    // デバイスIDを保存
+    setDeviceId(deviceId);
+
+    return deviceId;
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -143,33 +209,35 @@ export function usePushNotification() {
 
   /**
    * クライアント側で購読情報を更新する関数
-   * Service Workerからpushsubscriptionchangeイベントが発生した際に、
-   * メッセージングを通じて呼び出される
+   * Service Workerからpushsubscriptionchangeイベントが発生した際に、メッセージングを通じて呼び出される
    */
-  const handleSubscriptionChange = useCallback(async (oldEndpoint: string, newSubscription: PushSubscription) => {
-    try {
-      console.log("購読情報の変更を検出しました。更新します...");
+  const handleSubscriptionChange = useCallback(
+    async (newSubscription: PushSubscription) => {
+      try {
+        console.log("購読情報の変更を検出しました。更新します...");
 
-      // 新しい購読情報をステートに設定
-      setSubscriptionState(newSubscription);
+        // 新しい購読情報をステートに設定
+        setSubscriptionState(newSubscription);
 
-      // 購読情報を整形
-      const subscriptionData = formatSubscriptionForServer(newSubscription);
-      if (!subscriptionData) {
-        throw new Error("有効な購読情報を整形できませんでした");
+        // 購読情報を整形
+        const subscriptionData = formatSubscriptionForServer(newSubscription, recordId ?? undefined, deviceId ?? undefined);
+        if (!subscriptionData) {
+          throw new Error("有効な購読情報を整形できませんでした");
+        }
+
+        // サーバーに購読情報を送信
+        console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_start");
+        const result = await saveSubscription(subscriptionData);
+        console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_end");
+
+        console.log("購読情報の更新が完了しました:", result);
+      } catch (err) {
+        console.error("購読情報の更新に失敗しました:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
-
-      // サーバーに購読情報を送信
-      console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_start");
-      const result = await saveSubscription(subscriptionData);
-      console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_end");
-
-      console.log("購読情報の更新が完了しました:", result);
-    } catch (err) {
-      console.error("購読情報の更新に失敗しました:", err);
-      setError(err instanceof Error ? err : new Error(String(err)));
-    }
-  }, []);
+    },
+    [recordId, deviceId],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -217,7 +285,7 @@ export function usePushNotification() {
       }
 
       // 5. 購読情報をDBに保存
-      const subscriptionData = formatSubscriptionForServer(subscription);
+      const subscriptionData = formatSubscriptionForServer(subscription, recordId ?? undefined, deviceId ?? undefined);
       if (subscriptionData) {
         console.log("initializeServiceWorker_saveSubscription_start");
         await saveSubscription(subscriptionData);
@@ -231,7 +299,7 @@ export function usePushNotification() {
         if (messageData && messageData.type === "SUBSCRIPTION_CHANGED") {
           if (messageData.oldEndpoint && messageData.newSubscription) {
             // 購読情報が変更された場合の処理を非同期で実行
-            void handleSubscriptionChange(messageData.oldEndpoint, messageData.newSubscription);
+            void handleSubscriptionChange(messageData.newSubscription);
           }
         }
       });
@@ -240,14 +308,15 @@ export function usePushNotification() {
       console.error("initializeServiceWorker_error", error);
       setError(error instanceof Error ? error : new Error(String(error)));
     }
-  }, [handleSubscriptionChange]);
+  }, [handleSubscriptionChange, recordId, deviceId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 1. Service WorkerとPush APIがサポートされているかどうか確認を管理
    * 2. サービスワーカーを登録
-   * 3. デバイスIDを読み込む
+   * 3. 購読情報がある場合は、pushSubscriptionテーブルのrecord_idを読み込む
+   * 4. デバイスIDを読み込む
    * @returns {void}
    */
   useEffect(() => {
@@ -263,13 +332,20 @@ export function usePushNotification() {
       void initializeServiceWorker();
     }
 
-    // pushSubscriptionテーブルのrecord_idを読み込む
+    // 3. 購読情報がある場合は、pushSubscriptionテーブルのrecord_idを読み込む
     const loadRecordId = async () => {
       const recordId = await getRecordId(subscriptionState?.endpoint ?? "");
       setRecordId(recordId);
     };
     void loadRecordId();
-  }, [subscriptionState, initializeServiceWorker]);
+
+    // 4. デバイスIDを読み込む
+    const loadDeviceId = async () => {
+      const deviceId = await getDeviceId();
+      setDeviceId(deviceId);
+    };
+    void loadDeviceId();
+  }, [subscriptionState, initializeServiceWorker, getDeviceId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -366,7 +442,7 @@ export function usePushNotification() {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 購読情報を整形
-      const subscriptionData = formatSubscriptionForServer(sub, recordId ?? undefined);
+      const subscriptionData = formatSubscriptionForServer(sub, recordId ?? undefined, deviceId ?? undefined);
       if (!subscriptionData) {
         throw new Error("有効な購読情報が取得できませんでした");
       }
@@ -395,7 +471,7 @@ export function usePushNotification() {
       setError(err instanceof Error ? err : new Error(String(err)));
       return null;
     }
-  }, [registrationState, isSupported, getSubscription, permissionState, recordId]);
+  }, [registrationState, isSupported, getSubscription, permissionState, recordId, deviceId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
