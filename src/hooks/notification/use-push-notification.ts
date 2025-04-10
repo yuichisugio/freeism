@@ -160,7 +160,9 @@ export function usePushNotification() {
       }
 
       // サーバーに購読情報を送信
+      console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_start");
       const result = await saveSubscription(subscriptionData);
+      console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_end");
 
       console.log("購読情報の更新が完了しました:", result);
     } catch (err) {
@@ -217,8 +219,9 @@ export function usePushNotification() {
       // 5. 購読情報をDBに保存
       const subscriptionData = formatSubscriptionForServer(subscription);
       if (subscriptionData) {
+        console.log("initializeServiceWorker_saveSubscription_start");
         await saveSubscription(subscriptionData);
-        console.log("initializeServiceWorker_saveSubscription", subscriptionData);
+        console.log("initializeServiceWorker_saveSubscription_end");
       }
 
       // 5. メッセージングのためのイベントリスナーを設定
@@ -248,6 +251,7 @@ export function usePushNotification() {
    * @returns {void}
    */
   useEffect(() => {
+    console.log("use-push-notification.ts_usePushNotification_useEffect_start");
     // 1. Service Workerがブラウザでサポートされているか確認
     const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
     setIsSupported(supported);
@@ -370,8 +374,9 @@ export function usePushNotification() {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // サーバーに購読情報を送信
+      console.log("use-push-notification.ts_subscribe_saveSubscription_start");
       const result = await saveSubscription(subscriptionData);
-      console.log("購読情報を保存しました:", result);
+      console.log("use-push-notification.ts_subscribe_saveSubscription_end");
 
       // エラーレスポンスをチェック
       if ("error" in result) {

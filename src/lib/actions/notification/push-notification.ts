@@ -257,6 +257,7 @@ export async function saveSubscription(subscription: {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
+    console.log("push-notification.ts_saveSubscription_try_start", new Error().stack);
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーIDを取得

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { memo } from "react";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   description: "User settings and preferences",
 };
 
-export default async function SettingsPage() {
+export default memo(async function SettingsPage() {
   // セッションを取得
   const session = await getAuthSession();
 
@@ -28,8 +29,6 @@ export default async function SettingsPage() {
   if (!userSettings) {
     return <div>ユーザー設定が見つかりません</div>;
   }
-
-  console.log(userSettings);
 
   return (
     <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
@@ -69,4 +68,4 @@ export default async function SettingsPage() {
       </div>
     </MainTemplate>
   );
-}
+});

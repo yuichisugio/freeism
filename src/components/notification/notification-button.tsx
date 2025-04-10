@@ -15,7 +15,16 @@ import { NotificationList } from "./notification-list";
  * - 未読通知がある場合はバッジを表示（通知リストと連動）
  */
 export const NotificationButton = memo(function NotificationButton() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("notification-button.tsx_NotificationButton_start_render");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 通知ボタンのフック
   const { isOpen, setIsOpen, hasUnreadNotifications, handleUnreadStatusChange, status } = useNotificationButton();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 未認証の場合は何も表示しない
   if (status === "unauthenticated" || status === "loading") {

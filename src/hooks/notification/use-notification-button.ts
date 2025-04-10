@@ -31,7 +31,7 @@ export function useNotificationButton(): {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // セッション情報を取得
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -49,9 +49,8 @@ export function useNotificationButton(): {
    */
   const checkNotifications = useCallback(async () => {
     try {
-      console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_start");
       // セッションがある場合のみ通知取得処理を実行
-      if (status === "authenticated" && session?.user?.id) {
+      if (status === "authenticated") {
         // 未読通知を取得
         const unreadCount = await getUnreadNotificationsCount();
         setHasUnreadNotifications(unreadCount > 0);
@@ -59,7 +58,7 @@ export function useNotificationButton(): {
     } catch (error) {
       console.error("通知取得エラー:", error);
     }
-  }, [status, session]);
+  }, [status]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -67,9 +66,10 @@ export function useNotificationButton(): {
    * 初期ロード時と定期的に未読通知をチェック
    */
   useEffect(() => {
+    console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start");
+    console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_status", status);
     // セッションがある場合のみ通知取得処理を実行
-    if (status === "authenticated" && session?.user?.id) {
-      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start_stack", new Error().stack);
+    if (status === "authenticated") {
       // 初回実行
       void checkNotifications();
       console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start");
@@ -80,7 +80,7 @@ export function useNotificationButton(): {
       // クリーンアップ
       return () => clearInterval(intervalId);
     }
-  }, [status, session, checkNotifications]);
+  }, [status, checkNotifications]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -89,11 +89,11 @@ export function useNotificationButton(): {
    */
   useEffect(() => {
     // モーダーが開かれている場合、最新の通知を取得
-    if (isOpen && status === "authenticated") {
+    if (isOpen) {
       // 最新の通知を取得
       void checkNotifications();
     }
-  }, [isOpen, status, checkNotifications]);
+  }, [isOpen, checkNotifications]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

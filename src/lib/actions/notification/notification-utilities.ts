@@ -240,7 +240,6 @@ export async function getNotificationTargetUserIds(
  */
 export async function getUnreadNotificationsCount(): Promise<number> {
   console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
-  // console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start_stack", new Error().stack);
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
