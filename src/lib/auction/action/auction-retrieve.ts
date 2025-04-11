@@ -56,6 +56,9 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
  */
 export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDetails | null> {
   try {
+    console.log("auction-retrieve.ts_getAuctionWithTask_start");
+
+    // タスクIDが指定されていない場合はエラーを返す
     if (!taskId) {
       console.error("getAuctionWithTask: タスクIDが指定されていません");
       return null;
@@ -97,6 +100,7 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
       },
     });
 
+    // オークションが見つからない場合はエラーを返す
     if (!auction) {
       console.error(`getAuctionWithTask: タスクID=${taskId}のオークションが見つかりませんでした`);
       return null;

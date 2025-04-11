@@ -1,42 +1,24 @@
-import React from "react";
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { getAuctionWithTask } from "@/lib/auction/action/auction-retrieve";
-import { getAuthSession } from "@/lib/utils";
 
 import AuctionDetailWrapper from "./client";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 動的なメタデータを生成
- * @param params タスクID
  * @returns メタデータ
  */
-export async function generateMetadata({ params }: { params: Promise<{ taskId: string }> }): Promise<Metadata> {
-  const { taskId } = await params;
-  try {
-    const auction = await getAuctionWithTask(taskId);
-
-    if (!auction) {
-      console.error(`オークションが見つかりません: taskId=${taskId}`);
-      return {
-        title: "オークション詳細 | Freeism",
-        description: "オークション商品の詳細情報",
-      };
-    }
-
-    return {
-      title: `${auction.task.task} | オークション | Freeism`,
-      description: auction.task.detail ?? `オークション商品: ${auction.task.task}`,
-    };
-  } catch (error) {
-    console.error("メタデータ生成エラー:", error);
-    return {
-      title: "オークション詳細 | Freeism",
-      description: "オークション商品の詳細情報",
-    };
-  }
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "オークション詳細 | Freeism",
+    description: "オークション商品の詳細情報",
+  };
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション詳細ページ
@@ -46,24 +28,17 @@ export async function generateMetadata({ params }: { params: Promise<{ taskId: s
 export default async function AuctionDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
   // タスクIDを取得
   const { taskId } = await params;
+  console.log("src/app/dashboard/auction/[taskId]/page.tsx_taskId", taskId);
 
   try {
     // オークションデータを取得
     const auctionData = await getAuctionWithTask(taskId);
+    console.log("src/app/dashboard/auction/[taskId]/page.tsx_getAuctionWithTask_auctionData", auctionData);
 
     // オークションデータが存在しない場合は404エラーを返す
     if (!auctionData) {
       console.error(`オークションが見つかりません: taskId=${taskId}`);
       console.log("src/app/dashboard/auction/[taskId]/page.tsx_stack", new Error().stack);
-      return notFound();
-    }
-
-    // 現在のユーザー情報を取得
-    const session = await getAuthSession();
-
-    // ユーザー情報が存在しない場合は404エラーを返す
-    if (!session?.user) {
-      console.error("ユーザーセッションが見つかりません");
       return notFound();
     }
 
