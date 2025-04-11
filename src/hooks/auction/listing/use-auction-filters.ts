@@ -35,6 +35,7 @@ type UseAuctionFiltersReturn = {
  * @param onFilterChangeAction フィルターの変更アクション
  * @param sortOption ソートオプション
  * @param onSortChangeAction ソートオプションの変更アクション
+ * @param categories カテゴリリスト
  * @param onResetFilters フィルターのリセットアクション
  * @returns フィルターの状態とハンドラー
  */

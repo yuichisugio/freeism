@@ -2,6 +2,7 @@
 
 import type { NotificationTargetType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
@@ -34,12 +35,12 @@ export type NotificationData = {
 /**
  * 認証済みユーザーのIDを取得する共通関数
  * @returns ユーザーID
- * @throws 認証されていない場合はエラー
+ * @returns 認証されていない場合はリダイレクト
  */
 async function getAuthenticatedUserId(): Promise<string> {
   const session = await getAuthSession();
   if (!session?.user?.id) {
-    throw new Error("認証が必要です");
+    redirect("/auth/signin");
   }
   return session.user.id;
 }

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function AuctionPage() {
+  console.log("src/app/dashboard/auction/page.tsx_AuctionPage_start");
   return (
     <MainTemplate title="オークション商品一覧" description="出品されているオークション商品一覧です">
       <AuctionListings />

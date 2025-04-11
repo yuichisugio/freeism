@@ -6,6 +6,14 @@ import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+type NotificationButtonReturn = {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  hasUnreadNotifications: boolean;
+  setHasUnreadNotifications: (hasUnread: boolean) => void;
+  status: string;
+};
+
 /**
  * 通知ボタン用のカスタムフック
  * - 未読通知の状態管理
@@ -13,13 +21,7 @@ import { useSession } from "next-auth/react";
  * - モーダル開閉状態管理
  * @returns {isOpen: boolean, setIsOpen: (isOpen: boolean) => void, hasUnreadNotifications: boolean, handleUnreadStatusChange: (hasUnread: boolean) => void, status: string}
  */
-export function useNotificationButton(): {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  hasUnreadNotifications: boolean;
-  handleUnreadStatusChange: (hasUnread: boolean) => void;
-  status: string;
-} {
+export function useNotificationButton(): NotificationButtonReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // モーダルの開閉状態を管理
@@ -36,29 +38,14 @@ export function useNotificationButton(): {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 通知リストからの未読状態更新を処理する関数
-   */
-  const handleUnreadStatusChange = useCallback((hasUnread: boolean) => {
-    setHasUnreadNotifications(hasUnread);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 未読通知をチェックする関数
    */
   const checkNotifications = useCallback(async () => {
-    try {
-      // セッションがある場合のみ通知取得処理を実行
-      if (status === "authenticated") {
-        // 未読通知を取得
-        const unreadCount = await getUnreadNotificationsCount();
-        setHasUnreadNotifications(unreadCount > 0);
-      }
-    } catch (error) {
-      console.error("通知取得エラー:", error);
-    }
-  }, [status]);
+    console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_start");
+    // 未読通知を取得
+    const unreadCount = await getUnreadNotificationsCount();
+    setHasUnreadNotifications(unreadCount > 0);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -68,18 +55,23 @@ export function useNotificationButton(): {
   useEffect(() => {
     console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start");
     console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_status", status);
+    let intervalId: NodeJS.Timeout | undefined;
     // セッションがある場合のみ通知取得処理を実行
     if (status === "authenticated") {
       // 初回実行
       void checkNotifications();
-      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start");
 
       // 定期実行の設定
-      const intervalId = setInterval(() => void checkNotifications(), 30 * 60 * 1000); // 30分ごと
-
-      // クリーンアップ
-      return () => clearInterval(intervalId);
+      intervalId = setInterval(() => void checkNotifications(), 30 * 60 * 1000); // 30分ごと
     }
+    // クリーンアップ
+    return () => {
+      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_cleanup");
+      if (intervalId) {
+        console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_cleanup_clearInterval");
+        clearInterval(intervalId);
+      }
+    };
   }, [status, checkNotifications]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -90,6 +82,7 @@ export function useNotificationButton(): {
   useEffect(() => {
     // モーダーが開かれている場合、最新の通知を取得
     if (isOpen) {
+      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_isOpen", isOpen);
       // 最新の通知を取得
       void checkNotifications();
     }
@@ -101,7 +94,7 @@ export function useNotificationButton(): {
     isOpen,
     setIsOpen,
     hasUnreadNotifications,
-    handleUnreadStatusChange,
+    setHasUnreadNotifications,
     status,
   };
 }

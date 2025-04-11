@@ -22,6 +22,10 @@ import { getAuthSession } from "@/lib/utils";
 export const Header = memo(async function Header() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("src/components/layout/header.tsx_Header_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 認証状態を取得
   const session = await getAuthSession();
 

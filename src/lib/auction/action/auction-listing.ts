@@ -85,15 +85,19 @@ const CACHE_TTL = 60 * 1000; // 1分キャッシュ
  */
 export const getAuctionCategories = cache(async () => {
   try {
-    console.log("Server: Returning categories", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
+    console.log("Server: getAuctionCategories_start"); // 開始ログ
+    console.log("Server: getAuctionCategories_returning_categories", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
     if (!AUCTION_CONSTANTS.AUCTION_CATEGORIES || !Array.isArray(AUCTION_CONSTANTS.AUCTION_CATEGORIES)) {
-      console.error("Server: Invalid AUCTION_CATEGORIES structure:", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
+      console.error("Server: getAuctionCategories_invalid_structure", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
       return ["すべて", "その他"]; // フォールバック値を返す
     }
+    console.log("Server: getAuctionCategories_success"); // 成功ログ
     return AUCTION_CONSTANTS.AUCTION_CATEGORIES;
   } catch (error) {
-    console.error("Server: Error in getAuctionCategories:", error);
+    console.error("Server: getAuctionCategories_error", error); // エラーログ
     return ["すべて", "その他"]; // エラー時のフォールバック値
+  } finally {
+    console.log("Server: getAuctionCategories_end"); // 終了ログ
   }
 });
 
@@ -113,8 +117,10 @@ export const getAuctionPageSize = cache(async () => {
  * @param params 取得パラメータ
  */
 export async function getAuctionListings({ page = 1, pageSize = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, filters = {}, sort = "newest" }: GetAuctionListingsParams): Promise<AuctionListingResult> {
+  console.log("Server: getAuctionListings_start", { page, pageSize, filters, sort }); // 開始ログとパラメータ
   const userId = await getCurrentUserId();
   if (!userId) {
+    console.log("Server: getAuctionListings_noUserId");
     return {
       items: [],
       totalCount: 0,
@@ -129,6 +135,7 @@ export async function getAuctionListings({ page = 1, pageSize = AUCTION_CONSTANT
   const userGroupIds = userGroups.map((membership) => membership.groupId);
 
   if (userGroupIds.length === 0) {
+    console.log("Server: getAuctionListings_noUserGroups");
     return {
       items: [],
       totalCount: 0,
@@ -392,16 +399,16 @@ export async function getAuctionListings({ page = 1, pageSize = AUCTION_CONSTANT
     };
   });
 
-  // キャッシュにデータを保存
-  const result = {
+  // キャッシュに保存
+  const resultData: AuctionListingResult = {
     items,
     totalCount,
     currentPage: page,
     totalPages,
-    userTotalPoints,
+    userTotalPoints: userTotalPoints || 0,
   };
+  auctionCache.set(cacheKey, { data: resultData, timestamp: now });
 
-  auctionCache.set(cacheKey, { data: result, timestamp: now });
-
-  return result;
+  console.log("Server: getAuctionListings_success", { totalCount: resultData.totalCount, itemsCount: resultData.items.length }); // 成功ログ
+  return resultData;
 }

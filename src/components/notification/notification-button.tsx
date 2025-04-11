@@ -17,17 +17,18 @@ import { NotificationList } from "./notification-list";
 export const NotificationButton = memo(function NotificationButton() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("notification-button.tsx_NotificationButton_start_render");
+  console.log("src/components/notification/notification-button.tsx_NotificationButton_start_render");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知ボタンのフック
-  const { isOpen, setIsOpen, hasUnreadNotifications, handleUnreadStatusChange, status } = useNotificationButton();
+  const { isOpen, setIsOpen, hasUnreadNotifications, setHasUnreadNotifications, status } = useNotificationButton();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 未認証の場合は何も表示しない
   if (status === "unauthenticated" || status === "loading") {
+    console.log("src/components/notification/notification-button.tsx_NotificationButton_unauthenticated_or_loading");
     return null;
   }
 
@@ -46,7 +47,7 @@ export const NotificationButton = memo(function NotificationButton() {
             <DialogTitle>通知</DialogTitle>
           </DialogHeader>
           <div className="rounded-lg border px-6 py-2 shadow-sm">
-            <NotificationList onUnreadStatusChangeAction={handleUnreadStatusChange} />
+            <NotificationList onUnreadStatusChangeAction={setHasUnreadNotifications} />
           </div>
         </DialogContent>
       </Dialog>

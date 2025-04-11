@@ -17,7 +17,6 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
   // searchParamsはPromiseを返すためawaitする
   const params = await Promise.resolve(searchParams);
   const groupId = params.groupId;
-  console.log("page.tsxのgroupId: ", groupId);
 
   const session = await getAuthSession();
 
@@ -26,8 +25,6 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
   }
 
   let groups: { id: string; name: string }[] = [];
-
-  console.log("ARG groupId: ", groupId ? "true" : "false");
 
   if (!groupId) {
     // グループ選択のComboBoxが必要な場合
@@ -51,8 +48,6 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
       id: membership.group.id,
       name: membership.group.name,
     }));
-
-    console.log("page.tsxのmemberships: ", memberships);
   } else {
     groupComboBoxFlag = false;
     groups = [
@@ -119,8 +114,6 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
       users = Array.from(uniqueUsers.values());
     }
   }
-
-  console.log("page.tsxのgroups: ", groups);
 
   return (
     <MainTemplate title="新規Task作成" description="新規タスクを作成します">

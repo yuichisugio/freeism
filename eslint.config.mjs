@@ -84,7 +84,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ["src/components/ui/*", "*.md"],
+    ignores: ["src/components/ui/*", "*.md", "*.svg", "next.config.ts"],
   },
 ];
 

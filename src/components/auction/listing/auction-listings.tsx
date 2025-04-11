@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useEffect } from "react";
+import React, { memo } from "react";
 import { AuctionCard } from "@/components/auction/listing/auction-card";
 import { AuctionFilters } from "@/components/auction/listing/auction-filters";
 import { AuctionPagination } from "@/components/auction/listing/auction-pagination";
@@ -17,10 +17,13 @@ import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings
 export const AuctionListings = memo(function AuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("auction-listings.tsx_AuctionListings_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックと状態を取得
   const {
     // 状態
-    isPending,
     categories,
     pageSize,
     auctions,
@@ -30,6 +33,7 @@ export const AuctionListings = memo(function AuctionListings() {
     filters,
     sortOption,
     page,
+    isPending,
 
     // アクション
     setSearchQuery,
@@ -39,14 +43,6 @@ export const AuctionListings = memo(function AuctionListings() {
     handleResetFilters,
     handleToggleWatchlist,
   } = useAuctionListings();
-
-  // デバッグ用: カテゴリの状態を確認
-  useEffect(() => {
-    console.log("Categories in component:", categories);
-    console.log("Categories type:", typeof categories);
-    console.log("Categories is Array:", Array.isArray(categories));
-    console.log("Categories length:", categories ? categories.length : "undefined");
-  }, [categories]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

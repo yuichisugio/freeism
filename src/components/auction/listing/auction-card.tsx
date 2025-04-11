@@ -22,6 +22,10 @@ import { Clock, Heart, Star, Tag, Users } from "lucide-react";
 export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("src/components/auction/listing/auction-card.tsx_AuctionCard_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからロジックを取得
   const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage, sellerRating } = useAuctionCard({ auction, onToggleWatchlistAction });
 

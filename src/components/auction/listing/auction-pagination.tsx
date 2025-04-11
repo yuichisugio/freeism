@@ -28,6 +28,10 @@ type AuctionPaginationProps = {
 export const AuctionPagination = memo(function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("src/components/auction/listing/auction-pagination.tsx_AuctionPagination_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックからページネーションロジックを取得
   const { pageNumbers, hasPreviousPage, hasNextPage } = usePagination({ currentPage, totalPages });
 

@@ -290,7 +290,7 @@ export async function saveSubscription(subscription: {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
-    console.log("push-notification.ts_saveSubscription_try_start", new Error().stack);
+    console.log("push-notification.ts_saveSubscription_try_start");
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーIDを取得
@@ -365,7 +365,7 @@ export async function saveSubscription(subscription: {
       });
     }
 
-    console.log("push-notification_saveSubscription_result", result);
+    console.log("push-notification_saveSubscription_result");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

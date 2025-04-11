@@ -13,13 +13,28 @@ import { contributionType } from "@prisma/client";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * タスク入力フォームのprops
+ */
+type TaskInputFormProps = {
+  groups: Group[];
+  groupComboBoxFlag: boolean;
+  users?: User[];
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * タスク入力フォーム
  * @param groups グループ
  * @param groupComboBoxFlag グループ選択フラグ
  * @param users ユーザー
  * @returns タスク入力フォーム
  */
-export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: { groups: Group[]; groupComboBoxFlag: boolean; users?: User[] }): JSX.Element {
+export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: TaskInputFormProps): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/components/task/task-input-form.tsx_TaskInputForm_start");
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
