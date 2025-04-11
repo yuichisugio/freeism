@@ -11,12 +11,14 @@ import { getUserGroups } from "@/lib/auction/action/user";
  * オークションフィルター用カスタムフックの型定義
  */
 type UseAuctionFiltersReturn = {
+  category: string[];
   priceRange: [number, number];
   timeRange: [number, number];
   groups: { id: string; name: string }[];
   showFilters: boolean;
   activeFilterCount: number;
   openGroupCombobox: boolean;
+  setCategory: (category: string[]) => void;
   setOpenGroupCombobox: (open: boolean) => void;
   handlePriceRangeChange: (value: [number, number]) => void;
   handlePriceRangeApply: () => void;
@@ -74,6 +76,9 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
 
   // 現在のページ
   const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
+
+  // カテゴリ
+  const [category, setCategory] = useState<string[]>([searchParams.get("category") ?? "すべて"]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -269,12 +274,14 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    category,
     priceRange,
     timeRange,
     groups,
     showFilters,
     activeFilterCount,
     openGroupCombobox,
+    setCategory,
     setOpenGroupCombobox,
     handlePriceRangeChange,
     handlePriceRangeApply,

@@ -60,6 +60,6 @@ export const AUCTION_CONSTANTS = {
     // 質問と回答の表示件数
     QA_LIMIT: 10,
     // 表示件数
-    PAGE_SIZE: 50,
+    PAGE_SIZE: 20,
   },
 };

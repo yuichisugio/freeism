@@ -1,12 +1,13 @@
 "use client";
 
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { AuctionCard } from "@/components/auction/listing/auction-card";
 import { AuctionFilters } from "@/components/auction/listing/auction-filters";
 import { AuctionPagination } from "@/components/auction/listing/auction-pagination";
 import SearchBar from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -17,14 +18,9 @@ import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings
 export const AuctionListings = memo(function AuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("auction-listings.tsx_AuctionListings_start");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // カスタムフックからロジックと状態を取得
   const {
     // 状態
-    categories,
     pageSize,
     auctions,
     totalCount,
@@ -44,6 +40,13 @@ export const AuctionListings = memo(function AuctionListings() {
     handleToggleWatchlist,
   } = useAuctionListings();
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // カテゴリ
+  const categories = useMemo(() => AUCTION_CONSTANTS.AUCTION_CATEGORIES, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 検索クエリ変更時のハンドラ（URLパラメータ反映を確実に行う）
   const handleSearchQueryChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +54,8 @@ export const AuctionListings = memo(function AuctionListings() {
     },
     [setSearchQuery],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カテゴリ選択時のハンドラ（URLパラメータ反映を確実に行う）
   const handleCategorySelect = useCallback(

@@ -56,6 +56,8 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
     onResetFilters,
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // カスタムフックのハンドラを利用して、確実にURL更新が行われるようにする
   const handleFilterApply = useCallback(
     (newFilters: Partial<AuctionFilterParams>) => {
@@ -64,6 +66,8 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
     },
     [handleFilterChange, updateUrlParams],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const handleSortApply = useCallback(
     (newSort: AuctionSortOption) => {

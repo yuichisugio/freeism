@@ -1,6 +1,5 @@
 "use server";
 
-import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus } from "@prisma/client";
 
@@ -77,39 +76,6 @@ function getCacheKey(params: GetAuctionListingsParams, userGroupIds: string[]): 
  */
 const auctionCache = new Map<string, { data: AuctionListingResult; timestamp: number }>();
 const CACHE_TTL = 60 * 1000; // 1分キャッシュ
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 定数を取得する関数（"use server"ファイルからエクスポートするため）
- */
-export const getAuctionCategories = cache(async () => {
-  try {
-    console.log("Server: getAuctionCategories_start"); // 開始ログ
-    console.log("Server: getAuctionCategories_returning_categories", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
-    if (!AUCTION_CONSTANTS.AUCTION_CATEGORIES || !Array.isArray(AUCTION_CONSTANTS.AUCTION_CATEGORIES)) {
-      console.error("Server: getAuctionCategories_invalid_structure", AUCTION_CONSTANTS.AUCTION_CATEGORIES);
-      return ["すべて", "その他"]; // フォールバック値を返す
-    }
-    console.log("Server: getAuctionCategories_success"); // 成功ログ
-    return AUCTION_CONSTANTS.AUCTION_CATEGORIES;
-  } catch (error) {
-    console.error("Server: getAuctionCategories_error", error); // エラーログ
-    return ["すべて", "その他"]; // エラー時のフォールバック値
-  } finally {
-    console.log("Server: getAuctionCategories_end"); // 終了ログ
-  }
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 表示設定を取得する関数
- */
-export const getAuctionPageSize = cache(async () => {
-  return AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
-});
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
