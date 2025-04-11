@@ -2,8 +2,9 @@
 
 import type { AuctionFilterParams, AuctionListingResult, AuctionSortOption } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/auction/bid/use-debounce";
+import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
 import { getAuctionCategories, getAuctionListings, getAuctionPageSize } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
@@ -36,10 +37,6 @@ type UseAuctionListingsReturn = {
  * @description オークション一覧画面のロジックを管理するカスタムフック
  */
 export function useAuctionListings(): UseAuctionListingsReturn {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // Next.js関連
-  const router = useRouter();
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // URLからパラメータを取得
@@ -118,6 +115,33 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // フィルターカスタムフックから追加のロジックを取得
+  const {
+    handleFilterChange: filterChangeWithUrl,
+    handleSortChange: sortChangeWithUrl,
+    handleResetAllFilters,
+    updateUrlParams,
+  } = useAuctionFilters({
+    filters,
+    onFilterChangeAction: (newFilters) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+    },
+    sortOption,
+    onSortChangeAction: setSortOption,
+    onResetFilters: () => {
+      setFilters({
+        category: "すべて",
+        status: "all",
+        searchQuery: "",
+      });
+      setSearchQuery("");
+      setSortOption("newest");
+      setPage(1);
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * オークション一覧データを取得する関数
    * @returns Promise<void>
@@ -193,61 +217,22 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * URLパラメータを更新する関数
-   * 無限ループを防ぐため、適切なタイミングでのみ呼び出す
-   */
-  const updateUrlParams = useCallback(() => {
-    // ーーーーーーーーーーーーーーー
-
-    // URLパラメータを作成
-    const params = new URLSearchParams();
-
-    // ーーーーーーーーーーーーーーー
-
-    // 必要なパラメータのみURLに含める（デフォルト値は含めない）
-    if (page > 1) params.set("page", String(page));
-    if (filters.category && filters.category !== "すべて") params.set("category", filters.category);
-    if (filters.status && filters.status !== "all") params.set("status", filters.status);
-    if (sortOption !== "newest") params.set("sort", sortOption);
-    if (filters.searchQuery) params.set("q", filters.searchQuery);
-
-    // ーーーーーーーーーーーーーーー
-
-    // URLパラメータを作成
-    const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
-
-    // ーーーーーーーーーーーーーーー
-
-    // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-    router.push(newUrl, { scroll: false });
-
-    // ーーーーーーーーーーーーーーー
-  }, [page, filters, sortOption, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * データ取得とURL更新を行う共通処理（各種ハンドラから呼び出される）
    * @returns Promise<void>
    */
-  const fetchDataAndUpdateUrl = useCallback(async () => {
+  const updateListingsAndUrlparams = useCallback(async () => {
     try {
+      // データ取得中の状態
       setIsPending(true);
-      console.log("use-auction-listings_fetchDataAndUpdateUrl_start", {
-        page,
-        category: filters.category,
-        status: filters.status,
-        sort: sortOption,
-        searchQuery: filters.searchQuery,
-      }); // リクエスト情報
-      // URL更新（無限ループを防ぐためにuseEffectではなくハンドラ内で呼び出す）
-      updateUrlParams();
+
       // データ取得
       await getAuctionListingsData();
+      await getAuctionCategoriesAndPagesize();
     } finally {
+      // データ取得中の状態を解除
       setIsPending(false);
     }
-  }, [getAuctionListingsData, updateUrlParams, page, filters, sortOption]);
+  }, [getAuctionListingsData, getAuctionCategoriesAndPagesize]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -280,12 +265,10 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    */
   useEffect(() => {
     if (debouncedSearchQuery !== filters.searchQuery) {
-      setFilters((prev) => ({ ...prev, searchQuery: debouncedSearchQuery }));
-      setPage(1); // 検索時は1ページ目に戻す
-      // 検索クエリ変更時にデータ取得とURL更新
-      void fetchDataAndUpdateUrl();
+      filterChangeWithUrl({ searchQuery: debouncedSearchQuery });
+      void updateListingsAndUrlparams();
     }
-  }, [debouncedSearchQuery, filters.searchQuery, fetchDataAndUpdateUrl]);
+  }, [debouncedSearchQuery, filters.searchQuery, filterChangeWithUrl, updateListingsAndUrlparams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -297,10 +280,12 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const handlePageChange = useCallback(
     (newPage: number) => {
       setPage(newPage);
-      // ページ変更時にデータ取得とURL更新
-      void fetchDataAndUpdateUrl();
+      // URLパラメータを更新
+      updateUrlParams();
+      // ページ変更時にデータ取得
+      void updateListingsAndUrlparams();
     },
-    [fetchDataAndUpdateUrl],
+    [updateListingsAndUrlparams, updateUrlParams],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -312,12 +297,11 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    */
   const handleFilterChange = useCallback(
     (newFilters: Partial<AuctionFilterParams>) => {
-      setFilters((prev) => ({ ...prev, ...newFilters }));
-      setPage(1); // フィルター変更時は1ページ目に戻す
-      // フィルター変更時にデータ取得とURL更新
-      void fetchDataAndUpdateUrl();
+      // フィルターカスタムフックのハンドラを呼び出し、URL更新も行う
+      filterChangeWithUrl(newFilters);
+      void updateListingsAndUrlparams();
     },
-    [fetchDataAndUpdateUrl],
+    [filterChangeWithUrl, updateListingsAndUrlparams],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -329,12 +313,11 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    */
   const handleSortChange = useCallback(
     (newSort: AuctionSortOption) => {
-      setSortOption(newSort);
-      setPage(1); // ソート変更時は1ページ目に戻す
-      // ソート変更時にデータ取得とURL更新
-      void fetchDataAndUpdateUrl();
+      // ソートカスタムフックのハンドラを呼び出し、URL更新も行う
+      sortChangeWithUrl(newSort);
+      void updateListingsAndUrlparams();
     },
-    [fetchDataAndUpdateUrl],
+    [sortChangeWithUrl, updateListingsAndUrlparams],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -344,17 +327,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    * @returns Promise<void>
    */
   const handleResetFilters = useCallback(() => {
-    setFilters({
-      category: "すべて",
-      status: "all",
-      searchQuery: "",
-    });
-    setSearchQuery("");
-    setSortOption("newest");
-    setPage(1);
-    // リセット後にデータ取得とURL更新
-    void fetchDataAndUpdateUrl();
-  }, [fetchDataAndUpdateUrl]);
+    handleResetAllFilters();
+    void updateListingsAndUrlparams();
+  }, [handleResetAllFilters, updateListingsAndUrlparams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

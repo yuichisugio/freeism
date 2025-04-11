@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { AuctionCard } from "@/components/auction/listing/auction-card";
 import { AuctionFilters } from "@/components/auction/listing/auction-filters";
 import { AuctionPagination } from "@/components/auction/listing/auction-pagination";
@@ -44,13 +44,29 @@ export const AuctionListings = memo(function AuctionListings() {
     handleToggleWatchlist,
   } = useAuctionListings();
 
+  // 検索クエリ変更時のハンドラ（URLパラメータ反映を確実に行う）
+  const handleSearchQueryChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    [setSearchQuery],
+  );
+
+  // カテゴリ選択時のハンドラ（URLパラメータ反映を確実に行う）
+  const handleCategorySelect = useCallback(
+    (category: string) => {
+      handleFilterChange({ category });
+    },
+    [handleFilterChange],
+  );
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="space-y-6">
       {/* 検索バー */}
       <div className="w-full">
-        <SearchBar placeholder="商品名や説明文を検索..." value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} />
+        <SearchBar placeholder="商品名や説明文を検索..." value={searchQuery} onChange={handleSearchQueryChange} />
       </div>
 
       {/* カテゴリタブ */}
@@ -62,7 +78,7 @@ export const AuctionListings = memo(function AuctionListings() {
                 <button
                   key={category}
                   className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${filters.category === category ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                  onClick={() => handleFilterChange({ category })}
+                  onClick={() => handleCategorySelect(category)}
                 >
                   {category}
                 </button>

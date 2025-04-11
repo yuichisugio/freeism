@@ -44,8 +44,10 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
     toggleFilterDisplay,
     setPricePreset,
     setTimePreset,
-    resetPriceRange,
-    resetTimeRange,
+    handleFilterChange,
+    handleSortChange,
+    handleResetAllFilters,
+    updateUrlParams,
   } = useAuctionFilters({
     filters,
     onFilterChangeAction,
@@ -54,16 +56,22 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
     onResetFilters,
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // カスタムフックのハンドラを利用して、確実にURL更新が行われるようにする
+  const handleFilterApply = useCallback(
+    (newFilters: Partial<AuctionFilterParams>) => {
+      handleFilterChange(newFilters);
+      updateUrlParams();
+    },
+    [handleFilterChange, updateUrlParams],
+  );
 
-  // フィルターのリセット
-  const handleResetFilters = useCallback(() => {
-    resetPriceRange();
-    resetTimeRange();
-    if (onResetFilters) {
-      onResetFilters();
-    }
-  }, [resetPriceRange, resetTimeRange, onResetFilters]);
+  const handleSortApply = useCallback(
+    (newSort: AuctionSortOption) => {
+      handleSortChange(newSort);
+      updateUrlParams();
+    },
+    [handleSortChange, updateUrlParams],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -142,7 +150,15 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
         </Button>
 
         {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={handleResetFilters} className="text-red-500 hover:bg-red-50 hover:text-red-600">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              handleResetAllFilters();
+              updateUrlParams();
+            }}
+            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+          >
             <X className="mr-1 h-4 w-4" />
             リセット
           </Button>
@@ -164,7 +180,7 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
                     <CardTitle className="text-sm font-medium text-blue-800">並び替え</CardTitle>
                   </CardHeader>
                   <CardContent className="p-3">
-                    <RadioGroup value={sortOption} onValueChange={(value) => onSortChangeAction(value as AuctionSortOption)} className="grid gap-2">
+                    <RadioGroup value={sortOption} onValueChange={(value) => handleSortApply(value as AuctionSortOption)} className="grid gap-2">
                       {sortOptions.map((option) => (
                         <label
                           key={option.value}
@@ -190,7 +206,7 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
                     <CardTitle className="text-sm font-medium text-green-800">ステータス</CardTitle>
                   </CardHeader>
                   <CardContent className="p-3">
-                    <RadioGroup value={filters.status ?? "all"} onValueChange={(value) => onFilterChangeAction({ status: value as AuctionFilterParams["status"] })} className="grid gap-2">
+                    <RadioGroup value={filters.status ?? "all"} onValueChange={(value) => handleFilterApply({ status: value as AuctionFilterParams["status"] })} className="grid gap-2">
                       {statusOptions.map((option) => (
                         <label
                           key={option.value}
@@ -232,7 +248,7 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
                               <CommandItem
                                 value="all-groups"
                                 onSelect={() => {
-                                  onFilterChangeAction({ groupId: undefined });
+                                  handleFilterApply({ groupId: undefined });
                                   setOpenGroupCombobox(false);
                                 }}
                                 className={cn("transition-colors duration-150 hover:bg-purple-50", !filters.groupId && "bg-purple-50")}
@@ -245,7 +261,7 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
                                   key={group.id}
                                   value={group.name}
                                   onSelect={() => {
-                                    onFilterChangeAction({ groupId: group.id });
+                                    handleFilterApply({ groupId: group.id });
                                     setOpenGroupCombobox(false);
                                   }}
                                   className={cn("transition-colors duration-150 hover:bg-purple-50", filters.groupId === group.id && "bg-purple-50")}
@@ -327,7 +343,15 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
                         ))}
                       </div>
 
-                      <Button type="button" size="sm" onClick={handleTimeRangeApply} className="w-full bg-amber-500 text-white hover:bg-amber-600">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          handleTimeRangeApply();
+                          updateUrlParams();
+                        }}
+                        className="w-full bg-amber-500 text-white hover:bg-amber-600"
+                      >
                         残り時間を適用
                       </Button>
                     </div>
@@ -395,7 +419,15 @@ export const AuctionFilters = memo(function AuctionFilters({ filters, onFilterCh
                         ))}
                       </div>
 
-                      <Button type="button" size="sm" onClick={handlePriceRangeApply} className="w-full bg-red-500 text-white hover:bg-red-600">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          handlePriceRangeApply();
+                          updateUrlParams();
+                        }}
+                        className="w-full bg-red-500 text-white hover:bg-red-600"
+                      >
                         価格帯を適用
                       </Button>
                     </div>

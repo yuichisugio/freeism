@@ -1,7 +1,8 @@
 "use client";
 
-import type { AuctionFilterParams, UseAuctionFiltersProps } from "@/lib/auction/type/types";
+import type { AuctionFilterParams, AuctionSortOption, UseAuctionFiltersProps } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getUserGroups } from "@/lib/auction/action/user";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -26,7 +27,13 @@ type UseAuctionFiltersReturn = {
   setTimePreset: (min: number, max: number) => void;
   resetPriceRange: () => void;
   resetTimeRange: () => void;
+  handleFilterChange: (newFilters: Partial<AuctionFilterParams>) => void;
+  handleSortChange: (newSort: AuctionSortOption) => void;
+  handleResetAllFilters: () => void;
+  updateUrlParams: () => void;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションフィルター用カスタムフック
@@ -39,7 +46,12 @@ type UseAuctionFiltersReturn = {
  * @param onResetFilters フィルターのリセットアクション
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _sortOption, onSortChangeAction: _onSortChangeAction, onResetFilters: _onResetFilters }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
+export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲フィルター
@@ -59,6 +71,23 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
 
   // アクティブなフィルターの数をカウント
   const [activeFilterCount, setActiveFilterCount] = useState(0);
+
+  // 現在のページ
+  const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 価格範囲をリセット
+  const resetPriceRange = useCallback(() => {
+    setPriceRange([0, 10000]);
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 残り時間範囲をリセット
+  const resetTimeRange = useCallback(() => {
+    setTimeRange([0, 720]);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -93,10 +122,39 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * URLパラメータを更新する関数
+   */
+  const updateUrlParams = useCallback(() => {
+    // URLパラメータを作成
+    const params = new URLSearchParams();
+
+    // 必要なパラメータのみURLに含める（デフォルト値は含めない）
+    if (page > 1) params.set("page", String(page));
+    if (filters.category && filters.category !== "すべて") params.set("category", filters.category);
+    if (filters.status && filters.status !== "all") params.set("status", filters.status);
+    if (sortOption !== "newest") params.set("sort", sortOption);
+    if (filters.searchQuery) params.set("q", filters.searchQuery);
+    if (filters.minPrice !== undefined) params.set("minPrice", String(filters.minPrice));
+    if (filters.maxPrice !== undefined) params.set("maxPrice", String(filters.maxPrice));
+    if (filters.remainingTime && filters.remainingTime !== "all") params.set("remainingTime", filters.remainingTime);
+    if (filters.groupId) params.set("groupId", filters.groupId);
+
+    // URLパラメータを作成
+    const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
+
+    // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
+    router.push(newUrl, { scroll: false });
+  }, [page, filters, sortOption, router]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 価格範囲変更時のハンドラー
   const handlePriceRangeChange = useCallback((value: [number, number]) => {
     setPriceRange(value);
   }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 残り時間範囲変更時のハンドラー
   const handleTimeRangeChange = useCallback((value: [number, number]) => {
@@ -105,11 +163,59 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * フィルター変更ハンドラ
+   * @param newFilters 新しいフィルター
+   */
+  const handleFilterChange = useCallback(
+    (newFilters: Partial<AuctionFilterParams>) => {
+      onFilterChangeAction(newFilters);
+      setPage(1); // フィルター変更時は1ページ目に戻す
+      // URL更新を確実に実行
+      setTimeout(() => updateUrlParams(), 0);
+    },
+    [onFilterChangeAction, updateUrlParams],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ソート変更ハンドラ
+   * @param newSort 新しいソートオプション
+   */
+  const handleSortChange = useCallback(
+    (newSort: AuctionSortOption) => {
+      onSortChangeAction(newSort);
+      setPage(1); // ソート変更時は1ページ目に戻す
+      // URL更新を確実に実行
+      setTimeout(() => updateUrlParams(), 0);
+    },
+    [onSortChangeAction, updateUrlParams],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 全フィルターリセットハンドラ
+   */
+  const handleResetAllFilters = useCallback(() => {
+    if (onResetFilters) {
+      onResetFilters();
+    }
+    resetPriceRange();
+    resetTimeRange();
+    setPage(1);
+    // URL更新を確実に実行
+    setTimeout(() => updateUrlParams(), 0);
+  }, [onResetFilters, resetPriceRange, resetTimeRange, updateUrlParams]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 残り時間範囲適用時のハンドラー
   const handleTimeRangeApply = useCallback(() => {
     // timeRange[0]が0で、timeRange[1]が720(max)の場合は全期間=allとする
     if (timeRange[0] === 0 && timeRange[1] === 720) {
-      onFilterChangeAction({ remainingTime: "all" });
+      handleFilterChange({ remainingTime: "all" });
       return;
     }
 
@@ -126,8 +232,8 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
       remainingTime = "1m";
     }
 
-    onFilterChangeAction({ remainingTime });
-  }, [onFilterChangeAction, timeRange]);
+    handleFilterChange({ remainingTime });
+  }, [handleFilterChange, timeRange]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -138,20 +244,13 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 残り時間範囲をリセット
-  const resetTimeRange = useCallback(() => {
-    setTimeRange([0, 720]);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // 価格範囲適用時のハンドラー
   const handlePriceRangeApply = useCallback(() => {
-    onFilterChangeAction({
+    handleFilterChange({
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
     });
-  }, [onFilterChangeAction, priceRange]);
+  }, [handleFilterChange, priceRange]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -165,13 +264,6 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
   // 価格範囲のプリセット設定
   const setPricePreset = useCallback((min: number, max: number) => {
     setPriceRange([min, max]);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 価格範囲をリセット
-  const resetPriceRange = useCallback(() => {
-    setPriceRange([0, 10000]);
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -193,5 +285,9 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption: _
     setTimePreset,
     resetPriceRange,
     resetTimeRange,
+    handleFilterChange,
+    handleSortChange,
+    handleResetAllFilters,
+    updateUrlParams,
   };
 }
