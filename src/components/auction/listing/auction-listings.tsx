@@ -27,6 +27,7 @@ export const AuctionListings = memo(function AuctionListings() {
     // アクション
     handleToggleWatchlist,
     setListingsConditions,
+    updateUrlParams,
   } = useAuctionListings();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -89,7 +90,12 @@ export const AuctionListings = memo(function AuctionListings() {
   return (
     <div className="space-y-6">
       {/* フィルターコンポーネント */}
-      <AuctionFilters listingsConditions={listingsConditions} setListingsConditionsAction={setListingsConditions} auctions={auctions} />
+      <AuctionFilters
+        listingsConditions={listingsConditions}
+        setListingsConditionsAction={setListingsConditions}
+        auctions={auctions}
+        updateUrlParamsAction={updateUrlParams}
+      />
 
       {/* 結果表示 */}
       {auctions.length > 0 ? (
@@ -109,12 +115,17 @@ export const AuctionListings = memo(function AuctionListings() {
 
           {/* ページネーション */}
           <div className="mt-8 flex justify-center">
-            <AuctionPagination listingsConditions={listingsConditions} setListingsConditionsAction={setListingsConditions} auctions={auctions} />
+            <AuctionPagination
+              listingsConditions={listingsConditions}
+              setListingsConditionsAction={setListingsConditions}
+              auctions={auctions}
+              updateUrlParamsAction={updateUrlParams}
+            />
           </div>
 
           {/* 商品数と合計ページ数の表示 */}
           <div className="mt-4 text-center text-sm text-gray-500">
-            全{auctions.length}件中 {(listingsConditions.page - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE + 1}-
+            全{auctions.length}件中 {listingsConditions.page * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE}-
             {Math.min(listingsConditions.page * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, auctions.length)}件を表示
           </div>
         </>

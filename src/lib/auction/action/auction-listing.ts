@@ -82,7 +82,8 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       maxRemainingTime,
       groupIds,
       searchQuery,
-      sort,
+      sort: sort?.map((s) => s.field),
+      sortDirection: sort?.map((s) => s.direction),
       page,
     });
 
@@ -117,10 +118,18 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // カテゴリの値があり、「すべて」でない場合は、where条件を追加
-    if (categories && categories !== "すべて") {
+    if (categories && categories.length > 0 && !categories.includes("すべて")) {
+      // 複数カテゴリで検索するためのOR条件を作成
+      const categoryConditions = categories
+        .filter((c) => c !== null)
+        .map((category) => ({
+          task: { contains: category, mode: "insensitive" as const },
+        }));
+
+      // OR条件を追加
       where.task = {
         ...where.task,
-        task: { contains: categories, mode: "insensitive" },
+        OR: [...(where.task?.OR ?? []), ...categoryConditions],
       };
     }
 
@@ -240,36 +249,44 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     // ソート条件の設定
     let orderBy: AuctionOrderByInput = {};
 
+    // デフォルトの並び順（新着順）
+    orderBy = { createdAt: "desc" };
+
     // ソート条件がある場合
-    if (sort) {
-      switch (sort.field) {
+    if (sort && sort.length > 0) {
+      // 最初のソート条件のみ使用（複数ソートはPrismaでは複雑なため）
+      const primarySort = sort[0];
+      const sortDirection = primarySort.direction ?? "desc";
+
+      switch (primarySort.field) {
         case "newest":
-          orderBy = { createdAt: sort.direction };
+          orderBy = { createdAt: sortDirection };
           break;
         case "time_remaining":
-          orderBy = { endTime: sort.direction };
+          orderBy = { endTime: sortDirection };
           break;
         case "bids":
           // 最高入札額で並び替え
-          orderBy = { currentHighestBid: sort.direction };
+          orderBy = { currentHighestBid: sortDirection };
           break;
         default:
-          orderBy = { createdAt: "desc" };
+          orderBy = { createdAt: sortDirection };
           break;
       }
-    } else {
-      // デフォルト: 新着順
-      orderBy = { createdAt: "desc" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ページネーション
-    const skip = (page - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
+    // ページネーションで、スキップする件数を作成
+    const pageNumber = page ?? 1;
+    const skip = (pageNumber - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_where", where);
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_orderBy", orderBy);
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_skip", skip);
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_take", AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
 
     // 一覧に表示するオークションを取得
     const auctions = await prisma.auction.findMany({

@@ -1,13 +1,12 @@
 "use client";
 
-import type { AuctionListingsConditions, AuctionSortField } from "@/lib/auction/type/types";
+import type { AuctionSortField } from "@/lib/auction/type/types";
 import type { ReactNode } from "react";
 import { memo, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import SearchBar from "@/components/ui/SearchBar";
 import { Separator } from "@/components/ui/separator";
@@ -17,8 +16,9 @@ import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionFiltersProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import {
+  ArrowDown,
   ArrowDownCircle,
-  ArrowUpCircle,
+  ArrowUp,
   BarChart4,
   Calendar,
   Check,
@@ -38,9 +38,8 @@ import {
 // ソートオプション設定
 const sortOptions = [
   { value: "newest", label: "新着順", icon: <Sparkles className="h-4 w-4" /> },
-  { value: "time_remaining", label: "終了時間が近い順", icon: <Clock className="h-4 w-4" /> },
-  { value: "price_asc", label: "価格が安い順", icon: <ArrowDownCircle className="h-4 w-4" /> },
-  { value: "price_desc", label: "価格が高い順", icon: <ArrowUpCircle className="h-4 w-4" /> },
+  { value: "time_remaining", label: "終了時間順", icon: <Clock className="h-4 w-4" /> },
+  { value: "price_asc", label: "入札額", icon: <ArrowDownCircle className="h-4 w-4" /> },
   { value: "bids", label: "入札数順", icon: <BarChart4 className="h-4 w-4" /> },
 ];
 
@@ -102,49 +101,6 @@ function FilterSection({ title, bgColor, textColor, children }: FilterSectionPro
       </CardHeader>
       <CardContent className="p-3">{children}</CardContent>
     </Card>
-  );
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 共通ラジオオプションコンポーネント
- */
-type RadioOptionProps = {
-  value: string;
-  label: string;
-  icon: ReactNode;
-  isSelected: boolean;
-  accentColor: string;
-  bgColorSelected: string;
-  bgColorIcon: string;
-  textColorIcon: string;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 共通ラジオオプションコンポーネント
- */
-function RadioOption({ value, label, icon, isSelected, accentColor, bgColorSelected, bgColorIcon }: RadioOptionProps) {
-  return (
-    <label
-      className={cn(
-        "hover:border-opacity-80 flex cursor-pointer items-center rounded-md border p-3 transition-all",
-        isSelected ? `border-${accentColor}-500 ${bgColorSelected} shadow-sm` : "border-gray-200",
-      )}
-    >
-      <RadioGroupItem value={value} id={`option-${value}`} className="sr-only" />
-      <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className={cn("flex h-8 w-8 items-center justify-center rounded-full", isSelected ? bgColorIcon : "bg-gray-100 text-gray-500")}>
-            {icon}
-          </div>
-          <span className="text-sm font-medium">{label}</span>
-        </div>
-        {isSelected && <Check className={`h-4 w-4 text-${accentColor}-500`} />}
-      </div>
-    </label>
   );
 }
 
@@ -304,6 +260,7 @@ export const AuctionFilters = memo(function AuctionFilters({
   listingsConditions,
   setListingsConditionsAction,
   auctions,
+  updateUrlParamsAction,
 }: AuctionFiltersProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -314,11 +271,14 @@ export const AuctionFilters = memo(function AuctionFilters({
     activeFilterCount,
     openGroupCombobox,
     changingSearchQuery,
+    draftConditions,
 
     // action
     setChangingSearchQuery,
     setOpenGroupCombobox,
     handleCategorySelect,
+    handleStatusSelect,
+    handleGroupSelect,
     handlePriceRangeChange,
     handlePriceRangeApply,
     handleTimeRangeChange,
@@ -326,13 +286,15 @@ export const AuctionFilters = memo(function AuctionFilters({
     toggleFilterDisplay,
     setPricePreset,
     setTimePreset,
-    handleFilterChange,
     handleSortChange,
+    handleSortDirectionToggle,
     handleResetAllFilters,
     handleSearchQueryEnter,
+    applyAllFilters,
   } = useAuctionFilters({
     listingsConditions,
     setListingsConditionsAction,
+    updateUrlParamsAction,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -352,20 +314,127 @@ export const AuctionFilters = memo(function AuctionFilters({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // カテゴリが選択されているかチェック
+  const isCategorySelected = useCallback(
+    (category: string) => {
+      if (!draftConditions.categories || !Array.isArray(draftConditions.categories)) {
+        return category === "すべて";
+      }
+      return draftConditions.categories.includes(category);
+    },
+    [draftConditions.categories],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ステータスが選択されているかチェック
+  const isStatusSelected = useCallback(
+    (status: string) => {
+      if (!draftConditions.status || !Array.isArray(draftConditions.status)) {
+        return status === "all";
+      }
+      return draftConditions.status.includes(status as "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended");
+    },
+    [draftConditions.status],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループが選択されているかチェック
+  const isGroupSelected = useCallback(
+    (groupId: string | null) => {
+      if (groupId === null) {
+        return !draftConditions.groupIds || draftConditions.groupIds.length === 0;
+      }
+      return draftConditions.groupIds?.includes(groupId) ?? false;
+    },
+    [draftConditions.groupIds],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ソート値を安全に取得する関数
+  const getSortField = useCallback(() => {
+    if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
+      return draftConditions.sort[0].field;
+    }
+    return "newest";
+  }, [draftConditions.sort]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ソート方向を安全に取得する関数
+  const getSortDirection = useCallback(() => {
+    if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
+      return draftConditions.sort[0].direction;
+    }
+    return "asc";
+  }, [draftConditions.sort]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ユニークなグループを取得
+  const uniqueGroups = useMemo((): Array<{ id: string; name: string }> => {
+    // ユニークなグループIDを抽出
+    const uniqueGroupsMap = new Map<string, { id: string; name: string }>();
+    auctions.forEach((auction) => {
+      if (auction.group?.id && auction.group?.name && !uniqueGroupsMap.has(auction.group.id)) {
+        uniqueGroupsMap.set(auction.group.id, {
+          id: auction.group.id,
+          name: auction.group.name,
+        });
+      }
+    });
+    // Map からユニークなグループの配列を作成
+    return Array.from(uniqueGroupsMap.values());
+  }, [auctions]);
+
+  // すべてのグループが選択されているかを確認
+  const areAllGroupsSelected = useMemo(() => {
+    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0) {
+      return true;
+    }
+
+    if (uniqueGroups.length === 0) {
+      return true;
+    }
+
+    // すべてのグループIDが選択されているかチェック
+    return (
+      uniqueGroups.length === draftConditions.groupIds.length &&
+      uniqueGroups.every((group) => {
+        return draftConditions.groupIds?.includes(group.id);
+      })
+    );
+  }, [draftConditions.groupIds, uniqueGroups]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <div className="mb-4 w-full">
       {/* 検索バー */}
       <form
-        className="mb-4 flex w-full"
+        className="mb-4 w-full"
         onSubmit={(e) => {
           e.preventDefault();
           handleSearchQueryEnter(changingSearchQuery ?? "");
         }}
       >
-        <SearchBar placeholder="商品名や説明文を検索..." value={changingSearchQuery ?? ""} onChange={(e) => setChangingSearchQuery(e.target.value)} />
-        <Button type="submit" size="sm" className="bg-blue-500 text-white hover:bg-blue-600">
-          検索
-        </Button>
+        <div className="flex w-full overflow-hidden rounded-lg shadow-sm transition-all focus-within:shadow-md">
+          <SearchBar
+            placeholder="商品名や説明文を検索..."
+            value={changingSearchQuery ?? ""}
+            onChange={(e) => setChangingSearchQuery(e.target.value)}
+            className="flex-1 rounded-l-lg border-r-0 focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+          />
+          <Button
+            type="submit"
+            size="sm"
+            className="rounded-l-none rounded-r-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 text-white transition-all hover:from-blue-600 hover:to-blue-700"
+          >
+            検索
+          </Button>
+        </div>
       </form>
 
       {/* カテゴリタブ */}
@@ -376,8 +445,10 @@ export const AuctionFilters = memo(function AuctionFilters({
               categoriesList.map((category: string) => (
                 <button
                   key={category}
-                  className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${listingsConditions.categories === category ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                  onClick={() => handleCategorySelect(category)}
+                  className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${isCategorySelected(category) ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                  onClick={() => {
+                    handleCategorySelect(category);
+                  }}
                 >
                   {category}
                 </button>
@@ -387,26 +458,36 @@ export const AuctionFilters = memo(function AuctionFilters({
             )}
           </div>
         </div>
-
-        {/* スクロールフェードの装飾 - 横スクロールのUIヒントになります */}
-        <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-white to-transparent sm:hidden"></div>
       </div>
 
-      {/* フィルターボタン */}
       <div className="mb-2 flex items-center justify-between gap-2">
+        {/* フィルターボタン */}
         <Button
           variant="outline"
           size="sm"
           onClick={toggleFilterDisplay}
-          className={cn("flex items-center gap-2", showFilters && "border-blue-300 bg-blue-50")}
+          className={cn(
+            "flex items-center gap-2 rounded-md border transition-all duration-200",
+            showFilters ? "border-blue-300 bg-blue-50 text-blue-600 shadow-sm" : "hover:border-gray-300 hover:bg-gray-50",
+          )}
         >
           <Filter className="h-4 w-4" />
           <span>並び替え・フィルター</span>
           {activeFilterCount > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
+            <span className="flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
               {activeFilterCount}
             </span>
           )}
+        </Button>
+
+        {/* フィルター適用ボタン */}
+        <Button
+          variant="default"
+          size="sm"
+          onClick={applyAllFilters}
+          className="rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm transition-all duration-200 hover:from-blue-700 hover:to-blue-800"
+        >
+          フィルターを適用
         </Button>
 
         {activeFilterCount > 0 && (
@@ -416,7 +497,7 @@ export const AuctionFilters = memo(function AuctionFilters({
             onClick={() => {
               handleResetAllFilters();
             }}
-            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+            className="rounded-md border border-transparent text-red-500 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
           >
             <X className="mr-1 h-4 w-4" />
             リセット
@@ -435,57 +516,104 @@ export const AuctionFilters = memo(function AuctionFilters({
               <div className="space-y-6">
                 {/* ソートセクション */}
                 <FilterSection title="並び替え" bgColor="bg-blue-50" textColor="text-blue-800">
-                  <RadioGroup
-                    value={listingsConditions.sort?.field ?? "newest"}
-                    onValueChange={(value) =>
-                      handleSortChange({
-                        field: value as AuctionSortField,
-                        direction: listingsConditions.sort?.direction ?? "asc",
-                      })
-                    }
-                    className="grid gap-2"
-                  >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium">並び順</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSortDirectionToggle}
+                      className={cn(
+                        "flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1 transition-colors",
+                        getSortDirection() === "asc" ? "bg-blue-50 hover:bg-blue-100" : "bg-gray-50 hover:bg-gray-100",
+                      )}
+                    >
+                      {getSortDirection() === "asc" ? (
+                        <>
+                          <ArrowUp className="h-3.5 w-3.5" />
+                          <span className="text-xs">昇順</span>
+                        </>
+                      ) : (
+                        <>
+                          <ArrowDown className="h-3.5 w-3.5" />
+                          <span className="text-xs">降順</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="grid gap-2">
                     {sortOptions.map((option) => (
-                      <RadioOption
+                      <button
                         key={option.value}
-                        value={option.value}
-                        label={option.label}
-                        icon={option.icon}
-                        isSelected={listingsConditions.sort?.field === option.value}
-                        accentColor="blue"
-                        bgColorSelected="bg-blue-50"
-                        bgColorIcon="bg-blue-100 text-blue-600"
-                        textColorIcon="text-blue-600"
-                      />
+                        className={cn(
+                          "hover:border-opacity-80 flex w-full cursor-pointer items-center rounded-md border p-3 text-left transition-all",
+                          getSortField() === option.value ? "border-blue-500 bg-blue-50 shadow-sm" : "border-gray-200",
+                        )}
+                        onClick={() =>
+                          handleSortChange({
+                            field: option.value as AuctionSortField,
+                            direction: getSortDirection() ?? "asc",
+                          })
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSortChange({
+                              field: option.value as AuctionSortField,
+                              direction: getSortDirection() ?? "asc",
+                            });
+                          }
+                        }}
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={cn(
+                                "flex h-8 w-8 items-center justify-center rounded-full",
+                                getSortField() === option.value ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500",
+                              )}
+                            >
+                              {option.icon}
+                            </div>
+                            <span className="text-sm font-medium">{option.label}</span>
+                          </div>
+                          {getSortField() === option.value && <Check className={`h-4 w-4 text-blue-500`} />}
+                        </div>
+                      </button>
                     ))}
-                  </RadioGroup>
+                  </div>
                 </FilterSection>
 
                 {/* ステータスセクション */}
                 <FilterSection title="ステータス" bgColor="bg-green-50" textColor="text-green-800">
-                  <RadioGroup
-                    value={listingsConditions.status?.[0] ?? "all"}
-                    onValueChange={(value) =>
-                      handleFilterChange({
-                        status: [value] as AuctionListingsConditions["status"],
-                      })
-                    }
-                    className="grid gap-2"
-                  >
+                  <div className="grid gap-2">
                     {statusOptions.map((option) => (
-                      <RadioOption
+                      <button
                         key={option.value}
-                        value={option.value}
-                        label={option.label}
-                        icon={option.icon}
-                        isSelected={listingsConditions.status?.[0] === option.value}
-                        accentColor="green"
-                        bgColorSelected="bg-green-50"
-                        bgColorIcon="bg-green-100 text-green-600"
-                        textColorIcon="text-green-600"
-                      />
+                        className={cn(
+                          "hover:border-opacity-80 mb-2 flex w-full cursor-pointer items-center rounded-md border p-3 text-left transition-all",
+                          isStatusSelected(option.value) ? "border-green-500 bg-green-50 shadow-sm" : "border-gray-200",
+                        )}
+                        onClick={() => handleStatusSelect(option.value as "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended")}
+                        aria-pressed={isStatusSelected(option.value)}
+                        type="button"
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={cn(
+                                "flex h-8 w-8 items-center justify-center rounded-full",
+                                isStatusSelected(option.value) ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500",
+                              )}
+                            >
+                              {option.icon}
+                            </div>
+                            <span className="text-sm font-medium">{option.label}</span>
+                          </div>
+                          {isStatusSelected(option.value) && <Check className={`h-4 w-4 text-green-500`} />}
+                        </div>
+                      </button>
                     ))}
-                  </RadioGroup>
+                  </div>
                 </FilterSection>
 
                 {/* グループセクション */}
@@ -498,9 +626,10 @@ export const AuctionFilters = memo(function AuctionFilters({
                         aria-expanded={openGroupCombobox}
                         className="w-full justify-between border-gray-200 bg-white py-6 hover:border-purple-200"
                       >
-                        {listingsConditions.groupIds?.[0]
-                          ? (auctions.find((auction) => auction.group.id === listingsConditions.groupIds?.[0])?.group.name ?? "グループを選択")
-                          : "グループを選択"}
+                        {areAllGroupsSelected
+                          ? "すべてのグループ"
+                          : (auctions.find((auction) => auction.group?.id && draftConditions.groupIds?.includes(auction.group.id))?.group?.name ??
+                            "グループを選択")}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
@@ -513,31 +642,27 @@ export const AuctionFilters = memo(function AuctionFilters({
                             <CommandItem
                               value="all-groups"
                               onSelect={() => {
-                                handleFilterChange({ groupIds: null });
+                                handleGroupSelect(null);
                                 setOpenGroupCombobox(false);
                               }}
-                              className={cn("transition-colors duration-150 hover:bg-purple-50", !listingsConditions.groupIds && "bg-purple-50")}
+                              className={cn("transition-colors duration-150 hover:bg-purple-50", isGroupSelected(null) && "bg-purple-50")}
                             >
-                              <Check className={cn("mr-2 h-4 w-4", !listingsConditions.groupIds ? "opacity-100" : "opacity-0")} />
+                              <Check className={cn("mr-2 h-4 w-4", isGroupSelected(null) ? "opacity-100" : "opacity-0")} />
                               すべてのグループ
                             </CommandItem>
-                            {auctions.map((auction) => (
+                            {/* グループIDでユニークにフィルタリング */}
+                            {uniqueGroups.map((group) => (
                               <CommandItem
-                                key={auction.group.id}
-                                value={auction.group.name}
+                                key={group.id}
+                                value={group.name}
                                 onSelect={() => {
-                                  handleFilterChange({ groupIds: [auction.group.id] });
+                                  handleGroupSelect(group.id);
                                   setOpenGroupCombobox(false);
                                 }}
-                                className={cn(
-                                  "transition-colors duration-150 hover:bg-purple-50",
-                                  listingsConditions.groupIds?.[0] === auction.group.id && "bg-purple-50",
-                                )}
+                                className={cn("transition-colors duration-150 hover:bg-purple-50", isGroupSelected(group.id) && "bg-purple-50")}
                               >
-                                <Check
-                                  className={cn("mr-2 h-4 w-4", listingsConditions.groupIds?.[0] === auction.group.id ? "opacity-100" : "opacity-0")}
-                                />
-                                {auction.group.name}
+                                <Check className={cn("mr-2 h-4 w-4", isGroupSelected(group.id) ? "opacity-100" : "opacity-0")} />
+                                {group.name}
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -551,23 +676,23 @@ export const AuctionFilters = memo(function AuctionFilters({
                 <FilterSection title="残り時間" bgColor="bg-amber-50" textColor="text-amber-800">
                   <div className="space-y-5">
                     <Slider
-                      defaultValue={[listingsConditions.minRemainingTime ?? 0, listingsConditions.maxRemainingTime ?? 720]}
+                      defaultValue={[draftConditions.minRemainingTime ?? 0, draftConditions.maxRemainingTime ?? 720]}
                       min={0}
                       max={2160}
                       step={1}
-                      value={[listingsConditions.minRemainingTime ?? 0, listingsConditions.maxRemainingTime ?? 720]}
+                      value={[draftConditions.minRemainingTime ?? 0, draftConditions.maxRemainingTime ?? 720]}
                       onValueChange={handleTimeRangeChange}
                       className="mt-6"
                     />
 
                     <div className="flex justify-between text-sm">
-                      <span>{formatTimeDisplay(listingsConditions.minRemainingTime ?? 0)}</span>
-                      <span>{formatTimeDisplay(listingsConditions.maxRemainingTime ?? 720)}</span>
+                      <span>{formatTimeDisplay(draftConditions.minRemainingTime ?? 0)}</span>
+                      <span>{formatTimeDisplay(draftConditions.maxRemainingTime ?? 720)}</span>
                     </div>
 
                     <RangeInputFields
-                      minValue={listingsConditions.minRemainingTime}
-                      maxValue={listingsConditions.maxRemainingTime}
+                      minValue={draftConditions.minRemainingTime}
+                      maxValue={draftConditions.maxRemainingTime}
                       defaultMaxValue={720}
                       onRangeChange={handleTimeRangeChange}
                       minLabel="最小時間"
@@ -593,23 +718,23 @@ export const AuctionFilters = memo(function AuctionFilters({
                 <FilterSection title="価格帯" bgColor="bg-red-50" textColor="text-red-800">
                   <div className="space-y-5">
                     <Slider
-                      defaultValue={[listingsConditions.minBid ?? 0, listingsConditions.maxBid ?? 100000]}
+                      defaultValue={[draftConditions.minBid ?? 0, draftConditions.maxBid ?? 100000]}
                       min={0}
                       max={100000}
                       step={100}
-                      value={[listingsConditions.minBid ?? 0, listingsConditions.maxBid ?? 100000]}
+                      value={[draftConditions.minBid ?? 0, draftConditions.maxBid ?? 100000]}
                       onValueChange={handlePriceRangeChange}
                       className="mt-6"
                     />
 
                     <div className="flex justify-between text-sm">
-                      <span>{listingsConditions.minBid?.toLocaleString()} ポイント</span>
-                      <span>{listingsConditions.maxBid?.toLocaleString()} ポイント</span>
+                      <span>{draftConditions.minBid?.toLocaleString()} ポイント</span>
+                      <span>{draftConditions.maxBid?.toLocaleString()} ポイント</span>
                     </div>
 
                     <RangeInputFields
-                      minValue={listingsConditions.minBid}
-                      maxValue={listingsConditions.maxBid}
+                      minValue={draftConditions.minBid}
+                      maxValue={draftConditions.maxBid}
                       defaultMaxValue={100000}
                       onRangeChange={handlePriceRangeChange}
                       minLabel="最小価格"

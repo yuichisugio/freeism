@@ -15,6 +15,7 @@ type AuctionPaginationProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
+  updateUrlParamsAction: () => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,6 +30,7 @@ export const AuctionPagination = memo(function AuctionPagination({
   listingsConditions,
   setListingsConditionsAction,
   auctions,
+  updateUrlParamsAction,
 }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,7 +54,12 @@ export const AuctionPagination = memo(function AuctionPagination({
           {/* 前のページに進むかどうか */}
           {hasPreviousPage && (
             <PaginationItem>
-              <PaginationPrevious onClick={() => setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page - 1 })} />
+              <PaginationPrevious
+                onClick={() => {
+                  setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page - 1 });
+                  updateUrlParamsAction();
+                }}
+              />
             </PaginationItem>
           )}
 
@@ -70,7 +77,10 @@ export const AuctionPagination = memo(function AuctionPagination({
               <PaginationItem key={page}>
                 <PaginationLink
                   isActive={page === listingsConditions.page}
-                  onClick={() => setListingsConditionsAction({ ...listingsConditions, page })}
+                  onClick={() => {
+                    setListingsConditionsAction({ ...listingsConditions, page });
+                    updateUrlParamsAction();
+                  }}
                 >
                   {page}
                 </PaginationLink>
@@ -81,7 +91,12 @@ export const AuctionPagination = memo(function AuctionPagination({
           {/* 次のページに進むかどうか */}
           {hasNextPage && (
             <PaginationItem>
-              <PaginationNext onClick={() => setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page + 1 })} />
+              <PaginationNext
+                onClick={() => {
+                  setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page + 1 });
+                  updateUrlParamsAction();
+                }}
+              />
             </PaginationItem>
           )}
         </PaginationContent>

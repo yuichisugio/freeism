@@ -150,6 +150,7 @@ export type SellerRating = {
 export type UseAuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
+  updateUrlParamsAction?: () => void;
 };
 
 // カウントダウンの状態
@@ -175,7 +176,7 @@ export type UseCountdownProps = {
  * @description オークションの出品一覧をフィルター・ソートするためのパラメータの型定義
  */
 export type AuctionListingsConditions = {
-  categories: (typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null;
+  categories: ((typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null)[] | null;
   status: ("all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended")[] | null;
   minBid: number | null;
   maxBid: number | null;
@@ -183,10 +184,12 @@ export type AuctionListingsConditions = {
   maxRemainingTime: number | null;
   groupIds: string[] | null;
   searchQuery: string | null;
-  sort: {
-    field: AuctionSortField;
-    direction: SortDirection;
-  } | null;
+  sort:
+    | {
+        field: AuctionSortField | null;
+        direction: SortDirection | null;
+      }[]
+    | null;
   page: number;
 };
 
@@ -205,6 +208,7 @@ export type AuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
+  updateUrlParamsAction: () => void;
 };
 
 // 出品商品一覧取得のパラメータ型
