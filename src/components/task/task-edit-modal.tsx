@@ -38,7 +38,13 @@ type TaskEditModalProps = {
  * @param onTaskUpdated タスク更新時のコールバック
  * @returns タスク編集モーダル
  */
-export const TaskEditModal = memo(function TaskEditModal({ open, onOpenChangeAction, task, users = [], onTaskUpdated }: TaskEditModalProps): JSX.Element {
+export const TaskEditModal = memo(function TaskEditModal({
+  open,
+  onOpenChangeAction,
+  task,
+  users = [],
+  onTaskUpdated,
+}: TaskEditModalProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useTaskEditModal フックからの返り値を適切に型付けする
@@ -94,11 +100,23 @@ export const TaskEditModal = memo(function TaskEditModal({ open, onOpenChangeAct
               <div className="space-y-2" role="group" aria-label="報酬画像">
                 <p className="text-sm font-medium">報酬画像</p>
                 <p className="text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
-                <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={form.getValues("imageUrl")} />
+                <ImageUploadArea
+                  onImageUploaded={handleImageUploaded}
+                  onImageRemoved={handleImageRemoved}
+                  initialImageUrl={form.getValues("imageUrl")}
+                />
               </div>
             )}
 
-            <CustomFormField fieldType="input" type="text" control={typedControl} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
+            <CustomFormField
+              fieldType="input"
+              type="text"
+              control={typedControl}
+              name="task"
+              label="タスクのタイトル"
+              description="タスクのタイトルを入力してください"
+              placeholder="タスクのタイトルを入力してください"
+            />
 
             {/* カテゴリ選択を追加 */}
             <CustomFormField
@@ -109,13 +127,30 @@ export const TaskEditModal = memo(function TaskEditModal({ open, onOpenChangeAct
               description="タスクのカテゴリを選択してください"
               open={categoryOpen}
               setOpen={setCategoryOpen}
-              options={AUCTION_CONSTANTS.AUCTION_CATEGORIES.slice(1).map((category) => ({ id: category, name: category }))}
+              options={AUCTION_CONSTANTS.AUCTION_CATEGORIES.slice(1).map((category) => ({
+                id: category,
+                name: category,
+              }))}
               placeholder="カテゴリを選択してください"
             />
 
-            <CustomFormField fieldType="textarea" control={typedControl} name="detail" label="タスクの詳細" description="タスクの詳細を入力してください" placeholder="タスクの詳細を入力してください" />
+            <CustomFormField
+              fieldType="textarea"
+              control={typedControl}
+              name="detail"
+              label="タスクの詳細"
+              description="タスクの詳細を入力してください"
+              placeholder="タスクの詳細を入力してください"
+            />
 
-            <CustomFormField fieldType="textarea" control={typedControl} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
+            <CustomFormField
+              fieldType="textarea"
+              control={typedControl}
+              name="reference"
+              label="参考にした内容"
+              description="タスクを実行する際に参考にした情報があれば記載してください"
+              placeholder="参考にした内容を入力してください"
+            />
 
             <CustomFormField
               fieldType="textarea"
@@ -147,7 +182,13 @@ export const TaskEditModal = memo(function TaskEditModal({ open, onOpenChangeAct
 
               {/* 未登録ユーザー入力 */}
               <div className="flex gap-2">
-                <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredExecutor} onChange={(e) => setNonRegisteredExecutor(e.target.value)} />
+                <input
+                  type="text"
+                  className="flex-1 rounded-md border p-2"
+                  placeholder="未登録ユーザー名を入力..."
+                  value={nonRegisteredExecutor}
+                  onChange={(e) => setNonRegisteredExecutor(e.target.value)}
+                />
                 <Button
                   type="button"
                   className="bg-blue-500 text-white"
@@ -202,7 +243,13 @@ export const TaskEditModal = memo(function TaskEditModal({ open, onOpenChangeAct
 
               {/* 未登録ユーザー入力 */}
               <div className="flex gap-2">
-                <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredReporter} onChange={(e) => setNonRegisteredReporter(e.target.value)} />
+                <input
+                  type="text"
+                  className="flex-1 rounded-md border p-2"
+                  placeholder="未登録ユーザー名を入力..."
+                  value={nonRegisteredReporter}
+                  onChange={(e) => setNonRegisteredReporter(e.target.value)}
+                />
                 <Button
                   type="button"
                   className="bg-blue-500 text-white"

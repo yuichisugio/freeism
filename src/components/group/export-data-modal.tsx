@@ -13,7 +13,19 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, BarChart as BarChartIcon, CalendarIcon, Check as CheckIcon, Download as DownloadIcon, Eye as EyeIcon, FileIcon, Loader2 as Loader2Icon, PackageCheck, X as XIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BarChart as BarChartIcon,
+  CalendarIcon,
+  Check as CheckIcon,
+  Download as DownloadIcon,
+  Eye as EyeIcon,
+  FileIcon,
+  Loader2 as Loader2Icon,
+  PackageCheck,
+  X as XIcon,
+} from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -48,7 +60,11 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
   const StepCircle = useCallback(
     ({ step, currentStep }: { step: number; currentStep: number }) => (
       <motion.div
-        className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-semibold", step === currentStep ? "bg-white text-blue-600" : "bg-blue-400/30 text-white", step === 1 ? "ml-4" : "mr-4")}
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-semibold",
+          step === currentStep ? "bg-white text-blue-600" : "bg-blue-400/30 text-white",
+          step === 1 ? "ml-4" : "mr-4",
+        )}
         variants={ANIMATION_VARIANTS.circle}
         animate={step === currentStep ? "active" : "inactive"}
       >
@@ -133,12 +149,19 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
           <RadioGroupItem value="TASK" id="task" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
           <div className="flex-1">
             <div className="flex items-center">
-              <div className={cn("mr-3 flex h-8 w-8 items-center justify-center rounded-full", state.exportType === "TASK" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500")}>
+              <div
+                className={cn(
+                  "mr-3 flex h-8 w-8 items-center justify-center rounded-full",
+                  state.exportType === "TASK" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500",
+                )}
+              >
                 <FileIcon className="h-4 w-4" />
               </div>
               <span className="font-medium text-gray-900">タスクデータ</span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">グループ内のすべてのタスク情報をCSV形式でエクスポートします。タスク内容や貢献ポイントなどが含まれます。</p>
+            <p className="mt-2 text-sm text-gray-500">
+              グループ内のすべてのタスク情報をCSV形式でエクスポートします。タスク内容や貢献ポイントなどが含まれます。
+            </p>
             <div className="mt-2 flex items-center text-xs text-blue-600">
               <CalendarIcon className="mr-1 h-3.5 w-3.5" />
               <span className="italic">期間指定が必要です</span>
@@ -165,12 +188,20 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
           <RadioGroupItem value="ANALYTICS" id="analytics" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
           <div className="flex-1">
             <div className="flex items-center">
-              <div className={cn("mr-3 flex h-8 w-8 items-center justify-center rounded-full", state.exportType === "ANALYTICS" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-500")}>
+              <div
+                className={cn(
+                  "mr-3 flex h-8 w-8 items-center justify-center rounded-full",
+                  state.exportType === "ANALYTICS" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-500",
+                )}
+              >
                 <BarChartIcon className="h-4 w-4" />
               </div>
               <span className="font-medium text-gray-900">分析結果データ</span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。 評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。</p>
+            <p className="mt-2 text-sm text-gray-500">
+              グループの分析結果をCSV形式でエクスポートします。各タスクの評価結果や集計データが含まれます。
+              評価者ごとにCSVファイルが分けられ、ZIPファイルとしてダウンロードされます。
+            </p>
             <div className="mt-2 flex items-center text-xs text-purple-600">
               <PackageCheck className="mr-1 h-3.5 w-3.5" />
               <span className="italic">ページ指定のみ必要です（期間指定は不要）</span>
@@ -189,8 +220,16 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
     return (
       <div className="mt-3 rounded-lg border border-purple-100 bg-purple-50 p-4">
         <div className="flex items-center space-x-2">
-          <Checkbox id="onlyFixed" checked={state.onlyFixed} onCheckedChange={(checked) => updateState({ onlyFixed: checked === true })} className="border-purple-300 text-purple-600 data-[state=checked]:bg-purple-600" />
-          <label htmlFor="onlyFixed" className="text-sm leading-none font-medium text-purple-800 peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <Checkbox
+            id="onlyFixed"
+            checked={state.onlyFixed}
+            onCheckedChange={(checked) => updateState({ onlyFixed: checked === true })}
+            className="border-purple-300 text-purple-600 data-[state=checked]:bg-purple-600"
+          />
+          <label
+            htmlFor="onlyFixed"
+            className="text-sm leading-none font-medium text-purple-800 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
             <p>FIX済みの分析結果のみエクスポート</p>
             <p className="mt-1 text-xs text-purple-600">ステータスが「POINTS_AWARDED」のタスクのみエクスポートされます</p>
           </label>
@@ -214,7 +253,16 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
           <RadioGroupItem value={value} id={`purpose-${value}`} className="absolute mt-1 mr-4 opacity-0" />
           <div className="flex-1">
             <div className="flex items-center">
-              <div className={cn("mr-2 flex h-6 w-6 items-center justify-center rounded-full", state.exportPurpose === value ? (icon === "eye" ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600") : "bg-gray-100 text-gray-500")}>
+              <div
+                className={cn(
+                  "mr-2 flex h-6 w-6 items-center justify-center rounded-full",
+                  state.exportPurpose === value
+                    ? icon === "eye"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-blue-100 text-blue-600"
+                    : "bg-gray-100 text-gray-500",
+                )}
+              >
                 {icon === "eye" ? <EyeIcon className="h-3.5 w-3.5" /> : <BarChartIcon className="h-3.5 w-3.5" />}
               </div>
               <span className="font-medium text-gray-900">{label}</span>
@@ -254,7 +302,12 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
             </div>
             <RadioGroup value={state.exportPurpose} onValueChange={(value) => updateState({ exportPurpose: value as ExportPurpose })}>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <ExportPurposeCard value="ANALYSIS" label="分析用" description="データ分析用にTASK_COMPLETEDステータスのタスクのみをエクスポートします" icon="chart" />
+                <ExportPurposeCard
+                  value="ANALYSIS"
+                  label="分析用"
+                  description="データ分析用にTASK_COMPLETEDステータスのタスクのみをエクスポートします"
+                  icon="chart"
+                />
                 <ExportPurposeCard value="VIEWING" label="閲覧用" description="全てのステータスのタスクをエクスポートします" icon="eye" />
               </div>
             </RadioGroup>
@@ -267,7 +320,21 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
 
   // サブコンポーネント: 日付選択
   const DateSelector = useCallback(
-    ({ label, date, isOpen, onOpenChange, onSelect, disabled }: { label: string; date?: Date; isOpen: boolean; onOpenChange: (isOpen: boolean) => void; onSelect: (date?: Date) => void; disabled: (date: Date) => boolean }) => (
+    ({
+      label,
+      date,
+      isOpen,
+      onOpenChange,
+      onSelect,
+      disabled,
+    }: {
+      label: string;
+      date?: Date;
+      isOpen: boolean;
+      onOpenChange: (isOpen: boolean) => void;
+      onSelect: (date?: Date) => void;
+      disabled: (date: Date) => boolean;
+    }) => (
       <div className="space-y-2">
         <Label htmlFor={`${label}-date`} className="text-sm font-medium text-gray-700">
           {label}
@@ -275,14 +342,31 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         <Popover open={isOpen} onOpenChange={onOpenChange}>
           <PopoverTrigger asChild>
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Button variant="outline" className={cn("w-full justify-start text-left font-normal shadow-sm transition-all", !date && "text-gray-400", date && "border-blue-200 bg-blue-50 text-blue-800")} id={`${label}-date`}>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal shadow-sm transition-all",
+                  !date && "text-gray-400",
+                  date && "border-blue-200 bg-blue-50 text-blue-800",
+                )}
+                id={`${label}-date`}
+              >
                 <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-blue-500" : "text-gray-400")} />
                 {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
               </Button>
             </motion.div>
           </PopoverTrigger>
           <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="center" side="bottom" sideOffset={5}>
-            <Calendar mode="single" selected={date} onSelect={onSelect} defaultMonth={date} disabled={disabled} initialFocus locale={ja} className="rounded-md border-0" />
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={onSelect}
+              defaultMonth={date}
+              disabled={disabled}
+              initialFocus
+              locale={ja}
+              className="rounded-md border-0"
+            />
           </PopoverContent>
         </Popover>
       </div>
@@ -295,12 +379,19 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
     () => (
       <AnimatePresence>
         {state.startDate && state.endDate && (
-          <motion.div className="mt-6 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          <motion.div
+            className="mt-6 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="flex items-start">
               <CheckIcon className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0 text-blue-500" />
               <div>
                 <p className="font-medium">
-                  選択された期間: {format(state.startDate, "yyyy年MM月dd日", { locale: ja })} 〜 {format(state.endDate, "yyyy年MM月dd日", { locale: ja })}
+                  選択された期間: {format(state.startDate, "yyyy年MM月dd日", { locale: ja })} 〜{" "}
+                  {format(state.endDate, "yyyy年MM月dd日", { locale: ja })}
                 </p>
                 <p className="mt-1 text-blue-600">この期間のタスクデータをエクスポートします</p>
               </div>
@@ -315,7 +406,15 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
   // サブコンポーネント: 期間指定ステップ
   const DateRangeSelectionStep = useCallback(
     () => (
-      <motion.div key="step2" custom={state.direction} variants={ANIMATION_VARIANTS.step} initial="enter" animate="center" exit="exit" className="space-y-6">
+      <motion.div
+        key="step2"
+        custom={state.direction}
+        variants={ANIMATION_VARIANTS.step}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        className="space-y-6"
+      >
         <div className="space-y-4">
           <div className="mb-6 text-center">
             <h3 className="text-lg font-semibold text-gray-900">エクスポート期間を指定</h3>
@@ -345,13 +444,29 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         </div>
       </motion.div>
     ),
-    [state.startDate, state.endDate, state.isStartDateOpen, state.isEndDateOpen, state.direction, dateUtils, updateState, DateSelector, DateRangeSummary],
+    [
+      state.startDate,
+      state.endDate,
+      state.isStartDateOpen,
+      state.isEndDateOpen,
+      state.direction,
+      dateUtils,
+      updateState,
+      DateSelector,
+      DateRangeSummary,
+    ],
   );
 
   // サブコンポーネント: ページサマリー
   const PageSummary = useCallback(
     () => (
-      <motion.div className="mt-6 rounded-md border border-purple-100 bg-purple-50 p-4 text-sm text-purple-800" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+      <motion.div
+        className="mt-6 rounded-md border border-purple-100 bg-purple-50 p-4 text-sm text-purple-800"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+      >
         <div className="flex items-start">
           <PackageCheck className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0 text-purple-500" />
           <div>
@@ -359,7 +474,11 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
               選択されたページ: {state.page}ページ目 ({(state.page - 1) * 200 + 1}〜{state.page * 200}件)
             </p>
             <p className="mt-1">エクスポートされたデータは評価者ごとに分割され、ZIPファイルとしてダウンロードされます。</p>
-            {state.onlyFixed && <p className="mt-2 border-t border-purple-200 pt-2 font-medium text-purple-700">FIX済みの分析結果のみ（ステータス「POINTS_AWARDED」）がエクスポートされます。</p>}
+            {state.onlyFixed && (
+              <p className="mt-2 border-t border-purple-200 pt-2 font-medium text-purple-700">
+                FIX済みの分析結果のみ（ステータス「POINTS_AWARDED」）がエクスポートされます。
+              </p>
+            )}
           </div>
         </div>
       </motion.div>
@@ -370,7 +489,15 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
   // サブコンポーネント: ページ選択ステップ
   const PageSelectionStep = useCallback(
     () => (
-      <motion.div key="step2" custom={state.direction} variants={ANIMATION_VARIANTS.step} initial="enter" animate="center" exit="exit" className="space-y-6">
+      <motion.div
+        key="step2"
+        custom={state.direction}
+        variants={ANIMATION_VARIANTS.step}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        className="space-y-6"
+      >
         <div className="space-y-4">
           <div className="mb-6 text-center">
             <h3 className="text-lg font-semibold text-gray-900">ページを指定</h3>
@@ -412,7 +539,10 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
             type="button"
             onClick={navigationFunctions.prevStep}
             disabled={state.step === 1}
-            className={cn("flex items-center gap-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900", state.step === 1 && "pointer-events-none opacity-0")}
+            className={cn(
+              "flex items-center gap-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+              state.step === 1 && "pointer-events-none opacity-0",
+            )}
           >
             <ArrowLeft className="h-4 w-4" />
             前へ戻る
@@ -464,7 +594,12 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
       {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
       <DialogContent className="max-h-[95vh] overflow-y-auto rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
         <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-          <button onClick={() => onCloseAction(false)} className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none" disabled={state.isExporting} aria-label="閉じる">
+          <button
+            onClick={() => onCloseAction(false)}
+            className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none"
+            disabled={state.isExporting}
+            aria-label="閉じる"
+          >
             <XIcon className="h-5 w-5" />
           </button>
 

@@ -3,7 +3,16 @@
 import { memo, useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Bell, History, Home, Menu, PlusCircle, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
@@ -115,12 +124,27 @@ export const Sidebar = memo(function Sidebar() {
   return (
     <AlertDialog>
       {/* モバイル用ハンバーガーボタン（sm:hidden） */}
-      <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 sm:hidden dark:text-gray-200" onClick={toggleSidebar} aria-label={isOpen ? "Close menu" : "Open menu"}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 sm:hidden dark:text-gray-200"
+        onClick={toggleSidebar}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
+      >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </Button>
 
       {/* モバイル用オーバーレイ - ヘッダーを白色のままにする */}
-      {isOpen && <div className="fixed top-16 right-0 bottom-0 left-0 z-40 bg-black/20 backdrop-blur-sm sm:hidden" onClick={toggleSidebar} onKeyDown={(e) => e.key === "Escape" && toggleSidebar()} role="button" tabIndex={0} aria-label="閉じる" />}
+      {isOpen && (
+        <div
+          className="fixed top-16 right-0 bottom-0 left-0 z-40 bg-black/20 backdrop-blur-sm sm:hidden"
+          onClick={toggleSidebar}
+          onKeyDown={(e) => e.key === "Escape" && toggleSidebar()}
+          role="button"
+          tabIndex={0}
+          aria-label="閉じる"
+        />
+      )}
 
       {/* Sidebar本体 - スクロール機能を追加 */}
       <aside

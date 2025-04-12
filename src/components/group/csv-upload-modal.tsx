@@ -103,7 +103,13 @@ const GlobalDropZoneOverlay = memo(function GlobalDropZoneOverlay({ isVisible }:
 
   return (
     <AnimatePresence>
-      <motion.div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]" initial="hidden" animate="visible" exit="exit" variants={globalDropOverlay}>
+      <motion.div
+        className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={globalDropOverlay}
+      >
         <motion.div
           className="mx-auto flex h-[90vh] w-[95vw] max-w-[1000px] flex-col items-center rounded-xl border-2 border-dashed border-blue-500 bg-white/95 p-8 shadow-2xl"
           initial={{ scale: 0.9, y: 20 }}
@@ -141,12 +147,24 @@ const UploadTypeRadio = memo(function UploadTypeRadio({ type, info, isSelected, 
       whileHover={{ scale: canUse ? 1.01 : 1 }}
       whileTap={{ scale: canUse ? 0.98 : 1 }}
       onClick={handleSelect}
-      className={cn("relative cursor-pointer rounded-lg border-2 p-4", isSelected ? "border-blue-500" : "border-gray-200", !canUse && "cursor-not-allowed opacity-70")}
+      className={cn(
+        "relative cursor-pointer rounded-lg border-2 p-4",
+        isSelected ? "border-blue-500" : "border-gray-200",
+        !canUse && "cursor-not-allowed opacity-70",
+      )}
     >
       <div className="flex items-start">
-        <RadioGroupItem value={type} id={type.toLowerCase()} className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" disabled={!canUse} />
+        <RadioGroupItem
+          value={type}
+          id={type.toLowerCase()}
+          className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500"
+          disabled={!canUse}
+        />
         <div className="flex-1">
-          <Label htmlFor={type.toLowerCase()} className={cn("flex cursor-pointer items-center text-base font-medium", !canUse && "cursor-not-allowed")}>
+          <Label
+            htmlFor={type.toLowerCase()}
+            className={cn("flex cursor-pointer items-center text-base font-medium", !canUse && "cursor-not-allowed")}
+          >
             <File className="mr-2 h-5 w-5 text-blue-500" />
             {info.title}
           </Label>
@@ -177,7 +195,13 @@ const FileList = memo(function FileList({ files, isUploading, onRemoveFile, onRe
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <motion.div className="space-y-3" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
+    <motion.div
+      className="space-y-3"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium text-gray-700">選択されたファイル</h4>
         <Button variant="ghost" size="sm" onClick={onRemoveAll} disabled={isUploading} className="text-xs text-gray-500 hover:text-red-500">
@@ -187,7 +211,13 @@ const FileList = memo(function FileList({ files, isUploading, onRemoveFile, onRe
       <div className="max-h-[240px] space-y-2 overflow-y-auto p-1">
         <AnimatePresence>
           {files.map((file, i) => (
-            <motion.div key={`${file.name}-${i}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, delay: i * 0.05 }}>
+            <motion.div
+              key={`${file.name}-${i}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, delay: i * 0.05 }}
+            >
               <SelectedFileCard name={file.name} fileSize={file.size} onRemove={() => onRemoveFile(file)} />
             </motion.div>
           ))}
@@ -224,7 +254,9 @@ const FileUploadArea = memo(function FileUploadArea({ isUploading, uploadProgres
         {...getRootProps()}
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-all duration-200",
-          isDragActive ? "scale-[1.01] border-blue-500 bg-blue-50 shadow-[0_0_0_2px_rgba(59,130,246,0.3)]" : "border-gray-300 hover:scale-[1.01] hover:bg-gray-50",
+          isDragActive
+            ? "scale-[1.01] border-blue-500 bg-blue-50 shadow-[0_0_0_2px_rgba(59,130,246,0.3)]"
+            : "border-gray-300 hover:scale-[1.01] hover:bg-gray-50",
         )}
       >
         <input {...getInputProps()} />
@@ -252,7 +284,13 @@ const FileUploadArea = memo(function FileUploadArea({ isUploading, uploadProgres
       {/* アップロード進捗バー */}
       <AnimatePresence>
         {isUploading && (
-          <motion.div className="mt-4 space-y-2" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
+          <motion.div
+            className="mt-4 space-y-2"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="flex items-center justify-between">
               <Label className="text-sm">アップロード進捗</Label>
               <span className="text-sm font-medium">{Math.round(uploadProgress)}%</span>
@@ -315,7 +353,21 @@ export const CsvUploadModal = memo(function CsvUploadModal({ isOpen, onCloseActi
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const { uploadType, isUploading, uploadProgress, currentFiles, isFileOver, hasPermissionForUploadType, dropzoneProps, setUploadType, handleRemoveFile, handleRemoveAll, handleUpload, onCancel, renderFileFormatInfo } = csvUploadHook;
+  const {
+    uploadType,
+    isUploading,
+    uploadProgress,
+    currentFiles,
+    isFileOver,
+    hasPermissionForUploadType,
+    dropzoneProps,
+    setUploadType,
+    handleRemoveFile,
+    handleRemoveAll,
+    handleUpload,
+    onCancel,
+    renderFileFormatInfo,
+  } = csvUploadHook;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -326,10 +378,18 @@ export const CsvUploadModal = memo(function CsvUploadModal({ isOpen, onCloseActi
 
       {/* アップロードモーダル */}
       <Dialog open={isOpen} onOpenChange={(open) => !isUploading && onCloseAction(open)}>
-        <DialogContent className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[800px]" closeButton={false}>
+        <DialogContent
+          className="flex max-h-[95vh] flex-col overflow-hidden rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[800px]"
+          closeButton={false}
+        >
           {/* ヘッダー */}
           <div className="relative flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
-            <button onClick={() => !isUploading && onCloseAction(false)} className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none" disabled={isUploading} aria-label="閉じる">
+            <button
+              onClick={() => !isUploading && onCloseAction(false)}
+              className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none"
+              disabled={isUploading}
+              aria-label="閉じる"
+            >
               <X className="h-5 w-5" />
             </button>
 
@@ -338,28 +398,55 @@ export const CsvUploadModal = memo(function CsvUploadModal({ isOpen, onCloseActi
           </div>
 
           {/* メインコンテンツ */}
-          <motion.div className="flex-grow space-y-6 overflow-y-auto p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <motion.div
+            className="flex-grow space-y-6 overflow-y-auto p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             {/* アップロードタイプ選択 */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">アップロードの種類</h3>
               <RadioGroup value={uploadType} onValueChange={setUploadType} className="pt-2">
                 <div className="grid grid-cols-1 gap-4">
                   {Object.entries(UPLOAD_TYPE_INFO).map(([type, info]) => (
-                    <UploadTypeRadio key={type} type={type} info={info} isSelected={uploadType === type} canUse={hasPermissionForUploadType(type as UploadType)} onSelect={setUploadType} />
+                    <UploadTypeRadio
+                      key={type}
+                      type={type}
+                      info={info}
+                      isSelected={uploadType === type}
+                      canUse={hasPermissionForUploadType(type as UploadType)}
+                      onSelect={setUploadType}
+                    />
                   ))}
                 </div>
               </RadioGroup>
             </div>
 
             {/* 選択されたファイル一覧 */}
-            <AnimatePresence>{currentFiles.length > 0 && <FileList files={currentFiles} isUploading={isUploading} onRemoveFile={handleRemoveFile} onRemoveAll={handleRemoveAll} />}</AnimatePresence>
+            <AnimatePresence>
+              {currentFiles.length > 0 && (
+                <FileList files={currentFiles} isUploading={isUploading} onRemoveFile={handleRemoveFile} onRemoveAll={handleRemoveAll} />
+              )}
+            </AnimatePresence>
 
             {/* ファイルアップロードエリア */}
-            <FileUploadArea uploadType={uploadType} isUploading={isUploading} uploadProgress={uploadProgress} dropzoneProps={dropzoneProps} renderFileFormatInfo={renderFileFormatInfo} />
+            <FileUploadArea
+              uploadType={uploadType}
+              isUploading={isUploading}
+              uploadProgress={uploadProgress}
+              dropzoneProps={dropzoneProps}
+              renderFileFormatInfo={renderFileFormatInfo}
+            />
           </motion.div>
 
           {/* アクションボタン */}
-          <ActionButtons isUploading={isUploading} canUpload={!isUploading && currentFiles.length > 0 && hasPermissionForUploadType(uploadType)} onCancel={onCancel} onUpload={handleUpload} />
+          <ActionButtons
+            isUploading={isUploading}
+            canUpload={!isUploading && currentFiles.length > 0 && hasPermissionForUploadType(uploadType)}
+            onCancel={onCancel}
+            onUpload={handleUpload}
+          />
         </DialogContent>
       </Dialog>
     </>

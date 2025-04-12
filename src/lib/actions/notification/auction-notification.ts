@@ -179,7 +179,10 @@ export async function calculateExpiryDate(eventType: AuctionEventType): Promise<
  * @param messageData - 通知内容生成に必要なデータ
  * @returns {title: string, body: string, targetType: NotificationTargetType} 通知タイトルと本文のオブジェクト
  */
-export async function getAuctionNotificationMessage(eventType: AuctionEventType, messageData: MessageData): Promise<{ title: string; body: string; targetType: NotificationTargetType }> {
+export async function getAuctionNotificationMessage(
+  eventType: AuctionEventType,
+  messageData: MessageData,
+): Promise<{ title: string; body: string; targetType: NotificationTargetType }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

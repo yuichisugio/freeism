@@ -21,7 +21,18 @@ export class ConnectionManager {
   // インスタンスID
   public readonly instanceId: string;
   // オークションID => (クライアントID => コントローラー) の二層マップ
-  private connections = new Map<string, Map<string, { controller: ReadableStreamController<Uint8Array>; heartbeatInterval: NodeJS.Timeout | null; timeoutId: NodeJS.Timeout | null; isActive: boolean }>>();
+  private connections = new Map<
+    string,
+    Map<
+      string,
+      {
+        controller: ReadableStreamController<Uint8Array>;
+        heartbeatInterval: NodeJS.Timeout | null;
+        timeoutId: NodeJS.Timeout | null;
+        isActive: boolean;
+      }
+    >
+  >();
   // オークションID => イベント履歴 のマップ
   private eventHistories = new Map<string, EventHistoryItem[]>();
   // グローバルイベントIDカウンター
@@ -84,7 +95,13 @@ export class ConnectionManager {
    * @param heartbeatInterval ハートビート間隔
    * @param timeoutId タイムアウトID
    */
-  addConnection(auctionId: string, clientId: string, controller: ReadableStreamController<Uint8Array>, heartbeatInterval: NodeJS.Timeout | null = null, timeoutId: NodeJS.Timeout | null = null): void {
+  addConnection(
+    auctionId: string,
+    clientId: string,
+    controller: ReadableStreamController<Uint8Array>,
+    heartbeatInterval: NodeJS.Timeout | null = null,
+    timeoutId: NodeJS.Timeout | null = null,
+  ): void {
     console.log("[CM Class] addConnection start", auctionId, clientId);
     const normalizedAuctionId = String(auctionId);
     if (!this.connections.has(normalizedAuctionId)) {
@@ -280,7 +297,9 @@ export class ConnectionManager {
     if (sentCount > 0) {
       console.log(`[CM Class] broadcastToAuction Broadcast event ${type} to ${sentCount} client(s) in auction ${normalizedAuctionId}`);
     } else if (auctionClients.size > 0 && clientsToRemove.length < auctionClients.size) {
-      console.log(`[CM Class] broadcastToAuction No active clients to broadcast to in auction ${normalizedAuctionId}, but inactive connections exist.`);
+      console.log(
+        `[CM Class] broadcastToAuction No active clients to broadcast to in auction ${normalizedAuctionId}, but inactive connections exist.`,
+      );
     } else {
       console.log(`[CM Class] broadcastToAuction No clients to broadcast to in auction ${normalizedAuctionId}.`);
     }

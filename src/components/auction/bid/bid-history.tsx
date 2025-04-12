@@ -56,7 +56,12 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHist
   // 入札履歴がない場合
   if (bids.length === 0) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="bg-muted/30 flex flex-col items-center justify-center gap-3 rounded-lg py-12 text-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-muted/30 flex flex-col items-center justify-center gap-3 rounded-lg py-12 text-center"
+      >
         <AlertCircle className="text-muted-foreground/50 h-12 w-12" />
         <p className="text-muted-foreground">まだ入札がありません</p>
       </motion.div>

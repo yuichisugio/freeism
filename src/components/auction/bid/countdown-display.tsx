@@ -19,7 +19,11 @@ export const CountdownDisplay = memo(function CountdownDisplay({ countdownState,
   // オークション終了時の表示
   if (countdownState.isExpired) {
     return (
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex items-center gap-2 font-medium text-red-500">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="flex items-center gap-2 font-medium text-red-500"
+      >
         <AlertTriangle className="h-4 w-4" />
         <span>オークション終了</span>
       </motion.div>

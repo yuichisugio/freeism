@@ -137,7 +137,10 @@ export async function convertAuctionToAuctionType(auctionData: AuctionWithDetail
       id: auctionData.task.creator.id,
       username: auctionData.task.creator.name ?? "不明なユーザー",
       email: auctionData.task.creator.email,
-      createdAt: typeof auctionData.task.creator.createdAt === "object" && auctionData.task.creator.createdAt !== null ? (auctionData.task.creator.createdAt as Date).toISOString() : String(auctionData.task.creator.createdAt),
+      createdAt:
+        typeof auctionData.task.creator.createdAt === "object" && auctionData.task.creator.createdAt !== null
+          ? (auctionData.task.creator.createdAt as Date).toISOString()
+          : String(auctionData.task.creator.createdAt),
       avatarUrl: auctionData.task.creator.image ?? undefined,
     },
     bidCount: auctionData.bidHistories?.length ?? 0,

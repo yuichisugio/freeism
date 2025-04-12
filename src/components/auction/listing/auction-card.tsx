@@ -27,7 +27,10 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
-  const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage, sellerRating } = useAuctionCard({ auction, onToggleWatchlistAction });
+  const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage, sellerRating } = useAuctionCard({
+    auction,
+    onToggleWatchlistAction,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -88,7 +91,13 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
       <Link href={`/dashboard/auction/${auction.taskId}`} className="block">
         <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
           {auction.imageUrl ? (
-            <Image src={auction.imageUrl} alt={auction.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" />
+            <Image
+              src={auction.imageUrl}
+              alt={auction.title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-400 dark:bg-gray-600 dark:text-gray-300">
               <Tag className="h-12 w-12 opacity-50" />
@@ -120,7 +129,9 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
 
       <div className="p-3 sm:p-4">
         <Link href={`/dashboard/auction/${auction.taskId}`} className="block">
-          <h3 className="hover:text-primary mb-2 line-clamp-2 text-base font-semibold transition-colors sm:text-lg dark:text-gray-100">{auction.title}</h3>
+          <h3 className="hover:text-primary mb-2 line-clamp-2 text-base font-semibold transition-colors sm:text-lg dark:text-gray-100">
+            {auction.title}
+          </h3>
         </Link>
 
         {/* 現在価格 */}
@@ -157,7 +168,9 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="text-2xs max-w-full truncate rounded bg-gray-100 px-2 py-1 text-gray-600 sm:text-xs dark:bg-gray-700 dark:text-gray-300">{auction.group.name}</div>
+                <div className="text-2xs max-w-full truncate rounded bg-gray-100 px-2 py-1 text-gray-600 sm:text-xs dark:bg-gray-700 dark:text-gray-300">
+                  {auction.group.name}
+                </div>
               </TooltipTrigger>
               <TooltipContent>
                 <p>出品グループ: {auction.group.name}</p>
@@ -166,7 +179,9 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
           </TooltipProvider>
 
           {/* カテゴリ表示（モック） */}
-          <div className="text-2xs max-w-full truncate rounded bg-gray-50 px-2 py-1 text-gray-500 sm:text-xs dark:bg-gray-700/50 dark:text-gray-400">カテゴリ: {auction.group.name.includes("開発") ? "開発" : "その他"}</div>
+          <div className="text-2xs max-w-full truncate rounded bg-gray-50 px-2 py-1 text-gray-500 sm:text-xs dark:bg-gray-700/50 dark:text-gray-400">
+            カテゴリ: {auction.group.name.includes("開発") ? "開発" : "その他"}
+          </div>
         </div>
       </div>
     </div>

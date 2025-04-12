@@ -194,7 +194,12 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
       {/* メッセージリスト */}
       <div
         className="flex-1 space-y-4 overflow-y-auto rounded-lg bg-slate-50 p-4"
-        style={{ maxHeight: "400px", backgroundImage: "linear-gradient(rgba(241, 245, 249, 0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(241, 245, 249, 0.7) 1px, transparent 1px)", backgroundSize: "20px 20px" }}
+        style={{
+          maxHeight: "400px",
+          backgroundImage:
+            "linear-gradient(rgba(241, 245, 249, 0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(241, 245, 249, 0.7) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
       >
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
@@ -226,7 +231,10 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={cn("mb-6 flex w-full flex-col rounded-lg p-3", isOwnMessage ? "items-end bg-blue-50/50" : isSellerMessage ? "items-start bg-green-50/50" : "items-start bg-slate-100/50")}
+                  className={cn(
+                    "mb-6 flex w-full flex-col rounded-lg p-3",
+                    isOwnMessage ? "items-end bg-blue-50/50" : isSellerMessage ? "items-start bg-green-50/50" : "items-start bg-slate-100/50",
+                  )}
                 >
                   <div className="mb-2 flex items-center gap-2">
                     {!isOwnMessage && (
@@ -236,7 +244,11 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                       </Avatar>
                     )}
                     <div className="flex flex-col">
-                      <span className={cn("text-sm font-medium", isOwnMessage ? "text-blue-700" : isSellerMessage ? "text-green-700" : "text-slate-700")}>{senderInfo.name}</span>
+                      <span
+                        className={cn("text-sm font-medium", isOwnMessage ? "text-blue-700" : isSellerMessage ? "text-green-700" : "text-slate-700")}
+                      >
+                        {senderInfo.name}
+                      </span>
                       {isSellerMessage ? (
                         <Badge variant="outline" className="border-green-200 bg-green-100 text-xs text-green-800">
                           出品者
@@ -259,7 +271,11 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                         key={msg.id}
                         className={cn(
                           "relative mb-1 rounded-2xl px-4 py-2 shadow-sm",
-                          isOwnMessage ? "bg-primary text-primary-foreground ml-auto rounded-tr-none" : isSellerMessage ? "mr-auto rounded-tl-none bg-green-200 text-green-900" : "bg-muted mr-auto rounded-tl-none text-slate-800",
+                          isOwnMessage
+                            ? "bg-primary text-primary-foreground ml-auto rounded-tr-none"
+                            : isSellerMessage
+                              ? "mr-auto rounded-tl-none bg-green-200 text-green-900"
+                              : "bg-muted mr-auto rounded-tl-none text-slate-800",
                         )}
                       >
                         <p className="text-sm break-words">{msg.message}</p>

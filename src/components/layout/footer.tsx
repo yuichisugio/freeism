@@ -22,12 +22,18 @@ export const Footer = memo(function Footer() {
               <h3 className="mb-3 text-lg font-semibold text-blue-900 sm:mb-4 dark:text-blue-100">Legal</h3>
               <ul className="space-y-2 sm:space-y-3">
                 <li>
-                  <Link href="/terms" className="text-sm text-neutral-600 transition-colors hover:text-blue-600 sm:text-base dark:text-neutral-400 dark:hover:text-blue-300">
+                  <Link
+                    href="/terms"
+                    className="text-sm text-neutral-600 transition-colors hover:text-blue-600 sm:text-base dark:text-neutral-400 dark:hover:text-blue-300"
+                  >
                     利用規約
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="text-sm text-neutral-600 transition-colors hover:text-blue-600 sm:text-base dark:text-neutral-400 dark:hover:text-blue-300">
+                  <Link
+                    href="/privacy"
+                    className="text-sm text-neutral-600 transition-colors hover:text-blue-600 sm:text-base dark:text-neutral-400 dark:hover:text-blue-300"
+                  >
                     プライバシーポリシー
                   </Link>
                 </li>
@@ -39,11 +45,21 @@ export const Footer = memo(function Footer() {
               <h3 className="mb-3 text-lg font-semibold text-blue-900 sm:mb-4 dark:text-blue-100">About</h3>
               <div className="flex justify-center space-x-4 sm:justify-start">
                 {/* Twitterリンク */}
-                <a href="https://x.com/sugi_sugi_329" target="_blank" rel="noopener noreferrer" className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300">
+                <a
+                  href="https://x.com/sugi_sugi_329"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300"
+                >
                   <TwitterLogoSvg />
                 </a>
                 {/* GitHubリンク */}
-                <a href="https://github.com/yuichisugio" target="_blank" rel="noopener noreferrer" className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300">
+                <a
+                  href="https://github.com/yuichisugio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-neutral-600 transition-colors hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-300"
+                >
                   <GitHubLogoSvg />
                 </a>
               </div>
@@ -52,7 +68,9 @@ export const Footer = memo(function Footer() {
 
           {/* コピーライト */}
           <div className="relative mt-8 w-screen border-t border-blue-100 pt-6 text-center sm:mt-12 sm:pt-8 dark:border-blue-900">
-            <p className="text-xs text-neutral-600 sm:text-sm dark:text-neutral-400">© {new Date().getFullYear()} Freeism-App. All rights reserved.</p>
+            <p className="text-xs text-neutral-600 sm:text-sm dark:text-neutral-400">
+              © {new Date().getFullYear()} Freeism-App. All rights reserved.
+            </p>
           </div>
         </div>
       </div>

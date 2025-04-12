@@ -96,7 +96,18 @@ export type CustomFormFieldProps<TFieldValues extends FieldValues, TName extends
   | ({ fieldType: "switch" } & SwitchFieldProps<TFieldValues, TName>);
 
 // 共通のフィールドレイアウトコンポーネント
-const FieldLayout = memo(function FieldLayout({ label, description, children, extraChildren }: { label: string; description?: string; error?: string; children: ReactNode; extraChildren?: ReactNode }) {
+const FieldLayout = memo(function FieldLayout({
+  label,
+  description,
+  children,
+  extraChildren,
+}: {
+  label: string;
+  description?: string;
+  error?: string;
+  children: ReactNode;
+  extraChildren?: ReactNode;
+}) {
   return (
     <div className="mb-5 transition-all">
       <FormItem className="mb-4">
@@ -119,7 +130,9 @@ const FieldLayout = memo(function FieldLayout({ label, description, children, ex
 // --------------------------------------------------
 
 // 統合されたフォームフィールドコンポーネント
-export function CustomFormField<TFieldValues extends FieldValues, TName extends Path<TFieldValues>>(props: CustomFormFieldProps<TFieldValues, TName>): JSX.Element {
+export function CustomFormField<TFieldValues extends FieldValues, TName extends Path<TFieldValues>>(
+  props: CustomFormFieldProps<TFieldValues, TName>,
+): JSX.Element {
   // --------------------------------------------------
 
   // 型安全のために、カスタムフィールドをFieldValuesにキャストする関数を作成
@@ -143,7 +156,12 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
       case "textarea": {
         return (
           <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <Textarea id={field.name.toString()} placeholder={formProps.placeholder ?? ""} {...field} className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500" />
+            <Textarea
+              id={field.name.toString()}
+              placeholder={formProps.placeholder ?? ""}
+              {...field}
+              className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
+            />
           </FieldLayout>
         );
       }
@@ -163,28 +181,44 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                 onValueChange={(value) => {
                   // 数値の場合は数値型に変換して設定
                   const numValue = Number(value);
-                  field.onChange(!isNaN(numValue) && typeof formProps.options.find((opt: RadioOption) => String(opt.value) === String(value))?.value === "number" ? numValue : value);
+                  field.onChange(
+                    !isNaN(numValue) && typeof formProps.options.find((opt: RadioOption) => String(opt.value) === String(value))?.value === "number"
+                      ? numValue
+                      : value,
+                  );
                 }}
                 defaultValue={String(field.value)}
                 className="contents"
               >
                 {formProps.options.map((option: RadioOption) => (
                   <div key={option.value} className="relative">
-                    <RadioGroupItem value={String(option.value)} className="peer absolute opacity-0" id={`${field.name.toString()}-${option.value}`} />
+                    <RadioGroupItem
+                      value={String(option.value)}
+                      className="peer absolute opacity-0"
+                      id={`${field.name.toString()}-${option.value}`}
+                    />
                     <label
                       htmlFor={`${field.name.toString()}-${option.value}`}
                       className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-sm transition-all peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500 hover:bg-blue-50"
                     >
                       <div className="flex items-center gap-2">
                         <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-gray-300 peer-checked:border-blue-500">
-                          <div className={`h-2.5 w-2.5 rounded-full bg-blue-500 ${String(field.value) === String(option.value) ? "opacity-100" : "opacity-0"} transition-opacity`}></div>
+                          <div
+                            className={`h-2.5 w-2.5 rounded-full bg-blue-500 ${String(field.value) === String(option.value) ? "opacity-100" : "opacity-0"} transition-opacity`}
+                          ></div>
                         </div>
-                        <span className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}>{option.label}</span>
+                        <span className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}>
+                          {option.label}
+                        </span>
                       </div>
                       {String(field.value) === String(option.value) && (
                         <div className="text-blue-600">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         </div>
                       )}
@@ -224,10 +258,15 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                   variant="outline"
                   role="combobox"
                   aria-expanded={formProps.open}
-                  className={cn("w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400", !field.value && "text-muted-foreground")}
+                  className={cn(
+                    "w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400",
+                    !field.value && "text-muted-foreground",
+                  )}
                   type="button"
                 >
-                  {field.value ? (formProps.options.find((item: ComboBoxOption) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder) : placeholder}
+                  {field.value
+                    ? (formProps.options.find((item: ComboBoxOption) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder)
+                    : placeholder}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -279,7 +318,11 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
             <Popover>
               <PopoverTrigger asChild>
                 <div className="transition-all hover:opacity-90">
-                  <Button variant="outline" className="w-full justify-start border-gray-300 text-left font-normal transition-all duration-200 hover:border-blue-400" type="button">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start border-gray-300 text-left font-normal transition-all duration-200 hover:border-blue-400"
+                    type="button"
+                  >
                     <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
                     {field.value ? <span className="transition-all">{format(new Date(field.value), dateFormat, { locale })}</span> : buttonText}
                   </Button>

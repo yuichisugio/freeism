@@ -58,7 +58,9 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({ u
           <Label htmlFor="notification-toggle">現在：{isEnabled ? "受信中" : "受信拒否中"}</Label>
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">メール通知を有効にすると、メールでの通知を受け取ることができます。</p>
-        {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && <p className="mt-2 text-sm text-red-500 dark:text-red-500">メール通知は後ほど開発予定です。</p>}
+        {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && (
+          <p className="mt-2 text-sm text-red-500 dark:text-red-500">メール通知は後ほど開発予定です。</p>
+        )}
       </CardContent>
     </Card>
   );

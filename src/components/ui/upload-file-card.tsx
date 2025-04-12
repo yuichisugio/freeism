@@ -24,7 +24,11 @@ export const SelectedFileCard = memo(({ name, fileSize, onRemove }: { name: stri
             <File className="h-4 w-4 text-blue-600" />
             <CardTitle className="text-sm font-medium">{name}</CardTitle>
           </div>
-          <button type="button" onClick={onRemove} className="rounded-full p-1 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="rounded-full p-1 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>

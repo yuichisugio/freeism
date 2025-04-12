@@ -1,5 +1,6 @@
 import type { ClassValue } from "clsx";
 import type { Session } from "next-auth";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -50,10 +51,10 @@ export async function getAuthenticatedSessionUserId(): Promise<string> {
     // セッション情報が取得できた場合はユーザーIDを返す
     return sessionUserId;
 
-    // エラーが発生した場合はエラーを投げる
+    // エラーが発生した場合はログイン画面にリダイレクト
   } catch (error) {
-    console.error(error);
-    throw new Error("utils.ts_getSessionUserId_ユーザーIDが取得できませんでした");
+    console.error("utils.ts_getSessionUserId_エラーが発生しました", error);
+    redirect("/auth/signin");
   }
 }
 

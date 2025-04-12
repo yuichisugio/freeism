@@ -115,7 +115,15 @@ function useGlobalDropZone({ onFileDrop, isEnabled, disabled }: { onFileDrop: (f
 }
 
 // 画像アップロードロジックのカスタムフック
-function useImageUpload({ initialImageUrl, onImageUploaded, onImageRemoved }: { initialImageUrl?: string; onImageUploaded?: (imageUrl: string) => void; onImageRemoved?: () => void }) {
+function useImageUpload({
+  initialImageUrl,
+  onImageUploaded,
+  onImageRemoved,
+}: {
+  initialImageUrl?: string;
+  onImageUploaded?: (imageUrl: string) => void;
+  onImageRemoved?: () => void;
+}) {
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
@@ -319,7 +327,15 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
       {/* グローバルドロップゾーンオーバーレイ */}
       <AnimatePresence>
         {isFileOver && (
-          <motion.div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]" initial="hidden" animate="visible" exit="exit" variants={globalDropOverlay} role="region" aria-label="画像ドロップエリア">
+          <motion.div
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={globalDropOverlay}
+            role="region"
+            aria-label="画像ドロップエリア"
+          >
             <motion.div
               className="mx-auto flex h-[300px] w-[600px] max-w-[95vw] flex-col items-center justify-center rounded-xl border-2 border-dashed border-blue-500 bg-white/95 shadow-2xl"
               initial={{ scale: 0.9, y: 20 }}
@@ -340,12 +356,23 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
         {previewUrl ? (
           <div className="relative overflow-hidden rounded-md border">
             <div className="relative aspect-[16/9] w-full">
-              <Image src={previewUrl} alt="画像プレビュー" fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
+              <Image
+                src={previewUrl}
+                alt="画像プレビュー"
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              />
             </div>
 
             {/* 削除ボタン */}
             {!disabled && (
-              <button onClick={handleRemoveImage} className="absolute top-2 right-2 rounded-full bg-white/80 p-1 text-gray-700 shadow-md hover:bg-white hover:text-red-500" disabled={isUploading} aria-label="画像を削除">
+              <button
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 rounded-full bg-white/80 p-1 text-gray-700 shadow-md hover:bg-white hover:text-red-500"
+                disabled={isUploading}
+                aria-label="画像を削除"
+              >
                 <Trash2 className="h-5 w-5" />
               </button>
             )}
@@ -357,7 +384,14 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
                   <span className="text-xs font-medium">アップロード中...</span>
                   <span className="text-xs">{Math.round(uploadProgress)}%</span>
                 </div>
-                <Progress value={uploadProgress} className="h-1 bg-gray-700" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadProgress} aria-label="アップロード進捗" />
+                <Progress
+                  value={uploadProgress}
+                  className="h-1 bg-gray-700"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={uploadProgress}
+                  aria-label="アップロード進捗"
+                />
               </div>
             )}
           </div>

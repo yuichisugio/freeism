@@ -107,11 +107,26 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="icon" onClick={decrementBid} disabled={bidAmount <= minBid} className="h-10 w-10 rounded-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={decrementBid}
+                  disabled={bidAmount <= minBid}
+                  className="h-10 w-10 rounded-full"
+                >
                   <Minus className="h-4 w-4" />
                 </Button>
                 <div className="relative w-full">
-                  <Input type="number" min={minBid} step={1} value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))} required className="h-12 text-center text-lg font-bold" />
+                  <Input
+                    type="number"
+                    min={minBid}
+                    step={1}
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(Number(e.target.value))}
+                    required
+                    className="h-12 text-center text-lg font-bold"
+                  />
                   <span className="text-muted-foreground absolute inset-y-0 right-3 flex items-center text-sm">pt</span>
                 </div>
                 <Button type="button" variant="outline" size="icon" onClick={incrementBid} className="h-10 w-10 rounded-full">
@@ -120,7 +135,11 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
               </div>
 
               {error && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-destructive/10 text-destructive rounded-md p-2 text-sm">
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-destructive/10 text-destructive rounded-md p-2 text-sm"
+                >
                   {error}
                 </motion.div>
               )}
@@ -141,7 +160,9 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
               )}
             </Button>
 
-            {auction.currentHighestBid >= bidAmount && <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>}
+            {auction.currentHighestBid >= bidAmount && (
+              <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>
+            )}
 
             <p className="text-muted-foreground mt-2 text-center text-xs">入札すると、すぐに有効な入札として記録されます</p>
           </CardFooter>
@@ -149,7 +170,11 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
       </Card>
 
       {/* 自動入札フォーム */}
-      <AutoBidForm auctionId={auction.id} currentHighestBid={auction.currentHighestBid} currentHighestBidderId={auction.currentHighestBidderId ?? null} />
+      <AutoBidForm
+        auctionId={auction.id}
+        currentHighestBid={auction.currentHighestBid}
+        currentHighestBidderId={auction.currentHighestBidderId ?? null}
+      />
     </div>
   );
 });

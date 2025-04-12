@@ -19,17 +19,46 @@ const LoadingIndicator = memo(function LoadingIndicator() {
 /**
  * フィルタータブコンポーネント
  */
-const FilterTabs = memo(function FilterTabs({ activeFilter, onFilterChange, unreadCount }: { activeFilter: FilterType; onFilterChange: (filter: FilterType) => void; unreadCount: number }) {
+const FilterTabs = memo(function FilterTabs({
+  activeFilter,
+  onFilterChange,
+  unreadCount,
+}: {
+  activeFilter: FilterType;
+  onFilterChange: (filter: FilterType) => void;
+  unreadCount: number;
+}) {
   return (
     <div className="sticky top-0 z-10 mb-3 flex border-b bg-white">
-      <button onClick={() => onFilterChange("all")} className={activeFilter === "all" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
+      <button
+        onClick={() => onFilterChange("all")}
+        className={
+          activeFilter === "all"
+            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
+            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
+        }
+      >
         全て
       </button>
-      <button onClick={() => onFilterChange("unread")} className={activeFilter === "unread" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
+      <button
+        onClick={() => onFilterChange("unread")}
+        className={
+          activeFilter === "unread"
+            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
+            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
+        }
+      >
         未読
         {unreadCount > 0 && <span className="ml-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs text-white">{unreadCount}</span>}
       </button>
-      <button onClick={() => onFilterChange("read")} className={activeFilter === "read" ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600" : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"}>
+      <button
+        onClick={() => onFilterChange("read")}
+        className={
+          activeFilter === "read"
+            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
+            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
+        }
+      >
         既読
       </button>
     </div>
@@ -39,7 +68,13 @@ const FilterTabs = memo(function FilterTabs({ activeFilter, onFilterChange, unre
 /**
  * 通知アイテムコンポーネント
  */
-const NotificationItem = memo(function NotificationItem({ notification, onToggleReadStatus }: { notification: NotificationData; onToggleReadStatus: (id: string, isRead: boolean) => void }) {
+const NotificationItem = memo(function NotificationItem({
+  notification,
+  onToggleReadStatus,
+}: {
+  notification: NotificationData;
+  onToggleReadStatus: (id: string, isRead: boolean) => void;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [localIsRead, setLocalIsRead] = useState(notification.isRead);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -100,7 +135,14 @@ const NotificationItem = memo(function NotificationItem({ notification, onToggle
 
   return (
     <li className={`flex flex-col rounded-lg border transition-colors ${backgroundClass} ${expandedPaddingClass}`}>
-      <div className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`} onClick={handleItemClick} onKeyDown={(e) => e.key === "Enter" && handleItemClick()} role="button" tabIndex={0} aria-label={`通知: ${notification.title}`}>
+      <div
+        className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`}
+        onClick={handleItemClick}
+        onKeyDown={(e) => e.key === "Enter" && handleItemClick()}
+        role="button"
+        tabIndex={0}
+        aria-label={`通知: ${notification.title}`}
+      >
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -159,7 +201,13 @@ const NotificationItem = memo(function NotificationItem({ notification, onToggle
               )}
             </div>
 
-            <Button variant="ghost" size="sm" className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300" disabled={isProcessing} onClick={handleStatusButtonClick}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300"
+              disabled={isProcessing}
+              onClick={handleStatusButtonClick}
+            >
               {isProcessing ? (
                 <>
                   <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
@@ -189,7 +237,17 @@ const NotificationItem = memo(function NotificationItem({ notification, onToggle
 /**
  * 通知が空の場合に表示するコンポーネント
  */
-const NotificationsEmpty = memo(function NotificationsEmpty({ hasMore, onLoadMore, isLoadingMore, activeFilter }: { hasMore: boolean; onLoadMore: () => void; isLoadingMore: boolean; activeFilter: FilterType }) {
+const NotificationsEmpty = memo(function NotificationsEmpty({
+  hasMore,
+  onLoadMore,
+  isLoadingMore,
+  activeFilter,
+}: {
+  hasMore: boolean;
+  onLoadMore: () => void;
+  isLoadingMore: boolean;
+  activeFilter: FilterType;
+}) {
   const emptyMessage = useMemo(
     function emptyMessage() {
       let emptyMessage = "通知はありません";
@@ -234,9 +292,26 @@ const NotificationsEmpty = memo(function NotificationsEmpty({ hasMore, onLoadMor
  * 通知リストコンポーネント
  * @param {function} onUnreadStatusChangeAction - 未読状態変更時のコールバック
  */
-export const NotificationList = memo(function NotificationList({ onUnreadStatusChangeAction }: { onUnreadStatusChangeAction?: (hasUnread: boolean) => void }) {
-  const { notifications, isLoading, isLoadingMore, error, unreadCount, hasMore, activeFilter, toggleReadStatus, loadMoreNotifications, markAllAsRead, handleFilterChange, handleManualRefresh, requestCounter } =
-    useNotificationList(onUnreadStatusChangeAction);
+export const NotificationList = memo(function NotificationList({
+  onUnreadStatusChangeAction,
+}: {
+  onUnreadStatusChangeAction?: (hasUnread: boolean) => void;
+}) {
+  const {
+    notifications,
+    isLoading,
+    isLoadingMore,
+    error,
+    unreadCount,
+    hasMore,
+    activeFilter,
+    toggleReadStatus,
+    loadMoreNotifications,
+    markAllAsRead,
+    handleFilterChange,
+    handleManualRefresh,
+    requestCounter,
+  } = useNotificationList(onUnreadStatusChangeAction);
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -255,7 +330,12 @@ export const NotificationList = memo(function NotificationList({ onUnreadStatusC
 
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={markAllAsRead}
+              className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
               すべて既読にする
             </Button>
           )}

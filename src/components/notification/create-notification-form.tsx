@@ -28,11 +28,30 @@ type CreateNotificationFormProps = {
  * @param tasks タスクリスト
  * @returns {JSX.Element} 通知作成フォーム
  */
-export const CreateNotificationForm = memo(function CreateNotificationForm({ isAppOwner, isGroupOwner, users, groups, tasks }: CreateNotificationFormProps) {
+export const CreateNotificationForm = memo(function CreateNotificationForm({
+  isAppOwner,
+  isGroupOwner,
+  users,
+  groups,
+  tasks,
+}: CreateNotificationFormProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知作成フォームのフォームオブジェクト
-  const { form, targetType, sendTiming, userComboOpen, setUserComboOpen, groupComboOpen, setGroupComboOpen, taskComboOpen, setTaskComboOpen, sendTimingOptions, targetTypeOptions, handleSubmit } = useCreateNotification({
+  const {
+    form,
+    targetType,
+    sendTiming,
+    userComboOpen,
+    setUserComboOpen,
+    groupComboOpen,
+    setGroupComboOpen,
+    taskComboOpen,
+    setTaskComboOpen,
+    sendTimingOptions,
+    targetTypeOptions,
+    handleSubmit,
+  } = useCreateNotification({
     isAppOwner,
     isGroupOwner,
     users,
@@ -51,15 +70,54 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({ isA
     <div className="h-full">
       <div className="text-muted-foreground mb-6 text-sm">{isAppOwner ? "アプリオーナー権限" : "グループオーナー権限"}で操作しています。</div>
       <FormLayout form={typedForm} onSubmit={typedHandleSubmit} submitLabel="通知を作成" submittingLabel="作成中..." className="space-y-6">
-        <CustomFormField control={typedControl} name="title" label="通知タイトル" description="通知のタイトルを入力してください" fieldType="input" type="text" placeholder="例：システムメンテナンスのお知らせ" />
+        <CustomFormField
+          control={typedControl}
+          name="title"
+          label="通知タイトル"
+          description="通知のタイトルを入力してください"
+          fieldType="input"
+          type="text"
+          placeholder="例：システムメンテナンスのお知らせ"
+        />
 
-        <CustomFormField control={typedControl} name="message" label="通知内容" description="通知の本文を入力してください" fieldType="textarea" placeholder="例：2025年3月1日午前2時から5時までシステムメンテナンスを実施します。" />
+        <CustomFormField
+          control={typedControl}
+          name="message"
+          label="通知内容"
+          description="通知の本文を入力してください"
+          fieldType="textarea"
+          placeholder="例：2025年3月1日午前2時から5時までシステムメンテナンスを実施します。"
+        />
 
-        <CustomFormField control={typedControl} name="targetType" label="通知単位" description="通知の送信単位を選択してください" fieldType="radio" options={targetTypeOptions} />
+        <CustomFormField
+          control={typedControl}
+          name="targetType"
+          label="通知単位"
+          description="通知の送信単位を選択してください"
+          fieldType="radio"
+          options={targetTypeOptions}
+        />
 
-        <CustomFormField control={typedControl} name="sendTiming" label="送信タイミング" description="通知の送信タイミングを選択してください" fieldType="radio" options={sendTimingOptions} />
+        <CustomFormField
+          control={typedControl}
+          name="sendTiming"
+          label="送信タイミング"
+          description="通知の送信タイミングを選択してください"
+          fieldType="radio"
+          options={sendTimingOptions}
+        />
 
-        {sendTiming === "SCHEDULED" && <CustomFormField control={typedControl} name="sendScheduledDate" label="送信予定日" description="通知を送信する日付を選択してください" fieldType="date" placeholder="日付を選択" disablePastDates={true} />}
+        {sendTiming === "SCHEDULED" && (
+          <CustomFormField
+            control={typedControl}
+            name="sendScheduledDate"
+            label="送信予定日"
+            description="通知を送信する日付を選択してください"
+            fieldType="date"
+            placeholder="日付を選択"
+            disablePastDates={true}
+          />
+        )}
 
         {targetType === "USER" && (
           <CustomFormField
@@ -109,15 +167,44 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({ isA
           />
         )}
 
-        <CustomFormField control={typedControl} name="actionUrl" label="アクションURL（オプション）" description="通知をクリックした時に遷移するURLを入力してください" fieldType="input" type="url" placeholder="例：https://example.com/page" />
+        <CustomFormField
+          control={typedControl}
+          name="actionUrl"
+          label="アクションURL（オプション）"
+          description="通知をクリックした時に遷移するURLを入力してください"
+          fieldType="input"
+          type="url"
+          placeholder="例：https://example.com/page"
+        />
 
-        <CustomFormField control={typedControl} name="expiresAt" label="有効期限（オプション）" description="通知の有効期限を設定します" fieldType="date" placeholder="日付を選択" />
+        <CustomFormField
+          control={typedControl}
+          name="expiresAt"
+          label="有効期限（オプション）"
+          description="通知の有効期限を設定します"
+          fieldType="date"
+          placeholder="日付を選択"
+        />
 
-        <CustomFormField control={typedControl} name="sendPushNotification" label="プッシュ通知も送信" description="アプリ内通知と一緒にプッシュ通知も送信します" fieldType="switch" />
+        <CustomFormField
+          control={typedControl}
+          name="sendPushNotification"
+          label="プッシュ通知も送信"
+          description="アプリ内通知と一緒にプッシュ通知も送信します"
+          fieldType="switch"
+        />
 
-        <CustomFormField control={typedControl} name="sendEmailNotification" label="メール通知も送信" description="アプリ内通知と一緒にメール通知も送信します" fieldType="switch" />
+        <CustomFormField
+          control={typedControl}
+          name="sendEmailNotification"
+          label="メール通知も送信"
+          description="アプリ内通知と一緒にメール通知も送信します"
+          fieldType="switch"
+        />
 
-        {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && <div className="text-muted-foreground text-sm">メール通知は後ほど開発予定です。</div>}
+        {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && (
+          <div className="text-muted-foreground text-sm">メール通知は後ほど開発予定です。</div>
+        )}
       </FormLayout>
     </div>
   );

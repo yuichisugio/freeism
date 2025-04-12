@@ -1421,7 +1421,15 @@ export async function bulkUpdateTaskStatuses(
     const isAppOwner = await checkAppOwner(userId);
 
     // 有効なステータスの配列
-    const validStatuses: TaskStatus[] = ["PENDING", "BIDDED", "POINTS_DEPOSITED", "TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"] as TaskStatus[];
+    const validStatuses: TaskStatus[] = [
+      "PENDING",
+      "BIDDED",
+      "POINTS_DEPOSITED",
+      "TASK_COMPLETED",
+      "FIXED_EVALUATED",
+      "POINTS_AWARDED",
+      "ARCHIVED",
+    ] as TaskStatus[];
 
     const results = [];
     const failedResults = [];

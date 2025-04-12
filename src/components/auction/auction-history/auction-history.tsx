@@ -42,7 +42,21 @@ type HistoryCardProps = {
  * @param {HistoryCardProps} props - 履歴カードのプロパティ
  * @returns {React.ReactNode} 履歴カードのReactノード
  */
-const HistoryCard = memo(function HistoryCard({ id, title, timestampIcon, timestampText, amount, amountLabel, avatarSrc, avatarName, deliveryMethod, leftBadge, rightBadge, onClick, extraContent }: HistoryCardProps) {
+const HistoryCard = memo(function HistoryCard({
+  id,
+  title,
+  timestampIcon,
+  timestampText,
+  amount,
+  amountLabel,
+  avatarSrc,
+  avatarName,
+  deliveryMethod,
+  leftBadge,
+  rightBadge,
+  onClick,
+  extraContent,
+}: HistoryCardProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
@@ -242,7 +256,9 @@ export const AuctionHistory = memo(function AuctionHistory() {
         avatarName={auction.task.creator.name ?? "出品者"}
         deliveryMethod={auction.task.deliveryMethod}
         leftBadge={<TaskStatusBadge status={auction.task.status} />}
-        rightBadge={auction.reviews.length > 0 ? <Rating rating={auction.reviews[0].rating} size={16} /> : <span className="text-xs text-gray-500">未評価</span>}
+        rightBadge={
+          auction.reviews.length > 0 ? <Rating rating={auction.reviews[0].rating} size={16} /> : <span className="text-xs text-gray-500">未評価</span>
+        }
         onClick={handleWonItemClick}
       />
     ),

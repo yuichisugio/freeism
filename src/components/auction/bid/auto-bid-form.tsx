@@ -44,7 +44,11 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札のカスタムフック
-  const { autoBidSettings, loading, error, isAutoBidding, setupAutoBid, cancelAutoBidding } = useAutoBid(auctionId, currentHighestBid, currentHighestBidderId);
+  const { autoBidSettings, loading, error, isAutoBidding, setupAutoBid, cancelAutoBidding } = useAutoBid(
+    auctionId,
+    currentHighestBid,
+    currentHighestBidderId,
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -93,11 +97,19 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
               <p className="text-sm font-medium">入札単位:</p>
               <p className="font-medium">{formatCurrency(autoBidSettings.bidIncrement)}</p>
             </div>
-            <div className="text-muted-foreground mt-2 text-xs">他のユーザーが入札すると自動的に入札されます（{AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分間隔）</div>
+            <div className="text-muted-foreground mt-2 text-xs">
+              他のユーザーが入札すると自動的に入札されます（{AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分間隔）
+            </div>
           </div>
         </CardContent>
         <CardFooter className="bg-secondary/5 flex justify-center pt-2 pb-3">
-          <Button variant="outline" size="sm" className="text-secondary hover:bg-secondary/20 border-secondary/30" onClick={handleCancelAutoBid} disabled={loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-secondary hover:bg-secondary/20 border-secondary/30"
+            onClick={handleCancelAutoBid}
+            disabled={loading}
+          >
             自動入札を取り消す
           </Button>
         </CardFooter>
@@ -120,7 +132,12 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
         <CardDescription>あなたの代わりに自動的に入札します</CardDescription>
       </CardHeader>
 
-      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <form onSubmit={handleSetupAutoBid}>
           <CardContent className="pt-4">
             <div className="space-y-4">
@@ -133,12 +150,23 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
                         <HelpCircle className="text-muted-foreground h-4 w-4" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="w-60 text-xs">あなたが入札してもよいと考える最大金額を設定します。他のユーザーが入札した場合、この金額まで自動的に入札が行われます。</p>
+                        <p className="w-60 text-xs">
+                          あなたが入札してもよいと考える最大金額を設定します。他のユーザーが入札した場合、この金額まで自動的に入札が行われます。
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Input id="maxBidAmount" type="number" min={currentHighestBid + 1} step={1} value={maxBidAmount} onChange={(e) => setMaxBidAmount(Number(e.target.value))} required className="h-10" />
+                <Input
+                  id="maxBidAmount"
+                  type="number"
+                  min={currentHighestBid + 1}
+                  step={1}
+                  value={maxBidAmount}
+                  onChange={(e) => setMaxBidAmount(Number(e.target.value))}
+                  required
+                  className="h-10"
+                />
                 {maxBidAmount <= currentHighestBid && <p className="text-xs text-red-500">最大入札額は現在の最高入札額より大きい必要があります</p>}
               </div>
 
@@ -156,14 +184,26 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Input id="bidIncrement" type="number" min={1} step={1} value={bidIncrement} onChange={(e) => setBidIncrement(Number(e.target.value))} required className="h-10" />
+                <Input
+                  id="bidIncrement"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={bidIncrement}
+                  onChange={(e) => setBidIncrement(Number(e.target.value))}
+                  required
+                  className="h-10"
+                />
               </div>
 
               <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500" />
                   <div>
-                    <p>他のユーザーが入札すると、最大入札額まであなたの代わりに自動的に入札します。自動入札は{AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分間隔で実行されます。</p>
+                    <p>
+                      他のユーザーが入札すると、最大入札額まであなたの代わりに自動的に入札します。自動入札は
+                      {AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分間隔で実行されます。
+                    </p>
                   </div>
                 </div>
               </div>

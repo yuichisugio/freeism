@@ -24,7 +24,13 @@ export const CardCountdown = memo(function CardCountdown({ endTime, className, o
     <div
       className={cn(
         "flex items-center gap-1 font-medium whitespace-nowrap",
-        timeRemaining.isCritical ? "animate-pulse text-red-500" : timeRemaining.isUrgent ? "text-orange-500" : timeRemaining.isExpired ? "text-red-500" : "text-gray-700",
+        timeRemaining.isCritical
+          ? "animate-pulse text-red-500"
+          : timeRemaining.isUrgent
+            ? "text-orange-500"
+            : timeRemaining.isExpired
+              ? "text-red-500"
+              : "text-gray-700",
         className,
       )}
     >

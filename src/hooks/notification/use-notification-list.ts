@@ -394,7 +394,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
 
       // フィルター変更時、特に「未読のみ」「既読のみ」に切り替えた場合、
       // 表示される通知が少ない場合は追加で読み込む
-      const visibleNotifications = filter === "all" ? notifications : filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications.filter((n) => n.isRead);
+      const visibleNotifications =
+        filter === "all" ? notifications : filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications.filter((n) => n.isRead);
 
       if (visibleNotifications.length < 5 && hasMore && !isLoading && !isLoadingMore) {
         void loadMoreNotifications();

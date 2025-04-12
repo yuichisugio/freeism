@@ -2,7 +2,17 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +95,10 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックの使用
-  const { messages, newMessage, setNewMessage, isLoadingMessages, isSendingMessage, messagesEndRef, handleSendMessage } = useAuctionMessages(auction.id, auction.winner?.id);
+  const { messages, newMessage, setNewMessage, isLoadingMessages, isSendingMessage, messagesEndRef, handleSendMessage } = useAuctionMessages(
+    auction.id,
+    auction.winner?.id,
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -98,7 +111,8 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } = useDeliveryMethod(auction.task.id, auction.task.deliveryMethod ?? "");
+  const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } =
+    useDeliveryMethod(auction.task.id, auction.task.deliveryMethod ?? "");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -174,7 +188,12 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
 
                   {isEditingDelivery ? (
                     <div className="space-y-2">
-                      <Textarea placeholder="提供方法を入力（例：Amazonのほしい物リストで送付、直接お渡しなど）" value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} className="h-24" />
+                      <Textarea
+                        placeholder="提供方法を入力（例：Amazonのほしい物リストで送付、直接お渡しなど）"
+                        value={deliveryMethod}
+                        onChange={(e) => setDeliveryMethod(e.target.value)}
+                        className="h-24"
+                      />
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" size="sm" onClick={cancelEditing}>
                           キャンセル
@@ -275,7 +294,13 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
               <CardHeader>
                 <CardTitle className="text-lg">落札状況</CardTitle>
               </CardHeader>
-              <CardContent>{auction.status === "ENDED" ? <div className="py-4 text-center text-gray-500">落札者はいません</div> : <div className="py-4 text-center text-gray-500">オークションはまだ終了していません</div>}</CardContent>
+              <CardContent>
+                {auction.status === "ENDED" ? (
+                  <div className="py-4 text-center text-gray-500">落札者はいません</div>
+                ) : (
+                  <div className="py-4 text-center text-gray-500">オークションはまだ終了していません</div>
+                )}
+              </CardContent>
             </Card>
           )}
         </div>
@@ -323,7 +348,9 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                                 <AvatarFallback>{bid.user.name?.[0] ?? "入"}</AvatarFallback>
                               </Avatar>
                               <span>{bid.user.name ?? "入札者"}</span>
-                              {auction.winnerId === bid.user.id && <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">落札者</span>}
+                              {auction.winnerId === bid.user.id && (
+                                <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">落札者</span>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>{bid.amount.toLocaleString()} ポイント</TableCell>
@@ -362,7 +389,9 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                       ) : (
                         messages.map((msg) => (
                           <div key={msg.id} className={`flex ${msg.senderId === auction.task.creatorId ? "justify-end" : "justify-start"}`}>
-                            <div className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.senderId === auction.task.creatorId ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                            <div
+                              className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.senderId === auction.task.creatorId ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+                            >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-6 w-6">
                                   <AvatarImage src={msg.sender.image ?? ""} alt={msg.sender.name ?? "ユーザー"} />

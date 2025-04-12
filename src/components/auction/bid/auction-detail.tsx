@@ -170,7 +170,12 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
         {/* オークションが終了している場合は、終了した旨のメッセージを表示 */}
         {isAuctionEnded && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center"
+          >
             <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-amber-500" />
             <p className="font-medium text-amber-800">このオークションは終了しました</p>
           </motion.div>
@@ -178,7 +183,12 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
         {/* 自分の出品しているオークションの場合は、自分の出品したオークションですというメッセージを表示 */}
         {auction.sellerId === currentUserId && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-center"
+          >
             <User className="mx-auto mb-2 h-6 w-6 text-blue-500" />
             <p className="font-medium text-blue-800">自分の出品したオークションです</p>
           </motion.div>
@@ -207,7 +217,10 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             <ShoppingBag className="mt-1 h-5 w-5 text-green-500" />
             <div>
               <h3 className="mb-2 text-lg font-medium text-green-900">支払い方法</h3>
-              <p className="text-green-700">落札後、自動的にポイントが使用されます。 預けたポイントは、落札から{(auction.task.group as { depositPeriod?: number }).depositPeriod ?? 7}日後に返還されます。</p>
+              <p className="text-green-700">
+                落札後、自動的にポイントが使用されます。 預けたポイントは、落札から
+                {(auction.task.group as { depositPeriod?: number }).depositPeriod ?? 7}日後に返還されます。
+              </p>
             </div>
           </div>
         </div>
@@ -257,7 +270,13 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           {/* 左側: オークション画像 */}
           <div className="relative h-[250px] overflow-hidden rounded-lg">
-            <Image src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""} alt={auction.title ?? "オークション画像"} fill className="object-cover transition-transform duration-500 hover:scale-105" priority />
+            <Image
+              src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""}
+              alt={auction.title ?? "オークション画像"}
+              fill
+              className="object-cover transition-transform duration-500 hover:scale-105"
+              priority
+            />
           </div>
 
           {/* 右側: オークション情報ヘッダー部分 */}
@@ -299,19 +318,31 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         {/* タブ切り替え部分 */}
         <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="px-6 pb-6">
           <TabsList className="bg-muted/50 mb-6 grid w-full grid-cols-4 gap-1 rounded-lg p-1.5">
-            <TabsTrigger value="details" className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsTrigger
+              value="details"
+              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
               <Info className="h-4 w-4" />
               <span>詳細</span>
             </TabsTrigger>
-            <TabsTrigger value="bid-history" className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsTrigger
+              value="bid-history"
+              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
               <BarChart className="h-4 w-4" />
               <span>入札履歴</span>
             </TabsTrigger>
-            <TabsTrigger value="qa" className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsTrigger
+              value="qa"
+              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
               <MessageSquare className="h-4 w-4" />
               <span>質問と回答</span>
             </TabsTrigger>
-            <TabsTrigger value="shipping" className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsTrigger
+              value="shipping"
+              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
               <TruckIcon className="h-4 w-4" />
               <span>配送・支払い</span>
             </TabsTrigger>

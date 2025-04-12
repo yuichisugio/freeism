@@ -3,7 +3,17 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,7 +83,10 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザーがすでに評価を送信したかどうか
-  const hasReviewed = useMemo(() => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.winnerId), [auction.reviews, auction.winnerId]);
+  const hasReviewed = useMemo(
+    () => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.winnerId),
+    [auction.reviews, auction.winnerId],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -168,7 +181,11 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">ポイント返還日</p>
-                      <p className="font-medium">{format(new Date(new Date(auction.endTime).setMonth(new Date(auction.endTime).getMonth() + 2)), "yyyy年MM月dd日", { locale: ja })}</p>
+                      <p className="font-medium">
+                        {format(new Date(new Date(auction.endTime).setMonth(new Date(auction.endTime).getMonth() + 2)), "yyyy年MM月dd日", {
+                          locale: ja,
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -254,7 +271,12 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                   </div>
                   <div>
                     <div className="mb-1 text-sm text-gray-500">コメント (任意)</div>
-                    <Textarea placeholder="評価コメントを入力してください" value={comment} onChange={(e) => setComment(e.target.value)} className="h-24" />
+                    <Textarea
+                      placeholder="評価コメントを入力してください"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="h-24"
+                    />
                   </div>
                   <div className="text-right">
                     <Button onClick={handleReviewSubmit} disabled={isSubmitting || rating === 0}>
@@ -347,7 +369,11 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                     </div>
                     <div>
                       <p className="font-medium">ポイント返還予定日</p>
-                      <p className="text-sm text-gray-500">{format(new Date(new Date(auction.endTime).setMonth(new Date(auction.endTime).getMonth() + 2)), "yyyy年MM月dd日", { locale: ja })}</p>
+                      <p className="text-sm text-gray-500">
+                        {format(new Date(new Date(auction.endTime).setMonth(new Date(auction.endTime).getMonth() + 2)), "yyyy年MM月dd日", {
+                          locale: ja,
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>

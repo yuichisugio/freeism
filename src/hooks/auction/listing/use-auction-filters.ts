@@ -1,8 +1,7 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionSortOption, UseAuctionFiltersProps } from "@/lib/auction/type/types";
+import type { AuctionListingsConditions, AuctionSortField, SortDirection, UseAuctionFiltersProps } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { getUserGroups } from "@/lib/auction/action/user";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -11,15 +10,19 @@ import { getUserGroups } from "@/lib/auction/action/user";
  * オークションフィルター用カスタムフックの型定義
  */
 type UseAuctionFiltersReturn = {
-  category: string[];
-  priceRange: [number, number];
-  timeRange: [number, number];
-  groups: { id: string; name: string }[];
+  // state
+  listingsConditions: AuctionListingsConditions;
   showFilters: boolean;
   activeFilterCount: number;
   openGroupCombobox: boolean;
-  setCategory: (category: string[]) => void;
+  changingSearchQuery: string | null;
+
+  // action
+  setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
+  handleSearchQueryEnter: (searchQuery: string) => void;
+  setChangingSearchQuery: (searchQuery: string | null) => void;
   setOpenGroupCombobox: (open: boolean) => void;
+  handleCategorySelect: (category: string) => void;
   handlePriceRangeChange: (value: [number, number]) => void;
   handlePriceRangeApply: () => void;
   handleTimeRangeChange: (value: [number, number]) => void;
@@ -29,70 +32,55 @@ type UseAuctionFiltersReturn = {
   setTimePreset: (min: number, max: number) => void;
   resetPriceRange: () => void;
   resetTimeRange: () => void;
-  handleFilterChange: (newFilters: Partial<AuctionFilterParams>) => void;
-  handleSortChange: (newSort: AuctionSortOption) => void;
+  handleFilterChange: (newFilters: Partial<AuctionListingsConditions>) => void;
+  handleSortChange: (newSort: { field: AuctionSortField; direction: SortDirection }) => void;
   handleResetAllFilters: () => void;
-  updateUrlParams: () => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションフィルター用カスタムフック
- * @param props フィルターのprops
- * @param filters フィルターの状態
- * @param onFilterChangeAction フィルターの変更アクション
- * @param sortOption ソートオプション
- * @param onSortChangeAction ソートオプションの変更アクション
- * @param categories カテゴリリスト
- * @param onResetFilters フィルターのリセットアクション
+ * @param listingsConditions フィルターの状態
+ * @param setListingsConditions フィルターの変更アクション
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, onSortChangeAction, onResetFilters }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
+export function useAuctionFilters({ listingsConditions, setListingsConditionsAction }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 価格範囲フィルター
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
-
-  // 残り時間範囲フィルター (時間単位: 0-720時間 = 0-30日)
-  const [timeRange, setTimeRange] = useState<[number, number]>([0, 720]);
-
-  // グループリスト
-  const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
 
   // フィルターパネルの表示状態
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // グループコンボボックス状態
-  const [openGroupCombobox, setOpenGroupCombobox] = useState(false);
+  const [openGroupCombobox, setOpenGroupCombobox] = useState<boolean>(false);
 
   // アクティブなフィルターの数をカウント
-  const [activeFilterCount, setActiveFilterCount] = useState(0);
+  const [activeFilterCount, setActiveFilterCount] = useState<number>(0);
 
-  // 現在のページ
-  const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
-
-  // カテゴリ
-  const [category, setCategory] = useState<string[]>([searchParams.get("category") ?? "すべて"]);
+  // searchQuery
+  const [changingSearchQuery, setChangingSearchQuery] = useState<string | null>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲をリセット
   const resetPriceRange = useCallback(() => {
-    setPriceRange([0, 10000]);
-  }, []);
+    setListingsConditionsAction({
+      ...listingsConditions,
+      minBid: null,
+      maxBid: null,
+    });
+  }, [listingsConditions, setListingsConditionsAction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 残り時間範囲をリセット
   const resetTimeRange = useCallback(() => {
-    setTimeRange([0, 720]);
-  }, []);
+    setListingsConditionsAction({
+      ...listingsConditions,
+      minRemainingTime: null,
+      maxRemainingTime: null,
+    });
+  }, [listingsConditions, setListingsConditionsAction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -100,86 +88,74 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
   useEffect(() => {
     async function fetchGroups() {
       const userGroups = await getUserGroups();
-      const groupData = userGroups.map((membership) => ({
-        id: membership.group.id,
-        name: membership.group.name,
-      }));
-      setGroups(groupData);
+      const groupData = userGroups.map((membership) => membership.group.id);
+      setListingsConditionsAction({
+        ...listingsConditions,
+        groupIds: groupData,
+      });
     }
 
     void fetchGroups();
-  }, []);
+  }, [listingsConditions, setListingsConditionsAction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // アクティブなフィルターの数を計算
   useEffect(() => {
     let count = 0;
-    if (filters.category && filters.category !== "すべて") count++;
-    if (filters.status && filters.status !== "all") count++;
-    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) count++;
-    if (filters.remainingTime && filters.remainingTime !== "all") count++;
-    if (filters.groupId) count++;
-    if (filters.searchQuery) count++;
+    if (listingsConditions.categories && listingsConditions.categories !== "すべて") count++;
+    if (listingsConditions.status && listingsConditions.status[0] !== "all") count++;
+    if (listingsConditions.minBid !== null || listingsConditions.maxBid !== null) count++;
+    if (listingsConditions.minRemainingTime !== null || listingsConditions.maxRemainingTime !== null) count++;
+    if (listingsConditions.groupIds) count++;
+    if (listingsConditions.searchQuery) count++;
 
     setActiveFilterCount(count);
-  }, [filters]);
+  }, [listingsConditions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // カテゴリ選択時のハンドラ
+  const handleCategorySelect = useCallback(
+    (category: string) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        categories: category,
+      });
+    },
+    [listingsConditions, setListingsConditionsAction],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * URLパラメータを更新する関数
+   * 検索クエリ変更時に検索条件を更新
    */
-  const updateUrlParams = useCallback(() => {
-    // URLパラメータを作成
-    const params = new URLSearchParams();
-
-    // 必要なパラメータのみURLに含める（デフォルト値は含めない）
-    if (page > 1) params.set("page", String(page));
-    if (filters.category && filters.category !== "すべて") params.set("category", filters.category);
-    if (filters.status && filters.status !== "all") params.set("status", filters.status);
-    if (sortOption !== "newest") params.set("sort", sortOption);
-    if (filters.searchQuery) params.set("q", filters.searchQuery);
-    if (filters.minPrice !== undefined) params.set("minPrice", String(filters.minPrice));
-    if (filters.maxPrice !== undefined) params.set("maxPrice", String(filters.maxPrice));
-    if (filters.remainingTime && filters.remainingTime !== "all") params.set("remainingTime", filters.remainingTime);
-    if (filters.groupId) params.set("groupId", filters.groupId);
-
-    // URLパラメータを作成
-    const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
-
-    // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-    router.push(newUrl, { scroll: false });
-  }, [page, filters, sortOption, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 価格範囲変更時のハンドラー
-  const handlePriceRangeChange = useCallback((value: [number, number]) => {
-    setPriceRange(value);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 残り時間範囲変更時のハンドラー
-  const handleTimeRangeChange = useCallback((value: [number, number]) => {
-    setTimeRange(value);
-  }, []);
+  const handleSearchQueryEnter = useCallback(
+    (searchQuery: string) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        searchQuery: searchQuery,
+      });
+    },
+    [listingsConditions, setListingsConditionsAction],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * フィルター変更ハンドラ
    * @param newFilters 新しいフィルター
+   * @returns Promise<void>
    */
   const handleFilterChange = useCallback(
-    (newFilters: Partial<AuctionFilterParams>) => {
-      onFilterChangeAction(newFilters);
-      setPage(1); // フィルター変更時は1ページ目に戻す
-      // URL更新を確実に実行
-      setTimeout(() => updateUrlParams(), 0);
+    (newFilters: Partial<AuctionListingsConditions>) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        ...newFilters,
+      });
     },
-    [onFilterChangeAction, updateUrlParams],
+    [listingsConditions, setListingsConditionsAction],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -187,15 +163,44 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
   /**
    * ソート変更ハンドラ
    * @param newSort 新しいソートオプション
+   * @returns Promise<void>
    */
   const handleSortChange = useCallback(
-    (newSort: AuctionSortOption) => {
-      onSortChangeAction(newSort);
-      setPage(1); // ソート変更時は1ページ目に戻す
-      // URL更新を確実に実行
-      setTimeout(() => updateUrlParams(), 0);
+    (newSort: { field: AuctionSortField; direction: SortDirection }) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        sort: newSort,
+      });
     },
-    [onSortChangeAction, updateUrlParams],
+    [listingsConditions, setListingsConditionsAction],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 価格範囲変更時のハンドラー
+  const handlePriceRangeChange = useCallback(
+    (value: [number, number]) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        minBid: value[0],
+        maxBid: value[1],
+      });
+    },
+    [listingsConditions, setListingsConditionsAction],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 残り時間範囲変更時のハンドラー
+  const handleTimeRangeChange = useCallback(
+    (value: [number, number]) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        minRemainingTime: value[0],
+        maxRemainingTime: value[1],
+      });
+    },
+    [listingsConditions, setListingsConditionsAction],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -204,58 +209,54 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
    * 全フィルターリセットハンドラ
    */
   const handleResetAllFilters = useCallback(() => {
-    if (onResetFilters) {
-      onResetFilters();
-    }
-    resetPriceRange();
-    resetTimeRange();
-    setPage(1);
-    // URL更新を確実に実行
-    setTimeout(() => updateUrlParams(), 0);
-  }, [onResetFilters, resetPriceRange, resetTimeRange, updateUrlParams]);
+    setListingsConditionsAction({
+      categories: "すべて",
+      status: ["all"],
+      minBid: null,
+      maxBid: null,
+      minRemainingTime: null,
+      maxRemainingTime: null,
+      groupIds: null,
+      searchQuery: null,
+      sort: null,
+      page: 1,
+    });
+  }, [setListingsConditionsAction]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 残り時間範囲適用時のハンドラー
   const handleTimeRangeApply = useCallback(() => {
-    // timeRange[0]が0で、timeRange[1]が720(max)の場合は全期間=allとする
-    if (timeRange[0] === 0 && timeRange[1] === 720) {
-      handleFilterChange({ remainingTime: "all" });
-      return;
-    }
-
-    // 残り時間の上限値に応じて適切なフィルターを設定
-    let remainingTime: AuctionFilterParams["remainingTime"] = "all";
-
-    if (timeRange[1] <= 1) {
-      remainingTime = "1h";
-    } else if (timeRange[1] <= 24) {
-      remainingTime = "1d";
-    } else if (timeRange[1] <= 168) {
-      remainingTime = "1w";
-    } else {
-      remainingTime = "1m";
-    }
-
-    handleFilterChange({ remainingTime });
-  }, [handleFilterChange, timeRange]);
+    // 残り時間範囲を指定
+    handleFilterChange({
+      minRemainingTime: listingsConditions.minRemainingTime,
+      maxRemainingTime: listingsConditions.maxRemainingTime,
+    });
+  }, [handleFilterChange, listingsConditions.minRemainingTime, listingsConditions.maxRemainingTime]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 残り時間範囲のプリセット設定
-  const setTimePreset = useCallback((min: number, max: number) => {
-    setTimeRange([min, max]);
-  }, []);
+  const setTimePreset = useCallback(
+    (min: number, max: number) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        minRemainingTime: min,
+        maxRemainingTime: max,
+      });
+    },
+    [listingsConditions, setListingsConditionsAction],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲適用時のハンドラー
   const handlePriceRangeApply = useCallback(() => {
     handleFilterChange({
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
+      minBid: listingsConditions.minBid,
+      maxBid: listingsConditions.maxBid,
     });
-  }, [handleFilterChange, priceRange]);
+  }, [handleFilterChange, listingsConditions]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -267,22 +268,33 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 価格範囲のプリセット設定
-  const setPricePreset = useCallback((min: number, max: number) => {
-    setPriceRange([min, max]);
-  }, []);
+  const setPricePreset = useCallback(
+    (min: number, max: number) => {
+      setListingsConditionsAction({
+        ...listingsConditions,
+        minBid: min,
+        maxBid: max,
+      });
+    },
+    [listingsConditions, setListingsConditionsAction],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
-    category,
-    priceRange,
-    timeRange,
-    groups,
+    // state
+    listingsConditions,
     showFilters,
     activeFilterCount,
     openGroupCombobox,
-    setCategory,
+    changingSearchQuery,
+
+    // action
+    setListingsConditionsAction,
+    handleSearchQueryEnter,
+    setChangingSearchQuery,
     setOpenGroupCombobox,
+    handleCategorySelect,
     handlePriceRangeChange,
     handlePriceRangeApply,
     handleTimeRangeChange,
@@ -295,6 +307,5 @@ export function useAuctionFilters({ filters, onFilterChangeAction, sortOption, o
     handleFilterChange,
     handleSortChange,
     handleResetAllFilters,
-    updateUrlParams,
   };
 }

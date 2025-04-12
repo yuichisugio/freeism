@@ -11,7 +11,11 @@ import { prisma } from "@/lib/prisma";
  * @param column 更新するカラム
  * @returns 更新結果
  */
-export async function updateUserSettings(userId: string, isEnabled: boolean, column: "isEmailEnabled" | "isPushEnabled"): Promise<{ success: boolean; data?: { id: string; userId: string; [column]: boolean }; error?: string }> {
+export async function updateUserSettings(
+  userId: string,
+  isEnabled: boolean,
+  column: "isEmailEnabled" | "isPushEnabled",
+): Promise<{ success: boolean; data?: { id: string; userId: string; [column]: boolean }; error?: string }> {
   console.log(userId, isEnabled, column);
 
   try {

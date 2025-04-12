@@ -32,7 +32,8 @@
   - 通知データは `AuctionNotification` テーブルに保存する。
 - **その他**
   - 「通知から１ヶ月後に自動削除」トリガーの実装
-    - GitHub Actionsを使用して、リポジトリ内のコードを定期的に実行する方法で、通知を確認して、通知から1ヶ月経っている場合は、通知のデータをDBから削除する
+    - GitHub
+      Actionsを使用して、リポジトリ内のコードを定期的に実行する方法で、通知を確認して、通知から1ヶ月経っている場合は、通知のデータをDBから削除する
     - 定期的な実行処理は、1週間に一回で、日本時間の深夜1時ごろに行うようにする。
   - 通知の削除機能
   - ページネーション機能
@@ -97,9 +98,11 @@
 - **処理内容:**
   1. `AuctionNotification` テーブルを検索する。
   2. 各通知レコードについて、以下の条件で削除対象か判断する:
-     - `eventType` が `NEW_BID_ON_OWN_ITEM`, `OUTBID`, `QUESTION_RECEIVED` のいずれかで、関連する `Auction` の `status` が `ENDED` または `CANCELED` になっている場合 (オークション終了時に削除)。
+     - `eventType` が `NEW_BID_ON_OWN_ITEM`, `OUTBID`, `QUESTION_RECEIVED` のいずれかで、関連する `Auction` の `status` が `ENDED` または `CANCELED`
+       になっている場合 (オークション終了時に削除)。
      - `eventType` が上記以外で、`createdAt` から1ヶ月以上経過している場合 (通知送信から1ヶ月後に削除)。
-     - **(代替案)** `expiresAt` カラムを追加し、削除予定日時を保存。`expiresAt` が現在時刻を過ぎているレコードを削除する (`calculateExpiryDate` 関数の実装例参照)。
+     - **(代替案)** `expiresAt` カラムを追加し、削除予定日時を保存。`expiresAt` が現在時刻を過ぎているレコードを削除する (`calculateExpiryDate`
+       関数の実装例参照)。
   3. 削除対象のレコードを `DELETE` 文で削除する。
   4. 処理結果（削除件数など）をログに出力する。
 

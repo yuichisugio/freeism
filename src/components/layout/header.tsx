@@ -42,7 +42,10 @@ export const Header = memo(async function Header() {
 
           {/* 中央: ロゴ (固定幅で中央配置) */}
           <div className="flex flex-1 items-center justify-center">
-            <Link href="/" className="flex items-center gap-2 overscroll-none text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            <Link
+              href="/"
+              className="flex items-center gap-2 overscroll-none text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
               <AppLogoSvg />
               <span className="text-xl font-bold tracking-tight">Freeism-App</span>
             </Link>
@@ -58,7 +61,10 @@ export const Header = memo(async function Header() {
         <div className="hidden h-full items-center justify-between sm:flex">
           {/* 左: ロゴ */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center gap-3 overscroll-none text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            <Link
+              href="/"
+              className="flex items-center gap-3 overscroll-none text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
               <AppLogoSvg />
               <span className="text-2xl font-bold tracking-tight">Freeism-App</span>
             </Link>

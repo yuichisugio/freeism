@@ -1126,7 +1126,10 @@ async function prepareAutoBid(
         const timeSinceLastBid = Date.now() - lastBid.createdAt.getTime();
 
         if (timeSinceLastBid < MIN_BID_INTERVAL_MS) {
-          return { success: false, message: `前回の入札から${AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分経過していないため、自動入札できません` };
+          return {
+            success: false,
+            message: `前回の入札から${AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MINUTES}分経過していないため、自動入札できません`,
+          };
         }
       }
 

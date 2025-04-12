@@ -1,33 +1,23 @@
 "use client";
 
-import type { AuctionFilterParams, AuctionListingResult, AuctionSortOption } from "@/lib/auction/type/types";
+import type { AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useDebounce } from "@/hooks/auction/bid/use-debounce";
-import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getAuctionListings } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 type UseAuctionListingsReturn = {
-  pageSize: number;
-  auctions: AuctionListingResult["items"];
-  totalCount: number;
-  totalPages: number;
-  searchQuery: string;
-  filters: AuctionFilterParams;
-  sortOption: AuctionSortOption;
-  page: number;
-  userPoints: number;
-  isPending: boolean;
-  setSearchQuery: (query: string) => void;
-  handlePageChange: (newPage: number) => void;
-  handleFilterChange: (newFilters: Partial<AuctionFilterParams>) => void;
-  handleSortChange: (newSort: AuctionSortOption) => void;
-  handleResetFilters: () => void;
+  // state
+  auctions: AuctionListingResult;
+  listingsConditions: AuctionListingsConditions;
+  isLoading: boolean;
+
+  // action
   handleToggleWatchlist: (auctionId: string) => Promise<void>;
+  setListingsConditions: (newListingsConditions: AuctionListingsConditions) => void;
+  updateUrlParams: () => void;
 };
 
 /**
@@ -38,6 +28,11 @@ type UseAuctionListingsReturn = {
 export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // ルーター
+  const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // URLからパラメータを取得
   const searchParams = useSearchParams();
 
@@ -45,96 +40,115 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const currentPage = Number(searchParams.get("page") ?? "1");
 
   // カテゴリのURLパラメータ
-  const currentCategory = searchParams.get("category") ?? "すべて";
+  const currentCategories = (searchParams.get("category") ?? "すべて") as AuctionListingsConditions["categories"];
 
   // ステータスのURLパラメータ
-  const currentStatus = (searchParams.get("status") ?? "all") as AuctionFilterParams["status"];
+  const currentStatus = (searchParams.get("status") ?? "all") as unknown as AuctionListingsConditions["status"];
 
   // ソートのURLパラメータ
-  const currentSort = (searchParams.get("sort") ?? "newest") as AuctionSortOption;
+  const currentSort = (searchParams.get("sort") ?? "newest") as AuctionSortField;
+
+  // ソートの降順/昇順の方向のURLパラメータ
+  const currentSortDirection = (searchParams.get("sort_direction") ?? "asc") as SortDirection;
 
   // 検索クエリのURLパラメータ
-  const currentQuery = searchParams.get("q") ?? "";
+  const currentQuery = searchParams.get("q") ?? ("" as AuctionListingsConditions["searchQuery"]);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // 価格範囲フィルター
+  const minBid = Number(searchParams.get("min_bid")) ?? null;
+  const maxBid = Number(searchParams.get("max_bid")) ?? null;
 
-  // 表示件数
-  const [pageSize] = useState(AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
+  // 残り時間範囲フィルター (時間単位: 0-720時間 = 0-30日)
+  const minRemainingTime = Number(searchParams.get("min_remaining_time")) ?? null;
+  const maxRemainingTime = Number(searchParams.get("max_remaining_time")) ?? null;
+
+  // グループリスト。複数あるのでgetAllで取得?groupId=1&groupId=2&groupId=3
+  const groupIds = searchParams.getAll("group_id") ?? null;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークション情報
-  const [auctions, setAuctions] = useState<AuctionListingResult["items"]>([]);
-  // 合計件数
-  const [totalCount, setTotalCount] = useState(0);
-  // 合計ページ数
-  const [totalPages, setTotalPages] = useState(1);
-  // ユーザーポイント
-  const [userPoints, setUserPoints] = useState(0);
-  // 検索クエリ
-  const [searchQuery, setSearchQuery] = useState(currentQuery);
+  const [auctions, setAuctions] = useState<AuctionListingResult>([]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックから、デバンスした検索クエリを取得.特定のイベントが発生してから一定期間処理を待機し、その期間内に同じイベントが発生しなかった場合にのみ関数を実行する手法
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // フィルター状態
-  const [filters, setFilters] = useState<AuctionFilterParams>({
-    category: currentCategory,
+  // フィルター状態。
+  // 基本はuse-auction-filtersで使用するが、子コンポーネントに渡すために、ここで定義
+  const [listingsConditions, setListingsConditions] = useState<AuctionListingsConditions>({
+    categories: currentCategories,
     status: currentStatus,
+    minBid: minBid,
+    maxBid: maxBid,
+    minRemainingTime: minRemainingTime,
+    maxRemainingTime: maxRemainingTime,
+    groupIds: groupIds,
     searchQuery: currentQuery,
+    sort: {
+      field: currentSort,
+      direction: currentSortDirection,
+    },
+    page: currentPage,
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ソート状態
-  const [sortOption, setSortOption] = useState<AuctionSortOption>(currentSort);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ページネーション
-  const [page, setPage] = useState(currentPage);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリストの変更を追跡
   const [watchlistChanges, setWatchlistChanges] = useState<Set<string>>(new Set());
+  // ウォッチリストの変更を保存するタイムアウト
   const saveWatchlistTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // データ読み込み中の状態
-  const [isPending, setIsPending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フィルターカスタムフックから追加のロジックを取得
-  const {
-    handleFilterChange: filterChangeWithUrl,
-    handleSortChange: sortChangeWithUrl,
-    handleResetAllFilters,
-    updateUrlParams,
-  } = useAuctionFilters({
-    filters,
-    onFilterChangeAction: (newFilters) => {
-      setFilters((prev) => ({ ...prev, ...newFilters }));
-    },
-    sortOption,
-    onSortChangeAction: setSortOption,
-    onResetFilters: () => {
-      setFilters({
-        category: "すべて",
-        status: "all",
-        searchQuery: "",
-      });
-      setSearchQuery("");
-      setSortOption("newest");
-      setPage(1);
-    },
-  });
+  /**
+   * URLパラメータを更新する関数
+   * 必要なパラメータのみURLに含める（デフォルト値は含めない）
+   */
+  const updateUrlParams = useCallback(() => {
+    // URLパラメータを作成
+    const params = new URLSearchParams();
+
+    // ページ数
+    if (listingsConditions.page > 1) params.set("page", String(listingsConditions.page));
+
+    // カテゴリ
+    if (listingsConditions.categories && listingsConditions.categories !== "すべて") params.set("category", listingsConditions.categories);
+
+    // ステータス
+    if (listingsConditions.status && listingsConditions.status[0] !== "all") params.set("status", listingsConditions.status[0]);
+
+    // ソート
+    if (listingsConditions.sort?.field) params.set("sort", listingsConditions.sort?.field);
+
+    // 検索クエリ
+    if (listingsConditions.searchQuery) params.set("q", listingsConditions.searchQuery);
+
+    // 価格範囲
+    if (listingsConditions.minBid !== null) params.set("min_bid", String(listingsConditions.minBid));
+    if (listingsConditions.maxBid !== null) params.set("max_bid", String(listingsConditions.maxBid));
+
+    // 残り時間範囲
+    if (listingsConditions.minRemainingTime !== null) params.set("min_remaining_time", String(listingsConditions.minRemainingTime));
+    if (listingsConditions.maxRemainingTime !== null) params.set("max_remaining_time", String(listingsConditions.maxRemainingTime));
+
+    // グループID
+    if (listingsConditions.groupIds && listingsConditions.groupIds.length > 0) {
+      listingsConditions.groupIds.forEach((id) => params.append("group_id", id));
+    }
+
+    // ソート方向
+    if (listingsConditions.sort?.direction) params.set("sort_direction", listingsConditions.sort.direction);
+
+    // URLパラメータを作成
+    const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
+
+    // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
+    router.push(newUrl, { scroll: false });
+  }, [listingsConditions, router]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -147,25 +161,17 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       // ーーーーーーーーーーーーーーー
 
       // データ取得中の状態
-      setIsPending(true);
+      setIsLoading(true);
 
       // ーーーーーーーーーーーーーーー
 
       // オークション一覧データを取得
-      const result = await getAuctionListings({ page, pageSize, filters, sort: sortOption });
+      const result = await getAuctionListings({ listingsConditions });
 
       // ーーーーーーーーーーーーーーー
 
       // 結果の設定
-      setAuctions(result.items);
-      setTotalCount(result.totalCount);
-      setTotalPages(result.totalPages);
-      setUserPoints(result.userTotalPoints);
-
-      // ーーーーーーーーーーーーーーー
-
-      // 成功ログ
-      console.log("use-auction-listings_fetchListings_success", { totalCount: result.totalCount, totalPages: result.totalPages, itemsCount: result.items.length });
+      setAuctions(result);
 
       // ーーーーーーーーーーーーーーー
     } catch (error) {
@@ -175,23 +181,20 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       // ーーーーーーーーーーーーーーー
     } finally {
       // データ取得中の状態を解除
-      setIsPending(false);
+      setIsLoading(false);
     }
-  }, [page, pageSize, filters, sortOption]);
+  }, [listingsConditions]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 初期設定データの取得と初回データ読み込み
+   * マウント時に1回だけ実行
    */
   useEffect(() => {
-    // マウント時に1回だけ実行
     const initializeData = async () => {
-      setIsPending(true);
       await getAuctionListingsData();
-      setIsPending(false);
     };
-
     void initializeData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 依存配列を空にして初回レンダリング時のみ実行（無限ループ防止）
@@ -199,78 +202,11 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 検索クエリ変更時
-   * @param debouncedSearchQuery デバンスした検索クエリ
-   * @param filters.searchQuery フィルターの検索クエリ
-   * @param fetchDataAndUpdateUrl データ取得とURL更新
+   * フィルターの変更を追跡
    */
   useEffect(() => {
-    if (debouncedSearchQuery !== filters.searchQuery) {
-      filterChangeWithUrl({ searchQuery: debouncedSearchQuery });
-      void getAuctionListingsData();
-    }
-  }, [debouncedSearchQuery, filters.searchQuery, filterChangeWithUrl, getAuctionListingsData]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページ変更ハンドラ
-   * @param newPage 新しいページ
-   * @returns Promise<void>
-   */
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      setPage(newPage);
-      // URLパラメータを更新
-      updateUrlParams();
-      // ページ変更時にデータ取得
-      void getAuctionListingsData();
-    },
-    [getAuctionListingsData, updateUrlParams],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルター変更ハンドラ
-   * @param newFilters 新しいフィルター
-   * @returns Promise<void>
-   */
-  const handleFilterChange = useCallback(
-    (newFilters: Partial<AuctionFilterParams>) => {
-      // フィルターカスタムフックのハンドラを呼び出し、URL更新も行う
-      filterChangeWithUrl(newFilters);
-      void getAuctionListingsData();
-    },
-    [filterChangeWithUrl, getAuctionListingsData],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ソート変更ハンドラ
-   * @param newSort 新しいソートオプション
-   * @returns Promise<void>
-   */
-  const handleSortChange = useCallback(
-    (newSort: AuctionSortOption) => {
-      // ソートカスタムフックのハンドラを呼び出し、URL更新も行う
-      sortChangeWithUrl(newSort);
-      void getAuctionListingsData();
-    },
-    [sortChangeWithUrl, getAuctionListingsData],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルターリセットハンドラ
-   * @returns Promise<void>
-   */
-  const handleResetFilters = useCallback(() => {
-    handleResetAllFilters();
-    void getAuctionListingsData();
-  }, [handleResetAllFilters, getAuctionListingsData]);
+    void updateUrlParams();
+  }, [updateUrlParams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -357,21 +293,14 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
-    pageSize,
+    // state
     auctions,
-    totalCount,
-    totalPages,
-    searchQuery,
-    filters,
-    sortOption,
-    page,
-    userPoints,
-    isPending,
-    setSearchQuery,
-    handlePageChange,
-    handleFilterChange,
-    handleSortChange,
-    handleResetFilters,
+    listingsConditions,
+    isLoading,
+
+    // action
     handleToggleWatchlist,
+    setListingsConditions,
+    updateUrlParams,
   };
 }

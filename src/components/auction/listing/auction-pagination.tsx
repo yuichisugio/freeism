@@ -1,8 +1,10 @@
 "use client";
 
+import type { AuctionListingResult, AuctionListingsConditions } from "@/lib/auction/type/types";
 import { memo } from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/auction/listing/use-pagination";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,10 +12,9 @@ import { usePagination } from "@/hooks/auction/listing/use-pagination";
  * オークションページネーションのprops
  */
 type AuctionPaginationProps = {
-  currentPage: number;
-  totalPages: number;
-  onPageChangeAction: (page: number) => void;
-  showPageInfo?: boolean;
+  listingsConditions: AuctionListingsConditions;
+  setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
+  auctions: AuctionListingResult;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -22,10 +23,13 @@ type AuctionPaginationProps = {
  * オークションページネーションコンポーネント
  * @param currentPage 現在のページ
  * @param totalPages 総ページ数
- * @param onPageChangeAction ページ変更アクション
  * @param showPageInfo ページ情報表示有無
  */
-export const AuctionPagination = memo(function AuctionPagination({ currentPage, totalPages, onPageChangeAction, showPageInfo = false }: AuctionPaginationProps) {
+export const AuctionPagination = memo(function AuctionPagination({
+  listingsConditions,
+  setListingsConditionsAction,
+  auctions,
+}: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/auction/listing/auction-pagination.tsx_AuctionPagination_start");
@@ -33,7 +37,11 @@ export const AuctionPagination = memo(function AuctionPagination({ currentPage, 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからページネーションロジックを取得
-  const { pageNumbers, hasPreviousPage, hasNextPage } = usePagination({ currentPage, totalPages });
+  const { pageNumbers, hasPreviousPage, hasNextPage } = usePagination({
+    currentPage: listingsConditions.page,
+    totalPages: Math.ceil(auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE),
+    maxPageToShow: 5,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -41,12 +49,14 @@ export const AuctionPagination = memo(function AuctionPagination({ currentPage, 
     <div className="flex flex-col items-center gap-2">
       <Pagination>
         <PaginationContent>
+          {/* 前のページに進むかどうか */}
           {hasPreviousPage && (
             <PaginationItem>
-              <PaginationPrevious onClick={() => onPageChangeAction(currentPage - 1)} />
+              <PaginationPrevious onClick={() => setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page - 1 })} />
             </PaginationItem>
           )}
 
+          {/* ページネーションの表示 */}
           {pageNumbers.map((page, index) => {
             if (page === -1 || page === -2) {
               return (
@@ -58,26 +68,28 @@ export const AuctionPagination = memo(function AuctionPagination({ currentPage, 
 
             return (
               <PaginationItem key={page}>
-                <PaginationLink isActive={page === currentPage} onClick={() => onPageChangeAction(page)}>
+                <PaginationLink
+                  isActive={page === listingsConditions.page}
+                  onClick={() => setListingsConditionsAction({ ...listingsConditions, page })}
+                >
                   {page}
                 </PaginationLink>
               </PaginationItem>
             );
           })}
 
+          {/* 次のページに進むかどうか */}
           {hasNextPage && (
             <PaginationItem>
-              <PaginationNext onClick={() => onPageChangeAction(currentPage + 1)} />
+              <PaginationNext onClick={() => setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page + 1 })} />
             </PaginationItem>
           )}
         </PaginationContent>
       </Pagination>
 
-      {showPageInfo && (
-        <div className="text-muted-foreground text-sm">
-          {currentPage} / {totalPages} ページ
-        </div>
-      )}
+      <div className="text-muted-foreground text-sm">
+        {listingsConditions.page} / {auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE} ページ
+      </div>
     </div>
   );
 });

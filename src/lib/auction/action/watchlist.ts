@@ -1,9 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
-
-import { getCurrentUserId } from "./user";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -13,10 +11,7 @@ import { getCurrentUserId } from "./user";
  * @returns ウォッチリストの新しい状態
  */
 export async function toggleWatchlist(auctionId: string) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("ログインが必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 現在のウォッチリスト状態を確認
   const existingWatchlist = await prisma.taskWatchList.findUnique({
@@ -122,23 +117,7 @@ export async function serverIsAuctionWatched(auctionId: string, userId: string):
  */
 export async function toggleWatchlistAction(auctionId: string) {
   // 認証セッションを取得
-  const session = await getAuthSession();
-  if (!session?.user) {
-    return {
-      success: false,
-      message: "ログインが必要です",
-      isWatched: null,
-    };
-  }
-
-  const userId = session.user.id;
-  if (!userId) {
-    return {
-      success: false,
-      message: "ユーザーIDが取得できません",
-      isWatched: null,
-    };
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   try {
     // ウォッチリストの切り替え処理を実行
@@ -168,21 +147,7 @@ export async function toggleWatchlistAction(auctionId: string) {
  */
 export async function getWatchlistStatusAction(auctionId: string) {
   // 認証セッションを取得
-  const session = await getAuthSession();
-  if (!session?.user) {
-    return {
-      success: false,
-      isWatched: false,
-    };
-  }
-
-  const userId = session.user.id;
-  if (!userId) {
-    return {
-      success: false,
-      isWatched: false,
-    };
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   try {
     // ウォッチリストの状態を確認

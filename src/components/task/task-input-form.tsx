@@ -103,7 +103,15 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
         ]}
       />
 
-      <CustomFormField fieldType="input" type="text" control={typedControl} name="task" label="タスクのタイトル" description="タスクのタイトルを入力してください" placeholder="タスクのタイトルを入力してください" />
+      <CustomFormField
+        fieldType="input"
+        type="text"
+        control={typedControl}
+        name="task"
+        label="タスクのタイトル"
+        description="タスクのタイトルを入力してください"
+        placeholder="タスクのタイトルを入力してください"
+      />
 
       {/* カテゴリ選択を追加 */}
       <CustomFormField
@@ -118,7 +126,14 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
         setOpen={setCategoryOpen}
       />
 
-      <CustomFormField fieldType="textarea" control={typedControl} name="detail" label="タスクの詳細" description="具体的な行動内容を記載してください" placeholder="タスクの内容を入力してください" />
+      <CustomFormField
+        fieldType="textarea"
+        control={typedControl}
+        name="detail"
+        label="タスクの詳細"
+        description="具体的な行動内容を記載してください"
+        placeholder="タスクの内容を入力してください"
+      />
 
       {/* 報酬になる貢献の場合のみ画像アップロードを表示 */}
       {isRewardType && (
@@ -168,7 +183,14 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
         </div>
       )}
 
-      <CustomFormField fieldType="textarea" control={typedControl} name="reference" label="参考にした内容" description="タスクを実行する際に参考にした情報があれば記載してください" placeholder="参考にした内容を入力してください" />
+      <CustomFormField
+        fieldType="textarea"
+        control={typedControl}
+        name="reference"
+        label="参考にした内容"
+        description="タスクを実行する際に参考にした情報があれば記載してください"
+        placeholder="参考にした内容を入力してください"
+      />
 
       <CustomFormField
         fieldType="textarea"
@@ -200,7 +222,13 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
 
         {/* 未登録ユーザー入力 */}
         <div className="flex gap-2">
-          <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredExecutor} onChange={(e) => setNonRegisteredExecutor(e.target.value)} />
+          <input
+            type="text"
+            className="flex-1 rounded-md border p-2"
+            placeholder="未登録ユーザー名を入力..."
+            value={nonRegisteredExecutor}
+            onChange={(e) => setNonRegisteredExecutor(e.target.value)}
+          />
           <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addExecutor(undefined, nonRegisteredExecutor)}>
             追加
           </button>
@@ -247,7 +275,13 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
 
         {/* 未登録ユーザー入力 */}
         <div className="flex gap-2">
-          <input type="text" className="flex-1 rounded-md border p-2" placeholder="未登録ユーザー名を入力..." value={nonRegisteredReporter} onChange={(e) => setNonRegisteredReporter(e.target.value)} />
+          <input
+            type="text"
+            className="flex-1 rounded-md border p-2"
+            placeholder="未登録ユーザー名を入力..."
+            value={nonRegisteredReporter}
+            onChange={(e) => setNonRegisteredReporter(e.target.value)}
+          />
           <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addReporter(undefined, nonRegisteredReporter)}>
             追加
           </button>

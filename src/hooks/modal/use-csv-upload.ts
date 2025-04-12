@@ -206,7 +206,8 @@ export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   TASK_STATUS: {
     title: "タスクステータス",
     description: "タスクのステータスを一括で更新します。",
-    requiredFields: "taskId（タスクID）, status（ステータス→ PENDING・ BIDDED・ POINTS_DEPOSITED・ TASK_COMPLETED・ FIXED_EVALUATED・ POINTS_AWARDED・ ARCHIVED）",
+    requiredFields:
+      "taskId（タスクID）, status（ステータス→ PENDING・ BIDDED・ POINTS_DEPOSITED・ TASK_COMPLETED・ FIXED_EVALUATED・ POINTS_AWARDED・ ARCHIVED）",
     note: "statusに指定できる値は限定されています。大文字小文字を正確に入力してください。",
     example: "clrqz3kp20000n4og9xq9d6mt,TASK_COMPLETED",
   },
@@ -645,7 +646,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             // 必須カラムのチェック（型安全な方法で）
             const missingColumnsList = requiredColumns.filter((column) => {
               // rowがオブジェクトでcolumnが文字列キーとして存在するかを確認
-              return typeof row === "object" && row !== null ? (column in row ? row[column] === undefined || row[column] === null || row[column] === "" : true) : true;
+              return typeof row === "object" && row !== null
+                ? column in row
+                  ? row[column] === undefined || row[column] === null || row[column] === ""
+                  : true
+                : true;
             });
 
             if (missingColumnsList.length > 0) {
@@ -788,7 +793,19 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
     } finally {
       setIsUploading(false);
     }
-  }, [currentFiles, uploadType, hasPermissionForUploadType, getRequiredColumns, groupId, onCancel, router, convertToTaskReportData, convertToContributionEvaluationData, convertToFixedContributionData, convertToTaskStatusData]);
+  }, [
+    currentFiles,
+    uploadType,
+    hasPermissionForUploadType,
+    getRequiredColumns,
+    groupId,
+    onCancel,
+    router,
+    convertToTaskReportData,
+    convertToContributionEvaluationData,
+    convertToFixedContributionData,
+    convertToTaskStatusData,
+  ]);
 
   // ---------------------------------------------------------------------------
 
@@ -849,7 +866,8 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
                   "th",
                   {
                     key: `req-${index}`,
-                    className: "border-r border-gray-200 bg-green-50 px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-700 uppercase last:border-r-0",
+                    className:
+                      "border-r border-gray-200 bg-green-50 px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-700 uppercase last:border-r-0",
                   },
                   field.key,
                   React.createElement("span", { className: "font-normal text-green-600" }, " *"),
@@ -860,7 +878,8 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
                   "th",
                   {
                     key: `opt-${index}`,
-                    className: "border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase last:border-r-0",
+                    className:
+                      "border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase last:border-r-0",
                   },
                   field.key,
                 ),
@@ -936,13 +955,30 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
       ),
 
       // 注意事項
-      info.note && React.createElement("div", { className: "mt-2 text-sm" }, React.createElement("p", { className: "text-gray-700" }, React.createElement("span", { className: "font-medium text-red-600" }, "注意:"), " ", info.note)),
+      info.note &&
+        React.createElement(
+          "div",
+          { className: "mt-2 text-sm" },
+          React.createElement(
+            "p",
+            { className: "text-gray-700" },
+            React.createElement("span", { className: "font-medium text-red-600" }, "注意:"),
+            " ",
+            info.note,
+          ),
+        ),
 
       // 記入例
       React.createElement(
         "div",
         { className: "mt-2 text-sm" },
-        React.createElement("p", { className: "text-gray-700" }, React.createElement("span", { className: "font-medium" }, "記入例:"), " ", React.createElement("span", { className: "italic" }, info.example)),
+        React.createElement(
+          "p",
+          { className: "text-gray-700" },
+          React.createElement("span", { className: "font-medium" }, "記入例:"),
+          " ",
+          React.createElement("span", { className: "italic" }, info.example),
+        ),
       ),
     );
   }, [uploadType]) as () => React.ReactNode;

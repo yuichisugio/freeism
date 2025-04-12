@@ -427,7 +427,15 @@ async function createGroupMemberships(groups: SeedGroup[], users: SeedUser[], mi
 const TASK_CATEGORIES = ["食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"];
 
 // 提供方法のリスト（タスクに既に設定されていない場合のデフォルト）
-const DELIVERY_METHODS = ["Amazonのほしい物リスト", "GitHubスポンサー", "直接発送（着払い）", "オンラインコード送信", "オンラインミーティング", "チャットでの情報提供", "メールでのデータ送信"];
+const DELIVERY_METHODS = [
+  "Amazonのほしい物リスト",
+  "GitHubスポンサー",
+  "直接発送（着払い）",
+  "オンラインコード送信",
+  "オンラインミーティング",
+  "チャットでの情報提供",
+  "メールでのデータ送信",
+];
 
 // カテゴリ別の提供方法マッピング
 const CATEGORY_DELIVERY_METHODS: Record<string, string[]> = {
@@ -731,7 +739,12 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
           }
 
           groupId = randomGroup.id;
-          title = faker.helpers.arrayElement([`「${randomGroup.name}」の新着情報`, `「${randomGroup.name}」からのお知らせ`, `「${randomGroup.name}」メンバー募集`, `「${randomGroup.name}」活動報告`]);
+          title = faker.helpers.arrayElement([
+            `「${randomGroup.name}」の新着情報`,
+            `「${randomGroup.name}」からのお知らせ`,
+            `「${randomGroup.name}」メンバー募集`,
+            `「${randomGroup.name}」活動報告`,
+          ]);
           message = faker.lorem.paragraph();
           actionUrl = `/dashboard/group/${randomGroup.id}`;
           break;
@@ -749,7 +762,12 @@ async function createNotifications(users: SeedUser[], groups: SeedGroup[], tasks
 
           taskId = randomTask.id;
           groupId = randomTask.groupId;
-          title = faker.helpers.arrayElement([`タスク「${randomTask.task.substring(0, 20)}...」の更新`, `タスク期限のお知らせ`, `タスク評価の完了`, `タスク状態の変化`]);
+          title = faker.helpers.arrayElement([
+            `タスク「${randomTask.task.substring(0, 20)}...」の更新`,
+            `タスク期限のお知らせ`,
+            `タスク評価の完了`,
+            `タスク状態の変化`,
+          ]);
           message = faker.lorem.paragraph();
           actionUrl = `/dashboard/tasks/${randomTask.id}`;
           break;
@@ -1176,7 +1194,17 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
       const notificationCount = faker.number.int({ min: 1, max: 3 }); // 最低1件は通知を生成
 
       // 通知タイプのリスト (schema.prismaのAuctionEventTypeに合わせる)
-      let notificationTypes: ("OUTBID" | "ENDED" | "QUESTION_RECEIVED" | "AUCTION_WIN" | "AUCTION_LOST" | "POINT_RETURNED" | "ITEM_SOLD" | "NO_WINNER" | "AUTO_BID_LIMIT_REACHED")[] = ["OUTBID", "ENDED", "QUESTION_RECEIVED"];
+      let notificationTypes: (
+        | "OUTBID"
+        | "ENDED"
+        | "QUESTION_RECEIVED"
+        | "AUCTION_WIN"
+        | "AUCTION_LOST"
+        | "POINT_RETURNED"
+        | "ITEM_SOLD"
+        | "NO_WINNER"
+        | "AUTO_BID_LIMIT_REACHED"
+      )[] = ["OUTBID", "ENDED", "QUESTION_RECEIVED"];
 
       // 落札者の場合
       if (auction.winnerId === user.id) {
@@ -1216,7 +1244,9 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
         // 送信方法をランダムに選択（1〜3種類）
         const sendMethodsCount = faker.number.int({ min: 1, max: 3 });
         const allSendMethods = ["WEB_PUSH", "APP_PUSH", "EMAIL", "IN_APP", "SMS"] as const;
-        const sendMethods = faker.helpers.arrayElements(allSendMethods, sendMethodsCount) as unknown as Array<"WEB_PUSH" | "APP_PUSH" | "EMAIL" | "IN_APP" | "SMS">;
+        const sendMethods = faker.helpers.arrayElements(allSendMethods, sendMethodsCount) as unknown as Array<
+          "WEB_PUSH" | "APP_PUSH" | "EMAIL" | "IN_APP" | "SMS"
+        >;
 
         // 既読状態をランダムに決定
         const isReadJson = {} as Record<string, { isRead: boolean; readAt: string | null }>;
@@ -1295,7 +1325,12 @@ function generateNotificationTitle(type: string): string {
 }
 
 // 通知メッセージの生成ヘルパー関数
-function generateNotificationMessage(type: string, auction: SeedAuction, task?: { task?: string; deliveryMethod?: string | null; groupId?: string } | null, pointReturnDate?: Date | null): string {
+function generateNotificationMessage(
+  type: string,
+  auction: SeedAuction,
+  task?: { task?: string; deliveryMethod?: string | null; groupId?: string } | null,
+  pointReturnDate?: Date | null,
+): string {
   const taskTitle = task?.task ? task.task.substring(0, 30) + (task.task.length > 30 ? "..." : "") : "商品";
   const deliveryMethod = task?.deliveryMethod ?? "未定";
   const bidAmount = auction.currentHighestBid.toLocaleString();
@@ -1303,7 +1338,11 @@ function generateNotificationMessage(type: string, auction: SeedAuction, task?: 
   switch (type) {
     case "ITEM_SOLD":
       if (pointReturnDate) {
-        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
         return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。\n預けたポイントは${formattedDate}に返還される予定です。`;
       }
       return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。`;
@@ -1319,7 +1358,11 @@ function generateNotificationMessage(type: string, auction: SeedAuction, task?: 
       return `「${taskTitle}」のオークションで自動入札上限に達しました。`;
     case "AUCTION_WIN":
       if (pointReturnDate) {
-        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
         return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。\n預けたポイントは${formattedDate}に返還される予定です。`;
       }
       return `おめでとうございます！「${taskTitle}」を${bidAmount}ポイントで落札しました。提供方法は「${deliveryMethod}」です。`;
@@ -1327,7 +1370,11 @@ function generateNotificationMessage(type: string, auction: SeedAuction, task?: 
       return `残念ながら「${taskTitle}」のオークションで落札できませんでした。入札したポイントは返還されました。`;
     case "POINT_RETURNED":
       if (pointReturnDate) {
-        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+        const formattedDate = pointReturnDate.toLocaleDateString("ja-JP", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
         return `「${taskTitle}」のオークションで預けた${bidAmount}ポイントは${formattedDate}に返還される予定です。`;
       }
       return `「${taskTitle}」のオークションで使用したポイントが返還されました。`;

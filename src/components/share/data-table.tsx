@@ -2,7 +2,17 @@
 
 import type { Task } from "@/types/group";
 import { memo, useEffect } from "react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -99,7 +109,13 @@ export type DataTableProps<T extends BaseRecord> = {
     actionLabel: string;
   };
   // 任意の型情報を保持するためのプロパティ
-  renderEditModal?: (props: { editingTask: T | null; modalOpen: boolean; setModalOpen: (open: boolean) => void; onTaskUpdated: () => void; users?: { id: string; name: string }[] }) => React.ReactNode;
+  renderEditModal?: (props: {
+    editingTask: T | null;
+    modalOpen: boolean;
+    setModalOpen: (open: boolean) => void;
+    onTaskUpdated: () => void;
+    users?: { id: string; name: string }[];
+  }) => React.ReactNode;
 };
 
 // 編集可能なレコードのインターフェース
@@ -163,14 +179,29 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
 
   return (
     <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
-      <div className={cn("relative w-full table-auto overflow-x-auto overflow-y-auto", maxHeight ? maxHeight.replace(/^h-/, "max-h-") : pagination ? "max-h-[calc(100vh-16rem)]" : "")}>
+      <div
+        className={cn(
+          "relative w-full table-auto overflow-x-auto overflow-y-auto",
+          maxHeight ? maxHeight.replace(/^h-/, "max-h-") : pagination ? "max-h-[calc(100vh-16rem)]" : "",
+        )}
+      >
         <table>
           <thead className={cn(headerClassName, "bg-white")}>
             <tr>
               {columns.map((column, index) => (
-                <th key={index} className={cn("w-full px-5 py-3 text-left text-sm font-medium", headerClassName, stickyHeader && "sticky top-0 z-20 border-b border-blue-100 shadow-md")}>
+                <th
+                  key={index}
+                  className={cn(
+                    "w-full px-5 py-3 text-left text-sm font-medium",
+                    headerClassName,
+                    stickyHeader && "sticky top-0 z-20 border-b border-blue-100 shadow-md",
+                  )}
+                >
                   {column.sortable ? (
-                    <button onClick={() => handleSort(column.key)} className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600">
+                    <button
+                      onClick={() => handleSort(column.key)}
+                      className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
+                    >
                       {column.header}
                       <ArrowUpDown className="ml-1 h-4 w-4" />
                     </button>
@@ -239,7 +270,13 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                             const canEdit = editTask.canEdit(row);
 
                             return (
-                              <Button variant="outline" size="sm" onClick={() => handleEditTask(row)} disabled={!canEdit} className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditTask(row)}
+                                disabled={!canEdit}
+                                className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}
+                              >
                                 <Edit className="h-4 w-4" />
                                 編集
                               </Button>
@@ -254,7 +291,15 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                               return (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" disabled={!canDelete} className={cn("flex items-center gap-1 text-red-500 hover:bg-red-50", !canDelete && "cursor-not-allowed opacity-50")}>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={!canDelete}
+                                      className={cn(
+                                        "flex items-center gap-1 text-red-500 hover:bg-red-50",
+                                        !canDelete && "cursor-not-allowed opacity-50",
+                                      )}
+                                    >
                                       <Trash2 className="h-4 w-4" />
                                       削除
                                     </Button>
@@ -295,7 +340,11 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                                 const members = row.members;
                                 const hasMembers = members !== undefined && Array.isArray(members) && members.length > 0;
                                 // 参加モーダルなら、参加中の場合は [0] を、未参加の場合は [1] を表示
-                                const buttonText = isJoinModal ? (hasMembers ? modal.triggerContent[0] : modal.triggerContent[1]) : modal.triggerContent[0];
+                                const buttonText = isJoinModal
+                                  ? hasMembers
+                                    ? modal.triggerContent[0]
+                                    : modal.triggerContent[1]
+                                  : modal.triggerContent[0];
                                 // 参加モーダーの場合、参加中の場合はボタンを無効化する
                                 const isDisabled = isJoinModal && hasMembers;
                                 const rowId = row.id;
@@ -364,7 +413,15 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
         })}
 
       {/* デフォルトの編集モーダル（renderEditModalが提供されていない場合） */}
-      {!renderEditModal && editingTask && editTask?.users && <TaskEditModal open={editModalOpen} onOpenChangeAction={setEditModalOpen} task={editingTask as unknown as Task} users={editTask.users} onTaskUpdated={handleTaskUpdated} />}
+      {!renderEditModal && editingTask && editTask?.users && (
+        <TaskEditModal
+          open={editModalOpen}
+          onOpenChangeAction={setEditModalOpen}
+          task={editingTask as unknown as Task}
+          users={editTask.users}
+          onTaskUpdated={handleTaskUpdated}
+        />
+      )}
     </div>
   );
 });

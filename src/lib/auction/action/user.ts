@@ -1,20 +1,7 @@
 "use server";
 
-import { cache } from "react";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ユーザーIDを取得
- * @returns 現在のユーザーID
- */
-export async function getCurrentUserId() {
-  // next-authの最新バージョンに合わせて修正
-  const session = await getAuthSession();
-  return session?.user?.id;
-}
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -22,15 +9,14 @@ export async function getCurrentUserId() {
  * ユーザーの参加グループを取得
  * @returns ユーザーの参加グループ
  */
-export const getUserGroups = cache(async () => {
-  const userId = await getCurrentUserId();
-  if (!userId) return [];
+export async function getUserGroups() {
+  const userId = await getAuthenticatedSessionUserId();
 
   return prisma.groupMembership.findMany({
     where: { userId },
     include: { group: true },
   });
-});
+}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -38,8 +24,8 @@ export const getUserGroups = cache(async () => {
  * ユーザーのポイント総額を取得
  * @returns ユーザーのポイント総額
  */
-export const getUserTotalPoints = cache(async () => {
-  const userId = await getCurrentUserId();
+export async function getUserTotalPoints() {
+  const userId = await getAuthenticatedSessionUserId();
   if (!userId) return 0;
 
   const points = await prisma.groupPoint.findMany({
@@ -48,7 +34,7 @@ export const getUserTotalPoints = cache(async () => {
   });
 
   return points.reduce((total, point) => total + point.balance, 0);
-});
+}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

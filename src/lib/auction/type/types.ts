@@ -1,4 +1,5 @@
-import { type AuctionReview, type AuctionStatus, type BidStatus, type Task, type TaskStatus } from "@prisma/client";
+import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import type { AuctionReview, AuctionStatus, BidStatus, Task, TaskStatus } from "@prisma/client";
 
 // 入札履歴の基本型
 export type BidHistory = {
@@ -147,12 +148,8 @@ export type SellerRating = {
 
 // フィルターのprops
 export type UseAuctionFiltersProps = {
-  filters: AuctionFilterParams;
-  onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
-  sortOption: AuctionSortOption;
-  onSortChangeAction: (sort: AuctionSortOption) => void;
-  categories?: string[];
-  onResetFilters?: () => void;
+  listingsConditions: AuctionListingsConditions;
+  setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
 };
 
 // カウントダウンの状態
@@ -171,36 +168,51 @@ export type UseCountdownProps = {
   onExpire?: () => void;
 };
 
-// フィルタリングパラメータの型定義
-export type AuctionFilterParams = {
-  category?: string;
-  status?: "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended";
-  minPrice?: number;
-  maxPrice?: number;
-  remainingTime?: "1h" | "1d" | "1w" | "1m" | "all";
-  groupId?: string;
-  searchQuery?: string;
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションの出品一覧をフィルター・ソートするためのパラメータの型定義
+ * @description オークションの出品一覧をフィルター・ソートするためのパラメータの型定義
+ */
+export type AuctionListingsConditions = {
+  categories: (typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null;
+  status: ("all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended")[] | null;
+  minBid: number | null;
+  maxBid: number | null;
+  minRemainingTime: number | null;
+  maxRemainingTime: number | null;
+  groupIds: string[] | null;
+  searchQuery: string | null;
+  sort: {
+    field: AuctionSortField;
+    direction: SortDirection;
+  } | null;
+  page: number;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// ソートField
+export type AuctionSortField = "newest" | "time_remaining" | "bids";
+
+// ソートDirection
+export type SortDirection = "asc" | "desc";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // フィルターのprops
 export type AuctionFiltersProps = {
-  filters: AuctionFilterParams;
-  onFilterChangeAction: (filters: Partial<AuctionFilterParams>) => void;
-  sortOption: AuctionSortOption;
-  onSortChangeAction: (sort: AuctionSortOption) => void;
-  categories?: string[];
-  onResetFilters?: () => void;
+  listingsConditions: AuctionListingsConditions;
+  setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
+  auctions: AuctionListingResult;
 };
-
-// ソートオプションの型定義
-export type AuctionSortOption = "newest" | "time_remaining" | "price_asc" | "price_desc" | "bids";
 
 // 出品商品一覧取得のパラメータ型
 export type GetAuctionListingsParams = {
   page?: number;
   pageSize?: number;
-  filters?: AuctionFilterParams;
-  sort?: AuctionSortOption;
+  filters?: AuctionListingsConditions;
+  sort?: AuctionSortField;
 };
 
 // 入札フォームデータ型
@@ -324,36 +336,30 @@ export type AuctionWithDetails = {
 };
 
 // オークションリスト結果型
-export type AuctionListingResult = {
-  items: Array<{
+export type AuctionListingResult = Array<{
+  id: string;
+  taskId: string;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  currentBid: number;
+  bidToBeatAmount: number;
+  endTime: Date;
+  startTime: Date;
+  status: AuctionStatus;
+  isWatched: boolean;
+  bidsCount: number;
+  seller: {
     id: string;
-    taskId: string;
-    title: string;
-    description: string | null; // nullを許容するように修正
-    imageUrl: string | null;
-    currentBid: number;
-    bidToBeatAmount: number;
-    endTime: Date;
-    startTime: Date;
-    status: AuctionStatus;
-    isWatched: boolean;
-    bidsCount: number;
-    seller: {
-      id: string;
-      name: string | null;
-      image: string | null;
-      rating: number | null;
-    };
-    group: {
-      id: string;
-      name: string;
-    };
-  }>;
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  userTotalPoints: number;
-};
+    name: string | null;
+    image: string | null;
+    rating: number | null;
+  };
+  group: {
+    id: string;
+    name: string;
+  };
+}>;
 
 // 接続状態の型
 export type ConnectionStatus = "初期化中" | "接続中" | "切断" | "エラー" | "タイムアウト";

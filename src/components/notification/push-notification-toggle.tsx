@@ -141,7 +141,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
           <Label htmlFor="notification-toggle">現在：{isEnabled ? "受信中" : "受信拒否中"}</Label>
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。</p>
-        <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。</p>
+        <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
+          アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。
+        </p>
         {error && <p className="mt-2 text-sm text-red-500">{error.message}</p>}
       </CardContent>
     </Card>

@@ -40,11 +40,14 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: Us
   const pageNumbers = useMemo(() => {
     const pages = [];
 
+    // paginationの表示するページ数が、総ページ数より少ない場合
     if (totalPages <= maxPageToShow) {
       // 全ページ数が少ない場合は全て表示
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
+
+      // 全ページ数が多い場合は、表示するページ数を総ページ数に合わせる
     } else {
       // 現在のページの前後を表示
       let startPage = Math.max(1, currentPage - Math.floor(maxPageToShow / 2));

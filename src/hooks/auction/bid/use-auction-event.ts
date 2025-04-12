@@ -42,7 +42,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   // イベントID
   const [lastEventId, setLastEventId] = useState<number>(0);
   // クライアントID
-  const [clientId, setClientId] = useState<string>(initialAuction?.options?.clientId ?? `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
+  const [clientId, setClientId] = useState<string>(
+    initialAuction?.options?.clientId ?? `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+  );
   // 最後に受信したSSEメッセージ（デバッグ用）
   const [lastReceivedMessage, setLastReceivedMessage] = useState<string | null>(null);
 

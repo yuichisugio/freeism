@@ -182,10 +182,40 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
         }
         className="max-h-[90vh]"
       >
-        <CustomFormField fieldType="input" control={typedControl} name="name" label="グループ名" placeholder="グループ名を入力してください" description="グループの名前を入力してください" type="text" />
-        <CustomFormField fieldType="textarea" control={typedControl} name="goal" label="最終目標" placeholder="グループの最終目標を入力してください" description="グループの最終目標を入力してください" />
-        <CustomFormField fieldType="textarea" control={typedControl} name="evaluationMethod" label="最終目標に貢献したか判断する方法" placeholder="目標達成の評価方法を入力してください" description="目標達成の評価方法を入力してください" />
-        <CustomFormField fieldType="input" control={typedControl} name="maxParticipants" label="参加上限人数" placeholder="参加上限人数を入力してください" description="参加上限人数を入力してください" type="number" />
+        <CustomFormField
+          fieldType="input"
+          control={typedControl}
+          name="name"
+          label="グループ名"
+          placeholder="グループ名を入力してください"
+          description="グループの名前を入力してください"
+          type="text"
+        />
+        <CustomFormField
+          fieldType="textarea"
+          control={typedControl}
+          name="goal"
+          label="最終目標"
+          placeholder="グループの最終目標を入力してください"
+          description="グループの最終目標を入力してください"
+        />
+        <CustomFormField
+          fieldType="textarea"
+          control={typedControl}
+          name="evaluationMethod"
+          label="最終目標に貢献したか判断する方法"
+          placeholder="目標達成の評価方法を入力してください"
+          description="目標達成の評価方法を入力してください"
+        />
+        <CustomFormField
+          fieldType="input"
+          control={typedControl}
+          name="maxParticipants"
+          label="参加上限人数"
+          placeholder="参加上限人数を入力してください"
+          description="参加上限人数を入力してください"
+          type="number"
+        />
         <CustomFormField
           fieldType="input"
           control={typedControl}

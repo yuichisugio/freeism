@@ -245,7 +245,13 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     console.log("executeAutoBidding_start");
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     if (!auctionId || !userId || !isAutoBidding || !autoBidSettings) {
-      console.log("executeAutoBidding_end_!auctionId, !userId, !isAutoBidding, !autoBidSettings", !auctionId, !userId, !isAutoBidding, !autoBidSettings);
+      console.log(
+        "executeAutoBidding_end_!auctionId, !userId, !isAutoBidding, !autoBidSettings",
+        !auctionId,
+        !userId,
+        !isAutoBidding,
+        !autoBidSettings,
+      );
       return;
     }
 
@@ -262,7 +268,10 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     // 前回の入札から10分経過していない場合は何もしない
     const TEN_MINUTES = AUCTION_CONSTANTS.AUTO_BID_MIN_INTERVAL_MS; // constansts.tsから自動入札の間隔を取得
     if (lastBidTimeRef.current && new Date().getTime() - lastBidTimeRef.current.getTime() < TEN_MINUTES) {
-      console.log("executeAutoBidding_end_10分経過していない", lastBidTimeRef.current && new Date().getTime() - lastBidTimeRef.current.getTime() < TEN_MINUTES);
+      console.log(
+        "executeAutoBidding_end_10分経過していない",
+        lastBidTimeRef.current && new Date().getTime() - lastBidTimeRef.current.getTime() < TEN_MINUTES,
+      );
       return;
     }
 

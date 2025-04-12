@@ -34,11 +34,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // URLからオークションIDを取得（パスパラメータと一致するか確認用）
   const queryAuctionId = url.searchParams.get("auctionId");
 
-  console.log(`route.ts_GET_SSE接続確立中: ${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId}, 最後のイベントID: ${lastEventId})`);
+  console.log(
+    `route.ts_GET_SSE接続確立中: ${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId}, 最後のイベントID: ${lastEventId})`,
+  );
 
   // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
   if (queryAuctionId && queryAuctionId !== auctionId) {
-    console.warn(`route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`);
+    console.warn(
+      `route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`,
+    );
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

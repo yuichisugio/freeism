@@ -32,7 +32,10 @@ type SignedUrlResponse = {
  * @param options アップロードオプション
  * @returns アップロード結果
  */
-export async function uploadFile(file: File, options?: { path?: string; filename?: string }): Promise<{ success: boolean; url?: string; error?: string }> {
+export async function uploadFile(
+  file: File,
+  options?: { path?: string; filename?: string },
+): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     if (!process.env.CLOUDFLARE_ENDPOINT || !process.env.CLOUDFLARE_ACCOUNT_ID || !process.env.CLOUDFLARE_API_TOKEN) {
       console.error("Cloudflare環境変数が設定されていません");

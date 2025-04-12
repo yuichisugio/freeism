@@ -191,7 +191,11 @@ export async function sendPushNotification(params: NotificationParams): Promise<
               console.error(`sendPushNotification_Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
             });
             // 送信自体は失敗としてマーク
-            return { success: false, endpoint: subscription.endpoint ?? "", error: `Subscription expired or invalid (status code: ${typedError.statusCode})` };
+            return {
+              success: false,
+              endpoint: subscription.endpoint ?? "",
+              error: `Subscription expired or invalid (status code: ${typedError.statusCode})`,
+            };
           } else {
             // その他のエラー (レート制限、認証エラーなど)
             return {
@@ -207,7 +211,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 結果の集計
-    const fulfilledResults = results.filter((result): result is PromiseFulfilledResult<{ success: boolean; endpoint: string; error?: string }> => result.status === "fulfilled");
+    const fulfilledResults = results.filter(
+      (result): result is PromiseFulfilledResult<{ success: boolean; endpoint: string; error?: string }> => result.status === "fulfilled",
+    );
     const successCount = fulfilledResults.filter((result) => result.value.success).length;
     const failedCount = fulfilledResults.length - successCount;
     const rejectedCount = results.filter((result) => result.status === "rejected").length;

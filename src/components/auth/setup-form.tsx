@@ -82,10 +82,29 @@ export const SetupForm = memo(function SetupForm({ initialData }: SetupFormProps
     <>
       <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">変更内容</h2>
       {/* FormLayoutは内部でFieldValues型を期待するため、型キャストを行う必要がある */}
-      <FormLayout form={form as unknown as UseFormReturn<FieldValues>} onSubmit={onSubmit as (data: FieldValues) => Promise<void>} submitLabel="設定を保存">
-        <CustomFormField fieldType="input" control={form.control} name="username" label="ユーザー名" placeholder="ユーザー名を入力" description="あなたの表示名として使用されます" type="text" />
+      <FormLayout
+        form={form as unknown as UseFormReturn<FieldValues>}
+        onSubmit={onSubmit as (data: FieldValues) => Promise<void>}
+        submitLabel="設定を保存"
+      >
+        <CustomFormField
+          fieldType="input"
+          control={form.control}
+          name="username"
+          label="ユーザー名"
+          placeholder="ユーザー名を入力"
+          description="あなたの表示名として使用されます"
+          type="text"
+        />
 
-        <CustomFormField fieldType="textarea" control={form.control} name="lifeGoal" label="自分の人生の目標" placeholder="自分の人生の目標を入力" description="自分が達成したい人生の目標を記入してください" />
+        <CustomFormField
+          fieldType="textarea"
+          control={form.control}
+          name="lifeGoal"
+          label="自分の人生の目標"
+          placeholder="自分の人生の目標を入力"
+          description="自分が達成したい人生の目標を記入してください"
+        />
       </FormLayout>
     </>
   );

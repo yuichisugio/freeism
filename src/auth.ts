@@ -49,7 +49,11 @@ function prepareAccountData(userId: string, account: AuthAccount): Prisma.Accoun
     token_type: account.token_type ?? null,
     scope: account.scope?.toString() ?? null,
     id_token: account.id_token?.toString() ?? null,
-    session_state: account.session_state ? (typeof account.session_state === "string" ? account.session_state : JSON.stringify(account.session_state)) : null,
+    session_state: account.session_state
+      ? typeof account.session_state === "string"
+        ? account.session_state
+        : JSON.stringify(account.session_state)
+      : null,
   };
 }
 
@@ -121,7 +125,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                   token_type: account.token_type,
                   scope: account.scope?.toString() ?? null,
                   id_token: account.id_token?.toString() ?? null,
-                  session_state: account.session_state ? (typeof account.session_state === "string" ? account.session_state : JSON.stringify(account.session_state)) : null,
+                  session_state: account.session_state
+                    ? typeof account.session_state === "string"
+                      ? account.session_state
+                      : JSON.stringify(account.session_state)
+                    : null,
                 },
               });
 
