@@ -96,7 +96,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     }
 
     void fetchGroups();
-  }, [listingsConditions, setListingsConditionsAction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 依存配列を空にして初回レンダリング時のみ実行（無限ループ防止）
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

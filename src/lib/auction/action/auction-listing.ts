@@ -39,8 +39,8 @@ type AuctionWhereInput = {
     lte?: number;
   };
   endTime?: {
-    gte: Date;
-    lte: Date;
+    gte?: Date;
+    lte?: Date;
   };
 };
 
@@ -179,7 +179,7 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 入札額の最高価格がある場合
-    if (maxBid !== null && maxBid !== undefined) {
+    if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
       where.currentHighestBid = {
         ...where.currentHighestBid,
         lte: maxBid,
@@ -195,22 +195,24 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       let maxDate = undefined;
 
       // 残り時間の最低値がある場合
-      if (minRemainingTime !== null) {
-        minDate = new Date();
-        minDate.setHours(now.getHours() + minRemainingTime);
+      if (minRemainingTime !== null && minRemainingTime !== undefined) {
+        // 安全に時間を追加するためにタイムスタンプを使用
+        minDate = new Date(now.getTime() + minRemainingTime * 60 * 60 * 1000);
+        where.endTime = {
+          ...where.endTime,
+          gte: minDate,
+        };
       }
 
       // 残り時間の最高値がある場合
-      if (maxRemainingTime !== null) {
-        maxDate = new Date();
-        maxDate.setHours(now.getHours() + maxRemainingTime);
+      if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
+        // 安全に時間を追加するためにタイムスタンプを使用
+        maxDate = new Date(now.getTime() + maxRemainingTime * 60 * 60 * 1000);
+        where.endTime = {
+          ...where.endTime,
+          lte: maxDate,
+        };
       }
-
-      // 残り時間の範囲を設定
-      where.endTime = {
-        gte: minDate ?? now, // 最低値がない場合は現在時刻より残り時間が多いオークション
-        lte: maxDate ?? new Date(now.getTime() + 1000 * 60 * 60 * 24 * 30 * 9999), // 最高値がない場合は9999ヶ月以下のオークション
-      };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -266,6 +268,8 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     const skip = (page - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_where", where);
 
     // 一覧に表示するオークションを取得
     const auctions = await prisma.auction.findMany({

@@ -88,7 +88,7 @@ export const AuctionPagination = memo(function AuctionPagination({
       </Pagination>
 
       <div className="text-muted-foreground text-sm">
-        {listingsConditions.page} / {auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE} ページ
+        {listingsConditions.page} / {Math.ceil(auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)} ページ
       </div>
     </div>
   );

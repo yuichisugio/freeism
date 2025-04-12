@@ -52,7 +52,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const currentSortDirection = (searchParams.get("sort_direction") ?? "asc") as SortDirection;
 
   // 検索クエリのURLパラメータ
-  const currentQuery = searchParams.get("q") ?? ("" as AuctionListingsConditions["searchQuery"]);
+  const currentQuery = searchParams.get("q") ?? ("" as AuctionListingsConditions["searchQuery"]) ?? null;
 
   // 価格範囲フィルター
   const minBid = Number(searchParams.get("min_bid")) ?? null;
@@ -198,15 +198,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     void initializeData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 依存配列を空にして初回レンダリング時のみ実行（無限ループ防止）
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルターの変更を追跡
-   */
-  useEffect(() => {
-    void updateUrlParams();
-  }, [updateUrlParams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

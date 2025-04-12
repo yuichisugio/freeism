@@ -356,14 +356,14 @@ export const AuctionFilters = memo(function AuctionFilters({
     <div className="mb-4 w-full">
       {/* 検索バー */}
       <form
-        className="mb-4 w-full"
+        className="mb-4 flex w-full"
         onSubmit={(e) => {
           e.preventDefault();
           handleSearchQueryEnter(changingSearchQuery ?? "");
         }}
       >
         <SearchBar placeholder="商品名や説明文を検索..." value={changingSearchQuery ?? ""} onChange={(e) => setChangingSearchQuery(e.target.value)} />
-        <Button type="submit" size="sm" className="w-full bg-blue-500 text-white hover:bg-blue-600">
+        <Button type="submit" size="sm" className="bg-blue-500 text-white hover:bg-blue-600">
           検索
         </Button>
       </form>
