@@ -11,8 +11,35 @@ import "../styles/globals.css";
 export const metadata: Metadata = {
   title: "Freeism-app",
   description: "Freeism-app by sugio",
-  icons: {
-    icon: "/favicon.svg",
+  icons: [
+    {
+      url: "/favicon.svg",
+    },
+    {
+      url: "/icon192_maskable.png",
+      sizes: "192x192",
+      type: "image/png",
+    },
+    {
+      url: "/icon512_maskable.png",
+      sizes: "512x512",
+      type: "image/png",
+    },
+  ],
+  manifest: "/manifest.json",
+  themeColor: "#ffffff",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    minimumScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Freeism-app",
+    statusBarStyle: "default",
   },
 };
 

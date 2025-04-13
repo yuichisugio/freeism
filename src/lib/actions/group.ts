@@ -332,11 +332,8 @@ export async function checkGroupMembership(userId: string, groupId: string) {
  * @param groupId - チェックするグループのID
  * @returns グループオーナーの場合はtrue、それ以外はfalse
  */
-export async function checkGroupOwner(groupId: string) {
+export async function checkGroupOwner(userId: string, groupId: string) {
   try {
-    // Appオーナー権限があるかチェック
-    const userId = await getAuthenticatedSessionUserId();
-
     //Appオーナー権限があるかチェック
     const appOwner = await prisma.user.findFirst({
       where: {
@@ -373,7 +370,7 @@ export async function checkGroupOwner(groupId: string) {
 export async function grantOwnerPermission(groupId: string, userId: string) {
   try {
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkGroupOwner(groupId);
+    const isOwner = await checkGroupOwner(userId, groupId);
     if (!isOwner) {
       return { error: "グループオーナー権限がありません" };
     }
@@ -482,7 +479,7 @@ export async function removeMember(groupId: string, userId: string, addToBlackLi
     const currentUserId = await getAuthenticatedSessionUserId();
 
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkGroupOwner(groupId);
+    const isOwner = await checkGroupOwner(currentUserId, groupId);
     if (!isOwner) {
       return { error: "グループメンバーを削除する権限がありません" };
     }

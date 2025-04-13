@@ -3,7 +3,8 @@
 import type { GroupMember, Task } from "@/types/group";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkAppOwner, checkAuth, checkGroupOwner, deleteGroup, joinGroup, leaveGroup } from "@/lib/actions/group";
+import { checkAppOwner, checkGroupOwner, deleteGroup, joinGroup, leaveGroup } from "@/lib/actions/group";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -42,7 +43,7 @@ export function useGroupDetail({ tasks }: UseGroupDetailProps) {
         if (tasks.length === 0) return;
 
         const groupId = tasks[0].group.id;
-        const userId = await checkAuth();
+        const userId = await getAuthenticatedSessionUserId();
 
         if (userId) {
           setUserId(userId);

@@ -202,8 +202,6 @@ export async function getTasksByGroupId(groupId: string) {
  */
 export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted = false) {
   try {
-    const userId = await getAuthenticatedSessionUserId();
-
     // クエリ条件を構築
     const whereConditions: {
       groupId: string;
@@ -885,7 +883,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
 
     // アプリオーナーとグループオーナーの確認
     const isAppOwner = await checkAppOwner(userId);
-    const isGroupOwner = await checkGroupOwner(task.group.id);
+    const isGroupOwner = await checkGroupOwner(userId, task.group.id);
 
     // いずれかの権限がある場合のみ変更可能
     if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
@@ -1009,7 +1007,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
     }
 
     // グループ所有者またはアプリ所有者か確認
-    const isGroupOwner = await checkGroupOwner(existingTask.groupId);
+    const isGroupOwner = await checkGroupOwner(userId, existingTask.groupId);
     const isAppOwner = await checkAppOwner(userId);
     const isTaskCreator = existingTask.creatorId === userId;
 
@@ -1456,7 +1454,7 @@ export async function bulkUpdateTaskStatuses(
         const isCreator = task.creator.id === userId;
         const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
         const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
-        const isGroupOwner = await checkGroupOwner(task.group.id);
+        const isGroupOwner = await checkGroupOwner(userId, task.group.id);
 
         // いずれかの権限がある場合のみ変更可能
         if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
