@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { MyGroupsTable } from "@/components/group/my-groups-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "参加Group一覧 - Freeism App",
@@ -10,16 +10,12 @@ export const metadata: Metadata = {
 };
 
 export default async function MyGroupsPage() {
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 参加しているグループ一覧を取得
   const memberships = await prisma.groupMembership.findMany({
     where: {
-      userId: session.user.id,
+      userId: userId,
     },
     select: {
       id: true,
@@ -34,7 +30,7 @@ export default async function MyGroupsPage() {
             where: {
               executors: {
                 some: {
-                  userId: session.user.id,
+                  userId: userId,
                 },
               },
             },

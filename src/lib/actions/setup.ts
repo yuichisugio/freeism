@@ -4,7 +4,7 @@ import type { SetupForm } from "@/components/auth/setup-form";
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
@@ -18,23 +18,19 @@ import { z } from "zod";
 export async function updateUserSetup(data: SetupForm) {
   try {
     // 認証セッションを取得
-    const session = await getAuthSession();
-    // ユーザーが認証されていない場合
-    if (!session?.user?.id) {
-      return { success: false, error: "ユーザーが認証されていません。" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // フォームの回答内容をデータベースに保存する。更新or新規作成
     await prisma.userSettings.upsert({
       where: {
-        userId: session.user.id,
+        userId: userId,
       },
       update: {
         username: data.username,
         lifeGoal: data.lifeGoal,
       },
       create: {
-        userId: session.user.id,
+        userId: userId,
         username: data.username,
         lifeGoal: data.lifeGoal,
       },
@@ -59,13 +55,7 @@ export async function updateUserSetup(data: SetupForm) {
 export async function createGroup(data: CreateGroupFormData) {
   console.log("createGroup", data);
   try {
-    const session = await getAuthSession();
-    console.log("createGroup session", session);
-
-    if (!session?.user?.id) {
-      console.log("createGroup error", "認証エラーが発生しました");
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     console.log("createGroup data", data);
     const validatedData = createGroupSchema.parse(data);
@@ -74,7 +64,7 @@ export async function createGroup(data: CreateGroupFormData) {
     await prisma.group.create({
       data: {
         ...validatedData,
-        createdBy: session.user.id,
+        createdBy: userId,
       },
     });
 
@@ -101,11 +91,7 @@ export async function createGroup(data: CreateGroupFormData) {
  */
 export async function joinGroup(groupId: string) {
   try {
-    const session = await getAuthSession();
-
-    if (!session?.user?.id) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // グループの存在確認
     const group = await prisma.group.findUnique({
@@ -113,7 +99,7 @@ export async function joinGroup(groupId: string) {
       include: {
         members: {
           where: {
-            userId: session.user.id,
+            userId: userId,
           },
         },
       },
@@ -139,7 +125,7 @@ export async function joinGroup(groupId: string) {
     // グループに参加
     await prisma.groupMembership.create({
       data: {
-        userId: session.user.id,
+        userId: userId,
         groupId,
       },
     });
@@ -162,16 +148,12 @@ export async function joinGroup(groupId: string) {
  */
 export async function leaveGroup(groupId: string) {
   try {
-    const session = await getAuthSession();
-
-    if (!session?.user?.id) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // メンバーシップの存在確認
     const membership = await prisma.groupMembership.findFirst({
       where: {
-        userId: session.user.id,
+        userId: userId,
         groupId,
       },
     });

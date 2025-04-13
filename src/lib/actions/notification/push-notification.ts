@@ -2,7 +2,7 @@
 
 import type { PushSubscription } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import webPush from "web-push";
 
 import type { NotificationParams } from "./email-notification";
@@ -300,12 +300,7 @@ export async function saveSubscription(subscription: {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーIDを取得
-    const session = await getAuthSession();
-    const userId = session?.user?.id;
-    if (!userId) {
-      console.log("未認証ユーザーです。プッシュ通知の購読はスキップします。");
-      return { error: "ユーザーが認証されていません" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
     console.log("push-notification_saveSubscription_userId", userId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

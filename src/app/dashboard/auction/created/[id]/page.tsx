@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AuctionCreatedDetail } from "@/components/auction/auction-history/auction-created-detail";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { type AuctionReview } from "@prisma/client";
 
 type CreatedAuctionPageProps = {
@@ -17,18 +17,14 @@ export const metadata: Metadata = {
 
 export default async function CreatedAuctionPage({ params }: CreatedAuctionPageProps) {
   const { id } = await params;
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    notFound();
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 自分が出品したオークションの詳細を取得
   const auction = await prisma.auction.findUnique({
     where: {
       id,
       task: {
-        creatorId: session.user.id,
+        creatorId: userId,
       },
     },
     include: {
@@ -42,7 +38,7 @@ export default async function CreatedAuctionPage({ params }: CreatedAuctionPageP
       },
       reviews: {
         where: {
-          OR: [{ reviewerId: session.user.id }, { revieweeId: session.user.id }],
+          OR: [{ reviewerId: userId }, { revieweeId: userId }],
         },
       },
       bidHistories: {

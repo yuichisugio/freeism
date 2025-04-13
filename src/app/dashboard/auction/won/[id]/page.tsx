@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AuctionWonDetail } from "@/components/auction/auction-history/auction-won-detail";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -27,17 +27,13 @@ export const metadata: Metadata = {
  */
 export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
   const { id } = await params;
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    notFound();
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 落札したオークションの詳細を取得
   const auction = await prisma.auction.findUnique({
     where: {
       id,
-      winnerId: session.user.id,
+      winnerId: userId,
     },
     include: {
       task: {
@@ -53,7 +49,7 @@ export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
       },
       reviews: {
         where: {
-          OR: [{ reviewerId: session.user.id }, { revieweeId: session.user.id }],
+          OR: [{ reviewerId: userId }, { revieweeId: userId }],
         },
       },
     },

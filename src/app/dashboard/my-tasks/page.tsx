@@ -4,7 +4,7 @@ import { MainTemplate } from "@/components/layout/maintemplate";
 import { MyTasksTable } from "@/components/task/my-tasks-table";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { PlusCircle } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -17,23 +17,19 @@ export const metadata: Metadata = {
  */
 export default async function MyTasksPage() {
   // ログインしているユーザーの情報を取得
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // ユーザーのタスクを取得（作成者、報告者、実行者のいずれかが自分のタスク）
   const tasks = await prisma.task.findMany({
     where: {
       OR: [
         // 自分が作成者のタスク
-        { creatorId: session.user.id },
+        { creatorId: userId },
         // 自分が報告者として含まれるタスク
         {
           reporters: {
             some: {
-              userId: session.user.id,
+              userId: userId,
             },
           },
         },
@@ -41,7 +37,7 @@ export default async function MyTasksPage() {
         {
           executors: {
             some: {
-              userId: session.user.id,
+              userId: userId,
             },
           },
         },

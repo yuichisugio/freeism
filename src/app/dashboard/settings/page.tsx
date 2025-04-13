@@ -5,7 +5,7 @@ import { MainTemplate } from "@/components/layout/maintemplate";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Settings - Freeism App",
@@ -14,18 +14,14 @@ export const metadata: Metadata = {
 
 export default memo(async function SettingsPage() {
   // セッションを取得
-  const session = await getAuthSession();
-
-  // ユーザーが認証されていない場合は早期リターン
-  if (!session?.user?.id) {
-    return null;
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 現在のユーザー設定を取得
   const userSettings = await prisma.userSettings.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: userId },
   });
 
+  // ユーザー設定が見つからない場合は早期リターン
   if (!userSettings) {
     return <div>ユーザー設定が見つかりません</div>;
   }

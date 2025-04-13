@@ -5,7 +5,7 @@ import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 
@@ -19,12 +19,7 @@ import { endOfDay, startOfDay } from "date-fns";
 export async function createTask(data: TaskFormValuesAndGroupId) {
   try {
     // 認証セッションを取得
-    const session = await getAuthSession();
-
-    // 認証セッションが取得できない場合
-    if (!session?.user?.id) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // バリデーション
     if (!data || !data.groupId) {
@@ -41,7 +36,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
         imageUrl: data.imageUrl,
         contributionType: data.contributionType,
         category: data.category, // カテゴリを追加
-        creatorId: session.user.id,
+        creatorId: userId,
         groupId: data.groupId,
         // 提供方法を追加
         deliveryMethod: data.deliveryMethod,
@@ -55,7 +50,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
                   userId: reporter.userId,
                 }))
               : // 報告者が指定されていない場合、作成者を報告者として追加
-                [{ userId: session.user.id }],
+                [{ userId: userId }],
         },
         // 実行者の設定
         executors: {
@@ -67,7 +62,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
                   userId: executor.userId,
                 }))
               : // 実行者が指定されていない場合、作成者を実行者として追加
-                [{ userId: session.user.id }],
+                [{ userId: userId }],
         },
       },
     });
@@ -207,11 +202,7 @@ export async function getTasksByGroupId(groupId: string) {
  */
 export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted = false) {
   try {
-    const session = await getAuthSession();
-
-    if (!session?.user?.id) {
-      throw new Error("認証エラーが発生しました");
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // クエリ条件を構築
     const whereConditions: {
@@ -680,12 +671,7 @@ export async function bulkCreateTasks(
 ) {
   try {
     // 認証セッションを取得
-    const session = await getAuthSession();
-
-    // 認証セッションが取得できない場合
-    if (!session?.user?.id) {
-      throw new Error("認証エラーが発生しました");
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // トランザクションを使用してデータを一括登録
     const result = await prisma.$transaction(async (tx) => {
@@ -700,7 +686,7 @@ export async function bulkCreateTasks(
               reference: row.reference ?? null,
               info: row.info ?? null,
               contributionType: (row.contributionType as contributionType) ?? contributionType.NON_REWARD,
-              creatorId: session.user?.id ?? "",
+              creatorId: userId,
               groupId: groupId,
               // 提供方法を追加
               deliveryMethod: row.deliveryMethod ?? null,
@@ -708,7 +694,7 @@ export async function bulkCreateTasks(
               reporters: {
                 create: [
                   {
-                    userId: session.user?.id ?? "",
+                    userId: userId,
                   },
                 ],
               },
@@ -716,7 +702,7 @@ export async function bulkCreateTasks(
               executors: {
                 create: [
                   {
-                    userId: session.user?.id ?? "",
+                    userId: userId,
                   },
                 ],
               },
@@ -782,12 +768,7 @@ export async function bulkCreateTasks(
 export async function deleteTask(taskId: string) {
   try {
     // 現在のユーザーを取得
-    const session = await getAuthSession();
-    if (!session?.user?.id) {
-      return { success: false, error: "ログインが必要です" };
-    }
-
-    const currentUserId = session.user.id;
+    const userId = await getAuthenticatedSessionUserId();
 
     // タスクを取得（関連エンティティも含む）
     const task = await prisma.task.findUnique({
@@ -799,7 +780,7 @@ export async function deleteTask(taskId: string) {
           include: {
             members: {
               where: {
-                userId: currentUserId,
+                userId: userId,
                 isGroupOwner: true,
               },
             },
@@ -815,8 +796,8 @@ export async function deleteTask(taskId: string) {
 
     // 権限チェック（グループオーナー、タスク報告者、タスク実行者のいずれかであること）
     const isGroupOwner = task.group.members.length > 0;
-    const isReporter = task.reporters.some((reporter) => reporter.userId === currentUserId);
-    const isExecutor = task.executors.some((executor) => executor.userId === currentUserId);
+    const isReporter = task.reporters.some((reporter) => reporter.userId === userId);
+    const isExecutor = task.executors.some((executor) => executor.userId === userId);
 
     if (!isGroupOwner && !isReporter && !isExecutor) {
       return { success: false, error: "このタスクを削除する権限がありません" };
@@ -861,11 +842,7 @@ export async function deleteTask(taskId: string) {
  */
 export async function updateTaskStatus(taskId: string, status: string) {
   try {
-    const session = await getAuthSession();
-
-    if (!session?.user?.id) {
-      throw new Error("認証エラーが発生しました");
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // タスクの詳細情報を取得
     const task = await prisma.task.findUnique({
@@ -902,14 +879,13 @@ export async function updateTaskStatus(taskId: string, status: string) {
     }
 
     // 権限チェック
-    const userId = session.user.id;
     const isCreator = task.creator.id === userId;
     const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
     const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
 
     // アプリオーナーとグループオーナーの確認
     const isAppOwner = await checkAppOwner(userId);
-    const isGroupOwner = await checkGroupOwner(userId, task.group.id);
+    const isGroupOwner = await checkGroupOwner(task.group.id);
 
     // いずれかの権限がある場合のみ変更可能
     if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
@@ -1016,12 +992,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
 export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGroupId, "groupId">) {
   try {
     // 認証セッションを取得
-    const session = await getAuthSession();
-
-    // 認証セッションが取得できない場合
-    if (!session?.user?.id) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // 既存のタスクを取得
     const existingTask = await prisma.task.findUnique({
@@ -1038,9 +1009,9 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
     }
 
     // グループ所有者またはアプリ所有者か確認
-    const isGroupOwner = await checkGroupOwner(session.user.id, existingTask.groupId);
-    const isAppOwner = await checkAppOwner(session.user.id);
-    const isTaskCreator = existingTask.creatorId === session.user.id;
+    const isGroupOwner = await checkGroupOwner(existingTask.groupId);
+    const isAppOwner = await checkAppOwner(userId);
+    const isTaskCreator = existingTask.creatorId === userId;
 
     // 権限チェック（タスク作成者、グループ所有者、またはアプリ所有者のみ更新可能）
     if (!isTaskCreator && !isGroupOwner && !isAppOwner) {
@@ -1194,27 +1165,17 @@ type FixedEvaluationData = {
  */
 export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], groupId: string) {
   try {
-    const session = await getAuthSession();
-
-    // 認証セッションが取得できない場合
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "認証エラーが発生しました",
-        successData: [],
-        failedData: data.map((item) => ({ ...item, 失敗理由: "認証エラー" })),
-      };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // グループオーナーまたはアプリオーナーかどうかをチェック
     const isAppOwner = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: { isAppOwner: true },
     });
 
     const isGroupOwner = await prisma.groupMembership.findFirst({
       where: {
-        userId: session.user.id,
+        userId: userId,
         groupId: groupId,
         isGroupOwner: true,
       },
@@ -1291,7 +1252,6 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
           }
 
           // セッションのユーザーIDチェック
-          const userId = session.user?.id;
           if (!userId) {
             failedData.push({ ...row, 失敗理由: "認証情報が不正です" });
             continue;
@@ -1411,13 +1371,8 @@ export async function bulkUpdateTaskStatuses(
   }>,
 ) {
   try {
-    const session = await getAuthSession();
+    const userId = await getAuthenticatedSessionUserId();
 
-    if (!session?.user?.id) {
-      return { success: false, error: "認証エラーが発生しました" };
-    }
-
-    const userId = session.user.id;
     const isAppOwner = await checkAppOwner(userId);
 
     // 有効なステータスの配列
@@ -1501,7 +1456,7 @@ export async function bulkUpdateTaskStatuses(
         const isCreator = task.creator.id === userId;
         const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
         const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
-        const isGroupOwner = await checkGroupOwner(userId, task.group.id);
+        const isGroupOwner = await checkGroupOwner(task.group.id);
 
         // いずれかの権限がある場合のみ変更可能
         if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
@@ -1616,12 +1571,7 @@ export async function bulkUpdateTaskStatuses(
  */
 export async function getMyTasks() {
   try {
-    const session = await getAuthSession();
-    const userId = session?.user?.id;
-
-    if (!userId) {
-      throw new Error("認証されていません");
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // ユーザーに関連するタスクを取得
     const tasks = await prisma.task.findMany({

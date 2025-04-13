@@ -2,7 +2,7 @@
 
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { AuctionStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,15 +15,12 @@ export async function getUserBidHistory(): Promise<BidHistoryItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 認証
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 入札履歴を取得
   const bidHistory = await prisma.bidHistory.findMany({
     where: {
-      userId: session.user.id,
+      userId: userId,
     },
     orderBy: {
       createdAt: "desc",
@@ -58,15 +55,12 @@ export async function getUserLatestBids(): Promise<BidHistoryItem[]> {
   console.log("getUserLatestBids_start");
 
   // 認証
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // ユーザーの全入札履歴を取得
   const allBids = await prisma.bidHistory.findMany({
     where: {
-      userId: session.user.id,
+      userId: userId,
     },
     orderBy: {
       createdAt: "desc",
@@ -110,14 +104,11 @@ export async function getUserLatestBids(): Promise<BidHistoryItem[]> {
  */
 export async function getUserWonAuctions(): Promise<WonAuctionItem[]> {
   console.log("getUserWonAuctions_start");
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   const wonAuctions = await prisma.auction.findMany({
     where: {
-      winnerId: session.user.id,
+      winnerId: userId,
       status: AuctionStatus.ENDED,
     },
     orderBy: {
@@ -137,7 +128,7 @@ export async function getUserWonAuctions(): Promise<WonAuctionItem[]> {
       },
       reviews: {
         where: {
-          reviewerId: session.user.id,
+          reviewerId: userId,
         },
         select: {
           id: true,
@@ -160,15 +151,12 @@ export async function getUserWonAuctions(): Promise<WonAuctionItem[]> {
  */
 export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
   console.log("getUserCreatedAuctions_start");
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   const createdAuctions = await prisma.auction.findMany({
     where: {
       task: {
-        creatorId: session.user.id,
+        creatorId: userId,
       },
     },
     orderBy: {
@@ -194,7 +182,7 @@ export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
       },
       reviews: {
         where: {
-          reviewerId: session.user.id,
+          reviewerId: userId,
         },
         select: {
           id: true,
@@ -220,15 +208,12 @@ export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
  * @param isSellerReview セラーレビューかどうか
  */
 export async function createAuctionReview(auctionId: string, revieweeId: string, rating: number, comment: string | null, isSellerReview: boolean) {
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   const review = await prisma.auctionReview.create({
     data: {
       auctionId,
-      reviewerId: session.user.id,
+      reviewerId: userId,
       revieweeId,
       rating,
       comment,
@@ -247,16 +232,13 @@ export async function createAuctionReview(auctionId: string, revieweeId: string,
  * @param deliveryMethod 提供方法
  */
 export async function updateDeliveryMethod(taskId: string, deliveryMethod: string) {
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // 自分が作成したタスクかチェック
   const task = await prisma.task.findFirst({
     where: {
       id: taskId,
-      creatorId: session.user.id,
+      creatorId: userId,
     },
   });
 
@@ -283,10 +265,7 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
  * @param taskId タスクID
  */
 export async function completeTaskDelivery(taskId: string) {
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   const task = await prisma.task.findUnique({
     where: {
@@ -302,8 +281,8 @@ export async function completeTaskDelivery(taskId: string) {
   }
 
   // 自分が作成者か落札者か確認
-  const isCreator = task.creatorId === session.user.id;
-  const isWinner = task.auction?.winnerId === session.user.id;
+  const isCreator = task.creatorId === userId;
+  const isWinner = task.auction?.winnerId === userId;
 
   if (!isCreator && !isWinner) {
     throw new Error("このタスクを完了する権限がありません");
@@ -348,12 +327,7 @@ export type AuctionMessage = {
  */
 export async function getAuctionMessages(auctionId: string): Promise<AuctionMessage[]> {
   // 認証
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
-
-  const userId = session.user.id;
+  const userId = await getAuthenticatedSessionUserId();
 
   // オークション情報を取得して権限を確認
   const auction = await prisma.auction.findUnique({
@@ -413,12 +387,7 @@ export async function getAuctionMessages(auctionId: string): Promise<AuctionMess
  */
 export async function sendAuctionMessage(auctionId: string, recipientId: string, message: string): Promise<AuctionMessage> {
   // 認証
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    throw new Error("認証が必要です");
-  }
-
-  const senderId = session.user.id;
+  const userId = await getAuthenticatedSessionUserId();
 
   // メッセージ内容の検証
   if (!message.trim()) {
@@ -442,8 +411,8 @@ export async function sendAuctionMessage(auctionId: string, recipientId: string,
   }
 
   // 出品者またはオークションの落札者のみがメッセージを送信できる
-  const isCreator = auction.task.creatorId === senderId;
-  const isWinner = auction.winnerId === senderId;
+  const isCreator = auction.task.creatorId === userId;
+  const isWinner = auction.winnerId === userId;
 
   if (!isCreator && !isWinner) {
     throw new Error("このオークションにメッセージを送信する権限がありません");
@@ -461,7 +430,7 @@ export async function sendAuctionMessage(auctionId: string, recipientId: string,
   const newMessage = await prisma.auctionMessage.create({
     data: {
       auctionId,
-      senderId,
+      senderId: userId,
       recipientId,
       message,
     },

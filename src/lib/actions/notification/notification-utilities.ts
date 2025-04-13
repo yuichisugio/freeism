@@ -2,9 +2,8 @@
 
 import type { NotificationTargetType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,21 +28,6 @@ export type NotificationData = {
   groupName: string | null;
   taskName: string | null;
 };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 認証済みユーザーのIDを取得する共通関数
- * @returns ユーザーID
- * @returns 認証されていない場合はリダイレクト
- */
-async function getAuthenticatedUserId(): Promise<string> {
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    redirect("/auth/signin");
-  }
-  return session.user.id;
-}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -245,7 +229,7 @@ export async function getUnreadNotificationsCount(): Promise<number> {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 認証済みユーザーのIDを取得
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedSessionUserId();
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -307,7 +291,7 @@ export async function getNotificationsAndUnreadCount(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 認証済みユーザーのIDを取得
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedSessionUserId();
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -468,7 +452,7 @@ export async function getNotificationsAndUnreadCount(
  */
 export async function apiUpdateNotificationStatus(notificationId: string, isRead: boolean): Promise<{ success: boolean }> {
   try {
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedSessionUserId();
 
     // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
     if (isRead) {
@@ -506,7 +490,7 @@ export async function apiUpdateNotificationStatus(notificationId: string, isRead
  */
 export async function markAllNotificationsAsRead(): Promise<{ success: boolean }> {
   try {
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedSessionUserId();
     const groupIds = await getUserAccessibleGroupIds(userId);
     const readAt = new Date().toISOString();
 

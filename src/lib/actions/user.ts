@@ -2,7 +2,7 @@
 
 import type { SetupForm } from "@/components/auth/setup-form";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { setupSchema } from "@/lib/zod-schema";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,11 +15,7 @@ import { setupSchema } from "@/lib/zod-schema";
 export async function updateUserSetup(data: SetupForm) {
   try {
     // 認証セッションを取得
-    const session = await getAuthSession();
-    // ユーザーが認証されていない場合
-    if (!session?.user?.id) {
-      return { success: false, error: "ユーザーが認証されていません。" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     const validatedData = setupSchema.parse(data);
     console.log("validatedData", validatedData);
@@ -27,14 +23,14 @@ export async function updateUserSetup(data: SetupForm) {
     // フォームの回答内容をデータベースに保存する。更新or新規作成
     await prisma.userSettings.upsert({
       where: {
-        userId: session.user.id,
+        userId: userId,
       },
       update: {
         username: data.username,
         lifeGoal: data.lifeGoal,
       },
       create: {
-        userId: session.user.id,
+        userId: userId,
         username: data.username,
         lifeGoal: data.lifeGoal,
       },
@@ -72,18 +68,5 @@ export async function getAllUsers() {
   } catch (error) {
     console.error("Error fetching users:", error);
     throw error;
-  }
-}
-
-export async function getUserProfile() {
-  try {
-    const session = await getAuthSession();
-
-    if (!session?.user?.id) {
-      return { error: "認証が必要です" };
-    }
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
-    return { error: "ユーザー情報の取得中にエラーが発生しました。" };
   }
 }

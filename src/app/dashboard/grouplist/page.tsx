@@ -4,7 +4,7 @@ import { GroupListTable } from "@/components/group/group-list-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { Plus } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -13,11 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GroupListPage() {
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   // グループ一覧を取得（参加状況も含める）
   const groups = await prisma.group.findMany({
@@ -29,7 +25,7 @@ export default async function GroupListPage() {
       maxParticipants: true,
       members: {
         where: {
-          userId: session.user.id,
+          userId: userId,
         },
         select: {
           id: true,

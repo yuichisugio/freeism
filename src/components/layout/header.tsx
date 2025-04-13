@@ -6,7 +6,7 @@ import { NotificationButton } from "@/components/notification/notification-butto
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -27,7 +27,7 @@ export const Header = memo(async function Header() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 認証状態を取得
-  const session = await getAuthSession();
+  const userId = await getAuthenticatedSessionUserId();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -73,11 +73,11 @@ export const Header = memo(async function Header() {
           {/* 右: ナビゲーション要素をまとめる */}
           <nav className="flex items-center gap-6 pr-4">
             {/* ログインしている場合のみ通知ボタンを表示 */}
-            {session && <NotificationButton />}
+            {userId && <NotificationButton />}
             <ThemeToggle />
 
             {/* ログイン状態に応じてボタンを切り替え */}
-            {session ? (
+            {userId ? (
               <>
                 <Button variant="outline" asChild className="button-outline-custom">
                   <Link href="/dashboard/grouplist">Dashboard</Link>

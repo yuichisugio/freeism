@@ -3,7 +3,7 @@ import Link from "next/link";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { CreateNotificationForm } from "@/components/notification/create-notification-form";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -12,15 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateNotificationPage() {
-  const session = await getAuthSession();
-  const sessionUserId = session?.user?.id;
+  const userId = await getAuthenticatedSessionUserId();
 
-  if (!sessionUserId) {
-    return null;
-  }
   // ユーザー情報とAppオーナー情報を取得
   const user = await prisma.user.findUnique({
-    where: { id: sessionUserId },
+    where: { id: userId },
     select: {
       id: true,
       isAppOwner: true,
@@ -30,7 +26,7 @@ export default async function CreateNotificationPage() {
   // グループオーナー情報を取得
   const userGroupMemberships = await prisma.groupMembership.findMany({
     where: {
-      userId: sessionUserId,
+      userId: userId,
     },
     select: {
       groupId: true,
@@ -103,7 +99,7 @@ export default async function CreateNotificationPage() {
       where: {
         members: {
           some: {
-            userId: sessionUserId,
+            userId: userId,
             isGroupOwner: true,
           },
         },
@@ -138,7 +134,7 @@ export default async function CreateNotificationPage() {
         group: {
           members: {
             some: {
-              userId: sessionUserId,
+              userId: userId,
               isGroupOwner: true,
             },
           },

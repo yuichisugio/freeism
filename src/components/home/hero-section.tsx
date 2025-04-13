@@ -2,7 +2,7 @@ import { memo } from "react";
 import Link from "next/link";
 import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,7 +12,7 @@ import { getAuthSession } from "@/lib/utils";
  */
 export const HeroSection = memo(async function HeroSection() {
   // 認証状態を取得
-  const session = await getAuthSession();
+  const userId = await getAuthenticatedSessionUserId();
 
   return (
     <section className="relative bg-gradient-to-b from-blue-50 via-white to-white py-16 sm:py-24 lg:py-32 dark:from-blue-950 dark:via-gray-950 dark:to-gray-950">
@@ -47,7 +47,7 @@ export const HeroSection = memo(async function HeroSection() {
               </Link>
             </Button>
             {/* sm(モバイル)では、ヘッダーにログイン/dashboardボタンがないため、↓に表示。ログイン済みの場合はdashboardボタンを表示 */}
-            {session ? (
+            {userId ? (
               <Button
                 variant="outline"
                 size="lg"

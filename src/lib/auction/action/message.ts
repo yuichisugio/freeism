@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { AuctionEventType, NotificationSendMethod } from "@prisma/client";
 
 /**
@@ -52,17 +52,14 @@ export async function getAuctionMessages(auctionId: string) {
  */
 export async function sendAuctionMessage(auctionId: string, message: string, recipientId: string) {
   try {
-    const session = await getAuthSession();
-    if (!session?.user?.id) {
-      return { success: false, error: "ログインが必要です" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // メッセージの作成
     const newMessage = await prisma.auctionMessage.create({
       data: {
         message,
         auctionId,
-        senderId: session.user.id,
+        senderId: userId,
         recipientId, // 特定のユーザーまたは出品者
       },
       include: {
@@ -92,7 +89,7 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
     });
 
     // 出品者IDがrecipientIdと一致する場合（出品者に対するメッセージの場合）のみ通知を送る
-    if (auction?.task?.creatorId === recipientId && session.user.id !== recipientId) {
+    if (auction?.task?.creatorId === recipientId && userId !== recipientId) {
       await sendAuctionNotification({
         text: {
           first: auction.task.task || "出品商品",

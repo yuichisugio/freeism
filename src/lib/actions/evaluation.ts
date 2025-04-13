@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { z } from "zod"; // zodを使用して型検証を行います
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -56,12 +56,7 @@ type EvaluationResult =
 export async function bulkCreateEvaluations(rawData: EvaluationImportData[], groupId: string): Promise<EvaluationResult> {
   try {
     // 認証セッションを取得
-    const session = await getAuthSession();
-
-    // 認証セッションが取得できない場合
-    if (!session?.user?.id) {
-      return { success: false, error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // 入力データの検証
     if (!Array.isArray(rawData) || rawData.length === 0) {
@@ -138,7 +133,7 @@ export async function bulkCreateEvaluations(rawData: EvaluationImportData[], gro
         data: validatedData.map((row) => ({
           contributionPoint: Number(row.contributionPoint),
           evaluationLogic: row.evaluationLogic,
-          evaluator: session?.user?.id ?? "",
+          evaluator: userId,
           taskId: row.taskId,
           groupId,
         })),

@@ -3,7 +3,7 @@
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
@@ -17,10 +17,7 @@ import { z } from "zod";
 export async function createGroup(data: CreateGroupFormData) {
   try {
     // 認証処理
-    const userId = await checkAuth();
-    if (!userId) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     const validatedData = createGroupSchema.parse(data);
 
@@ -60,10 +57,7 @@ export async function createGroup(data: CreateGroupFormData) {
 export async function joinGroup(groupId: string) {
   try {
     // 認証処理
-    const userId = await checkAuth();
-    if (!userId) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // グループの存在確認
     const group = await prisma.group.findUnique({
@@ -115,10 +109,7 @@ export async function joinGroup(groupId: string) {
 export async function leaveGroup(groupId: string) {
   try {
     // 認証処理
-    const userId = await checkAuth();
-    if (!userId) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // メンバーシップの存在確認
     const membership = await checkGroupMembership(userId, groupId);
@@ -152,10 +143,7 @@ export async function leaveGroup(groupId: string) {
 export async function deleteGroup(groupId: string) {
   try {
     // 認証処理
-    const userId = await checkAuth();
-    if (!userId) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // グループの存在確認
     const group = await prisma.group.findUnique({
@@ -215,10 +203,7 @@ export async function checkGroupNameExists(name: string) {
 export async function updateGroup(groupId: string, data: CreateGroupFormData) {
   try {
     // 認証処理
-    const userId = await checkAuth();
-    if (!userId) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     // グループの存在確認
     const group = await prisma.group.findUnique({
@@ -298,22 +283,6 @@ export async function getGroup(groupId: string) {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 認証処理を行い、現在のユーザーIDを取得する関数
- * @returns 認証成功時はユーザーID、失敗時はnull
- */
-export async function checkAuth() {
-  try {
-    const session = await getAuthSession();
-    return session?.user?.id ?? null;
-  } catch (error) {
-    console.error("[CHECK_AUTH]", error);
-    return null;
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * アプリオーナー権限をチェックする関数
  * @param userId - チェックするユーザーのID
  * @returns アプリオーナー権限があればtrue、なければfalse
@@ -363,18 +332,15 @@ export async function checkGroupMembership(userId: string, groupId: string) {
  * @param groupId - チェックするグループのID
  * @returns グループオーナーの場合はtrue、それ以外はfalse
  */
-export async function checkGroupOwner(userId: string, groupId: string) {
+export async function checkGroupOwner(groupId: string) {
   try {
     // Appオーナー権限があるかチェック
-    const session = await checkAuth();
-    if (!session) {
-      return false;
-    }
+    const userId = await getAuthenticatedSessionUserId();
 
     //Appオーナー権限があるかチェック
     const appOwner = await prisma.user.findFirst({
       where: {
-        id: session,
+        id: userId,
         isAppOwner: true,
       },
     });
@@ -406,14 +372,8 @@ export async function checkGroupOwner(userId: string, groupId: string) {
  */
 export async function grantOwnerPermission(groupId: string, userId: string) {
   try {
-    // 認証処理
-    const currentUserId = await checkAuth();
-    if (!currentUserId) {
-      return { error: "認証エラーが発生しました" };
-    }
-
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkGroupOwner(currentUserId, groupId);
+    const isOwner = await checkGroupOwner(groupId);
     if (!isOwner) {
       return { error: "グループオーナー権限がありません" };
     }
@@ -519,13 +479,10 @@ export async function getGroupMembers(groupId: string): Promise<GroupMemberWithU
 export async function removeMember(groupId: string, userId: string, addToBlackList: boolean) {
   try {
     // 認証処理
-    const currentUserId = await checkAuth();
-    if (!currentUserId) {
-      return { error: "認証エラーが発生しました" };
-    }
+    const currentUserId = await getAuthenticatedSessionUserId();
 
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkGroupOwner(currentUserId, groupId);
+    const isOwner = await checkGroupOwner(groupId);
     if (!isOwner) {
       return { error: "グループメンバーを削除する権限がありません" };
     }

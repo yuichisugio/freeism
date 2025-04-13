@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 import { type Auction, type AuctionWithDetails } from "../type/types";
 
@@ -55,12 +55,7 @@ export async function getUserPointBalance(userId: string, groupId: string): Prom
  */
 export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number): Promise<{ canBid: boolean; message?: string }> {
   // セッションからユーザー情報を取得
-  const session = await getAuthSession();
-  if (!session?.user?.id) {
-    return { canBid: false, message: "認証が必要です" };
-  }
-
-  const userId = session.user.id;
+  const userId = await getAuthenticatedSessionUserId();
 
   // オークションのステータスを確認
   const status = await getAuctionStatus(auction);

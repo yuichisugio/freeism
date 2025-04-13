@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { TaskInputForm } from "@/components/task/task-input-form";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "新規Task作成 - Freeism App",
@@ -18,11 +18,7 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
   const params = await Promise.resolve(searchParams);
   const groupId = params.groupId;
 
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const userId = await getAuthenticatedSessionUserId();
 
   let groups: { id: string; name: string }[] = [];
 
@@ -32,7 +28,7 @@ export default async function NewTaskPage({ searchParams }: { searchParams: { gr
     // ユーザーが参加しているグループを取得
     const memberships = await prisma.groupMembership.findMany({
       where: {
-        userId: session.user.id,
+        userId: userId,
       },
       include: {
         group: {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CreateGroupForm } from "@/components/group/create-group-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getAuthSession } from "@/lib/utils";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 /**
  * 新規Group作成ページのメタデータ
@@ -17,9 +17,9 @@ export const metadata: Metadata = {
  * @returns 新規Group作成ページ
  */
 export default async function CreateGroupPage() {
-  const session = await getAuthSession();
+  const userId = await getAuthenticatedSessionUserId();
 
-  if (!session) {
+  if (!userId) {
     return (
       <div className="container max-w-4xl py-10">
         <p className="text-gray-600">このページを利用するにはログインが必要です。</p>
