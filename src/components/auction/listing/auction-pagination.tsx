@@ -15,7 +15,6 @@ type AuctionPaginationProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
-  updateUrlParamsAction: () => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -30,7 +29,6 @@ export const AuctionPagination = memo(function AuctionPagination({
   listingsConditions,
   setListingsConditionsAction,
   auctions,
-  updateUrlParamsAction,
 }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -57,7 +55,6 @@ export const AuctionPagination = memo(function AuctionPagination({
               <PaginationPrevious
                 onClick={() => {
                   setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page - 1 });
-                  updateUrlParamsAction();
                 }}
               />
             </PaginationItem>
@@ -79,7 +76,6 @@ export const AuctionPagination = memo(function AuctionPagination({
                   isActive={page === listingsConditions.page}
                   onClick={() => {
                     setListingsConditionsAction({ ...listingsConditions, page });
-                    updateUrlParamsAction();
                   }}
                 >
                   {page}
@@ -94,7 +90,6 @@ export const AuctionPagination = memo(function AuctionPagination({
               <PaginationNext
                 onClick={() => {
                   setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page + 1 });
-                  updateUrlParamsAction();
                 }}
               />
             </PaginationItem>

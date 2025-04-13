@@ -39,7 +39,7 @@ import {
 const sortOptions = [
   { value: "newest", label: "新着順", icon: <Sparkles className="h-4 w-4" /> },
   { value: "time_remaining", label: "終了時間順", icon: <Clock className="h-4 w-4" /> },
-  { value: "price_asc", label: "入札額", icon: <ArrowDownCircle className="h-4 w-4" /> },
+  { value: "price", label: "入札額", icon: <ArrowDownCircle className="h-4 w-4" /> },
   { value: "bids", label: "入札数順", icon: <BarChart4 className="h-4 w-4" /> },
 ];
 
@@ -260,7 +260,6 @@ export const AuctionFilters = memo(function AuctionFilters({
   listingsConditions,
   setListingsConditionsAction,
   auctions,
-  updateUrlParamsAction,
 }: AuctionFiltersProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -294,7 +293,6 @@ export const AuctionFilters = memo(function AuctionFilters({
   } = useAuctionFilters({
     listingsConditions,
     setListingsConditionsAction,
-    updateUrlParamsAction,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -420,18 +418,14 @@ export const AuctionFilters = memo(function AuctionFilters({
           handleSearchQueryEnter(changingSearchQuery ?? "");
         }}
       >
-        <div className="flex w-full overflow-hidden rounded-lg shadow-sm transition-all focus-within:shadow-md">
+        <div className="flex w-full overflow-hidden rounded-lg border border-gray-200">
           <SearchBar
             placeholder="商品名や説明文を検索..."
             value={changingSearchQuery ?? ""}
             onChange={(e) => setChangingSearchQuery(e.target.value)}
-            className="flex-1 rounded-l-lg border-r-0 focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+            className="flex-1 rounded-l-lg border-0 focus:border-blue-300 focus:ring-1 focus:ring-blue-200"
           />
-          <Button
-            type="submit"
-            size="sm"
-            className="rounded-l-none rounded-r-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 text-white transition-all hover:from-blue-600 hover:to-blue-700"
-          >
+          <Button type="submit" size="sm" className="rounded-l-none rounded-r-lg bg-blue-500 px-6 text-white hover:bg-blue-600">
             検索
           </Button>
         </div>
@@ -460,49 +454,46 @@ export const AuctionFilters = memo(function AuctionFilters({
         </div>
       </div>
 
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-4 flex items-center justify-between gap-2">
         {/* フィルターボタン */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleFilterDisplay}
-          className={cn(
-            "flex items-center gap-2 rounded-md border transition-all duration-200",
-            showFilters ? "border-blue-300 bg-blue-50 text-blue-600 shadow-sm" : "hover:border-gray-300 hover:bg-gray-50",
-          )}
-        >
-          <Filter className="h-4 w-4" />
-          <span>並び替え・フィルター</span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleFilterDisplay}
+            className={cn(
+              "flex items-center gap-2 rounded-md border",
+              showFilters ? "border-blue-300 bg-blue-50 text-blue-600" : "hover:border-gray-300 hover:bg-gray-50",
+            )}
+          >
+            <Filter className="h-4 w-4" />
+            <span>並び替え・フィルター</span>
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+
           {activeFilterCount > 0 && (
-            <span className="flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
-              {activeFilterCount}
-            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                handleResetAllFilters();
+              }}
+              className="rounded-md text-red-500 hover:bg-red-50 hover:text-red-600"
+            >
+              <X className="mr-1 h-4 w-4" />
+              リセット
+            </Button>
           )}
-        </Button>
+        </div>
 
         {/* フィルター適用ボタン */}
-        <Button
-          variant="default"
-          size="sm"
-          onClick={applyAllFilters}
-          className="rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm transition-all duration-200 hover:from-blue-700 hover:to-blue-800"
-        >
+        <Button variant="default" size="sm" onClick={applyAllFilters} className="rounded-md bg-blue-600 text-white hover:bg-blue-700">
           フィルターを適用
         </Button>
-
-        {activeFilterCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              handleResetAllFilters();
-            }}
-            className="rounded-md border border-transparent text-red-500 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-          >
-            <X className="mr-1 h-4 w-4" />
-            リセット
-          </Button>
-        )}
       </div>
 
       {/* フィルターパネル */}

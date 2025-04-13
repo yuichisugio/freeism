@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { type AuctionCardHookProps, type SellerRating } from "@/lib/auction/type/types";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
@@ -37,22 +37,29 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 現在時刻とオークションの開始・終了時刻を比較
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const [isStarted] = useState(new Date(auction.startTime) <= now);
   const [isEnded, setIsEnded] = useState(new Date(auction.endTime) <= now || auction.status === AuctionStatus.ENDED);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 新着判定（過去3日以内の出品）
-  const isNew = isWithinInterval(new Date(auction.startTime), {
-    start: subDays(new Date(), 3),
-    end: new Date(),
-  });
+  const isNew = useMemo(
+    () =>
+      isWithinInterval(new Date(auction.startTime), {
+        start: subDays(new Date(), 3),
+        end: new Date(),
+      }),
+    [auction.startTime],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // まもなく終了判定（24時間以内）
-  const isEndingSoon = isStarted && !isEnded && new Date(auction.endTime).getTime() - now.getTime() < 24 * 60 * 60 * 1000;
+  const isEndingSoon = useMemo(
+    () => isStarted && !isEnded && new Date(auction.endTime).getTime() - now.getTime() < 24 * 60 * 60 * 1000,
+    [auction.endTime, isStarted, isEnded, now],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

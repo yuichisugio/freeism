@@ -150,7 +150,6 @@ export type SellerRating = {
 export type UseAuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
-  updateUrlParamsAction?: () => void;
 };
 
 // カウントダウンの状態
@@ -196,7 +195,7 @@ export type AuctionListingsConditions = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // ソートField
-export type AuctionSortField = "newest" | "time_remaining" | "bids";
+export type AuctionSortField = "newest" | "time_remaining" | "bids" | "price";
 
 // ソートDirection
 export type SortDirection = "asc" | "desc";
@@ -208,7 +207,6 @@ export type AuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
-  updateUrlParamsAction: () => void;
 };
 
 // 出品商品一覧取得のパラメータ型

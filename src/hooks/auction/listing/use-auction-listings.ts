@@ -17,7 +17,6 @@ type UseAuctionListingsReturn = {
   // action
   handleToggleWatchlist: (auctionId: string) => Promise<void>;
   setListingsConditions: (newListingsConditions: AuctionListingsConditions) => void;
-  updateUrlParams: () => void;
 };
 
 /**
@@ -118,126 +117,129 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    * URLパラメータを更新する関数
    * 必要なパラメータのみURLに含める（デフォルト値は含めない）
    */
-  const updateUrlParams = useCallback(() => {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const updateUrlParams = useCallback(
+    (newListingsConditions: AuctionListingsConditions) => {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_start", listingsConditions);
-    console.log(
-      "src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_sort",
-      listingsConditions.sort ? JSON.stringify(listingsConditions.sort) : "null",
-    );
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_start", newListingsConditions);
+      console.log(
+        "src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_sort",
+        newListingsConditions.sort ? JSON.stringify(newListingsConditions.sort) : "null",
+      );
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // URLパラメータを作成
-    const params = new URLSearchParams();
+      // URLパラメータを作成
+      const params = new URLSearchParams();
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ページ数
-    if (listingsConditions.page > 1) {
-      params.set("page", String(listingsConditions.page));
-    }
+      // ページ数
+      if (newListingsConditions.page > 1) {
+        params.set("page", String(newListingsConditions.page));
+      }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // カテゴリ - 複数選択可能になったため、各カテゴリを追加
-    if (listingsConditions.categories && listingsConditions.categories.length > 0) {
-      // "すべて"が含まれる場合は他のカテゴリを無視
-      if (listingsConditions.categories.includes("すべて")) {
-        // すべての場合はパラメータを追加しない（デフォルト値）
-      } else {
-        // 複数カテゴリを追加
-        listingsConditions.categories.forEach((category) => {
-          if (category) params.append("category", category);
+      // カテゴリ - 複数選択可能になったため、各カテゴリを追加
+      if (newListingsConditions.categories && newListingsConditions.categories.length > 0) {
+        // "すべて"が含まれる場合は他のカテゴリを無視
+        if (newListingsConditions.categories.includes("すべて")) {
+          // すべての場合はパラメータを追加しない（デフォルト値）
+        } else {
+          // 複数カテゴリを追加
+          newListingsConditions.categories.forEach((category) => {
+            if (category) params.append("category", category);
+          });
+        }
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // ステータス
+      if (newListingsConditions.status && newListingsConditions.status.length > 0 && newListingsConditions.status[0] !== "all") {
+        newListingsConditions.status.forEach((status) => {
+          params.append("status", status);
         });
       }
-    }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ステータス
-    if (listingsConditions.status && listingsConditions.status.length > 0 && listingsConditions.status[0] !== "all") {
-      listingsConditions.status.forEach((status) => {
-        params.append("status", status);
-      });
-    }
+      // ソート - 複数選択可能になったため、最初のソート条件のみ使用
+      if (newListingsConditions.sort && newListingsConditions.sort.length > 0) {
+        console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_listingsConditions.sort_start");
+        const firstSort = newListingsConditions.sort[0];
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+        if (firstSort.field) {
+          params.set("sort", firstSort.field);
+          console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.field", firstSort.field);
+        }
 
-    // ソート - 複数選択可能になったため、最初のソート条件のみ使用
-    if (listingsConditions.sort && listingsConditions.sort.length > 0) {
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_listingsConditions.sort_start");
-      const firstSort = listingsConditions.sort[0];
-
-      if (firstSort.field) {
-        params.set("sort", firstSort.field);
-        console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.field", firstSort.field);
+        // ソート方向
+        if (firstSort.direction) {
+          params.set("sort_direction", firstSort.direction);
+          console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.direction", firstSort.direction);
+        }
       }
 
-      // ソート方向
-      if (firstSort.direction) {
-        params.set("sort_direction", firstSort.direction);
-        console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.direction", firstSort.direction);
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 検索クエリ
+      if (newListingsConditions.searchQuery) {
+        params.set("q", newListingsConditions.searchQuery);
       }
-    }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 検索クエリ
-    if (listingsConditions.searchQuery) {
-      params.set("q", listingsConditions.searchQuery);
-    }
+      // 価格範囲
+      if (newListingsConditions.minBid !== null && newListingsConditions.minBid !== undefined && newListingsConditions.minBid !== 0) {
+        params.set("min_bid", String(newListingsConditions.minBid));
+      }
+      if (newListingsConditions.maxBid !== null && newListingsConditions.maxBid !== undefined && newListingsConditions.maxBid !== 0) {
+        params.set("max_bid", String(newListingsConditions.maxBid));
+      }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 価格範囲
-    if (listingsConditions.minBid !== null && listingsConditions.minBid !== undefined && listingsConditions.minBid !== 0) {
-      params.set("min_bid", String(listingsConditions.minBid));
-    }
-    if (listingsConditions.maxBid !== null && listingsConditions.maxBid !== undefined && listingsConditions.maxBid !== 0) {
-      params.set("max_bid", String(listingsConditions.maxBid));
-    }
+      // 残り時間範囲
+      if (
+        newListingsConditions.minRemainingTime !== null &&
+        newListingsConditions.minRemainingTime !== undefined &&
+        newListingsConditions.minRemainingTime !== 0
+      ) {
+        params.set("min_remaining_time", String(newListingsConditions.minRemainingTime));
+      }
+      if (
+        newListingsConditions.maxRemainingTime !== null &&
+        newListingsConditions.maxRemainingTime !== undefined &&
+        newListingsConditions.maxRemainingTime !== 0
+      ) {
+        params.set("max_remaining_time", String(newListingsConditions.maxRemainingTime));
+      }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 残り時間範囲
-    if (
-      listingsConditions.minRemainingTime !== null &&
-      listingsConditions.minRemainingTime !== undefined &&
-      listingsConditions.minRemainingTime !== 0
-    ) {
-      params.set("min_remaining_time", String(listingsConditions.minRemainingTime));
-    }
-    if (
-      listingsConditions.maxRemainingTime !== null &&
-      listingsConditions.maxRemainingTime !== undefined &&
-      listingsConditions.maxRemainingTime !== 0
-    ) {
-      params.set("max_remaining_time", String(listingsConditions.maxRemainingTime));
-    }
+      // グループID
+      if (newListingsConditions.groupIds && newListingsConditions.groupIds.length > 0) {
+        newListingsConditions.groupIds.forEach((id) => params.append("group_id", id));
+      }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループID
-    if (listingsConditions.groupIds && listingsConditions.groupIds.length > 0) {
-      listingsConditions.groupIds.forEach((id) => params.append("group_id", id));
-    }
+      // URLパラメータを作成
+      const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_newUrl", newUrl);
 
-    // URLパラメータを作成
-    const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_newUrl", newUrl);
+      // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
+      router.push(newUrl, { scroll: false });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-    router.push(newUrl, { scroll: false });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  }, [router, listingsConditions]);
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    },
+    [router],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -384,89 +386,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     handleToggleWatchlist,
     setListingsConditions: (newListingsConditions: AuctionListingsConditions) => {
       console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_newConditions", newListingsConditions);
-
-      // オブジェクトの深いコピーを作成して変更を確実に検知させる
-      const updatedConditions = JSON.parse(JSON.stringify(newListingsConditions)) as AuctionListingsConditions;
-
-      // 状態を更新する前に、この関数のローカル変数を使用してURLパラメータを更新する
-      // これにより非同期的な状態更新を待たずにURLパラメータを正確に設定できる
-      const params = new URLSearchParams();
-
-      // ページ数
-      if (updatedConditions.page > 1) {
-        params.set("page", String(updatedConditions.page));
-      }
-
-      // カテゴリ
-      if (updatedConditions.categories && updatedConditions.categories.length > 0) {
-        if (!updatedConditions.categories.includes("すべて")) {
-          updatedConditions.categories.forEach((category) => {
-            if (category) params.append("category", category);
-          });
-        }
-      }
-
-      // ステータス
-      if (updatedConditions.status && updatedConditions.status.length > 0 && updatedConditions.status[0] !== "all") {
-        updatedConditions.status.forEach((status) => {
-          params.append("status", status);
-        });
-      }
-
-      // ソート
-      if (updatedConditions.sort && updatedConditions.sort.length > 0) {
-        const firstSort = updatedConditions.sort[0];
-        if (firstSort.field) {
-          params.set("sort", firstSort.field);
-        }
-        if (firstSort.direction) {
-          params.set("sort_direction", firstSort.direction);
-        }
-      }
-
-      // 検索クエリ
-      if (updatedConditions.searchQuery) {
-        params.set("q", updatedConditions.searchQuery);
-      }
-
-      // 価格範囲
-      if (updatedConditions.minBid !== null && updatedConditions.minBid !== undefined && updatedConditions.minBid !== 0) {
-        params.set("min_bid", String(updatedConditions.minBid));
-      }
-      if (updatedConditions.maxBid !== null && updatedConditions.maxBid !== undefined && updatedConditions.maxBid !== 0) {
-        params.set("max_bid", String(updatedConditions.maxBid));
-      }
-
-      // 残り時間範囲
-      if (
-        updatedConditions.minRemainingTime !== null &&
-        updatedConditions.minRemainingTime !== undefined &&
-        updatedConditions.minRemainingTime !== 0
-      ) {
-        params.set("min_remaining_time", String(updatedConditions.minRemainingTime));
-      }
-      if (
-        updatedConditions.maxRemainingTime !== null &&
-        updatedConditions.maxRemainingTime !== undefined &&
-        updatedConditions.maxRemainingTime !== 0
-      ) {
-        params.set("max_remaining_time", String(updatedConditions.maxRemainingTime));
-      }
-
-      // グループID
-      if (updatedConditions.groupIds && updatedConditions.groupIds.length > 0) {
-        updatedConditions.groupIds.forEach((id) => params.append("group_id", id));
-      }
-
-      // URLを更新
-      const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_newUrl", newUrl);
-      router.push(newUrl, { scroll: false });
-
-      // 状態を更新
-      setListingsConditions(updatedConditions);
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_after", updatedConditions);
+      setListingsConditions(newListingsConditions);
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_after", listingsConditions);
+      updateUrlParams(newListingsConditions);
     },
-    updateUrlParams,
   };
 }

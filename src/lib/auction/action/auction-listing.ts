@@ -167,6 +167,10 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
             where.status = {
               not: AuctionStatus.ENDED,
             };
+            where.endTime = {
+              gte: new Date(),
+            };
+            console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_not_ended", where);
             break;
           default:
             // "all" の場合は追加条件なし
@@ -266,6 +270,10 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
           orderBy = { endTime: sortDirection };
           break;
         case "bids":
+          // 入札数で並び替え
+          orderBy = { bidHistories: { _count: sortDirection } };
+          break;
+        case "price":
           // 最高入札額で並び替え
           orderBy = { currentHighestBid: sortDirection };
           break;
