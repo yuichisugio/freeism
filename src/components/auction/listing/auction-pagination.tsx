@@ -46,60 +46,71 @@ export const AuctionPagination = memo(function AuctionPagination({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <Pagination>
-        <PaginationContent>
-          {/* 前のページに進むかどうか */}
-          {hasPreviousPage && (
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => {
-                  setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page - 1 });
-                }}
-              />
-            </PaginationItem>
-          )}
-
-          {/* ページネーションの表示 */}
-          {pageNumbers.map((page, index) => {
-            if (page === -1 || page === -2) {
-              return (
-                <PaginationItem key={`ellipsis-${index}`}>
-                  <span className="flex size-9 items-center justify-center">...</span>
+    <>
+      <div className="mt-8 flex justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Pagination>
+            <PaginationContent>
+              {/* 前のページに進むかどうか */}
+              {hasPreviousPage && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => {
+                      setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page - 1 });
+                    }}
+                  />
                 </PaginationItem>
-              );
-            }
+              )}
 
-            return (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  isActive={page === listingsConditions.page}
-                  onClick={() => {
-                    setListingsConditionsAction({ ...listingsConditions, page });
-                  }}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            );
-          })}
+              {/* ページネーションの表示 */}
+              {pageNumbers.map((page, index) => {
+                if (page === -1 || page === -2) {
+                  return (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <span className="flex size-9 items-center justify-center">...</span>
+                    </PaginationItem>
+                  );
+                }
 
-          {/* 次のページに進むかどうか */}
-          {hasNextPage && (
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => {
-                  setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page + 1 });
-                }}
-              />
-            </PaginationItem>
-          )}
-        </PaginationContent>
-      </Pagination>
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      isActive={page === listingsConditions.page}
+                      onClick={() => {
+                        setListingsConditionsAction({ ...listingsConditions, page });
+                      }}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
 
-      <div className="text-muted-foreground text-sm">
-        {listingsConditions.page} / {Math.ceil(auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)} ページ
+              {/* 次のページに進むかどうか */}
+              {hasNextPage && (
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => {
+                      setListingsConditionsAction({ ...listingsConditions, page: listingsConditions.page + 1 });
+                    }}
+                  />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+
+          {/* 現在のページと総ページ数の表示 */}
+          <div className="text-muted-foreground text-sm">
+            {listingsConditions.page} / {Math.ceil(auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)} ページ
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* 商品数と合計ページ数の表示 */}
+      <div className="mt-4 text-center text-sm text-gray-500">
+        全{auctions.length}件中
+        {Math.min(listingsConditions.page * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, auctions.length)}件を表示
+      </div>
+    </>
   );
 });
