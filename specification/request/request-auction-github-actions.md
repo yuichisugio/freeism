@@ -188,36 +188,32 @@
 1. `schedule: cron`を使用した定期実行の実装
 1. `workflow_dispatch:`トリガーも加えて手動実行できるようにする
 1. GitHub Actionsのキャッシュを使用する
-
-```yaml
-- name: キャッシュの復元
-  uses: actions/cache@v3
-  with:
-  path: |
-    ~/.pnpm-store
-    node_modules
-    .next/cache
-  key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-  restore-keys: |
-    ${{ runner.os }}-pnpm-
-```
-
+   ```yaml
+   - name: キャッシュの復元
+     uses: actions/cache@v3
+     with:
+     path: |
+       ~/.pnpm-store
+       node_modules
+       .next/cache
+     key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+     restore-keys: |
+       ${{ runner.os }}-pnpm-
+   ```
 1. 実行するOSは、Ubuntu (Linux)
 1. typescriptを使用する設定を行う
-
-- 全依存ファイルのトランスパイルする
-  - 実行するTypeScriptファイルと、それがインポートするすべてのファイル
-  - Next.jsのサーバーアクションも含めて対象になります
-- プロジェクト全体をトランスパイルするコード `tsc --project tsconfig.json`
-
+   - 全依存ファイルのトランスパイルする
+     - 実行するTypeScriptファイルと、それがインポートするすべてのファイル
+     - Next.jsのサーバーアクションも含めて対象になります
+   - プロジェクト全体をトランスパイルするコード `tsc --project tsconfig.json`
 1. Next.js専用の設定
 1. パッケージのinstallは、`pnpm`の`pnpm install --frozen-lockfile`を使用する
 1. 入札タイブ（同額入札）の対応
    - race conditionの同じ入札額のユーザーが複数いた場合は、入札日時が早い人が落札する先着順で決める
 1. - ユーザーが入札を行うと、即座にPrisma ORM経由でデータベースに新しい入札レコードを作成する。入札処理はトランザクション内で行い、以下を保証する
-     - 同時入札が発生した場合も原子的に処理し、最終的に一意の最高入札額が正しく記録される。
-     - 入札保存後、オークションの現在最高入札額および最高入札者をオークションテーブルに更新する (最新状態をキャッシュすることで表示のために複数テーブルを結合する必要を軽減)。
-     - トランザクションは、`$transaction`と`version`カラムを使用したPrisma ORMの**Optimistic Concurrency Control(OCC、楽観的なロック)を使用する**
+   - 同時入札が発生した場合も原子的に処理し、最終的に一意の最高入札額が正しく記録される。
+   - 入札保存後、オークションの現在最高入札額および最高入札者をオークションテーブルに更新する (最新状態をキャッシュすることで表示のために複数テーブルを結合する必要を軽減)。
+   - トランザクションは、`$transaction`と`version`カラムを使用したPrisma ORMの**Optimistic Concurrency Control(OCC、楽観的なロック)を使用する**
 
 ## パフォーマンス最適化とその他設計上の考慮
 
