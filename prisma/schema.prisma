@@ -176,12 +176,16 @@ model Task {
   deliveryMethod         String?          @map("delivery_method") // 提供方法
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
-  creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
   creatorId              String           @map("creator_id")
+  creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
   reporters              TaskReporter[]
   executors              TaskExecutor[]
+
   group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId                String
+
   analytics              Analytics[]
   notifications          Notification[]
   auction                Auction?

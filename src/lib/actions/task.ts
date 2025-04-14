@@ -18,6 +18,20 @@ import { endOfDay, startOfDay } from "date-fns";
  */
 export async function createTask(data: TaskFormValuesAndGroupId) {
   try {
+    // groupIdの存在確認
+    if (!data.groupId) {
+      return { error: "グループIDが指定されていません" };
+    }
+
+    // グループの存在確認
+    const group = await prisma.group.findUnique({
+      where: { id: data.groupId },
+    });
+
+    if (!group) {
+      return { error: "指定されたグループが見つかりません" };
+    }
+
     // 認証セッションを取得
     const userId = await getAuthenticatedSessionUserId();
 
@@ -111,6 +125,7 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
           status: "PENDING",
           currentHighestBid: 0,
           extensionCount: 0,
+          groupId: data.groupId,
         },
       });
     }
@@ -668,6 +683,20 @@ export async function bulkCreateTasks(
   groupId: string,
 ) {
   try {
+    // groupIdの存在確認
+    if (!groupId) {
+      return { error: "グループIDが指定されていません" };
+    }
+
+    // グループの存在確認
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      return { error: "指定されたグループが見つかりません" };
+    }
+
     // 認証セッションを取得
     const userId = await getAuthenticatedSessionUserId();
 
@@ -737,6 +766,7 @@ export async function bulkCreateTasks(
                 status: "PENDING",
                 currentHighestBid: 0,
                 extensionCount: 0,
+                groupId: groupId,
               },
             });
           }
@@ -1100,6 +1130,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
 
       // 貢献タイプがREWARDに変更され、オークションが存在しない場合は新規作成
       if (data.contributionType === contributionType.REWARD && !existingAuction) {
+        // タスクのgroupIdを使用してオークションを作成
         await prismaClient.auction.create({
           data: {
             taskId: taskId,
@@ -1108,6 +1139,7 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
             status: "PENDING",
             currentHighestBid: 0,
             extensionCount: 0,
+            groupId: existingTask.groupId, // タスクに関連付けられたグループIDを使用
           },
         });
       }

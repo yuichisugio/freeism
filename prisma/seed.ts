@@ -1023,6 +1023,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
         startTime,
         endTime,
         status,
+        groupId: task.groupId, // タスクからgroupIdを取得して追加
         createdAt: new Date(startTime.getTime() - faker.number.int({ min: 1, max: 48 }) * 60 * 60 * 1000),
       },
     });
