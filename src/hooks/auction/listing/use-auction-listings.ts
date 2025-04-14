@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
+import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAuctionListings } from "@/lib/auction/action/auction-listing";
@@ -44,10 +44,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ステータスのURLパラメータ（複数可能）
   const currentStatusParams = searchParams.getAll("status");
-  const currentStatus =
-    currentStatusParams.length > 0
-      ? currentStatusParams.map((status) => status as "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended")
-      : ["all" as const];
+  const currentStatus = currentStatusParams.length > 0 ? currentStatusParams.map((status) => status as AuctionFilterTypes) : ["all" as const];
 
   // ソートのURLパラメータ
   const currentSort = searchParams.get("sort") as AuctionSortField | null;

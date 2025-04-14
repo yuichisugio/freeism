@@ -1,7 +1,13 @@
 "use client";
 
 import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import type { AuctionListingsConditions, AuctionSortField, SortDirection, UseAuctionFiltersProps } from "@/lib/auction/type/types";
+import type {
+  AuctionFilterTypes,
+  AuctionListingsConditions,
+  AuctionSortField,
+  SortDirection,
+  UseAuctionFiltersProps,
+} from "@/lib/auction/type/types";
 import { useCallback, useEffect, useState } from "react";
 import { getUserGroups } from "@/lib/auction/action/user";
 
@@ -25,7 +31,7 @@ type UseAuctionFiltersReturn = {
   setChangingSearchQuery: (searchQuery: string | null) => void;
   setOpenGroupCombobox: (open: boolean) => void;
   handleCategorySelect: (category: string) => void;
-  handleStatusSelect: (status: "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended") => void;
+  handleStatusSelect: (status: AuctionFilterTypes) => void;
   handleGroupSelect: (groupId: string | null) => void;
   handlePriceRangeChange: (value: [number, number]) => void;
   handlePriceRangeApply: () => void;
@@ -213,8 +219,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    * @param status 選択されたステータス
    */
   const handleStatusSelect = useCallback(
-    (status: "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended") => {
-      handleMultiSelect<"all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended">("status", status, ["all"], true, "all");
+    (status: AuctionFilterTypes) => {
+      handleMultiSelect<AuctionFilterTypes>("status", status, ["all"], true, "all");
     },
     [handleMultiSelect],
   );

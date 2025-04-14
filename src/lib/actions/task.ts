@@ -1376,7 +1376,6 @@ export async function bulkUpdateTaskStatuses(
     // 有効なステータスの配列
     const validStatuses: TaskStatus[] = [
       "PENDING",
-      "BIDDED",
       "POINTS_DEPOSITED",
       "TASK_COMPLETED",
       "FIXED_EVALUATED",

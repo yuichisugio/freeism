@@ -217,7 +217,6 @@ model Analytics {
 
 enum TaskStatus {
   PENDING // タスク実施予定
-  BIDDED // 落札済み。報酬あり専用
   POINTS_DEPOSITED // ポイント預け済み。報酬あり専用
   TASK_COMPLETED // タスク完了。報酬の有無関係なしで、タスクが完了した場合に使用
   FIXED_EVALUATED // ポイント額がFIXED_CONTRIBUTION_POINTによって評価されたときに使用

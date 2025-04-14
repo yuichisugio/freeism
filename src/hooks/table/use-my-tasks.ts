@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { checkAppOwner } from "@/lib/actions/group";
 import { getMyTasks } from "@/lib/actions/task";
 import { getAllUsers } from "@/lib/actions/user";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { fetchAuthenticatedUserId } from "@/lib/utils";
 import { toast } from "react-hot-toast";
 
 type BasicUser = {
@@ -47,7 +47,7 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
   useEffect(() => {
     async function checkPermissions() {
       try {
-        const currentUserId = await getAuthenticatedSessionUserId();
+        const currentUserId = await fetchAuthenticatedUserId();
         if (currentUserId) {
           setUserId(currentUserId);
           const isOwner = await checkAppOwner(currentUserId);

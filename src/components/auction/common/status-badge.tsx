@@ -122,10 +122,6 @@ export const TaskStatusBadge = memo(function TaskStatusBadge({ status }: TaskSta
         label: "進行中",
         variant: "default" as const,
       },
-      [TaskStatus.BIDDED]: {
-        label: "落札済み",
-        variant: "secondary" as const,
-      },
       [TaskStatus.POINTS_DEPOSITED]: {
         label: "ポイント預け済み",
         variant: "secondary" as const,

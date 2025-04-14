@@ -207,7 +207,7 @@ export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
     title: "タスクステータス",
     description: "タスクのステータスを一括で更新します。",
     requiredFields:
-      "taskId（タスクID）, status（ステータス→ PENDING・ BIDDED・ POINTS_DEPOSITED・ TASK_COMPLETED・ FIXED_EVALUATED・ POINTS_AWARDED・ ARCHIVED）",
+      "taskId（タスクID）, status（ステータス→ PENDING・ POINTS_DEPOSITED・ TASK_COMPLETED・ FIXED_EVALUATED・ POINTS_AWARDED・ ARCHIVED）",
     note: "statusに指定できる値は限定されています。大文字小文字を正確に入力してください。",
     example: "clrqz3kp20000n4og9xq9d6mt,TASK_COMPLETED",
   },

@@ -176,7 +176,7 @@ export type UseCountdownProps = {
  */
 export type AuctionListingsConditions = {
   categories: ((typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null)[] | null;
-  status: ("all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended")[] | null;
+  status: AuctionFilterTypes[] | null;
   minBid: number | null;
   maxBid: number | null;
   minRemainingTime: number | null;
@@ -191,6 +191,11 @@ export type AuctionListingsConditions = {
     | null;
   page: number;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// ステータスの型
+export type AuctionFilterTypes = "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

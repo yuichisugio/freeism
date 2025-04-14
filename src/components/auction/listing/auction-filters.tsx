@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import { type AuctionFiltersProps } from "@/lib/auction/type/types";
+import { type AuctionFiltersProps, type AuctionFilterTypes } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
@@ -331,7 +331,7 @@ export const AuctionFilters = memo(function AuctionFilters({
       if (!draftConditions.status || !Array.isArray(draftConditions.status)) {
         return status === "all";
       }
-      return draftConditions.status.includes(status as "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended");
+      return draftConditions.status.includes(status as AuctionFilterTypes);
     },
     [draftConditions.status],
   );
@@ -584,7 +584,7 @@ export const AuctionFilters = memo(function AuctionFilters({
                           "hover:border-opacity-80 mb-2 flex w-full cursor-pointer items-center rounded-md border p-3 text-left transition-all",
                           isStatusSelected(option.value) ? "border-green-500 bg-green-50 shadow-sm" : "border-gray-200",
                         )}
-                        onClick={() => handleStatusSelect(option.value as "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended")}
+                        onClick={() => handleStatusSelect(option.value as AuctionFilterTypes)}
                         aria-pressed={isStatusSelected(option.value)}
                         type="button"
                       >
