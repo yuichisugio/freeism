@@ -25,79 +25,150 @@
 ### TaskStatus
 
 - PENDING
-  - 使用：タスク実施予定
-  - タスクを新規作成した時のステータス
-  - トリガー：Taskテーブルのレコードを作成した際に自動で入る
+  - 使用
+    - タスク実施予定
+  - トリガー
+    - Taskテーブルのレコードを作成した際に自動で入る
+  - 詳細
+    - タスクを新規作成した時のステータス
 - POINTS_DEPOSITED
-  - 使用：ポイント預け済み
-  - 専用：報酬あり専用
-  - トリガー：オークションの完了処理の際に、落札者の入札額を差し引いた際に、「POINTS_DEPOSITED」になる
+  - 使用
+    - ポイント預け済み
+  - トリガー
+    - オークションの完了処理の際に、落札者の入札額を差し引いた際に、「POINTS_DEPOSITED」になる
+  - 専用
+    - 報酬あり専用
 - TASK_COMPLETED
-  - 使用：タスクの実行が完了した場合に使用
-  - 手動で変更(CSVアップロード or タスクのテーブルのComboBoxで変更)
-  - 貢献度の評価を行うためには、「TASK_COMPLETED」にする必要がある
+  - 使用
+    - タスクの実行が完了した場合に使用
+  - トリガー
+    - 手動で変更(CSVアップロード or タスクのテーブルのComboBoxで変更)
+  - 詳細
+    - 貢献度の評価を行うためには、「TASK_COMPLETED」にする必要がある
 - FIXED_EVALUATED
-  - 使用：貢献度の評価が行われ、貢献度がFIXしたときに使用
-  - トリガー：ポイント額が「Task」テーブルの「fixedContributionPoint」カラムに値を入れるときに変更
+  - 使用
+    - 貢献度の評価が行われ、貢献度がFIXしたときに使用
+  - トリガー
+    - ポイント額が「Task」テーブルの「fixedContributionPoint」カラムに値を入れるときに変更
 - POINTS_AWARDED
-  - 使用：ポイントの付与が完了したときに使用
-  - トリガー：
+  - 使用
+    - ポイントの付与が完了したときに使用
+  - トリガー
+    - ポイント額が「Task」テーブルの「fixedContributionPoint」カラムに値を入れるときに変更
+  - 補足
+    - 今後は、給料日みたいに評価確定とは別日に、決まった日にポイント付与する場合は、「POINTS_AWARDED」と異なるトリガーになる
 - ARCHIVED
-  - 使用：タスクをアーカイブしたときに使用
-  - 補足：現在はアーカイブにする機能がないので使用しない
+  - 使用
+    - タスクをアーカイブしたときに使用
+  - 補足
+    - これは現在はアーカイブにする機能がないので使用しない
 
 ### AuctionStatus
 
 - PENDING
-  - オークション開始前
+  - 使用
+    - タスク実施予定
+  - トリガー
+    - Taskテーブルのレコードを作成した際に自動で入る
+  - 詳細
+    - タスクを新規作成した時のステータス
 - ACTIVE
-  - オークション進行中
+  - 使用
+    - オークション進行中
+  - トリガー
+    - AuctionのstartTimeが今日以前をGitHub Actionsでステータス変更する際に実行
 - ENDED
-  - オークション終了
-  - AuctionテーブルのendTimeが今日以前の場合
+  - 使用
+    - オークション終了
+  - トリガー
+    - AuctionテーブルのendTimeが今日以前の場合
 - CANCELED
-  - オークションキャンセル
+  - 使用
+    - オークションキャンセルして実施しない場合に使用
+  - トリガー
+    - タスクを削除した場合
 
 ### BidStatus
 
 - BIDDING
-  - 入札中
+  - 使用
+    - 入札中
+  - トリガー
+    - `BitHistory`のレコードが作成された際に自動で入る
 - WON
-  - 落札済み
+  - 使用
+    - 落札済み
+  - トリガー
+    - オークションの完了処理が完了したとき
 - LOST
-  - 落札失敗
+  - 使用
+    - 落札失敗
+  - トリガー
+    - オークションの完了処理が完了したとき
 - INSUFFICIENT
-  - 残高不足
+  - 使用
+    - 残高不足
+  - トリガー
+    - オークションの完了処理の際に、保有ポイントが落札ポイントより低い場合に自動で入る
 
 ### NotificationSendTiming
 
 - NOW
-  - 即時送信
+  - 使用
+    - 即時送信
+  - トリガー
+    - 通知作成時
 - SCHEDULED
-  - 予定時間送信
+  - 使用
+    - 予定時間送信
+  - トリガー
+    - 通知作成時
+  - 詳細
+    - GitHub Actionsで、通知の送信の実行を行った際に使用
 
 ### AuctionEventType
 
 - ITEM_SOLD
-  - 商品が落札された
+  - 使用
+    - 商品が落札された
+  - トリガー
+    - オークションの完了処理が完了したとき
 - NO_WINNER
-  - 落札者がいなかった
+  - 使用
+    - 落札者がいなかった
+  - トリガー
 - ENDED
-  - オークションが終了した
+  - 使用
+    - オークションが終了した
+  - トリガー
 - OUTBID
-  - 自分の入札が他者に上回られた
+  - 使用
+    - 自分の入札が他者に上回られた
+  - トリガー
 - QUESTION_RECEIVED
-  - 質問を受け取った
+  - 使用
+    - 質問を受け取った
+  - トリガー
 - AUTO_BID_LIMIT_REACHED
-  - 設定した最大入札額に達した
+  - 使用
+    - 設定した最大入札額に達した
+  - トリガー
 - AUCTION_WIN
-  - オークション落札
+  - 使用
+    - オークション落札
+  - トリガー
 - AUCTION_LOST
-  - オークション落札失敗
+  - 使用
+    - オークション落札失敗
+  - トリガー
 - POINT_RETURNED
-  - ポイント返還
+  - 使用
+    - ポイント返還
+  - トリガー
 - AUCTION_CANCELED
-  - オークションキャンセル
+  - 使用
+    - オークションキャンセル
+  - トリガー
 
 ## GitHub Actionsの仕様
 
@@ -143,25 +214,9 @@
    - 30分ごとの実行
    - setInterval()ではなく、GitHub Actionsの定期実行に切り替える
 1. オークションの通知の定期実行
-
-   ```typescript
-     enum AuctionEventType {
-       ITEM_SOLD // 商品が落札された。GitHub ActionsでsendAuctionNotification()を呼び出す
-       NO_WINNER // 落札者がいなかった。GitHub ActionsでsendAuctionNotification()を呼び出す
-       ENDED // オークションが終了した。GitHub ActionsでsendAuctionNotification()を呼び出す
-       AUCTION_WIN // オークション落札。GitHub ActionsでsendAuctionNotification()を呼び出す
-       AUCTION_LOST // オークション落札失敗。GitHub ActionsでsendAuctionNotification()を呼び出す
-       POINT_RETURNED // ポイント返還。GitHub ActionsでsendAuctionNotification()を呼び出す
-
-       OUTBID // 済み。自分の入札が他者に上回られた。現在の最高額で、新規入札で超えられた人のみに対して送る
-       QUESTION_RECEIVED // 済み。質問を受け取った。
-       AUTO_BID_LIMIT_REACHED // 済み。設定した最大入札額に達した
-       AUCTION_CANCELED // キャンセルはオークション開始前で参加者がいないため、通知は実装しない！ので、オークションキャンセル
-     }
-   ```
-
 1. オークションの完了処理の定期実行
 1. ポイントの返還処理の実装
+1. オークションの開始処理
 1. テスト
 
 ### GitHub Actions定期実行するタスクの種類
@@ -171,18 +226,37 @@
 1. 自動入札を実行する
    - 1時間ごとの実行
      - 費用的に、一旦は間隔を長めにする
-2. オークションの完了処理
-3. オークション関連の通知を飛ばす
-4. ポイント返還の処理
+1. オークションの完了処理
+1. ポイント返還の処理
+1. 通知の送信
+   1. オークション関連の通知は、GitHub Actionsのオークション関連の実装時に行うで実装する
+   1. `NotificationSendTiming`が`SCHEDULED`の予約送信する通知の送信
+
+### オークションの開始処理
+
+---
+
+1. 「Auction」テーブルの「startTime」カラムが今日以前で、「status」カラムが「CANCEL」以外の場合は、「ACTIVE」にする
 
 ### オークションの完了処理
 
 ---
 
+- 実行するオークションの条件 - `Auction`テーブルの`endTime`カラムが今日以前の場合
+
 - 以下の処理を行う
-  1. Auctionテーブル/Taskテーブルのステータス変更
-  2. 入札額を差し引く
-  3.
+
+  1. 落札者の入札額を差し引く
+
+     - 処理前に落札者の保有ポイント額が、落札商品の入札額が2番目に多いユーザーに1ポイント加算した額より、小さい場合は、`BidHistory`テーブルの`status`カラムを`INSUFFICIENT`にして、2番目に多い人を繰り上げ当選させる
+       - その2番目の入札額のユーザーのポイントを差し引く額は、3番目の入札額に1ポイント加算した額
+
+  1. `Auction`テーブル/`Task`テーブル/`BidHistory`テーブルのステータス変更
+     - 変更カラム
+       - `Auction`テーブルの`status`カラムを`ENDED`に変更
+       - `Task`テーブルの`status`カラムを`POINTS_DEPOSITED`に変更
+       - `BidHistory`テーブルの落札者の最高額の入札レコードの`status`カラムを`WON`に変更
+       - `BidHistory`テーブルの`WON`と`INSUFFICIENT`以外のレコードは`LOST`にする
 
 ### ポイント返還する処理
 

@@ -44,7 +44,7 @@ export async function getAuthenticatedSessionUserId(): Promise<string> {
 
     // セッション情報が取得できない場合はエラーを投げる
     if (!session?.user?.id) {
-      throw new Error("utils.ts_getSessionUserId_ユーザーIDが取得できませんでした");
+      throw new Error("utils.ts_getAuthenticatedSessionUserId_ユーザーIDが取得できませんでした");
     }
 
     const sessionUserId = session.user.id;
@@ -54,7 +54,7 @@ export async function getAuthenticatedSessionUserId(): Promise<string> {
 
     // エラーが発生した場合はログイン画面にリダイレクト
   } catch (error) {
-    console.error("utils.ts_getSessionUserId_エラーが発生しました", error);
+    console.error("utils.ts_getAuthenticatedSessionUserId_リダイレクトが発生しました", error);
     redirect("/auth/signin");
   }
 }
