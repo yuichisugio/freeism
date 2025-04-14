@@ -436,6 +436,7 @@ enum AuctionStatus {
 model BidHistory {
   id        String    @id @default(cuid())
   amount    Int // 入札額
+  depositPoint Int?  @map("deposit_point") // 預けたポイント
   isAutoBid Boolean   @default(false) @map("is_auto_bid")
   status    BidStatus @default(BIDDING)
 
