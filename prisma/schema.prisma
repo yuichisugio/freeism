@@ -131,6 +131,7 @@ model Group {
   analytics        Analytics[]
   notifications    Notification[]
   groupPoints      GroupPoint[]
+  auctions         Auction[]
 
   @@index([createdBy])
 }
@@ -402,6 +403,9 @@ model Auction {
 
   winnerId String? @map("winner_id")
   winner   User?   @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  groupId String @map("group_id")
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   bidHistories  BidHistory[]
   watchlists    TaskWatchList[]
