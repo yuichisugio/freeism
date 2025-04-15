@@ -1,7 +1,7 @@
 import type { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { AuctionStatus, NotificationTargetType, PrismaClient, TaskStatus } from "@prisma/client";
+import { AuctionStatus, BidStatus, NotificationTargetType, PrismaClient, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -198,6 +198,20 @@ type SeedAuction = {
   version: number;
   createdAt: Date;
   updatedAt: Date;
+  groupId: string; // 追加
+};
+
+// 追加: オークションデータ作成のための型定義
+type AuctionData = {
+  taskId: string;
+  groupId: string;
+  currentHighestBid: number;
+  startTime: Date;
+  endTime: Date;
+  status: AuctionStatus;
+  createdAt: Date;
+  currentHighestBidderId?: string | null;
+  winnerId?: string | null;
 };
 
 /**
@@ -459,7 +473,8 @@ const CATEGORY_DELIVERY_METHODS: Record<string, string[]> = {
  */
 async function createTasks(count: number, groupMemberships: { userId: string; groupId: string }[], users: SeedUser[]) {
   const tasks = [];
-  const taskStatuses = Object.values(TaskStatus);
+  // 仕様書によると、新規作成時のステータスはPENDINGが適切
+  // const taskStatuses = Object.values(TaskStatus);
 
   for (let i = 0; i < count; i++) {
     // ランダムにメンバーシップを選択
@@ -469,7 +484,9 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
 
     // タスクの詳細を生成
     const taskTitle = faker.company.catchPhrase();
-    const taskStatus = faker.helpers.arrayElement(taskStatuses);
+    // 仕様書により、タスク作成時のステータスはPENDINGに設定する
+    // const taskStatus = faker.helpers.arrayElement(taskStatuses);
+    const taskStatus = TaskStatus.PENDING;
 
     // ランダムにカテゴリを選択
     const category = faker.helpers.arrayElement(TASK_CATEGORIES);
@@ -1014,21 +1031,35 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       });
     }
 
+    // データを構築
+    const auctionData: AuctionData = {
+      taskId: task.id,
+      groupId: task.groupId,
+      currentHighestBid,
+      startTime,
+      endTime,
+      status,
+      createdAt: new Date(startTime.getTime() - faker.number.int({ min: 1, max: 48 }) * 60 * 60 * 1000),
+    };
+
+    // 条件付きでフィールドを追加
+    if (currentHighestBidderId) {
+      auctionData.currentHighestBidderId = currentHighestBidderId;
+    }
+
+    if (winnerId) {
+      auctionData.winnerId = winnerId;
+    }
+
     const auction = await prisma.auction.create({
-      data: {
-        taskId: task.id,
-        currentHighestBid,
-        currentHighestBidderId,
-        winnerId,
-        startTime,
-        endTime,
-        status,
-        groupId: task.groupId, // タスクからgroupIdを取得して追加
-        createdAt: new Date(startTime.getTime() - faker.number.int({ min: 1, max: 48 }) * 60 * 60 * 1000),
-      },
+      data: auctionData,
     });
 
-    auctions.push(auction);
+    // SeedAuction型に合致するように、必要な属性をすべて含めてpush
+    auctions.push({
+      ...auction,
+      groupId: task.groupId,
+    });
   }
 
   console.log(`Created ${auctions.length} auctions`);
@@ -1070,6 +1101,8 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       .map(() => new Date(auction.startTime.getTime() + faker.number.float() * bidTimeRange))
       .sort((a, b) => a.getTime() - b.getTime());
 
+    const bidRecords = []; // 一時的に入札記録を保持するための配列
+
     for (let i = 0; i < bidCount; i++) {
       const bidder = faker.helpers.arrayElement(potentialBidders);
 
@@ -1080,6 +1113,9 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       // 自動入札かどうかをランダムに決定
       const isAutoBid = faker.datatype.boolean(0.3); // 30%の確率で自動入札
 
+      // 初期ステータスはBIDDING（仕様書に基づき、入札時は常にBIDDING）
+      const bidStatus = BidStatus.BIDDING;
+
       const bid = await prisma.bidHistory.create({
         data: {
           auctionId: auction.id,
@@ -1087,16 +1123,205 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
           amount: currentBid,
           isAutoBid,
           createdAt: bidTimes[i],
-          status: "BIDDING", // BIDDINGがBidStatusの有効な値
+          status: bidStatus, // 最初は必ずBIDDING
         },
       });
 
+      bidRecords.push(bid);
       bidHistories.push(bid);
     }
 
-    // 最終的な最高入札額でオークションを更新
-    if (bidHistories.length > 0) {
-      const highestBid = bidHistories.filter((bid) => bid.auctionId === auction.id).sort((a, b) => b.amount - a.amount)[0];
+    // 入札履歴の処理が完了した後、終了したオークションの場合は正しいステータスを設定
+    if (auction.status === AuctionStatus.ENDED && bidRecords.length > 0) {
+      // 入札額順にソート
+      const sortedBids = bidRecords.sort((a, b) => b.amount - a.amount);
+
+      // トランザクションで全ての処理を行う
+      await prisma.$transaction(async (tx) => {
+        // 最高入札者から順に処理
+        let winnerFound = false;
+        let winner = null;
+        let depositAmount = 0;
+
+        for (let i = 0; i < sortedBids.length; i++) {
+          const currentBid = sortedBids[i];
+          const nextBid = i < sortedBids.length - 1 ? sortedBids[i + 1] : null;
+
+          // 差し引く額を計算（次点の入札額 + 1ポイント、次点がなければ現在の入札額）
+          depositAmount = nextBid ? nextBid.amount + 1 : currentBid.amount;
+
+          // グループのポイント残高を取得
+          const groupPoint = await tx.groupPoint.findFirst({
+            where: {
+              userId: currentBid.userId,
+              groupId: auction.groupId,
+            },
+          });
+
+          // ポイント残高のチェック
+          if (groupPoint && groupPoint.balance >= depositAmount) {
+            // ポイント残高が十分あれば、落札者として決定
+            winner = currentBid;
+            winnerFound = true;
+
+            // 最高入札額での入札レコードをWONに更新
+            await tx.bidHistory.update({
+              where: { id: currentBid.id },
+              data: {
+                status: BidStatus.WON,
+                depositPoint: depositAmount,
+              },
+            });
+
+            // 落札者のポイントを差し引く
+            await tx.groupPoint.update({
+              where: {
+                id: groupPoint.id,
+              },
+              data: {
+                balance: {
+                  decrement: depositAmount,
+                },
+              },
+            });
+
+            // オークションの落札者情報を更新
+            await tx.auction.update({
+              where: { id: auction.id },
+              data: {
+                winnerId: currentBid.userId,
+              },
+            });
+
+            break; // 落札者が見つかったのでループを抜ける
+          } else {
+            // ポイント残高が足りない場合はINSUFFICIENTに更新
+            await tx.bidHistory.update({
+              where: { id: currentBid.id },
+              data: { status: BidStatus.INSUFFICIENT },
+            });
+          }
+        }
+
+        // 他の入札者の入札レコードをLOSTに更新（WONとINSUFFICIENT以外）
+        for (const bid of sortedBids) {
+          if (bid.id !== winner?.id && bid.status !== BidStatus.INSUFFICIENT) {
+            await tx.bidHistory.update({
+              where: { id: bid.id },
+              data: { status: BidStatus.LOST },
+            });
+          }
+        }
+
+        // オークションのステータスを更新
+        await tx.auction.update({
+          where: { id: auction.id },
+          data: {
+            status: AuctionStatus.ENDED,
+          },
+        });
+
+        // タスクのステータスも更新
+        await tx.task.update({
+          where: { id: auction.taskId },
+          data: {
+            status: TaskStatus.POINTS_DEPOSITED,
+          },
+        });
+
+        // オークション関連の通知を作成
+        // タスクの作成者（出品者）情報を取得
+        const task = await tx.task.findUnique({
+          where: { id: auction.taskId },
+          select: { creatorId: true },
+        });
+
+        if (task) {
+          // 落札者情報があれば、出品者に落札通知
+          if (winnerFound) {
+            await tx.notification.create({
+              data: {
+                title: generateNotificationTitle("ITEM_SOLD"),
+                message: generateNotificationMessage("ITEM_SOLD", auction),
+                targetType: "AUCTION_SELLER",
+                sendTimingType: "NOW", // 即時送信
+                auctionEventType: "ITEM_SOLD",
+                sendMethods: ["IN_APP"],
+                senderUserId: null,
+                auctionId: auction.id,
+                isRead: {},
+              },
+            });
+
+            // 落札者に落札通知
+            await tx.notification.create({
+              data: {
+                title: generateNotificationTitle("AUCTION_WIN"),
+                message: generateNotificationMessage("AUCTION_WIN", auction),
+                targetType: "AUCTION_BIDDER",
+                sendTimingType: "NOW", // 即時送信
+                auctionEventType: "AUCTION_WIN",
+                sendMethods: ["IN_APP"],
+                senderUserId: null,
+                auctionId: auction.id,
+                isRead: {},
+              },
+            });
+          } else {
+            // 落札者がいない場合の通知
+            await tx.notification.create({
+              data: {
+                title: generateNotificationTitle("NO_WINNER"),
+                message: generateNotificationMessage("NO_WINNER", auction),
+                targetType: "AUCTION_SELLER",
+                sendTimingType: "NOW", // 即時送信
+                auctionEventType: "NO_WINNER",
+                sendMethods: ["IN_APP"],
+                senderUserId: null,
+                auctionId: auction.id,
+                isRead: {},
+              },
+            });
+          }
+
+          // 出品者にオークション終了通知
+          await tx.notification.create({
+            data: {
+              title: generateNotificationTitle("ENDED"),
+              message: generateNotificationMessage("ENDED", auction),
+              targetType: "AUCTION_SELLER",
+              sendTimingType: "NOW",
+              auctionEventType: "ENDED",
+              sendMethods: ["IN_APP"],
+              senderUserId: null,
+              auctionId: auction.id,
+              isRead: {},
+            },
+          });
+
+          // 落札できなかった入札者への通知
+          for (const bid of sortedBids) {
+            if (bid.status === BidStatus.LOST) {
+              await tx.notification.create({
+                data: {
+                  title: generateNotificationTitle("AUCTION_LOST"),
+                  message: generateNotificationMessage("AUCTION_LOST", auction),
+                  targetType: "AUCTION_BIDDER",
+                  sendTimingType: "NOW",
+                  auctionEventType: "AUCTION_LOST",
+                  sendMethods: ["IN_APP"],
+                  senderUserId: null,
+                  auctionId: auction.id,
+                  isRead: {},
+                },
+              });
+            }
+          }
+        }
+      });
+    } else if (bidRecords.length > 0) {
+      // 進行中のオークションの場合は最高入札額のみ更新
+      const highestBid = bidRecords.sort((a, b) => b.amount - a.amount)[0];
 
       if (highestBid) {
         await prisma.auction.update({
@@ -1815,7 +2040,10 @@ async function main() {
     // 8. グループポイントデータの作成
     const groupPoints = await createGroupPoints(users, auctions);
 
-    // 9. 統計情報の表示
+    // 9. ポイント返還処理のシミュレーション
+    const returnedPoints = await simulatePointReturn(auctions);
+
+    // 10. 統計情報の表示
     console.log("-------------------------------------");
     console.log("シードデータ作成完了！");
     console.log("-------------------------------------");
@@ -1836,6 +2064,7 @@ async function main() {
     console.log(`ウォッチリスト: ${watchLists.length}件`);
     console.log(`オークションレビュー: ${auctionReviews.length}件`);
     console.log(`グループポイント: ${groupPoints.length}件`);
+    console.log(`ポイント返還: ${returnedPoints.length}件`);
     console.log("-------------------------------------");
   } catch (error) {
     console.error("シード作成エラー:", error);
@@ -1847,3 +2076,108 @@ async function main() {
 
 // プログラム実行
 void main();
+
+/**
+ * ポイント返還処理のシミュレーション
+ * 仕様書: オークション終了後、Group.depositPeriod日数後にポイントを返還
+ * @param auctions 終了したオークション
+ */
+async function simulatePointReturn(auctions: SeedAuction[]) {
+  console.log("Simulating point return process...");
+
+  const returnedPoints = [];
+  const now = new Date();
+
+  // 終了済みのオークションのみを対象に
+  const endedAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ENDED && auction.winnerId);
+
+  for (const auction of endedAuctions) {
+    try {
+      // グループの保管期間を取得
+      const group = await prisma.group.findUnique({
+        where: { id: auction.groupId },
+        select: { depositPeriod: true },
+      });
+
+      if (!group) continue;
+
+      // オークション終了日 + 保管期間が今日より前の場合、ポイント返還
+      const returnDate = new Date(auction.endTime);
+      returnDate.setDate(returnDate.getDate() + group.depositPeriod);
+
+      // 一部のオークションで返還済みにするためにランダムフラグを使用
+      const shouldReturn = faker.datatype.boolean(0.5); // 50%の確率で返還済みに
+
+      if (shouldReturn && returnDate <= now && auction.winnerId) {
+        // 落札履歴から入札額を取得
+        const winningBid = await prisma.bidHistory.findFirst({
+          where: {
+            auctionId: auction.id,
+            userId: auction.winnerId,
+            status: BidStatus.WON,
+          },
+        });
+
+        if (winningBid?.depositPoint) {
+          // グループポイントを取得して更新
+          const groupPoint = await prisma.groupPoint.findFirst({
+            where: {
+              userId: auction.winnerId,
+              groupId: auction.groupId,
+            },
+          });
+
+          if (groupPoint) {
+            // ポイント返還処理
+            await prisma.groupPoint.update({
+              where: { id: groupPoint.id },
+              data: {
+                balance: {
+                  increment: winningBid.depositPoint,
+                },
+              },
+            });
+
+            // タスク情報を取得
+            const task = await prisma.task.findUnique({
+              where: { id: auction.taskId },
+              select: { task: true, deliveryMethod: true },
+            });
+
+            // ポイント返還通知を作成
+            await prisma.notification.create({
+              data: {
+                title: generateNotificationTitle("POINT_RETURNED"),
+                message: generateNotificationMessage(
+                  "POINT_RETURNED",
+                  auction,
+                  { task: task?.task ?? "", deliveryMethod: task?.deliveryMethod, groupId: auction.groupId },
+                  returnDate,
+                ),
+                targetType: "AUCTION_BIDDER",
+                sendTimingType: "NOW", // 即時送信
+                auctionEventType: "POINT_RETURNED",
+                sendMethods: ["IN_APP"],
+                senderUserId: null,
+                auctionId: auction.id,
+                isRead: {},
+              },
+            });
+
+            returnedPoints.push({
+              auctionId: auction.id,
+              userId: auction.winnerId,
+              amount: winningBid.depositPoint,
+              returnDate,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("ポイント返還処理エラー:", error);
+    }
+  }
+
+  console.log(`Simulated ${returnedPoints.length} point returns`);
+  return returnedPoints;
+}
