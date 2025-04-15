@@ -59,4 +59,4 @@ jobs:
         run: pnpm tsc --project tsconfig.json
 
       - name: Run auction start script
-        run: pnpm run actions:update-auction-status-to-active
+        run: NODE_OPTIONS="--experimental-specifier-resolution=node" pnpm run actions:update-auction-status-to-active
