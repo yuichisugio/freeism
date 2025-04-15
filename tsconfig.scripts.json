@@ -12,7 +12,9 @@
     "isolatedModules": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/scripts/*": ["./scripts/*"],
+      "@/lib/*": ["./src/lib/*"]
     },
     "noImplicitAny": false,
     "skipLibCheck": true,
@@ -20,6 +22,6 @@
     "noEmit": false,
     "allowJs": true
   },
-  "include": ["scripts/**/*.ts", "src/lib/prisma/**/*.ts"],
+  "include": ["scripts/**/*.ts", "src/lib/prisma/**/*.ts", "src/lib/auction/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts", "src/app", "src/components", "src/hooks"]
 }
