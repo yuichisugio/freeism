@@ -898,7 +898,7 @@ export async function setAutoBid(auctionId: string, limitBidAmount: number, bidI
  * @param auctionId オークションID
  * @returns 処理結果
  */
-export async function getAutoBid(auctionId: string): Promise<AutoBidResponse> {
+export async function getAutoBidByUserId(auctionId: string): Promise<AutoBidResponse> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -1311,5 +1311,3 @@ function getSafeTaskText(auction: AuctionValidationData): string {
   }
   return "オークション";
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

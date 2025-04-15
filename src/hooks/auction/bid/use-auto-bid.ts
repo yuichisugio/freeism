@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { cancelAutoBid, executeAutoBid, getAutoBid, setAutoBid } from "@/lib/auction/action/bid-common";
+import { cancelAutoBid, executeAutoBid, getAutoBidByUserId, setAutoBid } from "@/lib/auction/action/bid-common";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -89,7 +89,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       setLoading(true);
 
       // 自動入札設定を取得
-      const result = await getAutoBid(auctionId);
+      const result = await getAutoBidByUserId(auctionId);
       console.log("initializeAutoBid_getAutoBid_result", result);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
