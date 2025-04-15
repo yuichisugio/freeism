@@ -55,8 +55,8 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm prisma generate
 
-      - name: Transpile TypeScript files
-        run: pnpm tsc --project tsconfig.scripts.json
+      - name: Transpile TypeScript files and resolve aliases
+        run: pnpm run build:scripts
 
       - name: Run auction start script
         run: node dist/scripts/update-auction-status-to-active.js

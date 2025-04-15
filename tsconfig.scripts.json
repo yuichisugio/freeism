@@ -1,21 +1,25 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "outDir": "dist",
-    "noEmit": false,
-    "allowJs": true,
+    "rootDir": ".",
+    "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
     "noImplicitAny": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "allowJs": true
   },
-  "include": ["scripts/**/*.ts", "src/lib/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["scripts/**/*.ts", "src/lib/prisma/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts", "src/app", "src/components", "src/hooks"]
 }

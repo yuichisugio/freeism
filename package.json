@@ -24,8 +24,8 @@
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:seed": "prisma db seed",
-    "build:scripts": "tsc --project tsconfig.scripts.json",
-    "actions:update-auction-status-to-active": "pnpm run build:scripts && node --experimental-specifier-resolution=node dist/scripts/update-auction-status-to-active.js"
+    "build:scripts": "pnpm tsc --project tsconfig.scripts.json && pnpm tsc-alias -p tsconfig.scripts.json",
+    "actions:update-auction-status-to-active": "pnpm run build:scripts && node dist/scripts/update-auction-status-to-active.js"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"
@@ -156,6 +156,7 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "tailwindcss": "^4.0.6",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.15",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "vite-node": "^3.0.7",
