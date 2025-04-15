@@ -84,7 +84,15 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ["src/components/ui/*", "*.md", "*.svg", "next.config.ts", "public/next-pwa-service-worker.js", "public/service-worker.js"],
+    ignores: [
+      "src/components/ui/*",
+      "*.md",
+      "*.svg",
+      "next.config.ts",
+      "public/next-pwa-service-worker.js",
+      "public/service-worker.js",
+      "scripts/update-auction-status-to-active.cjs",
+    ],
   },
 ];
 

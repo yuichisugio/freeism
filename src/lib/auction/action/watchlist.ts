@@ -17,7 +17,7 @@ export async function toggleWatchlist(auctionId: string) {
   const existingWatchlist = await prisma.taskWatchList.findUnique({
     where: {
       userId_auctionId: {
-        userId,
+        userId: userId,
         auctionId,
       },
     },
@@ -34,7 +34,7 @@ export async function toggleWatchlist(auctionId: string) {
   } else {
     await prisma.taskWatchList.create({
       data: {
-        userId,
+        userId: userId,
         auctionId,
       },
     });

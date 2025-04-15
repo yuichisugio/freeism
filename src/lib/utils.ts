@@ -37,7 +37,7 @@ export async function getAuthSession(): Promise<Session | null> {
  * サーバーコンポーネント専用
  * @returns ユーザーID
  */
-export async function getAuthenticatedSessionUserId() {
+export async function getAuthenticatedSessionUserId(): Promise<string> {
   try {
     // セッション情報を取得
     const session = await auth();
@@ -55,7 +55,9 @@ export async function getAuthenticatedSessionUserId() {
     // エラーが発生した場合はログイン画面にリダイレクト
   } catch (error) {
     console.error("utils.ts_getAuthenticatedSessionUserId_リダイレクトが発生しました", error);
-    // redirect("/auth/signin");
+    redirect("/auth/signin");
+    // この行は実行されないが、TypeScriptのコンパイラを満足させるために必要
+    throw new Error("リダイレクト後に実行されるべきではありません");
   }
 }
 

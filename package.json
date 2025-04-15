@@ -25,7 +25,7 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:seed": "prisma db seed",
     "build:scripts": "pnpm tsc --project tsconfig.scripts.json && pnpm tsc-alias -p tsconfig.scripts.json",
-    "actions:update-auction-status-to-active": "pnpm run build:scripts && node dist/scripts/update-auction-status-to-active.js"
+    "actions:update-auction-status-to-active": "node scripts/update-auction-status-to-active.cjs"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"
@@ -144,6 +144,7 @@
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unicorn": "^56.0.1",
+    "esm": "^3.2.25",
     "glob": "10.3.10",
     "husky": "^9.1.7",
     "inflight": "1.0.6",
