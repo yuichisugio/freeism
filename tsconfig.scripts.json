@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "ES2022",
+    "moduleResolution": "NodeNext",
     "outDir": "dist",
     "rootDir": ".",
     "strict": true,
