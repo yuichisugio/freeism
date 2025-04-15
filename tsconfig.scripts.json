@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "noEmit": false,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["scripts/**/*.ts", "src/lib/auction/action/**/*.ts", "src/lib/prisma.ts"],
+  "exclude": ["node_modules"]
+}

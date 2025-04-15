@@ -24,7 +24,8 @@
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:seed": "prisma db seed",
-    "actions:update-auction-status-to-active": "node --loader ts-node/esm --require tsconfig-paths/register scripts/update-auction-status-to-active.ts"
+    "build:scripts": "tsc --project tsconfig.scripts.json",
+    "actions:update-auction-status-to-active": "pnpm run build:scripts && node --experimental-specifier-resolution=node dist/scripts/update-auction-status-to-active.js"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"
