@@ -138,7 +138,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     console.log(`重複排除前のサブスクリプション数: ${targetSubscriptions.length}`);
     console.log(`重複排除後のデバイス数: ${deviceGroups.size}`);
 
-    const noDuplicationTargetSubscriptions = [];
+    const noDuplicationTargetSubscriptions: PushSubscription[] = [];
 
     // デバイスごとに1つのサブスクリプションにのみ通知を送信
     for (const deviceSubscriptions of deviceGroups.values()) {
@@ -335,7 +335,7 @@ export async function saveSubscription(subscription: {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    let result = null;
+    let result: PushSubscription | undefined = undefined;
 
     if (dummyRecordId === subscription.recordId) {
       console.log("push-notification_saveSubscription_dummyRecordId", subscription.recordId);
@@ -369,6 +369,11 @@ export async function saveSubscription(subscription: {
     console.log("push-notification_saveSubscription_result");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 結果をチェック＆返却
+    if (!result) {
+      return { error: "保存処理中にエラーが発生しました。" };
+    }
 
     return result;
 

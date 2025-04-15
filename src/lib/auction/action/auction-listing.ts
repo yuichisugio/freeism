@@ -204,8 +204,8 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     // 残り時間の最低値と最高値がある場合
     if (minRemainingTime !== null || maxRemainingTime !== null) {
       const now = new Date();
-      let minDate = undefined;
-      let maxDate = undefined;
+      let minDate: Date | undefined = undefined;
+      let maxDate: Date | undefined = undefined;
 
       // 残り時間の最低値がある場合
       if (minRemainingTime !== null && minRemainingTime !== undefined) {

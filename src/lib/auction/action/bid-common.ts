@@ -394,7 +394,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // バリデーションエラーチェック
-    let validationError = null;
+    let validationError: BidActionResult | null = null;
     if (!validation.success || !validation.userId) {
       validationError = {
         success: false,
