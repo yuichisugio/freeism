@@ -2,8 +2,9 @@
 /**
  * オークションのステータスを更新するスクリプト
  * GitHub Actionsから実行するためのスクリプトです
+ * .js拡張子をつけているのは、GitHub Actionsでは.ts拡張子が認識されないためです
  */
-import { updateAuctionStatusToActive } from "../src/lib/auction/action/update-status";
+import { updateAuctionStatusToActive } from "../src/lib/auction/action/update-status.js";
 
 /**
  * メイン関数
