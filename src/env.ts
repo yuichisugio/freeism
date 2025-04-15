@@ -25,8 +25,8 @@ export const env = createEnv({
     NEXT_PUBLIC_IS_RESEND_ENABLED: z.enum(["true", "false"]).default("false"),
   },
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
-    DIRECT_URL: process.env.DIRECT_URL,
+    DATABASE_URL: process.env.TEST_DATABASE_URL,
+    DIRECT_URL: process.env.TEST_DIRECT_URL,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
