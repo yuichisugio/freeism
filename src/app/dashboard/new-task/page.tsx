@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: "新規タスクを作成します",
 };
 
-export default async function NewTaskPage({ searchParams }: { searchParams: { groupId?: string } }) {
+export default async function NewTaskPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
   // グループ選択のComboBoxが必要かのフラグ
   let groupComboBoxFlag = false;
 
   // searchParamsはPromiseを返すためawaitする
-  const params = await Promise.resolve(searchParams);
+  const params = await searchParams;
   const groupId = params.groupId;
 
   const userId = await getAuthenticatedSessionUserId();
