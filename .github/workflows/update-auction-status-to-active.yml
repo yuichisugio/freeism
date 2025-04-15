@@ -58,5 +58,5 @@ jobs:
       - name: Transpile TypeScript files and resolve aliases
         run: pnpm run build:scripts
 
-      - name: Run auction start script
-        run: node dist/scripts/update-auction-status-to-active.js
+      - name: Run auction start script with ts-node
+        run: pnpm ts-node --project tsconfig.scripts.json -r tsconfig-paths/register scripts/update-auction-status-to-active.ts
