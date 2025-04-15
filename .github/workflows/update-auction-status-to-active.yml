@@ -56,7 +56,7 @@ jobs:
         run: pnpm prisma generate
 
       - name: Transpile TypeScript files
-        run: pnpm tsc --project tsconfig.json
+        run: pnpm tsc --project tsconfig.scripts.json
 
       - name: Run auction start script
         run: NODE_OPTIONS="--experimental-specifier-resolution=node" pnpm run actions:update-auction-status-to-active
