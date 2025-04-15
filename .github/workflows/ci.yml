@@ -33,8 +33,8 @@ jobs:
           pnpm-version: ${{ env.PNPM_VERSION }}
       - run: pnpm run lint
         env:
-          TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-          TEST_DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.TEST_NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
