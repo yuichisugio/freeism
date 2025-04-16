@@ -12,8 +12,16 @@ ALTER TABLE "Task" DROP CONSTRAINT "Task_userId_fkey";
 DROP INDEX "Task_userId_idx";
 
 -- AlterTable
-ALTER TABLE "Task" DROP COLUMN "userId",
-ADD COLUMN     "creatorId" TEXT NOT NULL;
+ALTER TABLE "Task" ADD COLUMN "creatorId" TEXT;
+
+-- 既存のTaskレコードのuserIdをcreatorIdにコピー
+UPDATE "Task" SET "creatorId" = "userId" WHERE "userId" IS NOT NULL;
+
+-- creatorIdをNOT NULLに設定
+ALTER TABLE "Task" ALTER COLUMN "creatorId" SET NOT NULL;
+
+-- 最後にuserIdを削除
+ALTER TABLE "Task" DROP COLUMN "userId";
 
 -- CreateTable
 CREATE TABLE "TaskReporter" (
