@@ -47,20 +47,6 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // GitHub Actionsで定期実行する場合は、auth()がエラーになるため、エラーが出た場合は送信者はnullとする
-    let senderUserId: string | null = null;
-    try {
-      // 通知のデータを取得
-      const session = await getAuthSession();
-      senderUserId = session?.user?.id ?? null;
-    } catch (error) {
-      // 認証エラーが発生した場合は、定期実行なので、nullを入れて、senderUserIdをnull(空欄)にする
-      senderUserId = null;
-      console.error("sendGeneralNotification_auth_nullにする:", error);
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     // 受信者のユーザーIDを取得
     const targetUserIds = await getNotificationTargetUserIds(params.targetType, {
       userIds: params.recipientUserIds ?? undefined,
@@ -81,7 +67,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
       recipientUserIds: targetUserIds,
       title: params.title,
       message: params.message,
-      senderUserId: senderUserId,
+      senderUserId: null,
       actionUrl: params.actionUrl,
       targetType: params.targetType,
       groupId: params.groupId,

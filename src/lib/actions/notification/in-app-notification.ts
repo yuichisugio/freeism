@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/utils";
 import { NotificationSendTiming } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
@@ -42,6 +43,12 @@ export async function sendInAppNotification(notificationParams: NotificationPara
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 通知作成者を取得
+    const session = await getAuthSession();
+    const senderUserId = session?.user?.id ?? null;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // 通知を保存
     await prisma.notification.create({
       data: {
@@ -53,7 +60,7 @@ export async function sendInAppNotification(notificationParams: NotificationPara
         sentAt: notificationParams.sendTiming === "NOW" ? new Date() : null, // 即時送信の場合は現在時刻、予約送信の場合はnull
         expiresAt: notificationParams.expiresAt ?? undefined,
         actionUrl: notificationParams.actionUrl ?? undefined,
-        senderUserId: notificationParams.senderUserId ?? null, // 通知作成者
+        senderUserId: senderUserId, // 通知作成者
         groupId: notificationParams.targetType === "GROUP" ? notificationParams.groupId : null,
         taskId: notificationParams.targetType === "TASK" ? notificationParams.taskId : null,
         // isReadはPrismaが自動的にJSONB型に変換
