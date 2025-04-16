@@ -255,9 +255,9 @@
    - 手動実行できるようにもする
 1. オークションの開始処理✅
 1. オークションの完了処理✅
-1. ポイント返還の処理
+1. ポイント返還の処理✅
 1. 通知の送信
-   1. オークション関連の通知は、GitHub Actionsのオークション関連の実装時に行うで実装する
+   1. オークション関連の通知は、他のGitHub Actionsのオークション関連の実行時に一緒に行うため不要
    1. `NotificationSendTiming`が`SCHEDULED`の予約送信する通知の送信
 1. バックグラウンドジョブが完了したか確認するために、専用のログを貯めるテーブルを作成して、そこに更新の最後の処理として、ログの一部のデータを保存するようにしたい
 1. 無料枠でジョブ数が限られているから、yamlファイルを分けず記載した方が良い？
@@ -294,6 +294,29 @@
 
 1. 失敗時の即時アラート
 2. 定期的な実行レポート (週次サマリー)
+
+---
+
+### 予約送信の通知の送信
+
+- 概要
+
+  - 予約送信の通知を送信する
+
+- 実行するタイミング
+
+  - 実行頻度：毎日
+  - 実行時間：日本時間の01:00:00
+
+- 実行する条件
+
+  1. `Notification`テーブルの`sendScheduledDate`カラムが今日以前
+  2. `Notification`テーブルの`sendTimingType`カラムが`SCHEDULED`の場合
+  3. `Notification`テーブルの`sentAt`カラムが`null`の場合
+
+- 実行内容
+  1.  `Notification`テーブルの`isRead`(JSONB型)カラムのキーの`userId`に通知を送信する
+      - `src/lib/actions/notification/general-notification.ts`の`sendGeneralNotification`関数を使用
 
 ---
 
