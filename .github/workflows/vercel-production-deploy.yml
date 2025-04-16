@@ -35,6 +35,12 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Repair Failed Migrations
+        run: pnpm prisma migrate resolve --rolled-back 20250307092624_remove_group_status
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
       - name: Run Prisma Migrations
         run: pnpm prisma migrate deploy
         env:
