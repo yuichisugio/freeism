@@ -16,6 +16,9 @@ const vapidDetails = {
   privateKey: process.env.VAPID_PRIVATE_KEY ?? "",
 };
 
+console.log("push-notification.ts_vapidDetails", vapidDetails);
+console.log("push-notification.ts_vapidDetails.subject", vapidDetails.subject);
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // プッシュ通知の設定を初期化
