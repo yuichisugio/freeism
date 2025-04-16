@@ -1,0 +1,65 @@
+name: Auction status updated from ACTIVE/PENDING to ENDED
+
+on:
+  schedule:
+    # 毎日日本時間の00:00に実行 (UTC 15:00)
+    - cron: "0 15 * * *"
+
+  # 手動実行用トリガー
+  workflow_dispatch:
+
+jobs:
+  end-auctions:
+    name: End Completed Auctions
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+            node_modules
+            .next/cache
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+
+      - name: Run auction completion script
+        run: pnpm run actions:update-auction-status-to-completed
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}

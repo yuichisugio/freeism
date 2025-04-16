@@ -7,6 +7,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { AuctionStatus } = require("@prisma/client");
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションのステータスを更新する
  * startTimeカラムが今日以前かつstatusがPENDINGのオークションをACTIVEに更新する
@@ -42,6 +44,8 @@ async function updateAuctionStatusToActive() {
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * メイン関数
  */
@@ -59,6 +63,8 @@ async function main() {
     process.exit(1);
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // スクリプト実行
 main();
