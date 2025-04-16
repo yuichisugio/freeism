@@ -35,6 +35,12 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Resolve Failed Migrations
+        run: pnpm prisma migrate resolve --applied 20250319110524_change_fields_name
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
       - name: Run Prisma Migrations
         run: pnpm prisma migrate deploy
         env:
