@@ -6,10 +6,15 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "Task" DROP CONSTRAINT "Task_userId_fkey";
+DO $$ 
+BEGIN 
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Task_userId_fkey') THEN
+    ALTER TABLE "Task" DROP CONSTRAINT "Task_userId_fkey";
+  END IF;
+END $$;
 
 -- DropIndex
-DROP INDEX "Task_userId_idx";
+DROP INDEX IF EXISTS "Task_userId_idx";
 
 -- AlterTable
 ALTER TABLE "Task" ADD COLUMN "creatorId" TEXT;
@@ -21,7 +26,7 @@ UPDATE "Task" SET "creatorId" = "userId" WHERE "userId" IS NOT NULL;
 ALTER TABLE "Task" ALTER COLUMN "creatorId" SET NOT NULL;
 
 -- 最後にuserIdを削除
-ALTER TABLE "Task" DROP COLUMN "userId";
+ALTER TABLE "Task" DROP COLUMN IF EXISTS "userId";
 
 -- CreateTable
 CREATE TABLE "TaskReporter" (
