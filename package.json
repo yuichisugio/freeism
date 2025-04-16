@@ -25,7 +25,7 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:seed": "prisma db seed",
     "build:scripts": "pnpm tsc --project tsconfig.scripts.json && pnpm tsc-alias -p tsconfig.scripts.json",
-    "actions:update-auction-status-to-active": "node scripts/update-auction-status-to-active.cjs",
+    "actions:update-auction-status-to-active": "tsx scripts/update-auction-status-to-active.ts",
     "actions:update-auction-status-to-completed": "tsx scripts/update-auction-status-to-completed.ts"
   },
   "prisma": {

@@ -1,11 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 /**
  * オークションのステータスを更新するスクリプト
  * GitHub Actionsから実行するためのスクリプトです
  */
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { AuctionStatus } = require("@prisma/client");
+import { prisma } from "@/lib/prisma";
+import { AuctionStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -15,7 +14,7 @@ const { AuctionStatus } = require("@prisma/client");
  *
  * @returns 更新されたオークションの数
  */
-async function updateAuctionStatusToActive() {
+async function updateAuctionStatusToActive(): Promise<number> {
   try {
     // 現在の日時を取得
     const now = new Date();
@@ -67,4 +66,7 @@ async function main() {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // スクリプト実行
-main();
+main().catch((error) => {
+  console.error("スクリプト実行中にエラーが発生しました:", error);
+  process.exit(1);
+});
