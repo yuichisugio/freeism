@@ -3,18 +3,19 @@ name: Return Auction Deposit Points
 on:
   # 毎日00:00（UTC）に実行
   schedule:
-    - cron: "0 0 * * *" # UTC 00:00 (= JST 09:00)
+    - cron: "0 15 * * *" # UTC 15:00 (= JST 00:00)
 
   # 手動実行用のトリガー
   workflow_dispatch:
 
 jobs:
   return-auction-deposit-points:
+    name: Return Auction Deposit Points
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
 
     steps:
       - name: Checkout repository
@@ -25,27 +26,37 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
-          version: "8"
+          version: 8
+          run_install: false
 
-      - name: キャッシュの復元
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            node_modules
-            .next/cache
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-pnpm-store-
 
-      - name: パッケージのインストール
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Prisma生成
+      - name: Generate Prisma Client
         run: pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
 
-      - name: オークションポイント返還処理の実行
+      - name: Run auction deposit points return script
         run: pnpm actions:return-auction-deposit-points
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
