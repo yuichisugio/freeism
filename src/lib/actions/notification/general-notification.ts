@@ -30,6 +30,7 @@ export type GeneralNotificationParams = {
   sendTiming: NotificationSendTiming;
   sendScheduledDate: Date | null;
   expiresAt: Date | null;
+  notificationId: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -90,6 +91,8 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
       sendScheduledDate: params.sendScheduledDate,
       expiresAt: params.expiresAt,
       sendMethods: params.sendMethods,
+      notificationId: params.notificationId,
+      sentAt: null,
     };
 
     // 通知するユーザーが見つからない場合はエラー

@@ -212,6 +212,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
           sendTiming: data.sendTiming,
           sendScheduledDate: data.sendScheduledDate ?? null,
           expiresAt: data.expiresAt ?? null,
+          notificationId: null,
         };
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

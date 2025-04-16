@@ -12,6 +12,7 @@ export type NotificationParams = {
   recipientUserIds: string[];
   title: string;
   message: string;
+  sendMethods: NotificationSendMethod[];
   senderUserId: string | null;
   actionUrl: string | null;
   targetType: NotificationTargetType;
@@ -24,7 +25,8 @@ export type NotificationParams = {
   fromEmail?: string;
   subjectEmail?: string;
   usernameEmail?: string;
-  sendMethods: NotificationSendMethod[];
+  notificationId: string | null;
+  sentAt: Date | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

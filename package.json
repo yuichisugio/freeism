@@ -26,7 +26,8 @@
     "db:seed": "prisma db seed",
     "actions:update-auction-status-to-active": "tsx scripts/update-auction-status-to-active.ts",
     "actions:update-auction-status-to-completed": "tsx scripts/update-auction-status-to-completed.ts",
-    "actions:return-auction-deposit-points": "tsx scripts/return-auction-deposit-points.ts"
+    "actions:return-auction-deposit-points": "tsx scripts/return-auction-deposit-points.ts",
+    "actions:send-scheduled-notifications": "tsx scripts/send-scheduled-notifications.ts"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"

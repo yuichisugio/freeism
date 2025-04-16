@@ -7,7 +7,8 @@ import type { NotificationParams } from "./email-notification";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知を作成する関数
+ * 通知を作成または更新する関数
+ * SCHEDULEDの場合は通知を作成し、NOWの場合は通知を作成してsentAtを設定する
  * @param {NotificationParams} notificationParams 通知データ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
@@ -15,11 +16,31 @@ export async function sendInAppNotification(notificationParams: NotificationPara
   "use server"; // Server Actions としてマーク
 
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // すでに通知がある場合は、SCHEDULEDのため、情報を更新
+    if (notificationParams.notificationId) {
+      // sentAtを更新するため、現時点の日時を取得
+      const now = new Date();
+      // sentAtを更新
+      notificationParams.sentAt = now;
+      // 通知を更新
+      await prisma.notification.update({
+        where: { id: notificationParams.notificationId },
+        data: notificationParams,
+      });
+      return { success: true };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // isReadのJSONオブジェクトを構築
     const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
     notificationParams.recipientUserIds.forEach((targetUserId) => {
       isReadJsonb[targetUserId] = { isRead: false, readAt: null };
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 通知を保存
     await prisma.notification.create({
@@ -41,9 +62,15 @@ export async function sendInAppNotification(notificationParams: NotificationPara
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     revalidatePath("/dashboard/notifications");
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("sendInAppNotification_エラー:", error);
     console.error("sendInAppNotification_エラーstack:", new Error().stack);

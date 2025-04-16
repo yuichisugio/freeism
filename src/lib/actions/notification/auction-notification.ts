@@ -88,6 +88,8 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
       sendScheduledDate: params.sendScheduledDate,
       expiresAt: expiryDate,
       sendMethods: params.sendMethods,
+      notificationId: null,
+      sentAt: null,
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

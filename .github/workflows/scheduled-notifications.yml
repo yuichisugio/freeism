@@ -1,0 +1,51 @@
+name: 予約送信通知処理
+
+on:
+  schedule:
+    # 日本時間の毎日01:00に実行 (UTC 16:00)
+    - cron: "0 16 * * *"
+  workflow_dispatch: # 手動実行用トリガー
+
+jobs:
+  send-scheduled-notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.jsのセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.11.1"
+
+      - name: PNPMのセットアップ
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: キャッシュの復元
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            .next/cache
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: 依存関係のインストール
+        run: pnpm install --frozen-lockfile
+
+      - name: Prismaクライアントの生成
+        run: pnpm prisma generate
+
+      - name: 予約送信通知の実行
+        run: pnpm actions:send-scheduled-notifications
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
