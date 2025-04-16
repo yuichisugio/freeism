@@ -18,13 +18,8 @@ const vapidDetails = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// プッシュ通知の設定を初期化（必要な環境変数が存在する場合のみ）
-// すべての環境変数が存在する場合にのみVAPID詳細を設定
-if (vapidDetails.subject && vapidDetails.publicKey && vapidDetails.privateKey) {
-  webPush.setVapidDetails(vapidDetails.subject, vapidDetails.publicKey, vapidDetails.privateKey);
-} else {
-  console.warn("VAPID環境変数が不足しているため、プッシュ通知機能は初期化されません。");
-}
+// プッシュ通知の設定を初期化
+webPush.setVapidDetails(vapidDetails.subject, vapidDetails.publicKey, vapidDetails.privateKey);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -88,7 +83,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // VAPIDキーが設定されていない場合は送信処理を中断
-    if (!vapidDetails.subject || !vapidDetails.publicKey || !vapidDetails.privateKey) {
+    if (!vapidDetails.publicKey || !vapidDetails.privateKey) {
       console.error("VAPID keys are not configured. Cannot send push notification.");
       return { success: false, message: "VAPIDキーが設定されていません。" };
     }
