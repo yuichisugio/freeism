@@ -17,7 +17,6 @@ export const env = createEnv({
     ENABLE_IMAGE_UPLOAD: z.enum(["true", "false"]).default("false"),
     RESEND_API_KEY: z.string(),
     DOMAIN: z.string(),
-    UPSTASH_REDIS_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string(),
     VAPID_SUBJECT: z.string(),
     VAPID_PRIVATE_KEY: z.string(),
@@ -31,7 +30,6 @@ export const env = createEnv({
     NEXT_PUBLIC_VAPID_SUBJECT: z.string(),
   },
   runtimeEnv: {
-    UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     VAPID_SUBJECT: process.env.VAPID_SUBJECT,
     VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,

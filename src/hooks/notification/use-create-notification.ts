@@ -204,7 +204,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
           message: data.message,
           targetType: data.targetType,
           sendMethods: [NotificationSendMethod.IN_APP],
-          userId: data.userId ? [data.userId] : null,
+          recipientUserIds: data.userId ? [data.userId] : null,
           groupId: data.groupId ?? null,
           taskId: data.taskId ?? null,
           auctionId: null,

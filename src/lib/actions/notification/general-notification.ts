@@ -1,5 +1,4 @@
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
-import { getAuthSession } from "@/lib/utils";
 import { NotificationSendMethod } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";

@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
-import { AuctionEventType, NotificationSendTiming } from "@prisma/client";
+import { NotificationSendTiming } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
 
