@@ -1,24 +1,24 @@
-name: Return Auction Deposit Points
+name: オークションステータスをACTIVE/PENDINGからENDEDに更新_本番環境
 
 on:
-  # 毎日00:00（UTC）に実行
-  schedule:
-    - cron: "0 15 * * *" # UTC 15:00 (= JST 00:00)
+  # 毎日JST 00:00（UTC 15:00）に実行
+  # schedule:
+  #   - cron: "0 15 * * *"
 
-  # 手動実行用のトリガー
+  # 手動実行用トリガー
   workflow_dispatch:
 
 jobs:
-  return-auction-deposit-points:
-    name: Return Auction Deposit Points
+  end-auctions:
+    name: オークションステータスをACTIVE/PENDINGからENDEDに更新_本番環境
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-      DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -52,14 +52,14 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm prisma generate
         env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
 
-      - name: Run auction deposit points return script
-        run: pnpm actions:return-auction-deposit-points
+      - name: Run auction completion script
+        run: pnpm run actions:update-auction-status-to-completed
         env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}

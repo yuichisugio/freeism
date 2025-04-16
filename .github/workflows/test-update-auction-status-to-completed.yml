@@ -1,13 +1,16 @@
-name: 予約送信通知処理_テスト環境
+name: オークションステータスをACTIVE/PENDINGからENDEDに更新_テスト環境
 
 on:
   schedule:
-    # 日本時間の毎日01:00に実行 (UTC 16:00)
-    - cron: "0 16 * * *"
-  workflow_dispatch: # 手動実行用トリガー
+    # 毎日日本時間の00:00に実行 (UTC 15:00)
+    - cron: "0 15 * * *"
+
+  # 手動実行用トリガー
+  workflow_dispatch:
 
 jobs:
-  send-scheduled-notifications:
+  end-auctions:
+    name: オークションステータスをACTIVE/PENDINGからENDEDに更新_テスト環境
     runs-on: ubuntu-latest
 
     env:
@@ -15,27 +18,27 @@ jobs:
       DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
 
     steps:
-      - name: リポジトリのチェックアウト
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Node.jsのセットアップ
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20.11.1"
+          node-version: "20"
 
-      - name: PNPMのセットアップ
+      - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
           run_install: false
 
-      - name: PNPMキャッシュディレクトリの取得
+      - name: Get pnpm store directory
         id: pnpm-cache
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      - name: キャッシュの復元
+      - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -43,14 +46,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: 依存関係のインストール
+      - name: Install dependencies
         run: pnpm install
 
-      - name: Prismaクライアントの生成
+      - name: Generate Prisma Client
         run: pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
 
-      - name: 予約送信通知の実行
-        run: pnpm actions:send-scheduled-notifications
+      - name: Run auction completion script
+        run: pnpm run actions:update-auction-status-to-completed
         env:
           DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
           DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
