@@ -22,7 +22,7 @@ export type GeneralNotificationParams = {
   message: string;
   sendMethods: NotificationSendMethod[];
   targetType: NotificationTargetType;
-  userId: string[] | null;
+  recipientUserIds: string[] | null;
   groupId: string | null;
   taskId: string | null;
   auctionId: string | null;
@@ -63,7 +63,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
 
     // 受信者のユーザーIDを取得
     const targetUserIds = await getNotificationTargetUserIds(params.targetType, {
-      userIds: params.userId ?? undefined,
+      userIds: params.recipientUserIds ?? undefined,
       groupId: params.groupId ?? undefined,
       taskId: params.taskId ?? undefined,
     });

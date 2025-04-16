@@ -54,7 +54,7 @@ async function sendScheduledNotifications(): Promise<number> {
           message: notification.message,
           sendMethods: notification.sendMethods,
           targetType: notification.targetType,
-          userId: userIds,
+          recipientUserIds: userIds,
           groupId: notification.groupId,
           taskId: notification.taskId,
           auctionId: notification.auctionId,
