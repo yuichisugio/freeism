@@ -1,4 +1,4 @@
-name: 予約送信通知処理
+name: 予約送信通知処理_テスト環境
 
 on:
   schedule:
