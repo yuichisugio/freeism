@@ -6,7 +6,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { AuctionStatus, BidStatus, TaskStatus, NotificationSendTiming, AuctionEventType, NotificationSendMethod } = require("@prisma/client");
-const { sendAuctionNotification } = require("../src/lib/actions/notification/auction-notification.js");
+const { sendAuctionNotification } = require("../src/lib/actions/notification/auction-notification.ts");
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -18,10 +18,6 @@ const { sendAuctionNotification } = require("../src/lib/actions/notification/auc
  */
 async function updateAuctionStatusToCompleted() {
   try {
-    // モジュールを動的にインポート
-    const notificationModule = await import("../src/lib/actions/notification/auction-notification.js");
-    sendAuctionNotification = notificationModule.sendAuctionNotification;
-
     // 現在の日時を取得
     const now = new Date();
 
