@@ -1415,8 +1415,57 @@ export async function bulkUpdateTaskStatuses(
       "ARCHIVED",
     ] as TaskStatus[];
 
-    const results = [];
-    const failedResults = [];
+    type FailedResult = {
+      taskId: string;
+      status: string;
+      error: string;
+      [key: string]: unknown;
+    };
+
+    type UpdatedTaskResult = {
+      reporters: {
+        user: {
+          id: string;
+          name: string | null;
+          email: string;
+          emailVerified: Date | null;
+          image: string | null;
+          isAppOwner: boolean;
+          createdAt: Date;
+          updatedAt: Date;
+        } | null;
+      }[];
+      executors: {
+        user: {
+          id: string;
+          name: string | null;
+          email: string;
+          emailVerified: Date | null;
+          image: string | null;
+          isAppOwner: boolean;
+          createdAt: Date;
+          updatedAt: Date;
+        } | null;
+      }[];
+      id: string;
+      task: string;
+      reference: string | null;
+      status: string;
+      contributionType: string;
+      info: string | null;
+      fixedContributionPoint: number | null;
+      fixedEvaluator: string | null;
+      fixedEvaluationLogic: string | null;
+      fixedEvaluationDate: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+      groupId: string;
+      creatorId: string | null;
+      userFixedSubmitterId: string | null;
+    };
+
+    const results: UpdatedTaskResult[] = [];
+    const failedResults: FailedResult[] = [];
 
     // データごとに処理
     for (const item of data) {
