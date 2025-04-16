@@ -33,8 +33,8 @@ jobs:
           pnpm-version: ${{ env.PNPM_VERSION }}
       - run: pnpm run lint
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.TEST_NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
@@ -53,6 +53,8 @@ jobs:
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           DOMAIN: ${{ secrets.DOMAIN }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
 
   format:
     needs: setup
