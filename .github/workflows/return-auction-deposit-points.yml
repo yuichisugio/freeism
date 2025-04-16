@@ -1,0 +1,51 @@
+name: Return Auction Deposit Points
+
+on:
+  # 毎日00:00（UTC）に実行
+  schedule:
+    - cron: "0 0 * * *" # UTC 00:00 (= JST 09:00)
+
+  # 手動実行用のトリガー
+  workflow_dispatch:
+
+jobs:
+  return-auction-deposit-points:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: "8"
+
+      - name: キャッシュの復元
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            .next/cache
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: パッケージのインストール
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma生成
+        run: pnpm prisma generate
+
+      - name: オークションポイント返還処理の実行
+        run: pnpm actions:return-auction-deposit-points

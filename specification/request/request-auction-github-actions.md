@@ -254,12 +254,15 @@
    - テストとして書いてみる
    - 手動実行できるようにもする
 1. オークションの開始処理✅
-1. オークションの完了処理
+1. オークションの完了処理✅
 1. ポイント返還の処理
 1. 通知の送信
    1. オークション関連の通知は、GitHub Actionsのオークション関連の実装時に行うで実装する
    1. `NotificationSendTiming`が`SCHEDULED`の予約送信する通知の送信
 1. バックグラウンドジョブが完了したか確認するために、専用のログを貯めるテーブルを作成して、そこに更新の最後の処理として、ログの一部のデータを保存するようにしたい
+1. 無料枠でジョブ数が限られているから、yamlファイルを分けず記載した方が良い？
+1. エラーログはリトライして、不可能だったらエラー内容とidをDBに保存した方が良い？
+   - それは一般的な運用？
 1. テスト
 
 ---
@@ -500,14 +503,16 @@ Notification(id, userId, type, ...) ← 通知作成
 
 ### ポイント返還する処理
 
-- 実行する条件
-
-  - `Auction`テーブルの`endTime`カラムの日付(落札した日付)に、紐づく`groupId`の`Group`の`depositPeriod`カラムの日数(ポイントを預ける期間)を足した日付が、今日以前の場合
-
 - 実行タイミング
 
-  - 実行頻度：毎日
-  - 実行時間：日本時間の23:00:00
+  - 実行頻度: 毎日1回
+  - 実行時間: 日本時間の00:00:00（UTC+9）
+  - 実行方法: GitHub Actionsを使用した定期実行
+
+- 実行する条件
+
+  - `Auction`テーブルの`endTime`カラムの日付(落札した日付)に、紐づく`groupId`の`Group`の`depositPeriod`カラムの日数(ポイントを預ける期間)を足した日付が、今日以前のレコード
+  - `Auction`テーブルの`status`カラムが、`ENDED`のレコード
 
 - 実装の注意点
 
@@ -515,12 +520,14 @@ Notification(id, userId, type, ...) ← 通知作成
   - トランザクションによる処理の原子性確保
 
 - 以下の処理を行う
+  1. `BidHistory`テーブルの`status`カラムが`WON`の`depositPoint`カラムの額だけ、`GroupPoint`テーブルの`balance`カラムの数字に、足し算する
+     - 足し算するカラム
+       1. `userId`は、`Auction`テーブルに紐づく、`BidHistory`テーブルの`status`カラムが`WON`のレコードの`userId`
+       2. `groupId`は、`Auction`テーブルに紐づく、`groupId`
+     - これがポイント返還にあたる
   1. `Notification`テーブルのレコードを作成する
      - 落札者に、Enum`AuctionEventType`が、`POINT_RETURNED`の通知を作成する
-  2. `BidHistory`テーブルの`status`カラムが`WON`の`depositPoint`カラムの額だけ、`GroupPoint`テーブルの`balance`カラムの数字に、足し算する
-     - `Auction`テーブルの`endTime`カラムに紐づく、`BidHistory`テーブルの`status`カラムが`WON`のレコードに対して処理を行う
-     - `GroupPoint`テーブルの`balance`カラムの数字は、`Auction`と紐づく`groupId`と一致するレコードを編集する
-     - これがポイント返還にあたる
+     - 落札者は、`Auction`テーブルに紐づく、`BidHistory`テーブルの`status`カラムが`WON`のレコードの`userId`
 
 ---
 
