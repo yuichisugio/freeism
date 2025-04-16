@@ -385,7 +385,7 @@ async function sendNotification(params: NotificationParams): Promise<void> {
       auctionEventType: auctionEventType,
       auctionId: auctionId,
       recipientUserId: recipientUserId,
-      sendMethod: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+      sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
       actionUrl: actionUrl ?? null,
       sendTiming: NotificationSendTiming.NOW,
       sendScheduledDate: null,

@@ -1,9 +1,5 @@
-import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
-// import NotificationEmail from "@/emails/notification";
-// import { env } from "@/env";
+import type { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-
-// import { resend } from "@/lib/resend";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -28,6 +24,7 @@ export type NotificationParams = {
   fromEmail?: string;
   subjectEmail?: string;
   usernameEmail?: string;
+  sendMethods: NotificationSendMethod[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

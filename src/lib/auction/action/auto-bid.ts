@@ -142,7 +142,7 @@ export async function processAutoBid(params: ProcessAutoBidParams) {
         auctionEventType: PrismaAuctionEventType.AUTO_BID_LIMIT_REACHED,
         auctionId,
         recipientUserId: [highestAutoBid.userId],
-        sendMethod: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
         actionUrl: validationResult.auction.taskId ? `/dashboard/auction/${validationResult.auction.taskId}` : null,
         sendTiming: NotificationSendTiming.NOW,
         sendScheduledDate: null,

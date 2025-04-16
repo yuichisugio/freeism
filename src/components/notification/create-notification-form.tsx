@@ -39,17 +39,19 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({
 
   // 通知作成フォームのフォームオブジェクト
   const {
+    // state
     form,
     targetType,
     sendTiming,
     userComboOpen,
-    setUserComboOpen,
     groupComboOpen,
-    setGroupComboOpen,
     taskComboOpen,
-    setTaskComboOpen,
     sendTimingOptions,
     targetTypeOptions,
+    // action
+    setGroupComboOpen,
+    setTaskComboOpen,
+    setUserComboOpen,
     handleSubmit,
   } = useCreateNotification({
     isAppOwner,

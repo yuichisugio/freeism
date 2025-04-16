@@ -20,7 +20,7 @@ import { sendPushNotification } from "./push-notification";
 export type GeneralNotificationParams = {
   title: string;
   message: string;
-  sendMethod: NotificationSendMethod[];
+  sendMethods: NotificationSendMethod[];
   targetType: NotificationTargetType;
   userId: string[] | null;
   groupId: string | null;
@@ -89,6 +89,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
       sendTiming: params.sendTiming,
       sendScheduledDate: params.sendScheduledDate,
       expiresAt: params.expiresAt,
+      sendMethods: params.sendMethods,
     };
 
     // 通知するユーザーが見つからない場合はエラー
@@ -101,7 +102,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // プッシュ通知を送信。NOWの場合のみ送信する
-    if (params.sendMethod.includes(NotificationSendMethod.WEB_PUSH) && params.sendTiming === "NOW") {
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH) && params.sendTiming === "NOW") {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
         console.error("sendGeneralNotification_sendPushNotification_エラー:");
@@ -113,7 +114,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // メール通知を送信。NOWの場合のみ送信する
-    if (params.sendMethod.includes(NotificationSendMethod.EMAIL) && params.sendTiming === "NOW") {
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL) && params.sendTiming === "NOW") {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
         console.error("sendGeneralNotification_sendEmailNotification_エラー:");
@@ -127,7 +128,7 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
     // アプリ内通知を送信。NOW以外でも登録する。
     // アプリ内表示は、通知のデータ表示時に制限しているので、登録しただけでは表示されない。
     // その登録したdataを元に、GitHub Actionsで送信する
-    if (params.sendMethod.includes(NotificationSendMethod.IN_APP)) {
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
       const inAppNotificationResult = await sendInAppNotification(notificationParams);
       if (!inAppNotificationResult.success) {
         console.error("sendGeneralNotification_sendInAppNotification_エラー:");

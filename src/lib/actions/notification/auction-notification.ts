@@ -24,7 +24,7 @@ export type AuctionNotificationParams = {
   auctionEventType: AuctionEventType;
   auctionId: string;
   recipientUserId: string[];
-  sendMethod: NotificationSendMethod[];
+  sendMethods: NotificationSendMethod[];
   actionUrl: string | null;
   sendTiming: NotificationSendTiming;
   sendScheduledDate: Date | null;
@@ -87,12 +87,13 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
       sendTiming: params.sendTiming,
       sendScheduledDate: params.sendScheduledDate,
       expiresAt: expiryDate,
+      sendMethods: params.sendMethods,
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // push通知を送信
-    if (params.sendMethod.includes(NotificationSendMethod.WEB_PUSH) && params.sendTiming === "NOW") {
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH) && notificationParams.sendTiming === "NOW") {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
         console.error("sendAuctionNotification_sendPushNotification_エラー:");
@@ -104,7 +105,7 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // メール通知を送信
-    if (params.sendMethod.includes(NotificationSendMethod.EMAIL) && params.sendTiming === "NOW") {
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL) && notificationParams.sendTiming === "NOW") {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
         console.error("sendAuctionNotification_sendEmailNotification_エラー:");
@@ -116,7 +117,7 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // アプリ内通知を送信
-    if (params.sendMethod.includes(NotificationSendMethod.IN_APP)) {
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
       const inAppNotificationResult = await sendInAppNotification(notificationParams);
       if (!inAppNotificationResult.success) {
         console.error("sendAuctionNotification_sendInAppNotification_エラー:");

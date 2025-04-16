@@ -37,6 +37,7 @@ export async function sendInAppNotification(notificationParams: NotificationPara
         taskId: notificationParams.targetType === "TASK" ? notificationParams.taskId : null,
         // isReadはPrismaが自動的にJSONB型に変換
         isRead: isReadJsonb,
+        sendMethods: notificationParams.sendMethods,
       },
     });
 

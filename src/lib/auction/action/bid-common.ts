@@ -648,7 +648,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           auctionEventType: PrismaAuctionEventType.OUTBID,
           auctionId,
           recipientUserId: [initialHighestBidderId],
-          sendMethod: [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP],
+          sendMethods: [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP],
           actionUrl: null,
           sendTiming: NotificationSendTiming.NOW,
           sendScheduledDate: null,

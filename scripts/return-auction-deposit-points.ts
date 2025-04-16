@@ -114,7 +114,7 @@ async function returnAuctionDepositPoints(): Promise<number> {
           auctionEventType: "POINT_RETURNED",
           auctionId: auction.id,
           recipientUserId: [winningBid.userId],
-          sendMethod: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
+          sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
           actionUrl: `/auction/${auction.id}`,
           sendTiming: NotificationSendTiming.NOW,
           sendScheduledDate: null,

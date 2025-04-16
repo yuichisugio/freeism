@@ -203,7 +203,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
           title: data.title,
           message: data.message,
           targetType: data.targetType,
-          sendMethod: [NotificationSendMethod.IN_APP],
+          sendMethods: [NotificationSendMethod.IN_APP],
           userId: data.userId ? [data.userId] : null,
           groupId: data.groupId ?? null,
           taskId: data.taskId ?? null,
@@ -218,17 +218,22 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
         // プッシュ通知ONの場合は、WEB_PUSHを入れる
         if (data.sendPushNotification) {
-          sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.WEB_PUSH);
+          sendGeneralNotificationParams.sendMethods.push(NotificationSendMethod.WEB_PUSH);
         }
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // メール通知ONの場合は、EMAILを入れる
         if (data.sendEmailNotification) {
-          sendGeneralNotificationParams.sendMethod.push(NotificationSendMethod.EMAIL);
+          sendGeneralNotificationParams.sendMethods.push(NotificationSendMethod.EMAIL);
         }
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        console.log("data", data);
+        console.log("data.sendPushNotification", data.sendPushNotification);
+        console.log("data.sendEmailNotification", data.sendEmailNotification);
+        console.log("sendGeneralNotificationParams", sendGeneralNotificationParams);
 
         // サーバーアクションを直接呼び出す代わりに、APIエンドポイントを使用
         const response = await fetch("/api/notifications", {

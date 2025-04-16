@@ -98,7 +98,7 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
         auctionEventType: AuctionEventType.QUESTION_RECEIVED,
         auctionId,
         recipientUserId: [recipientId],
-        sendMethod: [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL],
+        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL],
         actionUrl: `/auction/${auctionId}`,
         sendTiming: "NOW",
         sendScheduledDate: null,
