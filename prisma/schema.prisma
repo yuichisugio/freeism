@@ -1,4 +1,7 @@
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+generator client {
+  provider = "prisma-client-js"
+  plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
+}
 
 datasource db {
   provider  = "postgresql"
@@ -6,326 +9,203 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-generator client {
-  provider = "prisma-client-js"
-  plugin   = "@prisma/nextjs-monorepo-workaround-plugin"
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  isAppOwner    Boolean   @default(false) @map("is_app_owner")
-
+  id                 String             @id @default(cuid())
+  name               String?
+  email              String             @unique
+  image              String?
+  createdAt          DateTime           @default(now()) @map("created_at")
+  emailVerified      DateTime?          @map("email_verified")
+  isAppOwner         Boolean            @default(false) @map("is_app_owner")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
   accounts           Account[]
-  sessions           Session[]
-  settings           UserSettings?
-  groups             Group[]
-  memberships        GroupMembership[]
-  taskCreator        Task[]             @relation("TaskCreator")
-  userFixedSubmitter Task[]             @relation("UserFixedSubmitter")
-  notifications      Notification[]
   analytics          Analytics[]
-  taskReporter       TaskReporter[]
-  taskExecutor       TaskExecutor[]
-  watchLists         TaskWatchList[]
-  groupPoints        GroupPoint[]
-  bids               BidHistory[]
   highestBids        Auction[]          @relation("HighestBidder")
   wonAuctions        Auction[]          @relation("AuctionWinner")
-  autoBids           AutoBid[]
-  reviewsGiven       AuctionReview[]    @relation("ReviewerUser")
-  reviewsReceived    AuctionReview[]    @relation("RevieweeUser")
-  sentMessages       AuctionMessage[]   @relation("MessageSender")
   receivedMessages   AuctionMessage[]   @relation("MessageRecipient")
+  sentMessages       AuctionMessage[]   @relation("MessageSender")
+  reviewsReceived    AuctionReview[]    @relation("RevieweeUser")
+  reviewsGiven       AuctionReview[]    @relation("ReviewerUser")
+  autoBids           AutoBid[]
+  bids               BidHistory[]
+  groups             Group[]
+  memberships        GroupMembership[]
+  groupPoints        GroupPoint[]
+  notifications      Notification[]
   pushSubscriptions  PushSubscription[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  sessions           Session[]
+  taskCreator        Task[]             @relation("TaskCreator")
+  userFixedSubmitter Task[]             @relation("UserFixedSubmitter")
+  taskExecutor       TaskExecutor[]
+  taskReporter       TaskReporter[]
+  watchLists         TaskWatchList[]
+  settings           UserSettings?
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model Account {
-  id                String  @id @default(cuid())
   type              String
   provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @map("refresh_token") @db.Text
-  access_token      String? @map("access_token") @db.Text
-  expires_at        Int?    @map("expires_at")
-  token_type        String? @map("token_type")
+  refresh_token     String?  @map("refresh_token")
+  access_token      String?  @map("access_token")
+  token_type        String?  @map("token_type")
   scope             String?
-  id_token          String? @map("id_token") @db.Text
-  session_state     String? @map("session_state")
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id_token          String?  @map("id_token")
+  session_state     String?  @map("session_state")
+  expires_at        Int?     @map("expires_at")
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now()) @map("created_at")
+  providerAccountId String   @map("provider_account_id")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  userId            String   @map("user_id")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
   expires      DateTime
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(cuid())
+  userId       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  sessionToken String   @unique @map("session_token")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@unique([identifier, token])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model UserSettings {
-  id             String  @id @default(cuid())
+  id             String   @id @default(cuid())
   username       String
-  lifeGoal       String  @map("life_goal") @db.Text
-  isEmailEnabled Boolean @default(false) @map("is_email_enabled")
-  isPushEnabled  Boolean @default(false) @map("is_push_enabled")
-
-  userId String @unique @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  lifeGoal       String   @map("life_goal")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  userId         String   @unique @map("user_id")
+  isEmailEnabled Boolean  @default(false) @map("is_email_enabled")
+  isPushEnabled  Boolean  @default(false) @map("is_push_enabled")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model Group {
-  id               String @id @default(cuid())
-  name             String @unique
+  id               String            @id @default(cuid())
+  name             String            @unique
   goal             String
-  evaluationMethod String @map("evaluation_method")
-  depositPeriod    Int    @default(30) @map("deposit_period") // ポイント預け入れ期間
-  maxParticipants  Int    @default(100) @map("max_participants") // 最大参加者数
-  isBlackList      Json?  @map("is_black_list") @db.JsonB // 除名されたユーザーのリスト（userIdをキーとして値にtrueを格納）
-
-  createdBy String @map("created_by")
-  user      User   @relation(fields: [createdBy], references: [id])
-
-  members       GroupMembership[]
-  tasks         Task[]
-  analytics     Analytics[]
-  notifications Notification[]
-  groupPoints   GroupPoint[]
-  auctions      Auction[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  depositPeriod    Int               @default(30) @map("deposit_period")
+  maxParticipants  Int               @default(100) @map("max_participants")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  createdBy        String            @map("created_by")
+  evaluationMethod String            @map("evaluation_method")
+  isBlackList      Json?             @map("is_black_list")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  analytics        Analytics[]
+  auctions         Auction[]
+  user             User              @relation(fields: [createdBy], references: [id])
+  members          GroupMembership[]
+  groupPoints      GroupPoint[]
+  notifications    Notification[]
+  tasks            Task[]
 
   @@index([createdBy])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model GroupMembership {
   id           String   @id @default(cuid())
-  joinedAt     DateTime @default(now()) @map("joined_at")
+  groupId      String   @map("group_id")
   isGroupOwner Boolean  @default(false) @map("is_group_owner")
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  groupId String @map("group_id")
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  joinedAt     DateTime @default(now()) @map("joined_at")
+  userId       String   @map("user_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
   @@index([userId])
   @@index([groupId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model Task {
-  id               String           @id @default(cuid())
-  task             String // タスクのタイトル
-  detail           String? // タスクの詳細
-  reference        String? // 参考にした内容
-  category         String?          @default("その他") // タスクのカテゴリ
-  status           TaskStatus       @default(PENDING)
-  info             String? // 証拠・結果・補足情報
-  imageUrl         String?          @map("image_url") // 報酬画像のURL
-  contributionType contributionType @default(NON_REWARD) @map("contribution_type") // "REWARD" or "NON_REWARD"
-  deliveryMethod   String?          @map("delivery_method") // 提供方法
-
-  fixedContributionPoint Int?      @map("fixed_contribution_point")
-  fixedEvaluator         String?   @map("fixed_evaluator")
-  fixedEvaluationLogic   String?   @map("fixed_evaluation_logic")
-  fixedEvaluationDate    DateTime? @map("fixed_evaluation_date")
-
-  userFixedSubmitterId String? @map("user_fixed_submitter_id")
-  userFixedSubmitter   User?   @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade) // 固定評価者
-
-  creatorId String @map("creator_id")
-  creator   User   @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-
-  groupId String
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  auction       Auction?
-  analytics     Analytics[]
-  notifications Notification[]
-  reporters     TaskReporter[]
-  executors     TaskExecutor[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                     String           @id @default(cuid())
+  task                   String
+  reference              String?
+  groupId                String
+  status                 TaskStatus       @default(PENDING)
+  info                   String?
+  detail                 String?
+  contributionType       contributionType @default(NON_REWARD) @map("contribution_type")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  creatorId              String           @map("creator_id")
+  fixedContributionPoint Int?             @map("fixed_contribution_point")
+  fixedEvaluationDate    DateTime?        @map("fixed_evaluation_date")
+  fixedEvaluationLogic   String?          @map("fixed_evaluation_logic")
+  fixedEvaluator         String?          @map("fixed_evaluator")
+  imageUrl               String?          @map("image_url")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  userFixedSubmitterId   String?          @map("user_fixed_submitter_id")
+  deliveryMethod         String?          @map("delivery_method")
+  category               String?          @default("その他")
+  analytics              Analytics[]
+  auction                Auction?
+  notifications          Notification[]
+  creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userFixedSubmitter     User?            @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
+  executors              TaskExecutor[]
+  reporters              TaskReporter[]
 
   @@index([creatorId])
   @@index([groupId])
 }
 
-enum contributionType {
-  REWARD // 報酬タスク
-  NON_REWARD // 報酬なしタスク
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model Analytics {
-  id                String @id @default(cuid())
-  contributionPoint Int    @map("contribution_point")
-  evaluationLogic   String @map("evaluation_logic")
-
-  taskId String @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  groupId String @map("group_id")
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  evaluator String
-  user      User   @relation(fields: [evaluator], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(cuid())
+  evaluator         String
+  contributionPoint Int      @map("contribution_point")
+  createdAt         DateTime @default(now()) @map("created_at")
+  evaluationLogic   String   @map("evaluation_logic")
+  groupId           String   @map("group_id")
+  taskId            String   @map("task_id")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [evaluator], references: [id], onDelete: Cascade)
+  group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@index([groupId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-enum TaskStatus {
-  PENDING // タスク実施予定
-  POINTS_DEPOSITED // ポイント預け済み。報酬あり専用
-  TASK_COMPLETED // タスク完了。報酬の有無関係なしで、タスクが完了した場合に使用
-  FIXED_EVALUATED // ポイント額がFIXED_CONTRIBUTION_POINTによって評価されたときに使用
-  POINTS_AWARDED // ポイントの付与が完了したときに使用
-  ARCHIVED // タスクをアーカイブしたときに使用
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// 通知対象の種類を定義
-enum NotificationTargetType {
-  SYSTEM // システム全体の通知
-  USER // 特定ユーザーへの通知
-  GROUP // 特定グループへの通知
-  TASK // 特定タスクに関する通知
-  AUCTION_SELLER // オークションの出品者に関する通知
-  AUCTION_BIDDER // オークションの入札者に関する通知
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-enum NotificationSendTiming {
-  NOW // 即時送信
-  SCHEDULED // 予定時間送信
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-enum NotificationSendMethod {
-  WEB_PUSH // ウェブプッシュ通知
-  APP_PUSH // アプリプッシュ通知
-  EMAIL // メール通知
-  IN_APP // アプリ内通知
-  SMS // 短信通知
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-enum AuctionEventType {
-  ITEM_SOLD // 商品が落札された
-  NO_WINNER // 落札者がいなかった
-  ENDED // オークションが終了した
-  OUTBID // 自分の入札が他者に上回られた
-  QUESTION_RECEIVED // 質問を受け取った
-  AUTO_BID_LIMIT_REACHED // 設定した最大入札額に達した
-  AUCTION_WIN // オークション落札
-  AUCTION_LOST // オークション落札失敗
-  POINT_RETURNED // ポイント返還
-  AUCTION_CANCELED // オークションキャンセル
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// 通知テーブル
 model Notification {
   id                String                   @id @default(cuid())
-  title             String                   @map("title") // 通知タイトル
-  message           String                   @map("message") @db.Text // 通知メッセージ内容
-  targetType        NotificationTargetType   @map("target_type") // 通知対象の種類
-  sendTimingType    NotificationSendTiming   @map("send_timing_type") // 通知の送信タイミング
-  auctionEventType  AuctionEventType?        @map("auction_event_type") // オークションイベントの種類
-  sendScheduledDate DateTime?                @map("send_scheduled_date") // 通知の予定送信時間
-  sendMethods       NotificationSendMethod[] @map("send_methods") // 通知の送信方法
-  sentAt            DateTime?                @map("sent_at") // 送付時間
-  expiresAt         DateTime?                @map("expires_at") // 通知の有効期限。自動で削除する日付（オプション）
-  actionUrl         String?                  @map("action_url") // クリック時の遷移先URL（オプション）
-  isRead            Json                     @default("{}") @map("is_read") @db.JsonB // ユーザーごとの既読状態 { userId: { isRead: boolean, readAt: timestamp } }
-
-  // 通知の送信者/作成者。GitHub Actionsで定期実行の場合はuserIdがないため、オプショナル(null)にする。
-  // SYSTEMなどのdefaultを入れると、relationカラムとの外部キーのエラーになるため、入れない
-  senderUserId String? @map("sender_user_id")
-  senderUser   User?   @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
-
-  // グループ関連（オプション）
-  groupId String? @map("group_id")
-  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
-
-  // タスク関連（オプション）
-  taskId String? @map("task_id")
-  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
-
-  // オークション関連（オプション）
-  auctionId String?  @map("auction_id")
-  auction   Auction? @relation(fields: [auctionId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  title             String                   @map("title")
+  message           String                   @map("message")
+  actionUrl         String?                  @map("action_url")
+  expiresAt         DateTime?                @map("expires_at")
+  groupId           String?                  @map("group_id")
+  sentAt            DateTime?                @map("sent_at")
+  targetType        NotificationTargetType   @map("target_type")
+  taskId            String?                  @map("task_id")
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+  sendScheduledDate DateTime?                @map("send_scheduled_date")
+  sendTimingType    NotificationSendTiming   @map("send_timing_type")
+  auctionEventType  AuctionEventType?        @map("auction_event_type")
+  auctionId         String?                  @map("auction_id")
+  isRead            Json                     @default("{}") @map("is_read")
+  sendMethods       NotificationSendMethod[] @map("send_methods")
+  senderUserId      String?                  @map("sender_user_id")
+  auction           Auction?                 @relation(fields: [auctionId], references: [id])
+  group             Group?                   @relation(fields: [groupId], references: [id])
+  senderUser        User?                    @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  task              Task?                    @relation(fields: [taskId], references: [id])
 
   @@index([senderUserId])
   @@index([groupId])
@@ -333,121 +213,88 @@ model Notification {
   @@index([auctionId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// タスク報告者モデル
 model TaskReporter {
-  id   String  @id @default(cuid())
-  name String? // 未登録ユーザーの場合は名前のみ
-
-  userId String? @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  taskId String @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  name      String?
   createdAt DateTime @default(now()) @map("created_at")
+  taskId    String   @map("task_id")
   updatedAt DateTime @updatedAt @map("updated_at")
+  userId    String?  @map("user_id")
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// タスク実行者モデル
 model TaskExecutor {
-  id   String  @id @default(cuid())
-  name String? // 未登録ユーザーの場合は名前のみ
-
-  userId String? @map("user_id") // 登録ユーザーの場合はID紐づけ (オプショナル)
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  taskId String @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  name      String?
   createdAt DateTime @default(now()) @map("created_at")
+  taskId    String   @map("task_id")
   updatedAt DateTime @updatedAt @map("updated_at")
+  userId    String?  @map("user_id")
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// Auction関連テーブル追加
 model TaskWatchList {
-  id String @id @default(cuid())
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  auctionId String   @map("auction_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
   @@index([userId])
   @@index([auctionId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// 各ユーザーのGroupごとのポイントを管理する
 model GroupPoint {
-  id               String @id @default(cuid())
-  balance          Int    @default(0) // 残高
-  fixedTotalPoints Int    @default(0) @map("fixed_total_points") // 保有ポイント
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  groupId String @map("group_id")
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  groupId          String   @map("group_id")
+  balance          Int      @default(0)
+  fixedTotalPoints Int      @default(0) @map("fixed_total_points")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  group            Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
   @@index([userId])
   @@index([groupId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// オークション関連テーブル
 model Auction {
-  id                String        @id @default(cuid())
-  startTime         DateTime      @map("start_time")
-  endTime           DateTime      @map("end_time")
-  currentHighestBid Int           @default(0) @map("current_highest_bid") // 現在の最高入札額
-  status            AuctionStatus @default(PENDING)
-  extensionCount    Int           @default(0) @map("extension_count") // 延長回数
-  version           Int           @default(1) // 楽観的ロック用
-
-  taskId String @unique @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  currentHighestBidderId String? @map("current_highest_bidder_id")
-  currentHighestBidder   User?   @relation("HighestBidder", fields: [currentHighestBidderId], references: [id], onDelete: SetNull)
-
-  winnerId String? @map("winner_id")
-  winner   User?   @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
-
-  groupId String @map("group_id")
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  bidHistories  BidHistory[]
-  watchlists    TaskWatchList[]
-  reviews       AuctionReview[]
-  notifications Notification[]
-  autoBids      AutoBid[]
-  messages      AuctionMessage[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                     String           @id @default(cuid())
+  taskId                 String           @unique @map("task_id")
+  startTime              DateTime         @map("start_time")
+  endTime                DateTime         @map("end_time")
+  currentHighestBid      Int              @default(0) @map("current_highest_bid")
+  currentHighestBidderId String?          @map("current_highest_bidder_id")
+  winnerId               String?          @map("winner_id")
+  status                 AuctionStatus    @default(PENDING)
+  extensionCount         Int              @default(0) @map("extension_count")
+  version                Int              @default(1)
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  groupId                String           @map("group_id")
+  currentHighestBidder   User?            @relation("HighestBidder", fields: [currentHighestBidderId], references: [id])
+  group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  task                   Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  winner                 User?            @relation("AuctionWinner", fields: [winnerId], references: [id])
+  messages               AuctionMessage[]
+  reviews                AuctionReview[]
+  autoBids               AutoBid[]
+  bidHistories           BidHistory[]
+  notifications          Notification[]
+  watchlists             TaskWatchList[]
 
   @@index([taskId])
   @@index([currentHighestBidderId])
@@ -455,91 +302,55 @@ model Auction {
   @@index([groupId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-enum AuctionStatus {
-  PENDING // オークション開始前
-  ACTIVE // オークション進行中
-  ENDED // オークション終了
-  CANCELED // オークションキャンセル
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model BidHistory {
   id           String    @id @default(cuid())
-  amount       Int // 入札額
-  depositPoint Int?      @map("deposit_point") // 預けたポイント
+  auctionId    String    @map("auction_id")
+  userId       String    @map("user_id")
+  amount       Int
   isAutoBid    Boolean   @default(false) @map("is_auto_bid")
   status       BidStatus @default(BIDDING)
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  depositPoint Int?      @map("deposit_point")
+  auction      Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([auctionId])
   @@index([userId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-enum BidStatus {
-  BIDDING // 入札中
-  WON // 落札済み
-  LOST // 落札失敗
-  INSUFFICIENT // 残高不足
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model AutoBid {
   id           String    @id @default(cuid())
-  maxBidAmount Int       @map("max_bid_amount") // 最大入札額
-  bidIncrement Int       @default(1) @map("bid_increment") // 入札単位
-  lastBidTime  DateTime? @map("last_bid_time") // 最後の入札時間
-  isActive     Boolean   @default(true) @map("is_active") // 自動入札が有効かどうか（有効な場合は、自動入札が行われる。OFFにしてもレコードは削除しない）
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  userId       String    @map("user_id")
+  auctionId    String    @map("auction_id")
+  maxBidAmount Int       @map("max_bid_amount")
+  bidIncrement Int       @default(1) @map("bid_increment")
+  lastBidTime  DateTime? @map("last_bid_time")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  auction      Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
   @@index([userId])
   @@index([auctionId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 model AuctionReview {
-  id                 String  @id @default(cuid())
-  rating             Int // 星評価(1-5)
-  comment            String? @db.Text
-  completionProofUrl String? @map("completion_proof_url") // 完了証明の添付URL
-  isSellerReview     Boolean @map("is_seller_review") // 出品者による評価か買い手による評価か
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  // 評価者
-  reviewerId String @map("reviewer_id")
-  reviewer   User   @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
-
-  // 評価される人
-  revieweeId String @map("reviewee_id")
-  reviewee   User   @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(cuid())
+  auctionId          String   @map("auction_id")
+  reviewerId         String   @map("reviewer_id")
+  revieweeId         String   @map("reviewee_id")
+  rating             Int
+  comment            String?
+  completionProofUrl String?  @map("completion_proof_url")
+  isSellerReview     Boolean  @map("is_seller_review")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  auction            Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  reviewee           User     @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewer           User     @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, reviewerId, revieweeId])
   @@index([auctionId])
@@ -547,48 +358,97 @@ model AuctionReview {
   @@index([revieweeId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// オークションメッセージモデル
 model AuctionMessage {
-  id      String @id @default(cuid())
-  message String @db.Text
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  senderId String @map("sender_id")
-  sender   User   @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-
-  recipientId String @map("recipient_id")
-  recipient   User   @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(cuid())
+  auctionId   String   @map("auction_id")
+  senderId    String   @map("sender_id")
+  recipientId String   @map("recipient_id")
+  message     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([auctionId])
   @@index([senderId])
   @@index([recipientId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// プッシュ通知のサブスクリプションを管理するモデル
 model PushSubscription {
   id             String    @id @default(cuid())
   endpoint       String?   @unique
   p256dh         String?
   auth           String?
   expirationTime DateTime? @map("expiration_time")
+  userId         String?   @map("user_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
   deviceId       String?
-
-  userId String? @map("user_id")
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  user           User?     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+enum contributionType {
+  REWARD
+  NON_REWARD
+}
+
+enum TaskStatus {
+  PENDING
+  POINTS_DEPOSITED
+  TASK_COMPLETED
+  FIXED_EVALUATED
+  POINTS_AWARDED
+  ARCHIVED
+}
+
+enum NotificationTargetType {
+  SYSTEM
+  USER
+  GROUP
+  TASK
+  AUCTION_SELLER
+  AUCTION_BIDDER
+}
+
+enum NotificationSendTiming {
+  NOW
+  SCHEDULED
+}
+
+enum NotificationSendMethod {
+  WEB_PUSH
+  APP_PUSH
+  EMAIL
+  IN_APP
+  SMS
+}
+
+enum AuctionEventType {
+  ITEM_SOLD
+  NO_WINNER
+  ENDED
+  OUTBID
+  QUESTION_RECEIVED
+  AUTO_BID_LIMIT_REACHED
+  AUCTION_WIN
+  AUCTION_LOST
+  POINT_RETURNED
+  AUCTION_CANCELED
+}
+
+enum AuctionStatus {
+  PENDING
+  ACTIVE
+  ENDED
+  CANCELED
+}
+
+enum BidStatus {
+  BIDDING
+  WON
+  LOST
+  INSUFFICIENT
+}
