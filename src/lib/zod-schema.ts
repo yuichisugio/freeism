@@ -2,6 +2,9 @@
 import { contributionType } from "@prisma/client";
 import { z } from "zod";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// グループ作成フォームのバリデーションスキーマ
 export const createGroupSchema = z.object({
   name: z.string().min(1, "グループ名を入力してください").max(50, "グループ名は50文字以内で入力してください").trim(),
   // trimを以下のように使用することで、文字列の前後のスペースが削除されるため、スペースのみ入力された際にエラーとなります。
@@ -11,10 +14,15 @@ export const createGroupSchema = z.object({
   depositPeriod: z.number().min(1, "ポイント預け入れ期間は最低1日以上必要です").max(9999, "ポイント預け入れ期間は最大9999日以内で設定してください"),
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// セットアップフォームのバリデーションスキーマ
 export const setupSchema = z.object({
   username: z.string().min(2, { message: "2文字以上で入力してください" }).max(40, { message: "40文字以内で入力してください" }),
   lifeGoal: z.string().min(2, { message: "2文字以上で入力してください" }).max(200, { message: "200文字以内で入力してください" }),
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 報告者・実行者のスキーマ
 export const taskPersonSchema = z
@@ -25,6 +33,8 @@ export const taskPersonSchema = z
   .refine((data) => data.name ?? data.userId, {
     message: "名前またはユーザーIDのいずれかを指定してください",
   });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export const taskFormSchema = z.object({
   task: z.string().min(1, "タスク内容を入力してください"),
@@ -39,6 +49,8 @@ export const taskFormSchema = z.object({
   auctionEndTime: z.date().optional(),
   deliveryMethod: z.string().optional(),
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 通知作成フォームのバリデーションスキーマ
 export const createNotificationSchema = z.object({
@@ -59,6 +71,8 @@ export const createNotificationSchema = z.object({
   sendPushNotification: z.boolean().default(false),
   sendEmailNotification: z.boolean().default(false),
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export type CreateNotificationFormData = z.infer<typeof createNotificationSchema>;
 
