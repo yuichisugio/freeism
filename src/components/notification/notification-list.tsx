@@ -1,13 +1,16 @@
 "use client";
 
-import type { FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
+import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
+import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, CheckCircle2, MoreHorizontal, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, MoreHorizontal, RefreshCw, ShoppingCart } from "lucide-react";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ローディングインジケーター
@@ -16,8 +19,13 @@ const LoadingIndicator = memo(function LoadingIndicator() {
   return <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />;
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * フィルタータブコンポーネント
+ * @param {FilterType} activeFilter - 現在のフィルター状態
+ * @param {function} onFilterChange - フィルター状態変更時のコールバック
+ * @param {number} unreadCount - 未読通知の数
  */
 const FilterTabs = memo(function FilterTabs({
   activeFilter,
@@ -65,8 +73,13 @@ const FilterTabs = memo(function FilterTabs({
   );
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 通知アイテムコンポーネント
+ * @param {NotificationData} notification - 通知データ
+ * @param {function} onToggleReadStatus - 未読状態変更時のコールバック
+ * @returns {React.ReactNode} 通知アイテムのReactノード
  */
 const NotificationItem = memo(function NotificationItem({
   notification,
@@ -178,6 +191,12 @@ const NotificationItem = memo(function NotificationItem({
                 <span>システム全体</span>
               </>
             )}
+            {notification.auctionEventType && (
+              <span className="ml-2 flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                <ShoppingCart className="mr-1 inline-block h-3 w-3" />
+                <span className="leading-none">オークション: {formatAuctionEventType(notification.auctionEventType)}</span>
+              </span>
+            )}
           </div>
 
           <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{isExpanded ? notification.message : truncateMessage(notification.message)}</p>
@@ -234,8 +253,14 @@ const NotificationItem = memo(function NotificationItem({
   );
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 通知が空の場合に表示するコンポーネント
+ * @param {boolean} hasMore - もっと読み込むボタンの表示有無
+ * @param {function} onLoadMore - もっと読み込むボタンのクリック時のコールバック
+ * @param {boolean} isLoadingMore - もっと読み込むボタンのローディング状態
+ * @param {FilterType} activeFilter - 現在のフィルター状態
  */
 const NotificationsEmpty = memo(function NotificationsEmpty({
   hasMore,
@@ -288,6 +313,172 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
   );
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+const Loading = memo(function Loading() {
+  return (
+    <div className="flex h-[50vh] items-center justify-center">
+      <div className="text-center">
+        <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+        <p className="text-sm text-gray-500">通知を読み込み中...</p>
+      </div>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+const Error = memo(function Error({ error, handleManualRefresh }: { error: string; handleManualRefresh: () => void }) {
+  return (
+    <div className="flex h-[50vh] items-center justify-center">
+      <div className="text-center text-red-500">
+        <AlertCircle className="mx-auto mb-2 h-6 w-6" />
+        <p className="text-sm">{error}</p>
+        <Button variant="outline" size="sm" className="mt-2" onClick={handleManualRefresh}>
+          再度読み込む
+        </Button>
+      </div>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションイベントタイプを日本語に変換
+ */
+const formatAuctionEventType = (eventType: string): string => {
+  const eventTypes: Record<string, string> = {
+    ITEM_SOLD: "落札完了",
+    NO_WINNER: "落札者なし",
+    ENDED: "終了",
+    OUTBID: "入札更新",
+    QUESTION_RECEIVED: "質問受信",
+    AUTO_BID_LIMIT_REACHED: "自動入札上限到達",
+    AUCTION_WIN: "落札",
+    AUCTION_LOST: "落札失敗",
+    POINT_RETURNED: "ポイント返却",
+    AUCTION_CANCELED: "キャンセル",
+  };
+
+  return eventTypes[eventType] || eventType;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション通知フィルターコンポーネント
+ */
+const AuctionFilterControl = memo(function AuctionFilterControl({
+  activeAuctionFilter,
+  onAuctionFilterChange,
+}: {
+  activeAuctionFilter: AuctionFilterType;
+  onAuctionFilterChange: (filter: AuctionFilterType) => void;
+}) {
+  return (
+    <div className="mb-2 flex items-center">
+      <div className="flex h-8 items-center gap-1 rounded-lg bg-gray-100 p-1">
+        <button
+          className={cn(
+            "flex h-6 items-center gap-1 rounded-md px-2 text-xs transition-colors",
+            activeAuctionFilter === "all" ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900",
+          )}
+          onClick={() => onAuctionFilterChange("all")}
+        >
+          すべて
+        </button>
+        <button
+          className={cn(
+            "flex h-6 items-center gap-1 rounded-md px-2 text-xs transition-colors",
+            activeAuctionFilter === "auction-only" ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900",
+          )}
+          onClick={() => onAuctionFilterChange("auction-only")}
+        >
+          <ShoppingCart className="h-3 w-3" />
+          オークションのみ
+        </button>
+        <button
+          className={cn(
+            "flex h-6 items-center gap-1 rounded-md px-2 text-xs transition-colors",
+            activeAuctionFilter === "exclude-auction" ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900",
+          )}
+          onClick={() => onAuctionFilterChange("exclude-auction")}
+        >
+          <ShoppingCart className="h-3 w-3" />
+          オークション以外
+        </button>
+      </div>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知リストコンポーネント
+ * @param {NotificationData[]} notifications - 通知データの配列
+ * @param {boolean} hasMore - もっと読み込むボタンの表示有無
+ * @param {boolean} isLoadingMore - もっと読み込むボタンのローディング状態
+ * @param {FilterType} activeFilter - 現在のフィルター状態
+ * @param {function} loadMoreNotifications - もっと読み込むボタンのクリック時のコールバック
+ * @param {function} toggleReadStatus - 未読状態変更時のコールバック
+ */
+const Notifications = memo(function Notifications({
+  notifications,
+  hasMore,
+  isLoadingMore,
+  activeFilter,
+  loadMoreNotifications,
+  toggleReadStatus,
+}: {
+  notifications: NotificationData[];
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  activeFilter: FilterType;
+  loadMoreNotifications: () => void;
+  toggleReadStatus: (id: string, isRead: boolean) => void;
+}) {
+  return (
+    <ScrollArea className="h-full">
+      <div className="flex flex-col gap-4 pr-4">
+        {notifications.length > 0 ? (
+          <>
+            <ul className="space-y-3">
+              {notifications.map((notification: NotificationData) => (
+                <NotificationItem key={notification.id} notification={notification} onToggleReadStatus={toggleReadStatus} />
+              ))}
+            </ul>
+
+            {/* もっと読み込むボタン */}
+            {hasMore && (
+              <div className="mt-4 flex justify-center py-2">
+                <Button variant="outline" size="sm" onClick={loadMoreNotifications} disabled={isLoadingMore} className="w-full text-sm">
+                  {isLoadingMore ? (
+                    <>
+                      <LoadingIndicator />
+                      読み込み中...
+                    </>
+                  ) : (
+                    <>
+                      <MoreHorizontal className="mr-1 h-4 w-4" />
+                      もっと読み込む
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <NotificationsEmpty hasMore={hasMore} onLoadMore={loadMoreNotifications} isLoadingMore={isLoadingMore} activeFilter={activeFilter} />
+        )}
+      </div>
+    </ScrollArea>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 通知リストコンポーネント
  * @param {function} onUnreadStatusChangeAction - 未読状態変更時のコールバック
@@ -297,6 +488,8 @@ export const NotificationList = memo(function NotificationList({
 }: {
   onUnreadStatusChangeAction?: (hasUnread: boolean) => void;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const {
     notifications,
     isLoading,
@@ -305,13 +498,17 @@ export const NotificationList = memo(function NotificationList({
     unreadCount,
     hasMore,
     activeFilter,
+    activeAuctionFilter,
     toggleReadStatus,
     loadMoreNotifications,
     markAllAsRead,
     handleFilterChange,
+    handleAuctionFilterChange,
     handleManualRefresh,
     requestCounter,
   } = useNotificationList(onUnreadStatusChangeAction);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -319,85 +516,55 @@ export const NotificationList = memo(function NotificationList({
       <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
 
       {/* ヘッダー部分 - 固定 */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-800 dark:text-gray-200">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
-          <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          {requestCounter > 0 && <span className="text-xs text-gray-500">リクエスト: {requestCounter}回</span>}
+      <div className="mb-4 flex flex-col">
+        {/* 上段: 未読カウントとリロードボタン */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-800 dark:text-gray-200">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
+            <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            {requestCounter > 0 && <span className="text-xs text-gray-500">リクエスト: {requestCounter}回</span>}
+          </div>
+
+          {/* すべて既読にするボタン */}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                すべて既読にする
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={markAllAsRead}
-              className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              すべて既読にする
-            </Button>
-          )}
-        </div>
+        {/* 下段: オークションフィルター */}
+        <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
       </div>
 
       {/* 通知リスト部分 - スクロール可能エリア */}
       <div className="overflow-hidden">
         {isLoading ? (
-          <div className="flex h-[50vh] items-center justify-center">
-            <div className="text-center">
-              <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-              <p className="text-sm text-gray-500">通知を読み込み中...</p>
-            </div>
-          </div>
+          <Loading />
         ) : error ? (
-          <div className="flex h-[50vh] items-center justify-center">
-            <div className="text-center text-red-500">
-              <AlertCircle className="mx-auto mb-2 h-6 w-6" />
-              <p className="text-sm">{error}</p>
-              <Button variant="outline" size="sm" className="mt-2" onClick={handleManualRefresh}>
-                再度読み込む
-              </Button>
-            </div>
-          </div>
+          <Error error={error} handleManualRefresh={handleManualRefresh} />
         ) : (
-          <ScrollArea className="h-full">
-            <div className="flex flex-col gap-4 pr-4">
-              {notifications.length > 0 ? (
-                <>
-                  <ul className="space-y-3">
-                    {notifications.map((notification: NotificationData) => (
-                      <NotificationItem key={notification.id} notification={notification} onToggleReadStatus={toggleReadStatus} />
-                    ))}
-                  </ul>
-
-                  {/* もっと読み込むボタン */}
-                  {hasMore && (
-                    <div className="mt-4 flex justify-center py-2">
-                      <Button variant="outline" size="sm" onClick={loadMoreNotifications} disabled={isLoadingMore} className="w-full text-sm">
-                        {isLoadingMore ? (
-                          <>
-                            <LoadingIndicator />
-                            読み込み中...
-                          </>
-                        ) : (
-                          <>
-                            <MoreHorizontal className="mr-1 h-4 w-4" />
-                            もっと読み込む
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <NotificationsEmpty hasMore={hasMore} onLoadMore={loadMoreNotifications} isLoadingMore={isLoadingMore} activeFilter={activeFilter} />
-              )}
-            </div>
-          </ScrollArea>
+          <Notifications
+            notifications={notifications}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            activeFilter={activeFilter}
+            loadMoreNotifications={loadMoreNotifications}
+            toggleReadStatus={toggleReadStatus}
+          />
         )}
       </div>
     </div>
   );
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

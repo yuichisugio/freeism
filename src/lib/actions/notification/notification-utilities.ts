@@ -27,6 +27,8 @@ export type NotificationData = {
   userName: string | null;
   groupName: string | null;
   taskName: string | null;
+  auctionEventType: string | null;
+  auctionId: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -332,6 +334,8 @@ export async function getNotificationsAndUnreadCount(
         n."sender_user_id" as "senderUserId",
         n."group_id" as "groupId",
         n."task_id" as "taskId",
+        n."auction_event_type" as "auctionEventType",
+        n."auction_id" as "auctionId",
         u.name as "userName",
         g.name as "groupName",
         t.task as "taskName"
@@ -364,6 +368,8 @@ export async function getNotificationsAndUnreadCount(
             senderUserId: string | null;
             groupId: string | null;
             taskId: string | null;
+            auctionEventType: string | null;
+            auctionId: string | null;
             userName: string | null;
             groupName: string | null;
             taskName: string | null;
@@ -380,6 +386,8 @@ export async function getNotificationsAndUnreadCount(
             senderUserId: n.senderUserId ?? null,
             groupId: n.groupId ?? null,
             taskId: n.taskId ?? null,
+            auctionEventType: n.auctionEventType ?? null,
+            auctionId: n.auctionId ?? null,
             userName: n.userName ?? null,
             groupName: n.groupName ?? null,
             taskName: n.taskName ?? null,

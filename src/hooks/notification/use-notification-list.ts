@@ -1,12 +1,17 @@
 "use client";
 
-import type { NotificationTargetType } from "@prisma/client";
+import type { AuctionEventType, NotificationTargetType } from "@prisma/client";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { apiUpdateNotificationStatus, getNotificationsAndUnreadCount } from "@/lib/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/auction/constants";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション通知フィルターの型
+ */
+export type AuctionFilterType = "all" | "auction-only" | "exclude-auction";
 
 /**
  * 通知フィルターの型
@@ -34,6 +39,8 @@ export type NotificationData = {
   taskName: string | null;
   expiresAt?: Date | null;
   senderUserId: string | null;
+  auctionEventType: AuctionEventType | null;
+  auctionId?: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -49,10 +56,12 @@ export type NotificationManagerResult = {
   unreadCount: number;
   hasMore: boolean;
   activeFilter: FilterType;
+  activeAuctionFilter: AuctionFilterType;
   toggleReadStatus: (id: string, isRead: boolean) => void;
   loadMoreNotifications: () => void;
   markAllAsRead: () => void;
   handleFilterChange: (filter: FilterType) => void;
+  handleAuctionFilterChange: (filter: AuctionFilterType) => void;
   handleManualRefresh: () => void;
   requestCounter: number;
   pendingUpdateCount: number;
@@ -68,15 +77,33 @@ export type NotificationManagerResult = {
 export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boolean) => void): NotificationManagerResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 基本的な状態
+  // 通知の情報
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
+
+  // ローディング状態
   const [isLoading, setIsLoading] = useState(true);
+
+  // 追加ローディングして取得できる情報があるかどうか
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // エラー情報
   const [error, setError] = useState<string | null>(null);
+
+  // 未読通知のカウント
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // ページング情報
   const [currentPage, setCurrentPage] = useState(1);
+
+  // 追加ローディングして取得できる情報があるかどうか
   const [hasMore, setHasMore] = useState(true);
+
+  // フィルター情報
   const [activeFilter, setActiveFilter] = useState<FilterType>("unread");
+
+  // オークションフィルター情報
+  const [activeAuctionFilter, setActiveAuctionFilter] = useState<AuctionFilterType>("all");
+
   // APIリクエスト回数のカウンター
   const [requestCounter, setRequestCounter] = useState(0);
 
@@ -96,53 +123,76 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // タブ変更でフィルター内容が変更された時に呼び出す
+  /**
+   * フィルター内容が変更された時に呼び出す
+   */
   const filteredNotifications = useCallback(() => {
-    if (activeFilter === "all") {
-      return notifications;
-    }
+    // フィルターを適応した通知の情報
+    let filtered = notifications;
+
+    // 未読フィルターが適応された場合
     if (activeFilter === "unread") {
-      return notifications.filter((notification) => !notification.isRead);
+      filtered = filtered.filter((notification) => !notification.isRead);
+
+      // 既読フィルターが適応された場合
+    } else if (activeFilter === "read") {
+      filtered = filtered.filter((notification) => notification.isRead);
     }
-    // 既読フィルター
-    return notifications.filter((notification) => notification.isRead);
-  }, [notifications, activeFilter]);
+
+    // オークションのみ表示フィルターが適応された場合
+    if (activeAuctionFilter === "auction-only") {
+      filtered = filtered.filter((notification) => notification.auctionEventType !== null);
+
+      // オークション除外フィルターが適応された場合
+    } else if (activeAuctionFilter === "exclude-auction") {
+      filtered = filtered.filter((notification) => notification.auctionEventType === null);
+    }
+
+    return filtered;
+  }, [notifications, activeFilter, activeAuctionFilter]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // サーバーに、既読/未読の通知のデータを登録する
-  const syncWithServer = useCallback(
-    async (_force = false) => {
-      if (pendingUpdates.size === 0) {
-        console.log("[通知] 保留中の更新がないため同期スキップ");
-        return;
-      }
+  /**
+   * サーバーに、既読/未読の通知のデータを更新する
+   */
+  const syncWithServer = useCallback(async () => {
+    // 保留中の更新がない場合はスキップ
+    if (pendingUpdates.size === 0) {
+      console.log("[通知] 保留中の更新がないため同期スキップ");
+      return;
+    }
 
-      console.log(`[通知] サーバー同期開始 (${pendingUpdates.size}件の更新)`);
+    console.log(`[通知] サーバー同期開始 (${pendingUpdates.size}件の更新)`);
 
-      try {
-        setIsRequestInProgress(true);
-        const updatePromises = Array.from(pendingUpdates.entries()).map(([notificationId, isRead]) => {
-          return apiUpdateNotificationStatus(notificationId, isRead);
-        });
+    try {
+      // リクエスト中のフラグをセット
+      setIsRequestInProgress(true);
 
-        await Promise.all(updatePromises);
+      // 保留中の更新をサーバーに同期
+      const updatePromises = Array.from(pendingUpdates.entries()).map(([notificationId, isRead]) => {
+        return apiUpdateNotificationStatus(notificationId, isRead);
+      });
 
-        // 同期完了後、保留中の更新をクリア
-        setPendingUpdates(new Map());
-        console.log("[通知] サーバー同期完了");
-      } catch (error) {
-        console.error("[通知] 同期エラー:", error);
-      } finally {
-        setIsRequestInProgress(false);
-      }
-    },
-    [pendingUpdates],
-  );
+      // 保留中の更新をサーバーに同期
+      await Promise.all(updatePromises);
+
+      // 同期完了後、保留中の更新をクリア
+      setPendingUpdates(new Map());
+      console.log("[通知] サーバー同期完了");
+    } catch (error) {
+      console.error("[通知] 同期エラー:", error);
+    } finally {
+      // リクエスト中のフラグを解除
+      setIsRequestInProgress(false);
+    }
+  }, [pendingUpdates]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 通知を取得する関数（初回のみ実行される）
+  /**
+   * 通知を取得する関数（初回のみ実行される）
+   */
   const fetchNotifications = useCallback(
     async (page = 1, append = false) => {
       // 初期ロードが完了していて、追加ロードでない場合は無視。apendは「もっと読み込む」ボタンによるアクセスを示す
@@ -188,6 +238,8 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
           groupName: notification.groupName ?? null,
           taskName: notification.taskName ?? null,
           senderUserId: notification.senderUserId ?? null,
+          auctionEventType: notification.auctionEventType as AuctionEventType | null,
+          auctionId: notification.auctionId ?? null,
         }));
 
         // 通知リストの更新
@@ -406,6 +458,23 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // オークションフィルター変更ハンドラー
+  const handleAuctionFilterChange = useCallback(
+    (filter: AuctionFilterType) => {
+      console.log(`[通知] オークションフィルター変更: ${filter}`);
+      setActiveAuctionFilter(filter);
+
+      // フィルター変更時に表示される通知が少ない場合は追加で読み込む
+      const visibleNotifications = filteredNotifications();
+      if (visibleNotifications.length < 5 && hasMore && !isLoading && !isLoadingMore) {
+        void loadMoreNotifications();
+      }
+    },
+    [hasMore, isLoading, isLoadingMore, loadMoreNotifications, filteredNotifications],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 手動更新ハンドラー
   const handleManualRefresh = useCallback(() => {
     console.log("[通知] 手動更新");
@@ -413,7 +482,7 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
 
     // 保留中の更新を同期
     if (pendingUpdates.size > 0) {
-      void syncWithServer(true);
+      void syncWithServer();
     }
 
     // 初期ロードフラグをリセット
@@ -433,7 +502,7 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     // コンポーネントのクリーンアップ時に保留中の更新を同期
     return () => {
       if (pendingUpdates.size > 0) {
-        void syncWithServer(true);
+        void syncWithServer();
       }
     };
   }, [fetchNotifications, pendingUpdates.size, syncWithServer]);
@@ -450,7 +519,7 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     const syncOnPathChange = async () => {
       if (pendingUpdates.size > 0) {
         console.log("[通知] パス変更時の同期実行");
-        await syncWithServer(true);
+        await syncWithServer();
       }
     };
 
@@ -466,7 +535,7 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
   useEffect(() => {
     return () => {
       if (pendingUpdates.size > 0) {
-        void syncWithServer(true);
+        void syncWithServer();
       }
     };
   }, [pendingUpdates.size, syncWithServer]);
@@ -481,10 +550,12 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     unreadCount,
     hasMore,
     activeFilter,
+    activeAuctionFilter,
     toggleReadStatus,
     loadMoreNotifications,
     markAllAsRead,
     handleFilterChange,
+    handleAuctionFilterChange,
     handleManualRefresh,
     requestCounter,
     pendingUpdateCount: pendingUpdates.size,
