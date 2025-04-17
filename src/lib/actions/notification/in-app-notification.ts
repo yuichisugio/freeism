@@ -26,9 +26,11 @@ export async function sendInAppNotification(notificationParams: NotificationPara
       // sentAtを更新
       notificationParams.sentAt = now;
       // 通知を更新
-      await prisma.notification.update({
+      await prisma.notification.updateMany({
         where: { id: notificationParams.notificationId },
-        data: notificationParams,
+        data: {
+          sentAt: now,
+        },
       });
       return { success: true };
     }
