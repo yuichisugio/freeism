@@ -36,7 +36,7 @@ export type NotificationParams = {
  * @param {NotificationParams} params 通知のパラメータ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; error?: string }> {
+export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; error?: string; message?: string }> {
   // Server Actions としてマーク
   "use server";
 
@@ -55,7 +55,7 @@ export async function sendEmailNotification(params: NotificationParams): Promise
   console.log("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", isEmailNotificationEnabled);
 
   if (isEmailNotificationEnabled.length === 0) {
-    return { success: false, error: "メール通知設定が見つかりません" };
+    return { success: true, message: "メール通知設定が見つかりません" };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
