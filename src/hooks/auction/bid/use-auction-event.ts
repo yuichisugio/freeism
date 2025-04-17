@@ -2,7 +2,7 @@
 
 import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AuctionEventType } from "@/lib/auction/type/types";
+import { SSEAuctionEventType } from "@/lib/auction/type/types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -187,13 +187,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
       // イベントタイプごとの処理
       switch (eventData.type) {
         // 新規入札イベント
-        case AuctionEventType.NEW_BID:
+        case SSEAuctionEventType.NEW_BID:
           console.log("SSE_processEventDataByType_NEW_BID", auctionData);
           giveAuctionDataToState(auctionData);
           break;
 
         // 接続確立イベント
-        case AuctionEventType.CONNECTION_ESTABLISHED:
+        case SSEAuctionEventType.CONNECTION_ESTABLISHED:
           console.log("SSE_processEventDataByType_CONNECTION_ESTABLISHED", auctionData);
           // 接続確立イベントを受け取ったらクライアントIDを更新
           if (auctionData.options?.clientId) {
@@ -206,7 +206,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
           break;
 
         // エラーイベント
-        case AuctionEventType.ERROR:
+        case SSEAuctionEventType.ERROR:
           console.log("SSE_processEventDataByType_ERROR", auctionData);
           if (eventData.error) {
             setError(eventData.error);
@@ -369,7 +369,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
 
         // イベントキューに追加
         processEventDataByType({
-          type: event as AuctionEventType,
+          type: event as SSEAuctionEventType,
           data: parsedData,
         });
 

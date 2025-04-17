@@ -1,6 +1,6 @@
 "use server";
 
-import type { AuctionEventType, AuctionWithDetails } from "../type/types";
+import type { AuctionWithDetails, SSEAuctionEventType } from "../type/types";
 import { connectionManager } from "../server-sent-events/connection-manager-singleton";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -8,7 +8,7 @@ import { connectionManager } from "../server-sent-events/connection-manager-sing
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
   id: number;
-  type: AuctionEventType;
+  type: SSEAuctionEventType;
   data: Record<string, unknown>;
   timestamp: number;
 };
@@ -22,7 +22,11 @@ type EventHistoryItem = {
  * @param data イベントデータ
  * @returns イベント
  */
-export async function sendEventToAuctionSubscribers(auctionId: string, type: AuctionEventType, data: AuctionWithDetails): Promise<EventHistoryItem> {
+export async function sendEventToAuctionSubscribers(
+  auctionId: string,
+  type: SSEAuctionEventType,
+  data: AuctionWithDetails,
+): Promise<EventHistoryItem> {
   console.log("sendEventToAuctionSubscribers", auctionId, type);
   return connectionManager.broadcastToAuction(auctionId, type, data);
 }

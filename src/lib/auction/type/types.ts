@@ -232,7 +232,7 @@ export type BidFormData = {
 };
 
 // オークションイベントタイプ
-export enum AuctionEventType {
+export enum SSEAuctionEventType {
   CONNECTION_ESTABLISHED = "connection_established",
   NEW_BID = "new_bid",
   ERROR = "error",
@@ -244,7 +244,7 @@ export enum AuctionEventType {
 // イベント履歴データ型
 export type EventHistoryItem = {
   id: number;
-  type: AuctionEventType;
+  type: SSEAuctionEventType;
   data: AuctionWithDetails;
   timestamp: number;
 };
@@ -425,7 +425,7 @@ export type UserAuth = {
 
 // オークションSSEイベントデータ
 export type AuctionEventData = {
-  type: AuctionEventType;
+  type: SSEAuctionEventType;
   data?: AuctionWithDetails; // サーバーから直接AuctionWithDetailsを受け取る
   error?: string;
 };

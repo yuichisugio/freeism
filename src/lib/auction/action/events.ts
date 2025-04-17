@@ -1,7 +1,7 @@
 "use server";
 
 import type { AuctionWithDetails, BidHistoryWithUser } from "../type/types";
-import { AuctionEventType } from "../type/types";
+import { SSEAuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -9,7 +9,7 @@ import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 // route.tsファイルと同じEventHistoryItem型を定義
 type EventHistoryItem = {
   id: number;
-  type: AuctionEventType;
+  type: SSEAuctionEventType;
   data: Record<string, unknown>;
   timestamp: number;
 };
@@ -22,7 +22,7 @@ type EventHistoryItem = {
  * @param auction オークション情報
  */
 export async function sendAuctionUpdateEvent(auctionId: string, auction: AuctionWithDetails): Promise<EventHistoryItem> {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_UPDATE, auction);
+  return sendEventToAuctionSubscribers(auctionId, SSEAuctionEventType.AUCTION_UPDATE, auction);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -38,7 +38,7 @@ export async function sendNewBidEvent(auctionId: string, bid: BidHistoryWithUser
     ...auction,
     bid,
   };
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.NEW_BID, auctionWithBid);
+  return sendEventToAuctionSubscribers(auctionId, SSEAuctionEventType.NEW_BID, auctionWithBid);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -55,7 +55,7 @@ export async function sendAuctionExtensionEvent(auctionId: string, newEndTime: s
     ...auction,
     endTime: new Date(newEndTime),
   };
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_EXTENSION, auctionWithNewEndTime);
+  return sendEventToAuctionSubscribers(auctionId, SSEAuctionEventType.AUCTION_EXTENSION, auctionWithNewEndTime);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -66,7 +66,7 @@ export async function sendAuctionExtensionEvent(auctionId: string, newEndTime: s
  * @param auction 最終的なオークション情報
  */
 export async function sendAuctionEndedEvent(auctionId: string, auction: AuctionWithDetails): Promise<EventHistoryItem> {
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.AUCTION_ENDED, auction);
+  return sendEventToAuctionSubscribers(auctionId, SSEAuctionEventType.AUCTION_ENDED, auction);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -115,5 +115,5 @@ export async function sendErrorEvent(auctionId: string, error: string): Promise<
     currentHighestBidder: null,
     winner: null,
   };
-  return sendEventToAuctionSubscribers(auctionId, AuctionEventType.ERROR, errorAuction);
+  return sendEventToAuctionSubscribers(auctionId, SSEAuctionEventType.ERROR, errorAuction);
 }
