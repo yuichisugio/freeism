@@ -19,7 +19,7 @@ export async function sendInAppNotification(notificationParams: NotificationPara
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // すでに通知がある場合は、SCHEDULEDのため、情報を更新
+    // すでに通知がある場合は、SCHEDULEDで、GitHub Actionsによる予約通知の送信のため、すでにレコードがあるので、情報を更新
     if (notificationParams.notificationId) {
       // sentAtを更新するため、現時点の日時を取得
       const now = new Date();
@@ -43,9 +43,10 @@ export async function sendInAppNotification(notificationParams: NotificationPara
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 送信者のuserIDを入れる変数
     let senderUserId: string | null = null;
 
-    // オークション通知の場合は、通知作成フォームから送信しないため、senderUserIdをnullにする。
+    // オークション通知の場合は、GitHub Actionsやシステムメッセージのみなので、通知作成フォームから送信しないため、senderUserIdをnullにする。
     if (!notificationParams.auctionId) {
       // 通知作成者を取得
       const session = await getAuthSession();
@@ -76,10 +77,12 @@ export async function sendInAppNotification(notificationParams: NotificationPara
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 通知一覧ページを再検証してキャッシュ更新
     revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // revalidatePathでキャッシュ更新したので、trueを返す
     return { success: true };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

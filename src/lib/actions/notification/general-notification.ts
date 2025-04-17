@@ -107,7 +107,8 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
 
     // スケジュール通知の場合は、sendScheduledDateがあるため、sendScheduledDateが過去の場合は、スケジュール通知を送信する
     // NOTIFICATION_SEND_TIMINGがSCHEDULEで判断してはダメ。GitHub Actionsの実行時もSCHEDULEで判断してpush通知をスキップしてしまうため。
-    if (params.sendScheduledDate && params.sendScheduledDate < now) {
+    // さらに、予約送信は、すでにレコードがある状態で送るので、notificationIdがあるかどうかで判断する
+    if (params.sendScheduledDate && params.sendScheduledDate < now && params.notificationId) {
       return { success: true };
     }
 
