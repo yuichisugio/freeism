@@ -24,6 +24,8 @@ type UsePaginationResult = {
   hasNextPage: boolean;
   totalPages: number;
   currentPage: number;
+  isFirstPage: boolean;
+  isLastPage: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -33,7 +35,7 @@ type UsePaginationResult = {
  * @param {UsePaginationProps} props ページネーションフックのプロップ
  * @returns {UsePaginationResult} ページネーションフックの返り値
  */
-export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: UsePaginationProps): UsePaginationResult {
+export function usePagination({ currentPage, totalPages, maxPageToShow = 10 }: UsePaginationProps): UsePaginationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 表示するページ番号を生成
@@ -46,32 +48,45 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: Us
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
-
-      // 全ページ数が多い場合は、表示するページ数を総ページ数に合わせる
     } else {
-      // 現在のページの前後を表示
-      let startPage = Math.max(1, currentPage - Math.floor(maxPageToShow / 2));
-      const endPage = Math.min(totalPages, startPage + maxPageToShow - 1);
+      // 現在のページの周辺を表示（最大10ページ）
+      let startPage: number;
+      let endPage: number;
 
-      // endPageが上限を超えた場合、startPageを調整
-      if (endPage === totalPages) {
-        startPage = Math.max(1, endPage - maxPageToShow + 1);
+      // 現在のページが前半に位置する場合
+      if (currentPage <= Math.ceil(maxPageToShow / 2)) {
+        startPage = 1;
+        endPage = maxPageToShow - 1; // 最後のページの前に「...」を表示するため
+      }
+      // 現在のページが後半に位置する場合
+      else if (currentPage > totalPages - Math.floor(maxPageToShow / 2)) {
+        startPage = totalPages - (maxPageToShow - 2); // 最初のページの後に「...」を表示するため
+        endPage = totalPages;
+      }
+      // 現在のページが中央に位置する場合
+      else {
+        startPage = currentPage - Math.floor((maxPageToShow - 4) / 2); // 両端に「...」を表示するため
+        endPage = startPage + (maxPageToShow - 4) - 1;
       }
 
+      // ページ番号を追加
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
 
-      // 最初のページに...を追加
+      // 省略記号を追加
       if (startPage > 1) {
-        pages.unshift(-1); // -1は省略記号を示す
-        pages.unshift(1);
+        if (startPage > 2) {
+          pages.unshift(-1); // -1は「...」を示す
+        }
+        pages.unshift(1); // 最初のページは常に表示
       }
 
-      // 最後のページに...を追加
       if (endPage < totalPages) {
-        pages.push(-2); // -2は省略記号を示す
-        pages.push(totalPages);
+        if (endPage < totalPages - 1) {
+          pages.push(-2); // -2は「...」を示す
+        }
+        pages.push(totalPages); // 最後のページは常に表示
       }
     }
 
@@ -90,11 +105,23 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 7 }: Us
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // 最初のページかどうか
+  const isFirstPage = useMemo(() => currentPage === 1, [currentPage]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 最後のページかどうか
+  const isLastPage = useMemo(() => currentPage === totalPages, [currentPage, totalPages]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
     pageNumbers,
     hasPreviousPage,
     hasNextPage,
     totalPages,
     currentPage,
+    isFirstPage,
+    isLastPage,
   };
 }
