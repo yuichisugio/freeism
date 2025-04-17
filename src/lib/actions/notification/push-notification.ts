@@ -2,7 +2,7 @@
 
 import type { PushSubscription } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { getAuthSession } from "@/lib/utils";
 import webPush from "web-push";
 
 import type { NotificationParams } from "./email-notification";
@@ -300,7 +300,8 @@ export async function saveSubscription(subscription: {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーIDを取得
-    const userId = await getAuthenticatedSessionUserId();
+    const session = await getAuthSession();
+    const userId = session?.user?.id;
     console.log("push-notification_saveSubscription_userId", userId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
