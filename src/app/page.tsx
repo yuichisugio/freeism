@@ -6,15 +6,14 @@ import { Header } from "@/components/layout/header";
 
 export default memo(function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header />
 
-      <main className="flex-1">
+      <div className="flex-1 overflow-auto">
         <HeroSection />
         <DescriptionSection />
-      </main>
-
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 });

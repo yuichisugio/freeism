@@ -27,7 +27,9 @@
     "actions:update-auction-status-to-active": "tsx scripts/update-auction-status-to-active.ts",
     "actions:update-auction-status-to-completed": "tsx scripts/update-auction-status-to-completed.ts",
     "actions:return-auction-deposit-points": "tsx scripts/return-auction-deposit-points.ts",
-    "actions:send-scheduled-notifications": "tsx scripts/send-scheduled-notifications.ts"
+    "actions:send-scheduled-notifications": "tsx scripts/send-scheduled-notifications.ts",
+    "prisma:dev:migrate": "pnpm dotenv -e .env -- pnpm prisma migrate dev",
+    "prisma:prod:deploy": "pnpm dotenv -e .env.production -- pnpm prisma migrate deploy"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"
@@ -139,6 +141,7 @@
     "autoprefixer": "^10.4.20",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",
     "eslint-plugin-import": "^2.31.0",
