@@ -261,15 +261,15 @@
    1. オークション関連の通知は、他のGitHub Actionsのオークション関連の実行時に一緒に行うため不要
    1. `NotificationSendTiming`が`SCHEDULED`の予約送信する通知の送信
 
-1. dashboard or signInページで、ログインしていない場合に、無限redirect()になる現象を修正
+1. dashboard or signInページで、ログインしていない場合に、無限redirect()になる現象を修正✅
+1. `GitHub Actions`と`Vercel`へのデプロイのバグを修正✅
+   - GitHub ActionsのCI/CDエラーを修正
+     - Vercelにデプロイして、URL知っていれば誰でもアクセスできるような状態にしたい
 1. このmarkdownとprisma schemaを渡して、各カラムの各ステータスごとの条件をAIにまとめてもらい、それを基準にseedingコードを修正する
 1. バックグラウンドジョブが完了したか確認するために、専用のログを貯めるテーブルを作成して、そこに更新の最後の処理として、ログの一部のデータを保存するようにしたい
 1. 無料枠でジョブ数が限られているから、yamlファイルを分けず記載した方が良い？
 1. エラーログはリトライして、不可能だったらエラー内容とidをDBに保存した方が良い？
    - それは一般的な運用？
-1. `GitHub Actions`と`Vercel`へのデプロイのバグを修正
-   - GitHub ActionsのCI/CDエラーを修正
-     - Vercelにデプロイして、URL知っていれば誰でもアクセスできるような状態にしたい
 1. アプリドメインを、`freeism.app`に修正
 
 ---

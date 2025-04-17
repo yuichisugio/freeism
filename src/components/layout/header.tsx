@@ -6,7 +6,7 @@ import { NotificationButton } from "@/components/notification/notification-butto
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -27,7 +27,8 @@ export const Header = memo(async function Header() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 認証状態を取得
-  const userId = await getAuthenticatedSessionUserId();
+  const session = await getAuthSession();
+  const userId = session?.user?.id;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
