@@ -104,7 +104,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     if (targetSubscriptions.length === 0) {
       console.log("sendPushNotification_No valid subscriptions found for the target users.");
-      return { success: false, message: "有効な購読者が見つかりませんでした" };
+      return { success: true, sent: 0, failed: 0, totalTargets: 0, message: "有効な購読者が見つかりませんでした" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

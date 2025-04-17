@@ -89,8 +89,32 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // プッシュ通知を送信。NOWの場合のみ送信する
-    if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH) && params.sendTiming === "NOW") {
+    // アプリ内通知を送信。NOW以外でも登録する。
+    // アプリ内表示は、通知のデータ表示時に制限しているので、登録しただけでは表示されない。
+    // その登録したdataを元に、GitHub Actionsで送信する
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
+      const inAppNotificationResult = await sendInAppNotification(notificationParams);
+      if (!inAppNotificationResult.success) {
+        console.error("sendGeneralNotification_sendInAppNotification_エラー:");
+        console.error("sendGeneralNotification_sendInAppNotification_エラー_stack:", new Error().stack);
+        return { success: false, error: "アプリ内通知の送信に失敗しました" };
+      }
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    const now = new Date();
+
+    // スケジュール通知の場合は、sendScheduledDateがあるため、sendScheduledDateが過去の場合は、スケジュール通知を送信する
+    // NOTIFICATION_SEND_TIMINGがSCHEDULEで判断してはダメ。GitHub Actionsの実行時もSCHEDULEで判断してpush通知をスキップしてしまうため。
+    if (params.sendScheduledDate && params.sendScheduledDate < now) {
+      return { success: true };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // プッシュ通知を送信。
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH)) {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
         console.error("sendGeneralNotification_sendPushNotification_エラー:");
@@ -101,27 +125,13 @@ export async function sendGeneralNotification(params: GeneralNotificationParams)
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // メール通知を送信。NOWの場合のみ送信する
-    if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL) && params.sendTiming === "NOW") {
+    // メール通知を送信。
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL)) {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
         console.error("sendGeneralNotification_sendEmailNotification_エラー:");
         console.error("sendGeneralNotification_sendEmailNotification_エラー_stack:", new Error().stack);
         return { success: false, error: "メール通知の送信に失敗しました" };
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // アプリ内通知を送信。NOW以外でも登録する。
-    // アプリ内表示は、通知のデータ表示時に制限しているので、登録しただけでは表示されない。
-    // その登録したdataを元に、GitHub Actionsで送信する
-    if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
-      const inAppNotificationResult = await sendInAppNotification(notificationParams);
-      if (!inAppNotificationResult.success) {
-        console.error("sendGeneralNotification_sendInAppNotification_エラー:");
-        console.error("sendGeneralNotification_sendInAppNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "アプリ内通知の送信に失敗しました" };
       }
     }
 
