@@ -20,6 +20,7 @@ export const AuctionListings = memo(function AuctionListings() {
   const {
     // 状態
     auctions,
+    totalAuctionsCount,
     listingsConditions,
     isLoading,
 
@@ -107,7 +108,11 @@ export const AuctionListings = memo(function AuctionListings() {
           </div>
 
           {/* ページネーション */}
-          <AuctionPagination listingsConditions={listingsConditions} setListingsConditionsAction={setListingsConditions} auctions={auctions} />
+          <AuctionPagination
+            listingsConditions={listingsConditions}
+            setListingsConditionsAction={setListingsConditions}
+            totalAuctionsCount={totalAuctionsCount}
+          />
         </>
       ) : (
         noResults()

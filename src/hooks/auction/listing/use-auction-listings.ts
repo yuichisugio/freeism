@@ -3,7 +3,7 @@
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAuctionListings } from "@/lib/auction/action/auction-listing";
+import { getAuctionCount, getAuctionListings } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -11,6 +11,7 @@ import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 type UseAuctionListingsReturn = {
   // state
   auctions: AuctionListingResult;
+  totalAuctionsCount: number;
   listingsConditions: AuctionListingsConditions;
   isLoading: boolean;
 
@@ -70,6 +71,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // オークション情報
   const [auctions, setAuctions] = useState<AuctionListingResult>([]);
+  // 総オークション件数
+  const [totalAuctionsCount, setTotalAuctionsCount] = useState<number>(0);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -241,53 +244,46 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション一覧データを取得する関数
+   * オークション一覧データと総件数を取得する関数
    * @returns Promise<void>
    */
-  const getAuctionListingsData = useCallback(async () => {
-    console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_start");
+  const getAuctionListingsData = useCallback(async (conditions: AuctionListingsConditions) => {
+    console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_start", conditions);
     try {
-      // ーーーーーーーーーーーーーーー
-
       // データ取得中の状態
       setIsLoading(true);
 
-      // ーーーーーーーーーーーーーーー
-
-      // オークション一覧データを取得
-      const result = await getAuctionListings({ listingsConditions });
-
-      // ーーーーーーーーーーーーーーー
+      // オークション一覧データと総件数を並列で取得
+      const [listingsResult, countResult] = await Promise.all([
+        getAuctionListings({ listingsConditions: conditions }),
+        getAuctionCount({ listingsConditions: conditions }),
+      ]);
 
       // 結果の設定
-      setAuctions(result);
+      setAuctions(listingsResult);
+      setTotalAuctionsCount(countResult);
 
-      // ーーーーーーーーーーーーーーー
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_success", {
+        auctionsCount: listingsResult.length,
+        totalCount: countResult,
+      });
     } catch (error) {
-      // エラーログ
-      console.error("use-auction-listings_fetchListings_error", error);
-
-      // ーーーーーーーーーーーーーーー
+      console.error("use-auction-listings_getAuctionListingsData_error", error);
     } finally {
       // データ取得中の状態を解除
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 依存配列を空にして初回レンダリング時のみ実行（無限ループ防止）
+  }, []); // 依存配列は空
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 初期設定データの取得と初回データ読み込み
-   * マウント時に1回だけ実行
+   * 初期データ読み込みとフィルタ条件変更時のデータ再取得
    */
   useEffect(() => {
-    const initializeData = async () => {
-      await getAuctionListingsData();
-    };
-    void initializeData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 依存配列を空にして初回レンダリング時のみ実行（無限ループ防止）
+    console.log("src/hooks/auction/listing/use-auction-listings.ts_useEffect[listingsConditions]_start", listingsConditions);
+    void getAuctionListingsData(listingsConditions);
+  }, [listingsConditions, getAuctionListingsData]); // listingsConditions が変更されたら再取得
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -334,7 +330,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
               setWatchlistChanges(new Set());
             }
           },
-          1000 * 60 * 10,
+          1000 * 60 * 10, // 10分後に保存 (例)
         );
       } catch (error) {
         console.error("ウォッチリストの更新に失敗しました", error);
@@ -376,6 +372,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   return {
     // state
     auctions,
+    totalAuctionsCount,
     listingsConditions,
     isLoading,
 
@@ -384,7 +381,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     setListingsConditions: (newListingsConditions: AuctionListingsConditions) => {
       console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_newConditions", newListingsConditions);
       setListingsConditions(newListingsConditions);
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_after", listingsConditions);
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_after_state_update", newListingsConditions);
       updateUrlParams(newListingsConditions);
     },
   };

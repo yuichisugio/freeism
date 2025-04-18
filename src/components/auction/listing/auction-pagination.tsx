@@ -1,7 +1,7 @@
 "use client";
 
-import type { AuctionListingResult, AuctionListingsConditions } from "@/lib/auction/type/types";
-import { memo } from "react";
+import type { AuctionListingsConditions } from "@/lib/auction/type/types";
+import { memo, useMemo } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -23,7 +23,7 @@ import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 type AuctionPaginationProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
-  auctions: AuctionListingResult;
+  totalAuctionsCount: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -37,18 +37,22 @@ type AuctionPaginationProps = {
 export const AuctionPagination = memo(function AuctionPagination({
   listingsConditions,
   setListingsConditionsAction,
-  auctions,
+  totalAuctionsCount,
 }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/components/auction/listing/auction-pagination.tsx_AuctionPagination_start");
+  console.log("src/components/auction/listing/auction-pagination.tsx_AuctionPagination_start", { totalAuctionsCount });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // totalAuctionsCount を使って totalPages を計算
+  const totalPages = useMemo(() => Math.ceil(totalAuctionsCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE), [totalAuctionsCount]);
 
   // カスタムフックからページネーションロジックを取得
   const { pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     currentPage: listingsConditions.page,
-    totalPages: Math.ceil(auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE),
+    totalPages: totalPages,
+    totalCount: totalAuctionsCount,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -60,11 +64,9 @@ export const AuctionPagination = memo(function AuctionPagination({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const totalPages = Math.ceil(auctions.length / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  if (totalPages <= 1) return null;
+  // デバッグ用: totalAuctionsCount と totalPages の値をコンソールに出力
+  console.log("totalAuctionsCount:", totalAuctionsCount);
+  console.log("totalPages:", totalPages);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -150,10 +152,10 @@ export const AuctionPagination = memo(function AuctionPagination({
         </div>
       </div>
 
-      {/* 商品数と合計ページ数の表示 */}
+      {/* 商品数と合計ページ数の表示 (totalAuctionsCount を使用) */}
       <div className="mt-4 text-center text-sm text-gray-500">
-        全{auctions.length}件中
-        {Math.min(listingsConditions.page * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, auctions.length)}件を表示
+        全{totalAuctionsCount}件中
+        {Math.min(listingsConditions.page * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, totalAuctionsCount)}件を表示
       </div>
     </>
   );

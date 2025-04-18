@@ -419,3 +419,166 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     throw error;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 指定された条件に一致するオークションの総数を取得する関数
+ * @param params 取得パラメータ
+ * @returns オークションの総数
+ */
+export async function getAuctionCount({ listingsConditions }: { listingsConditions: AuctionListingsConditions }): Promise<number> {
+  try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery } = listingsConditions;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 開始ログとパラメータ（件数取得用）
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_start", {
+      categories,
+      status,
+      minBid,
+      maxBid,
+      minRemainingTime,
+      maxRemainingTime,
+      groupIds,
+      searchQuery,
+    });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // ユーザーIDを取得
+    const userId = await getAuthenticatedSessionUserId();
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // ユーザーが参加しているグループIDを取得
+    const userGroupIds = await prisma.groupMembership.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+
+    // ユーザーが参加しているグループIDがない場合は0を返す
+    if (userGroupIds.length === 0) {
+      console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_noUserGroups_参加Groupがないため、オークションはありません");
+      return 0;
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 基本的なフィルター条件
+    const where: AuctionWhereInput = {
+      task: {
+        groupId: { in: userGroupIds.map((group) => group.groupId) },
+      },
+    };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // カテゴリのフィルタリング (getAuctionListingsと同じロジック)
+    if (categories && categories.length > 0 && !categories.includes("すべて")) {
+      const categoryConditions = categories
+        .filter((c) => c !== null)
+        .map((category) => ({
+          task: { contains: category, mode: "insensitive" as const },
+        }));
+      where.task = {
+        ...where.task,
+        OR: [...(where.task?.OR ?? []), ...categoryConditions],
+      };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // ステータスのフィルタリング (getAuctionListingsと同じロジック)
+    if (status && status.length > 0) {
+      for (const statusItem of status) {
+        switch (statusItem) {
+          case "watchlist":
+            where.watchlists = { some: { userId } };
+            break;
+          case "not_bidded":
+            where.bidHistories = { none: { userId } };
+            break;
+          case "bidded":
+            where.bidHistories = { some: { userId } };
+            break;
+          case "ended":
+            where.status = AuctionStatus.ENDED;
+            break;
+          case "not_ended":
+            where.status = { not: AuctionStatus.ENDED };
+            where.endTime = { gte: new Date() };
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 入札額のフィルタリング (getAuctionListingsと同じロジック)
+    if (minBid !== null && minBid !== undefined) {
+      where.currentHighestBid = { ...where.currentHighestBid, gte: minBid };
+    }
+    if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
+      where.currentHighestBid = { ...where.currentHighestBid, lte: maxBid };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 残り時間のフィルタリング (getAuctionListingsと同じロジック)
+    if (minRemainingTime !== null || maxRemainingTime !== null) {
+      const now = new Date();
+      if (minRemainingTime !== null && minRemainingTime !== undefined) {
+        where.endTime = { ...where.endTime, gte: new Date(now.getTime() + minRemainingTime * 60 * 60 * 1000) };
+      }
+      if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
+        where.endTime = { ...where.endTime, lte: new Date(now.getTime() + maxRemainingTime * 60 * 60 * 1000) };
+      }
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // グループIDのフィルタリング (getAuctionListingsと同じロジック)
+    if (groupIds && groupIds.length > 0) {
+      where.task = { ...where.task, groupId: { in: groupIds } };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 検索クエリのフィルタリング (getAuctionListingsと同じロジック)
+    if (searchQuery) {
+      where.task = {
+        ...where.task,
+        OR: [{ task: { contains: searchQuery, mode: "insensitive" } }, { detail: { contains: searchQuery, mode: "insensitive" } }],
+      };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_where", where);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 件数を取得
+    const totalCount = await prisma.auction.count({ where });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 成功ログ
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_success", { totalCount });
+
+    // 最終的な結果を返す
+    return totalCount;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  } catch (error) {
+    // エラーログ
+    console.error("src/lib/auction/action/auction-listing.ts_getAuctionCount_error", error);
+    throw error; // エラーを再スローして呼び出し元で処理できるようにする
+  }
+}

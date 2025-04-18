@@ -10,6 +10,7 @@ import { useMemo } from "react";
 type UsePaginationProps = {
   currentPage: number;
   totalPages: number;
+  totalCount?: number;
   maxPageToShow?: number;
 };
 
@@ -35,8 +36,12 @@ type UsePaginationResult = {
  * @param {UsePaginationProps} props ページネーションフックのプロップ
  * @returns {UsePaginationResult} ページネーションフックの返り値
  */
-export function usePagination({ currentPage, totalPages, maxPageToShow = 10 }: UsePaginationProps): UsePaginationResult {
+export function usePagination({ currentPage, totalPages, totalCount, maxPageToShow = 10 }: UsePaginationProps): UsePaginationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // totalPages は props から直接受け取るため、ここでの計算は不要
+  console.log("usePagination - totalPages:", totalPages);
+  console.log("usePagination - totalCount:", totalCount);
 
   // 表示するページ番号を生成
   const pageNumbers = useMemo(() => {
