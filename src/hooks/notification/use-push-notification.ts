@@ -1,13 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
 import { useSession } from "next-auth/react";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// サービスワーカーのパス
-const SERVICE_WORKER_PATH = "/service-worker.js";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -69,6 +64,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * PushSubscriptionオブジェクトからサーバーに送信するデータを整形する関数
  * @param subscription - PushSubscriptionオブジェクト
  * @param recordId - 購読情報のレコードID（オプション）
+ * @param deviceId - デバイスID（オプション）
  * @returns サーバーに送信する購読情報
  */
 function formatSubscriptionForServer(subscription: PushSubscription | null, recordId?: string, deviceId?: string): SaveSubscriptionParams | null {
@@ -131,6 +127,21 @@ export function usePushNotification() {
   // userId
   const session = useSession();
   const userId = useMemo(() => session.data?.user?.id ?? null, [session.data?.user?.id]);
+  // 初期化完了フラグ
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Refs to hold the latest values of recordId and deviceId for callbacks
+  const recordIdRef = useRef(recordId);
+  const deviceIdRef = useRef(deviceId);
+
+  // Update refs whenever the state changes
+  useEffect(() => {
+    recordIdRef.current = recordId;
+  }, [recordId]);
+
+  useEffect(() => {
+    deviceIdRef.current = deviceId;
+  }, [deviceId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -175,39 +186,10 @@ export function usePushNotification() {
     }
 
     // デバイスIDを生成（プラットフォームとモバイルフラグを組み合わせた簡易的なもの）同一デバイスで識別できる程度の精度があればよい
-    const deviceId = `${deviceInfo.platform}-${deviceInfo.mobile ? "mobile" : "desktop"}-${deviceInfo.brands?.map((b) => b.brand).join("-") || "unknown"}-${userId}`;
+    const generatedDeviceId = `${deviceInfo.platform}-${deviceInfo.mobile ? "mobile" : "desktop"}-${deviceInfo.brands?.map((b) => b.brand).join("-") || "unknown"}-${userId}`;
 
-    // デバイスIDを保存
-    setDeviceId(deviceId);
-
-    return deviceId;
+    return generatedDeviceId;
   }, [userId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 現在の購読情報を取得
-   * @returns {PushSubscription | null} 購読情報
-   */
-  const getSubscription = useCallback(async () => {
-    // サービスワーカーが登録されていない場合はnullを返す
-    if (!registrationState) {
-      console.error("サービスワーカーが登録されていません");
-      return null;
-    }
-
-    try {
-      // 購読情報を取得
-      const sub = await registrationState.pushManager.getSubscription();
-      // stateに購読情報を保存
-      setSubscriptionState(sub);
-      return sub;
-    } catch (err) {
-      console.error("購読情報の取得に失敗しました:", err);
-      setError(err instanceof Error ? err : new Error(String(err)));
-      return null;
-    }
-  }, [registrationState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -223,326 +205,377 @@ export function usePushNotification() {
         // 新しい購読情報をステートに設定
         setSubscriptionState(newSubscription);
 
-        // 購読情報を整形
-        const subscriptionData = formatSubscriptionForServer(newSubscription, recordId ?? undefined, deviceId ?? undefined);
+        // 購読情報を整形 (現在の recordId と deviceId を Ref から取得)
+        const currentRecordId = recordIdRef.current;
+        const currentDeviceId = deviceIdRef.current;
+        const subscriptionData = formatSubscriptionForServer(newSubscription, currentRecordId ?? undefined, currentDeviceId ?? undefined);
         if (!subscriptionData) {
           throw new Error("有効な購読情報を整形できませんでした");
         }
 
-        // サーバーに購読情報を送信
+        // サーバーに購読情報を送信 (更新 or 新規保存)
         console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_start");
         const result = await saveSubscription(subscriptionData);
         console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_end");
 
-        console.log("購読情報の更新が完了しました:", result);
+        // 保存成功後、recordId が変わる可能性があるため再取得して Ref と State を更新
+        if (!("error" in result)) {
+          const updatedRecordId = await getRecordId(newSubscription.endpoint);
+          setRecordId(updatedRecordId); // State 更新
+          recordIdRef.current = updatedRecordId; // Ref 更新
+          console.log("購読情報の更新後、recordId を更新しました:", updatedRecordId);
+        } else {
+          console.error("購読情報のサーバー保存(更新)に失敗しました:", result.error);
+        }
       } catch (err) {
-        console.error("購読情報の更新に失敗しました:", err);
+        console.error("購読情報の更新処理に失敗しました:", err);
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     },
-    [recordId, deviceId],
+    [], // Ref を使っているので recordId, deviceId への依存は不要
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * Service Workerの初期化
-   * 1. Service Workerの登録
-   * 2. readyでactiveなService Workerを取得
-   * 3. getSubscriptionで購読情報を取得
-   * 4. 購読情報がある場合は購読中フラグをtrueにする
-   * 5. メッセージングのためのイベントリスナーを設定
-   * @returns {void}
+   * Service Workerの初期化 (リスナー設定など)
    */
   const initializeServiceWorker = useCallback(async () => {
+    let messageHandler: ((event: MessageEvent) => void) | null = null;
     try {
-      // 1. Service Workerを登録
-      console.log("initializeServiceWorker_navigator.serviceWorker.register_start");
-      // 既に登録されているService Workerを取得
-      const existingRegistration = await navigator.serviceWorker.getRegistration(SERVICE_WORKER_PATH);
-      // 既に登録されている場合は、その情報を保存
-      if (existingRegistration) {
-        console.log("initializeServiceWorker_navigator.serviceWorker.register_existingRegistration", existingRegistration);
-        setRegistrationState(existingRegistration);
-      } else {
-        // 既に登録されていない場合は、新しく登録
-        const reg = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
-        setRegistrationState(reg);
-        console.log("initializeServiceWorker_navigator.serviceWorker.register", reg);
+      console.log("initializeServiceWorker_start: Setting up listener.");
+
+      // Service Worker の準備は useEffect で待つので、ここではリスナー設定のみ
+      if (!navigator.serviceWorker) {
+        console.error("initializeServiceWorker: navigator.serviceWorker is not available.");
+        // Service Worker が利用できない場合はリスナーを設定できないので、空のクリーンアップを返す
+        return () => {
+          console.log("initializeServiceWorker_cleanup: No listener to remove as serviceWorker was not available.");
+        };
       }
 
-      // 2. Service Workerの登録状態と既存の購読を確認
-      const registration = await navigator.serviceWorker.ready;
-      console.log("initializeServiceWorker_navigator.serviceWorker.ready", registration);
-
-      // 3. 購読情報を取得
-      const subscription = await registration.pushManager.getSubscription();
-      console.log("initializeServiceWorker_getSubscription", subscription);
-
-      // 4. 購読情報がある場合は購読中フラグをtrueにする
-      if (subscription) {
-        setSubscriptionState(subscription);
-        console.log("initializeServiceWorker_getSubscription_existing", subscription);
-      } else {
-        setSubscriptionState(null);
-        console.log("initializeServiceWorker_getSubscription_null");
-      }
-
-      // 5. 購読情報をDBに保存
-      const subscriptionData = formatSubscriptionForServer(subscription, recordId ?? undefined, deviceId ?? undefined);
-      if (subscriptionData) {
-        console.log("initializeServiceWorker_saveSubscription_start");
-        await saveSubscription(subscriptionData);
-        console.log("initializeServiceWorker_saveSubscription_end");
-      }
-
-      // 5. メッセージングのためのイベントリスナーを設定
-      navigator.serviceWorker.addEventListener("message", (event) => {
-        // Service Workerからのメッセージを処理
+      // メッセージングのためのイベントリスナーを設定
+      messageHandler = (event: MessageEvent) => {
         const messageData = event.data as ServiceWorkerMessageEvent;
+        console.log("initializeServiceWorker_message_received", messageData); // 受信ログ
         if (messageData && messageData.type === "SUBSCRIPTION_CHANGED") {
-          if (messageData.oldEndpoint && messageData.newSubscription) {
-            // 購読情報が変更された場合の処理を非同期で実行
+          console.log("initializeServiceWorker: SUBSCRIPTION_CHANGED message received.");
+          if (messageData.newSubscription) {
             void handleSubscriptionChange(messageData.newSubscription);
+          } else {
+            console.warn("initializeServiceWorker: SUBSCRIPTION_CHANGED message received without newSubscription.");
           }
         }
-      });
+      };
+      navigator.serviceWorker.addEventListener("message", messageHandler);
       console.log("initializeServiceWorker_addEventListener_message");
     } catch (error) {
       console.error("initializeServiceWorker_error", error);
       setError(error instanceof Error ? error : new Error(String(error)));
     }
-  }, [handleSubscriptionChange, recordId, deviceId]);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // クリーンアップ関数を返す
+    return () => {
+      if (messageHandler && navigator.serviceWorker) {
+        navigator.serviceWorker.removeEventListener("message", messageHandler);
+        console.log("initializeServiceWorker_removeEventListener_message");
+      }
+    };
+  }, [handleSubscriptionChange]);
 
   /**
-   * 1. Service WorkerとPush APIがサポートされているかどうか確認を管理
-   * 2. サービスワーカーを登録
-   * 3. 購読情報がある場合は、pushSubscriptionテーブルのrecord_idを読み込む
-   * 4. デバイスIDを読み込む
-   * @returns {void}
+   * 初期化処理: サポート確認、状態取得、DB同期、リスナー設定
    */
   useEffect(() => {
     console.log("use-push-notification.ts_usePushNotification_useEffect_start");
-    // 1. Service Workerがブラウザでサポートされているか確認
+    setIsInitialized(false); // 初期化開始時にフラグを false に
+    setError(null); // エラーをリセット
+
+    // 1. Service Workerサポートと通知許可を確認
     const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
     setIsSupported(supported);
-    setPermissionState(Notification.permission);
+    const initialPermission = Notification.permission;
+    setPermissionState(initialPermission);
 
-    // 2. サービスワーカーが登録されていない場合は登録
-    if (supported && !subscriptionState) {
-      // service workerを登録・取得・stateに保存
-      void initializeServiceWorker();
+    if (!supported) {
+      console.log("Service Worker or Push API not supported.");
+      setIsInitialized(true); // サポートされていなくても初期化完了とする
+      return;
+    }
+    if (initialPermission === "denied") {
+      console.log("Notification permission denied.");
+      setIsInitialized(true); // 拒否されていても初期化完了とする
+      return;
     }
 
-    // 3. 購読情報がある場合は、pushSubscriptionテーブルのrecord_idを読み込む
-    const loadRecordId = async () => {
-      const recordId = await getRecordId(subscriptionState?.endpoint ?? "");
-      setRecordId(recordId);
-    };
-    void loadRecordId();
+    let cleanupListener: (() => void) | null = null;
 
-    // 4. デバイスIDを読み込む
-    const loadDeviceId = async () => {
-      const deviceId = await getDeviceId();
-      setDeviceId(deviceId);
+    const init = async () => {
+      try {
+        console.log("useEffect_init_start");
+
+        // 1. デバイスIDを取得 & state更新
+        const currentDeviceId = await getDeviceId();
+        setDeviceId(currentDeviceId); // deviceId state 更新
+        deviceIdRef.current = currentDeviceId; // Ref も更新
+        console.log("useEffect_init_deviceId", currentDeviceId);
+
+        // 2. Service Workerの登録/準備完了を待つ
+        console.log("useEffect_init_waiting_serviceWorkerReady");
+        const registration = await navigator.serviceWorker.ready;
+        console.log("useEffect_init_serviceWorkerReady", registration);
+        setRegistrationState(registration); // registrationState 更新
+
+        // 3. ブラウザから現在の購読情報を取得 & state更新
+        const existingSubscription = await registration.pushManager.getSubscription();
+        setSubscriptionState(existingSubscription); // subscriptionState 更新
+        console.log("useEffect_init_existingSubscription", existingSubscription?.endpoint);
+
+        // 4. DBから購読情報のレコードIDを取得 & state更新
+        // endpoint が存在する場合のみ DB に問い合わせる
+        let currentRecordId: string | null = null;
+        if (existingSubscription?.endpoint) {
+          currentRecordId = await getRecordId(existingSubscription.endpoint);
+        }
+        setRecordId(currentRecordId); // recordId state 更新
+        recordIdRef.current = currentRecordId; // Ref も更新
+        console.log("useEffect_init_currentRecordId", currentRecordId);
+
+        // 5. 購読状態とDBの状態を同期 (DBへの保存/更新はここで行う)
+        if (existingSubscription) {
+          // ブラウザに購読が存在する場合
+          const subscriptionData = formatSubscriptionForServer(existingSubscription, currentRecordId ?? undefined, currentDeviceId);
+          if (subscriptionData) {
+            if (!currentRecordId) {
+              // DBにレコードがない場合: 新規保存
+              console.log("useEffect_init_sync: Subscription exists but not in DB. Saving...");
+              console.log("useEffect_init_saveSubscription_start", subscriptionData);
+              const result = await saveSubscription(subscriptionData);
+              console.log("useEffect_init_saveSubscription_end", result);
+              // 保存後に再度 recordId を取得して state/Ref を更新
+              if (!("error" in result)) {
+                const newRecordId = await getRecordId(existingSubscription.endpoint);
+                setRecordId(newRecordId);
+                recordIdRef.current = newRecordId;
+                console.log("useEffect_init_sync: Updated recordId after save:", newRecordId);
+              } else {
+                console.error("useEffect_init_sync: Failed to save subscription to DB:", result.error);
+                setError(new Error(`Failed to save subscription: ${result.error}`));
+              }
+            } else {
+              // DBにレコードがある場合: deviceId など更新の可能性があるため save (upsert)
+              console.log("useEffect_init_sync: Subscription exists and found in DB. Ensuring data is up-to-date...");
+              console.log("useEffect_init_updateSubscription_start", subscriptionData);
+              // saveSubscription は endpoint がキーで、他を更新すると期待
+              const result = await saveSubscription(subscriptionData);
+              console.log("useEffect_init_updateSubscription_end", result);
+              if ("error" in result) {
+                console.error("useEffect_init_sync: Failed to update subscription in DB:", result.error);
+                // 更新エラーは致命的ではないかもしれないので、エラー状態にはしないでおくか検討
+                // setError(new Error(`Failed to update subscription: ${result.error}`));
+              }
+            }
+          } else {
+            console.error("useEffect_init_sync: Failed to format subscription data for saving/updating.");
+            setError(new Error("Failed to format subscription data."));
+          }
+        } else {
+          // ブラウザに購読がない場合 (DB にもし孤児レコードがあれば削除するなども検討可能だが、一旦何もしない)
+          console.log("useEffect_init_sync: No active subscription found in browser.");
+          // 必要ならここで recordId を null に設定し直す
+          setRecordId(null);
+          recordIdRef.current = null;
+        }
+
+        // 6. Service Workerのメッセージリスナー等を初期化
+        cleanupListener = await initializeServiceWorker();
+        console.log("useEffect_init_initializeServiceWorker_done");
+      } catch (error) {
+        console.error("Error during initialization:", error);
+        setError(error instanceof Error ? error : new Error(String(error)));
+      } finally {
+        setIsInitialized(true); // ★ 処理完了またはエラー時に初期化完了フラグを立てる
+        console.log("useEffect_init_finished");
+      }
     };
-    void loadDeviceId();
-  }, [subscriptionState, initializeServiceWorker, getDeviceId, userId]);
+
+    // userId が存在する場合のみ初期化を実行
+    if (userId) {
+      void init();
+    } else {
+      // userIdがない場合は購読関連の処理は行わないが、サポート状況などは確認済みなので初期化完了とする
+      setIsInitialized(true);
+      console.log("useEffect_init_skip: No userId.");
+      // 関連する state をクリアする方が安全かもしれない
+      setSubscriptionState(null);
+      setRecordId(null);
+      setDeviceId(null);
+      setRegistrationState(null); // registration もクリアすべきか検討
+    }
+
+    // クリーンアップ処理
+    return () => {
+      console.log("use-push-notification.ts_usePushNotification_useEffect_cleanup");
+      if (cleanupListener) {
+        cleanupListener(); // Service Workerのリスナー等を解除
+      }
+    };
+    // getDeviceId, initializeServiceWorker は useCallbackされているので依存配列に追加
+  }, [userId, getDeviceId, initializeServiceWorker]); // permissionState は init 内で取得するので依存不要
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 通知を購読
+   * 通知を購読 (ブラウザへの購読と許可要求のみ)
    * @returns {PushSubscription | null} 購読情報
    */
   const subscribe = useCallback(async () => {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // サービスワーカーが登録されていない場合はnullを返す
+    console.log("subscribe_called", { isSupported, permissionState }); // 呼び出し時の状態ログ
+    // ガード条件: サポート状況、初期化完了、サービスワーカー登録
     if (!isSupported) {
       setError(new Error("Service WorkerまたはPush APIがサポートしていません。"));
-      setPermissionState(Notification.permission);
+      console.error("subscribe: Not supported.");
+      return null;
+    }
+    // registrationState がまだ null の場合は初期化中か失敗の可能性
+    if (!registrationState) {
+      setError(new Error("Service Worker の準備ができていません。"));
+      console.error("subscribe: Service Worker registration not ready.");
       return null;
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // 最新の通知許可状態を取得
+    const currentPermission = Notification.permission;
+    setPermissionState(currentPermission); // State も更新しておく
 
-    // 通知の許可が"denied"の場合はnullを返す（許可ダイアログは表示されない）
-    if (permissionState === "denied") {
-      setError(new Error("通知の許可が得られませんでした"));
+    if (currentPermission === "denied") {
+      setError(new Error("通知の許可が拒否されています。"));
+      console.error("subscribe: Permission denied.");
       return null;
     }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     try {
-      // サービスワーカーの登録がない場合は登録を行う（二重登録を避ける）
-      let registration = registrationState;
-      if (!registration) {
-        // Service Workerの登録を試みる
-        registration = await navigator.serviceWorker.register(SERVICE_WORKER_PATH);
-        setRegistrationState(registration);
-        console.log("Service Worker registered:", registration);
-      }
-
-      // 既存の購読を確認
-      let sub = await getSubscription();
-
-      // 既に購読している場合は、その情報を返す
+      // 既存の購読を再確認 (最新の状態を取得)
+      let sub = await registrationState.pushManager.getSubscription();
       if (sub) {
-        console.log("既存の購読が見つかりました:", sub);
-        setSubscriptionState(sub);
+        console.log("subscribe: Existing subscription found (no action needed).", sub.endpoint);
         return sub;
       }
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 通知の許可が得られていない場合は、通知の許可を要求
-      if (permissionState !== "granted") {
-        console.log("通知の許可を要求します");
-        // プッシュ通知の許可を要求
+      // 通知の許可を要求 (granted でなければ)
+      if (currentPermission !== "granted") {
+        console.log("subscribe: Requesting notification permission...");
         const permission = await Notification.requestPermission();
-        setPermissionState(permission);
-
-        // 許可が得られなかった場合はエラーを返す
+        setPermissionState(permission); // 新しい許可状態で state を更新
         if (permission !== "granted") {
-          console.log("通知の許可が得られませんでした:", permission);
-          throw new Error("通知の許可が得られませんでした");
+          console.warn("subscribe: Notification permission not granted:", permission);
+          // エラーにはせず、null を返す (ユーザーが許可しなかった場合)
+          setError(new Error("通知の許可が得られませんでした。"));
+          return null;
         }
+        console.log("subscribe: Notification permission granted.");
       }
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // VAPID 公開鍵を環境変数から取得
+      // VAPID 公開鍵を取得
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-      // VAPID 公開鍵が設定されていない場合はエラーを返す
       if (!vapidPublicKey) {
         throw new Error("VAPID 公開鍵が設定されていません");
       }
-
-      // 公開鍵をUint8Arrayに変換
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-      //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // サービスワーカーの登録状態を再確認
-      if (!registration) {
-        console.error("サービスワーカーが登録されていません");
-        return null;
-      }
-
       // プッシュサービスに購読
-      sub = await registration.pushManager.subscribe({
-        userVisibleOnly: true, // 通知は常にユーザーに表示される
+      console.log("subscribe: Subscribing to push manager...");
+      sub = await registrationState.pushManager.subscribe({
+        userVisibleOnly: true,
         applicationServerKey,
       });
-      console.log("通知を購読しました:", sub);
-      // 購読情報を更新
-      setSubscriptionState(sub);
+      console.log("subscribe: Subscribed successfully:", sub.endpoint);
+      setSubscriptionState(sub); // 新しい購読情報で state を更新
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ★★★ DBへの保存は useEffect で行うため、ここでは削除 ★★★
+      console.log("subscribe: Subscription successful. DB sync will be handled by useEffect.");
 
-      // 購読情報を整形
-      const subscriptionData = formatSubscriptionForServer(sub, recordId ?? undefined, deviceId ?? undefined);
-      if (!subscriptionData) {
-        throw new Error("有効な購読情報が取得できませんでした");
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // サーバーに購読情報を送信
-      console.log("use-push-notification.ts_subscribe_saveSubscription_start");
-      const result = await saveSubscription(subscriptionData);
-      console.log("use-push-notification.ts_subscribe_saveSubscription_end");
-
-      // エラーレスポンスをチェック
-      if ("error" in result) {
-        console.warn("購読情報の保存中にエラーが発生しました:", result.error);
-        // エラーがあってもクライアント側の購読は維持する
-        return sub;
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      return result;
-
-      //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      return sub; // 新しく取得した購読情報を返す
     } catch (err) {
-      console.error("通知の購読に失敗しました:", err);
+      console.error("通知の購読処理中にエラーが発生しました:", err);
       setError(err instanceof Error ? err : new Error(String(err)));
+      // エラー発生時、購読状態を null に戻す
+      setSubscriptionState(null);
       return null;
     }
-  }, [registrationState, isSupported, getSubscription, permissionState, recordId, deviceId]);
+    // isSupported, registrationState はガード条件として必要
+    // permissionState は内部で Notification.permission を見るので依存不要かもしれないが、変更トリガーとして入れておく
+  }, [isSupported, registrationState, permissionState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 通知の購読を解除
-   * @returns {boolean} 購読解除の成否
    */
   const unsubscribe = useCallback(async () => {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    // 購読情報を取得
-    const sub = await getSubscription();
-
-    // 購読情報がない場合はtrueを返す
-    if (!sub) {
-      console.log("購読情報がありません");
+    console.log("unsubscribe_called");
+    if (!registrationState) {
+      console.warn("unsubscribe: No service worker registration found.");
+      setSubscriptionState(null); // 登録がないなら購読もないはず
       return true;
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     try {
-      // サーバーから購読情報を削除
+      // 最新の購読情報を取得
+      const sub = await registrationState.pushManager.getSubscription();
+
+      if (!sub) {
+        console.log("unsubscribe: No active subscription found to unsubscribe.");
+        setSubscriptionState(null); // 購読がないことを state に反映
+        return true;
+      }
+      console.log("unsubscribe: Found subscription to unsubscribe:", sub.endpoint);
+
+      // サーバーから購読情報を削除 (endpoint をキーに)
+      console.log("unsubscribe: Deleting subscription from DB...");
       await deleteSubscription(sub.endpoint);
+      console.log("unsubscribe: DB deletion attempted (errors ignored for now)."); // deleteSubscription のエラーハンドリングは要検討
 
       // プッシュサービスから購読を解除
+      console.log("unsubscribe: Unsubscribing from push service...");
       const result = await sub.unsubscribe();
+      console.log("unsubscribe: Push service unsubscribe result:", result);
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 購読情報を更新
       if (result) {
-        setSubscriptionState(null);
+        setSubscriptionState(null); // 購読解除成功 -> state を null に
+        setRecordId(null); // recordId も null に
+        recordIdRef.current = null;
         console.log("通知の購読を解除しました");
+      } else {
+        console.warn("unsubscribe: Failed to unsubscribe from push service.");
+        // 解除失敗した場合でも、サーバーからは削除試行済み。state はどうするか？一旦そのままにするか？
+        // 再度 getSubscription して確認する？
+        setError(new Error("プッシュサービスからの購読解除に失敗しました。"));
       }
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      return result;
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      return result; // 解除の成否を返す
     } catch (err) {
-      console.error("通知の購読解除に失敗しました:", err);
+      console.error("通知の購読解除処理中にエラーが発生しました:", err);
       setError(err instanceof Error ? err : new Error(String(err)));
+      // エラー発生時も購読状態を null にしておく方が安全か？
+      setSubscriptionState(null);
+      setRecordId(null);
+      recordIdRef.current = null;
       return false;
     }
-  }, [getSubscription]);
+  }, [registrationState]); // registrationState に依存
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // 戻り値に isInitialized を追加
   return {
-    // サービスワーカーの登録情報
-    registrationState,
-    // 購読情報
-    subscriptionState,
-    // サポートされているかどうか
-    isSupported,
-    // エラー情報
-    error,
-    // 購読
-    subscribe,
-    // 購読解除
-    unsubscribe,
-    // 購読情報を取得
-    getSubscription,
-    // 通知許可
-    permissionState,
-    // 購読情報の変更を処理する関数
-    handleSubscriptionChange,
+    isInitialized, // ★ 初期化完了フラグ
+    registrationState, // Service Worker の登録情報
+    subscriptionState, // 現在の購読情報 (PushSubscription | null)
+    isSupported, // ブラウザが Push API をサポートしているか
+    error, // 発生したエラー
+    subscribe, // 購読を開始する関数 (許可要求含む)
+    unsubscribe, // 購読を解除する関数
+    permissionState, // 現在の通知許可状態
   };
 }
