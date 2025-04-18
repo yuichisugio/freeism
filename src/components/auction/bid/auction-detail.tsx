@@ -13,7 +13,7 @@ import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type Auction, type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { AlertTriangle, BarChart, Clock, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
+import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { AuctionQA } from "./auction-qa";

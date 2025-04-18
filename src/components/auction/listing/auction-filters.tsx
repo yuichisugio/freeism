@@ -51,6 +51,8 @@ const statusOptions = [
   { value: "bidded", label: "入札済み", icon: <Check className="h-4 w-4" /> },
   { value: "not_ended", label: "終了済み以外", icon: <TimerIcon className="h-4 w-4" /> },
   { value: "ended", label: "終了済み", icon: <Calendar className="h-4 w-4" /> },
+  { value: "not_started", label: "未開始", icon: <Clock className="h-4 w-4" /> },
+  { value: "started", label: "開始済み", icon: <Clock className="h-4 w-4" /> },
 ];
 
 // 残り時間のプリセット
@@ -387,12 +389,16 @@ export const AuctionFilters = memo(function AuctionFilters({
     return Array.from(uniqueGroupsMap.values());
   }, [auctions]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // すべてのグループが選択されているかを確認
   const areAllGroupsSelected = useMemo(() => {
+    // draftConditions.groupIdsがない場合はtrue
     if (!draftConditions.groupIds || draftConditions.groupIds.length === 0) {
       return true;
     }
 
+    // uniqueGroupsがない場合はtrue
     if (uniqueGroups.length === 0) {
       return true;
     }
@@ -475,6 +481,7 @@ export const AuctionFilters = memo(function AuctionFilters({
             )}
           </Button>
 
+          {/* フィルターリセットボタン */}
           {activeFilterCount > 0 && (
             <Button
               variant="ghost"

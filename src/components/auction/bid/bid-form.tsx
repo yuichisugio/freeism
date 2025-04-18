@@ -6,9 +6,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/bid/use-bid-actions";
 import { type BidFormProps } from "@/lib/auction/type/types";
-import { formatCurrency } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { ArrowRight, Gavel, Minus, Plus } from "lucide-react";
+import { Gavel, Minus, Plus } from "lucide-react";
 
 import { AutoBidForm } from "./auto-bid-form";
 

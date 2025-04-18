@@ -1,5 +1,6 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { AuctionStatus } from "@prisma/client";
@@ -7,55 +8,223 @@ import { AuctionStatus } from "@prisma/client";
 import { AUCTION_CONSTANTS } from "../constants";
 import { type AuctionListingResult, type AuctionListingsConditions } from "../type/types";
 
+// findMany の include オプションに対応する型を定義
+type AuctionWithDetails = Prisma.AuctionGetPayload<{
+  include: {
+    task: {
+      include: {
+        creator: { select: { id: true; name: true; image: true } };
+        group: { select: { id: true; name: true } };
+      };
+    };
+    bidHistories: { orderBy: { amount: "desc" }; take: 1 };
+    watchlists: { where: { userId: string } }; // userId は string に修正
+    _count: { select: { bidHistories: true } };
+  };
+}>;
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// AuctionWhereInput型の定義
-type AuctionWhereInput = {
-  task?: {
-    groupId?: { in: string[] } | string;
-    task?: { contains: string; mode: "insensitive" };
-    OR?: Array<{ task: { contains: string; mode: "insensitive" } } | { detail: { contains: string; mode: "insensitive" } }>;
-  };
-  watchlists?: {
-    some: {
-      userId: string;
-    };
-  };
-  bidHistories?: {
-    none?: {
-      userId: string;
-    };
-    some?: {
-      userId: string;
-    };
-  };
-  status?:
-    | AuctionStatus
-    | {
-        not: AuctionStatus;
-      };
-  currentHighestBid?: {
-    gte?: number;
-    lte?: number;
-  };
-  endTime?: {
-    gte?: Date;
-    lte?: Date;
-  };
-};
+// AuctionWhereInput型の定義は削除し、Prisma.AuctionWhereInput を直接使用する
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * AuctionOrderByInput型の定義
  */
-type AuctionOrderByInput = {
-  createdAt?: "asc" | "desc";
-  endTime?: "asc" | "desc";
-  currentHighestBid?: "asc" | "desc";
-  bidHistories?: { _count: "asc" | "desc" };
-  _count?: { bidHistories: "asc" | "desc" };
-};
+// type AuctionOrderByInput = { // Prisma.AuctionOrderByWithRelationInput を使用するためコメントアウト or 削除
+//   createdAt?: "asc" | "desc";
+//   endTime?: "asc" | "desc";
+//   currentHighestBid?: "asc" | "desc";
+//   bidHistories?: { _count: "asc" | "desc" };
+//   _count?: { bidHistories: "asc" | "desc" };
+// };
+// Prisma.AuctionOrderByWithRelationInput を使用する方が堅牢
+type AuctionOrderByInput = Prisma.AuctionOrderByWithRelationInput;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションの Prisma where 句を構築するヘルパー関数
+ * @param listingsConditions 検索条件
+ * @returns Prisma の where 句と userId
+ */
+async function buildAuctionWhereClause(listingsConditions: AuctionListingsConditions): Promise<{ where: Prisma.AuctionWhereInput; userId: string }> {
+  const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery } = listingsConditions;
+
+  // ユーザーIDを取得。必ず返ってくる。返ってこない場合は↓内でログイン画面にリダイレクトされる
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ユーザーが参加しているグループIDを取得
+  let userGroupIds = await prisma.groupMembership.findMany({
+    where: { userId },
+    select: { groupId: true },
+  });
+
+  // ユーザーが参加しているグループIDがない場合は、以降の処理で空の結果になるように調整
+  if (userGroupIds.length === 0) {
+    console.log("src/lib/auction/action/auction-listing.ts_buildAuctionWhereClause_noUserGroups_参加Groupがないため、オークションを表示できません");
+    userGroupIds = []; // 空の配列を設定することで、 groupId: { in: [] } となり、結果が空になる
+  }
+
+  // 基本的なフィルター条件
+  const where: Prisma.AuctionWhereInput = {
+    task: {
+      groupId: { in: userGroupIds.map((group) => group.groupId) },
+    },
+  };
+
+  // AND 条件を格納する配列
+  const filterConditions: Prisma.AuctionWhereInput[] = [];
+
+  // カテゴリのフィルタリング (Taskのcategoryフィールドを想定)
+  if (categories && categories.length > 0 && !categories.includes("すべて")) {
+    const validCategories = categories.filter((c): c is string => c !== null && c !== "すべて");
+    if (validCategories.length > 0) {
+      // カテゴリ名が部分一致か完全一致かで `contains` か `in` を使い分ける
+      // ここでは Task モデルに `category` という string 型フィールドがあると仮定し、完全一致 (`in`) を使用
+      filterConditions.push({
+        task: {
+          category: {
+            in: validCategories,
+            mode: "insensitive", // 大文字小文字を区別しない場合
+          },
+        },
+      });
+      // もし部分一致検索が必要な場合は OR と contains を使う
+      filterConditions.push({
+        OR: validCategories.map((category) => ({
+          task: {
+            category: { contains: category, mode: "insensitive" },
+          },
+        })),
+      });
+    }
+  }
+
+  // ステータスのフィルタリング
+  if (status && status.length > 0) {
+    // statusに関するwhere条件を一時的に保持
+    const statusWhereClauses: Prisma.AuctionWhereInput[] = [];
+
+    for (const statusItem of status) {
+      switch (statusItem) {
+        case "watchlist":
+          // watchlists は Auction モデルのリレーションなので、トップレベルで指定
+          filterConditions.push({ watchlists: { some: { userId } } });
+          break;
+        case "not_bidded":
+          // bidHistories も同様にトップレベルで指定
+          filterConditions.push({ bidHistories: { none: { userId } } });
+          break;
+        case "bidded":
+          filterConditions.push({ bidHistories: { some: { userId } } });
+          break;
+        case "ended":
+          statusWhereClauses.push({ status: AuctionStatus.ENDED });
+          break;
+        case "not_ended":
+          // status と endTime を組み合わせる
+          statusWhereClauses.push({
+            status: { not: AuctionStatus.ENDED },
+            endTime: { gte: new Date() }, // 現在時刻より後のもの
+          });
+          break;
+        case "not_started":
+          statusWhereClauses.push({ status: AuctionStatus.PENDING });
+          break;
+        case "started":
+          statusWhereClauses.push({ status: AuctionStatus.ACTIVE });
+          break;
+        default: // "all" またはその他の場合は何もしない
+          break;
+      }
+    }
+    // 複数のステータス条件がある場合は OR で結合
+    if (statusWhereClauses.length > 0) {
+      // status に関する条件は通常 OR で結合されるべきか？ UIによるが、ここではANDで追加
+      // もしステータスフィルターが OR 条件なら filterConditions.push({ OR: statusWhereClauses }) のようにする
+
+      filterConditions.push({ OR: statusWhereClauses });
+    }
+  }
+
+  // 入札額のフィルタリング
+  const bidFilters: Prisma.IntFilter = {};
+  if (minBid !== null && minBid !== undefined) {
+    bidFilters.gte = minBid;
+  }
+  if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
+    bidFilters.lte = maxBid;
+  }
+  if (Object.keys(bidFilters).length > 0) {
+    filterConditions.push({ currentHighestBid: bidFilters });
+  }
+
+  // 残り時間のフィルタリング
+  const timeFilters: Prisma.DateTimeFilter = {};
+  const now = new Date();
+  if (minRemainingTime !== null && minRemainingTime !== undefined) {
+    timeFilters.gte = new Date(now.getTime() + minRemainingTime * 60 * 60 * 1000);
+  }
+  if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
+    timeFilters.lte = new Date(now.getTime() + maxRemainingTime * 60 * 60 * 1000);
+  }
+  if (Object.keys(timeFilters).length > 0) {
+    filterConditions.push({ endTime: timeFilters });
+  }
+
+  // グループIDのフィルタリング (基本条件で既に設定されているため、必要に応じて上書きまたは絞り込み)
+  if (groupIds && groupIds.length > 0) {
+    // ユーザーが所属するグループと指定されたグループの両方に合致するもののみを対象とする
+    const allowedGroupIds = userGroupIds.map((ug) => ug.groupId).filter((id) => groupIds.includes(id));
+    // where.task.groupId.in を上書きする
+    if (where.task) {
+      if (typeof where.task === "object") {
+        if (where.task.groupId && typeof where.task.groupId === "object" && "in" in where.task.groupId) {
+          // 型安全に更新するために型アサーションを使用
+          const groupIdFilter = where.task.groupId as Prisma.StringFilter;
+          groupIdFilter.in = allowedGroupIds;
+        } else {
+          // 型安全に新しいtaskオブジェクトを作成
+          const taskFilter: Prisma.TaskWhereInput = {
+            ...(where.task as Prisma.TaskWhereInput),
+            groupId: { in: allowedGroupIds },
+          };
+          where.task = taskFilter;
+        }
+      }
+    } else {
+      // task自体がない場合は新規作成
+      where.task = { groupId: { in: allowedGroupIds } };
+    }
+  }
+
+  // 検索クエリのフィルタリング (Taskのtaskまたはdetailフィールド)
+  if (searchQuery) {
+    filterConditions.push({
+      OR: [{ task: { task: { contains: searchQuery, mode: "insensitive" } } }, { task: { detail: { contains: searchQuery, mode: "insensitive" } } }],
+    });
+  }
+
+  // 組み立てたフィルター条件を AND で結合
+  if (filterConditions.length > 0) {
+    if (where.AND) {
+      // 既にAND条件がある場合は配列に追加
+      if (Array.isArray(where.AND)) {
+        where.AND.push(...filterConditions);
+      } else {
+        // 単一オブジェクトの場合は配列にする
+        where.AND = [where.AND, ...filterConditions];
+      }
+    } else {
+      // AND条件がなければ新規作成
+      where.AND = filterConditions;
+    }
+  }
+
+  return { where, userId };
+}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -66,202 +235,31 @@ type AuctionOrderByInput = {
  */
 export async function getAuctionListings({ listingsConditions }: { listingsConditions: AuctionListingsConditions }): Promise<AuctionListingResult> {
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    const { sort, page } = listingsConditions;
 
-    const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery, sort, page } = listingsConditions;
+    // 開始ログ
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_start", { ...listingsConditions });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // where句とuserIdを構築
+    const { where, userId } = await buildAuctionWhereClause(listingsConditions);
 
-    // 開始ログとパラメータ
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_start", {
-      categories,
-      status,
-      minBid,
-      maxBid,
-      minRemainingTime,
-      maxRemainingTime,
-      groupIds,
-      searchQuery,
-      sort: sort?.map((s) => s.field),
-      sortDirection: sort?.map((s) => s.direction),
-      page,
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ユーザーIDを取得。必ず返ってくる。返ってこない場合は↓内でログイン画面にリダイレクトされる
-    const userId = await getAuthenticatedSessionUserId();
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ユーザーが参加しているグループIDを取得
-    let userGroupIds = await prisma.groupMembership.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
-
-    // ユーザーが参加しているグループIDがない場合は空の配列を返す
-    if (userGroupIds.length === 0) {
+    // ユーザーが参加しているグループがない場合、空の結果を返す
+    if (
+      where.task?.groupId &&
+      typeof where.task.groupId === "object" &&
+      "in" in where.task.groupId &&
+      Array.isArray(where.task.groupId.in) &&
+      where.task.groupId.in.length === 0
+    ) {
       console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups_参加Groupがないため、オークションを表示できません");
-      userGroupIds = [];
+      return [];
     }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 基本的なフィルター条件
-    const where: AuctionWhereInput = {
-      task: {
-        groupId: { in: userGroupIds.map((group) => group.groupId) },
-      },
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // カテゴリの値があり、「すべて」でない場合は、where条件を追加
-    if (categories && categories.length > 0 && !categories.includes("すべて")) {
-      // 複数カテゴリで検索するためのOR条件を作成
-      const categoryConditions = categories
-        .filter((c) => c !== null)
-        .map((category) => ({
-          task: { contains: category, mode: "insensitive" as const },
-        }));
-
-      // OR条件を追加
-      where.task = {
-        ...where.task,
-        OR: [...(where.task?.OR ?? []), ...categoryConditions],
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ステータスの値があり、配列の長さが0より大きい場合は、where条件を追加
-    if (status && status.length > 0) {
-      for (const statusItem of status) {
-        switch (statusItem) {
-          case "watchlist":
-            where.watchlists = {
-              some: {
-                userId,
-              },
-            };
-            break;
-          case "not_bidded":
-            where.bidHistories = {
-              none: {
-                userId,
-              },
-            };
-            break;
-          case "bidded":
-            where.bidHistories = {
-              some: {
-                userId,
-              },
-            };
-            break;
-          case "ended":
-            where.status = AuctionStatus.ENDED;
-            break;
-          case "not_ended":
-            where.status = {
-              not: AuctionStatus.ENDED,
-            };
-            where.endTime = {
-              gte: new Date(),
-            };
-            console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_not_ended", where);
-            break;
-          default:
-            // "all" の場合は追加条件なし
-            break;
-        }
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 入札額の最低価格がある場合
-    if (minBid !== null && minBid !== undefined) {
-      where.currentHighestBid = {
-        ...where.currentHighestBid,
-        gte: minBid,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 入札額の最高価格がある場合
-    if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
-      where.currentHighestBid = {
-        ...where.currentHighestBid,
-        lte: maxBid,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 残り時間の最低値と最高値がある場合
-    if (minRemainingTime !== null || maxRemainingTime !== null) {
-      const now = new Date();
-      let minDate: Date | undefined = undefined;
-      let maxDate: Date | undefined = undefined;
-
-      // 残り時間の最低値がある場合
-      if (minRemainingTime !== null && minRemainingTime !== undefined) {
-        // 安全に時間を追加するためにタイムスタンプを使用
-        minDate = new Date(now.getTime() + minRemainingTime * 60 * 60 * 1000);
-        where.endTime = {
-          ...where.endTime,
-          gte: minDate,
-        };
-      }
-
-      // 残り時間の最高値がある場合
-      if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
-        // 安全に時間を追加するためにタイムスタンプを使用
-        maxDate = new Date(now.getTime() + maxRemainingTime * 60 * 60 * 1000);
-        where.endTime = {
-          ...where.endTime,
-          lte: maxDate,
-        };
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // グループIDでフィルタリング
-    if (groupIds && groupIds.length > 0) {
-      where.task = {
-        ...where.task,
-        groupId: { in: groupIds },
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 検索クエリによるフィルタリング
-    if (searchQuery) {
-      where.task = {
-        ...where.task,
-        OR: [{ task: { contains: searchQuery, mode: "insensitive" } }, { detail: { contains: searchQuery, mode: "insensitive" } }],
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ソート条件の設定
-    let orderBy: AuctionOrderByInput = {};
-
-    // デフォルトの並び順（新着順）
-    orderBy = { createdAt: "desc" };
-
-    // ソート条件がある場合
+    let orderBy: AuctionOrderByInput = { createdAt: "desc" }; // デフォルトは新着順
     if (sort && sort.length > 0) {
-      // 最初のソート条件のみ使用（複数ソートはPrismaでは複雑なため）
       const primarySort = sort[0];
       const sortDirection = primarySort.direction ?? "desc";
-
       switch (primarySort.field) {
         case "newest":
           orderBy = { createdAt: sortDirection };
@@ -270,11 +268,9 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
           orderBy = { endTime: sortDirection };
           break;
         case "bids":
-          // 入札数で並び替え
           orderBy = { bidHistories: { _count: sortDirection } };
           break;
         case "price":
-          // 最高入札額で並び替え
           orderBy = { currentHighestBid: sortDirection };
           break;
         default:
@@ -283,140 +279,79 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       }
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ページネーションで、スキップする件数を作成
+    // ページネーション
     const pageNumber = page ?? 1;
     const skip = (pageNumber - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
+    const take = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_prismaParams", { where, orderBy, skip, take });
 
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_where", where);
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_orderBy", orderBy);
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_skip", skip);
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_take", AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
-
-    // 一覧に表示するオークションを取得
-    const auctions = await prisma.auction.findMany({
+    // オークションデータを取得
+    const auctions: AuctionWithDetails[] = await prisma.auction.findMany({
       where,
       orderBy,
       skip,
-      take: AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE,
+      take,
       include: {
-        task: {
-          include: {
-            creator: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-            group: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        bidHistories: {
-          orderBy: {
-            amount: "desc",
-          },
-          take: 1,
-        },
-        watchlists: {
-          where: {
-            userId,
-          },
-        },
-        _count: {
-          select: { bidHistories: true },
-        },
+        task: { include: { creator: { select: { id: true, name: true, image: true } }, group: { select: { id: true, name: true } } } },
+        bidHistories: { orderBy: { amount: "desc" }, take: 1 }, // 最高入札履歴のみ取得
+        watchlists: { where: { userId } }, // ログインユーザーのウォッチリスト情報
+        _count: { select: { bidHistories: true } }, // 入札数カウント
       },
     });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // クリエイターの評価を取得するためのuserIdを一括取得
+    // クリエイターの評価を一括取得・計算
     const creatorIds = auctions.map((auction) => auction.task.creator.id);
+    let creatorRatings: Record<string, number | null> = {}; // 初期化
 
-    // クリエイターの評価を取得
-    const creatorReviews = await prisma.auctionReview.findMany({
-      where: {
-        revieweeId: { in: creatorIds },
-      },
-      select: {
-        revieweeId: true,
-        rating: true,
-      },
-    });
+    if (creatorIds.length > 0) {
+      const creatorReviews = await prisma.auctionReview.findMany({
+        where: { revieweeId: { in: creatorIds } },
+        select: { revieweeId: true, rating: true },
+      });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // クリエイターIDごとに評価を集計
-    const creatorRatings = creatorIds.reduce(
-      (acc, creatorId) => {
-        const reviews = creatorReviews.filter((review) => review.revieweeId === creatorId);
-        if (reviews.length === 0) {
-          acc[creatorId] = null;
-        } else {
-          // 加重平均で評価を計算（小数点第2位まで）
-          const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-          acc[creatorId] = Number((totalRating / reviews.length).toFixed(2));
-        }
-        return acc;
-      },
-      {} as Record<string, number | null>,
-    );
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      creatorRatings = creatorIds.reduce(
+        (acc, creatorId) => {
+          const reviews = creatorReviews.filter((review) => review.revieweeId === creatorId);
+          acc[creatorId] = reviews.length > 0 ? Number((reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(2)) : null;
+          return acc;
+        },
+        {} as Record<string, number | null>,
+      );
+    }
 
     // 結果を整形
-    const items = auctions.map((auction) => {
-      // 現在の最高入札額に1ポイント足した額（落札可能金額）
-      const bidToBeatAmount = auction.currentHighestBid + 1;
-
-      return {
-        id: auction.id,
-        taskId: auction.taskId,
-        title: auction.task.task,
-        description: auction.task.detail,
-        imageUrl: auction.task.imageUrl,
-        currentBid: auction.currentHighestBid,
-        bidToBeatAmount,
-        endTime: auction.endTime,
-        startTime: auction.startTime,
-        status: auction.status,
-        isWatched: auction.watchlists.length > 0,
-        bidsCount: auction._count.bidHistories,
-        seller: {
-          id: auction.task.creator.id,
-          name: auction.task.creator.name,
-          image: auction.task.creator.image,
-          rating: creatorRatings[auction.task.creator.id],
-        },
-        group: {
-          id: auction.task.group.id,
-          name: auction.task.group.name,
-        },
-      };
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    const items = auctions.map((auction) => ({
+      id: auction.id,
+      taskId: auction.taskId,
+      title: auction.task.task,
+      description: auction.task.detail,
+      imageUrl: auction.task.imageUrl,
+      currentBid: auction.currentHighestBid,
+      bidToBeatAmount: auction.currentHighestBid + 1,
+      endTime: auction.endTime,
+      startTime: auction.startTime,
+      status: auction.status,
+      isWatched: auction.watchlists.length > 0,
+      bidsCount: auction._count.bidHistories,
+      seller: {
+        id: auction.task.creator.id,
+        name: auction.task.creator.name,
+        image: auction.task.creator.image,
+        rating: creatorRatings[auction.task.creator.id] ?? null, // 評価が存在しない場合はnull
+      },
+      group: {
+        id: auction.task.group.id,
+        name: auction.task.group.name,
+      },
+    }));
 
     // 成功ログ
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_success", { itemsCount: items.length });
-
-    // 最終的な結果を返す
     return items;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    // エラーログ
     console.error("src/lib/auction/action/auction-listing.ts_getAuctionListings_error", error);
-    throw error;
+    throw error; // エラーを再スロー
   }
 }
 
@@ -429,156 +364,34 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
  */
 export async function getAuctionCount({ listingsConditions }: { listingsConditions: AuctionListingsConditions }): Promise<number> {
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // 開始ログ
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_start", { ...listingsConditions });
 
-    const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery } = listingsConditions;
+    // where句を構築 (userId はここでは不要)
+    const { where } = await buildAuctionWhereClause(listingsConditions);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 開始ログとパラメータ（件数取得用）
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_start", {
-      categories,
-      status,
-      minBid,
-      maxBid,
-      minRemainingTime,
-      maxRemainingTime,
-      groupIds,
-      searchQuery,
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ユーザーIDを取得
-    const userId = await getAuthenticatedSessionUserId();
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ユーザーが参加しているグループIDを取得
-    const userGroupIds = await prisma.groupMembership.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
-
-    // ユーザーが参加しているグループIDがない場合は0を返す
-    if (userGroupIds.length === 0) {
+    // ユーザーが参加しているグループがない場合、件数は0
+    if (
+      where.task?.groupId &&
+      typeof where.task.groupId === "object" &&
+      "in" in where.task.groupId &&
+      Array.isArray(where.task.groupId.in) &&
+      where.task.groupId.in.length === 0
+    ) {
       console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_noUserGroups_参加Groupがないため、オークションはありません");
       return 0;
     }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 基本的なフィルター条件
-    const where: AuctionWhereInput = {
-      task: {
-        groupId: { in: userGroupIds.map((group) => group.groupId) },
-      },
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // カテゴリのフィルタリング (getAuctionListingsと同じロジック)
-    if (categories && categories.length > 0 && !categories.includes("すべて")) {
-      const categoryConditions = categories
-        .filter((c) => c !== null)
-        .map((category) => ({
-          task: { contains: category, mode: "insensitive" as const },
-        }));
-      where.task = {
-        ...where.task,
-        OR: [...(where.task?.OR ?? []), ...categoryConditions],
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ステータスのフィルタリング (getAuctionListingsと同じロジック)
-    if (status && status.length > 0) {
-      for (const statusItem of status) {
-        switch (statusItem) {
-          case "watchlist":
-            where.watchlists = { some: { userId } };
-            break;
-          case "not_bidded":
-            where.bidHistories = { none: { userId } };
-            break;
-          case "bidded":
-            where.bidHistories = { some: { userId } };
-            break;
-          case "ended":
-            where.status = AuctionStatus.ENDED;
-            break;
-          case "not_ended":
-            where.status = { not: AuctionStatus.ENDED };
-            where.endTime = { gte: new Date() };
-            break;
-          default:
-            break;
-        }
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 入札額のフィルタリング (getAuctionListingsと同じロジック)
-    if (minBid !== null && minBid !== undefined) {
-      where.currentHighestBid = { ...where.currentHighestBid, gte: minBid };
-    }
-    if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
-      where.currentHighestBid = { ...where.currentHighestBid, lte: maxBid };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 残り時間のフィルタリング (getAuctionListingsと同じロジック)
-    if (minRemainingTime !== null || maxRemainingTime !== null) {
-      const now = new Date();
-      if (minRemainingTime !== null && minRemainingTime !== undefined) {
-        where.endTime = { ...where.endTime, gte: new Date(now.getTime() + minRemainingTime * 60 * 60 * 1000) };
-      }
-      if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
-        where.endTime = { ...where.endTime, lte: new Date(now.getTime() + maxRemainingTime * 60 * 60 * 1000) };
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // グループIDのフィルタリング (getAuctionListingsと同じロジック)
-    if (groupIds && groupIds.length > 0) {
-      where.task = { ...where.task, groupId: { in: groupIds } };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 検索クエリのフィルタリング (getAuctionListingsと同じロジック)
-    if (searchQuery) {
-      where.task = {
-        ...where.task,
-        OR: [{ task: { contains: searchQuery, mode: "insensitive" } }, { detail: { contains: searchQuery, mode: "insensitive" } }],
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_where", where);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 件数を取得
     const totalCount = await prisma.auction.count({ where });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     // 成功ログ
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionCount_success", { totalCount });
-
-    // 最終的な結果を返す
     return totalCount;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    // エラーログ
     console.error("src/lib/auction/action/auction-listing.ts_getAuctionCount_error", error);
-    throw error; // エラーを再スローして呼び出し元で処理できるようにする
+    throw error; // エラーを再スロー
   }
 }
