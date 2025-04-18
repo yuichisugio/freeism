@@ -40,6 +40,7 @@ type MessageFormValues = z.infer<typeof messageFormSchema>;
  */
 export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const { messages, sellerId, loading, error, submitting, sendMessage, reloadMessages, currentUserId, isSeller } = useAuctionMessage(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -149,7 +150,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
   // ローディング表示
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
+      <div className="flex h-64 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
         <Loader2 className="text-primary mr-2 h-6 w-6 animate-spin" />
         <p className="text-muted-foreground">メッセージを読み込み中...</p>
       </div>
@@ -161,7 +162,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
   // エラー表示
   if (error) {
     return (
-      <div className="border-destructive text-destructive rounded-lg border p-4 text-center">
+      <div className="border-destructive text-destructive bg-destructive/5 rounded-xl border p-6 text-center shadow-sm">
         <p>{error}</p>
         <Button onClick={handleReload} variant="outline" className="mt-4">
           再読み込み
@@ -173,19 +174,30 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex h-full flex-col space-y-4">
+    <div className="flex h-full flex-col space-y-4 rounded-xl border border-slate-100 bg-gradient-to-b from-slate-50 to-white p-5 shadow-md">
       {/* メッセージヘッダー */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-lg border-b border-slate-100 bg-white p-3 shadow-sm">
+        {/* メッセージヘッダーの左側 */}
         <div className="flex items-center gap-2">
-          <MessageSquare className="text-primary h-5 w-5" />
-          <h3 className="text-lg font-medium">質問と回答</h3>
+          <div className="flex items-center justify-center rounded-full bg-indigo-100 p-2">
+            <MessageSquare className="h-5 w-5 text-indigo-600" />
+          </div>
+          <h3 className="text-lg font-medium text-slate-800">質問と回答</h3>
           {isSeller && (
-            <Badge variant="outline" className="ml-2">
+            <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
               出品者
             </Badge>
           )}
         </div>
-        <Button variant="ghost" size="sm" onClick={handleReload} disabled={reloading} className="h-8 w-8 rounded-full p-0">
+
+        {/* メッセージヘッダーの右側。リロードボタン */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleReload}
+          disabled={reloading}
+          className="h-8 w-8 rounded-full p-0 hover:bg-indigo-100 hover:text-indigo-700"
+        >
           <RefreshCw className={cn("h-4 w-4", reloading && "animate-spin")} />
           <span className="sr-only">更新</span>
         </Button>
@@ -193,21 +205,24 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
       {/* メッセージリスト */}
       <div
-        className="flex-1 space-y-4 overflow-y-auto rounded-lg bg-slate-50 p-4"
+        className="flex-1 space-y-4 overflow-y-auto rounded-lg bg-gradient-to-br from-white to-slate-50 p-4"
         style={{
-          maxHeight: "400px",
-          backgroundImage:
-            "linear-gradient(rgba(241, 245, 249, 0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(241, 245, 249, 0.7) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
+          maxHeight: "450px",
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(226, 232, 240, 0.4) 1px, transparent 0)",
+          backgroundSize: "24px 24px",
         }}
       >
+        {/* メッセージがない場合 */}
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <MessageSquare className="text-muted-foreground/40 mb-2 h-12 w-12" />
-            <p className="text-muted-foreground">質問はまだありません</p>
-            <p className="text-muted-foreground/70 text-xs">{isSeller ? "質問に回答しましょう" : "最初の質問をしてみましょう"}</p>
+          <div className="flex h-full flex-col items-center justify-center rounded-xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+            <div className="mb-4 rounded-full bg-indigo-50 p-4">
+              <MessageSquare className="h-8 w-8 text-indigo-400" />
+            </div>
+            <p className="font-medium text-slate-600">質問はまだありません</p>
+            <p className="mt-2 text-sm text-slate-500">{isSeller ? "質問に回答しましょう" : "最初の質問をしてみましょう"}</p>
           </div>
         ) : (
+          // メッセージがある場合
           <AnimatePresence>
             {sortedGroupKeys.map((groupKey) => {
               const groupMessages = groupedMessages[groupKey];
@@ -231,34 +246,40 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={cn(
-                    "mb-6 flex w-full flex-col rounded-lg p-3",
-                    isOwnMessage ? "items-end bg-blue-50/50" : isSellerMessage ? "items-start bg-green-50/50" : "items-start bg-slate-100/50",
-                  )}
+                  className={cn("mb-6 flex w-full flex-col rounded-lg p-3", isOwnMessage ? "items-end" : "items-start")}
                 >
                   <div className="mb-2 flex items-center gap-2">
                     {!isOwnMessage && (
-                      <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
+                      <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
                         <AvatarImage src={senderInfo.image ?? ""} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">{senderInfo.name?.charAt(0) ?? "?"}</AvatarFallback>
+                        <AvatarFallback
+                          className={cn("text-xs font-bold", isSellerMessage ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600")}
+                        >
+                          {senderInfo.name?.charAt(0) ?? "?"}
+                        </AvatarFallback>
                       </Avatar>
                     )}
                     <div className="flex flex-col">
+                      {/* 送信者名 */}
                       <span
-                        className={cn("text-sm font-medium", isOwnMessage ? "text-blue-700" : isSellerMessage ? "text-green-700" : "text-slate-700")}
+                        className={cn(
+                          "text-sm font-medium",
+                          isOwnMessage ? "text-indigo-700" : isSellerMessage ? "text-emerald-700" : "text-slate-700",
+                        )}
                       >
                         {senderInfo.name}
                       </span>
+                      {/* 出品者かどうか */}
                       {isSellerMessage ? (
-                        <Badge variant="outline" className="border-green-200 bg-green-100 text-xs text-green-800">
+                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-xs text-emerald-700">
                           出品者
                         </Badge>
                       ) : isOwnMessage ? (
-                        <Badge variant="outline" className="border-blue-200 bg-blue-100 text-xs text-blue-800">
+                        <Badge variant="outline" className="border-indigo-200 bg-indigo-50 text-xs text-indigo-700">
                           あなた
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="border-slate-200 bg-slate-100 text-xs text-slate-800">
+                        <Badge variant="outline" className="border-slate-200 bg-slate-50 text-xs text-slate-700">
                           質問者
                         </Badge>
                       )}
@@ -270,16 +291,20 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                       <div
                         key={msg.id}
                         className={cn(
-                          "relative mb-1 rounded-2xl px-4 py-2 shadow-sm",
+                          "relative mb-1 rounded-2xl px-4 py-3 shadow-sm",
                           isOwnMessage
-                            ? "bg-primary text-primary-foreground ml-auto rounded-tr-none"
+                            ? "ml-auto rounded-tr-none bg-indigo-500 text-white"
                             : isSellerMessage
-                              ? "mr-auto rounded-tl-none bg-green-200 text-green-900"
-                              : "bg-muted mr-auto rounded-tl-none text-slate-800",
+                              ? "mr-auto rounded-tl-none border border-emerald-100 bg-emerald-50 text-slate-800"
+                              : "mr-auto rounded-tl-none border border-slate-100 bg-white text-slate-800",
                         )}
                       >
-                        <p className="text-sm break-words">{msg.message}</p>
-                        <p className="mt-1 text-right text-xs opacity-70">{formatRelativeTime(new Date(msg.createdAt))}</p>
+                        {/* メッセージ内容 */}
+                        <p className="text-sm leading-relaxed break-words">{msg.message}</p>
+                        {/* メッセージの作成日時 */}
+                        <p className={cn("mt-1 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
+                          {formatRelativeTime(new Date(msg.createdAt))}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -292,9 +317,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
       </div>
 
       {/* メッセージ入力フォーム */}
-      <Card className="border-none p-3 shadow-sm">
+      <Card className="rounded-xl border border-slate-100 bg-white p-4 shadow-md">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <FormField
               control={form.control}
               name="message"
@@ -305,17 +330,25 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                       placeholder={isSeller ? "質問への回答を入力してください..." : "質問を入力してください..."}
                       {...field}
                       disabled={submitting}
-                      className="bg-muted min-h-[80px] resize-none rounded-lg border focus-visible:ring-1"
+                      className="min-h-[100px] resize-none rounded-lg p-3 text-slate-700 shadow-inner focus-visible:border-indigo-400 focus-visible:ring-indigo-400"
                       onKeyDown={handleKeyDown}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="mt-1 text-xs text-red-500" />
                 </FormItem>
               )}
             />
-            <div className="flex items-center justify-between">
-              <p className="text-muted-foreground text-xs">⌘+Enterで送信</p>
-              <Button type="submit" size="sm" disabled={submitting}>
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center rounded-md bg-slate-100 px-2 py-1">
+                <p className="text-xs font-medium text-slate-600">⌘+Enter</p>
+                <p className="ml-1 text-xs text-slate-500">で送信</p>
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={submitting}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
+              >
                 {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <SendHorizonal className="mr-1 h-4 w-4" />}
                 送信
               </Button>

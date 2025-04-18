@@ -25,6 +25,7 @@ type UseBidActionsResult = {
  */
 export function useBidActions(): UseBidActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 入札中フラグ
   const [submitting, setSubmitting] = useState<boolean>(false);
   // エラーメッセージ

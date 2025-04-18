@@ -66,8 +66,12 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
 
   /**
    * APIレスポンスから自動入札設定を更新する共通関数
+   * @param result APIレスポンス
+   * @param additionalMaxAmount 追加の最大入札額
+   * @returns 自動入札設定の更新結果
    */
   const updateSettingsFromResponse = useCallback((result: AutoBidResponse, additionalMaxAmount = 0) => {
+    // 成功した場合
     if (result.success && result.autoBid) {
       setAutoBidSettings({
         id: result.autoBid.id,
@@ -78,6 +82,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       setIsAutoBidding(true);
       return true;
     } else {
+      // 失敗した場合
       setAutoBidSettings(null);
       setIsAutoBidding(false);
       setError(result.message || "自動入札設定に失敗しました");
@@ -98,7 +103,9 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     }
 
     try {
+      // ローディング状態をtrueにする
       setLoading(true);
+      // エラーメッセージをクリア
       setError(null);
 
       // 自動入札設定を取得

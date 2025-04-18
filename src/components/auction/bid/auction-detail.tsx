@@ -144,7 +144,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
         {/* カウントダウン表示部分 */}
         <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
-          <Clock size={18} className="text-primary" />
           <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
         </div>
 
@@ -266,124 +265,122 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-md">
-        <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-          {/* 左側: オークション画像 */}
-          <div className="relative h-[250px] overflow-hidden rounded-lg">
-            <Image
-              src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""}
-              alt={auction.title ?? "オークション画像"}
-              fill
-              className="object-cover transition-transform duration-500 hover:scale-105"
-              priority
-            />
-          </div>
-
-          {/* 右側: オークション情報ヘッダー部分 */}
-          <div className="flex flex-col justify-between space-y-4">
-            <div>
-              <div className="mb-2 flex items-start justify-between">
-                <h1 className="text-2xl font-bold">{auction.title}</h1>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handleWatchlistToggle}
-                  disabled={submitting || auction.sellerId === currentUserId}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
-                >
-                  <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
-                </motion.button>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
-                  <User size={16} className="text-primary" />
-                </div>
-                <p className="text-muted-foreground">{(auction.task.creator as { name?: string | null }).name ?? "不明なユーザー"}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={isAuctionEnded ? "destructive" : "secondary"} className="px-3 py-1 text-sm font-medium">
-                {isAuctionEnded ? "終了" : "出品中"}
-              </Badge>
-              {auction.task.group && (
-                <Badge key={(auction.task.group as { id: string }).id} variant="outline" className="px-3 py-1 text-sm font-medium">
-                  {(auction.task.group as { name: string }).name}
-                </Badge>
-              )}
-            </div>
-          </div>
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+        {/* 左側: オークション画像 */}
+        <div className="relative h-[250px] overflow-hidden rounded-lg">
+          <Image
+            src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""}
+            alt={auction.title ?? "オークション画像"}
+            fill
+            className="object-cover transition-transform duration-500 hover:scale-105"
+            priority
+          />
         </div>
 
-        {/* タブ切り替え部分 */}
-        <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="px-6 pb-6">
-          <TabsList className="bg-muted/50 mb-6 grid w-full grid-cols-4 gap-1 rounded-lg p-1.5">
-            <TabsTrigger
-              value="details"
-              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              <Info className="h-4 w-4" />
-              <span>詳細</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="bid-history"
-              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              <BarChart className="h-4 w-4" />
-              <span>入札履歴</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="qa"
-              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>質問と回答</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="shipping"
-              className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              <TruckIcon className="h-4 w-4" />
-              <span>配送・支払い</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* 右側: オークション情報ヘッダー部分 */}
+        <div className="flex flex-col justify-between space-y-4">
+          <div>
+            <div className="mb-2 flex items-start justify-between">
+              <h1 className="text-2xl font-bold">{auction.title}</h1>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleWatchlistToggle}
+                disabled={submitting || auction.sellerId === currentUserId}
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
+              >
+                <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
+              </motion.button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                <User size={16} className="text-primary" />
+              </div>
+              <p className="text-muted-foreground">{(auction.task.creator as { name?: string | null }).name ?? "不明なユーザー"}</p>
+            </div>
+          </div>
 
-          <div className="relative">
-            {activeTab === "details" && (
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
-                <TabsContent value="details" className="mt-0">
-                  {renderDetailsTab()}
-                </TabsContent>
-              </motion.div>
-            )}
-
-            {activeTab === "bid-history" && (
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
-                <TabsContent value="bid-history" className="mt-0">
-                  {/* SSEで取得した入札履歴を渡す */}
-                  {<BidHistory initialBids={bidHistory} />}
-                </TabsContent>
-              </motion.div>
-            )}
-
-            {activeTab === "qa" && (
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
-                <TabsContent value="qa" className="mt-0">
-                  {<AuctionQA auctionId={auction.id} />}
-                </TabsContent>
-              </motion.div>
-            )}
-
-            {activeTab === "shipping" && (
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
-                <TabsContent value="shipping" className="mt-0">
-                  {renderShippingTab()}
-                </TabsContent>
-              </motion.div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={isAuctionEnded ? "destructive" : "secondary"} className="px-3 py-1 text-sm font-medium">
+              {isAuctionEnded ? "終了" : "出品中"}
+            </Badge>
+            {auction.task.group && (
+              <Badge key={(auction.task.group as { id: string }).id} variant="outline" className="px-3 py-1 text-sm font-medium">
+                {(auction.task.group as { name: string }).name}
+              </Badge>
             )}
           </div>
-        </Tabs>
+        </div>
       </div>
+
+      {/* タブ切り替え部分 */}
+      <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="px-6 pb-6">
+        <TabsList className="bg-muted/50 mb-6 grid w-full grid-cols-4 gap-1 rounded-lg p-1.5">
+          <TabsTrigger
+            value="details"
+            className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            <Info className="h-4 w-4" />
+            <span>詳細</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="bid-history"
+            className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            <BarChart className="h-4 w-4" />
+            <span>入札履歴</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="qa"
+            className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>質問と回答</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="shipping"
+            className="flex items-center justify-center gap-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            <TruckIcon className="h-4 w-4" />
+            <span>配送・支払い</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="relative">
+          {activeTab === "details" && (
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+              <TabsContent value="details" className="mt-0">
+                {renderDetailsTab()}
+              </TabsContent>
+            </motion.div>
+          )}
+
+          {activeTab === "bid-history" && (
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+              <TabsContent value="bid-history" className="mt-0">
+                {/* SSEで取得した入札履歴を渡す */}
+                {<BidHistory initialBids={bidHistory} />}
+              </TabsContent>
+            </motion.div>
+          )}
+
+          {activeTab === "qa" && (
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+              <TabsContent value="qa" className="mt-0">
+                {<AuctionQA auctionId={auction.id} />}
+              </TabsContent>
+            </motion.div>
+          )}
+
+          {activeTab === "shipping" && (
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+              <TabsContent value="shipping" className="mt-0">
+                {renderShippingTab()}
+              </TabsContent>
+            </motion.div>
+          )}
+        </div>
+      </Tabs>
     </motion.div>
   );
 });

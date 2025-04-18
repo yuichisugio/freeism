@@ -119,6 +119,7 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
   // 自動入札フォーム
   return (
     <Card className="overflow-hidden border-indigo-200">
+      {/* 自動入札フォームのヘッダー */}
       <CardHeader className="bg-gradient-to-r from-indigo-50 to-indigo-100/50 pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center text-lg font-medium">
@@ -129,6 +130,7 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
         <CardDescription>あなたの代わりに自動的に入札します</CardDescription>
       </CardHeader>
 
+      {/* 自動入札フォームのコンテンツ */}
       <motion.div
         initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: "auto" }}

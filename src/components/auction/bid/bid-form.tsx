@@ -85,28 +85,22 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
 
   return (
     <div className="space-y-4">
+      {/* 入札フォーム */}
       <Card className="border-primary/20 overflow-hidden shadow-md">
+        {/* 入札フォームのヘッダー */}
         <CardHeader className="from-primary/10 to-primary/5 bg-gradient-to-r pb-3">
           <CardTitle className="flex items-center text-lg font-medium">
             <Gavel className="text-primary mr-2 h-5 w-5" />
             入札フォーム
           </CardTitle>
         </CardHeader>
+
+        {/* 入札フォームのコンテンツ */}
         <form onSubmit={onSubmit}>
           <CardContent className="pt-4">
             <div className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-muted-foreground text-sm font-medium">現在の最高入札額:</p>
-                  <p className="font-medium">{formatCurrency(auction.currentHighestBid)}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-muted-foreground text-sm font-medium">最低入札額:</p>
-                  <p className="text-primary font-medium">{formatCurrency(auction.currentHighestBid + 1)}</p>
-                </div>
-              </div>
-
               <div className="flex items-center gap-2">
+                {/* デクリメントボタン */}
                 <Button
                   type="button"
                   variant="outline"
@@ -117,6 +111,8 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
+
+                {/* 入札額入力フィールド */}
                 <div className="relative w-full">
                   <Input
                     type="number"
@@ -127,13 +123,16 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
                     required
                     className="h-12 text-center text-lg font-bold"
                   />
-                  <span className="text-muted-foreground absolute inset-y-0 right-3 flex items-center text-sm">pt</span>
+                  <span className="text-muted-foreground absolute inset-y-0 right-3 flex items-center pr-7 text-sm">pt</span>
                 </div>
+
+                {/* インクリメントボタン */}
                 <Button type="button" variant="outline" size="icon" onClick={incrementBid} className="h-10 w-10 rounded-full">
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
 
+              {/* エラーメッセージ */}
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -146,24 +145,25 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
             </div>
           </CardContent>
 
+          {/* 入札フォームのフッター */}
           <CardFooter className="flex-col gap-2 pb-4">
+            {/* 入札ボタン */}
             <Button type="submit" disabled={submitting || bidAmount < minBid} className="w-full gap-1">
               {submitting ? (
                 <>
                   <span className="animate-pulse">入札処理中...</span>
                 </>
               ) : (
-                <>
-                  {formatCurrency(bidAmount)}で入札する
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </>
+                <>入札する</>
               )}
             </Button>
 
+            {/* 最低入札額より低い場合のメッセージ */}
             {auction.currentHighestBid >= bidAmount && (
               <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>
             )}
 
+            {/* 説明文 */}
             <p className="text-muted-foreground mt-2 text-center text-xs">入札すると、すぐに有効な入札として記録されます</p>
           </CardFooter>
         </form>
