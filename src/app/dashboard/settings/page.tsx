@@ -27,7 +27,13 @@ export default memo(async function SettingsPage() {
 
   // ユーザー設定が見つからない場合は早期リターン
   if (!userSettings) {
-    return <div>ユーザー設定が見つかりません</div>;
+    return (
+      <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
+        <div>ユーザー設定が見つかりません</div>
+        <p>push通知とemail通知の設定をしたい場合は、こちらのフォームを設定してください。</p>
+        <SetupForm initialData={userSettings} />
+      </MainTemplate>
+    );
   }
 
   return (
