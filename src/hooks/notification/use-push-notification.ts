@@ -186,10 +186,12 @@ export function usePushNotification() {
   // userId の取得 (ここは変更なし)
   const session = useSession();
   const userId = useMemo(() => session.data?.user?.id ?? null, [session.data?.user?.id]);
+  const userIdRef = useRef(userId); // ★ userId を保持する Ref
 
   // Refs to hold the latest values of recordId and deviceId for callbacks (変更なし)
   const recordIdRef = useRef(recordId);
   const deviceIdRef = useRef(deviceId);
+  const isInitialSetupDoneRef = useRef(false); // ★ 初期セットアップ完了フラグ
 
   // Update refs whenever the state changes (変更なし)
   useEffect(() => {
@@ -199,6 +201,11 @@ export function usePushNotification() {
   useEffect(() => {
     deviceIdRef.current = deviceId;
   }, [deviceId]);
+
+  // userIdRef を最新に保つための Effect
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -342,7 +349,49 @@ export function usePushNotification() {
    * 初期化処理: サポート確認、状態取得、DB同期、リスナー設定
    */
   useEffect(() => {
-    console.log("use-push-notification.ts_usePushNotification_useEffect_start");
+    // 既に初期セットアップが完了していれば、userId 変更時のみDB同期を試みる
+    if (isInitialSetupDoneRef.current && userIdRef.current && subscriptionState?.endpoint && deviceId) {
+      console.log("useEffect_re-run_for_userId_change: Attempting DB sync.");
+      const syncExistingSubscription = async () => {
+        try {
+          let currentRecordId = recordIdRef.current; // Ref から最新の値を取得
+          // 必要であれば getRecordId を再度呼ぶ
+          if (!currentRecordId && subscriptionState.endpoint) {
+            currentRecordId = await getRecordId(subscriptionState.endpoint);
+            recordIdRef.current = currentRecordId; // Ref を更新
+            dispatch({ type: "SET_RECORD_ID", payload: currentRecordId }); // State も更新
+          }
+
+          const subscriptionData = formatSubscriptionForServer(subscriptionState, currentRecordId ?? undefined, deviceId);
+          if (subscriptionData) {
+            const result = await saveSubscription(subscriptionData);
+            if ("error" in result) {
+              console.error("Failed to sync subscription on userId change:", result.error);
+              // エラーを state に反映させるか検討
+              // dispatch({ type: 'SET_ERROR', payload: new Error(`Failed to sync subscription: ${result.error}`) });
+            } else {
+              // 同期成功後、最新の recordId を再取得・更新
+              const updatedRecordId = await getRecordId(subscriptionState.endpoint);
+              if (updatedRecordId !== currentRecordId) {
+                recordIdRef.current = updatedRecordId;
+                dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId });
+              }
+              console.log("DB sync successful on userId change.");
+            }
+          }
+        } catch (dbError) {
+          console.error("Error during DB sync on userId change:", dbError);
+          // dispatch({ type: 'SET_ERROR', payload: dbError instanceof Error ? dbError : new Error(String(dbError)) });
+        }
+      };
+      void syncExistingSubscription();
+      return; // userId 変更のみの場合はここで終了
+    }
+
+    // --- 以下は初回実行時または isInitialSetupDoneRef が false の場合のみ実行 ---
+    if (isInitialSetupDoneRef.current) return; // 二重実行防止
+
+    console.log("use-push-notification.ts_usePushNotification_useEffect_start (Initial Setup)");
     dispatch({ type: "SET_IS_INITIALIZED", payload: false });
     dispatch({ type: "SET_ERROR", payload: null });
 
@@ -355,11 +404,13 @@ export function usePushNotification() {
     if (!supported) {
       console.log("Service Worker or Push API not supported.");
       dispatch({ type: "SET_IS_INITIALIZED", payload: true });
+      isInitialSetupDoneRef.current = true; // ★ セットアップ完了（失敗含む）
       return;
     }
     if (initialPermission === "denied") {
       console.log("Notification permission denied.");
       dispatch({ type: "SET_IS_INITIALIZED", payload: true });
+      isInitialSetupDoneRef.current = true; // ★ セットアップ完了（失敗含む）
       return;
     }
 
@@ -367,7 +418,7 @@ export function usePushNotification() {
 
     const init = async () => {
       try {
-        console.log("useEffect_init_start_refactored_v2");
+        console.log("useEffect_init_start (Initial Setup)");
 
         // --- 1 & 2: デバイスID取得とService Worker準備 (並列実行) ---
         const [deviceIdResult, registrationResult] = await Promise.allSettled([getDeviceId(), navigator.serviceWorker.ready]);
@@ -392,10 +443,11 @@ export function usePushNotification() {
         const existingSubscription = await registration.pushManager.getSubscription();
         console.log("useEffect_init_existingSubscription", existingSubscription?.endpoint);
 
-        // --- 4 & 5: レコードID取得とDB同期 ---
+        // --- 4 & 5: レコードID取得とDB同期 (userId があれば) ---
         let currentRecordId: string | null = null;
         let syncError: Error | null = null;
-        if (existingSubscription?.endpoint) {
+        if (userIdRef.current && existingSubscription?.endpoint) {
+          // ★ userIdRef を使用
           try {
             currentRecordId = await getRecordId(existingSubscription.endpoint);
             const subscriptionData = formatSubscriptionForServer(existingSubscription, currentRecordId ?? undefined, currentDeviceId);
@@ -404,6 +456,7 @@ export function usePushNotification() {
               if ("error" in result) {
                 syncError = new Error(`Failed to sync subscription: ${result.error}`);
               } else if (!currentRecordId) {
+                // 保存後に recordId を取得
                 currentRecordId = await getRecordId(existingSubscription.endpoint);
               }
             } else {
@@ -413,11 +466,10 @@ export function usePushNotification() {
             syncError = dbError instanceof Error ? dbError : new Error(String(dbError));
           }
         } else {
-          currentRecordId = null;
+          currentRecordId = null; // userId がない or 購読がない場合は null
         }
 
         // --- 6: Service Worker リスナー初期化 ---
-        // 注意: ここで initializeServiceWorker が dispatch を呼ぶ可能性あり
         cleanupListener = await initializeServiceWorker();
         console.log("useEffect_init_initializeServiceWorker_done");
 
@@ -433,8 +485,12 @@ export function usePushNotification() {
             isInitialized: true, // ★★★ 初期化完了 ★★★
           },
         });
-        // Ref は useEffect で更新されるため、ここでの更新は不要 (deviceIdRef, recordIdRef)
+        // Ref を state に合わせて更新
+        deviceIdRef.current = currentDeviceId;
+        recordIdRef.current = currentRecordId;
         console.log("useEffect_init_dispatch_SET_INITIAL_DATA_complete");
+
+        isInitialSetupDoneRef.current = true; // ★ 初期セットアップ完了
       } catch (initError) {
         // init 関数内の致命的なエラー
         console.error("Error during initialization sequence (catch block):", initError);
@@ -450,24 +506,15 @@ export function usePushNotification() {
             recordId: null,
           },
         });
+        isInitialSetupDoneRef.current = true; // ★ セットアップ完了（失敗含む）
       } finally {
         console.log("useEffect_init_finished");
       }
     };
 
-    // userId が存在する場合のみ初期化を実行
-    if (userId) {
-      void init();
-    } else {
-      // userIdがない場合は購読関連の処理は行わないが、サポート状況などは確認済みなので初期化完了とする
-      dispatch({ type: "SET_IS_INITIALIZED", payload: true });
-      console.log("useEffect_init_skip: No userId.");
-      // 関連する state をクリアする方が安全かもしれない
-      dispatch({ type: "SET_SUBSCRIPTION", payload: null });
-      dispatch({ type: "SET_RECORD_ID", payload: null });
-      dispatch({ type: "SET_DEVICE_ID", payload: null });
-      dispatch({ type: "SET_REGISTRATION", payload: null }); // registration もクリアすべきか検討
-    }
+    // 初回マウント時に userId がなくても基本的なセットアップは試みる
+    // DB同期のみ userId が確定してから行う (init 内で条件分岐)
+    void init();
 
     // クリーンアップ処理
     return () => {
@@ -475,9 +522,10 @@ export function usePushNotification() {
       if (cleanupListener) {
         cleanupListener(); // Service Workerのリスナー等を解除
       }
+      // isInitialSetupDoneRef はコンポーネントがアンマウントされる際にリセットする必要はない
     };
-    // getDeviceId, initializeServiceWorker は useCallbackされているので依存配列に追加
-  }, [userId, getDeviceId, initializeServiceWorker]); // permissionState は init 内で取得するので依存不要
+    // 依存配列から userId を削除。userId の変更は useEffect の先頭で別途処理。
+  }, [getDeviceId, initializeServiceWorker, subscriptionState, deviceId]); // subscriptionState と deviceId は userId 変更時の同期処理で必要になるため追加
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
