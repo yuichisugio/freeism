@@ -367,93 +367,89 @@ export function usePushNotification() {
 
     const init = async () => {
       try {
-        console.log("useEffect_init_start");
+        console.log("useEffect_init_start_refactored_v2");
 
-        // 1. デバイスIDを取得 & state更新
-        const currentDeviceId = await getDeviceId();
-        dispatch({ type: "SET_DEVICE_ID", payload: currentDeviceId });
-        deviceIdRef.current = currentDeviceId;
-        console.log("useEffect_init_deviceId", currentDeviceId);
+        // --- 1 & 2: デバイスID取得とService Worker準備 (並列実行) ---
+        const [deviceIdResult, registrationResult] = await Promise.allSettled([getDeviceId(), navigator.serviceWorker.ready]);
 
-        // 2. Service Workerの登録/準備完了を待つ
-        console.log("useEffect_init_waiting_serviceWorkerReady");
-        const registration = await navigator.serviceWorker.ready;
-        console.log("useEffect_init_serviceWorkerReady", registration);
-        dispatch({ type: "SET_REGISTRATION", payload: registration });
+        // --- 結果の処理 & エラーハンドリング ---
+        if (deviceIdResult.status === "rejected") {
+          console.error("Failed to get deviceId:", deviceIdResult.reason);
+          throw new Error("Failed to get deviceId");
+        }
+        const currentDeviceId = deviceIdResult.value;
+        console.log("useEffect_init_deviceId_fulfilled", currentDeviceId);
 
-        // 3. ブラウザから現在の購読情報を取得 & state更新
+        if (registrationResult.status === "rejected") {
+          console.error("Failed to get service worker registration:", registrationResult.reason);
+          throw new Error("Service worker not ready");
+        }
+        const registration = registrationResult.value;
+        if (!registration) throw new Error("Service worker registration is null after check");
+        console.log("useEffect_init_serviceWorkerReady_fulfilled", registration);
+
+        // --- 3: 既存の購読情報取得 ---
         const existingSubscription = await registration.pushManager.getSubscription();
-        dispatch({ type: "SET_SUBSCRIPTION", payload: existingSubscription });
         console.log("useEffect_init_existingSubscription", existingSubscription?.endpoint);
 
-        // 4. DBから購読情報のレコードIDを取得 & state更新
-        // endpoint が存在する場合のみ DB に問い合わせる
+        // --- 4 & 5: レコードID取得とDB同期 ---
         let currentRecordId: string | null = null;
+        let syncError: Error | null = null;
         if (existingSubscription?.endpoint) {
-          currentRecordId = await getRecordId(existingSubscription.endpoint);
-        }
-        dispatch({ type: "SET_RECORD_ID", payload: currentRecordId });
-        recordIdRef.current = currentRecordId;
-        console.log("useEffect_init_currentRecordId", currentRecordId);
-
-        // 5. 購読状態とDBの状態を同期 (DBへの保存/更新はここで行う)
-        if (existingSubscription) {
-          // ブラウザに購読が存在する場合
-          const subscriptionData = formatSubscriptionForServer(existingSubscription, currentRecordId ?? undefined, currentDeviceId);
-          if (subscriptionData) {
-            if (!currentRecordId) {
-              // DBにレコードがない場合: 新規保存
-              console.log("useEffect_init_sync: Subscription exists but not in DB. Saving...");
-              console.log("useEffect_init_saveSubscription_start", subscriptionData);
+          try {
+            currentRecordId = await getRecordId(existingSubscription.endpoint);
+            const subscriptionData = formatSubscriptionForServer(existingSubscription, currentRecordId ?? undefined, currentDeviceId);
+            if (subscriptionData) {
               const result = await saveSubscription(subscriptionData);
-              console.log("useEffect_init_saveSubscription_end", result);
-              // 保存後に再度 recordId を取得して state/Ref を更新
-              if (!("error" in result)) {
-                const newRecordId = await getRecordId(existingSubscription.endpoint);
-                dispatch({ type: "SET_RECORD_ID", payload: newRecordId });
-                recordIdRef.current = newRecordId;
-                console.log("useEffect_init_sync: Updated recordId after save:", newRecordId);
-              } else {
-                console.error("useEffect_init_sync: Failed to save subscription to DB:", result.error);
-                dispatch({ type: "SET_ERROR", payload: new Error(`Failed to save subscription: ${result.error}`) });
+              if ("error" in result) {
+                syncError = new Error(`Failed to sync subscription: ${result.error}`);
+              } else if (!currentRecordId) {
+                currentRecordId = await getRecordId(existingSubscription.endpoint);
               }
             } else {
-              // DBにレコードがある場合: deviceId など更新の可能性があるため save (upsert)
-              console.log("useEffect_init_sync: Subscription exists and found in DB. Ensuring data is up-to-date...");
-              console.log("useEffect_init_updateSubscription_start", subscriptionData);
-              // saveSubscription は endpoint がキーで、他を更新すると期待
-              const result = await saveSubscription(subscriptionData);
-              console.log("useEffect_init_updateSubscription_end", result);
-              if ("error" in result) {
-                console.error("useEffect_init_sync: Failed to update subscription in DB:", result.error);
-                // 更新エラーは致命的ではないかもしれないので、エラー状態にはしないでおくか検討
-                // dispatch({ type: "SET_ERROR", payload: new Error(`Failed to update subscription: ${result.error}`) });
-              }
+              syncError = new Error("Failed to format subscription data for sync.");
             }
-          } else {
-            console.error("useEffect_init_sync: Failed to format subscription data for saving/updating.");
-            dispatch({ type: "SET_ERROR", payload: new Error("Failed to format subscription data.") });
+          } catch (dbError) {
+            syncError = dbError instanceof Error ? dbError : new Error(String(dbError));
           }
         } else {
-          // ブラウザに購読がない場合 (DB にもし孤児レコードがあれば削除するなども検討可能だが、一旦何もしない)
-          console.log("useEffect_init_sync: No active subscription found in browser.");
-          // 必要ならここで recordId を null に設定し直す
-          dispatch({ type: "SET_RECORD_ID", payload: null });
-          recordIdRef.current = null;
+          currentRecordId = null;
         }
 
-        // 6. Service Workerのメッセージリスナー等を初期化
+        // --- 6: Service Worker リスナー初期化 ---
+        // 注意: ここで initializeServiceWorker が dispatch を呼ぶ可能性あり
         cleanupListener = await initializeServiceWorker();
         console.log("useEffect_init_initializeServiceWorker_done");
 
-        // ★★★★★ 正常に初期化処理が完了した場合にフラグを立てる ★★★★★
-        dispatch({ type: "SET_IS_INITIALIZED", payload: true });
-      } catch (error) {
-        console.error("Error during initialization:", error);
-        dispatch({ type: "SET_ERROR", payload: error instanceof Error ? error : new Error(String(error)) });
-        // エラーが発生した場合も初期化処理自体は終了したとみなすか、
-        // あるいは初期化失敗状態を示す別の state を設けるか検討。
-        // ここでは一旦、エラー時は isInitialized は false のままにする。
+        // --- 7: ★★★ 状態を一括更新 ★★★ ---
+        dispatch({
+          type: "SET_INITIAL_DATA",
+          payload: {
+            deviceId: currentDeviceId,
+            registrationState: registration,
+            subscriptionState: existingSubscription,
+            recordId: currentRecordId,
+            error: syncError, // DB同期中のエラーのみをセット
+            isInitialized: true, // ★★★ 初期化完了 ★★★
+          },
+        });
+        // Ref は useEffect で更新されるため、ここでの更新は不要 (deviceIdRef, recordIdRef)
+        console.log("useEffect_init_dispatch_SET_INITIAL_DATA_complete");
+      } catch (initError) {
+        // init 関数内の致命的なエラー
+        console.error("Error during initialization sequence (catch block):", initError);
+        dispatch({
+          type: "SET_INITIAL_DATA", // エラー情報と初期化完了フラグをセット
+          payload: {
+            error: initError instanceof Error ? initError : new Error(String(initError)),
+            isInitialized: true, // エラーでも初期化試行は完了とみなす
+            // 他のstateは初期値のままか、可能な範囲で設定するか検討
+            deviceId: null,
+            registrationState: null,
+            subscriptionState: null,
+            recordId: null,
+          },
+        });
       } finally {
         console.log("useEffect_init_finished");
       }
