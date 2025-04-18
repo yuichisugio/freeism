@@ -390,11 +390,16 @@ export function usePushNotification() {
         // 6. Service Workerのメッセージリスナー等を初期化
         cleanupListener = await initializeServiceWorker();
         console.log("useEffect_init_initializeServiceWorker_done");
+
+        // ★★★★★ 正常に初期化処理が完了した場合にフラグを立てる ★★★★★
+        setIsInitialized(true);
       } catch (error) {
         console.error("Error during initialization:", error);
         setError(error instanceof Error ? error : new Error(String(error)));
+        // エラーが発生した場合も初期化処理自体は終了したとみなすか、
+        // あるいは初期化失敗状態を示す別の state を設けるか検討。
+        // ここでは一旦、エラー時は isInitialized は false のままにする。
       } finally {
-        setIsInitialized(true); // ★ 処理完了またはエラー時に初期化完了フラグを立てる
         console.log("useEffect_init_finished");
       }
     };
