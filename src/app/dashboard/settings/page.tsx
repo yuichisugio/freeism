@@ -7,10 +7,14 @@ import { WebPushNotificationToggle } from "@/components/notification/push-notifi
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 export const metadata: Metadata = {
   title: "Settings - Freeism App",
   description: "User settings and preferences",
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export default memo(async function SettingsPage() {
   // セッションを取得

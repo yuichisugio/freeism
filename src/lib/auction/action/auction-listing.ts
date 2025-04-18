@@ -95,15 +95,15 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーが参加しているグループIDを取得
-    const userGroupIds = await prisma.groupMembership.findMany({
+    let userGroupIds = await prisma.groupMembership.findMany({
       where: { userId },
       select: { groupId: true },
     });
 
     // ユーザーが参加しているグループIDがない場合は空の配列を返す
     if (userGroupIds.length === 0) {
-      console.log("Server: getAuctionListings_noUserGroups");
-      return [];
+      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups_参加Groupがないため、オークションを表示できません");
+      userGroupIds = [];
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

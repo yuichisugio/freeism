@@ -132,8 +132,5 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // unknownを経由して型を変換
-  const propsForDataTable = dataTableProps as unknown as { dataTableProps: DataTableProps<BaseRecord> };
-
-  return <DataTable {...propsForDataTable} />;
+  return <DataTable dataTableProps={dataTableProps as unknown as DataTableProps<BaseRecord>} />;
 });

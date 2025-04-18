@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import "../styles/globals.css";
 
@@ -27,20 +27,21 @@ export const metadata: Metadata = {
     },
   ],
   manifest: "/manifest.json",
-  themeColor: "#ffffff",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    minimumScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover",
-  },
   appleWebApp: {
     capable: true,
     title: "Freeism-app",
     statusBarStyle: "default",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
