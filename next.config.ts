@@ -16,6 +16,23 @@ const withPWA = require("next-pwa")({
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "placekitten.com",
+        port: "",
+        pathname: "/**",
+      },
+      // picsum.photos を許可する設定を追加
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
   async headers() {
     return [
       {
@@ -55,7 +72,6 @@ const nextConfig: NextConfig = {
     ];
   },
 };
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export default withPWA(nextConfig);

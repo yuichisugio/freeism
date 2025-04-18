@@ -794,9 +794,14 @@ export async function bulkCreateTasks(
  * @returns 処理結果を含むオブジェクト
  */
 export async function deleteTask(taskId: string) {
+  console.log("src/lib/actions/task.ts_deleteTask_start", taskId);
   try {
     // 現在のユーザーを取得
     const userId = await getAuthenticatedSessionUserId();
+
+    const isAppOwner = await checkAppOwner(userId);
+
+    console.log("src/lib/actions/task.ts_deleteTask_userId", userId);
 
     // タスクを取得（関連エンティティも含む）
     const task = await prisma.task.findUnique({
@@ -818,18 +823,28 @@ export async function deleteTask(taskId: string) {
       },
     });
 
+    console.log("src/lib/actions/task.ts_deleteTask_task", task);
+
     if (!task) {
       return { success: false, error: "タスクが見つかりません" };
     }
+
+    console.log("src/lib/actions/task.ts_deleteTask_task_group", task.group);
 
     // 権限チェック（グループオーナー、タスク報告者、タスク実行者のいずれかであること）
     const isGroupOwner = task.group.members.length > 0;
     const isReporter = task.reporters.some((reporter) => reporter.userId === userId);
     const isExecutor = task.executors.some((executor) => executor.userId === userId);
 
-    if (!isGroupOwner && !isReporter && !isExecutor) {
+    console.log("src/lib/actions/task.ts_deleteTask_task_isGroupOwner", isGroupOwner);
+    console.log("src/lib/actions/task.ts_deleteTask_task_isReporter", isReporter);
+    console.log("src/lib/actions/task.ts_deleteTask_task_isExecutor", isExecutor);
+
+    if (!isAppOwner && !isGroupOwner && !isReporter && !isExecutor) {
       return { success: false, error: "このタスクを削除する権限がありません" };
     }
+
+    console.log("src/lib/actions/task.ts_deleteTask_task_auction", task.auction);
 
     // タスク状態のチェック
     if (task.contributionType === contributionType.REWARD) {
@@ -843,12 +858,13 @@ export async function deleteTask(taskId: string) {
         return { success: false, error: "進行中または完了したタスクは削除できません" };
       }
     }
+    console.log("src/lib/actions/task.ts_deleteTask_beforeDelete", taskId);
 
     // タスクを削除（カスケード削除により関連エンティティも削除される）
     await prisma.task.delete({
       where: { id: taskId },
     });
-
+    console.log("src/lib/actions/task.ts_deleteTask_afterDelete", taskId);
     // キャッシュを再検証
     revalidatePath(`/groups/${task.groupId}`);
     revalidatePath(`/dashboard/group/${task.groupId}`);
