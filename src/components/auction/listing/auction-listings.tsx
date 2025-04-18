@@ -112,6 +112,7 @@ export const AuctionListings = memo(function AuctionListings() {
             listingsConditions={listingsConditions}
             setListingsConditionsAction={setListingsConditions}
             totalAuctionsCount={totalAuctionsCount}
+            auctionsLength={auctions.length}
           />
         </>
       ) : (

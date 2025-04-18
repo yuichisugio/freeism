@@ -29,6 +29,7 @@ type PaginationLinkProps = {
   React.ComponentProps<"a">;
 
 function PaginationLink({ className, isActive, size = "icon", ...props }: PaginationLinkProps) {
+  console.log("src/components/ui/Pagination.tsx_PaginationLink_start", { isActive });
   return (
     <a
       aria-current={isActive ? "page" : undefined}
@@ -50,7 +51,7 @@ function PaginationPrevious({ className, ...props }: React.ComponentProps<typeof
   return (
     <PaginationLink aria-label="Go to previous page" size="default" className={cn("gap-1 px-2.5 sm:pl-2.5", className)} {...props}>
       <ChevronLeftIcon />
-      <span className="hidden sm:block">Previous</span>
+      <span className="hidden sm:block">前へ</span>
     </PaginationLink>
   );
 }
@@ -58,7 +59,7 @@ function PaginationPrevious({ className, ...props }: React.ComponentProps<typeof
 function PaginationNext({ className, ...props }: React.ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink aria-label="Go to next page" size="default" className={cn("gap-1 px-2.5 sm:pr-2.5", className)} {...props}>
-      <span className="hidden sm:block">Next</span>
+      <span className="hidden sm:block">次へ</span>
       <ChevronRightIcon />
     </PaginationLink>
   );

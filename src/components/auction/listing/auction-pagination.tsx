@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/auction/listing/use-pagination";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { cn } from "@/lib/utils";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -24,6 +25,7 @@ type AuctionPaginationProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   totalAuctionsCount: number;
+  auctionsLength: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -38,6 +40,7 @@ export const AuctionPagination = memo(function AuctionPagination({
   listingsConditions,
   setListingsConditionsAction,
   totalAuctionsCount,
+  auctionsLength,
 }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -45,10 +48,29 @@ export const AuctionPagination = memo(function AuctionPagination({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // totalAuctionsCount を使って totalPages を計算
+  /**
+   * totalAuctionsCount を使って totalPages を計算
+   */
   const totalPages = useMemo(() => Math.ceil(totalAuctionsCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE), [totalAuctionsCount]);
 
-  // カスタムフックからページネーションロジックを取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ページネーションのボタンの基礎クラス
+   */
+  const baseButtonClass = useMemo(
+    () => "hover:bg-black/5 bg-background flex h-10 w-10 items-center justify-center rounded-md border sm:w-auto sm:min-w-10 sm:px-3",
+    [],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * カスタムフックからページネーションロジックを取得
+   * @param currentPage 現在のページ
+   * @param totalPages 総ページ数
+   * @param totalCount 総件数
+   */
   const { pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     currentPage: listingsConditions.page,
     totalPages: totalPages,
@@ -57,7 +79,12 @@ export const AuctionPagination = memo(function AuctionPagination({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ページネーションのボタンをクリックした際の処理
+   * @param page クリックされたページの番号
+   */
   const handlePageChange = (page: number) => {
+    if (page === listingsConditions.page) return; // すでに表示中のページをクリックしても何もしない
     setListingsConditionsAction({ ...listingsConditions, page });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -75,16 +102,13 @@ export const AuctionPagination = memo(function AuctionPagination({
       <div className="mt-8 flex justify-center">
         <div className="flex flex-col items-center gap-2">
           <Pagination>
-            <PaginationContent className="flex-wrap gap-1 md:gap-2">
+            <PaginationContent className="flex-wrap gap-2">
               {/* 最初のページボタン */}
               {!isFirstPage && (
                 <PaginationItem>
-                  <PaginationLink
-                    className="bg-background hidden h-9 min-w-9 rounded-md border text-xs md:flex md:items-center md:justify-center md:px-3 md:py-2 md:text-sm"
-                    onClick={() => handlePageChange(1)}
-                  >
-                    <ChevronsLeftIcon className="size-4 md:mr-1" />
-                    <span className="hidden md:inline">最初</span>
+                  <PaginationLink className={cn(baseButtonClass)} onClick={() => handlePageChange(1)} aria-label="Go to first page">
+                    <ChevronsLeftIcon className="size-4" />
+                    <span className="hidden sm:ml-1 sm:inline">最初</span>
                   </PaginationLink>
                 </PaginationItem>
               )}
@@ -92,7 +116,11 @@ export const AuctionPagination = memo(function AuctionPagination({
               {/* 前のページに進むかどうか */}
               {hasPreviousPage && (
                 <PaginationItem>
-                  <PaginationPrevious className="bg-background h-9 rounded-md border" onClick={() => handlePageChange(listingsConditions.page - 1)} />
+                  <PaginationPrevious
+                    className={cn(baseButtonClass)}
+                    onClick={() => handlePageChange(listingsConditions.page - 1)}
+                    aria-label="Go to previous page"
+                  />
                 </PaginationItem>
               )}
 
@@ -106,16 +134,14 @@ export const AuctionPagination = memo(function AuctionPagination({
                   );
                 }
 
+                const isActive = page === listingsConditions.page;
+
                 return (
                   <PaginationItem key={page}>
                     <PaginationLink
-                      className={`bg-background h-9 min-w-9 rounded-md border ${
-                        page === listingsConditions.page
-                          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                          : "hover:border-primary hover:bg-primary/10"
-                      }`}
-                      isActive={page === listingsConditions.page}
+                      aria-current={isActive ? "page" : undefined}
                       onClick={() => handlePageChange(page)}
+                      className={cn(baseButtonClass, isActive ? "bg-primary bg-blue-100 hover:bg-blue-200" : "hover:bg-black/10")}
                     >
                       {page}
                     </PaginationLink>
@@ -126,36 +152,37 @@ export const AuctionPagination = memo(function AuctionPagination({
               {/* 次のページに進むかどうか */}
               {hasNextPage && (
                 <PaginationItem>
-                  <PaginationNext className="bg-background h-9 rounded-md border" onClick={() => handlePageChange(listingsConditions.page + 1)} />
+                  <PaginationNext
+                    className={cn(baseButtonClass)}
+                    aria-label="Go to next page"
+                    onClick={() => handlePageChange(listingsConditions.page + 1)}
+                  />
                 </PaginationItem>
               )}
 
               {/* 最後のページボタン */}
               {!isLastPage && (
                 <PaginationItem>
-                  <PaginationLink
-                    className="bg-background hidden h-9 min-w-9 rounded-md border text-xs md:flex md:items-center md:justify-center md:px-3 md:py-2 md:text-sm"
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    <span className="hidden md:inline">最後</span>
-                    <ChevronsRightIcon className="size-4 md:ml-1" />
+                  <PaginationLink className={cn(baseButtonClass)} onClick={() => handlePageChange(totalPages)} aria-label="Go to last page">
+                    <span className="hidden sm:mr-1 sm:inline">最後</span>
+                    <ChevronsRightIcon className="size-4" />
                   </PaginationLink>
                 </PaginationItem>
               )}
             </PaginationContent>
           </Pagination>
-
-          {/* 現在のページと総ページ数の表示 */}
-          <div className="text-muted-foreground text-sm">
-            {listingsConditions.page} / {totalPages} ページ
-          </div>
         </div>
       </div>
 
-      {/* 商品数と合計ページ数の表示 (totalAuctionsCount を使用) */}
+      {/* 現在のページと総ページ数の表示 */}
       <div className="mt-4 text-center text-sm text-gray-500">
+        {listingsConditions.page} / {totalPages} ページ
+      </div>
+
+      {/* 商品数と合計ページ数の表示 (totalAuctionsCount を使用) */}
+      <div className="mt-2 text-center text-sm text-gray-500">
         全{totalAuctionsCount}件中
-        {Math.min(listingsConditions.page * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, totalAuctionsCount)}件を表示
+        {Math.min(AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, totalAuctionsCount, auctionsLength)}件を表示
       </div>
     </>
   );
