@@ -69,6 +69,24 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
 
+      - name: Add VAPID_SUBJECT to Vercel Preview Environment
+        run: vercel env add VAPID_SUBJECT ${{ secrets.VAPID_SUBJECT }} preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Add VAPID_PRIVATE_KEY to Vercel Preview Environment
+        run: vercel env add VAPID_PRIVATE_KEY ${{ secrets.VAPID_PRIVATE_KEY }} preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Add NEXT_PUBLIC_VAPID_PUBLIC_KEY to Vercel Preview Environment
+        run: vercel env add NEXT_PUBLIC_VAPID_PUBLIC_KEY ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }} preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       - name: Deploy Project Artifacts to Vercel
         run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         env:
