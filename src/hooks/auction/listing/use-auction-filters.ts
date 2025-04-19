@@ -28,6 +28,7 @@ type UseAuctionFiltersReturn = {
   categoriesList: string[];
   uniqueGroups: Array<{ id: string; name: string }>;
   areAllGroupsSelected: boolean;
+  joinTypeinedGroupList: Array<{ id: string; name: string }>;
 
   // action
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
@@ -92,6 +93,9 @@ export function useAuctionFilters({
 
   // 一時的なフィルター状態（ドラフト状態）
   const [draftConditions, setDraftConditions] = useState<AuctionListingsConditions>({ ...listingsConditions });
+
+  // ユーザーが参加している全てのGroup
+  const [joinTypeinedGroupList, setJoinTypeinedGroupList] = useState<Array<{ id: string; name: string }>>([]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -206,14 +210,17 @@ export function useAuctionFilters({
       return true;
     }
 
+    console.log("use-auction-filters_draftConditions.groupIds", draftConditions.groupIds);
+    console.log("use-auction-filters_joinTypeinedGroupList", joinTypeinedGroupList);
+
     // すべてのグループIDが選択されているかチェック
-    return (
-      uniqueGroups.length === draftConditions.groupIds.length &&
-      uniqueGroups.every((group) => {
-        return draftConditions.groupIds?.includes(group.id);
-      })
-    );
-  }, [draftConditions.groupIds, uniqueGroups]);
+    // draftConditions.groupIdsは、ユーザーが参加している全てのGroupが常に入っている
+    // uniqueGroupsは、開いているページに表示されているオークションに紐づくグループID。なので参加している全てのグループIDではない
+    // そのため、joinTypeinedGroupList（参加している全てのGroupIDが入った配列）で、draftConditions.groupIdsをチェックする
+    return joinTypeinedGroupList.every((group) => {
+      return draftConditions.groupIds?.includes(group.id);
+    });
+  }, [draftConditions.groupIds, joinTypeinedGroupList]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -246,12 +253,18 @@ export function useAuctionFilters({
         const userGroups = await getUserGroups();
 
         // グループIDのリストを作成
-        const groupData = userGroups.map((membership) => membership.group.id);
+        const groupData: Array<{ id: string; name: string }> = userGroups.map((membership) => ({
+          id: membership.group.id,
+          name: membership.group.name,
+        }));
+
+        // ユーザーが参加している全てのGroupをstateにセット
+        setJoinTypeinedGroupList(groupData);
 
         // ドラフト状態のみ更新し、実際のフィルターには適用しない
         setDraftConditions({
           ...draftConditions,
-          groupIds: groupData,
+          groupIds: groupData.map((group) => group.id),
         });
       } catch (error) {
         console.error("グループ情報の取得に失敗しました", error);
@@ -647,7 +660,7 @@ export function useAuctionFilters({
     categoriesList,
     uniqueGroups,
     areAllGroupsSelected,
-
+    joinTypeinedGroupList,
     // action
     setListingsConditionsAction,
     handleSearchQueryEnter,

@@ -17,14 +17,21 @@ import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import { DateField } from "./date-field";
 
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 基本型定義
+/**
+ * Radioグループの型定義
+ */
 export type RadioOption = {
   value: string | number;
   label: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * コンボボックスの型定義
+ */
 export type ComboBoxOption = {
   id: string;
   name: string;
@@ -32,7 +39,11 @@ export type ComboBoxOption = {
   [key: string]: string | number | boolean | null | undefined;
 };
 
-// フィールドタイプに応じた詳細なプロパティ定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * フィールドタイプに応じた詳細なプロパティ定義
+ */
 export type FormFieldBaseProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = {
   control: Control<TFieldValues>;
   name: TName;
@@ -41,7 +52,11 @@ export type FormFieldBaseProps<TFieldValues extends FieldValues, TName extends P
   children?: ReactNode;
 };
 
-// 入力フィールドのプロパティ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 入力フィールドのプロパティ
+ */
 export type InputFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
   type: "text" | "email" | "password" | "number" | "tel" | "url" | "date" | "time" | "datetime-local";
   placeholder?: string;
@@ -49,18 +64,30 @@ export type InputFieldProps<TFieldValues extends FieldValues, TName extends Path
   max?: number;
 };
 
-// テキストエリアのプロパティ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テキストエリアのプロパティ
+ */
 export type TextareaFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
   placeholder?: string;
 };
 
-// ラジオグループのプロパティ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ラジオグループのプロパティ
+ */
 export type RadioFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
   options: RadioOption[];
   className?: string;
 };
 
-// コンボボックスのプロパティ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * コンボボックスのプロパティ
+ */
 export type ComboBoxFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
   options: ComboBoxOption[];
   open: boolean;
@@ -72,7 +99,11 @@ export type ComboBoxFieldProps<TFieldValues extends FieldValues, TName extends P
   labelProperty?: string;
 };
 
-// カレンダーフィールドのプロパティ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カレンダーフィールドのプロパティ
+ */
 export type CalendarFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
   placeholder?: string;
   buttonText?: string;
@@ -81,12 +112,20 @@ export type CalendarFieldProps<TFieldValues extends FieldValues, TName extends P
   disablePastDates?: boolean;
 };
 
-// Switchフィールドのプロパティ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * Switchフィールドのプロパティ
+ */
 export type SwitchFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
   // Switchフィールド特有のプロパティがあれば追加
 };
 
-// 判別共用体を使用した型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 判別共用体を使用した型定義
+ */
 export type CustomFormFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> =
   | ({ fieldType: "input" } & InputFieldProps<TFieldValues, TName>)
   | ({ fieldType: "textarea" } & TextareaFieldProps<TFieldValues, TName>)
@@ -95,7 +134,11 @@ export type CustomFormFieldProps<TFieldValues extends FieldValues, TName extends
   | ({ fieldType: "date" } & CalendarFieldProps<TFieldValues, TName>)
   | ({ fieldType: "switch" } & SwitchFieldProps<TFieldValues, TName>);
 
-// 共通のフィールドレイアウトコンポーネント
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通のフィールドレイアウトコンポーネント
+ */
 const FieldLayout = memo(function FieldLayout({
   label,
   description,
@@ -127,9 +170,11 @@ const FieldLayout = memo(function FieldLayout({
   );
 });
 
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 統合されたフォームフィールドコンポーネント
+/**
+ * 統合されたフォームフィールドコンポーネント
+ */
 export function CustomFormField<TFieldValues extends FieldValues, TName extends Path<TFieldValues>>(
   props: CustomFormFieldProps<TFieldValues, TName>,
 ): JSX.Element {

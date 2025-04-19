@@ -34,7 +34,9 @@ import {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ソートオプション設定
+/**
+ * ソートオプション設定
+ */
 const sortOptions = [
   { value: "newest", label: "新着順", icon: <Sparkles className="h-4 w-4" /> },
   { value: "time_remaining", label: "終了時間順", icon: <Clock className="h-4 w-4" /> },
@@ -42,7 +44,11 @@ const sortOptions = [
   { value: "bids", label: "入札数順", icon: <BarChart4 className="h-4 w-4" /> },
 ];
 
-// ステータスオプション設定
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ステータスオプション設定
+ */
 const statusOptions = [
   { value: "all", label: "すべて", icon: <EyeIcon className="h-4 w-4" /> },
   { value: "watchlist", label: "ウォッチリスト", icon: <ShieldCheck className="h-4 w-4" /> },
@@ -54,7 +60,11 @@ const statusOptions = [
   { value: "started", label: "開始済み", icon: <Clock className="h-4 w-4" /> },
 ];
 
-// 残り時間のプリセット
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 残り時間のプリセット
+ */
 const timePresets = [
   { label: "1時間以内", start: 0, end: 1 },
   { label: "24時間以内", start: 0, end: 24 },
@@ -66,7 +76,11 @@ const timePresets = [
   { label: "すべて", start: 0, end: 100000 },
 ];
 
-// 価格のプリセット
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 価格のプリセット
+ */
 const pricePresets = [
   { label: "500P以下", start: 0, end: 500 },
   { label: "1000P以下", start: 0, end: 1000 },
@@ -94,7 +108,7 @@ type FilterSectionProps = {
 /**
  * フィルターセクションコンポーネント
  */
-function FilterSection({ title, bgColor, textColor, children }: FilterSectionProps) {
+function FilterSection({ title, bgColor, textColor, children }: FilterSectionProps): JSX.Element {
   return (
     <Card className="overflow-hidden border shadow-sm">
       <CardHeader className={`${bgColor} p-3`}>
@@ -122,7 +136,7 @@ type PresetButtonsProps = {
 /**
  * プリセットボタングリッドコンポーネント
  */
-function PresetButtons({ presets, onSelectPreset, cols, hoverColors }: PresetButtonsProps) {
+function PresetButtons({ presets, onSelectPreset, cols, hoverColors }: PresetButtonsProps): JSX.Element {
   return (
     <div className={`grid grid-cols-${cols} gap-2`}>
       {presets.map((preset) => (
@@ -173,7 +187,7 @@ function RangeInputFields({
   step,
   focusColors,
   isPrice = false,
-}: RangeInputFieldsProps) {
+}: RangeInputFieldsProps): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -275,6 +289,7 @@ export const AuctionFilters = memo(function AuctionFilters({
     categoriesList,
     uniqueGroups,
     areAllGroupsSelected,
+    joinTypeinedGroupList,
 
     // action
     setChangingSearchQuery,
@@ -590,7 +605,7 @@ export const AuctionFilters = memo(function AuctionFilters({
                               すべてのグループ
                             </CommandItem>
                             {/* グループIDでユニークにフィルタリング */}
-                            {uniqueGroups.map((group) => (
+                            {joinTypeinedGroupList.map((group) => (
                               <CommandItem
                                 key={group.id}
                                 value={group.name}
