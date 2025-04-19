@@ -2,15 +2,12 @@
 
 import type { Locale } from "date-fns/locale";
 import type { ReactNode } from "react";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { format, isAfter, isBefore, isSameDay } from "date-fns";
-import { ja } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { type Control, type ControllerRenderProps, type FieldValues, type Path } from "react-hook-form";
 
 import { Button } from "../ui/button";
-import { Calendar } from "../ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
 import { FormControl, FormDescription, FormItem, FormLabel, FormMessage, FormField as RHFFormField } from "../ui/form";
 import { Input } from "../ui/input";
@@ -139,190 +136,193 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
   // --------------------------------------------------
 
   // 型安全のために、カスタムフィールドをFieldValuesにキャストする関数を作成
-  const handleField = useCallback((field: ControllerRenderProps<TFieldValues, TName>, formProps: CustomFormFieldProps<TFieldValues, TName>) => {
-    switch (formProps.fieldType) {
-      case "input": {
-        return (
-          <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <Input
-              id={field.name.toString()}
-              type={formProps.type}
-              placeholder={formProps.placeholder ?? ""}
-              min={formProps.min}
-              max={formProps.max}
-              {...field}
-              className="w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </FieldLayout>
-        );
-      }
-      case "textarea": {
-        return (
-          <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <Textarea
-              id={field.name.toString()}
-              placeholder={formProps.placeholder ?? ""}
-              {...field}
-              className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </FieldLayout>
-        );
-      }
-      case "radio": {
-        // オプションの数に基づいて適切なグリッドレイアウトを決定
-        let gridClass = "grid-cols-1";
-        if (formProps.options.length >= 3) {
-          gridClass = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
-        } else if (formProps.options.length === 2) {
-          gridClass = "grid-cols-1 sm:grid-cols-2";
+  const handleField = useCallback(
+    (field: ControllerRenderProps<TFieldValues, TName>, formProps: CustomFormFieldProps<TFieldValues, TName>) => {
+      switch (formProps.fieldType) {
+        case "input": {
+          return (
+            <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
+              <Input
+                id={field.name.toString()}
+                type={formProps.type}
+                placeholder={formProps.placeholder ?? ""}
+                min={formProps.min}
+                max={formProps.max}
+                {...field}
+                className="w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </FieldLayout>
+          );
         }
+        case "textarea": {
+          return (
+            <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
+              <Textarea
+                id={field.name.toString()}
+                placeholder={formProps.placeholder ?? ""}
+                {...field}
+                className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </FieldLayout>
+          );
+        }
+        case "radio": {
+          // オプションの数に基づいて適切なグリッドレイアウトを決定
+          let gridClass = "grid-cols-1";
+          if (formProps.options.length >= 3) {
+            gridClass = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+          } else if (formProps.options.length === 2) {
+            gridClass = "grid-cols-1 sm:grid-cols-2";
+          }
 
-        return (
-          <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <div className={`grid gap-3 ${formProps.className ?? gridClass}`}>
-              <RadioGroup
-                onValueChange={(value) => {
-                  // 数値の場合は数値型に変換して設定
-                  const numValue = Number(value);
-                  field.onChange(
-                    !isNaN(numValue) && typeof formProps.options.find((opt: RadioOption) => String(opt.value) === String(value))?.value === "number"
-                      ? numValue
-                      : value,
-                  );
-                }}
-                defaultValue={String(field.value)}
-                className="contents"
-              >
-                {formProps.options.map((option: RadioOption) => (
-                  <div key={option.value} className="relative">
-                    <RadioGroupItem
-                      value={String(option.value)}
-                      className="peer absolute opacity-0"
-                      id={`${field.name.toString()}-${option.value}`}
-                    />
-                    <label
-                      htmlFor={`${field.name.toString()}-${option.value}`}
-                      className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-sm transition-all peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500 hover:bg-blue-50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-gray-300 peer-checked:border-blue-500">
-                          <div
-                            className={`h-2.5 w-2.5 rounded-full bg-blue-500 ${String(field.value) === String(option.value) ? "opacity-100" : "opacity-0"} transition-opacity`}
-                          ></div>
-                        </div>
-                        <span className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}>
-                          {option.label}
-                        </span>
-                      </div>
-                      {String(field.value) === String(option.value) && (
-                        <div className="text-blue-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-          </FieldLayout>
-        );
-      }
-      case "combobox": {
-        const valueProperty = formProps.valueProperty ?? "id";
-        const labelProperty = formProps.labelProperty ?? "name";
-        const placeholder = formProps.placeholder ?? "選択してください";
-        const searchPlaceholder = formProps.searchPlaceholder ?? "検索...";
-        const emptyMessage = formProps.emptyMessage ?? "項目が見つかりません";
-
-        // Keyとして安全な値を取得するヘルパー関数
-        const getKey = (item: ComboBoxOption, prop: string): string => {
-          const value = item[prop];
-          // 文字列または数値の場合は文字列に変換して返す
-          return value != null ? String(value) : `item-${Math.random().toString(36).substring(2, 9)}`;
-        };
-
-        // 文字列として安全な値を取得するヘルパー関数
-        const getStringValue = (item: ComboBoxOption, prop: string): string => {
-          const value = item[prop];
-          return value != null ? String(value) : "";
-        };
-
-        return (
-          <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <Popover open={formProps.open} onOpenChange={formProps.setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={formProps.open}
-                  className={cn(
-                    "w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400",
-                    !field.value && "text-muted-foreground",
-                  )}
-                  type="button"
+          return (
+            <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
+              <div className={`grid gap-3 ${formProps.className ?? gridClass}`}>
+                <RadioGroup
+                  onValueChange={(value) => {
+                    // 数値の場合は数値型に変換して設定
+                    const numValue = Number(value);
+                    field.onChange(
+                      !isNaN(numValue) && typeof formProps.options.find((opt: RadioOption) => String(opt.value) === String(value))?.value === "number"
+                        ? numValue
+                        : value,
+                    );
+                  }}
+                  defaultValue={String(field.value)}
+                  className="contents"
                 >
-                  {field.value
-                    ? (formProps.options.find((item: ComboBoxOption) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder)
-                    : placeholder}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command className="rounded-lg border shadow-md">
-                  <CommandInput placeholder={searchPlaceholder} className="border-b-0" />
-                  <CommandList>
-                    <CommandEmpty>{emptyMessage}</CommandEmpty>
-                    <CommandGroup>
-                      {formProps.options.map((item: ComboBoxOption) => (
-                        <div key={getKey(item, valueProperty)} className="transition-all">
-                          <CommandItem
-                            key={getKey(item, valueProperty)}
-                            value={getStringValue(item, labelProperty)}
-                            onSelect={() => {
-                              field.onChange(item[valueProperty]);
-                              formProps.setOpen(false);
-                            }}
-                            className="transition-colors duration-150 hover:bg-blue-50"
-                          >
-                            <div className={item[valueProperty] === field.value ? "opacity-100" : "opacity-0"}>
-                              <Check className="mr-2 h-4 w-4 text-blue-500" />
-                            </div>
-                            {getStringValue(item, labelProperty)}
-                          </CommandItem>
+                  {formProps.options.map((option: RadioOption) => (
+                    <div key={option.value} className="relative">
+                      <RadioGroupItem
+                        value={String(option.value)}
+                        className="peer absolute opacity-0"
+                        id={`${field.name.toString()}-${option.value}`}
+                      />
+                      <label
+                        htmlFor={`${field.name.toString()}-${option.value}`}
+                        className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-sm transition-all peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500 hover:bg-blue-50"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-gray-300 peer-checked:border-blue-500">
+                            <div
+                              className={`h-2.5 w-2.5 rounded-full bg-blue-500 ${String(field.value) === String(option.value) ? "opacity-100" : "opacity-0"} transition-opacity`}
+                            ></div>
+                          </div>
+                          <span className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}>
+                            {option.label}
+                          </span>
                         </div>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </FieldLayout>
-        );
+                        {String(field.value) === String(option.value) && (
+                          <div className="text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            </FieldLayout>
+          );
+        }
+        case "combobox": {
+          const valueProperty = formProps.valueProperty ?? "id";
+          const labelProperty = formProps.labelProperty ?? "name";
+          const placeholder = formProps.placeholder ?? "選択してください";
+          const searchPlaceholder = formProps.searchPlaceholder ?? "検索...";
+          const emptyMessage = formProps.emptyMessage ?? "項目が見つかりません";
+
+          // Keyとして安全な値を取得するヘルパー関数
+          const getKey = (item: ComboBoxOption, prop: string): string => {
+            const value = item[prop];
+            // 文字列または数値の場合は文字列に変換して返す
+            return value != null ? String(value) : `item-${Math.random().toString(36).substring(2, 9)}`;
+          };
+
+          // 文字列として安全な値を取得するヘルパー関数
+          const getStringValue = (item: ComboBoxOption, prop: string): string => {
+            const value = item[prop];
+            return value != null ? String(value) : "";
+          };
+
+          return (
+            <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
+              <Popover open={formProps.open} onOpenChange={formProps.setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={formProps.open}
+                    className={cn(
+                      "w-full justify-between border-gray-300 transition-all duration-200 hover:border-blue-400",
+                      !field.value && "text-muted-foreground",
+                    )}
+                    type="button"
+                  >
+                    {field.value
+                      ? (formProps.options.find((item: ComboBoxOption) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder)
+                      : placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command className="rounded-lg border shadow-md">
+                    <CommandInput placeholder={searchPlaceholder} className="border-b-0" />
+                    <CommandList>
+                      <CommandEmpty>{emptyMessage}</CommandEmpty>
+                      <CommandGroup>
+                        {formProps.options.map((item: ComboBoxOption) => (
+                          <div key={getKey(item, valueProperty)} className="transition-all">
+                            <CommandItem
+                              key={getKey(item, valueProperty)}
+                              value={getStringValue(item, labelProperty)}
+                              onSelect={() => {
+                                field.onChange(item[valueProperty]);
+                                formProps.setOpen(false);
+                              }}
+                              className="transition-colors duration-150 hover:bg-blue-50"
+                            >
+                              <div className={item[valueProperty] === field.value ? "opacity-100" : "opacity-0"}>
+                                <Check className="mr-2 h-4 w-4 text-blue-500" />
+                              </div>
+                              {getStringValue(item, labelProperty)}
+                            </CommandItem>
+                          </div>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </FieldLayout>
+          );
+        }
+        case "date": {
+          return <DateField {...formProps} control={props.control} name={props.name} />;
+        }
+        case "switch": {
+          return (
+            <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
+              <div className="flex items-center">
+                <Switch id={field.name.toString()} checked={field.value} onCheckedChange={field.onChange} className="focus:ring-blue-500" />
+              </div>
+            </FieldLayout>
+          );
+        }
+        default: {
+          // 型チェックのエラーを回避するために単純なメッセージを返す
+          throw new Error(`未対応のフィールドタイプが指定されました`);
+        }
       }
-      case "date": {
-        return <DateField {...formProps} control={props.control} name={props.name} />;
-      }
-      case "switch": {
-        return (
-          <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <div className="flex items-center">
-              <Switch id={field.name.toString()} checked={field.value} onCheckedChange={field.onChange} className="focus:ring-blue-500" />
-            </div>
-          </FieldLayout>
-        );
-      }
-      default: {
-        // 型チェックのエラーを回避するために単純なメッセージを返す
-        throw new Error(`未対応のフィールドタイプが指定されました`);
-      }
-    }
-  }, []);
+    },
+    [props.control, props.name],
+  );
 
   return (
     <RHFFormField

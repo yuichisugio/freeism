@@ -2,7 +2,7 @@
 
 import type { AuctionSortField } from "@/lib/auction/type/types";
 import type { ReactNode } from "react";
-import { memo, useCallback, useMemo } from "react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -12,7 +12,6 @@ import SearchBar from "@/components/ui/SearchBar";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionFiltersProps, type AuctionFilterTypes } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import {
@@ -273,6 +272,9 @@ export const AuctionFilters = memo(function AuctionFilters({
     openGroupCombobox,
     changingSearchQuery,
     draftConditions,
+    categoriesList,
+    uniqueGroups,
+    areAllGroupsSelected,
 
     // action
     setChangingSearchQuery,
@@ -293,125 +295,19 @@ export const AuctionFilters = memo(function AuctionFilters({
     handleResetAllFilters,
     handleSearchQueryEnter,
     applyAllFilters,
+
+    // utilities
+    formatTimeDisplay,
+    isCategorySelected,
+    isStatusSelected,
+    isGroupSelected,
+    getSortField,
+    getSortDirection,
   } = useAuctionFilters({
     listingsConditions,
     setListingsConditionsAction,
+    auctions,
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 時間範囲の表示
-  const formatTimeDisplay = useCallback((hours: number) => {
-    if (hours < 1) return "即時";
-    if (hours < 24) return `${hours}時間`;
-    const days = Math.floor(hours / 24);
-    return `${days}日`;
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // カテゴリリスト
-  const categoriesList = useMemo(() => AUCTION_CONSTANTS.AUCTION_CATEGORIES, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // カテゴリが選択されているかチェック
-  const isCategorySelected = useCallback(
-    (category: string) => {
-      if (!draftConditions.categories || !Array.isArray(draftConditions.categories)) {
-        return category === "すべて";
-      }
-      return draftConditions.categories.includes(category);
-    },
-    [draftConditions.categories],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ステータスが選択されているかチェック
-  const isStatusSelected = useCallback(
-    (status: string) => {
-      if (!draftConditions.status || !Array.isArray(draftConditions.status)) {
-        return status === "all";
-      }
-      return draftConditions.status.includes(status as AuctionFilterTypes);
-    },
-    [draftConditions.status],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // グループが選択されているかチェック
-  const isGroupSelected = useCallback(
-    (groupId: string | null) => {
-      if (groupId === null) {
-        return !draftConditions.groupIds || draftConditions.groupIds.length === 0;
-      }
-      return draftConditions.groupIds?.includes(groupId) ?? false;
-    },
-    [draftConditions.groupIds],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ソート値を安全に取得する関数
-  const getSortField = useCallback(() => {
-    if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
-      return draftConditions.sort[0].field;
-    }
-    return "newest";
-  }, [draftConditions.sort]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ソート方向を安全に取得する関数
-  const getSortDirection = useCallback(() => {
-    if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
-      return draftConditions.sort[0].direction;
-    }
-    return "asc";
-  }, [draftConditions.sort]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ユニークなグループを取得
-  const uniqueGroups = useMemo((): Array<{ id: string; name: string }> => {
-    // ユニークなグループIDを抽出
-    const uniqueGroupsMap = new Map<string, { id: string; name: string }>();
-    auctions.forEach((auction) => {
-      if (auction.group?.id && auction.group?.name && !uniqueGroupsMap.has(auction.group.id)) {
-        uniqueGroupsMap.set(auction.group.id, {
-          id: auction.group.id,
-          name: auction.group.name,
-        });
-      }
-    });
-    // Map からユニークなグループの配列を作成
-    return Array.from(uniqueGroupsMap.values());
-  }, [auctions]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // すべてのグループが選択されているかを確認
-  const areAllGroupsSelected = useMemo(() => {
-    // draftConditions.groupIdsがない場合はtrue
-    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0) {
-      return true;
-    }
-
-    // uniqueGroupsがない場合はtrue
-    if (uniqueGroups.length === 0) {
-      return true;
-    }
-
-    // すべてのグループIDが選択されているかチェック
-    return (
-      uniqueGroups.length === draftConditions.groupIds.length &&
-      uniqueGroups.every((group) => {
-        return draftConditions.groupIds?.includes(group.id);
-      })
-    );
-  }, [draftConditions.groupIds, uniqueGroups]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

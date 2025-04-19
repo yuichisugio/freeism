@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
    DateField.tsx – redesigned calendar field component
    Changes requested 2025‑04‑19
-   1. Disable‑past‑date cursor set to “not‑allowed” (+ visual dim)
+   1. Disable‑past‑date cursor set to "not‑allowed" (+ visual dim)
    2. Keep nav‑arrow alignment by giving calendar table a fixed min‑height
    3. Add manual <input type="date"> under the calendar so the user can
       type / paste a date directly.
@@ -130,7 +130,9 @@ export function DateField<TFieldValues extends FieldValues, TName extends Path<T
                 locale={locale}
                 disabled={(date) => (disablePastDates ? date < today : false)}
                 initialFocus
-                components={{ IconLeft: () => null, IconRight: () => null }}
+                components={{
+                  Chevron: () => <span className="hidden" />,
+                }}
                 modifiersClassNames={{
                   selected: "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer",
                   today: "bg-blue-50 font-bold text-blue-800",

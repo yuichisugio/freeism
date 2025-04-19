@@ -150,6 +150,7 @@ export type SellerRating = {
 export type UseAuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
+  auctions: AuctionListingResult;
 };
 
 // カウントダウンの状態

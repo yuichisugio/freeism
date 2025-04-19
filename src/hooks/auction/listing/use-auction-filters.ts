@@ -1,15 +1,16 @@
 "use client";
 
-import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import type {
   AuctionFilterTypes,
+  AuctionListingResult,
   AuctionListingsConditions,
   AuctionSortField,
   SortDirection,
   UseAuctionFiltersProps,
 } from "@/lib/auction/type/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getUserGroups } from "@/lib/auction/action/user";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -24,6 +25,9 @@ type UseAuctionFiltersReturn = {
   activeFilterCount: number;
   openGroupCombobox: boolean;
   changingSearchQuery: string | null;
+  categoriesList: string[];
+  uniqueGroups: Array<{ id: string; name: string }>;
+  areAllGroupsSelected: boolean;
 
   // action
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
@@ -48,6 +52,14 @@ type UseAuctionFiltersReturn = {
   handleSortDirectionToggle: () => void;
   handleResetAllFilters: () => void;
   applyAllFilters: () => void;
+
+  // utilities
+  formatTimeDisplay: (hours: number) => string;
+  isCategorySelected: (category: string) => boolean;
+  isStatusSelected: (status: string) => boolean;
+  isGroupSelected: (groupId: string | null) => boolean;
+  getSortField: () => AuctionSortField;
+  getSortDirection: () => SortDirection;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -56,9 +68,14 @@ type UseAuctionFiltersReturn = {
  * オークションフィルター用カスタムフック
  * @param listingsConditions フィルターの状態
  * @param setListingsConditions フィルターの変更アクション
+ * @param auctions オークションのリスト
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ listingsConditions, setListingsConditionsAction }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
+export function useAuctionFilters({
+  listingsConditions,
+  setListingsConditionsAction,
+  auctions,
+}: UseAuctionFiltersProps & { auctions: AuctionListingResult }): UseAuctionFiltersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フィルターパネルの表示状態
@@ -82,6 +99,121 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
   useEffect(() => {
     setDraftConditions({ ...listingsConditions });
   }, [listingsConditions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 時間範囲の表示
+  const formatTimeDisplay = useCallback((hours: number) => {
+    if (hours < 1) return "即時";
+    if (hours < 24) return `${hours}時間`;
+    const days = Math.floor(hours / 24);
+    return `${days}日`;
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // カテゴリリスト
+  const categoriesList = useMemo(() => AUCTION_CONSTANTS.AUCTION_CATEGORIES, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // カテゴリが選択されているかチェック
+  const isCategorySelected = useCallback(
+    (category: string) => {
+      if (!draftConditions.categories || !Array.isArray(draftConditions.categories)) {
+        return category === "すべて";
+      }
+      return draftConditions.categories.includes(category);
+    },
+    [draftConditions.categories],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ステータスが選択されているかチェック
+  const isStatusSelected = useCallback(
+    (status: string) => {
+      if (!draftConditions.status || !Array.isArray(draftConditions.status)) {
+        return status === "all";
+      }
+      return draftConditions.status.includes(status as AuctionFilterTypes);
+    },
+    [draftConditions.status],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループが選択されているかチェック
+  const isGroupSelected = useCallback(
+    (groupId: string | null) => {
+      if (groupId === null) {
+        return !draftConditions.groupIds || draftConditions.groupIds.length === 0;
+      }
+      return draftConditions.groupIds?.includes(groupId) ?? false;
+    },
+    [draftConditions.groupIds],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ソート値を安全に取得する関数
+  const getSortField = useCallback(() => {
+    if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
+      return draftConditions.sort[0].field;
+    }
+    return "newest";
+  }, [draftConditions.sort]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ソート方向を安全に取得する関数
+  const getSortDirection = useCallback(() => {
+    if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
+      return draftConditions.sort[0].direction;
+    }
+    return "asc";
+  }, [draftConditions.sort]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ユニークなグループを取得
+  const uniqueGroups = useMemo((): Array<{ id: string; name: string }> => {
+    // ユニークなグループIDを抽出
+    const uniqueGroupsMap = new Map<string, { id: string; name: string }>();
+    auctions.forEach((auction) => {
+      if (auction.group?.id && auction.group?.name && !uniqueGroupsMap.has(auction.group.id)) {
+        uniqueGroupsMap.set(auction.group.id, {
+          id: auction.group.id,
+          name: auction.group.name,
+        });
+      }
+    });
+    // Map からユニークなグループの配列を作成
+    return Array.from(uniqueGroupsMap.values());
+  }, [auctions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // すべてのグループが選択されているかを確認
+  const areAllGroupsSelected = useMemo(() => {
+    // draftConditions.groupIdsがない場合はtrue
+    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0) {
+      return true;
+    }
+
+    // uniqueGroupsがない場合はtrue
+    if (uniqueGroups.length === 0) {
+      return true;
+    }
+
+    // すべてのグループIDが選択されているかチェック
+    return (
+      uniqueGroups.length === draftConditions.groupIds.length &&
+      uniqueGroups.every((group) => {
+        return draftConditions.groupIds?.includes(group.id);
+      })
+    );
+  }, [draftConditions.groupIds, uniqueGroups]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -512,6 +644,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     activeFilterCount,
     openGroupCombobox,
     changingSearchQuery,
+    categoriesList,
+    uniqueGroups,
+    areAllGroupsSelected,
 
     // action
     setListingsConditionsAction,
@@ -536,5 +671,13 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     handleSortDirectionToggle,
     handleResetAllFilters,
     applyAllFilters,
+
+    // utilities
+    formatTimeDisplay,
+    isCategorySelected,
+    isStatusSelected,
+    isGroupSelected,
+    getSortField,
+    getSortDirection,
   };
 }
