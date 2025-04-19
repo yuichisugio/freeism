@@ -558,7 +558,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         title: taskName ?? "",
         description: taskDetail ?? "",
         currentPrice: auctionData.currentHighestBid,
-        sellerId: creatorId,
+        creatorId: creatorId,
         task: {
           id: auctionData.taskId,
           createdAt: new Date(),

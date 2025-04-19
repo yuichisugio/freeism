@@ -12,6 +12,7 @@ import { useWatchlistActions } from "@/hooks/auction/bid/use-watchlist-actions";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type Auction, type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/utils";
+import { AuctionStatus } from "@prisma/client";
 import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -20,6 +21,8 @@ import { AuctionQA } from "./auction-qa";
 import { BidForm } from "./bid-form";
 import { BidHistory } from "./bid-history";
 import { CountdownDisplay } from "./countdown-display";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション詳細ページ
@@ -120,6 +123,17 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * オークション詳細タブの内容
    */
   const renderDetailsTab = useCallback(() => {
+    const auctionStartTime = auction.startTime;
+    const auctionEndTime = auction.endTime;
+    const now = new Date();
+    let isActive: boolean;
+    if (auction.status === AuctionStatus.ACTIVE && auctionStartTime < now && auctionEndTime > now) {
+      isActive = true;
+    } else {
+      isActive = false;
+    }
+    const isCreator = auction.creatorId === currentUserId;
+
     return (
       <div className="space-y-6">
         {/* 現在価格、開始価格、入札数を表示するカード */}
@@ -147,8 +161,8 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
         </div>
 
-        {/* 自分の出品していないオークションで、オークションが終了していない場合は入札フォームを表示 */}
-        {auction.sellerId !== currentUserId && !isAuctionEnded && (
+        {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
+        {!isCreator && !isAuctionEnded && isActive && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <BidForm
               auction={
@@ -159,8 +173,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
                   currentHighestBid: auction.currentHighestBid,
                   startTime: auction.startTime.toString(),
                   endTime: auction.endTime.toString(),
-                  sellerId: auction.sellerId,
+                  creatorId: auction.creatorId,
                   currentHighestBidderId: auction.currentHighestBidderId,
+                  status: auction.status,
                 } as Auction
               }
             />
@@ -181,7 +196,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
 
         {/* 自分の出品しているオークションの場合は、自分の出品したオークションですというメッセージを表示 */}
-        {auction.sellerId === currentUserId && (
+        {isCreator && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -190,6 +205,19 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           >
             <User className="mx-auto mb-2 h-6 w-6 text-blue-500" />
             <p className="font-medium text-blue-800">自分の出品したオークションです</p>
+          </motion.div>
+        )}
+
+        {/* オークションのステータスがACTIVE以外の場合のメッセージを表示 */}
+        {!isActive && !isAuctionEnded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-lg border border-orange-200 bg-orange-50 p-4 text-center"
+          >
+            <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-orange-500" />
+            <p className="font-medium text-orange-800">このオークションは現在アクティブではありません</p>
           </motion.div>
         )}
       </div>
@@ -286,7 +314,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleWatchlistToggle}
-                disabled={submitting || auction.sellerId === currentUserId}
+                disabled={submitting || auction.creatorId === currentUserId}
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
               >
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />

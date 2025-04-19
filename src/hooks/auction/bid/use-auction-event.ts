@@ -91,7 +91,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
       const processedAuction: AuctionWithDetails = {
         ...initialAuction,
         ...auctionData,
-        sellerId: auctionData.sellerId,
+        creatorId: auctionData.creatorId,
         bidHistories: auctionData.bidHistories,
         id: auctionData.id,
         currentHighestBid: auctionData.currentHighestBid,
@@ -170,7 +170,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
         description: receivedData?.description ?? initialAuction.description,
         task: receivedData?.task ?? initialAuction.task,
         currentPrice: receivedData?.currentPrice ?? initialAuction.currentPrice,
-        sellerId: receivedData?.sellerId ?? initialAuction.sellerId,
+        creatorId: receivedData?.creatorId ?? initialAuction.task.creator.id,
         depositPeriod: receivedData?.depositPeriod ?? initialAuction.depositPeriod,
         currentHighestBidder: receivedData?.currentHighestBidder ?? initialAuction.currentHighestBidder,
         winner: receivedData?.winner ?? initialAuction.winner,

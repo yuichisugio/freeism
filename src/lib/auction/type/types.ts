@@ -274,7 +274,8 @@ export type Auction = {
   currentHighestBid: number;
   startTime: string;
   endTime: string;
-  sellerId: string;
+  creatorId: string;
+  status?: string; // オークションのステータス（ACTIVE, ENDED, など）
   highestBidderId?: string | null; // 非推奨: 今後はcurrentHighestBidderIdを使用
   currentHighestBidderId?: string | null; // 最高入札者ID
   seller?:
@@ -321,7 +322,7 @@ export type AuctionWithDetails = {
   title: string;
   description: string;
   currentPrice: number;
-  sellerId: string;
+  creatorId: string;
   task: Task & {
     group: TaskGroup;
     creator: User;

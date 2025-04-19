@@ -1,4 +1,4 @@
 {
-  "**/*.{ts,tsx,js,jsx,cjs,mjs,md}": ["eslint --fix"],
+  "**/*.{ts,tsx,js,jsx,cjs,mjs,md}": ["eslint --fix --ignore-pattern 'public/workbox-*.js' --ignore-pattern 'public/next-pwa-service-worker.js'"],
   "**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}": ["prettier --write"]
 }

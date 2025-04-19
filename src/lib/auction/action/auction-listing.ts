@@ -25,20 +25,9 @@ type AuctionWithDetails = Prisma.AuctionGetPayload<{
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// AuctionWhereInput型の定義は削除し、Prisma.AuctionWhereInput を直接使用する
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 /**
  * AuctionOrderByInput型の定義
  */
-// type AuctionOrderByInput = { // Prisma.AuctionOrderByWithRelationInput を使用するためコメントアウト or 削除
-//   createdAt?: "asc" | "desc";
-//   endTime?: "asc" | "desc";
-//   currentHighestBid?: "asc" | "desc";
-//   bidHistories?: { _count: "asc" | "desc" };
-//   _count?: { bidHistories: "asc" | "desc" };
-// };
 // Prisma.AuctionOrderByWithRelationInput を使用する方が堅牢
 type AuctionOrderByInput = Prisma.AuctionOrderByWithRelationInput;
 
