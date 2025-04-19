@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { AuctionEventType, NotificationSendMethod } from "@prisma/client";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションに関連するメッセージを取得する
  * @param auctionId オークションID
@@ -42,6 +44,8 @@ export async function getAuctionMessages(auctionId: string) {
     return { success: false, error: "メッセージの取得に失敗しました" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションに関連するメッセージを送信する
@@ -115,6 +119,8 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
     return { success: false, error: "メッセージの送信に失敗しました" };
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション情報を取得して、出品者IDを返す

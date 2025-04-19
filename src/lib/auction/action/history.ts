@@ -8,46 +8,6 @@ import { AuctionStatus } from "@prisma/client";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * ユーザーの入札履歴を取得
- * @returns 入札履歴の配列
- */
-export async function getUserBidHistory(): Promise<BidHistoryItem[]> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 認証
-  const userId = await getAuthenticatedSessionUserId();
-
-  // 入札履歴を取得
-  const bidHistory = await prisma.bidHistory.findMany({
-    where: {
-      userId: userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      auction: {
-        include: {
-          task: {
-            select: {
-              id: true,
-              task: true,
-              detail: true,
-              imageUrl: true,
-              status: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return bidHistory;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * ユーザーの各オークションに対する最新の入札情報のみを取得
  * @returns 重複のないオークションごとの最新入札履歴の配列
  */

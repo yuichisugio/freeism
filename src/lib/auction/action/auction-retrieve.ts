@@ -31,7 +31,7 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
           orderBy: {
             createdAt: "desc",
           },
-          take: 10,
+          take: 20,
         },
       },
     });
