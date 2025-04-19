@@ -32,6 +32,7 @@ type UseAuctionFiltersReturn = {
   setOpenGroupCombobox: (open: boolean) => void;
   handleCategorySelect: (category: string) => void;
   handleStatusSelect: (status: AuctionFilterTypes) => void;
+  handleStatusJoinTypeChange: (joinType: "OR" | "AND") => void;
   handleGroupSelect: (groupId: string | null) => void;
   handlePriceRangeChange: (value: [number, number]) => void;
   handlePriceRangeApply: () => void;
@@ -223,6 +224,22 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       handleMultiSelect<AuctionFilterTypes>("status", status, ["all"], true, "all");
     },
     [handleMultiSelect],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ステータス結合タイプの変更ハンドラ
+   * @param joinType 選択された結合タイプ
+   */
+  const handleStatusJoinTypeChange = useCallback(
+    (joinType: "OR" | "AND") => {
+      setDraftConditions({
+        ...draftConditions,
+        statusConditionJoinType: joinType,
+      });
+    },
+    [draftConditions],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -442,6 +459,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     const updatedConditions: AuctionListingsConditions = {
       categories: draftConditions.categories ? [...draftConditions.categories] : null,
       status: draftConditions.status ? [...draftConditions.status] : null,
+      statusConditionJoinType: draftConditions.statusConditionJoinType,
       minBid: draftConditions.minBid,
       maxBid: draftConditions.maxBid,
       minRemainingTime: draftConditions.minRemainingTime,
@@ -502,6 +520,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     setOpenGroupCombobox,
     handleCategorySelect,
     handleStatusSelect,
+    handleStatusJoinTypeChange,
     handleGroupSelect,
     handlePriceRangeChange,
     handlePriceRangeApply,

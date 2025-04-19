@@ -47,6 +47,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const currentStatusParams = searchParams.getAll("status");
   const currentStatus = currentStatusParams.length > 0 ? currentStatusParams.map((status) => status as AuctionFilterTypes) : ["all" as const];
 
+  // ステータス結合タイプのURLパラメータ
+  const currentStatusJoinType = searchParams.get("status_join_type") as "OR" | "AND" | null;
+
   // ソートのURLパラメータ
   const currentSort = searchParams.get("sort") as AuctionSortField | null;
 
@@ -81,6 +84,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const [listingsConditions, setListingsConditions] = useState<AuctionListingsConditions>({
     categories: currentCategories,
     status: currentStatus,
+    statusConditionJoinType: currentStatusJoinType ?? "OR", // デフォルトはOR
     minBid: minBid,
     maxBid: maxBid,
     minRemainingTime: minRemainingTime,
@@ -161,6 +165,11 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         newListingsConditions.status.forEach((status) => {
           params.append("status", status);
         });
+      }
+
+      // ステータス結合タイプ
+      if (newListingsConditions.statusConditionJoinType && newListingsConditions.statusConditionJoinType === "AND") {
+        params.set("status_join_type", newListingsConditions.statusConditionJoinType);
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

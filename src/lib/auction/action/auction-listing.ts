@@ -50,7 +50,8 @@ type AuctionOrderByInput = Prisma.AuctionOrderByWithRelationInput;
  * @returns Prisma の where 句と userId
  */
 async function buildAuctionWhereClause(listingsConditions: AuctionListingsConditions): Promise<{ where: Prisma.AuctionWhereInput; userId: string }> {
-  const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery } = listingsConditions;
+  const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery, statusConditionJoinType } =
+    listingsConditions;
 
   // ユーザーIDを取得。必ず返ってくる。返ってこない場合は↓内でログイン画面にリダイレクトされる
   const userId = await getAuthenticatedSessionUserId();
@@ -81,17 +82,7 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
   if (categories && categories.length > 0 && !categories.includes("すべて")) {
     const validCategories = categories.filter((c): c is string => c !== null && c !== "すべて");
     if (validCategories.length > 0) {
-      // カテゴリ名が部分一致か完全一致かで `contains` か `in` を使い分ける
-      // ここでは Task モデルに `category` という string 型フィールドがあると仮定し、完全一致 (`in`) を使用
-      filterConditions.push({
-        task: {
-          category: {
-            in: validCategories,
-            mode: "insensitive", // 大文字小文字を区別しない場合
-          },
-        },
-      });
-      // もし部分一致検索が必要な場合は OR と contains を使う
+      // カテゴリ名の部分一致検索を行うためにOR条件を使用
       filterConditions.push({
         OR: validCategories.map((category) => ({
           task: {
@@ -131,21 +122,30 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
           });
           break;
         case "not_started":
-          statusWhereClauses.push({ status: AuctionStatus.PENDING });
+          statusWhereClauses.push({
+            status: AuctionStatus.PENDING,
+            startTime: { gte: new Date() }, // 現在時刻より後のもの
+          });
           break;
         case "started":
-          statusWhereClauses.push({ status: AuctionStatus.ACTIVE });
+          statusWhereClauses.push({
+            status: AuctionStatus.ACTIVE,
+            startTime: { lte: new Date() }, // 現在時刻より前のもの
+          });
           break;
         default: // "all" またはその他の場合は何もしない
           break;
       }
     }
-    // 複数のステータス条件がある場合は OR で結合
+    // 複数のステータス条件がある場合は OR または AND で結合
     if (statusWhereClauses.length > 0) {
-      // status に関する条件は通常 OR で結合されるべきか？ UIによるが、ここではANDで追加
-      // もしステータスフィルターが OR 条件なら filterConditions.push({ OR: statusWhereClauses }) のようにする
-
-      filterConditions.push({ OR: statusWhereClauses });
+      if (statusConditionJoinType === "AND") {
+        // AND条件で結合
+        filterConditions.push({ AND: statusWhereClauses });
+      } else {
+        // デフォルトはOR条件で結合
+        filterConditions.push({ OR: statusWhereClauses });
+      }
     }
   }
 
@@ -223,6 +223,8 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
     }
   }
 
+  console.log("src/lib/auction/action/auction-listing.ts_buildAuctionWhereClause_where", where);
+
   return { where, userId };
 }
 
@@ -285,6 +287,7 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
     const take = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_prismaParams", { where, orderBy, skip, take });
+    console.dir(where, { depth: null });
 
     // オークションデータを取得
     const auctions: AuctionWithDetails[] = await prisma.auction.findMany({

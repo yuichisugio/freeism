@@ -177,18 +177,14 @@ export type UseCountdownProps = {
 export type AuctionListingsConditions = {
   categories: ((typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null)[] | null;
   status: AuctionFilterTypes[] | null;
+  statusConditionJoinType?: "OR" | "AND"; // ステータス条件の結合タイプ（OR/AND）
   minBid: number | null;
   maxBid: number | null;
   minRemainingTime: number | null;
   maxRemainingTime: number | null;
   groupIds: string[] | null;
   searchQuery: string | null;
-  sort:
-    | {
-        field: AuctionSortField | null;
-        direction: SortDirection | null;
-      }[]
-    | null;
+  sort: Array<{ field: AuctionSortField; direction: SortDirection }> | null;
   page: number;
 };
 

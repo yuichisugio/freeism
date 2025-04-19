@@ -279,6 +279,7 @@ export const AuctionFilters = memo(function AuctionFilters({
     setOpenGroupCombobox,
     handleCategorySelect,
     handleStatusSelect,
+    handleStatusJoinTypeChange,
     handleGroupSelect,
     handlePriceRangeChange,
     handlePriceRangeApply,
@@ -514,30 +515,37 @@ export const AuctionFilters = memo(function AuctionFilters({
               <div className="space-y-6">
                 {/* ソートセクション */}
                 <FilterSection title="並び替え" bgColor="bg-blue-50" textColor="text-blue-800">
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="text-sm font-medium">並び順</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSortDirectionToggle}
-                      className={cn(
-                        "flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1 transition-colors",
-                        getSortDirection() === "asc" ? "bg-blue-50 hover:bg-blue-100" : "bg-gray-50 hover:bg-gray-100",
-                      )}
-                    >
-                      {getSortDirection() === "asc" ? (
-                        <>
-                          <ArrowUp className="h-3.5 w-3.5" />
-                          <span className="text-xs">昇順</span>
-                        </>
-                      ) : (
-                        <>
-                          <ArrowDown className="h-3.5 w-3.5" />
-                          <span className="text-xs">降順</span>
-                        </>
-                      )}
-                    </Button>
+                  <div className="mb-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-medium">並び順</span>
+                    </div>
+                    <div className="flex w-full rounded-md border border-blue-200 p-1">
+                      <button
+                        type="button"
+                        onClick={() => handleSortDirectionToggle()}
+                        className={`flex flex-1 items-center justify-center gap-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
+                          getSortDirection() === "asc" ? "bg-blue-100 text-gray-900 shadow-sm" : "bg-transparent text-gray-900 hover:bg-blue-50"
+                        }`}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                        <span>昇順</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSortDirectionToggle()}
+                        className={`flex flex-1 items-center justify-center gap-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
+                          getSortDirection() === "desc" ? "bg-blue-100 text-gray-900 shadow-sm" : "bg-transparent text-gray-900 hover:bg-blue-50"
+                        }`}
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                        <span>降順</span>
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      {getSortDirection() === "asc" ? "価格や終了時間などを小さい順に表示" : "価格や終了時間などを大きい順に表示"}
+                    </p>
                   </div>
+                  <Separator className="mb-3" />
                   <div className="grid gap-2">
                     {sortOptions.map((option) => (
                       <button
@@ -583,6 +591,43 @@ export const AuctionFilters = memo(function AuctionFilters({
 
                 {/* ステータスセクション */}
                 <FilterSection title="ステータス" bgColor="bg-green-50" textColor="text-green-800">
+                  {/* ステータス条件の結合方法（OR/AND） */}
+                  <div className="mb-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-medium">条件の結合方法</span>
+                    </div>
+                    <div className="flex w-full rounded-md border border-green-200 p-1">
+                      <button
+                        type="button"
+                        onClick={() => handleStatusJoinTypeChange("OR")}
+                        className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
+                          (draftConditions.statusConditionJoinType ?? "OR") === "OR"
+                            ? "bg-green-100 text-gray-900 shadow-sm"
+                            : "bg-transparent text-gray-900 hover:bg-green-50"
+                        }`}
+                      >
+                        OR条件
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleStatusJoinTypeChange("AND")}
+                        className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
+                          draftConditions.statusConditionJoinType === "AND"
+                            ? "bg-green-100 text-gray-900 shadow-sm"
+                            : "bg-transparent text-gray-900 hover:bg-green-50"
+                        }`}
+                      >
+                        AND条件
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      {(draftConditions.statusConditionJoinType ?? "OR") === "OR"
+                        ? "いずれかの条件に一致するアイテムを表示"
+                        : "すべての条件に一致するアイテムを表示"}
+                    </p>
+                  </div>
+                  <Separator className="mb-3" />
+
                   <div className="grid gap-2">
                     {statusOptions.map((option) => (
                       <button
