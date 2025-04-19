@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useCallback, useMemo, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -14,7 +13,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,13 +37,11 @@ type AuctionWonDetailProps = {
       task: string;
       detail?: string | null;
       status: TaskStatus;
-      imageUrl?: string | null;
       creatorId: string;
       deliveryMethod?: string | null;
       creator: {
         id: string;
         name?: string | null;
-        image?: string | null;
       };
     };
     winnerId: string;
@@ -156,12 +152,6 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {auction.task.imageUrl && (
-                <div className="relative mb-6 h-64 w-full">
-                  <Image src={auction.task.imageUrl} alt={auction.task.task} fill className="rounded-lg object-contain" />
-                </div>
-              )}
-
               <div className="space-y-4">
                 <div>
                   <h3 className="mb-2 text-lg font-medium">商品説明</h3>
@@ -228,10 +218,6 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={auction.task.creator.image ?? ""} alt={auction.task.creator.name ?? "出品者"} />
-                  <AvatarFallback>{auction.task.creator.name?.[0] ?? "出"}</AvatarFallback>
-                </Avatar>
                 <div>
                   <p className="font-medium">{auction.task.creator.name ?? "出品者"}</p>
                   <div className="flex items-center gap-2">

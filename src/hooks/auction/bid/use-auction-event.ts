@@ -123,13 +123,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
 
       // 変換したデータをステートに設定
       setAuction(processedAuction);
-      console.log("SSE_giveAuctionDataToState_setAuction", processedAuction);
 
-      console.log("SSE_giveAuctionDataToState_setBidHistory_auctionData.bidHistories", auctionData.bidHistories);
       // 入札履歴があれば設定
       if (auctionData.bidHistories && Array.isArray(auctionData.bidHistories)) {
         setBidHistory(auctionData.bidHistories);
-        console.log("SSE_giveAuctionDataToState_setBidHistory", auctionData.bidHistories);
       }
 
       setLoading(false);

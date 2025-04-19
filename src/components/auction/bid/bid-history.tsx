@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,11 +31,16 @@ type User = {
 export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHistoryProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const [bids] = useState<BidHistoryWithUser[]>(initialBids);
+  // 表示する入札履歴を最大20件に制限
+  const displayedBids = useMemo(() => initialBids.slice(0, 20), [initialBids]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザー名を安全に取得するヘルパー関数
+  /**
+   * ユーザー名を安全に取得するヘルパー関数
+   * @param user ユーザー
+   * @returns ユーザー名
+   */
   const getUserName = useCallback((user: User | undefined): string => {
     if (!user) return "不明なユーザー";
     return user.username ?? user.name ?? "不明なユーザー";
@@ -43,7 +48,11 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHist
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーのイニシャルを取得するヘルパー関数
+  /**
+   * ユーザーのイニシャルを取得するヘルパー関数
+   * @param user ユーザー
+   * @returns ユーザーのイニシャル
+   */
   const getUserInitials = useCallback((user: User | undefined): string => {
     if (!user) return "?";
     const name = user.username ?? user.name ?? "";
@@ -53,8 +62,11 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHist
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札履歴がない場合
-  if (bids.length === 0) {
+  /**
+   * 入札履歴がない場合
+   * @returns 入札履歴がない場合の表示
+   */
+  if (displayedBids.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -75,9 +87,6 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHist
       <div className="mb-4 flex items-center gap-2">
         <Activity className="text-primary h-5 w-5" />
         <h3 className="text-lg font-semibold">入札アクティビティ</h3>
-        <Badge variant="outline" className="ml-auto">
-          {bids.length}件の入札
-        </Badge>
       </div>
 
       <div className="overflow-hidden rounded-xl border shadow-sm">
@@ -91,7 +100,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHist
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bids.map((bid, index) => (
+            {displayedBids.map((bid, index) => (
               <motion.tr
                 key={bid.id}
                 initial={{ opacity: 0, y: 10 }}

@@ -84,12 +84,11 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
             <Bot className="text-secondary mr-2 h-5 w-5" />
             自動入札設定中
           </CardTitle>
-          <CardDescription>現在の最高入札額: {formatCurrency(currentHighestBid)}</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">最大入札額:</p>
+              <p className="text-sm font-medium">上限入札額:</p>
               <p className="text-secondary font-bold">{formatCurrency(autoBidSettings.maxBidAmount)}</p>
             </div>
             <div className="flex items-center justify-between">

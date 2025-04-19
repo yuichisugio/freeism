@@ -87,24 +87,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション情報の変更を監視。更新があればコンソールに出力
-   */
-  useEffect(() => {
-    console.log("AuctionDetail_auction_state_updated", auction);
-  }, [auction]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 入札履歴の変更を監視。更新があればコンソールに出力
-   */
-  useEffect(() => {
-    console.log("AuctionDetail_bidHistory_state_updated", bidHistory);
-  }, [bidHistory]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * ウォッチリストボタンのクリックハンドラ
    */
   const handleWatchlistToggle = useCallback(async () => {
@@ -142,7 +124,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">現在価格</p>
-                <p className="mt-2 text-3xl font-bold text-blue-700">{formatCurrency(auction.currentHighestBid ?? 0)}</p>
+                <p className="mt-2 text-3xl font-bold text-blue-700">
+                  {formatCurrency(auction.currentHighestBid ?? (auction.task as { startPrice?: number })?.startPrice ?? 0)}
+                </p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">最低入札額</p>
@@ -150,7 +134,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               </div>
               <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">入札数</p>
-                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length ?? 0}</p>
+                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length >= 50 ? "50+" : (bidHistory.length ?? 0)}</p>
               </div>
             </div>
           </CardContent>
@@ -295,7 +279,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         {/* 左側: オークション画像 */}
-        <div className="relative h-[250px] overflow-hidden rounded-lg">
+        <div className="relative h-[300px] overflow-hidden rounded-lg shadow-md md:h-[400px]">
           <Image
             src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""}
             alt={auction.title ?? "オークション画像"}
@@ -357,6 +341,11 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           >
             <BarChart className="h-4 w-4" />
             <span>入札履歴</span>
+            {bidHistory.length > 0 && (
+              <Badge variant="secondary" className="ml-1.5 px-1.5 py-0.5 text-xs font-normal">
+                {bidHistory.length >= 50 ? "50+" : bidHistory.length}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger
             value="qa"

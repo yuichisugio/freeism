@@ -31,7 +31,7 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
           orderBy: {
             createdAt: "desc",
           },
-          take: 20,
+          take: 50,
         },
       },
     });
@@ -84,13 +84,12 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
         },
         bidHistories: {
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: 51,
           include: {
             user: {
               select: {
                 id: true,
                 name: true,
-                image: true,
               },
             },
           },

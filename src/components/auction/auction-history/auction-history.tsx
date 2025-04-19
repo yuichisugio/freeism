@@ -4,7 +4,6 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Rating } from "@/components/auction/common/rating";
 import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUserCreatedAuctions, getUserLatestBids, getUserWonAuctions } from "@/lib/auction/action/history";
@@ -74,15 +73,7 @@ const HistoryCard = memo(function HistoryCard({
           <div className="text-lg font-semibold">{amount.toLocaleString()} ポイント</div>
         </div>
         {extraContent}
-        {avatarSrc !== undefined && avatarName !== undefined && (
-          <div className="mb-2 flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={avatarSrc ?? ""} alt={avatarName ?? ""} />
-              <AvatarFallback>{avatarName?.[0] ?? ""}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm">{avatarName}</span>
-          </div>
-        )}
+        {avatarSrc !== undefined && avatarName !== undefined && <span className="text-sm">{avatarName}</span>}
         {deliveryMethod && (
           <div className="mt-2 text-sm text-gray-600">
             <span className="font-medium">提供方法: </span>
@@ -252,7 +243,6 @@ export const AuctionHistory = memo(function AuctionHistory() {
         timestampText={`${formatDistanceToNow(new Date(auction.endTime), { addSuffix: true, locale: ja })}に落札`}
         amount={auction.currentHighestBid}
         amountLabel="落札額"
-        avatarSrc={auction.task.creator.image}
         avatarName={auction.task.creator.name ?? "出品者"}
         deliveryMethod={auction.task.deliveryMethod}
         leftBadge={<TaskStatusBadge status={auction.task.status} />}
@@ -279,7 +269,6 @@ export const AuctionHistory = memo(function AuctionHistory() {
         timestampText={`${formatDistanceToNow(new Date(auction.createdAt), { addSuffix: true, locale: ja })}に出品`}
         amount={auction.currentHighestBid}
         amountLabel="落札額"
-        avatarSrc={auction.winner?.image}
         avatarName={auction.winner?.name ?? "落札者"}
         leftBadge={<TaskStatusBadge status={auction.task.status} />}
         rightBadge={<AuctionStatusBadge status={auction.status} />}
