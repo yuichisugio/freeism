@@ -156,7 +156,7 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
             name="auctionStartTime"
             label="オークション開始日時"
             description="オークションの開始日時を設定してください。未設定の場合は現在の日時が適用されます。"
-            dateFormat="yyyy年MM月dd日 HH:mm"
+            dateFormat="yyyy年MM月dd日"
             placeholder="開始日時を選択"
           />
 
@@ -167,7 +167,7 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
             name="auctionEndTime"
             label="オークション終了日時"
             description="オークションの終了日時を設定してください。未設定の場合は開始から1週間後が適用されます。"
-            dateFormat="yyyy年MM月dd日 HH:mm"
+            dateFormat="yyyy年MM月dd日"
             placeholder="終了日時を選択"
           />
 

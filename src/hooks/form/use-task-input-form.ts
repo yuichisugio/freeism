@@ -83,6 +83,15 @@ export type TaskFormValues = z.infer<typeof formSchema>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+// Helper function to get date with time set to 00:00:00
+function getDateWithoutTime(date: Date): Date {
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * フォーム値とグループIDの型定義
  */
@@ -162,8 +171,8 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
       executors: [],
       reporters: [],
       imageUrl: "",
-      auctionStartTime: new Date(),
-      auctionEndTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      auctionStartTime: getDateWithoutTime(new Date()), // 時刻をリセット
+      auctionEndTime: getDateWithoutTime(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 時刻をリセット
       deliveryMethod: "",
     },
   });
@@ -293,6 +302,12 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
       console.log("フォーム送信データ:", data);
 
       try {
+        // 時刻を00:00:00に設定
+        const startTime =
+          data.contributionType === contributionType.REWARD && data.auctionStartTime ? getDateWithoutTime(data.auctionStartTime) : undefined;
+        const endTime =
+          data.contributionType === contributionType.REWARD && data.auctionEndTime ? getDateWithoutTime(data.auctionEndTime) : undefined;
+
         // タスクを保存
         const result = await createTask({
           task: data.task,
@@ -305,9 +320,9 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
           groupId: data.groupId,
           executors: executors.length > 0 ? executors : undefined,
           reporters: reporters.length > 0 ? reporters : undefined,
-          // オークション関連のデータを追加
-          auctionStartTime: data.contributionType === contributionType.REWARD ? data.auctionStartTime : undefined,
-          auctionEndTime: data.contributionType === contributionType.REWARD ? data.auctionEndTime : undefined,
+          // 修正した日時を使用
+          auctionStartTime: startTime,
+          auctionEndTime: endTime,
           deliveryMethod: data.contributionType === contributionType.REWARD ? data.deliveryMethod : undefined,
         });
 

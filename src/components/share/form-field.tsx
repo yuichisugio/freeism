@@ -2,11 +2,11 @@
 
 import type { Locale } from "date-fns/locale";
 import type { ReactNode } from "react";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isAfter, isBefore, isSameDay } from "date-fns";
 import { ja } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 import { type Control, type ControllerRenderProps, type FieldValues, type Path } from "react-hook-form";
 
 import { Button } from "../ui/button";
@@ -18,6 +18,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
+import { DateField } from "./date-field";
+
+// --------------------------------------------------
 
 // 基本型定義
 export type RadioOption = {
@@ -303,89 +306,7 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
         );
       }
       case "date": {
-        const placeholder = formProps.placeholder ?? "日付を選択";
-        const buttonText = formProps.buttonText ?? placeholder;
-        const dateFormat = formProps.dateFormat ?? "yyyy年MM月dd日";
-        const locale = formProps.locale ?? ja;
-        const includeTime = dateFormat.includes("HH") || dateFormat.includes("mm") || dateFormat.includes("ss");
-
-        // 今日の日付（00:00:00の時点）を取得
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        return (
-          <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
-            <Popover>
-              <PopoverTrigger asChild>
-                <div className="transition-all hover:opacity-90">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start border-gray-300 text-left font-normal transition-all duration-200 hover:border-blue-400"
-                    type="button"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
-                    {field.value ? <span className="transition-all">{format(new Date(field.value), dateFormat, { locale })}</span> : buttonText}
-                  </Button>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="transition-all">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date: Date | undefined) => {
-                      if (date) {
-                        // 日付が選択された場合、現在の時間情報を保持
-                        const currentValue = field.value ? new Date(field.value) : new Date();
-                        date.setHours(currentValue.getHours());
-                        date.setMinutes(currentValue.getMinutes());
-                        date.setSeconds(currentValue.getSeconds());
-                      }
-                      field.onChange(date ?? null);
-                    }}
-                    initialFocus
-                    locale={locale}
-                    className="rounded-md border shadow-lg"
-                    fromDate={formProps.disablePastDates ? today : undefined}
-                  />
-                  {includeTime && (
-                    <div className="border-t p-3">
-                      <div className="flex items-center justify-between">
-                        <input
-                          type="number"
-                          min="0"
-                          max="23"
-                          className="w-16 rounded-md border p-2"
-                          placeholder="時"
-                          value={field.value ? new Date(field.value).getHours() : 0}
-                          onChange={(e) => {
-                            const date = new Date(field.value ?? new Date());
-                            date.setHours(parseInt(e.target.value) ?? 0);
-                            field.onChange(date);
-                          }}
-                        />
-                        <span className="self-center">:</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="59"
-                          className="w-16 rounded-md border p-2"
-                          placeholder="分"
-                          value={field.value ? new Date(field.value).getMinutes() : 0}
-                          onChange={(e) => {
-                            const date = new Date(field.value ?? new Date());
-                            date.setMinutes(parseInt(e.target.value) ?? 0);
-                            field.onChange(date);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </FieldLayout>
-        );
+        return <DateField {...formProps} control={props.control} name={props.name} />;
       }
       case "switch": {
         return (
