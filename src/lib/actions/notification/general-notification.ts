@@ -1,3 +1,5 @@
+"use server";
+
 import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 import { NotificationSendMethod } from "@prisma/client";
 

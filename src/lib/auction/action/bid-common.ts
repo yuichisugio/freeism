@@ -1,3 +1,5 @@
+"use server";
+
 import type { Session } from "next-auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";

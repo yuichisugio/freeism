@@ -1,3 +1,5 @@
+"use server";
+
 import { revalidatePath } from "next/cache";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
