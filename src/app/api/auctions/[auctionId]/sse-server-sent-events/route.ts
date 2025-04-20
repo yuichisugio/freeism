@@ -21,6 +21,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log(`route.ts_GET_処理開始 (Auction: ${auctionId}, CM Instance ID: ${connectionManager.getInstanceId()})`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // クエリパラメータを取得
   const url = new URL(request.url);
   console.log(`route.ts_GET_受信したリクエストURL: ${request.url}`);
@@ -120,7 +124,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const auctionData = await getAuctionByAuctionId(auctionId);
     console.log(`route.ts_GET_オークションデータ取得結果:`, auctionData ? "成功" : "失敗");
     if (!auctionData) {
-      console.error(`[API Route GET] Auction data not found for ID: ${auctionId}`);
+      console.error(`route.ts_GET_オークションデータ取得エラー: Auction data not found for ID: ${auctionId}`);
       return new Response(JSON.stringify({ error: "Auction not found" }), { status: 404 });
     }
 
@@ -129,7 +133,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // ストリームの設定
     const stream = new ReadableStream({
       start: async (controller) => {
-        console.log(`[API Route Stream Start] Client ${clientId}, Auction ${auctionId}`);
+        console.log(`route.ts_GET_ストリーム開始 (Client: ${clientId}, Auction: ${auctionId})`);
+        console.log(`route.ts_GET_ストリーム開始 (Client: ${clientId}, Auction: ${auctionId}, CM Instance ID: ${connectionManager.getInstanceId()})`);
         let heartbeatInterval: NodeJS.Timeout | null = null;
         let timeoutId: NodeJS.Timeout | null = null;
 
@@ -141,7 +146,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             console.log(`route.ts_GET_クライアント ${clientId} にハートビートを送信します`);
             controller.enqueue(encoder.encode(":\n\n"));
           } catch (error) {
-            console.warn(`[API Route Stream Heartbeat] Error sending heartbeat to ${clientId}, closing connection:`, error);
+            console.warn(`route.ts_GET_ハートビートエラー: ${clientId}, 接続を閉じます:`, error);
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             connectionManager.removeConnection(auctionId, clientId);
             try {
@@ -155,7 +160,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // 一定時間後にタイムアウト
         timeoutId = setTimeout(() => {
           try {
-            console.log(`[API Route Stream Timeout] Client ${clientId}, Auction ${auctionId}`);
+            console.log(`route.ts_GET_タイムアウト (Client: ${clientId}, Auction: ${auctionId})`);
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             connectionManager.removeConnection(auctionId, clientId);
             try {

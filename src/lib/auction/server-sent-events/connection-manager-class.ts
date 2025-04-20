@@ -102,7 +102,8 @@ export class ConnectionManager {
     heartbeatInterval: NodeJS.Timeout | null = null,
     timeoutId: NodeJS.Timeout | null = null,
   ): void {
-    console.log("[CM Class] addConnection start", auctionId, clientId);
+    console.log("[CM Class] addConnection start", auctionId, clientId, this.instanceId);
+    console.log("[CM Class] addConnection start_instanceId", this.instanceId);
     const normalizedAuctionId = String(auctionId);
     if (!this.connections.has(normalizedAuctionId)) {
       console.log(`[CM Class] Creating new map for auction ${normalizedAuctionId}`);
@@ -127,7 +128,8 @@ export class ConnectionManager {
    * @param clientId クライアントID
    */
   removeConnection(auctionId: string, clientId: string): void {
-    console.log("[CM Class] removeConnection start", auctionId, clientId);
+    console.log("[CM Class] removeConnection start", auctionId, clientId, this.instanceId);
+    console.log("[CM Class] removeConnection start_instanceId", this.instanceId);
     const normalizedAuctionId = String(auctionId);
     const auctionClients = this.connections.get(normalizedAuctionId);
     if (!auctionClients) {
@@ -257,7 +259,8 @@ export class ConnectionManager {
    * @returns イベント履歴
    */
   broadcastToAuction(auctionId: string, type: SSEAuctionEventType, data: AuctionWithDetails, _clientId?: string): EventHistoryItem {
-    console.log("[CM Class] broadcastToAuction start", auctionId, type);
+    console.log("[CM Class] broadcastToAuction start", auctionId, type, this.instanceId);
+    console.log("[CM Class] broadcastToAuction start_instanceId", this.instanceId);
     const normalizedAuctionId = String(auctionId);
     const event = this.addEventToHistory(normalizedAuctionId, type, data as unknown as Record<string, unknown>);
     const eventMessage = this.formatEventMessage(event);

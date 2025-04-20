@@ -28,5 +28,8 @@ export async function sendEventToAuctionSubscribers(
   data: AuctionWithDetails,
 ): Promise<EventHistoryItem> {
   console.log("sendEventToAuctionSubscribers", auctionId, type);
+  console.log(
+    `server-sent-events-broadcast.ts_sendEventToAuctionSubscribers 処理開始 (Auction: ${auctionId}, Type: ${type}, CM Instance ID: ${connectionManager.getInstanceId()})`,
+  );
   return connectionManager.broadcastToAuction(auctionId, type, data);
 }
