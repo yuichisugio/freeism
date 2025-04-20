@@ -104,6 +104,7 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
                   type="button"
                   variant="outline"
                   size="icon"
+                  id="decrement-bid"
                   onClick={decrementBid}
                   disabled={bidAmount <= minBid}
                   className="h-10 w-10 rounded-full"
@@ -115,6 +116,7 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
                 <div className="relative w-full">
                   <Input
                     type="number"
+                    id="bid-amount"
                     min={minBid}
                     step={1}
                     value={bidAmount}
@@ -126,7 +128,7 @@ export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
                 </div>
 
                 {/* インクリメントボタン */}
-                <Button type="button" variant="outline" size="icon" onClick={incrementBid} className="h-10 w-10 rounded-full">
+                <Button type="button" variant="outline" size="icon" id="increment-bid" onClick={incrementBid} className="h-10 w-10 rounded-full">
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
