@@ -287,7 +287,6 @@ export const AuctionFilters = memo(function AuctionFilters({
     changingSearchQuery,
     draftConditions,
     categoriesList,
-    uniqueGroups,
     areAllGroupsSelected,
     joinTypeinedGroupList,
 

@@ -1,7 +1,4 @@
-"use server";
-
 import type { Session } from "next-auth";
-import { revalidatePath } from "next/cache";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
@@ -667,7 +664,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // パスの再検証
-    revalidatePath(`/auctions/${auctionId}`);
+    // App Router でクライアント側からサーバーアクションを呼び出した場合は、キャッシュが無効化された直後に Next.js が ソフトリフレッシュ（router.refresh() と同等のルート再取得）を自動で実行する挙動 になっているため、コンポーネントツリーは描画し直され、ローカル state は失われる—そのため 見かけ上は「ページが更新された」ように感じる ことがあります
+    // なので、revalidatePathは使用してはダメ
+    // revalidatePath(`/auctions/${auctionId}`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

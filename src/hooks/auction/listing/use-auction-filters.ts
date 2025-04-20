@@ -2,7 +2,6 @@
 
 import type {
   AuctionFilterTypes,
-  AuctionListingResult,
   AuctionListingsConditions,
   AuctionSortField,
   SortDirection,
@@ -26,7 +25,6 @@ type UseAuctionFiltersReturn = {
   openGroupCombobox: boolean;
   changingSearchQuery: string | null;
   categoriesList: string[];
-  uniqueGroups: Array<{ id: string; name: string }>;
   areAllGroupsSelected: boolean;
   joinTypeinedGroupList: Array<{ id: string; name: string }>;
 
@@ -69,14 +67,9 @@ type UseAuctionFiltersReturn = {
  * オークションフィルター用カスタムフック
  * @param listingsConditions フィルターの状態
  * @param setListingsConditions フィルターの変更アクション
- * @param auctions オークションのリスト
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({
-  listingsConditions,
-  setListingsConditionsAction,
-  auctions,
-}: UseAuctionFiltersProps & { auctions: AuctionListingResult }): UseAuctionFiltersReturn {
+export function useAuctionFilters({ listingsConditions, setListingsConditionsAction }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // フィルターパネルの表示状態
@@ -180,33 +173,10 @@ export function useAuctionFilters({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユニークなグループを取得
-  const uniqueGroups = useMemo((): Array<{ id: string; name: string }> => {
-    // ユニークなグループIDを抽出
-    const uniqueGroupsMap = new Map<string, { id: string; name: string }>();
-    auctions.forEach((auction) => {
-      if (auction.group?.id && auction.group?.name && !uniqueGroupsMap.has(auction.group.id)) {
-        uniqueGroupsMap.set(auction.group.id, {
-          id: auction.group.id,
-          name: auction.group.name,
-        });
-      }
-    });
-    // Map からユニークなグループの配列を作成
-    return Array.from(uniqueGroupsMap.values());
-  }, [auctions]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // すべてのグループが選択されているかを確認
   const areAllGroupsSelected = useMemo(() => {
     // draftConditions.groupIdsがない場合はtrue
-    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0) {
-      return true;
-    }
-
-    // uniqueGroupsがない場合はtrue
-    if (uniqueGroups.length === 0) {
+    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0 || joinTypeinedGroupList.length === 0) {
       return true;
     }
 
@@ -215,7 +185,6 @@ export function useAuctionFilters({
 
     // すべてのグループIDが選択されているかチェック
     // draftConditions.groupIdsは、ユーザーが参加している全てのGroupが常に入っている
-    // uniqueGroupsは、開いているページに表示されているオークションに紐づくグループID。なので参加している全てのグループIDではない
     // そのため、joinTypeinedGroupList（参加している全てのGroupIDが入った配列）で、draftConditions.groupIdsをチェックする
     return joinTypeinedGroupList.every((group) => {
       return draftConditions.groupIds?.includes(group.id);
@@ -658,7 +627,6 @@ export function useAuctionFilters({
     openGroupCombobox,
     changingSearchQuery,
     categoriesList,
-    uniqueGroups,
     areAllGroupsSelected,
     joinTypeinedGroupList,
     // action

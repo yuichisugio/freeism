@@ -363,14 +363,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
             timestamp: new Date().toISOString(),
           }),
         );
+        console.log(`SSE_editSSEdata_lastReceivedMessageを更新しました`);
 
         // イベントキューに追加
         processEventDataByType({
           type: event as SSEAuctionEventType,
           data: parsedData,
         });
-
-        console.log(`SSE_editSSEdata_イベント ${event} をキューに追加しました`);
       } catch (error) {
         // JSON.parse でのエラーハンドリング
         console.error(`SSE_editSSEdata_JSONパース中にエラーが発生しました:`, error);
