@@ -264,7 +264,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
       } else {
         console.warn("SSE_reconnect_connect関数が見つかりませんでした");
       }
-    }, 300); // 300ms待機 (必要に応じて調整)
+    }, 3000); // 3秒待機
   }, [disconnect]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -388,21 +388,25 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
    */
   const handleSSEStream = useCallback(
     async (response: Response): Promise<void> => {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       console.log("SSE_handleSSEStream_start");
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       const reader = response.body?.getReader();
       if (!reader) {
         setError("SSEレスポンスのBodyが取得できません"); // エラー状態も更新
         console.log("SSE_handleSSEStream_SSEレスポンスのBodyが取得できません");
         return; // Body がなければ処理終了
       }
-
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       const decoder = new TextDecoder();
       let buffer = ""; // メッセージを蓄積するバッファ
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       try {
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         isConnectedRef.current = true;
         console.log("SSE_handleSSEStream_SSE接続状態を「接続中」に設定しました");
-
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         while (isConnectedRef.current) {
           // isConnectedRef をループ条件に
           try {
@@ -416,6 +420,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
                 // メッセージ区切りがない場合も考慮してそのまま処理
                 editSSEdata(buffer);
               }
+              await disconnect(); // ★追加
+              // 再接続を予約
+              reconnectTimerRef.current = setTimeout(() => reconnect(), 1000);
               break; // ストリーム終了なのでループを抜ける
             }
 
@@ -456,20 +463,33 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
           }
         }
       } catch (err: unknown) {
-        // fetch 自体のエラーや、予期せぬエラー
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+        // AbortError以外の予期せぬエラー。再接続が必要
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         if ((err as Error).name !== "AbortError") {
           console.error("SSE_handleSSEStream_SSEストリーム処理中に予期せぬエラー:", err);
           setError("リアルタイム更新の接続で問題が発生しました。");
           setLoading(false);
-          // 接続を切断
-          if (isConnectedRef.current && disconnectFuncRef.current) {
-            void disconnectFuncRef.current();
+          if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+            console.log("SSE_handleSSEStream_既存の再接続タイマーをクリアしました");
           }
+          // 接続を切断してリセット
+          if (isConnectedRef.current && disconnectFuncRef.current) {
+            await disconnectFuncRef.current();
+          }
+          // 再接続を予約
+          reconnectTimerRef.current = setTimeout(() => reconnect(), 1000);
+
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+          // AbortErrorなので、意図したエラーなので、何も処理しない
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         } else {
-          console.log("SSE_handleSSEStream_予期せぬ AbortError をキャッチ");
+          console.log("SSE_handleSSEStream_意図的なAbortErrorをキャッチ");
           setLoading(false);
         }
       } finally {
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         console.log("SSE_handleSSEStream_finallyブロック実行");
         // リーダーの解放を試みる
         try {
@@ -486,9 +506,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
         console.log("SSE_handleSSEStream_finally 処理完了");
       }
     },
-    // processSSEEvent は useCallback でメモ化されている想定
-    // disconnectFuncRef.current を使うようにしたので disconnect は依存から外せる
-    [editSSEdata],
+    [editSSEdata, disconnect, reconnect],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -587,10 +605,38 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
             void handleSSEStream(response);
           })
           .catch((err) => {
+            console.log("SSE_connect_catch_エラー発生");
+            // ーーーーーーーーーーーーーーーーーーーAbortError以外の場合（再接続対象！予期せぬエラー）ーーーーーーーーーーーーーーーーーーー
             if ((err as Error).name !== "AbortError") {
-              console.error("SSE_connect_SSE接続の確立に失敗しました:", err);
-              setError("リアルタイム更新を開始できませんでした");
+              // 2. AbortError 以外の予期せぬエラーの場合 (再接続対象！)
+              console.error("SSE_connect_SSE接続の確立自体に失敗しました:", err);
+              setError("リアルタイム更新の開始に失敗しました。自動的に再接続します..."); // エラーメッセージ更新
               setLoading(false);
+              isConnectedRef.current = false; // 接続状態を false に
+
+              // 3. 再接続処理を予約する (handleSSEStream と同様)
+              if (reconnectTimerRef.current) {
+                clearTimeout(reconnectTimerRef.current);
+                console.log("SSE_connect_catch_既存の再接続タイマーをクリアしました");
+              }
+
+              console.log("SSE_connect_catch_5秒後に自動再接続をスケジュールします");
+              reconnectTimerRef.current = setTimeout(() => {
+                console.log("SSE_connect_catch_自動再接続を実行します");
+                if (connectFuncRef.current) {
+                  void connectFuncRef.current(); // 再接続開始！
+                } else {
+                  console.warn("SSE_connect_catch_connect関数が見つからず再接続できませんでした");
+                  setError("再接続に必要な処理が見つかりませんでした。");
+                }
+              }, 5000); // 5秒後に再接続
+
+              // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+            } else {
+              // AbortError の場合 (意図的な切断)
+              console.log("SSE_connect_fetch が AbortError で中断されました (意図的な切断)");
+              // 通常、disconnect関数によって処理されているはずなので、ここではログ表示程度
+              setLoading(false); // 念のためローディング解除
             }
           });
       }, 100);
@@ -713,14 +759,17 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
 
   // useAuctionEvent の返り値
   return {
+    // state
     auction, // オークション情報
     bidHistory, // 入札履歴
     loading, // ローディング状態
     error, // エラー
     clientId, // クライアントID
     lastEventId, // 最後に受信したイベントID
-    reconnect, // 手動で再接続するための関数
-    disconnect, // 手動で切断するための関数
     lastReceivedMessage, // 最後に受信したSSEメッセージ（デバッグ用）
+
+    // action
+    disconnect, // 切断
+    reconnect, // 再接続
   };
 }

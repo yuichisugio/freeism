@@ -2,8 +2,13 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { SSE_CONFIG } from "@/lib/auction/constants";
-import { connectionManager } from "@/lib/auction/server-sent-events/connection-manager-singleton";
+import { redis } from "@/lib/redis"; // Assuming this is correctly configured Upstash Redis client
 import { getAuthSession } from "@/lib/utils";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// Vercelが、キャッシュを無視して、常に最新のデータを取得するように指定
+export const dynamic = "force-dynamic";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -16,240 +21,201 @@ import { getAuthSession } from "@/lib/utils";
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // パラメータを取得
-  const { auctionId } = await params;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  console.log(`route.ts_GET_処理開始 (Auction: ${auctionId}, CM Instance ID: ${connectionManager.getInstanceId()})`);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // クエリパラメータを取得
-  const url = new URL(request.url);
-  console.log(`route.ts_GET_受信したリクエストURL: ${request.url}`);
-
-  // クライアントIDを取得
-  const clientId = url.searchParams.get("clientId") ?? `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
-  // 最後のイベントIDを取得
-  const lastEventId = parseInt(url.searchParams.get("lastEventId") ?? "0", 10);
-
-  // URLからオークションIDを取得（パスパラメータと一致するか確認用）
-  const queryAuctionId = url.searchParams.get("auctionId");
-
-  console.log(
-    `route.ts_GET_SSE接続確立中: ${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId}, 最後のイベントID: ${lastEventId})`,
-  );
-
-  // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
-  if (queryAuctionId && queryAuctionId !== auctionId) {
-    console.warn(
-      `route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`,
-    );
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 認証チェック
-  const session = await getAuthSession();
-  console.log(`route.ts_GET_セッション: ${session ? "あり" : "なし"}, ユーザーID: ${session?.user?.id ?? "なし"}`);
-
-  // ログインしていない場合は401エラーを返す
-  if (!session?.user?.id) {
-    console.error("route.ts_GET_SSE接続認証エラー: ユーザーセッションが存在しません");
-    return new Response(
-      JSON.stringify({
-        error: "認証が必要です",
-        detail: "ログインしてください",
-      }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache, no-transform",
-        },
-      },
-    );
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   try {
-    const connectionCount = connectionManager.getConnectionCount(auctionId);
-    // 接続数制限チェック
-    console.log(`route.ts_GET_オークション ${auctionId} の現在の接続数: ${connectionCount}`);
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_start`);
 
-    if (connectionCount >= SSE_CONFIG.MAX_CONNECTIONS_PER_AUCTION) {
-      return new Response(
-        JSON.stringify({
-          error: "接続数制限超過",
-          detail: "現在、このオークションへの接続数が上限に達しています。しばらく経ってから再度お試しください。",
-        }),
-        {
-          status: 503,
-          headers: {
-            "Content-Type": "application/json",
-            "Cache-Control": "no-cache, no-transform",
-            "Retry-After": "60",
-          },
-        },
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 認証チェック
+     */
+    const session = await getAuthSession();
+    const userId = session?.user?.id;
+
+    // ログインしていない場合は401エラーを返す
+    if (!userId) {
+      return new NextResponse(JSON.stringify({ error: "認証が必要です", detail: "ログインしてください" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * クエリパラメータを取得
+     */
+    const url = new URL(request.url);
+
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_受信したリクエストURL: ${request.url}`);
+
+    // auctionIdを取得
+    const { auctionId } = await params;
+    if (!auctionId) {
+      return new NextResponse(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
+    }
+
+    // クライアントIDを取得 (デフォルトはuserId)
+    const clientId = url.searchParams.get("clientId") ?? userId;
+
+    // URLからオークションIDを取得（パスパラメータと一致するか確認用）
+    const queryAuctionId = url.searchParams.get("auctionId");
+
+    console.log(`route.ts_GET_SSE接続確立中: Client=${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId ?? "N/A"})`);
+
+    // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
+    if (queryAuctionId && queryAuctionId !== auctionId) {
+      console.warn(
+        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`,
       );
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ストリームとエンコーダーの設定
+    /**
+     * ストリーム作成とPub/Subの設定に必要な変数
+     */
+    // Pub/Subチャンネル名
+    const redisClientKey = `auction:${auctionId}:events`;
+    // ストリームコントローラー
+    let streamController: ReadableStreamController<Uint8Array> | null = null;
+    // ハートビートタイマー
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+    // 接続タイムアウト
+    let connectionTimeout: NodeJS.Timeout | null = null;
+    // 購読オブジェクト
+    let subscription: ReturnType<typeof redis.subscribe<string>> | null = null;
+    // Encoderを定義
     const encoder = new TextEncoder();
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // クライアントが接続を閉じた時の処理
-    const handleAbort = () => {
-      try {
-        console.log(`route.ts_GET_クライアント ${clientId} の接続が中断されました (abort)`);
-
-        connectionManager.removeConnection(auctionId, clientId);
-      } catch (error) {
-        console.error(`route.ts_GET_クライアント ${clientId} のabortハンドリング中にエラーが発生:`, error);
-      }
+    /**
+     * クリーンアップ関数
+     * 接続終了時にリソースを解放する
+     */
+    const cleanup = () => {
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      if (connectionTimeout) clearTimeout(connectionTimeout);
+      subscription?.unsubscribe().catch(console.error);
+      streamController?.close();
     };
-
-    // abortイベントリスナーを登録
-    request.signal.addEventListener("abort", handleAbort);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    console.log(`route.ts_GET_オークション ${auctionId} のデータを取得します`);
-    const auctionData = await getAuctionByAuctionId(auctionId);
-    console.log(`route.ts_GET_オークションデータ取得結果:`, auctionData ? "成功" : "失敗");
-    if (!auctionData) {
-      console.error(`route.ts_GET_オークションデータ取得エラー: Auction data not found for ID: ${auctionId}`);
-      return new Response(JSON.stringify({ error: "Auction not found" }), { status: 404 });
+    /**
+     * Redis Pub/Sub 購読開始
+     * ストリーム作成前に購読を開始して、接続直後のメッセージを見逃さないようにする
+     */
+    try {
+      console.log(
+        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub_購読開始_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
+      );
+      subscription = redis.subscribe<string>(redisClientKey);
+
+      console.log(
+        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読成功_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
+      );
+    } catch (subError) {
+      console.error(
+        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読エラー_clientId: ${clientId}, redisClientKey: ${redisClientKey}:`,
+        subError,
+      );
+      return new Response(JSON.stringify({ error: "Failed to subscribe to auction events" }), { status: 500 });
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ストリームの設定
-    const stream = new ReadableStream({
-      start: async (controller) => {
-        console.log(`route.ts_GET_ストリーム開始 (Client: ${clientId}, Auction: ${auctionId})`);
-        console.log(`route.ts_GET_ストリーム開始 (Client: ${clientId}, Auction: ${auctionId}, CM Instance ID: ${connectionManager.getInstanceId()})`);
-        let heartbeatInterval: NodeJS.Timeout | null = null;
-        let timeoutId: NodeJS.Timeout | null = null;
+    /**
+     * ReadableStream の設定と作成
+     */
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller: ReadableStreamDefaultController<Uint8Array>) {
+        streamController = controller;
+        console.log(`SSE stream started for client ${clientId}, auction ${auctionId}`);
 
-        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-        // ハートビートタイマー設定
+        // Heartbeat interval
         heartbeatInterval = setInterval(() => {
-          try {
-            console.log(`route.ts_GET_クライアント ${clientId} にハートビートを送信します`);
-            controller.enqueue(encoder.encode(":\n\n"));
-          } catch (error) {
-            console.warn(`route.ts_GET_ハートビートエラー: ${clientId}, 接続を閉じます:`, error);
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-            connectionManager.removeConnection(auctionId, clientId);
-            try {
-              controller.close();
-            } catch {} // Attempt to close controller on error
-          }
+          controller.enqueue(encoder.encode(":\n\n"));
         }, SSE_CONFIG.HEARTBEAT_INTERVAL);
 
-        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-        // 一定時間後にタイムアウト
-        timeoutId = setTimeout(() => {
-          try {
-            console.log(`route.ts_GET_タイムアウト (Client: ${clientId}, Auction: ${auctionId})`);
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-            connectionManager.removeConnection(auctionId, clientId);
-            try {
-              controller.close();
-            } catch {} // Attempt to close controller on timeout
-          } catch (e) {
-            console.error("route.ts_GET_コントローラーのクローズ中にエラーが発生しました:", e);
-          }
+        // --- 接続タイムアウト設定 ---
+        connectionTimeout = setTimeout(() => {
+          cleanup();
         }, SSE_CONFIG.CONNECTION_TIMEOUT);
 
-        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+        // ----------------- 初期データの送信 -----------------
+        console.log(
+          `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_初期データ取得: オークション ${auctionId} のデータを取得します`,
+        );
+        getAuctionByAuctionId(auctionId)
+          .then((auctionData) => {
+            if (!auctionData) throw new Error(`Auction ${auctionId} not found`);
+            const msg = `event: connection_established\nid: ${Date.now()}\ndata: ${JSON.stringify(auctionData)}\n\n`;
+            controller.enqueue(encoder.encode(msg));
+          })
+          .catch((err) => {
+            console.error("Initial data send error:", err);
+            cleanup();
+            controller.error(err instanceof Error ? err : new Error(String(err)));
+            return;
+          });
 
-        // コネクションの登録
-        connectionManager.addConnection(auctionId, clientId, controller, heartbeatInterval, timeoutId);
-        console.log(`route.ts_GET_クライアント ${clientId} の接続を登録しました (オークション: ${auctionId})`);
-
-        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-        try {
-          // 接続成功メッセージを送信
-          const connectionMessage = `event: connection_established\nid: 0\ndata: ${JSON.stringify(auctionData)}\n\n`;
-          controller.enqueue(encoder.encode(connectionMessage));
-          console.log(`route.ts_GET_クライアント ${clientId} への接続確立メッセージを送信しました`);
-
-          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-          // 最後のイベントID以降のイベントを送信（再接続時）
-          if (lastEventId > 0) {
-            const missedEvents = connectionManager.getEventsSince(auctionId, lastEventId);
-
-            if (missedEvents.length > 0) {
-              console.log(`route.ts_GET_クライアント ${clientId} に ${missedEvents.length} 件の未受信イベントを送信します`);
-
-              for (const event of missedEvents) {
-                controller.enqueue(encoder.encode(connectionManager.formatEventMessage(event)));
-              }
-            } else {
-              console.log(`route.ts_GET_クライアント ${clientId} の未受信イベントはありません (lastEventId: ${lastEventId})`);
-            }
-          }
-
-          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-        } catch (error) {
-          console.error("route.ts_GET_接続確立メッセージ送信中にエラーが発生しました:", error);
-          if (heartbeatInterval) clearInterval(heartbeatInterval);
-          if (timeoutId) clearTimeout(timeoutId);
-          connectionManager.removeConnection(auctionId, clientId); // Clean up on start error
+        // ----------------------- Pub/Subメッセージ受信 -----------------------
+        subscription.on("message", ({ message, channel }) => {
           try {
-            controller.error(error);
-          } catch {} // Signal error to the stream
-        }
+            if (!streamController) return;
+            let payload: unknown;
+            try {
+              payload = JSON.parse(message);
+            } catch {
+              payload = message;
+            }
+            const sse = `event: new_bid\nid: ${Date.now()}\ndata: ${JSON.stringify(payload)}\n\n`;
+            streamController.enqueue(encoder.encode(sse));
+            console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Subメッセージ受信: ${message}, ${channel}`);
+          } catch (e) {
+            console.error("Message processing error:", e);
+          }
+        });
 
-        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+        // ----------------------- サブスクリプションエラー -----------------------
+        subscription.on("error", (err: unknown) => {
+          console.error("Subscription error:", err);
+          void cleanup();
+          controller.error(err instanceof Error ? err : new Error(String(err)));
+        });
 
-        // クリーンアップ関数
-        return () => {
-          console.log(`route.ts_GET_クライアント ${clientId} の接続をクリーンアップします`);
-          clearTimeout(timeoutId);
-          clearInterval(heartbeatInterval);
-          connectionManager.removeConnection(auctionId, clientId);
-        };
+        // ----------------------- クライアント中止 -----------------------
+        request.signal.addEventListener("abort", () => void cleanup(), { once: true });
       },
-      cancel: (reason) => {
-        // Stream cancellation from client or controller.error()
-        console.log(`[API Route Stream Cancel] Client ${clientId}, Reason: ${reason}`);
-        // Abort handler should already trigger removeConnection, but ensure cleanup
-        connectionManager.removeConnection(auctionId, clientId);
+      cancel() {
+        cleanup();
       },
     });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    console.log(`route.ts_GET_クライアント ${clientId} にSSEストリームレスポンスを返します`);
-    // レスポンスヘッダーの設定
+    // ----------- レスポンス返却 -----------
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_レスポンス返却: Returning SSE stream for ${clientId}`);
     return new NextResponse(stream, {
+      status: 200, // Statusを明示
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
       },
     });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    console.error("route.ts_GET_SSEセットアップエラー:", error);
+    // GETハンドラ全体の予期せぬエラー
+    console.error(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_全体エラー`, error);
+    // ここで cleanup を呼ぶべきか検討 (リソースが確保されている可能性があるため)
+    // ただし、どの段階でエラーが発生したか不明なため、安全に実行できるか注意が必要
+
     return new Response(
       JSON.stringify({
-        error: "サーバーエラー",
-        detail: "SSE接続の確立中に問題が発生しました",
+        error: "サーバー内部エラー",
+        detail: "SSE接続の処理中に予期せぬ問題が発生しました。",
+        // エラーの詳細を本番環境で公開しないように注意
+        errorMessage: error instanceof Error ? error.message : String(error), // 開発用
       }),
       {
         status: 500,
@@ -264,30 +230,31 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// GET以外のメソッドを禁止
-export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
-  // GETリクエストと同じロジックをコールする（HTTPメソッドの違いによる混乱を避けるため）
-  return GET(request, { params });
+export async function POST() {
+  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-export async function PUT() {
-  return new NextResponse(null, { status: 405 });
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export async function DELETE() {
-  return new NextResponse(null, { status: 405 });
+  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export async function PATCH() {
-  return new NextResponse(null, { status: 405 });
+  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export async function HEAD() {
+  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
+}
 
-export const dynamic = "force-dynamic";
+export async function OPTIONS() {
+  // CORSプリフライトリクエストなどに対応する場合
+  return new NextResponse(null, {
+    status: 204, // No Content
+    headers: {
+      Allow: "GET, OPTIONS", // 許可するメソッド
+      "Access-Control-Allow-Origin": "YOUR_FRONTEND_URL",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization", // 必要なヘッダー
+    },
+  });
+}
