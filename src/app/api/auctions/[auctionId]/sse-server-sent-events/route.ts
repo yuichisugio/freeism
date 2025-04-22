@@ -2,12 +2,14 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { SSE_CONFIG } from "@/lib/auction/constants";
-import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // Vercelが、キャッシュを無視して、常に最新のデータを取得するように指定
 export const dynamic = "force-dynamic";
+
+// 60秒
+export const maxDuration = 60;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -26,23 +28,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 認証チェック
-     */
-    const session = await getAuthSession();
-    const userId = session?.user?.id;
-
-    // ログインしていない場合は401エラーを返す
-    if (!userId) {
-      return new NextResponse(JSON.stringify({ error: "認証が必要です", detail: "ログインしてください" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_認証チェック_end`);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
      * クエリパラメータを取得
      */
     const url = new URL(request.url);
@@ -55,14 +40,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return new NextResponse(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
     }
 
-    // クライアントIDを取得 (デフォルトはuserId)
-    const clientId = url.searchParams.get("clientId") ?? userId;
-
     // URLからオークションIDを取得（パスパラメータと一致するか確認用）
     const queryAuctionId = url.searchParams.get("auctionId");
 
     console.log(
-      `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_SSE接続確立中: Client=${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId ?? "N/A"})`,
+      `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_SSE接続確立中: (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId ?? "N/A"})`,
     );
 
     // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
