@@ -1,15 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { SSE_CONFIG } from "@/lib/auction/constants";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // Vercelが、キャッシュを無視して、常に最新のデータを取得するように指定
 export const dynamic = "force-dynamic";
 
-// 60秒
-export const maxDuration = 60;
+// エッジ環境で実行
+export const runtime = "edge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -24,6 +24,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   try {
     console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_start`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 認証されているユーザーのIDを取得
+     * 認証されていない場合は401エラーを返す
+     * 公開APIになっているので、第三者アクセスを防ぐための代表的手法として、セッションを検証
+     */
+    const session = await getAuthSession();
+    const userId = session?.user?.id;
+    if (!userId) {
+      return new NextResponse(JSON.stringify({ error: "ユーザーが認証されていません" }), { status: 401 });
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -138,10 +151,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         console.log(
           `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_初期データ取得: オークション ${auctionId} のデータを取得します`,
         );
-        getAuctionByAuctionId(auctionId)
+        let url = "";
+        if (process.env.NODE_ENV === "production") {
+          url = `https://${process.env.VERCEL_URL}/api/auctions/${auctionId}/auction-data`;
+        } else {
+          url = `http://localhost:3000/api/auctions/${auctionId}/auction-data`;
+        }
+        fetch(url, {
+          method: "GET",
+          next: { revalidate: 86400 },
+        })
+          .then((res) => res.json())
           .then((auctionData) => {
             if (!auctionData) throw new Error(`Auction ${auctionId} not found`);
-            const msg = `event: connection_established\ndata: ${JSON.stringify(auctionData)}\ntimestamp: ${Date.now()}\n\n`;
+            const msg = `event: connection_established\ndata: ${auctionData}\ntimestamp: ${Date.now()}\n\n`;
             controller.enqueue(encoder.encode(msg));
             console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_初期データ送信: ${msg}`);
           })

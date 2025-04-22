@@ -1,10 +1,10 @@
 "use server";
 
+import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
 
-import { type AuctionWithDetails } from "../type/types";
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションIDに関連するオークション情報を取得
  * @param auctionId オークションID
@@ -117,3 +117,5 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
     return null;
   }
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
