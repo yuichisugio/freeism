@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { SSE_CONFIG } from "@/lib/auction/constants";
-import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -24,19 +23,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   try {
     console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_start`);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 認証されているユーザーのIDを取得
-     * 認証されていない場合は401エラーを返す
-     * 公開APIになっているので、第三者アクセスを防ぐための代表的手法として、セッションを検証
-     */
-    const session = await getAuthSession();
-    const userId = session?.user?.id;
-    if (!userId) {
-      return new NextResponse(JSON.stringify({ error: "ユーザーが認証されていません" }), { status: 401 });
-    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
