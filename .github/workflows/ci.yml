@@ -55,6 +55,7 @@ jobs:
           DOMAIN: ${{ secrets.DOMAIN }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
 
   format:
     needs: setup

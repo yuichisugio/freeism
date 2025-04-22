@@ -68,6 +68,7 @@ jobs:
           DOMAIN: ${{ secrets.DOMAIN }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
 
       - name: Add VAPID_SUBJECT to Vercel Production Environment
         run: vercel env add VAPID_SUBJECT ${{ secrets.VAPID_SUBJECT }} production --token=${{ secrets.VERCEL_TOKEN }}
