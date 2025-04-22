@@ -56,8 +56,6 @@ export async function getAuthenticatedSessionUserId(): Promise<string> {
   } catch (error) {
     console.error("utils.ts_getAuthenticatedSessionUserId_リダイレクトが発生しました", error);
     redirect("/auth/signin");
-    // この行は実行されないが、TypeScriptのコンパイラを満足させるために必要
-    throw new Error("リダイレクト後に実行されるべきではありません");
   }
 }
 
