@@ -2,7 +2,7 @@
 
 import { redis } from "@/lib/redis";
 
-import type { AuctionWithDetails, SSEAuctionEventType } from "../type/types";
+import type { AuctionWithDetails } from "../type/types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,25 +12,43 @@ import type { AuctionWithDetails, SSEAuctionEventType } from "../type/types";
  * @param type イベントタイプ
  * @param data イベントデータ (オークション詳細など)
  */
-export async function sendEventToAuctionSubscribers(auctionId: string, type: SSEAuctionEventType, data: AuctionWithDetails): Promise<void> {
-  // 戻り値は void または 発行したイベントID など
+export async function sendEventToAuctionSubscribers(auctionId: string, data: AuctionWithDetails): Promise<void> {
+  console.log(
+    `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_start: auctionId=${auctionId}, data=${JSON.stringify(data)}`,
+  );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // オークションIDをキーにRedis Pub/Subチャンネルを作成
   const redisPubSubChannel = `auction:${auctionId}:events`;
+  console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_redisPubSubChannel: ${redisPubSubChannel}`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // Pub/Subで送信するデータ構造 (SSEの data: 部分とは少し違う)
   const eventPayload = {
-    type: type, // イベントタイプ ('new_bid', 'auction_update'など)
     data: data, // 送信するデータ本体
     timestamp: Date.now(),
   };
+  console.dir(eventPayload, { depth: null });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
     const message = JSON.stringify(eventPayload);
+    console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信メッセージ: ${message}`);
     const publishResult = await redis.publish(redisPubSubChannel, message);
-    console.log(`[PubSub] Published event (${type}) to ${redisPubSubChannel}. Subscribers: ${publishResult}`);
+    console.log(
+      `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信: [PubSub] Published event to ${redisPubSubChannel}. Subscribers: ${publishResult}`,
+    );
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    console.error(`[PubSub] Failed to publish event to ${redisPubSubChannel}:`, error);
-    // 必要に応じてエラーハンドリングやリトライ処理
-    throw error; // エラーを呼び出し元に伝える
+    console.error(
+      `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信エラー: [PubSub] Failed to publish event to ${redisPubSubChannel}:`,
+      error,
+    );
+    // エラーを呼び出し元に伝える
+    throw error;
   }
 }

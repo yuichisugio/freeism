@@ -8,7 +8,6 @@ import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEvent
 
 import type { AuctionWithDetails, BidHistory, WatchlistItem } from "../type/types";
 import type { ProcessAutoBidParams } from "./auto-bid";
-import { SSEAuctionEventType } from "../type/types";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -658,7 +657,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // SSEでリアルタイム更新を通知。$transaction内で実行したい
-      await sendEventToAuctionSubscribers(auctionId, SSEAuctionEventType.NEW_BID, auctionWithDetails);
+      await sendEventToAuctionSubscribers(auctionId, auctionWithDetails);
 
       return { bidHistory, updatedAuction, auctionWithDetails };
     });

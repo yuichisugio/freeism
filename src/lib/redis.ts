@@ -16,7 +16,7 @@ if (!redisToken) {
   console.error("src/lib/redis.ts_redisクライアント初期化_redisTokenが設定されていません");
 }
 
-const redis = globalForRedis.redis ?? Redis.fromEnv();
+const redis = globalForRedis.redis ?? new Redis({ url: redisUrl, token: redisToken, responseEncoding: false });
 
 if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
 

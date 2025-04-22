@@ -1,3 +1,4 @@
+import type { AuctionWithDetails } from "@/lib/auction/type/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         headers: { "Content-Type": "application/json" },
       });
     }
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_認証チェック_end`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -61,7 +63,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // URLからオークションIDを取得（パスパラメータと一致するか確認用）
     const queryAuctionId = url.searchParams.get("auctionId");
 
-    console.log(`route.ts_GET_SSE接続確立中: Client=${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId ?? "N/A"})`);
+    console.log(
+      `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_SSE接続確立中: Client=${clientId} (オークション: ${auctionId}, クエリパラメータから: ${queryAuctionId ?? "N/A"})`,
+    );
 
     // パスパラメータとクエリパラメータのオークションIDが一致するか確認（オプショナル）
     if (queryAuctionId && queryAuctionId !== auctionId) {
@@ -69,6 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_警告: パスパラメータのオークションID (${auctionId}) とクエリパラメータのオークションID (${queryAuctionId}) が一致しません。パスパラメータを優先します。`,
       );
     }
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_クエリパラメータ取得_end`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -87,6 +92,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     let subscription: ReturnType<typeof redis.subscribe<string>> | null = null;
     // Encoderを定義
     const encoder = new TextEncoder();
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_ストリーム作成とPub/Subの設定に必要な変数_end`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -97,9 +103,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const cleanup = () => {
       if (heartbeatInterval) clearInterval(heartbeatInterval);
       if (connectionTimeout) clearTimeout(connectionTimeout);
-      subscription?.unsubscribe().catch(console.error);
-      streamController?.close();
+      if (subscription) {
+        subscription
+          .unsubscribe()
+          .then(() => {
+            console.log(
+              `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読解除_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
+            );
+          })
+          .catch(console.error);
+        streamController?.close();
+      }
     };
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_クリーンアップ関数の定義_end`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -111,7 +127,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       console.log(
         `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub_購読開始_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
       );
-      subscription = redis.subscribe<string>(redisClientKey);
+      subscription = redis.subscribe([redisClientKey]);
 
       console.log(
         `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読成功_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
@@ -123,7 +139,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
       return new Response(JSON.stringify({ error: "Failed to subscribe to auction events" }), { status: 500 });
     }
-
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読成功_end`);
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
@@ -132,14 +148,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const stream = new ReadableStream<Uint8Array>({
       async start(controller: ReadableStreamDefaultController<Uint8Array>) {
         streamController = controller;
-        console.log(`SSE stream started for client ${clientId}, auction ${auctionId}`);
+        console.log(
+          `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_SSEストリーム開始: client ${clientId}, auction ${auctionId}`,
+        );
 
-        // Heartbeat interval
+        // ---------------- ハートビート ----------------
         heartbeatInterval = setInterval(() => {
           controller.enqueue(encoder.encode(":\n\n"));
         }, SSE_CONFIG.HEARTBEAT_INTERVAL);
 
-        // --- 接続タイムアウト設定 ---
+        // ---------------- 接続タイムアウト設定 ----------------
         connectionTimeout = setTimeout(() => {
           cleanup();
         }, SSE_CONFIG.CONNECTION_TIMEOUT);
@@ -153,6 +171,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             if (!auctionData) throw new Error(`Auction ${auctionId} not found`);
             const msg = `event: connection_established\nid: ${Date.now()}\ndata: ${JSON.stringify(auctionData)}\n\n`;
             controller.enqueue(encoder.encode(msg));
+            console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_初期データ送信: ${msg}`);
           })
           .catch((err) => {
             console.error("Initial data send error:", err);
@@ -164,14 +183,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // ----------------------- Pub/Subメッセージ受信 -----------------------
         subscription.on("message", ({ message, channel }) => {
           try {
+            const trimmed = message.trim();
+            if (!trimmed) return; // 空文字列を無視
+            if (trimmed === ":") return; // ハートビートを無視
+            // data: プレフィックス対応
+            const jsonStr = trimmed.startsWith("{") ? trimmed : trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
             if (!streamController) return;
-            let payload: unknown;
+            let payload: { data: AuctionWithDetails; timestamp: number };
             try {
-              payload = JSON.parse(message);
+              payload = JSON.parse(jsonStr) as { data: AuctionWithDetails; timestamp: number };
             } catch {
-              payload = message;
+              payload = { data: JSON.parse(jsonStr) as AuctionWithDetails, timestamp: Date.now() };
             }
-            const sse = `event: new_bid\nid: ${Date.now()}\ndata: ${JSON.stringify(payload)}\n\n`;
+            const sse = `event: new_bid\nid: ${payload.timestamp}\ndata: ${JSON.stringify(payload.data)}\n\n`;
             streamController.enqueue(encoder.encode(sse));
             console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Subメッセージ受信: ${message}, ${channel}`);
           } catch (e) {
@@ -207,8 +231,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   } catch (error) {
     // GETハンドラ全体の予期せぬエラー
     console.error(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_全体エラー`, error);
-    // ここで cleanup を呼ぶべきか検討 (リソースが確保されている可能性があるため)
-    // ただし、どの段階でエラーが発生したか不明なため、安全に実行できるか注意が必要
 
     return new Response(
       JSON.stringify({
