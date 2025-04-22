@@ -1,7 +1,5 @@
 "use server";
 
-import { redis } from "@/lib/redis";
-
 import type { AuctionWithDetails } from "../type/types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -37,9 +35,18 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Auc
   try {
     const message = JSON.stringify(eventPayload);
     console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信メッセージ: ${message}`);
-    const publishResult = await redis.publish(redisPubSubChannel, message);
+    const redisClientKey = `auction:${auctionId}:events`;
+    const channel = encodeURIComponent(redisClientKey);
+    const redisRestUrl = `${process.env.UPSTASH_REDIS_REST_URL}/publish/${channel}`;
+    const upstream = await fetch(redisRestUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+        Accept: "text/event-stream",
+      },
+    });
     console.log(
-      `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信: [PubSub] Published event to ${redisPubSubChannel}. Subscribers: ${publishResult}`,
+      `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信: [PubSub] Published event to ${redisPubSubChannel}. Subscribers: ${upstream.status}`,
     );
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

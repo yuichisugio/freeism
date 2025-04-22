@@ -1,9 +1,7 @@
-import type { AuctionWithDetails } from "@/lib/auction/type/types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { SSE_CONFIG } from "@/lib/auction/constants";
-import { redis } from "@/lib/redis"; // Assuming this is correctly configured Upstash Redis client
 import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -82,17 +80,37 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
      */
     // Pub/Subチャンネル名
     const redisClientKey = `auction:${auctionId}:events`;
-    // ストリームコントローラー
-    let streamController: ReadableStreamController<Uint8Array> | null = null;
     // ハートビートタイマー
     let heartbeatInterval: NodeJS.Timeout | null = null;
-    // 接続タイムアウト
-    let connectionTimeout: NodeJS.Timeout | null = null;
-    // 購読オブジェクト
-    let subscription: ReturnType<typeof redis.subscribe<string>> | null = null;
     // Encoderを定義
     const encoder = new TextEncoder();
     console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_ストリーム作成とPub/Subの設定に必要な変数_end`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * UpstashのREST APIを使用してSSEストリームを取得
+     */
+    const channel = encodeURIComponent(redisClientKey);
+    const redisRestUrl = `${process.env.UPSTASH_REDIS_REST_URL}/subscribe/${channel}`;
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Upstash_REST_API_URL: ${redisRestUrl}`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * UpstashからSSEストリームを取得
+     */
+    const upstream = await fetch(redisRestUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+        Accept: "text/event-stream",
+      },
+    });
+    if (!upstream.body) {
+      return new NextResponse("Upstream stream unavailable", { status: 502 });
+    }
+    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Upstash_fetch_end`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -102,74 +120,46 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
      */
     const cleanup = () => {
       if (heartbeatInterval) clearInterval(heartbeatInterval);
-      if (connectionTimeout) clearTimeout(connectionTimeout);
-      if (subscription) {
-        subscription
-          .unsubscribe()
-          .then(() => {
-            console.log(
-              `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読解除_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
-            );
-          })
-          .catch(console.error);
-        streamController?.close();
-      }
+      heartbeatInterval = null;
     };
     console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_クリーンアップ関数の定義_end`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * Redis Pub/Sub 購読開始
-     * ストリーム作成前に購読を開始して、接続直後のメッセージを見逃さないようにする
+     * クライアントの abort を監視してクリーンアップ
      */
-    try {
-      console.log(
-        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub_購読開始_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
-      );
-      subscription = redis.subscribe([redisClientKey]);
+    request.signal.addEventListener("abort", () => {
+      console.log("Client aborted — cleaning up heartbeat");
+      cleanup();
+    });
 
-      console.log(
-        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読成功_clientId: ${clientId}, redisClientKey: ${redisClientKey}`,
-      );
-    } catch (subError) {
-      console.error(
-        `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読エラー_clientId: ${clientId}, redisClientKey: ${redisClientKey}:`,
-        subError,
-      );
-      return new Response(JSON.stringify({ error: "Failed to subscribe to auction events" }), { status: 500 });
-    }
-    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Sub購読成功_end`);
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * ReadableStream の設定と作成
+     * TransformStream でチャンク透過＋心拍挿入
      */
-    const stream = new ReadableStream<Uint8Array>({
-      async start(controller: ReadableStreamDefaultController<Uint8Array>) {
-        streamController = controller;
-        console.log(
-          `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_SSEストリーム開始: client ${clientId}, auction ${auctionId}`,
-        );
-
-        // ---------------- ハートビート ----------------
+    const transformStream = new TransformStream<Uint8Array>({
+      // GET実行時に実行する内容
+      start(controller) {
+        // ハートビートタイマー
         heartbeatInterval = setInterval(() => {
-          controller.enqueue(encoder.encode(":\n\n"));
+          try {
+            controller.enqueue(encoder.encode(":\n\n"));
+          } catch (e) {
+            // ストリーム閉鎖時の enqueue エラーを握りつぶし、クリーンアップ
+            console.warn("Heartbeat enqueue failed:", e);
+            cleanup();
+          }
         }, SSE_CONFIG.HEARTBEAT_INTERVAL);
 
-        // ---------------- 接続タイムアウト設定 ----------------
-        connectionTimeout = setTimeout(() => {
-          cleanup();
-        }, SSE_CONFIG.CONNECTION_TIMEOUT);
-
-        // ----------------- 初期データの送信 -----------------
         console.log(
           `src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_初期データ取得: オークション ${auctionId} のデータを取得します`,
         );
         getAuctionByAuctionId(auctionId)
           .then((auctionData) => {
             if (!auctionData) throw new Error(`Auction ${auctionId} not found`);
-            const msg = `event: connection_established\nid: ${Date.now()}\ndata: ${JSON.stringify(auctionData)}\n\n`;
+            const msg = `event: connection_established\ndata: ${JSON.stringify(auctionData)}\ntimestamp: ${Date.now()}\n\n`;
             controller.enqueue(encoder.encode(msg));
             console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_初期データ送信: ${msg}`);
           })
@@ -179,51 +169,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             controller.error(err instanceof Error ? err : new Error(String(err)));
             return;
           });
-
-        // ----------------------- Pub/Subメッセージ受信 -----------------------
-        subscription.on("message", ({ message, channel }) => {
-          try {
-            const trimmed = message.trim();
-            if (!trimmed) return; // 空文字列を無視
-            if (trimmed === ":") return; // ハートビートを無視
-            // data: プレフィックス対応
-            const jsonStr = trimmed.startsWith("{") ? trimmed : trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
-            if (!streamController) return;
-            let payload: { data: AuctionWithDetails; timestamp: number };
-            try {
-              payload = JSON.parse(jsonStr) as { data: AuctionWithDetails; timestamp: number };
-            } catch {
-              payload = { data: JSON.parse(jsonStr) as AuctionWithDetails, timestamp: Date.now() };
-            }
-            const sse = `event: new_bid\nid: ${payload.timestamp}\ndata: ${JSON.stringify(payload.data)}\n\n`;
-            streamController.enqueue(encoder.encode(sse));
-            console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Pub/Subメッセージ受信: ${message}, ${channel}`);
-          } catch (e) {
-            console.error("Message processing error:", e);
-          }
-        });
-
-        // ----------------------- サブスクリプションエラー -----------------------
-        subscription.on("error", (err: unknown) => {
-          console.error("Subscription error:", err);
-          void cleanup();
-          controller.error(err instanceof Error ? err : new Error(String(err)));
-        });
-
-        // ----------------------- クライアント中止 -----------------------
-        request.signal.addEventListener("abort", () => void cleanup(), { once: true });
       },
-      cancel() {
-        cleanup();
+      transform(chunk, controller) {
+        // 元の SSE メッセージはそのまま流す
+        controller.enqueue(chunk);
+      },
+      flush(controller) {
+        void cleanup();
+        controller.terminate();
       },
     });
 
-    // ----------- レスポンス返却 -----------
-    console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_レスポンス返却: Returning SSE stream for ${clientId}`);
-    return new NextResponse(stream, {
-      status: 200, // Statusを明示
+    // Upstash → Transform → クライアント
+    const readable = upstream.body.pipeThrough(transformStream);
+
+    return new NextResponse(readable, {
+      status: 200,
       headers: {
-        "Content-Type": "text/event-stream",
+        "Content-Type": "text/event-stream; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
       },
