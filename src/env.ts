@@ -21,6 +21,7 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_URL: z.string().url(),
     VAPID_SUBJECT: z.string(),
     VAPID_PRIVATE_KEY: z.string(),
+    FREEISM_APP_API_SECRET_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -31,6 +32,7 @@ export const env = createEnv({
     NEXT_PUBLIC_VAPID_SUBJECT: z.string(),
   },
   runtimeEnv: {
+    FREEISM_APP_API_SECRET_KEY: process.env.FREEISM_APP_API_SECRET_KEY,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     VAPID_SUBJECT: process.env.VAPID_SUBJECT,
