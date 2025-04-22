@@ -11,6 +11,8 @@ import type { AuctionWithDetails } from "../type/types";
  * @param data イベントデータ (オークション詳細など)
  */
 export async function sendEventToAuctionSubscribers(auctionId: string, data: AuctionWithDetails): Promise<void> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   console.log(
     `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_start: auctionId=${auctionId}, data=${JSON.stringify(data)}`,
   );
@@ -28,7 +30,6 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Auc
     data: data, // 送信するデータ本体
     timestamp: Date.now(),
   };
-  console.dir(eventPayload, { depth: null });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -44,6 +45,7 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Auc
         Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
         Accept: "text/event-stream",
       },
+      body: message,
     });
     console.log(
       `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信: [PubSub] Published event to ${redisPubSubChannel}. Subscribers: ${upstream.status}`,

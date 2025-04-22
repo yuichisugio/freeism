@@ -17,7 +17,7 @@ type UseAuctionEventResult = {
   reconnect: () => void;
   disconnect: () => Promise<void>;
   clientId: string;
-  lastReceivedMessage: string | null;
+  lastMsg: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -30,6 +30,7 @@ type UseAuctionEventResult = {
 export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionEventResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // state
   const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
   const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>(initialAuction.bidHistories ?? []);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,7 +48,12 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * オークション情報を更新する
+   * @param {AuctionWithDetails} data
+   */
   const applyAuction = useCallback((data: AuctionWithDetails) => {
+    console.log("src/hooks/auction/bid/use-auction-event.ts_applyAuction_data", data);
     setAuction((prev) => ({ ...prev, ...data }));
     if (data.bidHistories) setBidHistory(data.bidHistories);
     setLoading(false);
@@ -61,6 +67,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     setLoading(true);
     const params = new URLSearchParams({ clientId, lastEventId: String(lastEventId), auctionId: initialAuction.id });
     const url = `/api/auctions/${initialAuction.id}/sse-server-sent-events?${params}`;
+    console.log("src/hooks/auction/bid/use-auction-event.ts_connect_url", url);
 
     const es = new EventSource(url); // ★ ここが核心 ★
     eventSourceRef.current = es;
@@ -72,30 +79,34 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
 
     es.onmessage = (ev) => {
-      if (typeof ev.data !== "string" || !ev.data.startsWith("subscribe,")) {
-        setLastMsg(ev.data as string);
-        try {
-          const payload = JSON.parse(ev.data as string) as AuctionEventData;
-          if (!payload.data) {
-            console.warn("[SSE] payload.data is undefined");
-            return;
-          }
-          setLastEventId(Number(ev.lastEventId ?? 0));
-          console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_payload.data", payload.data);
-          applyAuction(payload.data); // type 判定は省略例。必要なら switch する
-        } catch (e) {
-          console.error("[SSE] JSON parse error", e);
-          setError("受信データの解析に失敗しました");
-        }
-      }
+      const raw = ev.data as string; // ex. "message,auction:…:events,{\"data\":{…}}"
+      const jsonStart = raw.indexOf("{");
+      const jsonStr = raw.substring(jsonStart);
+      if (jsonStart === -1 || typeof jsonStr !== "string") return;
 
-      es.onerror = (ev: Event) => {
-        console.error("[SSE] error", ev);
-        setError("接続が中断されました。再接続を試行します…");
-        es.close();
-        eventSourceRef.current = null;
-        reconnectTimer.current = setTimeout(connect, 5000);
-      };
+      try {
+        console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_jsonStr", jsonStr);
+        const payload = JSON.parse(jsonStr) as AuctionEventData;
+        if (!payload.data) {
+          console.warn("[SSE] payload.data is undefined");
+          return;
+        }
+        setLastMsg(raw);
+        setLastEventId(Number(ev.lastEventId ?? 0));
+        console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_payload.data", payload.data);
+        applyAuction(payload.data); // type 判定は省略例。必要なら switch する
+      } catch (e) {
+        console.error("[SSE] JSON parse error", e);
+        setError("受信データの解析に失敗しました");
+      }
+    };
+
+    es.onerror = (ev: Event) => {
+      console.error("[SSE] error", ev);
+      setError("接続が中断されました。再接続を試行します…");
+      es.close();
+      eventSourceRef.current = null;
+      reconnectTimer.current = setTimeout(connect, 5000);
     };
   }, [clientId, lastEventId, initialAuction.id, applyAuction]);
 
@@ -129,5 +140,5 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
   }, [connect, disconnect]);
 
-  return { auction, bidHistory, loading, error, lastEventId, clientId, lastReceivedMessage: lastMsg, reconnect: connect, disconnect };
+  return { auction, bidHistory, loading, error, lastEventId, clientId, lastMsg, reconnect: connect, disconnect };
 }

@@ -171,10 +171,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           });
       },
       transform(chunk, controller) {
-        const text = new TextDecoder().decode(chunk);
-        if (text.startsWith("data:")) {
-          controller.enqueue(chunk);
-        }
         // 元の SSE メッセージはそのまま流す
         controller.enqueue(chunk);
       },
