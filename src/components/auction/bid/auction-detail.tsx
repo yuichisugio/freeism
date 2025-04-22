@@ -105,6 +105,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * オークション詳細タブの内容
    */
   const renderDetailsTab = useCallback(() => {
+    // sse接続で帰ってくる情報は文字列なので、日時型に変換
     const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
     const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
     const now = new Date();
@@ -123,6 +124,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
       isActive = false;
     }
     const isCreator = auction.creatorId === currentUserId;
+    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction_isCreator", isCreator, currentUserId, auction.creatorId);
 
     return (
       <div className="space-y-6">
