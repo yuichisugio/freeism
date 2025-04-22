@@ -30,20 +30,34 @@ type UseAuctionEventResult = {
 export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionEventResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // state
+  /**
+   * state
+   */
+  // オークション情報
   const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
+  // 入札履歴
   const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>(initialAuction.bidHistories ?? []);
+  // ローディング
   const [loading, setLoading] = useState<boolean>(true);
+  // エラー
   const [error, setError] = useState<string | null>(null);
+  // 最後のイベントID
   const [lastEventId, setLastEventId] = useState<number>(0);
+  // クライアントID
   const [clientId] = useState<string>(initialAuction.options?.clientId ?? `c-${crypto.randomUUID()}`);
+  // 最後のメッセージ
   const [lastMsg, setLastMsg] = useState<string | null>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ref
+  /**
+   * ref
+   */
+  // EventSource
   const eventSourceRef = useRef<EventSource | null>(null);
+  // 再接続タイマー
   const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+  // ページが表示されているかどうか
   const isVisibleRef = useRef<boolean>(true);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -61,7 +75,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /** ------- connect ------- */
+  /**
+   * オークションSSEを購読する
+   */
   const connect = useCallback(() => {
     if (eventSourceRef.current) return; // 既に接続中
     setLoading(true);
@@ -110,7 +126,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
   }, [clientId, lastEventId, initialAuction.id, applyAuction]);
 
-  /** ------- disconnect ------- */
+  /**
+   * オークションSSEを切断する
+   */
   const disconnect = useCallback(async () => {
     if (reconnectTimer.current) {
       clearTimeout(reconnectTimer.current);
@@ -121,7 +139,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     setLoading(false);
   }, []);
 
-  /** ------- visibility handling ------- */
+  /**
+   * ページが表示されているかどうかをハンドリングする
+   */
   useEffect(() => {
     const handler = () => {
       isVisibleRef.current = document.visibilityState === "visible";
@@ -132,7 +152,9 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     return () => document.removeEventListener("visibilitychange", handler);
   }, [connect, disconnect]);
 
-  /** ------- mount / unmount ------- */
+  /**
+   * mount / unmount
+   */
   useEffect(() => {
     connect();
     return () => {
@@ -140,5 +162,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
   }, [connect, disconnect]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 返す
+   */
   return { auction, bidHistory, loading, error, lastEventId, clientId, lastMsg, reconnect: connect, disconnect };
 }

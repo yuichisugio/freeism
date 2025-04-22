@@ -183,6 +183,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Upstash → Transform → クライアント
     const readable = upstream.body.pipeThrough(transformStream);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * レスポンスを返す
+     */
     return new NextResponse(readable, {
       status: 200,
       headers: {
