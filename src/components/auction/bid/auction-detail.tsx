@@ -105,10 +105,18 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * オークション詳細タブの内容
    */
   const renderDetailsTab = useCallback(() => {
-    const auctionStartTime = auction.startTime;
-    const auctionEndTime = auction.endTime;
+    const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
+    const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
     const now = new Date();
     let isActive: boolean;
+    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction", auction.status, auctionStartTime, auctionEndTime);
+    console.log(
+      "src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction",
+      auction.status,
+      auctionStartTime < now,
+      auctionEndTime > now,
+    );
+    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction", countdownState.isExpired);
     if (auction.status === AuctionStatus.ACTIVE && auctionStartTime < now && auctionEndTime > now) {
       isActive = true;
     } else {
@@ -145,27 +153,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
         </div>
 
-        {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
-        {!isCreator && !isAuctionEnded && isActive && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <BidForm
-              auction={
-                {
-                  id: auction.id,
-                  title: auction.title,
-                  description: auction.description,
-                  currentHighestBid: auction.currentHighestBid,
-                  startTime: auction.startTime.toString(),
-                  endTime: auction.endTime.toString(),
-                  creatorId: auction.creatorId,
-                  currentHighestBidderId: auction.currentHighestBidderId,
-                  status: auction.status,
-                } as Auction
-              }
-            />
-          </motion.div>
-        )}
-
         {/* オークションが終了している場合は、終了した旨のメッセージを表示 */}
         {isAuctionEnded && (
           <motion.div
@@ -193,7 +180,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
 
         {/* オークションのステータスがACTIVE以外の場合のメッセージを表示 */}
-        {!isActive && !isAuctionEnded && (
+        {!isActive && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -202,6 +189,27 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           >
             <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-orange-500" />
             <p className="font-medium text-orange-800">このオークションは現在アクティブではありません</p>
+          </motion.div>
+        )}
+
+        {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
+        {!isCreator && !isAuctionEnded && isActive && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <BidForm
+              auction={
+                {
+                  id: auction.id,
+                  title: auction.title,
+                  description: auction.description,
+                  currentHighestBid: auction.currentHighestBid,
+                  startTime: auction.startTime.toString(),
+                  endTime: auction.endTime.toString(),
+                  creatorId: auction.creatorId,
+                  currentHighestBidderId: auction.currentHighestBidderId,
+                  status: auction.status,
+                } as Auction
+              }
+            />
           </motion.div>
         )}
       </div>
