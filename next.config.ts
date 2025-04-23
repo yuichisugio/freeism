@@ -16,7 +16,8 @@ const withPWA = require("next-pwa")({
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
-  supportsResponseStreaming: true,
+  reactStrictMode: true,
+  output: "standalone",
   images: {
     remotePatterns: [
       {
