@@ -127,6 +127,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         heartbeatInterval = setInterval(() => {
           try {
             controller.enqueue(encoder.encode(":\n\n"));
+            console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_ハートビート送信: ${Date.now()}`);
           } catch (e) {
             // ストリーム閉鎖時の enqueue エラーを握りつぶし、クリーンアップ
             console.warn("Heartbeat enqueue failed:", e);
