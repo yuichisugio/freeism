@@ -21,8 +21,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
      */
     // 独自ヘッダーからAPIキーを取得
     const secret = request.headers.get("x-internal-secret");
+    console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_secret`, secret);
     // 独自ヘッダーの環境変数が正しいか確認
     if (secret !== process.env.FREEISM_APP_API_SECRET_KEY) {
+      console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_Unauthorized`, secret, process.env.FREEISM_APP_API_SECRET_KEY);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,6 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const session = await getAuthSession();
     const userId = session?.user?.id;
     if (!userId) {
+      console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_Unauthorized`, userId);
       return NextResponse.json({ error: "ユーザーが認証されていません" }, { status: 401 });
     }
 
@@ -44,6 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
      */
     const { auctionId } = await params;
     if (!auctionId) {
+      console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_BadRequest`, auctionId);
       return NextResponse.json({ error: "オークションIDが必要です" }, { status: 400 });
     }
 
@@ -53,7 +57,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
      * オークションデータを取得
      */
     const auction = await getAuctionByAuctionId(auctionId);
-
+    if (!auction) {
+      console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_NotFound`, auctionId);
+      return NextResponse.json({ error: "オークションが見つかりません" }, { status: 400 });
+    }
+    console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_auction`, auction);
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**

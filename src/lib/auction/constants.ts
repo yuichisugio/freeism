@@ -13,14 +13,7 @@ export const NOTIFICATION_CONSTANTS = {
  * SSE設定パラメータ
  */
 export const SSE_CONFIG = {
-  MAX_CONNECTIONS_PER_AUCTION: 1000, // オークションごとの最大接続数
-  CONNECTION_TIMEOUT: 60 * 60 * 1000, // 60分タイムアウト
   HEARTBEAT_INTERVAL: 30000, // 30秒ごとにハートビート
-  MAX_EVENT_HISTORY: 50, // オークションごとのイベント履歴最大数
-  HEARTBEAT_TIMEOUT: 45000, // 45秒（ハートビートタイムアウト）
-  BUFFER_INTERVAL: 1000, // バッファ処理間隔（ミリ秒）
-  RETRY_DELAYS: [1000, 2000, 5000, 10000, 30000], // リトライ戦略の設定（指数バックオフ + ジッター）
-  MAX_RETRIES: 5, // オークションSSEの最大リトライ回数
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
