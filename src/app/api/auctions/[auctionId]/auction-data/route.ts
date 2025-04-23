@@ -6,6 +6,13 @@ import { getAuthSession } from "@/lib/utils";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 動的なルーティングを強制
+ */
+export const dynamic = "force-dynamic";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * オークションデータを取得
  * @param request リクエスト
  * @param params パラメータ
@@ -73,7 +80,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=1200",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {

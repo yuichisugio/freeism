@@ -86,6 +86,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
         Accept: "text/event-stream",
       },
+      cache: "no-store",
     });
     if (!upstream.body) {
       return new Response("Upstream stream unavailable", { status: 502 });
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             Accept: "application/json",
             "x-internal-secret": secret ?? "", // 独自のヘッダーに環境変数を添付
           },
-          next: { revalidate: 86400 },
+          cache: "no-store",
         })
           .then((res) => res.json())
           .then((auctionData) => {
