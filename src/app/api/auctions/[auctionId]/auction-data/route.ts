@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
-import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -35,18 +34,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (secret !== secretKey) {
       console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_header_Unauthorized`, secret, secretKey);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    /**
-     * 認証されているユーザーのIDを取得
-     * 認証されていない場合は401エラーを返す
-     * 公開APIになっているので、第三者アクセスを防ぐための代表的手法として、セッションを検証
-     */
-    const session = await getAuthSession();
-    const userId = session?.user?.id;
-    if (!userId) {
-      console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_session_Unauthorized`, userId);
-      return NextResponse.json({ error: "ユーザーが認証されていません" }, { status: 401 });
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
