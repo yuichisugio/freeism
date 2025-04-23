@@ -13,7 +13,7 @@ export const NOTIFICATION_CONSTANTS = {
  * SSE設定パラメータ
  */
 export const SSE_CONFIG = {
-  HEARTBEAT_INTERVAL: 30 * 1000, // 30秒ごとにハートビート
+  HEARTBEAT_INTERVAL: 20 * 1000, // 20秒ごとにハートビート
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
