@@ -142,14 +142,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         let url = "";
         if (process.env.NODE_ENV === "production") {
           url = `https://${process.env.VERCEL_URL}/api/auctions/${auctionId}/auction-data`;
+          console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_production環境`, url);
         } else {
           url = `http://localhost:3000/api/auctions/${auctionId}/auction-data`;
+          console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_development環境`, url);
         }
         const secret = process.env.FREEISM_APP_API_SECRET_KEY;
         fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
             "x-internal-secret": secret ?? "", // 独自のヘッダーに環境変数を添付
           },
           next: { revalidate: 86400 },
