@@ -141,7 +141,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // オークションデータの取得ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         let url = "";
         if (process.env.NODE_ENV === "production") {
-          url = `https://${process.env.VERCEL_URL}/api/auctions/${auctionId}/auction-data`;
+          url = `https://${process.env.DOMAIN}/api/auctions/${auctionId}/auction-data`;
           console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_production環境`, url);
         } else {
           url = `http://localhost:3000/api/auctions/${auctionId}/auction-data`;

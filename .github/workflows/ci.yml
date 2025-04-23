@@ -56,6 +56,7 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          FREEISM_APP_API_SECRET_KEY: ${{ secrets.FREEISM_APP_API_SECRET_KEY }}
 
   format:
     needs: setup
