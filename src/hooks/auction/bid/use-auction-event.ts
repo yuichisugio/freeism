@@ -89,7 +89,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     eventSourceRef.current = es;
 
     es.onopen = () => {
-      console.info("[SSE] open", url);
+      console.info("src/hooks/auction/bid/use-auction-event.ts_es.onopen", url);
       setError(null);
       setLoading(false);
     };
@@ -104,7 +104,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
         console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_jsonStr", jsonStr);
         const payload = JSON.parse(jsonStr) as AuctionEventData;
         if (!payload.data) {
-          console.warn("[SSE] payload.data is undefined");
+          console.warn("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_payload.data is undefined");
           return;
         }
         setLastMsg(raw);
@@ -112,13 +112,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
         console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_payload.data", payload.data);
         applyAuction(payload.data); // type 判定は省略例。必要なら switch する
       } catch (e) {
-        console.error("[SSE] JSON parse error", e);
+        console.error("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_JSON parse error", e);
         setError("受信データの解析に失敗しました");
       }
     };
 
     es.onerror = (ev: Event) => {
-      console.error("[SSE] error", ev);
+      console.error("src/hooks/auction/bid/use-auction-event.ts_es.onerror", ev);
       setError("接続が中断されました。再接続を試行します…");
       es.close();
       eventSourceRef.current = null;

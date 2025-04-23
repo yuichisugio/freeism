@@ -487,7 +487,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           },
           bidHistories: {
             orderBy: { createdAt: "desc" },
-            take: 5,
+            take: 51,
             include: {
               user: {
                 select: {

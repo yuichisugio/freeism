@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 import { SSE_CONFIG } from "@/lib/auction/constants";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // auctionIdを取得
     const { auctionId } = await params;
     if (!auctionId) {
-      return new NextResponse(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
+      return new Response(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
     }
 
     // URLからオークションIDを取得（パスパラメータと一致するか確認用）
@@ -89,7 +88,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
     if (!upstream.body) {
-      return new NextResponse("Upstream stream unavailable", { status: 502 });
+      return new Response("Upstream stream unavailable", { status: 502 });
     }
     console.log(`src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_Upstash_fetch_end`);
 
@@ -192,12 +191,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     /**
      * レスポンスを返す
      */
-    return new NextResponse(readable, {
+    return new Response(readable, {
       status: 200,
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
+        "Transfer-Encoding": "chunked",
       },
     });
   } catch (error) {
@@ -225,24 +225,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export async function POST() {
-  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
+  return new Response(null, { status: 405, headers: { Allow: "GET" } });
 }
 
 export async function DELETE() {
-  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
+  return new Response(null, { status: 405, headers: { Allow: "GET" } });
 }
 
 export async function PATCH() {
-  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
+  return new Response(null, { status: 405, headers: { Allow: "GET" } });
 }
 
 export async function HEAD() {
-  return new NextResponse(null, { status: 405, headers: { Allow: "GET" } });
+  return new Response(null, { status: 405, headers: { Allow: "GET" } });
 }
 
 export async function OPTIONS() {
   // CORSプリフライトリクエストなどに対応する場合
-  return new NextResponse(null, {
+  return new Response(null, {
     status: 204, // No Content
     headers: {
       Allow: "GET, OPTIONS", // 許可するメソッド
