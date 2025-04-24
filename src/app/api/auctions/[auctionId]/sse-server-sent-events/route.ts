@@ -86,6 +86,7 @@ async function* upstashSubscribe(channel: string) {
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
+        if (!value) continue;
         yield value;
       }
     } catch (error) {
