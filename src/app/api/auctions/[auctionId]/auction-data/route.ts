@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_NotFound`, auctionId);
       return NextResponse.json({ error: "オークションが見つかりません" }, { status: 400 });
     }
-    console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_auction`, auction);
+    console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_auction_success`);
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-store",
+        "Cache-Control": "no-cache",
       },
     });
   } catch (error) {

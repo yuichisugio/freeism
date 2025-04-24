@@ -85,7 +85,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     const url = `/api/auctions/${initialAuction.id}/sse-server-sent-events?${params}`;
     console.log("src/hooks/auction/bid/use-auction-event.ts_connect_url", url);
 
-    const es = new EventSource(url); // ★ ここが核心 ★
+    const es = new EventSource(url);
     eventSourceRef.current = es;
 
     es.onopen = () => {
@@ -95,7 +95,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
 
     es.onmessage = (ev) => {
-      const raw = ev.data as string; // ex. "message,auction:…:events,{\"data\":{…}}"
+      const raw = ev.data as string;
       const jsonStart = raw.indexOf("{");
       const jsonStr = raw.substring(jsonStart);
       if (jsonStart === -1 || typeof jsonStr !== "string") return;

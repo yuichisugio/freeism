@@ -38,7 +38,7 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
 
     if (!auction) return null;
 
-    console.log("auction-retrieve.ts_getAuctionByAuctionId_auction", auction);
+    console.log("auction-retrieve.ts_getAuctionByAuctionId_auction_success");
 
     // 必要なプロパティを持つオブジェクトとして返す
     return auction as unknown as AuctionWithDetails;

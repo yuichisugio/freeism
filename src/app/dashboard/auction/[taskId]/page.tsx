@@ -33,7 +33,6 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
   try {
     // オークションデータを取得
     const auctionData = await getAuctionWithTask(taskId);
-    console.log("src/app/dashboard/auction/[taskId]/page.tsx_getAuctionWithTask_auctionData", auctionData);
 
     // オークションデータが存在しない場合は404エラーを返す
     if (!auctionData) {
@@ -41,6 +40,8 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
       console.log("src/app/dashboard/auction/[taskId]/page.tsx_stack", new Error().stack);
       return notFound();
     }
+
+    console.log("src/app/dashboard/auction/[taskId]/page.tsx_getAuctionWithTask_auctionData_success");
 
     return (
       <MainTemplate title={auctionData.task.task} description={auctionData.task.detail ?? ""}>

@@ -22,12 +22,15 @@ const createHeartbeatTransform = () => {
   let timer: ReturnType<typeof setInterval> | null = null;
   return new TransformStream<Uint8Array>({
     start(controller) {
+      const send = () => {
+        if (controller.desiredSize !== null) controller.enqueue(encoder.encode(":\n\n"));
+      };
       timer = setInterval(() => {
         try {
           console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createHeartbeatTransform_ハートビート完了");
-          controller.enqueue(encoder.encode(":\n\n"));
-        } catch {
-          console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createHeartbeatTransform_ハートビートエラー");
+          send();
+        } catch (error) {
+          console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createHeartbeatTransform_ハートビートエラー", error);
           // ストリームが閉じられた場合はタイマー停止
           if (timer) clearInterval(timer);
         }
@@ -47,50 +50,70 @@ const createHeartbeatTransform = () => {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * UpstashのRedisに接続して、指定されたチャンネルを購読する
+ * @param {string} channel 購読するチャンネル名
+ * @returns {AsyncIterable<Uint8Array>} チャンネルのメッセージを含む非同期イテラブル
+ */
 async function* upstashSubscribe(channel: string) {
   const url = `${process.env.UPSTASH_REDIS_REST_URL}/subscribe/${encodeURIComponent(channel)}`;
   let attempt = 0;
   while (true) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-        Accept: "text/event-stream",
-      },
-      cache: "no-store",
-    });
-    if (!res.ok || !res.body) {
-      const wait = Math.min(2 ** attempt * 1_000, 30_000); // expo back-off
-      await new Promise((r) => setTimeout(r, wait));
-      attempt++;
-      continue;
-    }
-    attempt = 0;
-    const reader = res.body.getReader();
+    const abortController = new AbortController();
+    // 28s で強制 Abort – Edge fetch の idle timeout を回避
+    const timeout = setTimeout(() => abortController.abort(), 28_000);
     try {
-      for (;;) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+          Accept: "text/event-stream",
+        },
+        // cache: "no-cache",削除
+        next: { revalidate: 0 },
+        signal: abortController.signal,
+      });
+      clearTimeout(timeout);
+      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch");
+      if (!res.ok || !res.body) {
+        const wait = Math.min(2 ** attempt * 1_000, 30_000);
+        await new Promise((r) => setTimeout(r, wait));
+        attempt++;
+        continue;
+      }
+      attempt = 0;
+      const reader = res.body.getReader();
+      while (true) {
         const { value, done } = await reader.read();
         if (done) break;
         yield value;
       }
-    } finally {
-      reader.releaseLock();
+    } catch (error) {
+      console.warn("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_reconnect", error);
+      continue;
     }
   }
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 初期データを送信する Transform
+ * @param {string} auctionId オークションID
+ * @returns {TransformStream<Uint8Array>} 初期データを含む TransformStream
+ */
 const createInitDataTransform = (auctionId: string) => {
   return new TransformStream<Uint8Array>({
     async start(ctrl) {
       const base = process.env.NODE_ENV === "production" ? `https://${process.env.DOMAIN}` : "http://localhost:3000";
       const res = await fetch(`${base}/api/auctions/${auctionId}/auction-data`, {
         headers: { "x-internal-secret": process.env.FREEISM_APP_API_SECRET_KEY ?? "" },
-        cache: "no-store",
+        cache: "no-cache",
       });
+      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createInitDataTransform_fetch");
       if (res.ok) {
         const data = await res.text();
+        console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createInitDataTransform_enqueue", data);
         ctrl.enqueue(encoder.encode(`event: connection_established\ndata: ${data}\n\n`));
       }
     },
@@ -102,6 +125,12 @@ const createInitDataTransform = (auctionId: string) => {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * GETリクエストを処理する
+ * @param {Request} _req リクエストオブジェクト
+ * @param {Promise<{ auctionId: string }>} params リクエストパラメータ
+ * @returns {Promise<Response>} レスポンスオブジェクト
+ */
 export async function GET(_req: Request, { params }: { params: Promise<{ auctionId: string }> }) {
   const { auctionId } = await params;
   console.log("auctionId", auctionId);

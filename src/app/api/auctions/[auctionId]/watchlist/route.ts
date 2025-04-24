@@ -5,6 +5,10 @@ import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+export const dynamic = "force-dynamic";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ウォッチリストの状態を取得
  * @param request リクエスト
@@ -73,7 +77,3 @@ export async function DELETE() {
 export async function PATCH() {
   return new NextResponse(null, { status: 405 });
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-export const dynamic = "force-dynamic";

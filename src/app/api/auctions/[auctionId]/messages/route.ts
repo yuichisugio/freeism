@@ -3,11 +3,17 @@ import { NextResponse } from "next/server";
 import { getAuctionMessages, getAuctionSellerInfo } from "@/lib/auction/action/message";
 import { getAuthSession } from "@/lib/utils";
 
-// リクエスト型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * リクエスト型定義
+ */
 type MessageRequestBody = {
   message: string;
   recipientId: string;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションメッセージを取得するAPI
@@ -45,8 +51,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ auct
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションメッセージを送信するAPI
+ * @param req リクエスト
+ * @param params パラメータ
+ * @returns オークションメッセージ
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   try {

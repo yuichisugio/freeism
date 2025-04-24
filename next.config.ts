@@ -6,10 +6,11 @@ import "./src/env";
 
 const withPWA = require("next-pwa")({
   dest: "public",
-  // disable: process.env.NODE_ENV === 'development',
+  disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
   sw: "/next-pwa-service-worker.js",
+  output: "standalone",
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,7 +18,6 @@ const withPWA = require("next-pwa")({
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cache-Control",
-            value: "no-cache, no-store, must-revalidate",
+            value: "no-cache,no-cache, must-revalidate",
           },
           {
             key: "Content-Security-Policy",

@@ -38,7 +38,7 @@ export const middleware = auth((req) => {
     const response = NextResponse.next();
 
     // セキュリティとキャッシュのヘッダーを設定。キャッシュ制御。クリックジャッキング防止。コンテンツタイプスニッフィング防止。HTTPS強制。リファラーポリシー設定
-    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("Cache-Control", "private, no-cache");
     response.headers.set("X-Frame-Options", "DENY");
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");

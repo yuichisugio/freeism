@@ -46,6 +46,7 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Auc
         Accept: "text/event-stream",
       },
       body: message,
+      cache: "no-cache",
     });
     console.log(
       `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信: [PubSub] Published event to ${redisPubSubChannel}. Subscribers: ${upstream.status}`,
