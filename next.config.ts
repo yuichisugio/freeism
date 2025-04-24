@@ -10,7 +10,6 @@ const withPWA = require("next-pwa")({
   register: true,
   skipWaiting: true,
   sw: "/next-pwa-service-worker.js",
-  output: "standalone",
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -18,6 +17,7 @@ const withPWA = require("next-pwa")({
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   images: {
     remotePatterns: [
       {
