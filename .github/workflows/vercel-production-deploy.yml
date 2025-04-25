@@ -24,16 +24,15 @@ jobs:
       # 0. 取得
       - uses: actions/checkout@v4
 
-      # 1. Node + pnpm (Corepack)
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-
       - name: Setup pnpm CLI
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
 
       # 2. 依存インストール（オフライン優先）
       - name: Install dependencies
