@@ -154,7 +154,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
       // 再接続回数が3回以下の場合
       if (retryCountRef.current <= 3) {
         // 1〜3 回までは再接続を試みる
-        setError(`接続が中断されました。再接続を試行します…（${retryCountRef.current}/3）`);
+        setError(`接続が中断されました。再接続を試行します…`);
         setTimeout(() => connect(), 5000);
       } else {
         // 4 回目以降はリロード促し文言
