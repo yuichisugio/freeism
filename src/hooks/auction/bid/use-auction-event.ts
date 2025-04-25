@@ -53,6 +53,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
   // ページが表示されているかどうか
   const isVisibleRef = useRef<boolean>(true);
+  // 再接続回数
+  const retryCountRef = useRef<number>(0);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -119,6 +121,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     // 接続確立の場合
     es.onopen = () => {
       console.info("src/hooks/auction/bid/use-auction-event.ts_es.onopen", url);
+      // 成功したら試行回数をリセット
+      retryCountRef.current = 0;
       setError(null);
       setLoading(false);
     };
@@ -144,8 +148,19 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     es.onerror = (ev: Event) => {
       console.error("src/hooks/auction/bid/use-auction-event.ts_es.onerror", ev);
       setError("接続が中断されました。再接続を試行します…");
+      // 接続を閉じる
       es.close();
-      eventSourceRef.current = null;
+      // 再接続回数をインクリメント
+      retryCountRef.current += 1;
+      // 再接続回数が3回以下の場合
+      if (retryCountRef.current <= 3) {
+        // 1〜3 回までは再接続を試みる
+        setError(`接続が中断されました。再接続を試行します…（${retryCountRef.current}/3）`);
+        setTimeout(() => connect(), 5000);
+      } else {
+        // 4 回目以降はリロード促し文言
+        setError("再接続に失敗しました。ページをリロードしてください。");
+      }
     };
   }, [initialAuction.id, processSSEMessage]);
 
