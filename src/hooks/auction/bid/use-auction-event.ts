@@ -6,6 +6,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * SSEレスポンスの型定義
+ */
+type SSEResponse = {
+  data?: AuctionWithDetails;
+} & AuctionWithDetails;
+
+/**
  * オークションSSEを購読するカスタムフック（拡張版）の型
  */
 type UseAuctionEventResult = {
@@ -64,8 +71,10 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
    */
   const processSSEMessage = useCallback((ev: MessageEvent<string>) => {
     console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_start");
+
     const raw = ev.data;
     console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_raw", raw);
+
     const jsonStart = raw.indexOf("{");
     const jsonStr = raw.substring(jsonStart);
     if (jsonStart === -1 || typeof jsonStr !== "string") {
@@ -75,18 +84,20 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
 
     try {
       console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_jsonStr", jsonStr);
-      const payload = JSON.parse(jsonStr) as AuctionWithDetails;
+      const payload = JSON.parse(jsonStr) as SSEResponse;
       console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload", payload);
       if (!payload) {
         console.warn("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data is undefined");
         return;
       }
+      // 初期データと入札時のデータではdataプロパティの有無で異なる場合がある
+      const auctionData = payload.data ?? payload;
       setLastMsg(raw);
-      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data", payload);
-      setAuction((prev) => ({ ...prev, ...payload }));
-      if (payload.bidHistories) {
-        console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.bidHistories", payload.bidHistories);
-        setBidHistory(payload.bidHistories);
+      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data", auctionData);
+      setAuction((prev) => ({ ...prev, ...auctionData }));
+      if (auctionData.bidHistories) {
+        console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.bidHistories", auctionData.bidHistories);
+        setBidHistory(auctionData.bidHistories);
       }
       setLoading(false);
     } catch (e) {
@@ -131,18 +142,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     es.onmessage = (ev: MessageEvent<string>) => {
       processSSEMessage(ev);
     };
-
-    // 接続確立の場合
-    es.addEventListener("connection_established", (ev: MessageEvent<string>) => {
-      console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_connection_established", ev);
-      processSSEMessage(ev);
-    });
-
-    // Upstash Redisの場合
-    es.addEventListener("upstash_redis", (ev: MessageEvent<string>) => {
-      console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_upstash_redis", ev);
-      processSSEMessage(ev);
-    });
 
     // エラーの場合
     es.onerror = (ev: Event) => {

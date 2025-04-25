@@ -7,7 +7,6 @@ console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_ru
 
 // エンコーダーとデコーダー
 const encoder = new TextEncoder();
-const decoder = new TextDecoder();
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -77,7 +76,7 @@ const createInitDataTransform = (auctionId: string) => {
       if (res.ok) {
         const data = await res.text();
         console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createInitDataTransform_enqueue", data);
-        ctrl.enqueue(encoder.encode(`event: connection_established\ndata: ${data}\n\n`));
+        ctrl.enqueue(encoder.encode(`data: ${data}\n\n`));
       }
     },
     transform(chunk, ctrl) {
@@ -129,9 +128,7 @@ function readableFromAsyncIterable(iter: AsyncIterable<Uint8Array>): ReadableStr
       if (result.done) {
         ctrl.close();
       } else {
-        const decodedValue = decoder.decode(result.value, { stream: true });
-        const value = `event: upstash_redis\ndata: ${decodedValue}\n\n`;
-        ctrl.enqueue(encoder.encode(value));
+        ctrl.enqueue(result.value);
       }
     },
     async cancel() {
