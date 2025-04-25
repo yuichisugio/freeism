@@ -18,6 +18,7 @@ const encoder = new TextEncoder();
 async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
   const url = `${process.env.UPSTASH_REDIS_REST_URL}/subscribe/${encodeURIComponent(channel)}`;
   let attempt = 0;
+  console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_url", url);
 
   while (true) {
     try {
