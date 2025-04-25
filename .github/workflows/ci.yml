@@ -1,37 +1,43 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 env:
-  NODE_VERSION: "20.11.1"
-  PNPM_VERSION: "9.15.0"
+  NODE_VERSION: "20"
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
+  build:
+    runs-on: ubuntu-22.04
 
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [lint, format, typecheck]
+
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
+
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
-      - run: pnpm run lint
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - uses: actions/cache@v4 # Turborepo & Next.js ビルドキャッシュ
+        with:
+          path: |
+            .turbo
+            .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-next-
+
+      - name: Matrix tasks
+        run: pnpm run ${{ matrix.task }}
         env:
           DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
           DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
@@ -57,25 +63,3 @@ jobs:
           NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           FREEISM_APP_API_SECRET_KEY: ${{ secrets.FREEISM_APP_API_SECRET_KEY }}
-
-  format:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
-      - run: pnpm run format
-
-  typecheck:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
-      - run: pnpm run typecheck

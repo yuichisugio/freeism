@@ -2,12 +2,16 @@ name: Vercel Production Deployment
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+
+# 常に最新1本のみ残す
+concurrency:
+  group: prod # ← 固定名に変更
+  cancel-in-progress: true
 
 env:
-  NODE_VERSION: "20.11.1"
-  PNPM_VERSION: "9.15.0"
+  NODE_VERSION: "20.x" # LTS を追従
+  PNPM_VERSION: "9" # major 指定で OK
 
 permissions:
   contents: read
@@ -15,34 +19,59 @@ permissions:
 
 jobs:
   deploy-production:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # zstd 対応 runner
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # 0. 取得
+      - uses: actions/checkout@v4
 
-      - name: Setup environment
-        uses: ./.github/actions/setup
+      # 1. Node + pnpm (Corepack)
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
+          cache: "pnpm"
 
-      - name: Install Vercel CLI
-        run: pnpm add --global vercel@latest
+      - name: Enable Corepack / set pnpm version
+        run: |
+          corepack enable
+          corepack prepare pnpm@${PNPM_VERSION} --activate
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # 2. 依存インストール（オフライン優先）
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Run Prisma Migrations
-        run: pnpm prisma migrate deploy
+      # 3. Next.js / Turborepo キャッシュ (.next と .turbo)
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+            .turbo        # ← RemoteCache 不使用時もローカルキャッシュ
+          key: ${{ runner.os }}-next-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-next-main-
+
+      # 4. Prisma Migrate（変更がある時のみ）
+      - name: Check pending migrations
+        id: mig
+        run: |
+          pnpm dlx prisma migrate status --schema prisma/schema.prisma --json > status.json
+          echo "pending=$(jq .hasPendingMigrations status.json)" >> $GITHUB_OUTPUT
+
+      - name: Prisma Migrate
+        if: steps.mig.outputs.pending == 'true'
+        run: pnpm dlx prisma migrate deploy --skip-generate
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
           DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
 
+      # 5. Turborepo Remote Cache（環境変数は先に GitHub Secrets で登録）
+      - name: Set Turborepo env
+        run: |
+          echo "TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}" >> $GITHUB_ENV
+          echo "TURBO_TEAM=${{ secrets.TURBO_TEAM }}"   >> $GITHUB_ENV
+
+      # 6. Build
       - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: pnpm dlx vercel build --prod --yes
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -70,26 +99,12 @@ jobs:
           NEXT_PUBLIC_VAPID_SUBJECT: ${{ secrets.NEXT_PUBLIC_VAPID_SUBJECT }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
 
-      - name: Add VAPID_SUBJECT to Vercel Production Environment
-        run: vercel env add VAPID_SUBJECT ${{ secrets.VAPID_SUBJECT }} production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Add VAPID_PRIVATE_KEY to Vercel Production Environment
-        run: vercel env add VAPID_PRIVATE_KEY ${{ secrets.VAPID_PRIVATE_KEY }} production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Add NEXT_PUBLIC_VAPID_PUBLIC_KEY to Vercel Production Environment
-        run: vercel env add NEXT_PUBLIC_VAPID_PUBLIC_KEY ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }} production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # 7. Deploy (pre-built)
+      - uses: vercel/gh-action@v2
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: .
+          prod: true
+          prebuilt: true
