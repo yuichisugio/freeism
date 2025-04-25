@@ -52,10 +52,15 @@ jobs:
       - name: Check pending migrations
         id: mig
         run: |
-          pnpm dlx prisma migrate status --schema prisma/schema.prisma --json > status.json
-          echo "pending=$(jq .hasPendingMigrations status.json)" >> $GITHUB_OUTPUT
+          if pnpm dlx prisma migrate status --schema prisma/schema.prisma; then
+            # exit code 0: 未適用マイグレーションなし
+            echo "pending=false" >> $GITHUB_OUTPUT
+          else
+            # exit code 1: 未適用マイグレーションあり またはエラー
+            echo "pending=true" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Prisma Migrate
+      - name: Apply pending migrations
         if: steps.mig.outputs.pending == 'true'
         run: pnpm dlx prisma migrate deploy --skip-generate
         env:
