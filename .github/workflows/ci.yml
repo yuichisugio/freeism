@@ -7,6 +7,7 @@ on:
 
 env:
   NODE_VERSION: "20"
+  PNPM_VERSION: "9.15.0"
 
 jobs:
   build:
@@ -23,6 +24,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable Corepack and prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install deps
         run: pnpm install --frozen-lockfile --prefer-offline
