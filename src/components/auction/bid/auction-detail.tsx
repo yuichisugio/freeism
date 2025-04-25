@@ -32,6 +32,10 @@ import { CountdownDisplay } from "./countdown-display";
 export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("src/components/auction/bid/auction-detail.tsx_AuctionDetail_render");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ウォッチリストの状態
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   // 初期フェッチの完了状態
@@ -56,8 +60,18 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   // カウントダウンの状態
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
 
-  // オークションが終了しているかどうか
-  const isAuctionEnded = useMemo(() => countdownState.isExpired, [countdownState.isExpired]);
+  // オークションがアクティブかどうか
+  const isActive = useMemo(() => {
+    console.log("src/components/auction/bid/auction-detail.tsx_isActive_render");
+    const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
+    const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
+    const now = new Date();
+    if (auction.status === AuctionStatus.ACTIVE && auctionStartTime < now && auctionEndTime > now) {
+      return true;
+    } else {
+      return false;
+    }
+  }, [auction.startTime, auction.endTime, auction.status]);
 
   // ウォッチリストアクション
   const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
@@ -105,24 +119,8 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * オークション詳細タブの内容
    */
   const renderDetailsTab = useCallback(() => {
-    // sse接続で帰ってくる情報は文字列なので、日時型に変換
-    const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
-    const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
-    const now = new Date();
-    let isActive: boolean;
-    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction", auction.status, auctionStartTime, auctionEndTime);
-    console.log(
-      "src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction",
-      auction.status,
-      auctionStartTime < now,
-      auctionEndTime > now,
-    );
-    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction", countdownState.isExpired);
-    if (auction.status === AuctionStatus.ACTIVE && auctionStartTime < now && auctionEndTime > now) {
-      isActive = true;
-    } else {
-      isActive = false;
-    }
+    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_render");
+
     const isCreator = auction.creatorId === currentUserId;
     console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction_isCreator", isCreator, currentUserId, auction.creatorId);
 
@@ -149,24 +147,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             </div>
           </CardContent>
         </Card>
-
-        {/* カウントダウン表示部分 */}
-        <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
-          <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
-        </div>
-
-        {/* オークションが終了している場合は、終了した旨のメッセージを表示 */}
-        {isAuctionEnded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center"
-          >
-            <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-amber-500" />
-            <p className="font-medium text-amber-800">このオークションは終了しました</p>
-          </motion.div>
-        )}
 
         {/* 自分の出品しているオークションの場合は、自分の出品したオークションですというメッセージを表示 */}
         {isCreator && (
@@ -195,7 +175,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
 
         {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
-        {!isCreator && !isAuctionEnded && isActive && (
+        {!isCreator && isActive && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <BidForm
               auction={
@@ -216,7 +196,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
       </div>
     );
-  }, [auction, currentUserId, isAuctionEnded, bidHistory.length, countdownState, countdown]);
+  }, [auction, currentUserId, bidHistory.length, isActive]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -323,8 +303,8 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={isAuctionEnded ? "destructive" : "secondary"} className="px-3 py-1 text-sm font-medium">
-              {isAuctionEnded ? "終了" : "出品中"}
+            <Badge variant={isActive ? "secondary" : "destructive"} className="px-3 py-1 text-sm font-medium">
+              {isActive ? "出品中" : "終了"}
             </Badge>
             {auction.task.group && (
               <Badge key={(auction.task.group as { id: string }).id} variant="outline" className="px-3 py-1 text-sm font-medium">
@@ -333,6 +313,11 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             )}
           </div>
         </div>
+      </div>
+
+      {/* カウントダウン表示部分 */}
+      <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
+        <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
       </div>
 
       {/* タブ切り替え部分 */}
