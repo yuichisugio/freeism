@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionEventData, AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/type/types";
+import type { AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -13,10 +13,8 @@ type UseAuctionEventResult = {
   bidHistory: BidHistoryWithUser[];
   loading: boolean;
   error: string | null;
-  lastEventId: number;
   reconnect: () => void;
   disconnect: () => Promise<void>;
-  clientId: string;
   lastMsg: string | null;
 };
 
@@ -34,17 +32,13 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
    * state
    */
   // オークション情報
-  const [auction, setAuction] = useState<AuctionWithDetails | undefined>(initialAuction);
+  const [auction, setAuction] = useState<AuctionWithDetails>(initialAuction);
   // 入札履歴
   const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>(initialAuction.bidHistories ?? []);
   // ローディング
   const [loading, setLoading] = useState<boolean>(true);
   // エラー
   const [error, setError] = useState<string | null>(null);
-  // 最後のイベントID
-  const [lastEventId, setLastEventId] = useState<number>(0);
-  // クライアントID
-  const [clientId] = useState<string>(initialAuction.options?.clientId ?? `c-${crypto.randomUUID()}`);
   // 最後のメッセージ
   const [lastMsg, setLastMsg] = useState<string | null>(null);
 
@@ -63,14 +57,40 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション情報を更新する
+   * SSE接続のメッセージを処理
    * @param {AuctionWithDetails} data
    */
-  const applyAuction = useCallback((data: AuctionWithDetails) => {
-    console.log("src/hooks/auction/bid/use-auction-event.ts_applyAuction_data", data);
-    setAuction((prev) => ({ ...prev, ...data }));
-    if (data.bidHistories) setBidHistory(data.bidHistories);
-    setLoading(false);
+  const processSSEMessage = useCallback((ev: MessageEvent<string>) => {
+    console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_start");
+    const raw = ev.data;
+    console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_raw", raw);
+    const jsonStart = raw.indexOf("{");
+    const jsonStr = raw.substring(jsonStart);
+    if (jsonStart === -1 || typeof jsonStr !== "string") {
+      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_jsonStr is not a string");
+      return;
+    }
+
+    try {
+      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_jsonStr", jsonStr);
+      const payload = JSON.parse(jsonStr) as AuctionWithDetails;
+      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload", payload);
+      if (!payload) {
+        console.warn("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data is undefined");
+        return;
+      }
+      setLastMsg(raw);
+      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data", payload);
+      setAuction((prev) => ({ ...prev, ...payload }));
+      if (payload.bidHistories) {
+        console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.bidHistories", payload.bidHistories);
+        setBidHistory(payload.bidHistories);
+      }
+      setLoading(false);
+    } catch (e) {
+      console.error("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_JSON parse error", e);
+      setError("受信データの解析に失敗しました");
+    }
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -79,52 +99,55 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
    * オークションSSEを購読する
    */
   const connect = useCallback(() => {
-    if (eventSourceRef.current) return; // 既に接続中
+    // 既に接続中
+    if (eventSourceRef.current) {
+      console.warn("src/hooks/auction/bid/use-auction-event.ts_connect_already_connected");
+      return;
+    }
+
+    // ローディング
     setLoading(true);
-    const params = new URLSearchParams({ clientId, lastEventId: String(lastEventId), auctionId: initialAuction.id });
+
+    // URL
+    const params = new URLSearchParams({ auctionId: initialAuction.id });
     const url = `/api/auctions/${initialAuction.id}/sse-server-sent-events?${params}`;
     console.log("src/hooks/auction/bid/use-auction-event.ts_connect_url", url);
 
     const es = new EventSource(url);
     eventSourceRef.current = es;
 
+    // 接続確立の場合
     es.onopen = () => {
       console.info("src/hooks/auction/bid/use-auction-event.ts_es.onopen", url);
       setError(null);
       setLoading(false);
     };
 
-    es.onmessage = (ev) => {
-      const raw = ev.data as string;
-      const jsonStart = raw.indexOf("{");
-      const jsonStr = raw.substring(jsonStart);
-      if (jsonStart === -1 || typeof jsonStr !== "string") return;
-
-      try {
-        console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_jsonStr", jsonStr);
-        const payload = JSON.parse(jsonStr) as AuctionEventData;
-        if (!payload.data) {
-          console.warn("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_payload.data is undefined");
-          return;
-        }
-        setLastMsg(raw);
-        setLastEventId(Number(ev.lastEventId ?? 0));
-        console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_payload.data", payload.data);
-        applyAuction(payload.data); // type 判定は省略例。必要なら switch する
-      } catch (e) {
-        console.error("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_JSON parse error", e);
-        setError("受信データの解析に失敗しました");
-      }
+    // event:の記載がないメッセージの場合。デフォでmessageタイプになる
+    es.onmessage = (ev: MessageEvent<string>) => {
+      processSSEMessage(ev);
     };
 
+    // 接続確立の場合
+    es.addEventListener("connection_established", (ev: MessageEvent<string>) => {
+      console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_connection_established", ev);
+      processSSEMessage(ev);
+    });
+
+    // Upstash Redisの場合
+    es.addEventListener("upstash_redis", (ev: MessageEvent<string>) => {
+      console.log("src/hooks/auction/bid/use-auction-event.ts_es.onmessage_upstash_redis", ev);
+      processSSEMessage(ev);
+    });
+
+    // エラーの場合
     es.onerror = (ev: Event) => {
       console.error("src/hooks/auction/bid/use-auction-event.ts_es.onerror", ev);
       setError("接続が中断されました。再接続を試行します…");
       es.close();
       eventSourceRef.current = null;
-      reconnectTimer.current = setTimeout(connect, 5000);
     };
-  }, [clientId, lastEventId, initialAuction.id, applyAuction]);
+  }, [initialAuction.id, processSSEMessage]);
 
   /**
    * オークションSSEを切断する
@@ -167,5 +190,5 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   /**
    * 返す
    */
-  return { auction, bidHistory, loading, error, lastEventId, clientId, lastMsg, reconnect: connect, disconnect };
+  return { auction, bidHistory, loading, error, lastMsg, reconnect: connect, disconnect };
 }

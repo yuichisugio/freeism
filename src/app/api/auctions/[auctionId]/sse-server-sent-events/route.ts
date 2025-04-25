@@ -1,67 +1,25 @@
-import { SSE_CONFIG } from "@/lib/auction/constants";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 // Vercelが、キャッシュを無視して、常に最新のデータを取得するように指定
 export const dynamic = "force-dynamic";
 
 // エッジ環境で実行
 export const runtime = "edge";
 
-// エンコーダー
+// エンコーダーとデコーダー
 const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * SSE heartbeat
- * クライアントへ 20s 間隔で送出する Transform
- * 25s 以内に 1 chunk 必須という Vercel Edge 制限に対応
- */
-const createHeartbeatTransform = () => {
-  let timer: ReturnType<typeof setInterval> | null = null;
-  return new TransformStream<Uint8Array>({
-    start(controller) {
-      const send = () => {
-        if (controller.desiredSize !== null) controller.enqueue(encoder.encode(":\n\n"));
-      };
-      timer = setInterval(() => {
-        try {
-          console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createHeartbeatTransform_ハートビート完了");
-          send();
-        } catch (error) {
-          console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createHeartbeatTransform_ハートビートエラー", error);
-          // ストリームが閉じられた場合はタイマー停止
-          if (timer) clearInterval(timer);
-        }
-      }, SSE_CONFIG.HEARTBEAT_INTERVAL);
-      controller.enqueue(encoder.encode("retry: 3000\n\n"));
-      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createHeartbeatTransform_retry_3000_送信");
-    },
-    transform(chunk, ctrl) {
-      ctrl.enqueue(chunk);
-    },
-    flush() {
-      // 書き込み完了時にもタイマー停止
-      if (timer) clearInterval(timer);
-    },
-  });
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * UpstashのRedisに接続して、指定されたチャンネルを購読する
+ * UpstashのRedisに接続して、指定されたチャンネルを購読し、メッセージデータを整形して送出する
  * @param {string} channel 購読するチャンネル名
- * @returns {AsyncIterable<Uint8Array>} チャンネルのメッセージを含む非同期イテラブル
+ * @returns {AsyncIterable<Uint8Array>} 整形されたメッセージデータ (`data: {...}\n\n`) を含む非同期イテラブル
  */
-async function* upstashSubscribe(channel: string) {
+async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
   const url = `${process.env.UPSTASH_REDIS_REST_URL}/subscribe/${encodeURIComponent(channel)}`;
   let attempt = 0;
+
   while (true) {
-    const abortController = new AbortController();
-    // 28s で強制 Abort – Edge fetch の idle timeout を回避
-    const timeout = setTimeout(() => abortController.abort(), 28_000);
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -69,13 +27,12 @@ async function* upstashSubscribe(channel: string) {
           Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
           Accept: "text/event-stream",
         },
-        // cache: "no-cache",削除
         next: { revalidate: 0 },
-        signal: abortController.signal,
       });
-      clearTimeout(timeout);
-      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch");
+      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch", res.status);
+
       if (!res.ok || !res.body) {
+        console.warn("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_error", res.status, res.statusText);
         const wait = Math.min(2 ** attempt * 1_000, 30_000);
         await new Promise((r) => setTimeout(r, wait));
         attempt++;
@@ -83,9 +40,13 @@ async function* upstashSubscribe(channel: string) {
       }
       attempt = 0;
       const reader = res.body.getReader();
+
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_reader_done");
+          break; // ストリームが終了したら内側のループを抜ける
+        }
         if (!value) continue;
         yield value;
       }
@@ -134,15 +95,13 @@ const createInitDataTransform = (auctionId: string) => {
  */
 export async function GET(_req: Request, { params }: { params: Promise<{ auctionId: string }> }) {
   const { auctionId } = await params;
-  console.log("auctionId", auctionId);
+  console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_auctionId", auctionId);
   if (!auctionId) {
     return new Response(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
   }
   const channel = `auction:${auctionId}:events`;
 
-  const upstream = readableFromAsyncIterable(upstashSubscribe(channel))
-    .pipeThrough(createHeartbeatTransform())
-    .pipeThrough(createInitDataTransform(auctionId));
+  const upstream = readableFromAsyncIterable(upstashSubscribe(channel)).pipeThrough(createInitDataTransform(auctionId));
 
   return new Response(upstream, {
     headers: {
@@ -161,15 +120,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ auction
  * @param iter 非同期イテラブル
  * @returns ReadableStream
  */
-function readableFromAsyncIterable<T>(iter: AsyncIterable<T>): ReadableStream<T> {
+function readableFromAsyncIterable(iter: AsyncIterable<Uint8Array>): ReadableStream<Uint8Array> {
   const iterator = iter[Symbol.asyncIterator]();
-  return new ReadableStream<T>({
+  return new ReadableStream<Uint8Array>({
     async pull(ctrl) {
       const result = await iterator.next();
       if (result.done) {
         ctrl.close();
       } else {
-        ctrl.enqueue(result.value);
+        const decodedValue = decoder.decode(result.value, { stream: true });
+        const value = `event: upstash_redis\ndata: ${decodedValue}\n\n`;
+        ctrl.enqueue(encoder.encode(value));
       }
     },
     async cancel() {

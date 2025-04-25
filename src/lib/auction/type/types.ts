@@ -228,24 +228,6 @@ export type BidFormData = {
   maxAmount?: number; // 自動入札の最大金額
 };
 
-// オークションイベントタイプ
-export enum SSEAuctionEventType {
-  CONNECTION_ESTABLISHED = "connection_established",
-  NEW_BID = "new_bid",
-  ERROR = "error",
-  AUCTION_UPDATE = "auction_update",
-  AUCTION_EXTENSION = "auction_extension",
-  AUCTION_ENDED = "auction_ended",
-}
-
-// イベント履歴データ型
-export type EventHistoryItem = {
-  id: number;
-  type: SSEAuctionEventType;
-  data: AuctionWithDetails;
-  timestamp: number;
-};
-
 // Userの型定義
 export type User = {
   id: string;
@@ -419,13 +401,6 @@ export type UserAuth = {
   email: string;
   username: string;
   avatarUrl?: string;
-};
-
-// オークションSSEイベントデータ
-export type AuctionEventData = {
-  type: SSEAuctionEventType;
-  data?: AuctionWithDetails; // サーバーから直接AuctionWithDetailsを受け取る
-  error?: string;
 };
 
 // レビュー情報
