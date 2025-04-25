@@ -30,10 +30,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
 
-      - name: Enable Corepack / set pnpm version
-        run: |
-          corepack enable
-          corepack prepare pnpm@${PNPM_VERSION} --activate
+      - name: Setup pnpm CLI
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
       # 2. 依存インストール（オフライン優先）
       - name: Install dependencies
