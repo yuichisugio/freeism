@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/bid/use-bid-actions";
-import { type Auction } from "@/lib/auction/type/types";
+import { type BidFormProps } from "@/lib/auction/type/types";
 import { motion } from "framer-motion";
 import { Gavel, Minus, Plus } from "lucide-react";
 
@@ -17,7 +17,7 @@ import { AutoBidForm } from "./auto-bid-form";
  * @param onCancel キャンセルボタンのクリックハンドラ
  * @returns 入札フォーム
  */
-export const BidForm = memo(function BidForm({ auction }: { auction: Auction }) {
+export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProps }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/auction/bid/bid-form.tsx_BidForm_render");
@@ -73,7 +73,7 @@ export const BidForm = memo(function BidForm({ auction }: { auction: Auction }) 
 
   // 入札額をインクリメント
   const incrementBid = useCallback(() => {
-    setBidAmount((prev) => prev + 1);
+    setBidAmount((prev: number) => prev + 1);
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -81,7 +81,7 @@ export const BidForm = memo(function BidForm({ auction }: { auction: Auction }) 
   // 入札額をデクリメント（最小入札額未満にはならないように）
   const decrementBid = useCallback(() => {
     if (bidAmount > minBid) {
-      setBidAmount((prev) => prev - 1);
+      setBidAmount((prev: number) => prev - 1);
     }
   }, [bidAmount, minBid]);
 

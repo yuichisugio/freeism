@@ -10,7 +10,7 @@ import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { useWatchlistActions } from "@/hooks/auction/bid/use-watchlist-actions";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import { type Auction, type AuctionWithDetails } from "@/lib/auction/type/types";
+import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/utils";
 import { AuctionStatus } from "@prisma/client";
 import { motion } from "framer-motion";
@@ -194,21 +194,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
         {!isCreator && isActive && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <BidForm
-              auction={
-                {
-                  id: auction.id,
-                  title: auction.title,
-                  description: auction.description,
-                  currentHighestBid: auction.currentHighestBid,
-                  startTime: auction.startTime.toString(),
-                  endTime: auction.endTime.toString(),
-                  creatorId: auction.task.creator.id,
-                  currentHighestBidderId: auction.currentHighestBidderId,
-                  status: auction.status,
-                } as Auction
-              }
-            />
+            <BidForm auction={auction} />
           </motion.div>
         )}
       </div>

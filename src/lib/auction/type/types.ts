@@ -1,5 +1,5 @@
 import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import type { AuctionStatus, BidStatus, TaskStatus, User } from "@prisma/client";
+import type { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -220,33 +220,12 @@ export type BidFormData = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * Auction型
+ * 入札フォームのprops
  */
-export type Auction = {
+export type BidFormProps = {
   id: string;
-  title: string;
-  description: string;
-  imageUrl?: string;
   currentHighestBid: number;
-  startTime: string;
-  endTime: string;
-  creatorId: string;
-  status?: string; // オークションのステータス（ACTIVE, ENDED, など）
-  highestBidderId?: string | null; // 非推奨: 今後はcurrentHighestBidderIdを使用
-  currentHighestBidderId?: string | null; // 最高入札者ID
-  seller?:
-    | {
-        id: string;
-        username: string;
-        email: string | null;
-        createdAt: string;
-        avatarUrl?: string;
-      }
-    | User;
-  bidCount?: number;
-  categories?: string[] | { id: string; name: string }[];
-  watchCount?: number;
-  depositPeriod?: number;
+  currentHighestBidderId: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

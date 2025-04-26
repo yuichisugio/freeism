@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
-import { type Auction, type AuctionWithDetails } from "../type/types";
+import { type AuctionWithDetails } from "../type/types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,7 +12,7 @@ import { type Auction, type AuctionWithDetails } from "../type/types";
  * @param auction オークション情報
  * @returns オークションのステータス
  */
-export async function getAuctionStatus(auction: Auction | AuctionWithDetails): Promise<"upcoming" | "active" | "ended"> {
+export async function getAuctionStatus(auction: AuctionWithDetails): Promise<"upcoming" | "active" | "ended"> {
   const now = new Date();
 
   if (now < new Date(auction.startTime)) {

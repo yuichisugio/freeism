@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { type SortDirection } from "@/lib/auction/type/types";
 
 /**
  * テーブルデータのソート機能を提供するカスタムフック
@@ -14,11 +15,8 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
 
   // ソート処理関数
   const handleSort = (key: keyof T) => {
-    // ソートの方向をリテラル型のユニオン型で型定義
-    type Direction = "asc" | "desc";
-
     // ソートの方向は、デフォルトではascに設定
-    let direction: Direction = "asc";
+    let direction: SortDirection = "asc";
 
     // 2回連続同じカラムをクリックした時のみ、descに変更。それ以外は初回のカラムを選択ではascになる。
     if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
