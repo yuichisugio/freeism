@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionWithDetails, BidHistoryWithUser } from "@/lib/auction/type/types";
+import type { AuctionWithDetails } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,7 +17,7 @@ type SSEResponse = {
  */
 type UseAuctionEventResult = {
   auction: AuctionWithDetails | undefined;
-  bidHistory: BidHistoryWithUser[];
+  bidHistory: AuctionWithDetails["bidHistories"];
   loading: boolean;
   error: string | null;
   reconnect: () => void;
@@ -41,7 +41,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   // オークション情報
   const [auction, setAuction] = useState<AuctionWithDetails>(initialAuction);
   // 入札履歴
-  const [bidHistory, setBidHistory] = useState<BidHistoryWithUser[]>(initialAuction.bidHistories ?? []);
+  const [bidHistory, setBidHistory] = useState<AuctionWithDetails["bidHistories"]>(initialAuction.bidHistories ?? []);
   // ローディング
   const [loading, setLoading] = useState<boolean>(true);
   // エラー

@@ -142,9 +142,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">現在価格</p>
-                <p className="mt-2 text-3xl font-bold text-blue-700">
-                  {formatCurrency(auction.currentHighestBid ?? (auction.task as { startPrice?: number })?.startPrice ?? 0)}
-                </p>
+                <p className="mt-2 text-3xl font-bold text-blue-700">{formatCurrency(auction.currentHighestBid ?? 0)}</p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">最低入札額</p>
@@ -152,7 +150,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               </div>
               <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">入札数</p>
-                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length >= 50 ? "50+" : (bidHistory.length ?? 0)}</p>
+                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length > 25 ? "25+" : (bidHistory.length ?? 0)}</p>
               </div>
             </div>
           </CardContent>
@@ -196,7 +194,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
                   currentHighestBid: auction.currentHighestBid,
                   startTime: auction.startTime.toString(),
                   endTime: auction.endTime.toString(),
-                  creatorId: auction.creatorId,
+                  creatorId: auction.task.creator.id,
                   currentHighestBidderId: auction.currentHighestBidderId,
                   status: auction.status,
                 } as Auction
@@ -206,7 +204,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
       </div>
     );
-  }, [auction, currentUserId, bidHistory.length, isActive, isCreator]);
+  }, [auction, bidHistory.length, isActive, isCreator]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -298,7 +296,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleWatchlistToggle}
-                disabled={submitting || auction.creatorId === currentUserId}
+                disabled={submitting || auction.task.creator.id === currentUserId}
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
               >
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
@@ -308,7 +306,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <User size={16} className="text-primary" />
               </div>
-              <p className="text-muted-foreground">{(auction.task.creator as { name?: string | null }).name ?? "不明なユーザー"}</p>
+              <p className="text-muted-foreground">{(auction.task.creator as { name: string }).name ?? "不明なユーザー"}</p>
             </div>
           </div>
 

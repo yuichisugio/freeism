@@ -85,7 +85,7 @@ export function useBidActions(): UseBidActionsResult {
         setWarningMessage(result.message);
         toast.warning(result.message);
       } else {
-        toast.success("入札が完了しました");
+        toast.success(result.message);
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

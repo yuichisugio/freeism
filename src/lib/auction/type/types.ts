@@ -1,5 +1,5 @@
 import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import type { AuctionReview, AuctionStatus, BidStatus, Task, TaskStatus } from "@prisma/client";
+import type { AuctionReview, AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
 // 入札履歴の基本型
 export type BidHistory = {
@@ -9,7 +9,6 @@ export type BidHistory = {
   amount: number;
   createdAt: string; // ISO日付文字列
   isAutoBid?: boolean;
-  status?: string;
 };
 
 // 出品商品詳細画面のprops
@@ -281,46 +280,50 @@ export type BidHistoryWithUser = BidHistory & {
   user?: User;
 };
 
-// タスクグループの型定義
-export type TaskGroup = {
-  id: string;
-  name: string;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// オークション詳細情報を含む型
+/**
+ * オークション詳細情報を含む型
+ */
 export type AuctionWithDetails = {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
   status: string;
-  taskId: string;
   startTime: Date;
   endTime: Date;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
-  bidHistories: BidHistory[];
-  winnerId: string | null;
-  extensionCount: number;
-  version: number;
+  bidHistories: {
+    id: string; // 入札履歴のID
+    amount: number; // 入札金額
+    createdAt: string; // ISO日付文字列
+    isAutoBid?: boolean; // 自動入札かどうか
+    user: {
+      id: string;
+      name: string;
+    };
+  }[];
+  extensionCount: number; // オークションの延長回数
+  extensionTime: number; // オークションの延長時間
   title: string;
   description: string;
-  currentPrice: number;
-  creatorId: string;
-  task: Task & {
-    group: TaskGroup;
-    creator: User;
+  task: {
+    task: string;
+    detail: string | null;
+    imageUrl: string | null;
+    status: TaskStatus;
+    group: {
+      id: string;
+      name: string;
+      depositPeriod: number;
+    };
+    creator: {
+      id: string;
+      name: string;
+    };
   };
-  depositPeriod: number;
-  currentHighestBidder: User | null;
-  winner: User | null;
-  watchlists?: WatchlistItem[];
-  options?: {
-    reconnectOnVisibility?: boolean; // ページが表示されたときに再接続
-    batchMode?: boolean; // イベントをバッファリング
-    clientId?: string; // カスタムクライアントID
-  };
-  bid?: BidHistoryWithUser;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // オークションリスト結果型
 export type AuctionListingResult = Array<{
@@ -364,7 +367,7 @@ export type BidFormProps = {
 
 // 入札履歴のprops
 export type BidHistoryProps = {
-  initialBids: BidHistoryWithUser[];
+  initialBids: AuctionWithDetails["bidHistories"];
 };
 
 // カウントダウンタイマーの状

@@ -49,7 +49,7 @@ export const AUCTION_CONSTANTS = {
   // 表示関連
   DISPLAY: {
     // 入札履歴の表示件数
-    BID_HISTORY_LIMIT: 20,
+    BID_HISTORY_LIMIT: 25,
     // 質問と回答の表示件数
     QA_LIMIT: 10,
     // 表示件数

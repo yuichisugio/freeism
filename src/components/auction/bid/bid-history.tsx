@@ -1,25 +1,13 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type BidHistoryProps } from "@/lib/auction/type/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, HandCoins } from "lucide-react";
-
-// --------------------------------------------------
-
-/**
- * ユーザー
- */
-type User = {
-  id: string;
-  username?: string | null;
-  name?: string | null;
-  image?: string | null;
-};
 
 // --------------------------------------------------
 
@@ -31,34 +19,8 @@ type User = {
 export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHistoryProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 表示する入札履歴を最大20件に制限
-  const displayedBids = useMemo(() => initialBids.slice(0, 20), [initialBids]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザー名を安全に取得するヘルパー関数
-   * @param user ユーザー
-   * @returns ユーザー名
-   */
-  const getUserName = useCallback((user: User | undefined): string => {
-    if (!user) return "不明なユーザー";
-    return user.username ?? user.name ?? "不明なユーザー";
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーのイニシャルを取得するヘルパー関数
-   * @param user ユーザー
-   * @returns ユーザーのイニシャル
-   */
-  const getUserInitials = useCallback((user: User | undefined): string => {
-    if (!user) return "?";
-    const name = user.username ?? user.name ?? "";
-    if (!name) return "?";
-    return name.charAt(0).toUpperCase();
-  }, []);
+  // 表示する入札履歴を最大25件に制限
+  const displayedBids = useMemo(() => initialBids.slice(0, AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT), [initialBids]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -110,10 +72,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHist
               >
                 <TableCell className="py-3">
                   <div className="flex items-center gap-2">
-                    <Avatar className="bg-primary/10 h-8 w-8">
-                      <AvatarFallback className="text-primary text-xs">{getUserInitials(bid.user)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{getUserName(bid.user)}</span>
+                    <span className="font-medium">{bid?.user?.name ?? "不明なユーザー"}</span>
                     {index === 0 && (
                       <Badge variant="secondary" className="ml-1 text-xs">
                         現在の最高額

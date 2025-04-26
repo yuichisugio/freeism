@@ -70,7 +70,7 @@ export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number
   }
 
   // 出品者（タスク作成者）は入札不可
-  if (auction.task.creatorId === userId) {
+  if (auction.task.creator.id === userId) {
     return { canBid: false, message: "自分のオークションには入札できません" };
   }
 
@@ -84,7 +84,7 @@ export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number
   }
 
   // ユーザーのポイント残高を確認。ポイントが不足している場合でも入札可能だが、注意メッセージは表示する
-  const userPointBalance = await getUserPointBalance(userId, auction.task.groupId);
+  const userPointBalance = await getUserPointBalance(userId, auction.task.group.id);
   if (userPointBalance < bidAmount) {
     return {
       canBid: true,

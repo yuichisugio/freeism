@@ -2,11 +2,12 @@
 
 import type { Session } from "next-auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType, TaskStatus } from "@prisma/client";
 
-import type { AuctionWithDetails, BidHistory, WatchlistItem } from "../type/types";
+import type { AuctionWithDetails } from "../type/types";
 import type { ProcessAutoBidParams } from "./auto-bid";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
@@ -15,12 +16,9 @@ import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 /**
  * 共通入札処理の結果型
  */
-export type BidActionResult = {
+export type ExecuteBidReturn = {
   success: boolean;
-  message?: string;
-  bid?: BidHistory;
-  isAutoBid?: boolean;
-  auction?: AuctionWithDetails;
+  message: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -39,41 +37,6 @@ type ValidateAuctionResult = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * タスクの基本情報型
- */
-type TaskBasicInfo = {
-  creator?: {
-    id: string;
-    name?: string | null;
-    image?: string | null;
-  };
-  task?: string | null;
-  detail?: string | null;
-  group?: TaskGroup;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスクグループの型
- */
-type TaskGroup = {
-  id: string;
-  name: string;
-  depositPeriod?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-  goal?: string;
-  evaluationMethod?: string;
-  maxParticipants?: number;
-  createdBy?: string;
-  isBlackList?: unknown;
-  [key: string]: unknown;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * バリデーション用のオークションデータ型
  */
 type AuctionValidationData = {
@@ -83,7 +46,15 @@ type AuctionValidationData = {
   currentHighestBidderId: string | null;
   endTime: Date;
   taskId?: string;
-  task?: TaskBasicInfo;
+  task?: {
+    creator: {
+      id: string;
+      name?: string | null;
+      image?: string | null;
+    };
+    task?: string | null;
+    detail?: string | null;
+  };
   bidHistories?: Array<{
     user?: {
       id: string;
@@ -94,71 +65,6 @@ type AuctionValidationData = {
   }>;
   version?: number;
   [key: string]: unknown;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * トランザクション内で実行する入札処理の結果型
- */
-type BidTransactionResult = {
-  bidHistory: {
-    id: string;
-    auctionId: string;
-    userId: string;
-    amount: number;
-    createdAt: Date;
-    isAutoBid: boolean;
-    status: BidStatus;
-  };
-  updatedAuction: unknown;
-  auctionWithDetails?: AuctionWithDetails;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * tx.auction.findUniqueの結果の厳密な型定義
- */
-type AuctionWithRelations = {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  taskId: string;
-  startTime: Date;
-  endTime: Date;
-  currentHighestBid: number;
-  currentHighestBidderId: string | null;
-  winnerId: string | null;
-  extensionCount: number;
-  version: number;
-  task: {
-    task: string | null;
-    detail: string | null;
-    creator: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-    group: TaskGroup;
-  };
-  bidHistories: Array<{
-    id: string;
-    amount: number;
-    createdAt: Date;
-    isAutoBid: boolean;
-    status: string;
-    user: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-  }>;
-  watchlists: Array<{
-    id: string;
-    userId: string;
-  }>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -339,42 +245,13 @@ export async function validateAuction(
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * プロパティを安全に取得するヘルパー関数
- */
-function getProperty<T, K extends keyof T>(obj: T | undefined | null, key: K, defaultValue: T[K]): T[K] {
-  return obj ? obj[key] : defaultValue;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 安全なTaskGroupのデフォルト値を提供する
- */
-function getDefaultTaskGroup(): TaskGroup {
-  return {
-    id: "",
-    name: "",
-    depositPeriod: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    goal: "",
-    evaluationMethod: "",
-    maxParticipants: 0,
-    createdBy: "",
-    isBlackList: null,
-  };
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 入札処理の共通部分を実装した関数
  * @param auctionId オークションID
  * @param amount 入札金額
  * @param isAutoBid 自動入札かどうか
  * @returns 入札処理の結果
  */
-export async function executeBid(auctionId: string, amount: number, isAutoBid = false): Promise<BidActionResult> {
+export async function executeBid(auctionId: string, amount: number, isAutoBid = false): Promise<ExecuteBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -392,12 +269,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // バリデーションエラーチェック
-    let validationError: BidActionResult | null = null;
+    let validationError: ExecuteBidReturn | null = null;
     if (!validation.success || !validation.userId) {
       validationError = {
         success: false,
-        message: validation.message,
-        isAutoBid,
+        message: validation.message ?? "入札に失敗しました",
       };
     }
     if (validationError) return validationError;
@@ -406,12 +282,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
     // この時点でuserIdは必ず存在する
     const userId = validation.userId!;
-    const session = validation.session;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // すべての処理をトランザクションで実行
-    const result: BidTransactionResult = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 楽観的ロックのためのバージョン取得
@@ -435,7 +310,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 入札履歴を作成
-      const bidHistory = await tx.bidHistory.create({
+      await tx.bidHistory.create({
         data: {
           auctionId,
           userId,
@@ -487,7 +362,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           },
           bidHistories: {
             orderBy: { createdAt: "desc" },
-            take: 51,
+            take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
             include: {
               user: {
                 select: {
@@ -506,110 +381,53 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         throw new Error("更新されたオークション情報を取得できませんでした");
       }
 
-      // 安全にアクセスするためのヘルパー変数を用意
-      const userInfo = {
-        id: userId,
-        username: session?.user?.name ?? "",
-        email: "",
-        createdAt: new Date().toISOString(),
-        name: session?.user?.name ?? null,
-        image: session?.user?.image ?? null,
-        emailVerified: null,
-        isAppOwner: false,
-        updatedAt: new Date(),
-      };
-
       // TypeScriptに型情報を教える
-      const auctionData = updatedAuction as unknown as AuctionWithRelations;
+      const auctionData = updatedAuction as unknown as AuctionWithDetails;
 
       const task = auctionData.task;
-      const creatorId = getProperty(task?.creator, "id", "");
-      const taskName = getProperty(task, "task", "");
-      const taskDetail = getProperty(task, "detail", "");
-      const taskGroup = task?.group ?? getDefaultTaskGroup();
+      const creatorId = task?.creator?.id ?? "";
+      const taskName = task?.task ?? "";
+      const taskDetail = task?.detail ?? "";
+      const taskGroup = task?.group;
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // AuctionWithDetails形式に変換
       const auctionWithDetails: AuctionWithDetails = {
         id: auctionData.id,
-        createdAt: auctionData.createdAt,
-        updatedAt: auctionData.updatedAt,
         status: auctionData.status,
-        taskId: auctionData.taskId,
         startTime: auctionData.startTime,
         endTime: auctionData.endTime,
         currentHighestBid: auctionData.currentHighestBid,
         currentHighestBidderId: auctionData.currentHighestBidderId,
         bidHistories: auctionData.bidHistories.map((bid) => ({
           id: bid.id,
-          auctionId: auctionId,
-          userId: bid.user?.id ?? userId,
           amount: bid.amount,
-          createdAt: bid.createdAt.toISOString(),
+          createdAt: bid.createdAt,
           isAutoBid: bid.isAutoBid,
-          status: bid.status,
+          user: {
+            id: bid.user.id,
+            name: bid.user.name ?? "不明なユーザー",
+          },
         })),
-        winnerId: auctionData.winnerId,
         extensionCount: auctionData.extensionCount,
-        version: auctionData.version,
+        extensionTime: auctionData.extensionTime,
         title: taskName ?? "",
         description: taskDetail ?? "",
-        currentPrice: auctionData.currentHighestBid,
-        creatorId: creatorId,
         task: {
-          id: auctionData.taskId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          creatorId: creatorId,
           task: taskName ?? "",
-          groupId: taskGroup.id,
-          detail: taskDetail,
-          status: TaskStatus.PENDING,
-          reference: null,
-          category: null,
+          detail: taskDetail ?? "",
           imageUrl: null,
-          deliveryMethod: null,
-          info: null,
-          fixedContributionPoint: null,
-          fixedEvaluator: null,
-          fixedEvaluationLogic: null,
-          fixedEvaluationDate: null,
-          userFixedSubmitterId: null,
-          contributionType: "NON_REWARD",
+          status: TaskStatus.PENDING,
+          group: {
+            id: taskGroup.id,
+            name: taskGroup.name,
+            depositPeriod: taskGroup.depositPeriod,
+          },
           creator: {
             id: creatorId,
-            username: getProperty(task?.creator, "name", "") ?? "",
-            email: "",
-            createdAt: new Date().toISOString(),
-            name: getProperty(task?.creator, "name", null),
-            image: getProperty(task?.creator, "image", null),
-            emailVerified: null,
-            isAppOwner: false,
-            updatedAt: new Date(),
+            name: task?.creator?.name ?? "不明なユーザー",
           },
-          group: taskGroup,
-        },
-        depositPeriod: taskGroup.depositPeriod ?? 0,
-        currentHighestBidder: null,
-        winner: null,
-        watchlists: auctionData.watchlists.map(
-          (w) =>
-            ({
-              id: w.id,
-              userId: w.userId,
-              auctionId: auctionId,
-            }) as WatchlistItem,
-        ),
-        bid: {
-          id: bidHistory.id,
-          auctionId: bidHistory.auctionId,
-          userId: bidHistory.userId,
-          amount: bidHistory.amount,
-          createdAt: bidHistory.createdAt.toISOString(),
-          isAutoBid: bidHistory.isAutoBid,
-          status: bidHistory.status,
-          user: userInfo,
         },
       };
 
@@ -636,7 +454,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 以前の最高入札者が自分以外の場合は、以前の最高入札者に、AuctionEventType.OUTBIDの通知を送信
+      /**
+       * 以前の最高入札者が自分以外の場合は、以前の最高入札者に、AuctionEventType.OUTBIDの通知を送信
+       */
       if (initialHighestBidderId !== userId && initialHighestBidderId !== null) {
         await sendAuctionNotification({
           text: {
@@ -656,10 +476,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // SSEでリアルタイム更新を通知。$transaction内で実行したい
+      /**
+       * SSEでリアルタイム更新を通知。
+       * $transaction内で実行したい
+       */
       await sendEventToAuctionSubscribers(auctionId, auctionWithDetails);
-
-      return { bidHistory, updatedAuction, auctionWithDetails };
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -696,17 +517,6 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     return {
       success: true,
       message: isAutoBid ? `${amount}ポイントで自動入札しました` : "入札が完了しました",
-      bid: {
-        id: result.bidHistory.id,
-        auctionId: result.bidHistory.auctionId,
-        userId: result.bidHistory.userId,
-        amount: result.bidHistory.amount,
-        createdAt: result.bidHistory.createdAt.toISOString(),
-        isAutoBid: result.bidHistory.isAutoBid,
-        status: result.bidHistory.status,
-      },
-      isAutoBid,
-      auction: result.auctionWithDetails,
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -715,8 +525,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     return {
       success: false,
       message: `入札処理中にエラーが発生しました`,
-      isAutoBid,
-    } as BidActionResult;
+    };
   }
 }
 

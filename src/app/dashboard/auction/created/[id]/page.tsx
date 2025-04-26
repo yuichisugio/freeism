@@ -6,20 +6,57 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { type AuctionReview } from "@prisma/client";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品商品詳細ページのProps
+ */
 type CreatedAuctionPageProps = {
   params: Promise<{ id: string }>;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品商品詳細ページのメタデータ
+ */
 export const metadata: Metadata = {
   title: "出品商品詳細 | Freeism",
   description: "出品した商品の詳細や落札状況を確認できます",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品商品詳細ページのメタデータ
+ */
 export default async function CreatedAuctionPage({ params }: CreatedAuctionPageProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ログ
+   */
+  console.log("src/app/dashboard/auction/created/[id]/page.tsx_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメーター
+   */
   const { id } = await params;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーIDを取得
+   */
   const userId = await getAuthenticatedSessionUserId();
 
-  // 自分が出品したオークションの詳細を取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 自分が出品したオークションの詳細を取得
+   */
   const auction = await prisma.auction.findUnique({
     where: {
       id,
@@ -63,7 +100,11 @@ export default async function CreatedAuctionPage({ params }: CreatedAuctionPageP
     notFound();
   }
 
-  // 落札者の他のレビューを取得（落札者がいる場合のみ）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札者の他のレビューを取得（落札者がいる場合のみ）
+   */
   let winnerReviews: AuctionReview[] = [];
   let winnerRating = 0;
 
@@ -75,16 +116,20 @@ export default async function CreatedAuctionPage({ params }: CreatedAuctionPageP
           auctionId: auction.id,
         },
       },
-      take: 5,
+      take: 100,
       orderBy: {
         createdAt: "desc",
       },
     });
-
     // 落札者の平均評価を計算
     winnerRating = winnerReviews.length > 0 ? winnerReviews.reduce((sum, review) => sum + review.rating, 0) / winnerReviews.length : 0;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品商品詳細ページを表示
+   */
   return (
     <MainTemplate title="出品商品詳細" description="出品した商品の詳細情報です">
       <AuctionCreatedDetail auction={auction} winnerRating={winnerRating} winnerReviews={winnerReviews} />

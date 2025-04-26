@@ -1,5 +1,6 @@
 "use server";
 
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
 
@@ -31,7 +32,7 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
           orderBy: {
             createdAt: "desc",
           },
-          take: 50,
+          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
         },
       },
     });
@@ -86,7 +87,7 @@ export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDet
         },
         bidHistories: {
           orderBy: { createdAt: "desc" },
-          take: 51,
+          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
           include: {
             user: {
               select: {
