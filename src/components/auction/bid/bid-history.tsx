@@ -1,9 +1,8 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -19,16 +18,11 @@ import { Activity, AlertCircle, HandCoins } from "lucide-react";
 export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initialBids: AuctionWithDetails["bidHistories"] }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 表示する入札履歴を最大25件に制限
-  const displayedBids = useMemo(() => initialBids.slice(0, AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT), [initialBids]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * 入札履歴がない場合
    * @returns 入札履歴がない場合の表示
    */
-  if (displayedBids.length === 0) {
+  if (initialBids.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -62,7 +56,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initi
             </TableRow>
           </TableHeader>
           <TableBody>
-            {displayedBids.map((bid, index) => (
+            {initialBids.map((bid, index) => (
               <motion.tr
                 key={bid.id}
                 initial={{ opacity: 0, y: 10 }}

@@ -210,6 +210,7 @@ export type AuctionWithDetails = {
     detail: string | null;
     imageUrl: string | null;
     status: TaskStatus;
+    category: string | null;
     group: {
       id: string;
       name: string;
@@ -228,9 +229,9 @@ export type AuctionWithDetails = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション出品リストの型
+ * オークションのカードの型
  */
-export type AuctionListingResult = Array<{
+export type AuctionCard = {
   id: string;
   taskId: string;
   title: string;
@@ -243,6 +244,7 @@ export type AuctionListingResult = Array<{
   status: AuctionStatus;
   isWatched: boolean;
   bidsCount: number;
+  category: string | null;
   seller: {
     id: string;
     name: string | null;
@@ -253,7 +255,13 @@ export type AuctionListingResult = Array<{
     id: string;
     name: string;
   };
-}>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+/**
+ * オークション出品リストの型
+ */
+export type AuctionListingResult = Array<AuctionCard>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -261,26 +269,7 @@ export type AuctionListingResult = Array<{
  * オークションの出品リストのカードのprops
  */
 export type AuctionCardProps = {
-  auction: {
-    id: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    status: string;
-    seller: {
-      rating: number | null;
-      name?: string | null;
-      image?: string | null;
-    };
-    taskId: string;
-    title: string;
-    imageUrl?: string;
-    currentBid: number;
-    isWatched: boolean;
-    bidsCount: number;
-    group: {
-      name: string;
-    };
-  };
+  auction: AuctionCard;
   onToggleWatchlistAction: (auctionId: string) => Promise<void>;
 };
 

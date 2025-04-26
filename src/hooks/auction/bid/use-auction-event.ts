@@ -1,7 +1,8 @@
 "use client";
 
 import type { AuctionWithDetails } from "@/lib/auction/type/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -63,6 +64,24 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * セッション情報
+   */
+  const { data: session } = useSession();
+
+  /**
+   * ユーザーID
+   */
+  const currentUserId = useMemo(() => {
+    if (!session?.user?.id) {
+      console.warn("src/hooks/auction/bid/use-auction-event.ts_connect_session_user_id_is_undefined");
+      return;
+    }
+    return session.user.id;
+  }, [session]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * SSE接続のメッセージを処理
    * @param {AuctionWithDetails} data
    */
@@ -111,11 +130,19 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
       return;
     }
 
+    // ユーザーIDがない場合は接続しない
+    if (!currentUserId) {
+      console.warn("src/hooks/auction/bid/use-auction-event.ts_connect_user_id_is_undefined");
+      setError("ユーザーIDが取得できませんでした。");
+      setLoading(false); // ローディング状態も解除
+      return;
+    }
+
     // ローディング
     setLoading(true);
 
     // URL
-    const params = new URLSearchParams({ auctionId: initialAuction.id });
+    const params = new URLSearchParams({ userId: currentUserId });
     const url = `/api/auctions/${initialAuction.id}/sse-server-sent-events?${params}`;
     console.log("src/hooks/auction/bid/use-auction-event.ts_connect_url", url);
 
@@ -154,7 +181,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
         setError("再接続に失敗しました。ページをリロードしてください。");
       }
     };
-  }, [initialAuction.id, processSSEMessage]);
+  }, [initialAuction.id, processSSEMessage, currentUserId]);
 
   /**
    * オークションSSEを切断する

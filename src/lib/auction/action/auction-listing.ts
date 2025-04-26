@@ -285,7 +285,18 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       skip,
       take,
       include: {
-        task: { include: { creator: { select: { id: true, name: true, image: true } }, group: { select: { id: true, name: true } } } },
+        task: {
+          include: {
+            creator: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            group: { select: { id: true, name: true } },
+          },
+        },
         bidHistories: { orderBy: { amount: "desc" }, take: 1 }, // 最高入札履歴のみ取得
         watchlists: { where: { userId } }, // ログインユーザーのウォッチリスト情報
         _count: { select: { bidHistories: true } }, // 入札数カウント
@@ -323,6 +334,7 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       bidToBeatAmount: auction.currentHighestBid + 1,
       endTime: auction.endTime,
       startTime: auction.startTime,
+      category: auction.task.category,
       status: auction.status,
       isWatched: auction.watchlists.length > 0,
       bidsCount: auction._count.bidHistories,

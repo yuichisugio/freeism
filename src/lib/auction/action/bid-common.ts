@@ -418,6 +418,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           detail: taskDetail ?? "",
           imageUrl: null,
           status: TaskStatus.PENDING,
+          category: task?.category ?? null,
           group: {
             id: taskGroup.id,
             name: taskGroup.name,

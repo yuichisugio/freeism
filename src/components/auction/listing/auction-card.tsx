@@ -26,7 +26,9 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックからロジックを取得
+  /**
+   * カスタムフックからロジックを取得
+   */
   const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage, sellerRating } = useAuctionCard({
     auction,
     onToggleWatchlistAction,
@@ -34,7 +36,9 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 出品者の評価表示
+  /**
+   * 出品者の評価表示
+   */
   const renderRating = useCallback(() => {
     if (sellerRating.ratingValue === null) {
       return <span className="text-gray-400 dark:text-gray-500">未評価</span>;
@@ -88,7 +92,8 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
         <Heart className={cn("h-4 w-4 transition-colors", auction.isWatched ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300")} />
       </button>
 
-      <Link href={`/dashboard/auction/${auction.taskId}`} className="block">
+      {/* オークション詳細ページへのリンク */}
+      <Link href={`/dashboard/auction/${auction.id}`} className="block">
         <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
           {auction.imageUrl ? (
             <Image
@@ -127,8 +132,10 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
         </div>
       </Link>
 
+      {/* オークションカードの内容 */}
       <div className="p-3 sm:p-4">
-        <Link href={`/dashboard/auction/${auction.taskId}`} className="block">
+        {/* オークションタイトル */}
+        <Link href={`/dashboard/auction/${auction.id}`} className="block">
           <h3 className="hover:text-primary mb-2 line-clamp-2 text-base font-semibold transition-colors sm:text-lg dark:text-gray-100">
             {auction.title}
           </h3>
@@ -179,7 +186,7 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
 
           {/* カテゴリ表示（モック） */}
           <div className="text-2xs max-w-full truncate rounded bg-gray-50 px-2 py-1 text-gray-500 sm:text-xs dark:bg-gray-700/50 dark:text-gray-400">
-            カテゴリ: {auction.group.name.includes("開発") ? "開発" : "その他"}
+            カテゴリ: {auction.category ?? "未設定"}
           </div>
         </div>
       </div>

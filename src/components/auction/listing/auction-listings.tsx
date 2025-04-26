@@ -100,8 +100,8 @@ export const AuctionListings = memo(function AuctionListings() {
               // AuctionCardPropsの型定義に合わせて変換
               const auctionForCard = {
                 ...auction,
-                description: auction.description ?? undefined,
-                imageUrl: auction.imageUrl ?? undefined,
+                description: auction.description ?? "未設定",
+                imageUrl: auction.imageUrl ?? null,
               };
               return <AuctionCard key={auction.id} auction={auctionForCard} onToggleWatchlistAction={handleToggleWatchlist} />;
             })}

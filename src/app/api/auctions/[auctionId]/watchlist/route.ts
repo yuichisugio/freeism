@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * @param params パラメータ
  * @returns レスポンス
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  * @param params パラメータ
  * @returns レスポンス
  */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
+export async function POST(_request: NextRequest, { params }: { params: Promise<{ auctionId: string }> }) {
   const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { auctionId } = await params;
 
   try {
-    const isWatched = await serverToggleWatchlist(userId, auctionId);
+    const isWatched = await serverToggleWatchlist(auctionId, userId);
     return NextResponse.json({ isWatched });
   } catch (error) {
     console.error("ウォッチリスト更新エラー:", error);

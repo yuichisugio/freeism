@@ -15,7 +15,7 @@ import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Pri
  * 設定変更時は相互依存関係に注意してください。
  */
 // 保持する固定ユーザーID (外部からアクセス可能にする)
-const PRESERVED_USER_IDS = ["cm9mgm4qh0000mcul8cq8jq3r", "cm9mipm72000wmcaj9wk3zfu2"];
+const PRESERVED_USER_IDS = ["cm9y353li0000g5c0edcnjxq0", "cm9mipm72000wmcaj9wk3zfu2"];
 
 const SEED_CONFIG = {
   // 基本設定

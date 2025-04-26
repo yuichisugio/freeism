@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 import AuctionDetailWrapper from "./client";
 
@@ -30,9 +31,16 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
   const { auctionId } = await params;
   console.log("src/app/dashboard/auction/[auctionId]/page.tsx_auctionId", auctionId);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ユーザーIDを取得
+  const currentUserId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   try {
     // オークションデータを取得
-    const auctionData = await getAuctionByAuctionId(auctionId);
+    const auctionData = await getAuctionByAuctionId(auctionId, currentUserId);
 
     // オークションデータが存在しない場合は404エラーを返す
     if (!auctionData) {

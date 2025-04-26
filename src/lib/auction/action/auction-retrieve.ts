@@ -3,7 +3,6 @@
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,15 +11,12 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
  * @param auctionId オークションID
  * @returns オークション情報
  */
-export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
+export async function getAuctionByAuctionId(auctionId: string, currentUserId: string): Promise<AuctionWithDetails | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ログ
     console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_start");
-
-    // ユーザーIDを取得
-    const currentUserId = await getAuthenticatedSessionUserId();
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -68,6 +64,7 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
             detail: true,
             imageUrl: true,
             status: true,
+            category: true,
             group: {
               select: {
                 id: true,
@@ -98,7 +95,7 @@ export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionW
 
     if (!auction) return null;
 
-    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auction_success");
+    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auction_success", auction);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

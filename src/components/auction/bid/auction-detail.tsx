@@ -61,7 +61,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
 
   // ウォッチリストアクション
-  const { submitting, toggleWatchlist, isWatchlisted } = useWatchlistActions(!!initialAuction.watchlists?.[0].id);
+  const { submitting, toggleWatchlist, isWatchlisted } = useWatchlistActions(!!initialAuction.watchlists?.[0]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -318,11 +318,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           >
             <BarChart className="h-4 w-4" />
             <span>入札履歴</span>
-            {auction.bidHistories.length > 0 && (
-              <Badge variant="secondary" className="ml-1.5 px-1.5 py-0.5 text-xs font-normal">
-                {auction.bidHistories.length >= 50 ? "50+" : auction.bidHistories.length}
-              </Badge>
-            )}
           </TabsTrigger>
           <TabsTrigger
             value="qa"
