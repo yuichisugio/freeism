@@ -47,10 +47,12 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ユーザーIDを取得
   const { data: session } = useSession();
-  if (!session?.user) {
-    notFound();
-  }
-  const currentUserId = session.user.id;
+  const currentUserId = useMemo(() => {
+    if (!session?.user?.id) {
+      notFound();
+    }
+    return session.user.id;
+  }, [session?.user?.id]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -59,6 +61,11 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // カウントダウンの状態
   const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
+
+  // ウォッチリストアクション
+  const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークションがアクティブかどうか
   const isActive = useMemo(() => {
@@ -73,8 +80,14 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
     }
   }, [auction.startTime, auction.endTime, auction.status]);
 
-  // ウォッチリストアクション
-  const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 出品者かどうか
+  const isCreator = useMemo(() => {
+    console.log("src/components/auction/bid/auction-detail.tsx_isCreator_render");
+    console.log("src/components/auction/bid/auction-detail.tsx_isCreator_auction_isCreator", currentUserId, auction.task.creator.id);
+    return auction.task.creator.id === currentUserId;
+  }, [auction.task.creator.id, currentUserId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -120,9 +133,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    */
   const renderDetailsTab = useCallback(() => {
     console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_render");
-
-    const isCreator = auction.creatorId === currentUserId;
-    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_auction_isCreator", isCreator, currentUserId, auction.creatorId);
 
     return (
       <div className="space-y-6">
@@ -196,7 +206,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
       </div>
     );
-  }, [auction, currentUserId, bidHistory.length, isActive]);
+  }, [auction, currentUserId, bidHistory.length, isActive, isCreator]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

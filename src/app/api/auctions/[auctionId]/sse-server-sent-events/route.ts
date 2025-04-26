@@ -164,7 +164,7 @@ export async function OPTIONS() {
     status: 204, // No Content
     headers: {
       Allow: "GET, OPTIONS", // 許可するメソッド
-      "Access-Control-Allow-Origin": "YOUR_FRONTEND_URL",
+      "Access-Control-Allow-Origin": "https://freeism.com,https://localhost:3000",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization", // 必要なヘッダー
     },

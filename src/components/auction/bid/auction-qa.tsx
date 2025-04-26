@@ -85,11 +85,6 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
   // Command+Enterでのメッセージ送信
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      // Enter単体での送信を防止
-      if (e.key === "Enter" && !e.metaKey) {
-        e.preventDefault();
-      }
-
       // Command+Enterでフォーム送信
       if (e.key === "Enter" && e.metaKey) {
         e.preventDefault();
@@ -300,7 +295,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                         )}
                       >
                         {/* メッセージ内容 */}
-                        <p className="text-sm leading-relaxed break-words">{msg.message}</p>
+                        <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.message}</p>
                         {/* メッセージの作成日時 */}
                         <p className={cn("mt-1 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
                           {formatRelativeTime(new Date(msg.createdAt))}
