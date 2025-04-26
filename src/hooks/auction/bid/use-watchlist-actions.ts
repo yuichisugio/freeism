@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { getWatchlistStatusAction, toggleWatchlistAction } from "@/lib/auction/action/watchlist";
+import { toggleWatchlistAction } from "@/lib/auction/action/watchlist";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 type UseWatchlistActionsResult = {
   submitting: boolean;
   toggleWatchlist: (auctionId: string | undefined) => Promise<boolean | null>;
-  getWatchlistStatus: (auctionId: string | undefined) => Promise<boolean>;
+  isWatchlisted: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -21,11 +21,13 @@ type UseWatchlistActionsResult = {
  * ウォッチリスト操作用カスタムフック
  * @returns {UseWatchlistActionsResult} ウォッチリスト操作用の関数群
  */
-export function useWatchlistActions(): UseWatchlistActionsResult {
+export function useWatchlistActions(initialIsWatched: boolean): UseWatchlistActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 処理中フラグ
   const [submitting, setSubmitting] = useState<boolean>(false);
+  // ウォッチリストの状態
+  const [isWatchlisted, setIsWatchlisted] = useState(initialIsWatched);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -53,9 +55,11 @@ export function useWatchlistActions(): UseWatchlistActionsResult {
 
       // ウォッチリストに追加した場合
       if (result.isWatched) {
+        setIsWatchlisted(true);
         toast.success("ウォッチリストに追加しました");
       } else {
         // ウォッチリストから削除した場合
+        setIsWatchlisted(false);
         toast.success("ウォッチリストから削除しました");
       }
 
@@ -71,38 +75,9 @@ export function useWatchlistActions(): UseWatchlistActionsResult {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * ウォッチリストの状態を取得
-   * @param auctionId オークションID
-   * @returns ウォッチリストの状態
-   */
-  const getWatchlistStatus = useCallback(async (auctionId: string | undefined) => {
-    if (!auctionId) {
-      return false;
-    }
-
-    try {
-      // ウォッチリストの状態を取得（サーバーアクション）
-      const result = await getWatchlistStatusAction(auctionId);
-
-      // 結果が正常でない場合
-      if (!result.success) {
-        return false;
-      }
-
-      // ウォッチリストの状態を返す
-      return result.isWatched;
-    } catch (err) {
-      console.error("useWatchlistActions_getWatchlistStatus_ウォッチリスト状態取得エラー:", err);
-      return false;
-    }
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return {
     submitting,
+    isWatchlisted,
     toggleWatchlist,
-    getWatchlistStatus,
   };
 }

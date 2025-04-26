@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -36,10 +36,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ウォッチリストの状態
-  const [isWatchlisted, setIsWatchlisted] = useState(!!initialAuction.watchlists?.[0].id);
-  // 初期フェッチの完了状態
-  const [initialFetchDone, setInitialFetchDone] = useState(false);
   // アクティブタブ
   const [activeTab, setActiveTab] = useState("details");
 
@@ -59,13 +55,13 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
-  const { auction = initialAuction, bidHistory, loading, error, lastMsg } = useAuctionEvent(initialAuction);
+  const { auction = initialAuction, loading, error, lastMsg } = useAuctionEvent(initialAuction);
 
   // カウントダウンの状態
   const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
 
   // ウォッチリストアクション
-  const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
+  const { submitting, toggleWatchlist, isWatchlisted } = useWatchlistActions(!!initialAuction.watchlists?.[0].id);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -97,43 +93,15 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ウォッチリストの状態を取得する処理
-   */
-  useEffect(() => {
-    console.log("src/components/auction/bid/auction-detail.tsx_useEffect_checkWatchlistStatus");
-
-    // ウォッチリストの状態を取得
-    async function checkWatchlistStatus() {
-      try {
-        const isWatched = await getWatchlistStatus(auction.id);
-        setIsWatchlisted(isWatched);
-        setInitialFetchDone(true);
-      } catch (err) {
-        console.error("ウォッチリストの状態取得エラー:", err);
-        setInitialFetchDone(true);
-      }
-    }
-
-    // 初期フェッチが完了していない場合はウォッチリストの状態を取得
-    if (!initialFetchDone) {
-      void checkWatchlistStatus();
-    }
-  }, [auction.id, getWatchlistStatus, initialFetchDone]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * ウォッチリストボタンのクリックハンドラ
    */
   const handleWatchlistToggle = useCallback(async () => {
-    if (!auction.id) return;
     try {
-      const newStatus = await toggleWatchlist(auction.id);
-      setIsWatchlisted(newStatus ?? false);
+      await toggleWatchlist(auction.id);
     } catch (err) {
       console.error("ウォッチリスト更新エラー:", err);
     }
-  }, [auction.id, toggleWatchlist]);
+  }, [toggleWatchlist, auction.id]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -159,7 +127,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               </div>
               <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">入札数</p>
-                <p className="mt-2 text-3xl font-bold text-purple-700">{bidHistory.length > 25 ? "25+" : (bidHistory.length ?? 0)}</p>
+                <p className="mt-2 text-3xl font-bold text-purple-700">
+                  {auction.bidHistories.length > 25 ? "25+" : (auction.bidHistories.length ?? 0)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -194,12 +164,16 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
         {!isCreator && isActive && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <BidForm auction={auction} />
+            <BidForm
+              currentHighestBid={auction.currentHighestBid}
+              currentHighestBidderId={auction.currentHighestBidderId ?? null}
+              auctionId={auction.id}
+            />
           </motion.div>
         )}
       </div>
     );
-  }, [auction, bidHistory.length, isActive, isCreator]);
+  }, [auction.currentHighestBid, auction.currentHighestBidderId, auction.id, auction.bidHistories.length, isActive, isCreator]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -223,18 +197,20 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               <h3 className="mb-2 text-lg font-medium text-green-900">支払い方法</h3>
               <p className="text-green-700">
                 落札後、自動的にポイントが使用されます。 預けたポイントは、落札から
-                {(auction.task.group as { depositPeriod?: number }).depositPeriod ?? 7}日後に返還されます。
+                {`${auction.task.group.depositPeriod}日後`}に返還されます。
               </p>
             </div>
           </div>
         </div>
       </div>
     );
-  }, [auction]);
+  }, [auction.task.group.depositPeriod]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ローディング状態の表示
+  /**
+   * ローディング状態の表示
+   */
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -248,7 +224,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // エラー状態の表示
+  /**
+   * エラー状態の表示
+   */
   if (error) {
     return (
       <div className="border-destructive rounded-lg border p-6 text-center">
@@ -301,7 +279,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <User size={16} className="text-primary" />
               </div>
-              <p className="text-muted-foreground">{(auction.task.creator as { name: string }).name ?? "不明なユーザー"}</p>
+              <p className="text-muted-foreground">{auction.task.creator.name ?? "不明なユーザー"}</p>
             </div>
           </div>
 
@@ -311,8 +289,8 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               {isActive ? "出品中" : "終了"}
             </Badge>
             {auction.task.group && (
-              <Badge key={(auction.task.group as { id: string }).id} variant="outline" className="px-3 py-1 text-sm font-medium">
-                {(auction.task.group as { name: string }).name}
+              <Badge key={auction.task.group.id} variant="outline" className="px-3 py-1 text-sm font-medium">
+                {auction.task.group.name}
               </Badge>
             )}
           </div>
@@ -340,9 +318,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           >
             <BarChart className="h-4 w-4" />
             <span>入札履歴</span>
-            {bidHistory.length > 0 && (
+            {auction.bidHistories.length > 0 && (
               <Badge variant="secondary" className="ml-1.5 px-1.5 py-0.5 text-xs font-normal">
-                {bidHistory.length >= 50 ? "50+" : bidHistory.length}
+                {auction.bidHistories.length >= 50 ? "50+" : auction.bidHistories.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -375,7 +353,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
               <TabsContent value="bid-history" className="mt-0">
                 {/* SSEで取得した入札履歴を渡す */}
-                {<BidHistory initialBids={bidHistory} />}
+                {<BidHistory initialBids={auction.bidHistories} />}
               </TabsContent>
             </motion.div>
           )}

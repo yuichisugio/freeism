@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/bid/use-bid-actions";
-import { type BidFormProps } from "@/lib/auction/type/types";
 import { motion } from "framer-motion";
 import { Gavel, Minus, Plus } from "lucide-react";
 
@@ -17,7 +16,15 @@ import { AutoBidForm } from "./auto-bid-form";
  * @param onCancel キャンセルボタンのクリックハンドラ
  * @returns 入札フォーム
  */
-export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProps }) {
+export const BidForm = memo(function BidForm({
+  currentHighestBid,
+  currentHighestBidderId,
+  auctionId,
+}: {
+  currentHighestBid: number;
+  currentHighestBidderId: string | null;
+  auctionId: string;
+}) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/auction/bid/bid-form.tsx_BidForm_render");
@@ -25,22 +32,25 @@ export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProp
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札額を管理するuseState
-  const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
+  const [bidAmount, setBidAmount] = useState(currentHighestBid + 1);
 
   // 最低入札額は現在価格の1ポイント増し
-  const [minBid] = useState(auction.currentHighestBid + 1);
+  const [minBid] = useState(currentHighestBid + 1);
 
   // 入札フォームのサブミットハンドラ
   const { clientPlaceBid, submitting, error } = useBidActions();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 現在の最高入札額が変更された場合、入札額を更新
+   */
   useEffect(() => {
     // 最低入札額は現在価格の1ポイント増し。現在の入札額が、他社が入札して更新された額より小さい場合は1ポイント増し
-    if (auction.currentHighestBid >= bidAmount) {
-      setBidAmount(auction.currentHighestBid + 1);
+    if (currentHighestBid >= bidAmount) {
+      setBidAmount(currentHighestBid + 1);
     }
-  }, [auction, bidAmount]);
+  }, [currentHighestBid, bidAmount]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -56,7 +66,7 @@ export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProp
       try {
         // 入札を実行（入札状態変更のコールバックを渡す）
         await clientPlaceBid({
-          auctionId: auction.id,
+          auctionId: auctionId,
           amount: bidAmount,
         });
 
@@ -66,19 +76,23 @@ export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProp
         console.error("Bid failed:", error);
       }
     },
-    [auction, bidAmount, clientPlaceBid, minBid],
+    [auctionId, bidAmount, clientPlaceBid, minBid],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札額をインクリメント
+  /**
+   * 入札額をインクリメント
+   */
   const incrementBid = useCallback(() => {
     setBidAmount((prev: number) => prev + 1);
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札額をデクリメント（最小入札額未満にはならないように）
+  /**
+   * 入札額をデクリメント（最小入札額未満にはならないように）
+   */
   const decrementBid = useCallback(() => {
     if (bidAmount > minBid) {
       setBidAmount((prev: number) => prev - 1);
@@ -165,9 +179,7 @@ export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProp
             </Button>
 
             {/* 最低入札額より低い場合のメッセージ */}
-            {auction.currentHighestBid >= bidAmount && (
-              <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>
-            )}
+            {currentHighestBid >= bidAmount && <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>}
 
             {/* 説明文 */}
             <p className="text-muted-foreground mt-2 text-center text-xs">入札すると、すぐに有効な入札として記録されます</p>
@@ -176,11 +188,7 @@ export const BidForm = memo(function BidForm({ auction }: { auction: BidFormProp
       </Card>
 
       {/* 自動入札フォーム */}
-      <AutoBidForm
-        auctionId={auction.id}
-        currentHighestBid={auction.currentHighestBid}
-        currentHighestBidderId={auction.currentHighestBidderId ?? null}
-      />
+      <AutoBidForm auctionId={auctionId} currentHighestBid={currentHighestBid} currentHighestBidderId={currentHighestBidderId ?? null} />
     </div>
   );
 });

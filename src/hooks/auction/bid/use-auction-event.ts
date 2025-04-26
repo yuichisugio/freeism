@@ -17,7 +17,6 @@ type SSEResponse = {
  */
 type UseAuctionEventResult = {
   auction: AuctionWithDetails | undefined;
-  bidHistory: AuctionWithDetails["bidHistories"];
   loading: boolean;
   error: string | null;
   reconnect: () => void;
@@ -40,8 +39,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
    */
   // オークション情報
   const [auction, setAuction] = useState<AuctionWithDetails>(initialAuction);
-  // 入札履歴
-  const [bidHistory, setBidHistory] = useState<AuctionWithDetails["bidHistories"]>(initialAuction.bidHistories ?? []);
   // ローディング
   const [loading, setLoading] = useState<boolean>(true);
   // エラー
@@ -95,10 +92,6 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
       setLastMsg(raw);
       console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data", auctionData);
       setAuction((prev) => ({ ...prev, ...auctionData }));
-      if (auctionData.bidHistories) {
-        console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.bidHistories", auctionData.bidHistories);
-        setBidHistory(auctionData.bidHistories);
-      }
       setLoading(false);
     } catch (e) {
       console.error("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_JSON parse error", e);
@@ -204,5 +197,5 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   /**
    * 返す
    */
-  return { auction, bidHistory, loading, error, lastMsg, reconnect: connect, disconnect };
+  return { auction, loading, error, lastMsg, reconnect: connect, disconnect };
 }

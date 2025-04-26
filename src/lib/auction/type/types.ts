@@ -183,17 +183,6 @@ export type BidFormData = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 入札フォームのprops
- */
-export type BidFormProps = {
-  id: string;
-  currentHighestBid: number;
-  currentHighestBidderId: string | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * オークション入札画面に必要な全ての情報
  */
 export type AuctionWithDetails = {
