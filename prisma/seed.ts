@@ -289,8 +289,10 @@ type SeedAuction = {
   currentHighestBidderId?: string | null;
   winnerId?: string | null;
   status: string;
-  extensionCount: number;
-  version: number;
+  extensionTotalCount: number;
+  extensionLimitCount: number;
+  extensionTotalTime: number;
+  extensionLimitTime: number;
   createdAt: Date;
   updatedAt: Date;
   groupId: string; // 追加
@@ -1232,8 +1234,10 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       currentHighestBidderId: auction.currentHighestBidderId, // Use generated bidderId
       winnerId: auction.winnerId, // Use generated winnerId
       status: auction.status, // Use generated status
-      extensionCount: auction.extensionCount, // Default from prisma
-      version: auction.version, // Default from prisma
+      extensionTotalCount: auction.extensionTotalCount, // Default from prisma
+      extensionLimitCount: auction.extensionLimitCount, // Default from prisma
+      extensionTotalTime: auction.extensionTotalTime, // Default from prisma
+      extensionLimitTime: auction.extensionLimitTime, // Default from prisma
       createdAt: auction.createdAt, // Default from prisma
       updatedAt: auction.updatedAt, // Default from prisma
       groupId: task.groupId,

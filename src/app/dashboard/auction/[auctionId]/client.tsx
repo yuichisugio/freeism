@@ -4,7 +4,11 @@ import type { AuctionWithDetails } from "@/lib/auction/type/types";
 import { memo, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-// エラー表示コンポーネント
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * エラー表示コンポーネント
+ */
 const ErrorDisplay = memo(() => (
   <div className="rounded-lg bg-red-50 p-8 text-center">
     <h2 className="mb-2 text-lg font-semibold text-red-600">エラーが発生しました</h2>
@@ -14,7 +18,11 @@ const ErrorDisplay = memo(() => (
 ));
 ErrorDisplay.displayName = "ErrorDisplay";
 
-// ローディング表示コンポーネント
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ローディング表示コンポーネント
+ */
 const LoadingDisplay = memo(() => (
   <div className="p-8 text-center">
     <div className="animate-pulse">
@@ -26,11 +34,17 @@ const LoadingDisplay = memo(() => (
 ));
 LoadingDisplay.displayName = "LoadingDisplay";
 
-// 動的インポートされたコンポーネント
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 動的インポートされたコンポーネント
+ */
 const AuctionDetailClient = dynamic(() => import("@/components/auction/bid/auction-detail").then((mod) => ({ default: mod.AuctionDetail })), {
   ssr: false,
   loading: () => <LoadingDisplay />,
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション詳細ページのクライアントコンポーネント

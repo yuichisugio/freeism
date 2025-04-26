@@ -37,7 +37,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリストの状態
-  const [isWatchlisted, setIsWatchlisted] = useState(false);
+  const [isWatchlisted, setIsWatchlisted] = useState(!!initialAuction.watchlists?.[0].id);
   // 初期フェッチの完了状態
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   // アクティブタブ
@@ -275,7 +275,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         <div className="relative h-[300px] overflow-hidden rounded-lg shadow-md md:h-[400px]">
           <Image
             src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""}
-            alt={auction.title ?? "オークション画像"}
+            alt={auction.task?.task ?? "オークション画像"}
             fill
             className="object-cover transition-transform duration-500 hover:scale-105"
             priority
@@ -286,7 +286,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         <div className="flex flex-col justify-between space-y-4">
           <div>
             <div className="mb-2 flex items-start justify-between">
-              <h1 className="text-2xl font-bold">{auction.title}</h1>
+              <h1 className="text-2xl font-bold">{auction.task.task}</h1>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -305,6 +305,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
             </div>
           </div>
 
+          {/* オークションのステータスとグループを表示 */}
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={isActive ? "secondary" : "destructive"} className="px-3 py-1 text-sm font-medium">
               {isActive ? "出品中" : "終了"}

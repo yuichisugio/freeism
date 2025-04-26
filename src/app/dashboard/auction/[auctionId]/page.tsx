@@ -1,7 +1,7 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getAuctionWithTask } from "@/lib/auction/action/auction-retrieve";
+import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 
 import AuctionDetailWrapper from "./client";
 
@@ -25,23 +25,23 @@ export async function generateMetadata(): Promise<Metadata> {
  * @param params タスクID
  * @returns オークション詳細ページ
  */
-export default async function AuctionDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
-  // タスクIDを取得
-  const { taskId } = await params;
-  console.log("src/app/dashboard/auction/[taskId]/page.tsx_taskId", taskId);
+export default async function AuctionDetailPage({ params }: { params: Promise<{ auctionId: string }> }) {
+  // オークションIDを取得
+  const { auctionId } = await params;
+  console.log("src/app/dashboard/auction/[auctionId]/page.tsx_auctionId", auctionId);
 
   try {
     // オークションデータを取得
-    const auctionData = await getAuctionWithTask(taskId);
+    const auctionData = await getAuctionByAuctionId(auctionId);
 
     // オークションデータが存在しない場合は404エラーを返す
     if (!auctionData) {
-      console.error(`オークションが見つかりません: taskId=${taskId}`);
-      console.log("src/app/dashboard/auction/[taskId]/page.tsx_stack", new Error().stack);
+      console.error(`オークションが見つかりません: auctionId=${auctionId}`);
+      console.log("src/app/dashboard/auction/[auctionId]/page.tsx_stack", new Error().stack);
       return notFound();
     }
 
-    console.log("src/app/dashboard/auction/[taskId]/page.tsx_getAuctionWithTask_auctionData_success");
+    console.log("src/app/dashboard/auction/[auctionId]/page.tsx_getAuctionByAuctionId_auctionData_success");
 
     return (
       <MainTemplate title={auctionData.task.task} description={auctionData.task.detail ?? ""}>

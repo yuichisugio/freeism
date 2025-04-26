@@ -198,25 +198,24 @@ export type BidFormProps = {
  */
 export type AuctionWithDetails = {
   id: string;
-  status: string;
   startTime: Date;
   endTime: Date;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
+  status: AuctionStatus;
+  extensionTotalCount: number;
+  extensionLimitCount: number;
+  extensionTotalTime: number;
+  extensionLimitTime: number;
   bidHistories: {
-    id: string; // 入札履歴のID
-    amount: number; // 入札金額
-    createdAt: string; // ISO日付文字列
-    isAutoBid?: boolean; // 自動入札かどうか
+    id: string;
+    amount: number;
+    createdAt: Date | string;
+    isAutoBid: boolean;
     user: {
-      id: string;
-      name: string;
+      name: string | null;
     };
   }[];
-  extensionCount: number; // オークションの延長回数
-  extensionTime: number; // オークションの延長時間
-  title: string;
-  description: string;
   task: {
     task: string;
     detail: string | null;
@@ -229,13 +228,12 @@ export type AuctionWithDetails = {
     };
     creator: {
       id: string;
-      name: string;
+      name: string | null;
     };
   };
   watchlists: {
-    // ウォッチリスト。全部ではなくuserIdが一致するものだけ
     id: string;
-  };
+  }[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

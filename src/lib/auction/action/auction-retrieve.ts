@@ -3,6 +3,7 @@
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -13,108 +14,99 @@ import { prisma } from "@/lib/prisma";
  */
 export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
   try {
-    const auction = await prisma.auction.findUnique({
-      where: { id: auctionId },
-      include: {
-        task: {
-          include: {
-            group: true,
-            creator: true,
-            executors: true,
-          },
-        },
-        currentHighestBidder: true,
-        winner: true,
-        bidHistories: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
-        },
-      },
-    });
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    if (!auction) return null;
+    // ログ
+    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_start");
 
-    console.log("auction-retrieve.ts_getAuctionByAuctionId_auction_success");
+    // ユーザーIDを取得
+    const currentUserId = await getAuthenticatedSessionUserId();
 
-    // 必要なプロパティを持つオブジェクトとして返す
-    return auction as unknown as AuctionWithDetails;
-  } catch (error) {
-    console.error("オークション取得エラー:", error);
-    return null;
-  }
-}
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスクIDに関連するオークション情報を取得
- * @param taskId タスクID
- * @returns オークション情報
- */
-export async function getAuctionWithTask(taskId: string): Promise<AuctionWithDetails | null> {
-  try {
-    console.log("auction-retrieve.ts_getAuctionWithTask_start");
-
-    // タスクIDが指定されていない場合はエラーを返す
-    if (!taskId) {
-      console.error("getAuctionWithTask: タスクIDが指定されていません");
+    // オークションIDが指定されていない場合はエラーを返す
+    if (!auctionId) {
+      console.error("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_error_auctionId_not_specified");
       return null;
     }
+    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auctionId", auctionId);
 
-    console.log(`getAuctionWithTask: タスクID=${taskId}の検索を実行`);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    const auction = await prisma.auction.findUnique({
-      where: { taskId },
-      include: {
+    // オークション情報を取得
+    const auction: AuctionWithDetails | null = await prisma.auction.findUnique({
+      where: { id: auctionId },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        currentHighestBid: true,
+        currentHighestBidderId: true,
+        status: true,
+        extensionTotalCount: true,
+        extensionLimitCount: true,
+        extensionTotalTime: true,
+        extensionLimitTime: true,
+        bidHistories: {
+          select: {
+            id: true,
+            amount: true,
+            createdAt: true,
+            isAutoBid: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
+        },
         task: {
-          include: {
+          select: {
+            task: true,
+            detail: true,
+            imageUrl: true,
+            status: true,
+            group: {
+              select: {
+                id: true,
+                name: true,
+                depositPeriod: true,
+              },
+            },
             creator: {
               select: {
                 id: true,
                 name: true,
-                image: true,
-                email: true,
-                createdAt: true,
-              },
-            },
-            group: true,
-          },
-        },
-        bidHistories: {
-          orderBy: { createdAt: "desc" },
-          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
               },
             },
           },
         },
-        watchlists: true,
+        watchlists: {
+          where: {
+            userId: currentUserId,
+          },
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
-    console.log("auction-retrieve.ts_getAuctionWithTask_auction", auction?.task.creatorId);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // オークションが見つからない場合はエラーを返す
-    if (!auction) {
-      console.error(`getAuctionWithTask: タスクID=${taskId}のオークションが見つかりませんでした`);
-      return null;
-    }
+    if (!auction) return null;
 
-    console.log(`getAuctionWithTask: タスクID=${taskId}のオークション情報を取得しました`);
+    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auction_success");
 
-    // 必要なプロパティを持つオブジェクトとして返す
-    return auction as unknown as AuctionWithDetails;
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    return auction;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    console.error(`オークション取得エラー: タスクID=${taskId}`, error);
+    console.error("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_error", error);
     return null;
   }
 }

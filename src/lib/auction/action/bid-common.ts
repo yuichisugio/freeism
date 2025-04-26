@@ -406,14 +406,13 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           createdAt: bid.createdAt,
           isAutoBid: bid.isAutoBid,
           user: {
-            id: bid.user.id,
             name: bid.user.name ?? "不明なユーザー",
           },
         })),
-        extensionCount: auctionData.extensionCount,
-        extensionTime: auctionData.extensionTime,
-        title: taskName ?? "",
-        description: taskDetail ?? "",
+        extensionTotalCount: auctionData.extensionTotalCount,
+        extensionLimitCount: auctionData.extensionLimitCount,
+        extensionTotalTime: auctionData.extensionTotalTime,
+        extensionLimitTime: auctionData.extensionLimitTime,
         task: {
           task: taskName ?? "",
           detail: taskDetail ?? "",
@@ -461,7 +460,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       if (initialHighestBidderId !== userId && initialHighestBidderId !== null) {
         await sendAuctionNotification({
           text: {
-            first: auctionWithDetails.title,
+            first: auctionWithDetails.task.task,
             second: auctionWithDetails.currentHighestBid.toString(),
           },
           auctionEventType: PrismaAuctionEventType.OUTBID,

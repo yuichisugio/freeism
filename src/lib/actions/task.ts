@@ -124,7 +124,10 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
           endTime,
           status: "PENDING",
           currentHighestBid: 0,
-          extensionCount: 0,
+          extensionTotalCount: 0,
+          extensionLimitCount: 3,
+          extensionTotalTime: 0,
+          extensionLimitTime: 10,
           groupId: data.groupId,
         },
       });
@@ -765,7 +768,10 @@ export async function bulkCreateTasks(
                 endTime,
                 status: "PENDING",
                 currentHighestBid: 0,
-                extensionCount: 0,
+                extensionTotalCount: 0,
+                extensionLimitCount: 3,
+                extensionTotalTime: 0,
+                extensionLimitTime: 10,
                 groupId: groupId,
               },
             });
@@ -1154,7 +1160,10 @@ export async function updateTask(taskId: string, data: Omit<TaskFormValuesAndGro
             endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // デフォルト1週間後
             status: "PENDING",
             currentHighestBid: 0,
-            extensionCount: 0,
+            extensionTotalCount: 0,
+            extensionLimitCount: 3,
+            extensionTotalTime: 0,
+            extensionLimitTime: 10,
             groupId: existingTask.groupId, // タスクに関連付けられたグループIDを使用
           },
         });
