@@ -1,45 +1,12 @@
 import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import type { AuctionReview, AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
-// 入札履歴の基本型
-export type BidHistory = {
-  id: string;
-  auctionId: string;
-  userId: string;
-  amount: number;
-  createdAt: string; // ISO日付文字列
-  isAutoBid?: boolean;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 出品商品詳細画面のprops
-export type AuctionCreatedDetailProps = {
-  auction: Auction & {
-    task: {
-      id: string;
-      task: string;
-      detail?: string | null;
-      status: TaskStatus;
-      imageUrl?: string | null;
-      creatorId: string;
-      deliveryMethod?: string | null;
-    };
-    winner?: {
-      id: string;
-      name?: string | null;
-      image?: string | null;
-    } | null;
-    reviews: AuctionReview[];
-    bidHistories: BidHistory[];
-    currentHighestBid: number;
-    status: AuctionStatus;
-    startTime: Date;
-    endTime: Date;
-  };
-  winnerRating: number;
-  winnerReviews: AuctionReview[];
-};
-
-// 入札履歴の型
+/**
+ * 入札履歴の型
+ * オークション履歴で使用
+ */
 export type BidHistoryItem = {
   id: string;
   auctionId: string;
@@ -62,6 +29,11 @@ export type BidHistoryItem = {
   };
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション履歴で使用
+ */
 export type WonAuctionItem = {
   id: string;
   taskId: string;
@@ -90,6 +62,11 @@ export type WonAuctionItem = {
   }[];
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション履歴で使用
+ */
 export type CreatedAuctionItem = {
   id: string;
   taskId: string;
@@ -118,10 +95,18 @@ export type CreatedAuctionItem = {
   }[];
 };
 
-// オークション履歴のタブ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション履歴のタブ
+ */
 export type AuctionHistoryTabs = "bids" | "won" | "created";
 
-// オークションカードのprops
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションカードのprops
+ */
 export type AuctionCardHookProps = {
   auction: {
     id: string;
@@ -138,6 +123,11 @@ export type AuctionCardHookProps = {
   onToggleWatchlistAction: (id: string) => Promise<void>;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品者の評価の型
+ */
 export type SellerRating = {
   fullStars: number;
   hasHalfStar: boolean;
@@ -145,24 +135,36 @@ export type SellerRating = {
   ratingValue: number | null;
 };
 
-// フィルターのprops
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * フィルターのprops
+ */
 export type UseAuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
 };
 
-// カウントダウンの状態
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カウントダウンの状態
+ */
 export type TimeRemaining = {
   days: number;
   hours: number;
   minutes: number;
-  seconds: number;
   isExpired: boolean;
   isUrgent: boolean;
   isCritical: boolean;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * カウントダウンのprops
+ */
 export type UseCountdownProps = {
   endTime: Date | string;
   onExpire?: () => void;
@@ -275,15 +277,10 @@ export type Auction = {
   depositPeriod?: number;
 };
 
-// 入札履歴とユーザー情報を含む型
-export type BidHistoryWithUser = BidHistory & {
-  user?: User;
-};
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション詳細情報を含む型
+ * オークション入札画面に必要な全ての情報
  */
 export type AuctionWithDetails = {
   id: string;
@@ -376,6 +373,8 @@ export type CountdownState = {
   hours: number;
   minutes: number;
   isExpired: boolean;
+  isUrgent: boolean;
+  isCritical: boolean;
 };
 
 // ウォッチリスト

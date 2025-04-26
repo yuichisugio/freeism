@@ -34,11 +34,19 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Auc
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
+    // メッセージをJSON形式に変換
     const message = JSON.stringify(eventPayload);
     console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信メッセージ: ${message}`);
+
+    // Redisクライアントキーを作成
     const redisClientKey = `auction:${auctionId}:events`;
     const channel = encodeURIComponent(redisClientKey);
+
+    // Redis REST APIのURLを作成
     const redisRestUrl = `${process.env.UPSTASH_REDIS_REST_URL}/publish/${channel}`;
+    console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_redisRestUrl: ${redisRestUrl}`);
+
+    // Redis REST APIにメッセージを送信
     const upstream = await fetch(redisRestUrl, {
       method: "POST",
       headers: {

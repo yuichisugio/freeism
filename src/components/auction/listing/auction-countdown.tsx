@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { useCountdown } from "@/hooks/auction/listing/use-countdown";
+import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { type CardCountdownProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
@@ -16,7 +16,7 @@ export const CardCountdown = memo(function CardCountdown({ endTime, className, o
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
-  const { timeRemaining, formatTimeRemaining } = useCountdown({ endTime, onExpire });
+  const { countdownState, formatCountdown } = useCountdown(endTime, onExpire);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -24,18 +24,18 @@ export const CardCountdown = memo(function CardCountdown({ endTime, className, o
     <div
       className={cn(
         "flex items-center gap-1 font-medium whitespace-nowrap",
-        timeRemaining.isCritical
+        countdownState.isCritical
           ? "animate-pulse text-red-500"
-          : timeRemaining.isUrgent
+          : countdownState.isUrgent
             ? "text-orange-500"
-            : timeRemaining.isExpired
+            : countdownState.isExpired
               ? "text-red-500"
               : "text-gray-700",
         className,
       )}
     >
-      {!timeRemaining.isExpired && <Clock className="h-3.5 w-3.5" />}
-      <span>{formatTimeRemaining()}</span>
+      {!countdownState.isExpired && <Clock className="h-3.5 w-3.5" />}
+      <span>{formatCountdown()}</span>
     </div>
   );
 });

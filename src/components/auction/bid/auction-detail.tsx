@@ -45,7 +45,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーIDを取得
+  /**
+   * ユーザーIDを取得
+   */
   const { data: session } = useSession();
   const currentUserId = useMemo(() => {
     if (!session?.user?.id) {
@@ -60,16 +62,18 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   const { auction = initialAuction, bidHistory, loading, error, lastMsg } = useAuctionEvent(initialAuction);
 
   // カウントダウンの状態
-  const { countdownState, countdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
+  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
 
   // ウォッチリストアクション
   const { submitting, toggleWatchlist, getWatchlistStatus } = useWatchlistActions();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // オークションがアクティブかどうか
+  /**
+   * オークションがアクティブかどうか
+   */
   const isActive = useMemo(() => {
-    console.log("src/components/auction/bid/auction-detail.tsx_isActive_render");
+    console.log("src/components/auction/bid/auction-detail.tsx_isActive", auction.status, auction.startTime);
     const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
     const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
     const now = new Date();
@@ -82,10 +86,11 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 出品者かどうか
+  /**
+   * 出品者かどうか
+   */
   const isCreator = useMemo(() => {
-    console.log("src/components/auction/bid/auction-detail.tsx_isCreator_render");
-    console.log("src/components/auction/bid/auction-detail.tsx_isCreator_auction_isCreator", currentUserId, auction.task.creator.id);
+    console.log("src/components/auction/bid/auction-detail.tsx_isCreator", currentUserId, auction.task.creator.id);
     return auction.task.creator.id === currentUserId;
   }, [auction.task.creator.id, currentUserId]);
 
@@ -95,6 +100,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * ウォッチリストの状態を取得する処理
    */
   useEffect(() => {
+    console.log("src/components/auction/bid/auction-detail.tsx_useEffect_checkWatchlistStatus");
+
+    // ウォッチリストの状態を取得
     async function checkWatchlistStatus() {
       try {
         const isWatched = await getWatchlistStatus(auction.id);
@@ -106,6 +114,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
       }
     }
 
+    // 初期フェッチが完了していない場合はウォッチリストの状態を取得
     if (!initialFetchDone) {
       void checkWatchlistStatus();
     }
@@ -325,7 +334,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
       {/* カウントダウン表示部分 */}
       <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
-        <CountdownDisplay countdownState={countdownState} countdownAction={countdown} />
+        <CountdownDisplay countdownState={countdownState} countdownAction={formatCountdown} />
       </div>
 
       {/* タブ切り替え部分 */}

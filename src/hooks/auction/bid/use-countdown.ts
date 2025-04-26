@@ -10,7 +10,9 @@ import { type CountdownState } from "@/lib/auction/type/types";
  */
 type UseCountdownResult = {
   countdownState: CountdownState;
-  countdown: () => string;
+  formatCountdown: () => string;
+  isUrgent: boolean;
+  isCritical: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -20,7 +22,7 @@ type UseCountdownResult = {
  * @param {Date | string} targetDate カウントダウンのターゲット日時
  * @returns {UseCountdownResult} カウントダウンの状態とフォーマットされたカウントダウン
  */
-export function useCountdown(targetDate: Date | string): UseCountdownResult {
+export function useCountdown(targetDate: Date | string, onExpire?: () => void): UseCountdownResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -33,7 +35,7 @@ export function useCountdown(targetDate: Date | string): UseCountdownResult {
     const diff = target.getTime() - now.getTime();
 
     if (diff <= 0) {
-      return { days: 0, hours: 0, minutes: 0, isExpired: true };
+      return { days: 0, hours: 0, minutes: 0, isExpired: true, isUrgent: false, isCritical: false };
     }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -41,31 +43,46 @@ export function useCountdown(targetDate: Date | string): UseCountdownResult {
     // 分は切り上げると「あと○分」で表示が自然です
     const minutes = Math.ceil((diff / (1000 * 60)) % 60);
 
-    return { days, hours, minutes, isExpired: false };
+    /**
+     * 残り時間による状態の判定
+     * 12時間以内は注意状態
+     * 30分以内は警告状態
+     */
+    const isUrgent = days === 0 && hours < 12;
+    const isCritical = days === 0 && hours === 0 && minutes < 30;
+
+    return { days, hours, minutes, isExpired: false, isUrgent, isCritical };
   }, [targetDate]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // マウント時にも一度だけ即時更新しておく（useStateの初期化だけだと、ちょうど分替わり前後で表示が1分古くなる可能性があるため）
   useEffect(() => {
-    setTimeLeft(calculateTimeLeft());
+    setCountdownState(calculateTimeLeft());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カウントダウンの状態を管理するuseState
-  const [timeLeft, setTimeLeft] = useState<CountdownState>(calculateTimeLeft());
+  const [countdownState, setCountdownState] = useState<CountdownState>(calculateTimeLeft());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 1分ごとの更新
   useEffect(() => {
     const id = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      setCountdownState(calculateTimeLeft());
     }, 60 * 1000);
+
+    // 終了した場合、onExpireを実行
+    if (countdownState.isExpired) {
+      clearInterval(id);
+      if (onExpire) onExpire();
+    }
+
     return () => clearInterval(id);
-  }, [calculateTimeLeft]);
+  }, [calculateTimeLeft, onExpire, countdownState.isExpired]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -74,23 +91,27 @@ export function useCountdown(targetDate: Date | string): UseCountdownResult {
    * @returns フォーマットされたカウントダウン
    */
   const formatCountdown = useCallback((): string => {
-    if (timeLeft.isExpired) {
+    if (countdownState.isExpired) {
       return "終了";
     }
-    if (timeLeft.days > 0) {
-      return `${timeLeft.days}日 ${timeLeft.hours}時間`;
+    if (countdownState.days > 0) {
+      return `${countdownState.days}日 ${countdownState.hours}時間`;
     }
-    if (timeLeft.hours > 0) {
-      return `${timeLeft.hours}時間 ${timeLeft.minutes}分`;
+    if (countdownState.hours > 0) {
+      return `${countdownState.hours}時間 ${countdownState.minutes}分`;
     }
     // 残り1時間未満は「○分」とだけ表示
-    return `${timeLeft.minutes}分`;
-  }, [timeLeft]);
+    return `${countdownState.minutes}分`;
+  }, [countdownState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
-    countdownState: timeLeft,
-    countdown: formatCountdown,
+    // state
+    countdownState,
+    isUrgent: countdownState.isUrgent,
+    isCritical: countdownState.isCritical,
+    // function
+    formatCountdown,
   };
 }

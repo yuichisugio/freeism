@@ -99,6 +99,9 @@ export async function serverIsAuctionWatched(auctionId: string, userId: string):
         userId,
         auctionId,
       },
+      select: {
+        id: true,
+      },
     });
 
     return !!watchlistItem;
@@ -152,6 +155,8 @@ export async function getWatchlistStatusAction(auctionId: string) {
   try {
     // ウォッチリストの状態を確認
     const isWatched = await serverIsAuctionWatched(auctionId, userId);
+
+    console.log("src/lib/auction/action/watchlist.ts_getWatchlistStatusAction_isWatched", isWatched);
 
     return {
       success: true,
