@@ -19,9 +19,51 @@ export const SSE_CONFIG = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション関連の定数
+ * オークション表示関連の定数
  */
+export const AUCTION_DISPLAY = {
+  // 入札履歴の表示件数
+  BID_HISTORY_LIMIT: 25,
+  // 質問と回答の表示件数
+  QA_LIMIT: 10,
+  // 表示件数
+  PAGE_SIZE: 20,
+};
+
+/**
+ * オークション情報を更新するためのselect
+ */
+export const AUCTION_UPDATE_SELECT = {
+  id: true,
+  currentHighestBid: true,
+  currentHighestBidderId: true,
+  status: true,
+  extensionTotalCount: true,
+  extensionLimitCount: true,
+  extensionTotalTime: true,
+  extensionLimitTime: true,
+  bidHistories: {
+    orderBy: { createdAt: "desc" as const },
+    take: AUCTION_DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
+    select: {
+      id: true,
+      amount: true,
+      createdAt: true,
+      isAutoBid: true,
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+};
+
 export const AUCTION_CONSTANTS = {
+  // 表示関連
+  DISPLAY: AUCTION_DISPLAY,
+  // オークション情報を更新するためのselect
+  UPDATE_AUCTION_SELECT: AUCTION_UPDATE_SELECT,
   // オークションのデフォルトイメージURL
   DEFAULT_AUCTION_IMAGE_URL: "/images/default-auction-image.png",
 
@@ -44,15 +86,5 @@ export const AUCTION_CONSTANTS = {
     MAX_EXTENSION_PERCENT: 0.05,
     // 最大延長回数
     MAX_EXTENSION_COUNT: 2,
-  },
-
-  // 表示関連
-  DISPLAY: {
-    // 入札履歴の表示件数
-    BID_HISTORY_LIMIT: 25,
-    // 質問と回答の表示件数
-    QA_LIMIT: 10,
-    // 表示件数
-    PAGE_SIZE: 20,
   },
 };

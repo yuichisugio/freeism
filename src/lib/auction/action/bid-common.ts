@@ -58,10 +58,8 @@ type AuctionValidationData = {
       name?: string | null;
       image?: string | null;
     };
-    [key: string]: unknown;
   }>;
   version?: number;
-  [key: string]: unknown;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -323,59 +321,12 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // 更新後の最新情報を取得
       const updatedAuction: UpdateAuctionWithDetails | null = await tx.auction.findUnique({
         where: { id: auctionId },
-        select: {
-          id: true,
-          currentHighestBid: true,
-          currentHighestBidderId: true,
-          status: true,
-          extensionTotalCount: true,
-          extensionLimitCount: true,
-          extensionTotalTime: true,
-          extensionLimitTime: true,
-          bidHistories: {
-            orderBy: { createdAt: "desc" },
-            take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
-            select: {
-              id: true,
-              amount: true,
-              createdAt: true,
-              isAutoBid: true,
-              user: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
+        select: AUCTION_CONSTANTS.UPDATE_AUCTION_SELECT,
       });
 
       if (!updatedAuction) {
         throw new Error("更新されたオークション情報を取得できませんでした");
       }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // AuctionWithDetails形式に変換
-      const auctionWithDetails: UpdateAuctionWithDetails = {
-        id: updatedAuction.id,
-        status: updatedAuction.status,
-        currentHighestBid: updatedAuction.currentHighestBid,
-        currentHighestBidderId: updatedAuction.currentHighestBidderId,
-        bidHistories: updatedAuction.bidHistories.map((bid) => ({
-          id: bid.id,
-          amount: bid.amount,
-          createdAt: bid.createdAt,
-          isAutoBid: bid.isAutoBid,
-          user: {
-            name: bid.user.name ?? "不明なユーザー",
-          },
-        })),
-        extensionTotalCount: updatedAuction.extensionTotalCount,
-        extensionLimitCount: updatedAuction.extensionLimitCount,
-        extensionTotalTime: updatedAuction.extensionTotalTime,
-        extensionLimitTime: updatedAuction.extensionLimitTime,
-      };
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -407,7 +358,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         await sendAuctionNotification({
           text: {
             first: validation.auction?.task?.task ?? "",
-            second: auctionWithDetails.currentHighestBid.toString(),
+            second: updatedAuction.currentHighestBid.toString(),
           },
           auctionEventType: PrismaAuctionEventType.OUTBID,
           auctionId,
@@ -426,7 +377,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
        * SSEでリアルタイム更新を通知。
        * $transaction内で実行したい
        */
-      await sendEventToAuctionSubscribers(auctionId, auctionWithDetails);
+      await sendEventToAuctionSubscribers(auctionId, updatedAuction);
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
