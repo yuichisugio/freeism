@@ -98,27 +98,6 @@ export type CreatedAuctionItem = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークションカードのprops
- */
-export type AuctionCardHookProps = {
-  auction: {
-    id: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    status: string;
-    isWatched: boolean;
-    seller: {
-      rating: number | null;
-      name?: string | null;
-      image?: string | null;
-    };
-  };
-  onToggleWatchlistAction: (id: string) => Promise<void>;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 出品者の評価の型
  */
 export type SellerRating = {
@@ -137,20 +116,6 @@ export type UseAuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * カウントダウンの状態
- */
-export type TimeRemaining = {
-  days: number;
-  hours: number;
-  minutes: number;
-  isExpired: boolean;
-  isUrgent: boolean;
-  isCritical: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -212,9 +177,7 @@ export type AuctionFiltersProps = {
 export type BidFormData = {
   amount: number;
   isAutoBid?: boolean;
-  user_id?: string;
   auctionId?: string;
-  maxAmount?: number; // 自動入札の最大金額
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -308,6 +271,35 @@ export type AuctionListingResult = Array<{
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * オークションの出品リストのカードのprops
+ */
+export type AuctionCardProps = {
+  auction: {
+    id: string;
+    startTime: Date | string;
+    endTime: Date | string;
+    status: string;
+    seller: {
+      rating: number | null;
+      name?: string | null;
+      image?: string | null;
+    };
+    taskId: string;
+    title: string;
+    imageUrl?: string;
+    currentBid: number;
+    isWatched: boolean;
+    bidsCount: number;
+    group: {
+      name: string;
+    };
+  };
+  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * カウントダウン表示のprops
  */
 export type CountdownDisplayProps = {
@@ -330,34 +322,3 @@ export type CountdownState = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションカードのprops
- */
-export type AuctionCardProps = {
-  auction: {
-    id: string;
-    taskId: string;
-    title: string;
-    description?: string;
-    imageUrl?: string;
-    currentBid: number;
-    bidToBeatAmount: number;
-    endTime: Date;
-    startTime: Date;
-    status: AuctionStatus;
-    isWatched: boolean;
-    bidsCount: number;
-    seller: {
-      id: string;
-      name: string | null;
-      image: string | null;
-      rating: number | null;
-    };
-    group: {
-      id: string;
-      name: string;
-    };
-  };
-  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
-};

@@ -137,7 +137,6 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
         {/* 現在価格 */}
         <div>
           <div className="text-base font-bold text-blue-600 sm:text-lg dark:text-blue-400">現在価格: {auction.currentBid.toLocaleString()} P</div>
-          <div className="text-2xs mt-0.5 text-green-600 sm:text-xs dark:text-green-400">落札可能: {auction.bidToBeatAmount.toLocaleString()} P</div>
 
           {/* 入札数を落札可能の下に移動 */}
           <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">

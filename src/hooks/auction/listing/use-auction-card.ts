@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { type AuctionCardHookProps, type SellerRating } from "@/lib/auction/type/types";
+import { type AuctionCardProps, type SellerRating } from "@/lib/auction/type/types";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -28,7 +28,7 @@ type UseAuctionCardReturn = {
  * @param {AuctionCardHookProps} props オークションカード用フックのプロップ
  * @returns {AuctionCardHookResult} オークションカードの状態とハンドラー
  */
-export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardHookProps): UseAuctionCardReturn {
+export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps): UseAuctionCardReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ウォッチリスト更新中の状態
