@@ -183,12 +183,11 @@ export type BidFormData = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション入札画面に必要な全ての情報
+ * オークション入札時に、更新した情報の型
+ * その情報をsse接続で伝えて、state更新する
  */
-export type AuctionWithDetails = {
+export type UpdateAuctionWithDetails = {
   id: string;
-  startTime: Date;
-  endTime: Date;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
   status: AuctionStatus;
@@ -205,6 +204,16 @@ export type AuctionWithDetails = {
       name: string | null;
     };
   }[];
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション入札画面に必要な全ての情報
+ */
+export type AuctionWithDetails = UpdateAuctionWithDetails & {
+  startTime: Date;
+  endTime: Date;
   task: {
     task: string;
     detail: string | null;

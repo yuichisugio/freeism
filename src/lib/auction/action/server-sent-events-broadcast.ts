@@ -1,6 +1,6 @@
 "use server";
 
-import type { AuctionWithDetails } from "../type/types";
+import type { UpdateAuctionWithDetails } from "../type/types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,7 +10,7 @@ import type { AuctionWithDetails } from "../type/types";
  * @param type イベントタイプ
  * @param data イベントデータ (オークション詳細など)
  */
-export async function sendEventToAuctionSubscribers(auctionId: string, data: AuctionWithDetails): Promise<void> {
+export async function sendEventToAuctionSubscribers(auctionId: string, data: UpdateAuctionWithDetails): Promise<void> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log(

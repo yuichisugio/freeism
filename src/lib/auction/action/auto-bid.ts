@@ -183,7 +183,6 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
     const validation = await validateAuction(auctionId, {
       checkSelfListing: true,
       checkEndTime: true,
-      messagePrefix: "自動入札を設定",
     });
 
     if (!validation.success || !validation.userId) {
@@ -338,9 +337,7 @@ export async function getAutoBidByUserId(auctionId: string): Promise<AutoBidResp
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // オークションの検証（最小限のチェック）
-    const validation = await validateAuction(auctionId, {
-      messagePrefix: "自動入札設定を取得",
-    });
+    const validation = await validateAuction(auctionId);
 
     // バリデーションエラーチェック
     if (!validation.success || !validation.userId) {
@@ -403,9 +400,7 @@ export async function cancelAutoBid(auctionId: string): Promise<AutoBidResponse>
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // オークションの検証
-    const validation = await validateAuction(auctionId, {
-      messagePrefix: "自動入札を取り消し",
-    });
+    const validation = await validateAuction(auctionId);
 
     // バリデーションエラーチェック
     if (!validation.success || !validation.userId) {
