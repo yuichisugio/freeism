@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupMember, Task } from "@/types/group";
+import type { Task } from "@/types/group";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkAppOwner, checkGroupOwner, deleteGroup, joinGroup, leaveGroup } from "@/lib/actions/group";
@@ -57,7 +57,7 @@ export function useGroupDetail({ tasks }: UseGroupDetailProps) {
           setIsGroupOwner(isGroupOwnerResult);
 
           // ユーザーがグループのメンバーかどうかチェック
-          const memberIds = tasks[0].group.members.map((member: GroupMember) => member.userId);
+          const memberIds = tasks[0].group.members.map((member: { userId: string }) => member.userId);
           setIsMember(memberIds.includes(userId));
         }
       } catch (error) {
