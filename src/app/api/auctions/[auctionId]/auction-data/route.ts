@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { getUpdatedAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -38,19 +38,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // URL オブジェクトからクエリを取得
-    const url = new URL(request.url);
-    const userId = url.searchParams.get("userId");
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "userId が必要です" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     /**
      * オークションIDを取得
      */
@@ -65,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     /**
      * オークションデータを取得
      */
-    const auction = await getAuctionByAuctionId(auctionId, userId);
+    const auction = await getUpdatedAuctionByAuctionId(auctionId);
     if (!auction) {
       console.log(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_NotFound`, auctionId);
       return NextResponse.json({ error: "オークションが見つかりません" }, { status: 400 });

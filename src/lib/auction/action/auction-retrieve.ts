@@ -1,10 +1,24 @@
 "use server";
 
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import { type AuctionWithDetails } from "@/lib/auction/type/types";
+import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション情報を取得
+ * @param auctionId オークションID
+ * @returns オークション情報
+ */
+export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<UpdateAuctionWithDetails | null> {
+  const updatedAuction: UpdateAuctionWithDetails | null = await prisma.auction.findUnique({
+    where: { id: auctionId },
+    select: AUCTION_CONSTANTS.UPDATE_AUCTION_SELECT,
+  });
+
+  return updatedAuction;
+}
 
 /**
  * オークションIDに関連するオークション情報を取得

@@ -65,11 +65,11 @@ async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
  * @param {string} auctionId オークションID
  * @returns {TransformStream<Uint8Array>} 初期データを含む TransformStream
  */
-const createInitDataTransform = (auctionId: string, userId: string) => {
+const createInitDataTransform = (auctionId: string) => {
   return new TransformStream<Uint8Array>({
     async start(ctrl) {
       const base = process.env.NODE_ENV === "production" ? `https://${process.env.DOMAIN}` : "http://localhost:3000";
-      const res = await fetch(`${base}/api/auctions/${auctionId}/auction-data?userId=${userId}`, {
+      const res = await fetch(`${base}/api/auctions/${auctionId}/auction-data`, {
         headers: { "x-internal-secret": process.env.FREEISM_APP_API_SECRET_KEY ?? "" },
         cache: "no-cache",
       });
@@ -101,20 +101,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ auct
     return new Response(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
   }
 
-  // URL オブジェクトからクエリを取得
-  const url = new URL(request.url);
-  const userId = url.searchParams.get("userId");
-
-  if (!userId) {
-    return new Response(JSON.stringify({ error: "userId が必要です" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   const channel = `auction:${auctionId}:events`;
 
-  const upstream = readableFromAsyncIterable(upstashSubscribe(channel)).pipeThrough(createInitDataTransform(auctionId, userId));
+  const upstream = readableFromAsyncIterable(upstashSubscribe(channel)).pipeThrough(createInitDataTransform(auctionId));
 
   return new Response(upstream, {
     headers: {
