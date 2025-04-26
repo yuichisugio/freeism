@@ -2,17 +2,15 @@
 
 import { memo } from "react";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
-import { type CardCountdownProps } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 
 /**
  * オークションカード用シンプルなカウントダウンコンポーネント
  * @param endTime 終了時間
- * @param className クラス名
  * @param onExpire 終了時のコールバック関数
  */
-export const CardCountdown = memo(function CardCountdown({ endTime, className, onExpire }: CardCountdownProps) {
+export const CardCountdown = memo(function CardCountdown({ endTime, onExpire }: { endTime: Date; onExpire?: () => void }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -31,7 +29,6 @@ export const CardCountdown = memo(function CardCountdown({ endTime, className, o
             : countdownState.isExpired
               ? "text-red-500"
               : "text-gray-700",
-        className,
       )}
     >
       {!countdownState.isExpired && <Clock className="h-3.5 w-3.5" />}

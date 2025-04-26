@@ -1,5 +1,5 @@
 import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import type { AuctionReview, AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
+import type { AuctionStatus, BidStatus, TaskStatus, User } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -98,13 +98,6 @@ export type CreatedAuctionItem = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション履歴のタブ
- */
-export type AuctionHistoryTabs = "bids" | "won" | "created";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * オークションカードのprops
  */
 export type AuctionCardHookProps = {
@@ -163,18 +156,7 @@ export type TimeRemaining = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * カウントダウンのprops
- */
-export type UseCountdownProps = {
-  endTime: Date | string;
-  onExpire?: () => void;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * オークションの出品一覧をフィルター・ソートするためのパラメータの型定義
- * @description オークションの出品一覧をフィルター・ソートするためのパラメータの型定義
  */
 export type AuctionListingsConditions = {
   categories: ((typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null)[] | null;
@@ -192,35 +174,41 @@ export type AuctionListingsConditions = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ステータスの型
+/**
+ * ステータスの型
+ */
 export type AuctionFilterTypes = "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended" | "not_started" | "started";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ソートField
+/**
+ * ソートField
+ */
 export type AuctionSortField = "newest" | "time_remaining" | "bids" | "price";
 
-// ソートDirection
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ソートDirection
+ */
 export type SortDirection = "asc" | "desc";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// フィルターのprops
+/**
+ * オークションのフィルターのprops
+ */
 export type AuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   auctions: AuctionListingResult;
 };
 
-// 出品商品一覧取得のパラメータ型
-export type GetAuctionListingsParams = {
-  page?: number;
-  pageSize?: number;
-  filters?: AuctionListingsConditions;
-  sort?: AuctionSortField;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 入札フォームデータ型
+/**
+ * 入札フォームの型
+ */
 export type BidFormData = {
   amount: number;
   isAutoBid?: boolean;
@@ -229,27 +217,11 @@ export type BidFormData = {
   maxAmount?: number; // 自動入札の最大金額
 };
 
-// Userの型定義
-export type User = {
-  id: string;
-  username: string;
-  email: string;
-  avatarUrl?: string;
-  createdAt: string; // ISO日付文字列
-  name?: string | null;
-  emailVerified?: Date | null;
-  image?: string | null;
-  isAppOwner?: boolean;
-  updatedAt?: Date;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// カテゴリ
-export type Category = {
-  id: string;
-  name: string;
-};
-
-// Auction型
+/**
+ * Auction型
+ */
 export type Auction = {
   id: string;
   title: string;
@@ -272,7 +244,7 @@ export type Auction = {
       }
     | User;
   bidCount?: number;
-  categories?: string[] | Category[];
+  categories?: string[] | { id: string; name: string }[];
   watchCount?: number;
   depositPeriod?: number;
 };
@@ -318,11 +290,17 @@ export type AuctionWithDetails = {
       name: string;
     };
   };
+  watchlists: {
+    // ウォッチリスト。全部ではなくuserIdが一致するものだけ
+    id: string;
+  };
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// オークションリスト結果型
+/**
+ * オークション出品リストの型
+ */
 export type AuctionListingResult = Array<{
   id: string;
   taskId: string;
@@ -348,26 +326,21 @@ export type AuctionListingResult = Array<{
   };
 }>;
 
-// 接続状態の型
-export type ConnectionStatus = "初期化中" | "接続中" | "切断" | "エラー" | "タイムアウト";
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// カウントダウン表示のprops
+/**
+ * カウントダウン表示のprops
+ */
 export type CountdownDisplayProps = {
   countdownState: CountdownState;
   countdownAction: () => string;
 };
 
-// 入札フォームのprops
-export type BidFormProps = {
-  auction: Auction;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 入札履歴のprops
-export type BidHistoryProps = {
-  initialBids: AuctionWithDetails["bidHistories"];
-};
-
-// カウントダウンタイマーの状
+/**
+ * カウントダウンタイマーの状態
+ */
 export type CountdownState = {
   days: number;
   hours: number;
@@ -377,47 +350,11 @@ export type CountdownState = {
   isCritical: boolean;
 };
 
-// ウォッチリスト
-export type WatchlistItem = {
-  id: string;
-  auctionId: string;
-  userId: string;
-  auction?: Auction;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ユーザーのプロフィール
-export type UserProfile = User & {
-  bio?: string;
-  location?: string;
-  website?: string;
-  phoneNumber?: string;
-  soldCount?: number;
-  boughtCount?: number;
-  rating?: number;
-};
-
-// ユーザー認証
-export type UserAuth = {
-  userId: string;
-  email: string;
-  username: string;
-  avatarUrl?: string;
-};
-
-// レビュー情報
-export type AuctionReviewWithUsers = AuctionReview & {
-  reviewer: User;
-  reviewee: User;
-};
-
-// "use server"ファイルでは定数の直接エクスポートではなく、関数としてエクスポートする
-export async function getExtendedEventType() {
-  return {
-    CONNECTION_ESTABLISHED: "connection_established" as const,
-  };
-}
-
-// オークションカードのprops
+/**
+ * オークションカードのprops
+ */
 export type AuctionCardProps = {
   auction: {
     id: string;
@@ -444,11 +381,4 @@ export type AuctionCardProps = {
     };
   };
   onToggleWatchlistAction: (auctionId: string) => Promise<void>;
-};
-
-// オークションカード用カウントダウンのprops
-export type CardCountdownProps = {
-  endTime: Date;
-  className?: string;
-  onExpire?: () => void;
 };

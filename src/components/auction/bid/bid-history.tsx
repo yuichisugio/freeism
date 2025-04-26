@@ -4,7 +4,7 @@ import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import { type BidHistoryProps } from "@/lib/auction/type/types";
+import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, HandCoins } from "lucide-react";
@@ -16,7 +16,7 @@ import { Activity, AlertCircle, HandCoins } from "lucide-react";
  * @param initialBids 初期の入札履歴
  * @returns 入札履歴
  */
-export const BidHistory = memo(function BidHistory({ initialBids = [] }: BidHistoryProps) {
+export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initialBids: AuctionWithDetails["bidHistories"] }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 表示する入札履歴を最大25件に制限

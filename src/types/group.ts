@@ -1,12 +1,20 @@
 import { type contributionType } from "@prisma/client";
 
-// グループメンバーの型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループメンバーの型
+ */
 export type GroupMember = {
   id: string;
   userId: string;
 };
 
-// タスク参加者の型
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスク参加者の型
+ */
 export type TaskParticipant = {
   id: string;
   name: string | null;
@@ -17,13 +25,22 @@ export type TaskParticipant = {
   } | null;
 };
 
-// ユーザー情報の型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザー情報の型
+ */
 export type User = {
   id: string;
   name: string | null;
   email: string | null;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクの型
+ */
 export type Task = {
   id: string;
   task: string;

@@ -429,6 +429,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
             name: task?.creator?.name ?? "不明なユーザー",
           },
         },
+        watchlists: auctionData.watchlists,
       };
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

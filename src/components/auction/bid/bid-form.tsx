@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useBidActions } from "@/hooks/auction/bid/use-bid-actions";
-import { type BidFormProps } from "@/lib/auction/type/types";
+import { type Auction } from "@/lib/auction/type/types";
 import { motion } from "framer-motion";
 import { Gavel, Minus, Plus } from "lucide-react";
 
@@ -17,8 +17,13 @@ import { AutoBidForm } from "./auto-bid-form";
  * @param onCancel キャンセルボタンのクリックハンドラ
  * @returns 入札フォーム
  */
-export const BidForm = memo(function BidForm({ auction }: BidFormProps) {
+export const BidForm = memo(function BidForm({ auction }: { auction: Auction }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/components/auction/bid/bid-form.tsx_BidForm_render");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(auction.currentHighestBid + 1);
 
