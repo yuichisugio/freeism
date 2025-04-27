@@ -85,15 +85,17 @@ model VerificationToken {
 }
 
 model UserSettings {
-  id             String   @id @default(cuid())
-  username       String
-  createdAt      DateTime @default(now()) @map("created_at")
-  lifeGoal       String   @map("life_goal")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  userId         String   @unique @map("user_id")
-  isEmailEnabled Boolean  @default(false) @map("is_email_enabled")
-  isPushEnabled  Boolean  @default(false) @map("is_push_enabled")
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String  @id @default(cuid())
+  username       String  @default("未設定")
+  lifeGoal       String  @default("未設定") @map("life_goal")
+  isEmailEnabled Boolean @default(false) @map("is_email_enabled")
+  isPushEnabled  Boolean @default(false) @map("is_push_enabled")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Group {

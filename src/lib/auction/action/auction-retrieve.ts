@@ -20,6 +20,8 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
   return updatedAuction;
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションIDに関連するオークション情報を取得
  * @param auctionId オークションID
@@ -65,7 +67,11 @@ export async function getAuctionByAuctionId(auctionId: string, currentUserId: st
             isAutoBid: true,
             user: {
               select: {
-                name: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
               },
             },
           },
@@ -86,10 +92,19 @@ export async function getAuctionByAuctionId(auctionId: string, currentUserId: st
                 depositPeriod: true,
               },
             },
-            creator: {
+            executors: {
               select: {
                 id: true,
-                name: true,
+                user: {
+                  select: {
+                    id: true,
+                    settings: {
+                      select: {
+                        username: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },

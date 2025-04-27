@@ -53,7 +53,11 @@ export function getAuctionUpdateSelect(take: number) {
         isAutoBid: true,
         user: {
           select: {
-            name: true,
+            settings: {
+              select: {
+                username: true,
+              },
+            },
           },
         },
       },

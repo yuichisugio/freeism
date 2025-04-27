@@ -239,7 +239,9 @@ export type UpdateAuctionWithDetails = {
     createdAt: Date | string;
     isAutoBid: boolean;
     user: {
-      name: string | null;
+      settings: {
+        username: string; // app内で表示される名前
+      } | null;
     };
   }[];
 };
@@ -263,10 +265,15 @@ export type AuctionWithDetails = UpdateAuctionWithDetails & {
       name: string;
       depositPeriod: number;
     };
-    creator: {
+    executors: {
       id: string;
-      name: string | null;
-    };
+      user: {
+        id: string;
+        settings: {
+          username: string;
+        } | null;
+      } | null;
+    }[];
   };
   watchlists: {
     id: string;

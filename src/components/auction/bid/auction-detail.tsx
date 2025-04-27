@@ -87,10 +87,14 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   /**
    * 出品者かどうか
    */
-  const isCreator = useMemo(() => {
-    console.log("src/components/auction/bid/auction-detail.tsx_isCreator", currentUserId, auction.task.creator.id);
-    return auction.task.creator.id === currentUserId;
-  }, [auction.task.creator.id, currentUserId]);
+  const isExecutor = useMemo(() => {
+    console.log(
+      "src/components/auction/bid/auction-detail.tsx_isExecutor",
+      currentUserId,
+      auction.task.executors.map((executor) => executor.user?.id),
+    );
+    return auction.task.executors.some((executor) => executor.user?.id === currentUserId);
+  }, [auction.task.executors, currentUserId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -138,7 +142,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         </Card>
 
         {/* 自分の出品しているオークションの場合は、自分の出品したオークションですというメッセージを表示 */}
-        {isCreator && (
+        {isExecutor && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -164,7 +168,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
 
         {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
-        {!isCreator && isActive && (
+        {!isExecutor && isActive && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <BidForm
               currentHighestBid={auction.currentHighestBid}
@@ -175,7 +179,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
         )}
       </div>
     );
-  }, [auction.currentHighestBid, auction.currentHighestBidderId, auction.id, auction.bidHistories.length, isActive, isCreator]);
+  }, [auction.currentHighestBid, auction.currentHighestBidderId, auction.id, auction.bidHistories.length, isActive, isExecutor]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -271,7 +275,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleWatchlistToggle}
-                disabled={submitting || auction.task.creator.id === currentUserId}
+                disabled={submitting}
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
               >
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
@@ -281,7 +285,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <User size={16} className="text-primary" />
               </div>
-              <p className="text-muted-foreground">{auction.task.creator.name ?? "不明なユーザー"}</p>
+              <p className="text-muted-foreground">
+                {auction.task.executors.find((executor) => executor.user?.id === currentUserId)?.user?.settings?.username ?? "不明なユーザー"}
+              </p>
             </div>
           </div>
 

@@ -66,7 +66,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initi
               >
                 <TableCell className="py-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{bid?.user?.name ?? "不明なユーザー"}</span>
+                    <span className="font-medium">{bid?.user?.settings?.username ?? "不明なユーザー"}</span>
                     {index === 0 && (
                       <Badge variant="secondary" className="ml-1 text-xs">
                         現在の最高額

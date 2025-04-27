@@ -70,7 +70,7 @@ export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number
   }
 
   // 出品者（タスク作成者）は入札不可
-  if (auction.task.creator.id === userId) {
+  if (auction.task.executors.some((executor) => executor.user?.id === userId)) {
     return { canBid: false, message: "自分のオークションには入札できません" };
   }
 
