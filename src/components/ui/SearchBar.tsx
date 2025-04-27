@@ -4,9 +4,9 @@ import React, { InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 
-interface SearchBarProps extends InputHTMLAttributes<HTMLInputElement> {
-  className?: string;
-}
+type SearchBarProps = InputHTMLAttributes<HTMLInputElement> & {
+  className: string | null;
+};
 
 export default function SearchBar({ className, ...props }: SearchBarProps) {
   return (

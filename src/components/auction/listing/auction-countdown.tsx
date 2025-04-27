@@ -10,7 +10,7 @@ import { Clock } from "lucide-react";
  * @param endTime 終了時間
  * @param onExpire 終了時のコールバック関数
  */
-export const CardCountdown = memo(function CardCountdown({ endTime, onExpire }: { endTime: Date | string; onExpire?: () => void }) {
+export const CardCountdown = memo(function CardCountdown({ endTime, onExpire }: { endTime: Date | string; onExpire: () => void | null }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得

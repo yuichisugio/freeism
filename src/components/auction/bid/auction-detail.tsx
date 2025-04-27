@@ -58,7 +58,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   const { auction = initialAuction, loading, error, lastMsg } = useAuctionEvent(initialAuction);
 
   // カウントダウンの状態
-  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime));
+  const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime), () => {
+    console.log("カウントダウンが終了しました");
+  });
 
   // ウォッチリストアクション
   const { submitting, toggleWatchlist, isWatchlisted } = useWatchlistActions(!!initialAuction.watchlists?.[0]);

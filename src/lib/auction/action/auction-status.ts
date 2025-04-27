@@ -53,7 +53,7 @@ export async function getUserPointBalance(userId: string, groupId: string): Prom
  * @param bidAmount 入札金額
  * @returns 入札可能かどうか
  */
-export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number): Promise<{ canBid: boolean; message?: string }> {
+export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number): Promise<{ canBid: boolean; message: string }> {
   // セッションからユーザー情報を取得
   const userId = await getAuthenticatedSessionUserId();
 
@@ -92,5 +92,5 @@ export async function canPlaceBid(auction: AuctionWithDetails, bidAmount: number
     };
   }
 
-  return { canBid: true };
+  return { canBid: true, message: "" };
 }

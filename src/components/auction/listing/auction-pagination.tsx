@@ -75,6 +75,7 @@ export const AuctionPagination = memo(function AuctionPagination({
     currentPage: listingsConditions.page,
     totalPages: totalPages,
     totalCount: totalAuctionsCount,
+    maxPageToShow: AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

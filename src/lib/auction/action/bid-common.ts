@@ -29,9 +29,9 @@ export type ExecuteBidReturn = {
 export type ValidateAuctionResult = {
   success: boolean;
   message: string;
-  userId?: string;
-  auction?: AuctionValidationData;
-  session?: Session | null;
+  userId: string | null;
+  auction: AuctionValidationData | null;
+  session: Session | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -44,22 +44,22 @@ export type AuctionValidationData = {
   currentHighestBid: number;
   currentHighestBidderId: string | null;
   endTime: Date;
-  taskId?: string;
-  task?: {
+  taskId: string;
+  task: {
     creator: {
       id: string;
     };
-    task?: string | null;
-    detail?: string | null;
+    task: string;
+    detail: string | null;
   };
-  bidHistories?: Array<{
-    user?: {
+  bidHistories: Array<{
+    user: {
       id: string;
-      name?: string | null;
-      image?: string | null;
+      name: string | null;
+      image: string | null;
     };
-  }>;
-  version?: number;
+  }> | null;
+  version: number | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -73,13 +73,13 @@ export type AuctionValidationData = {
 export async function validateAuction(
   auctionId: string,
   options: {
-    checkSelfListing?: boolean;
-    checkEndTime?: boolean;
-    checkCurrentBid?: boolean;
-    currentBid?: number;
-    requireActive?: boolean;
-    executeBid?: boolean;
-  } = {},
+    checkSelfListing: boolean | null;
+    checkEndTime: boolean | null;
+    checkCurrentBid: boolean | null;
+    currentBid: number | null;
+    requireActive: boolean | null;
+    executeBid: boolean | null;
+  },
 ): Promise<ValidateAuctionResult> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -94,6 +94,9 @@ export async function validateAuction(
       return {
         success: false,
         message: `操作するには、ログインが必要です`,
+        userId: null,
+        auction: null,
+        session: null,
       };
     }
 
@@ -104,7 +107,7 @@ export async function validateAuction(
 
     // executeBid()の場合
     if (options.executeBid) {
-      auctionData = await prisma.auction.findUnique({
+      const result = await prisma.auction.findUnique({
         where: { id: auctionId },
         select: {
           endTime: true,
@@ -123,9 +126,23 @@ export async function validateAuction(
           },
         },
       });
+
+      // 型を合わせるために不足しているプロパティを追加
+      if (result) {
+        auctionData = {
+          ...result,
+          taskId: result.task.creator.id, // 仮のtaskId
+          bidHistories: null,
+          version: null,
+          task: {
+            ...result.task,
+            detail: null, // 不足しているdetailプロパティを追加
+          },
+        };
+      }
     } else {
       // 基本情報のみを取得する場合はselectを使用
-      auctionData = await prisma.auction.findUnique({
+      const result = await prisma.auction.findUnique({
         where: { id: auctionId },
         select: {
           status: true,
@@ -147,6 +164,19 @@ export async function validateAuction(
           },
         },
       });
+
+      // 型を合わせるために不足しているプロパティを追加
+      if (result) {
+        auctionData = {
+          ...result,
+          bidHistories: null,
+          version: null,
+          task: {
+            ...result.task,
+            detail: null, // 不足しているdetailプロパティを追加
+          },
+        };
+      }
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -155,6 +185,9 @@ export async function validateAuction(
       return {
         success: false,
         message: "オークションが見つかりません",
+        userId,
+        auction: auctionData,
+        session,
       };
     }
 
@@ -165,6 +198,9 @@ export async function validateAuction(
       return {
         success: false,
         message: "自分の出品に対して操作はできません",
+        userId,
+        auction: auctionData,
+        session,
       };
     }
 
@@ -175,6 +211,9 @@ export async function validateAuction(
       return {
         success: false,
         message: "このオークションは終了しています",
+        userId,
+        auction: auctionData,
+        session,
       };
     }
 
@@ -185,16 +224,22 @@ export async function validateAuction(
       return {
         success: false,
         message: "このオークションはアクティブではありません",
+        userId,
+        auction: auctionData,
+        session,
       };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 現在の最高入札額チェック
-    if ((options.checkCurrentBid || options.executeBid) && options.currentBid !== undefined && auctionData.currentHighestBid >= options.currentBid) {
+    if ((options.checkCurrentBid || options.executeBid) && options.currentBid !== null && auctionData.currentHighestBid >= options.currentBid) {
       return {
         success: false,
         message: `現在の最高入札額（${auctionData.currentHighestBid}ポイント）より高い額で入札してください`,
+        userId,
+        auction: auctionData,
+        session,
       };
     }
 
@@ -214,6 +259,9 @@ export async function validateAuction(
     return {
       success: false,
       message: "オークションの検証中にエラーが発生しました",
+      userId: null,
+      auction: null,
+      session: null,
     };
   }
 }
@@ -234,7 +282,14 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     /**
      * バリデーションとオークションのデータ取得
      */
-    const validation = await validateAuction(auctionId, { executeBid: true, currentBid: amount });
+    const validation = await validateAuction(auctionId, {
+      checkSelfListing: null,
+      checkEndTime: null,
+      checkCurrentBid: null,
+      currentBid: amount,
+      requireActive: null,
+      executeBid: true,
+    });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

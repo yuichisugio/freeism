@@ -10,8 +10,8 @@ import { useMemo } from "react";
 type UsePaginationProps = {
   currentPage: number;
   totalPages: number;
-  maxPageToShow?: number;
-  totalCount?: number;
+  maxPageToShow: number;
+  totalCount: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

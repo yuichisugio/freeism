@@ -48,7 +48,7 @@ type ApiSuccessResponse = {
   messages: AuctionMessage[];
   sellerId: string | null;
   sellerInfo: SellerInfo | null;
-  message?: AuctionMessage;
+  message: AuctionMessage;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -177,7 +177,7 @@ export function useAuctionMessage(auctionId: string): UseAuctionMessageResult {
 
         if (data.success && data.message) {
           // 成功した場合、メッセージリストを更新
-          setMessages((prev) => [...prev, data.message!]);
+          setMessages((prev) => [...prev, data.message]);
           return true;
         } else {
           setError("error" in data ? data.error : "メッセージの送信に失敗しました");

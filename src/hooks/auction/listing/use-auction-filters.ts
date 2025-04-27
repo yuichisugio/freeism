@@ -274,7 +274,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    * @param isExclusive 排他的選択かどうか（例：「すべて」と他の選択肢）
    */
   const handleMultiSelect = useCallback(
-    <T extends string>(field: keyof AuctionListingsConditions, value: T, defaultValue: T[], isExclusive = false, exclusiveValue?: T) => {
+    <T extends string>(field: keyof AuctionListingsConditions, value: T, defaultValue: T[], isExclusive = false, exclusiveValue: T) => {
       const currentValues = Array.isArray(draftConditions[field]) ? [...(draftConditions[field] as T[])] : [];
 
       // 排他的な値が選択された場合

@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * SSEレスポンスの型定義
  */
 type SSEResponse = {
-  data?: AuctionWithDetails;
+  data: AuctionWithDetails | null;
 } & AuctionWithDetails;
 
 /**

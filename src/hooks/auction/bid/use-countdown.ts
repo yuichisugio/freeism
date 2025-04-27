@@ -22,7 +22,7 @@ type UseCountdownResult = {
  * @param {Date | string} targetDate カウントダウンのターゲット日時
  * @returns {UseCountdownResult} カウントダウンの状態とフォーマットされたカウントダウン
  */
-export function useCountdown(targetDate: Date | string, onExpire?: () => void): UseCountdownResult {
+export function useCountdown(targetDate: Date | string, onExpire: () => void | null): UseCountdownResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

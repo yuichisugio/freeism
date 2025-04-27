@@ -65,11 +65,16 @@ export const BidForm = memo(function BidForm({
 
       try {
         // 入札を実行（入札状態変更のコールバックを渡す）
-        await clientPlaceBid({
-          auctionId: auctionId,
-          amount: bidAmount,
-          isAutoBid: false,
-        });
+        await clientPlaceBid(
+          {
+            auctionId: auctionId,
+            amount: bidAmount,
+            isAutoBid: false,
+          },
+          (isBidding) => {
+            console.log("入札状態変更:", isBidding);
+          },
+        );
 
         // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
         setBidAmount(bidAmount + 1);

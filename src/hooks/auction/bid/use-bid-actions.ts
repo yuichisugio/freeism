@@ -14,7 +14,7 @@ type UseBidActionsResult = {
   submitting: boolean;
   error: string | null;
   warningMessage: string | null;
-  clientPlaceBid: (bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) => Promise<boolean>;
+  clientPlaceBid: (bidData: BidFormData, onBiddingStatusChange: (isBidding: boolean) => void) => Promise<boolean>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -41,7 +41,7 @@ export function useBidActions(): UseBidActionsResult {
    * @param {Function} onBiddingStatusChange 入札状態変更時のコールバック（オプション）
    * @returns {boolean} 入札成功時true, 失敗時false
    */
-  const clientPlaceBid = useCallback(async (bidData: BidFormData, onBiddingStatusChange?: (isBidding: boolean) => void) => {
+  const clientPlaceBid = useCallback(async (bidData: BidFormData, onBiddingStatusChange: (isBidding: boolean) => void) => {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     setSubmitting(true);
     setError(null);

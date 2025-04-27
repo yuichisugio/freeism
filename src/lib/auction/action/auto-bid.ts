@@ -63,6 +63,10 @@ export async function processAutoBid(params: ProcessAutoBidParams): Promise<Auto
       validationResult = await validateAuction(auctionId, {
         checkEndTime: true,
         requireActive: true,
+        checkSelfListing: null,
+        checkCurrentBid: null,
+        currentBid: null,
+        executeBid: null,
       });
     }
 
@@ -238,6 +242,9 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
       checkSelfListing: true,
       checkEndTime: true,
       requireActive: true,
+      checkCurrentBid: null,
+      currentBid: null,
+      executeBid: null,
     });
 
     // バリデーションに失敗した場合はエラーを返す
@@ -408,7 +415,14 @@ export async function getAutoBidByUserId(auctionId: string): Promise<AutoBidResp
     /**
      * 1. オークションの検証（最小限のチェック）
      */
-    const validation = await validateAuction(auctionId);
+    const validation = await validateAuction(auctionId, {
+      checkSelfListing: null,
+      checkEndTime: null,
+      checkCurrentBid: null,
+      currentBid: null,
+      requireActive: null,
+      executeBid: null,
+    });
 
     // バリデーションエラーチェック
     if (!validation.success || !validation.userId) {
@@ -487,7 +501,14 @@ export async function cancelAutoBid(auctionId: string): Promise<AutoBidResponse>
     /**
      * 1. オークションの検証
      */
-    const validation = await validateAuction(auctionId);
+    const validation = await validateAuction(auctionId, {
+      checkSelfListing: null,
+      checkEndTime: null,
+      checkCurrentBid: null,
+      currentBid: null,
+      requireActive: null,
+      executeBid: null,
+    });
 
     // バリデーションエラーチェック
     if (!validation.success || !validation.userId) {
