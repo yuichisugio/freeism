@@ -126,7 +126,7 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
             自動入札
           </CardTitle>
         </div>
-        <CardDescription>あなたの代わりに自動的に入札します</CardDescription>
+        <CardDescription>あなたの代わりに自動的に入札します。最高入札額より設定上限額が低い場合は、設定は自動的に削除されます。</CardDescription>
       </CardHeader>
 
       {/* 自動入札フォームのコンテンツ */}

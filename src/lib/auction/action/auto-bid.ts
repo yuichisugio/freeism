@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
 import { NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
@@ -374,9 +373,6 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
       // 自動入札処理でエラーが発生しても設定自体は成功しているので、設定成功を返す
     }
 
-    // パスの再検証
-    revalidatePath(`/auctions/${auctionId}`);
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     return {
@@ -408,7 +404,7 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
  * @param auctionId オークションID
  * @returns 処理結果
  */
-export async function getAutoBidByUserId(auctionId: string): Promise<AutoBidResponse> {
+export async function getAutoBidByUserId(auctionId: string, currentHighestBid: number): Promise<AutoBidResponse> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -446,13 +442,16 @@ export async function getAutoBidByUserId(auctionId: string): Promise<AutoBidResp
         auctionId,
         userId,
         isActive: true,
+        maxBidAmount: {
+          gt: currentHighestBid,
+        },
       },
     });
 
     if (!autoBid) {
       return {
-        success: false,
-        message: "自動入札設定がありません",
+        success: true,
+        message: "",
         autoBid: null,
       };
     }
@@ -558,11 +557,6 @@ export async function cancelAutoBid(auctionId: string): Promise<AutoBidResponse>
         autoBid: null,
       };
     }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // パスの再検証
-    revalidatePath(`/auctions/${auctionId}`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -92,8 +92,15 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       });
       setIsAutoBidding(true);
       return true;
+
+      // 自動入札設定がない場合
+    } else if (result.success && !result.autoBid) {
+      setAutoBidSettings(null);
+      setIsAutoBidding(false);
+      return true;
+
+      // データ取得エラーの場合
     } else {
-      // 失敗した場合
       setAutoBidSettings(null);
       setIsAutoBidding(false);
       setError(result.message || "自動入札設定に失敗しました");
@@ -120,7 +127,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       setError(null);
 
       // 自動入札設定を取得
-      const result = await getAutoBidByUserId(auctionId);
+      const result = await getAutoBidByUserId(auctionId, currentHighestBid);
       console.log("自動入札設定取得結果:", result);
 
       // 結果に基づいて状態を更新（既存設定がある場合はmaxBidAmountに100を加算して表示）
