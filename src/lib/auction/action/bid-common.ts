@@ -2,7 +2,7 @@
 
 import type { Session } from "next-auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { getAuctionUpdateSelect } from "@/lib/auction/constants";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
@@ -321,7 +321,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // 更新後の最新情報を取得
       const updatedAuction: UpdateAuctionWithDetails | null = await tx.auction.findUnique({
         where: { id: auctionId },
-        select: AUCTION_CONSTANTS.UPDATE_AUCTION_SELECT,
+        select: getAuctionUpdateSelect(1),
       });
 
       if (!updatedAuction) {

@@ -94,7 +94,7 @@ const createInitDataTransform = (auctionId: string) => {
  * @param {Promise<{ auctionId: string }>} params リクエストパラメータ
  * @returns {Promise<Response>} レスポンスオブジェクト
  */
-export async function GET(request: Request, { params }: { params: Promise<{ auctionId: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ auctionId: string }> }) {
   const { auctionId } = await params;
   console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_auctionId", auctionId);
   if (!auctionId) {

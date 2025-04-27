@@ -1,6 +1,6 @@
 "use server";
 
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS, getAuctionUpdateSelect } from "@/lib/auction/constants";
 import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
 
@@ -14,7 +14,7 @@ import { prisma } from "@/lib/prisma";
 export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<UpdateAuctionWithDetails | null> {
   const updatedAuction: UpdateAuctionWithDetails | null = await prisma.auction.findUnique({
     where: { id: auctionId },
-    select: AUCTION_CONSTANTS.UPDATE_AUCTION_SELECT,
+    select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
   });
 
   return updatedAuction;

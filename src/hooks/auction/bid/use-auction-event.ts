@@ -88,10 +88,30 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
         return;
       }
       // 初期データと入札時のデータではdataプロパティの有無で異なる場合がある
-      const auctionData = payload.data ?? payload;
+      const auctionData = payload.data ?? (payload as AuctionWithDetails);
       setLastMsg(raw);
       console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data", auctionData);
-      setAuction((prev) => ({ ...prev, ...auctionData }));
+      setAuction((prev) => {
+        // 以前の bidHistories
+        const prevHistories = prev.bidHistories ?? [];
+
+        // 今回の新着 bidHistories（今回は単一要素の配列想定）
+        const incomingHistories = auctionData.bidHistories ?? [];
+
+        // 末尾を切って、新着を先頭に追加して26個以下に押さえる
+        // prevHistories.slice(0, prevHistories.length - incomingHistories.length)で、古い履歴から incomingHistories.length 分だけ末尾を落とす
+        const maxRetain = prevHistories.length - incomingHistories.length;
+        const retained = maxRetain > 0 ? prevHistories.slice(0, maxRetain) : [];
+
+        const newHistories = [...incomingHistories, ...retained];
+
+        return {
+          // bidHistories 以外は全て auctionData で上書き
+          ...prev,
+          ...auctionData,
+          bidHistories: newHistories,
+        };
+      });
       setLoading(false);
     } catch (e) {
       console.error("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_JSON parse error", e);
