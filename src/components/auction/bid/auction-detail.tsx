@@ -85,7 +85,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 出品者かどうか
+   * 実行者かどうか
    */
   const isExecutor = useMemo(() => {
     console.log(

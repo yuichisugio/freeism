@@ -23,7 +23,7 @@ export type SetupForm = z.infer<typeof setupSchema>;
  * セットアップフォームのプロパティ型定義
  */
 type SetupFormProps = {
-  initialData?: {
+  initialData: {
     username: string;
     lifeGoal: string;
   } | null;
