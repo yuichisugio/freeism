@@ -98,18 +98,6 @@ export type CreatedAuctionItem = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 出品者の評価の型
- */
-export type SellerRating = {
-  fullStars: number;
-  hasHalfStar: boolean;
-  emptyStars: number;
-  ratingValue: number | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * フィルターのprops
  */
 export type UseAuctionFiltersProps = {
@@ -174,23 +162,32 @@ export type AuctionFiltersProps = {
  */
 export type AuctionCard = {
   id: string; // オークションのID
-  title: string; // title
-  imageUrl: string | null; // 画像
-  currentBid: number; //最高額
+  currentHighestBid: number; //最高額
   endTime: Date; // オークションの終了時刻
   startTime: Date; // オークションの開始時刻
   status: AuctionStatus; // オークションのステータス
+  bidsCount: number; // 入札数
   isWatched: boolean; // オークションがウォッチリストに登録されているかどうか
-  bidsCount: number; //入札数
-  category: string | null; // カテゴリ
-  seller: {
-    rating: number | null; // 出品者の評価
-    name: string | null; // 出品者の名前
-    image: string | null; // 出品者の画像
-  };
   group: {
     id: string; // グループのID
     name: string; // グループの名前
+  };
+  task: {
+    task: string; // タスクのタイトル
+    detail: string | null; // タスクの詳細
+    imageUrl: string | null; // taskの画像
+    category: string | null; // カテゴリ
+    executors: {
+      id: string; // listのidとして使用
+      rating: number | null; // Executorの評価
+      user: {
+        id: string | null; // listのidとして使用
+        image: string | null; // taskExecutorのicon画像
+        settings: {
+          username: string; // app内で表示される名前
+        };
+      };
+    }[];
   };
 };
 

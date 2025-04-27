@@ -11,25 +11,6 @@ import { type AuctionListingResult, type AuctionListingsConditions } from "../ty
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * findMany の include オプションに対応する型を定義
- */
-type AuctionWithDetails = Prisma.AuctionGetPayload<{
-  include: {
-    task: {
-      include: {
-        creator: { select: { id: true; name: true; image: true } };
-        group: { select: { id: true; name: true } };
-      };
-    };
-    bidHistories: { orderBy: { amount: "desc" }; take: 1 };
-    watchlists: { where: { userId: string } }; // userId は string に修正
-    _count: { select: { bidHistories: true } };
-  };
-}>;
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * AuctionOrderByInput型の定義
  * Prisma.AuctionOrderByWithRelationInput を使用する方が堅牢
  */
@@ -43,11 +24,18 @@ type AuctionOrderByInput = Prisma.AuctionOrderByWithRelationInput;
  * @returns Prisma の where 句と userId
  */
 async function buildAuctionWhereClause(listingsConditions: AuctionListingsConditions): Promise<{ where: Prisma.AuctionWhereInput; userId: string }> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 引数を分解
   const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery, statusConditionJoinType } =
     listingsConditions;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // ユーザーIDを取得。必ず返ってくる。返ってこない場合は↓内でログイン画面にリダイレクトされる
   const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザーが参加しているグループIDを取得
   let userGroupIds = await prisma.groupMembership.findMany({
@@ -61,6 +49,8 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
     userGroupIds = []; // 空の配列を設定することで、 groupId: { in: [] } となり、結果が空になる
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 基本的なフィルター条件
   const where: Prisma.AuctionWhereInput = {
     task: {
@@ -68,8 +58,12 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
     },
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // AND 条件を格納する配列
   const filterConditions: Prisma.AuctionWhereInput[] = [];
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カテゴリのフィルタリング (Taskのcategoryフィールドを想定)
   if (categories && categories.length > 0 && !categories.includes("すべて")) {
@@ -85,6 +79,8 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
       });
     }
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ステータスのフィルタリング
   if (status && status.length > 0) {
@@ -142,6 +138,8 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
     }
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 入札額のフィルタリング
   const bidFilters: Prisma.IntFilter = {};
   if (minBid !== null && minBid !== undefined) {
@@ -153,6 +151,8 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
   if (Object.keys(bidFilters).length > 0) {
     filterConditions.push({ currentHighestBid: bidFilters });
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 残り時間のフィルタリング
   const timeFilters: Prisma.DateTimeFilter = {};
@@ -166,6 +166,8 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
   if (Object.keys(timeFilters).length > 0) {
     filterConditions.push({ endTime: timeFilters });
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // グループIDのフィルタリング (基本条件で既に設定されているため、必要に応じて上書きまたは絞り込み)
   if (groupIds && groupIds.length > 0) {
@@ -193,12 +195,16 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
     }
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 検索クエリのフィルタリング (Taskのtaskまたはdetailフィールド)
   if (searchQuery) {
     filterConditions.push({
       OR: [{ task: { task: { contains: searchQuery, mode: "insensitive" } } }, { task: { detail: { contains: searchQuery, mode: "insensitive" } } }],
     });
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 組み立てたフィルター条件を AND で結合
   if (filterConditions.length > 0) {
@@ -216,7 +222,11 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
     }
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   console.log("src/lib/auction/action/auction-listing.ts_buildAuctionWhereClause_where", where);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return { where, userId };
 }
@@ -230,13 +240,22 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
  */
 export async function getAuctionListings({ listingsConditions }: { listingsConditions: AuctionListingsConditions }): Promise<AuctionListingResult> {
   try {
-    const { sort, page } = listingsConditions;
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 開始ログ
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_start", { ...listingsConditions });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // ソート条件とページネーション条件を取得
+    const { sort, page } = listingsConditions;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // where句とuserIdを構築
     const { where, userId } = await buildAuctionWhereClause(listingsConditions);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーが参加しているグループがない場合、空の結果を返す
     if (
@@ -249,6 +268,8 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups_参加Groupがないため、オークションを表示できません");
       return [];
     }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ソート条件の設定
     let orderBy: AuctionOrderByInput = { createdAt: "desc" }; // デフォルトは新着順
@@ -274,88 +295,129 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       }
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // ページネーション
     const pageNumber = page ?? 1;
     const skip = (pageNumber - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
     const take = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // where句をログに出力
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_prismaParams", { where, orderBy, skip, take });
     console.dir(where, { depth: null });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // オークションデータを取得
-    const auctions: AuctionWithDetails[] = await prisma.auction.findMany({
+    const auctions = await prisma.auction.findMany({
       where,
       orderBy,
       skip,
       take,
-      include: {
-        task: {
-          include: {
-            creator: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-            group: { select: { id: true, name: true } },
+      select: {
+        id: true,
+        currentHighestBid: true,
+        endTime: true,
+        startTime: true,
+        status: true,
+        _count: { select: { bidHistories: true } },
+        watchlists: {
+          select: { id: true },
+          where: { userId },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
           },
         },
-        bidHistories: { orderBy: { amount: "desc" }, take: 1 }, // 最高入札履歴のみ取得
-        watchlists: { where: { userId } }, // ログインユーザーのウォッチリスト情報
-        _count: { select: { bidHistories: true } }, // 入札数カウント
+        task: {
+          select: {
+            task: true,
+            detail: true,
+            imageUrl: true,
+            category: true,
+            executors: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    id: true,
+                    image: true,
+                    settings: {
+                      select: {
+                        username: true,
+                      },
+                    },
+                    reviewsReceived: {
+                      select: {
+                        rating: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    // クリエイターの評価を一括取得・計算
-    const creatorIds = auctions.map((auction) => auction.task.creator.id);
-    let creatorRatings: Record<string, number | null> = {}; // 初期化
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    if (creatorIds.length > 0) {
-      const creatorReviews = await prisma.auctionReview.findMany({
-        where: { revieweeId: { in: creatorIds } },
-        select: { revieweeId: true, rating: true },
-      });
+    /**
+     * 複数のExecutorの評価を一括取得・計算
+     */
+    const items: AuctionListingResult = auctions.map((auction) => {
+      // executorsが存在することを確認
+      const executors =
+        auction.task.executors?.map((executor) => {
+          // レビューがあれば平均評価を計算、なければnull
+          // オプショナルチェイニングを使用してネストされたプロパティへのアクセスを簡潔化
+          const reviewsReceived = executor.user?.reviewsReceived;
+          const rating =
+            reviewsReceived && reviewsReceived.length > 0
+              ? reviewsReceived.reduce((acc: number, review: { rating: number }) => acc + review.rating, 0) / reviewsReceived.length
+              : null;
 
-      creatorRatings = creatorIds.reduce(
-        (acc, creatorId) => {
-          const reviews = creatorReviews.filter((review) => review.revieweeId === creatorId);
-          acc[creatorId] = reviews.length > 0 ? Number((reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(2)) : null;
-          return acc;
+          // userが存在しない場合のフォールバック値
+          return {
+            id: executor.id,
+            rating,
+            user: executor.user
+              ? {
+                  id: executor.user.id,
+                  image: executor.user.image,
+                  settings: executor.user.settings ?? { username: "未設定" },
+                }
+              : {
+                  id: null,
+                  image: null,
+                  settings: { username: "未登録ユーザー" },
+                },
+          };
+        }) ?? [];
+
+      return {
+        ...auction,
+        bidsCount: auction._count.bidHistories,
+        isWatched: auction.watchlists.length > 0 ? true : false,
+        task: {
+          ...auction.task,
+          executors,
         },
-        {} as Record<string, number | null>,
-      );
-    }
+      };
+    });
 
-    // 結果を整形
-    const items = auctions.map((auction) => ({
-      id: auction.id,
-      taskId: auction.taskId,
-      title: auction.task.task,
-      description: auction.task.detail,
-      imageUrl: auction.task.imageUrl,
-      currentBid: auction.currentHighestBid,
-      endTime: auction.endTime,
-      startTime: auction.startTime,
-      category: auction.task.category,
-      status: auction.status,
-      isWatched: auction.watchlists.length > 0,
-      bidsCount: auction._count.bidHistories,
-      seller: {
-        id: auction.task.creator.id,
-        name: auction.task.creator.name,
-        image: auction.task.creator.image,
-        rating: creatorRatings[auction.task.creator.id] ?? null, // 評価が存在しない場合はnull
-      },
-      group: {
-        id: auction.task.group.id,
-        name: auction.task.group.name,
-      },
-    }));
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 成功ログ
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_success", { itemsCount: items.length });
     return items;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("src/lib/auction/action/auction-listing.ts_getAuctionListings_error", error);
     throw error; // エラーを再スロー

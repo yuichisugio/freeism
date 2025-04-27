@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { type AuctionCardProps, type SellerRating } from "@/lib/auction/type/types";
+import { type AuctionCardProps } from "@/lib/auction/type/types";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -20,7 +20,6 @@ type UseAuctionCardReturn = {
   setIsEnded: (isEnded: boolean) => void;
   handleToggleWatchlist: () => Promise<void>;
   getStartMessage: () => string;
-  sellerRating: SellerRating;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -102,35 +101,6 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 出品者の評価を計算
-   * @returns {SellerRating} 出品者の評価
-   */
-  const getSellerRating = useCallback((): SellerRating => {
-    if (auction.seller.rating === null) {
-      return {
-        fullStars: 0,
-        hasHalfStar: false,
-        emptyStars: 0,
-        ratingValue: null,
-      };
-    }
-
-    // 5つ星評価の表示
-    const fullStars = Math.floor(auction.seller.rating);
-    const hasHalfStar = auction.seller.rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-    return {
-      fullStars,
-      hasHalfStar,
-      emptyStars,
-      ratingValue: auction.seller.rating,
-    };
-  }, [auction.seller.rating]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return {
     // state
     isUpdating,
@@ -138,7 +108,6 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
     isEnded,
     isNew,
     isEndingSoon,
-    sellerRating: getSellerRating(),
 
     // action
     setIsEnded,
