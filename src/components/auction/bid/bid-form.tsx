@@ -68,6 +68,7 @@ export const BidForm = memo(function BidForm({
         await clientPlaceBid({
           auctionId: auctionId,
           amount: bidAmount,
+          isAutoBid: false,
         });
 
         // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定

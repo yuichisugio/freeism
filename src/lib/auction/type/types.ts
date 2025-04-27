@@ -126,7 +126,7 @@ export type UseAuctionFiltersProps = {
 export type AuctionListingsConditions = {
   categories: ((typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null)[] | null;
   status: AuctionFilterTypes[] | null;
-  statusConditionJoinType?: "OR" | "AND"; // ステータス条件の結合タイプ（OR/AND）
+  statusConditionJoinType: "OR" | "AND"; // ステータス条件の結合タイプ（OR/AND）
   minBid: number | null;
   maxBid: number | null;
   minRemainingTime: number | null;
@@ -176,8 +176,8 @@ export type AuctionFiltersProps = {
  */
 export type BidFormData = {
   amount: number;
-  isAutoBid?: boolean;
-  auctionId?: string;
+  isAutoBid: boolean;
+  auctionId: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

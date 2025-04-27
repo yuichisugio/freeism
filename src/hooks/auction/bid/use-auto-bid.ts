@@ -12,7 +12,7 @@ import { toast } from "sonner";
  * 自動入札設定の型
  */
 type AutoBidSettings = {
-  id?: string;
+  id: string;
   maxBidAmount: number;
   bidIncrement: number;
   isActive: boolean;
@@ -44,12 +44,23 @@ type UseAutoBidResult = {
 export function useAutoBid(auctionId: string, currentHighestBid: number, currentHighestBidderId: string | null): UseAutoBidResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // セッション情報を取得
+  /**
+   * セッション情報
+   */
   const { data: session } = useSession();
-  const userId = useMemo(() => session?.user?.id, [session]);
+  const userId = useMemo(() => {
+    if (!session?.user?.id) {
+      console.log("useAutoBid: ユーザーIDがありません", { session });
+      return null;
+    }
+    return session.user.id;
+  }, [session]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * state
+   */
   // 自動入札の設定情報
   const [autoBidSettings, setAutoBidSettings] = useState<AutoBidSettings | null>(null);
 
@@ -159,6 +170,8 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
               auctionId,
               currentHighestBid,
               currentHighestBidderId,
+              validationDone: false,
+              paramsValidationResult: null,
             };
             const autoResult = await processAutoBid(params);
             if (autoResult) {

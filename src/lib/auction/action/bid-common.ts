@@ -26,7 +26,7 @@ export type ExecuteBidReturn = {
 /**
  * オークション検証結果の型
  */
-type ValidateAuctionResult = {
+export type ValidateAuctionResult = {
   success: boolean;
   message: string;
   userId?: string;
@@ -39,7 +39,7 @@ type ValidateAuctionResult = {
 /**
  * バリデーション用のオークションデータ型
  */
-type AuctionValidationData = {
+export type AuctionValidationData = {
   status: string;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
@@ -398,6 +398,8 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           auctionId,
           currentHighestBid: amount,
           currentHighestBidderId: userId,
+          validationDone: true,
+          paramsValidationResult: validation,
         };
         const autoBidResult = await processAutoBid(params);
         if (autoBidResult) {

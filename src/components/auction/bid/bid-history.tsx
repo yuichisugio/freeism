@@ -8,7 +8,7 @@ import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, HandCoins } from "lucide-react";
 
-// --------------------------------------------------
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 入札履歴

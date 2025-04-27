@@ -494,6 +494,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       searchQuery: null,
       sort: null,
       page: 1,
+      statusConditionJoinType: "OR",
     };
 
     setDraftConditions(initialConditions);
