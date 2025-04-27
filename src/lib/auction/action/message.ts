@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -111,9 +110,6 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
         expiresAt: null,
       });
     }
-
-    // パスを再検証
-    revalidatePath(`/auction/${auctionId}`);
 
     return { success: true, message: newMessage };
   } catch (error) {
