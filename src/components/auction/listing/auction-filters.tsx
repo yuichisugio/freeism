@@ -271,11 +271,7 @@ function RangeInputFields({
  * @param listingsConditions フィルター
  * @param setListingsConditions フィルター変更アクション
  */
-export const AuctionFilters = memo(function AuctionFilters({
-  listingsConditions,
-  setListingsConditionsAction,
-  auctions,
-}: AuctionFiltersProps): JSX.Element {
+export const AuctionFilters = memo(function AuctionFilters({ listingsConditions, setListingsConditionsAction }: AuctionFiltersProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックからロジックを取得
@@ -320,7 +316,6 @@ export const AuctionFilters = memo(function AuctionFilters({
   } = useAuctionFilters({
     listingsConditions,
     setListingsConditionsAction,
-    auctions,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -581,7 +576,7 @@ export const AuctionFilters = memo(function AuctionFilters({
                       >
                         {areAllGroupsSelected
                           ? "すべてのグループ"
-                          : (auctions.find((auction) => auction.group?.id && draftConditions.groupIds?.includes(auction.group.id))?.group?.name ??
+                          : (joinTypeinedGroupList.find((group) => group.id && draftConditions.groupIds?.includes(group.id))?.name ??
                             "グループを選択")}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>

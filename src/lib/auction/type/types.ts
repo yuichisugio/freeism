@@ -115,7 +115,6 @@ export type SellerRating = {
 export type UseAuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
-  auctions: AuctionListingResult;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -166,7 +165,49 @@ export type SortDirection = "asc" | "desc";
 export type AuctionFiltersProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
-  auctions: AuctionListingResult;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションのカードの型
+ */
+export type AuctionCard = {
+  id: string; // オークションのID
+  title: string; // title
+  imageUrl: string | null; // 画像
+  currentBid: number; //最高額
+  endTime: Date; // オークションの終了時刻
+  startTime: Date; // オークションの開始時刻
+  status: AuctionStatus; // オークションのステータス
+  isWatched: boolean; // オークションがウォッチリストに登録されているかどうか
+  bidsCount: number; //入札数
+  category: string | null; // カテゴリ
+  seller: {
+    rating: number | null; // 出品者の評価
+    name: string | null; // 出品者の名前
+    image: string | null; // 出品者の画像
+  };
+  group: {
+    id: string; // グループのID
+    name: string; // グループの名前
+  };
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+/**
+ * オークション出品リストの型
+ */
+export type AuctionListingResult = Array<AuctionCard>;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションの出品リストのカードのprops
+ */
+export type AuctionCardProps = {
+  auction: AuctionCard;
+  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -233,53 +274,6 @@ export type AuctionWithDetails = UpdateAuctionWithDetails & {
   watchlists: {
     id: string;
   }[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションのカードの型
- */
-export type AuctionCard = {
-  id: string;
-  taskId: string;
-  title: string;
-  description: string | null;
-  imageUrl: string | null;
-  currentBid: number;
-  bidToBeatAmount: number;
-  endTime: Date;
-  startTime: Date;
-  status: AuctionStatus;
-  isWatched: boolean;
-  bidsCount: number;
-  category: string | null;
-  seller: {
-    id: string;
-    name: string | null;
-    image: string | null;
-    rating: number | null;
-  };
-  group: {
-    id: string;
-    name: string;
-  };
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-/**
- * オークション出品リストの型
- */
-export type AuctionListingResult = Array<AuctionCard>;
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションの出品リストのカードのprops
- */
-export type AuctionCardProps = {
-  auction: AuctionCard;
-  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -25,7 +25,7 @@ type AuctionPaginationProps = {
   listingsConditions: AuctionListingsConditions;
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
   totalAuctionsCount: number;
-  auctionsLength: number;
+  auctionsCountPerPage: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -40,7 +40,7 @@ export const AuctionPagination = memo(function AuctionPagination({
   listingsConditions,
   setListingsConditionsAction,
   totalAuctionsCount,
-  auctionsLength,
+  auctionsCountPerPage,
 }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -183,7 +183,7 @@ export const AuctionPagination = memo(function AuctionPagination({
       {/* 商品数と合計ページ数の表示 (totalAuctionsCount を使用) */}
       <div className="mt-2 text-center text-sm text-gray-500">
         全{totalAuctionsCount}件中
-        {Math.min(AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, totalAuctionsCount, auctionsLength)}件を表示
+        {Math.min(AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE, totalAuctionsCount, auctionsCountPerPage)}件を表示
       </div>
     </>
   );

@@ -7,7 +7,7 @@ import { AuctionPagination } from "@/components/auction/listing/auction-paginati
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings";
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション商品一覧コンポーネント
@@ -89,7 +89,7 @@ export const AuctionListings = memo(function AuctionListings() {
   return (
     <div className="space-y-6">
       {/* フィルターコンポーネント */}
-      <AuctionFilters listingsConditions={listingsConditions} setListingsConditionsAction={setListingsConditions} auctions={auctions} />
+      <AuctionFilters listingsConditions={listingsConditions} setListingsConditionsAction={setListingsConditions} />
 
       {/* 結果表示 */}
       {auctions.length > 0 ? (
@@ -97,13 +97,7 @@ export const AuctionListings = memo(function AuctionListings() {
           {/* 商品一覧 */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {auctions.map((auction) => {
-              // AuctionCardPropsの型定義に合わせて変換
-              const auctionForCard = {
-                ...auction,
-                description: auction.description ?? "未設定",
-                imageUrl: auction.imageUrl ?? null,
-              };
-              return <AuctionCard key={auction.id} auction={auctionForCard} onToggleWatchlistAction={handleToggleWatchlist} />;
+              return <AuctionCard key={auction.id} auction={auction} onToggleWatchlistAction={handleToggleWatchlist} />;
             })}
           </div>
 
@@ -112,7 +106,7 @@ export const AuctionListings = memo(function AuctionListings() {
             listingsConditions={listingsConditions}
             setListingsConditionsAction={setListingsConditions}
             totalAuctionsCount={totalAuctionsCount}
-            auctionsLength={auctions.length}
+            auctionsCountPerPage={auctions.length}
           />
         </>
       ) : (

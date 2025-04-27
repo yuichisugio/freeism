@@ -8,6 +8,9 @@ import { toggleWatchlist } from "@/lib/auction/action/watchlist";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * オークション一覧画面のロジックを管理するカスタムフックの戻り値の型
+ */
 type UseAuctionListingsReturn = {
   // state
   auctions: AuctionListingResult;

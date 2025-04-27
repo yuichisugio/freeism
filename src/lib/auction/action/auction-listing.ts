@@ -8,7 +8,11 @@ import { AuctionStatus } from "@prisma/client";
 import { AUCTION_CONSTANTS } from "../constants";
 import { type AuctionListingResult, type AuctionListingsConditions } from "../type/types";
 
-// findMany の include オプションに対応する型を定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * findMany の include オプションに対応する型を定義
+ */
 type AuctionWithDetails = Prisma.AuctionGetPayload<{
   include: {
     task: {
@@ -27,8 +31,8 @@ type AuctionWithDetails = Prisma.AuctionGetPayload<{
 
 /**
  * AuctionOrderByInput型の定義
+ * Prisma.AuctionOrderByWithRelationInput を使用する方が堅牢
  */
-// Prisma.AuctionOrderByWithRelationInput を使用する方が堅牢
 type AuctionOrderByInput = Prisma.AuctionOrderByWithRelationInput;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -331,7 +335,6 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
       description: auction.task.detail,
       imageUrl: auction.task.imageUrl,
       currentBid: auction.currentHighestBid,
-      bidToBeatAmount: auction.currentHighestBid + 1,
       endTime: auction.endTime,
       startTime: auction.startTime,
       category: auction.task.category,

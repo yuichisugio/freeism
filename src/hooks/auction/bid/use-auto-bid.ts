@@ -138,7 +138,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     } finally {
       setLoading(false);
     }
-  }, [auctionId, userId, updateSettingsFromResponse]);
+  }, [auctionId, userId, updateSettingsFromResponse, currentHighestBid]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

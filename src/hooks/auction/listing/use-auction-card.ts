@@ -23,6 +23,8 @@ type UseAuctionCardReturn = {
   sellerRating: SellerRating;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションカード用フック
  * @param {AuctionCardHookProps} props オークションカード用フックのプロップ
@@ -31,19 +33,26 @@ type UseAuctionCardReturn = {
 export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps): UseAuctionCardReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ウォッチリスト更新中の状態
+  /**
+   * ウォッチリスト更新中の状態
+   */
   const [isUpdating, setIsUpdating] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 現在時刻とオークションの開始・終了時刻を比較
+  /**
+   * 現在時刻とオークションの開始・終了時刻を比較
+   */
   const now = useMemo(() => new Date(), []);
   const [isStarted] = useState(new Date(auction.startTime) <= now);
   const [isEnded, setIsEnded] = useState(new Date(auction.endTime) <= now || auction.status === AuctionStatus.ENDED);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 新着判定（過去3日以内の出品）
+  /**
+   * 新着判定（過去3日以内の出品）
+   * @returns {boolean} 新着判定
+   */
   const isNew = useMemo(
     () =>
       isWithinInterval(new Date(auction.startTime), {
@@ -55,7 +64,10 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // まもなく終了判定（24時間以内）
+  /**
+   * まもなく終了判定（24時間以内）
+   * @returns {boolean} まもなく終了判定
+   */
   const isEndingSoon = useMemo(
     () => isStarted && !isEnded && new Date(auction.endTime).getTime() - now.getTime() < 24 * 60 * 60 * 1000,
     [auction.endTime, isStarted, isEnded, now],
@@ -120,14 +132,17 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
     isUpdating,
     isStarted,
     isEnded,
     isNew,
     isEndingSoon,
+    sellerRating: getSellerRating(),
+
+    // action
     setIsEnded,
     handleToggleWatchlist,
     getStartMessage,
-    sellerRating: getSellerRating(),
   };
 }
