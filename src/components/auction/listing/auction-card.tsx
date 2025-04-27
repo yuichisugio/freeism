@@ -171,7 +171,7 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
         {/* 出品者情報とグループを縦に並べる */}
         <div className="flex flex-col space-y-2">
           {/* 出品者情報 */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-start gap-2">
             {auction.task.executors.map((executor) => (
               <div key={executor.id} className="flex items-center gap-2">
                 <Avatar className="h-5 w-5">
