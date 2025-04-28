@@ -26,18 +26,24 @@ type AuctionOrderByInput = Prisma.AuctionOrderByWithRelationInput;
 async function buildAuctionWhereClause(listingsConditions: AuctionListingsConditions): Promise<{ where: Prisma.AuctionWhereInput; userId: string }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 引数を分解
+  /**
+   * 引数を分解
+   */
   const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, searchQuery, statusConditionJoinType } =
     listingsConditions;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーIDを取得。必ず返ってくる。返ってこない場合は↓内でログイン画面にリダイレクトされる
+  /**
+   * ユーザーIDを取得。必ず返ってくる。返ってこない場合は↓内でログイン画面にリダイレクトされる
+   */
   const userId = await getAuthenticatedSessionUserId();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーが参加しているグループIDを取得
+  /**
+   * ユーザーが参加しているグループIDを取得
+   */
   let userGroupIds = await prisma.groupMembership.findMany({
     where: { userId },
     select: { groupId: true },
@@ -51,7 +57,9 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 基本的なフィルター条件
+  /**
+   * 基本的なフィルター条件
+   */
   const where: Prisma.AuctionWhereInput = {
     task: {
       groupId: { in: userGroupIds.map((group) => group.groupId) },
@@ -60,12 +68,16 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // AND 条件を格納する配列
+  /**
+   * AND 条件を格納する配列
+   */
   const filterConditions: Prisma.AuctionWhereInput[] = [];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カテゴリのフィルタリング (Taskのcategoryフィールドを想定)
+  /**
+   * カテゴリのフィルタリング (Taskのcategoryフィールドを想定)
+   */
   if (categories && categories.length > 0 && !categories.includes("すべて")) {
     const validCategories = categories.filter((c): c is string => c !== null && c !== "すべて");
     if (validCategories.length > 0) {
@@ -82,7 +94,9 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ステータスのフィルタリング
+  /**
+   * ステータスのフィルタリング
+   */
   if (status && status.length > 0) {
     // statusに関するwhere条件を一時的に保持
     const statusWhereClauses: Prisma.AuctionWhereInput[] = [];
@@ -140,7 +154,9 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札額のフィルタリング
+  /**
+   * 入札額のフィルタリング
+   */
   const bidFilters: Prisma.IntFilter = {};
   if (minBid !== null && minBid !== undefined) {
     bidFilters.gte = minBid;
@@ -154,7 +170,9 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 残り時間のフィルタリング
+  /**
+   * 残り時間のフィルタリング
+   */
   const timeFilters: Prisma.DateTimeFilter = {};
   const now = new Date();
   if (minRemainingTime !== null && minRemainingTime !== undefined) {
@@ -169,25 +187,25 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループIDのフィルタリング (基本条件で既に設定されているため、必要に応じて上書きまたは絞り込み)
+  /**
+   * グループIDのフィルタリング (基本条件で既に設定されているため、必要に応じて上書きまたは絞り込み)
+   */
   if (groupIds && groupIds.length > 0) {
     // ユーザーが所属するグループと指定されたグループの両方に合致するもののみを対象とする
     const allowedGroupIds = userGroupIds.map((ug) => ug.groupId).filter((id) => groupIds.includes(id));
     // where.task.groupId.in を上書きする
-    if (where.task) {
-      if (typeof where.task === "object") {
-        if (where.task.groupId && typeof where.task.groupId === "object" && "in" in where.task.groupId) {
-          // 型安全に更新するために型アサーションを使用
-          const groupIdFilter = where.task.groupId as Prisma.StringFilter;
-          groupIdFilter.in = allowedGroupIds;
-        } else {
-          // 型安全に新しいtaskオブジェクトを作成
-          const taskFilter: Prisma.TaskWhereInput = {
-            ...(where.task as Prisma.TaskWhereInput),
-            groupId: { in: allowedGroupIds },
-          };
-          where.task = taskFilter;
-        }
+    if (where.task && typeof where.task === "object") {
+      if (where.task.groupId && typeof where.task.groupId === "object" && "in" in where.task.groupId) {
+        // 型安全に更新するために型アサーションを使用
+        const groupIdFilter = where.task.groupId as Prisma.StringFilter;
+        groupIdFilter.in = allowedGroupIds;
+      } else {
+        // 型安全に新しいtaskオブジェクトを作成
+        const taskFilter: Prisma.TaskWhereInput = {
+          ...(where.task as Prisma.TaskWhereInput),
+          groupId: { in: allowedGroupIds },
+        };
+        where.task = taskFilter;
       }
     } else {
       // task自体がない場合は新規作成
@@ -197,7 +215,9 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 検索クエリのフィルタリング (Taskのtaskまたはdetailフィールド)
+  /**
+   * 検索クエリのフィルタリング (Taskのtaskまたはdetailフィールド)
+   */
   if (searchQuery) {
     filterConditions.push({
       OR: [{ task: { task: { contains: searchQuery, mode: "insensitive" } } }, { task: { detail: { contains: searchQuery, mode: "insensitive" } } }],
@@ -206,7 +226,9 @@ async function buildAuctionWhereClause(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 組み立てたフィルター条件を AND で結合
+  /**
+   * 組み立てたフィルター条件を AND で結合
+   */
   if (filterConditions.length > 0) {
     if (where.AND) {
       // 既にAND条件がある場合は配列に追加
@@ -242,22 +264,30 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 開始ログ
+    /**
+     * 開始ログ
+     */
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_start", { ...listingsConditions });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ソート条件とページネーション条件を取得
+    /**
+     * ソート条件とページネーション条件を取得
+     */
     const { sort, page } = listingsConditions;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // where句とuserIdを構築
+    /**
+     * where句とuserIdを構築
+     */
     const { where, userId } = await buildAuctionWhereClause(listingsConditions);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ユーザーが参加しているグループがない場合、空の結果を返す
+    /**
+     * ユーザーが参加しているグループがない場合、空の結果を返す
+     */
     if (
       where.task?.groupId &&
       typeof where.task.groupId === "object" &&
@@ -271,7 +301,9 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ソート条件の設定
+    /**
+     * ソート条件の設定
+     */
     let orderBy: AuctionOrderByInput = { createdAt: "desc" }; // デフォルトは新着順
     if (sort && sort.length > 0) {
       const primarySort = sort[0];
@@ -297,20 +329,26 @@ export async function getAuctionListings({ listingsConditions }: { listingsCondi
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ページネーション
+    /**
+     * ページネーション
+     */
     const pageNumber = page ?? 1;
     const skip = (pageNumber - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
     const take = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // where句をログに出力
+    /**
+     * where句をログに出力
+     */
     console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_prismaParams", { where, orderBy, skip, take });
     console.dir(where, { depth: null });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // オークションデータを取得
+    /**
+     * オークションデータを取得
+     */
     const auctions = await prisma.auction.findMany({
       where,
       orderBy,
