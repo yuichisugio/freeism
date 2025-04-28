@@ -42,7 +42,6 @@ model User {
   watchLists         TaskWatchList[]
   settings           UserSettings?
 
-  @@index([id])
   @@index([image])
   @@index([isAppOwner])
 }
@@ -103,9 +102,6 @@ model UserSettings {
 
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
-
-  @@index([id])
-  @@index([userId])
 }
 
 model Group {
@@ -127,7 +123,6 @@ model Group {
   notifications    Notification[]
   tasks            Task[]
 
-  @@index([id])
   @@index([createdBy])
 }
 
@@ -143,15 +138,16 @@ model GroupMembership {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
-  @@index([userId])
-  @@index([groupId])
+  @@index([userId]) // ユーザーID単体での検索（参加グループ一覧など）を考慮
+  @@index([groupId]) // グループID単体での検索（グループメンバー一覧など）を考慮
+  @@index([isGroupOwner]) // グループオーナーでのフィルタリングを考慮
 }
 
 model Task {
   id                     String           @id @default(cuid())
   task                   String
   reference              String?
-  groupId                String
+  groupId                String           @map("group_id")
   status                 TaskStatus       @default(PENDING)
   info                   String?
   detail                 String?
@@ -176,12 +172,13 @@ model Task {
   executors              TaskExecutor[]
   reporters              TaskReporter[]
 
-  @@index([id])
   @@index([contributionType])
   @@index([category])
   @@index([creatorId])
   @@index([groupId])
   @@index([userFixedSubmitterId])
+  @@index([status])
+  @@index([id, creatorId])
   @@index([groupId, status, createdAt(sort: Desc)], map: "idx_task_groupId_status_createdAt_desc")
   @@index([groupId, contributionType, category], map: "idx_task_groupId_contributionType_category")
 }
@@ -199,10 +196,11 @@ model Analytics {
   group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  @@index([id])
   @@index([taskId])
   @@index([groupId])
   @@index([evaluator])
+  @@index([groupId, taskId]) // グループ内の特定のタスク分析検索
+  @@index([groupId, evaluator])
 }
 
 model Notification {
@@ -229,60 +227,66 @@ model Notification {
   senderUser        User?                    @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   task              Task?                    @relation(fields: [taskId], references: [id])
 
-  @@index([id])
   @@index([auctionEventType])
   @@index([senderUserId])
   @@index([groupId])
   @@index([taskId])
   @@index([auctionId])
-  @@index([senderUserId, isRead], map: "idx_notification_sender_isread")
   @@index([sendScheduledDate(sort: Asc)], map: "idx_notification_scheduled")
   @@index([targetType, auctionEventType], map: "idx_notification_target_event")
   @@index([isRead], type: Gin, map: "idx_notification_isread_gin")
+  @@index([sendTimingType, sentAt])
 }
 
 model TaskReporter {
   id        String   @id @default(cuid())
   name      String?
+
   createdAt DateTime @default(now()) @map("created_at")
-  taskId    String   @map("task_id")
   updatedAt DateTime @updatedAt @map("updated_at")
-  userId    String?  @map("user_id")
+
+  taskId    String   @map("task_id")
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId    String?  @map("user_id")
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([id])
   @@index([userId])
-  @@index([taskId])
+  @@index([taskId, userId])
 }
 
 model TaskExecutor {
   id        String   @id @default(cuid())
   name      String?
+
   createdAt DateTime @default(now()) @map("created_at")
-  taskId    String   @map("task_id")
   updatedAt DateTime @updatedAt @map("updated_at")
-  userId    String?  @map("user_id")
+
+  taskId    String   @map("task_id")
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId    String?  @map("user_id")
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([id])
   @@index([userId])
-  @@index([taskId])
+  @@index([taskId, userId])
 }
 
 model TaskWatchList {
   id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  auctionId String   @map("auction_id")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  auctionId String   @map("auction_id")
   auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
-  @@index([userId])
-  @@index([auctionId])
+  @@index([userId]) // ユーザーID単体での検索（ウォッチリスト一覧など）を考慮
+  @@index([auctionId]) // オークションID単体での検索（オークションのウォッチャー一覧など）を考慮
 }
 
 model GroupPoint {
@@ -297,8 +301,6 @@ model GroupPoint {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
-  @@index([userId])
-  @@index([groupId])
 }
 
 model Auction {
@@ -335,8 +337,6 @@ model Auction {
   notifications          Notification[]
   watchlists             TaskWatchList[]
 
-  @@index([id])
-  @@index([taskId])
   @@index([currentHighestBidderId])
   @@index([winnerId])
   @@index([groupId])
@@ -347,6 +347,10 @@ model Auction {
   @@index([groupId, status, endTime(sort: Asc)],  map: "idx_auction_group_status_end")
   @@index([groupId, status, startTime(sort: Desc)], map: "idx_auction_group_status_start_desc")
   @@index([groupId, currentHighestBid(sort: Desc)], map: "idx_auction_group_highestBid_desc")
+  @@index([id, version])
+  @@index([winnerId, status, endTime(sort: Desc)])
+  @@index([taskId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 model BidHistory {
@@ -366,7 +370,6 @@ model BidHistory {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  @@index([id])
   @@index([auctionId])
   @@index([userId])
   @@index([status])
@@ -389,8 +392,6 @@ model AutoBid {
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
-  @@index([userId])
-  @@index([auctionId])
   @@index([maxBidAmount])
   @@index([auctionId, isActive, maxBidAmount(sort: Desc), createdAt(sort: Asc)], map: "idx_autoBid_auction_active_maxbid_createdat")
   @@index([auctionId, userId, isActive, maxBidAmount], map: "idx_autoBid_auction_user_active_maxbid")
@@ -412,9 +413,9 @@ model AuctionReview {
   reviewer           User     @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, reviewerId, revieweeId])
-  @@index([auctionId])
-  @@index([reviewerId])
-  @@index([revieweeId])
+  @@index([auctionId, reviewerId]) // 特定オークションに対する特定のレビュアーのレビュー検索
+  @@index([revieweeId]) // 特定ユーザーが受け取ったレビュー一覧
+  @@index([reviewerId]) // 特定ユーザーが行ったレビュー一覧
 }
 
 model AuctionMessage {
@@ -432,6 +433,9 @@ model AuctionMessage {
   @@index([auctionId])
   @@index([senderId])
   @@index([recipientId])
+  @@index([auctionId, createdAt])
+  @@index([auctionId, senderId, createdAt(sort: Asc)])
+  @@index([auctionId, recipientId, createdAt(sort: Asc)])
 }
 
 model PushSubscription {
@@ -447,7 +451,6 @@ model PushSubscription {
   user           User?     @relation(fields: [userId], references: [id])
 
   @@index([userId])
-  @@index([endpoint])
 }
 
 enum contributionType {
