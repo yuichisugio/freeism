@@ -12,7 +12,7 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 /**
  * PrismaClientのインスタンス
  */
-const prisma = globalForPrisma.prisma ?? new PrismaClient();
+const prisma = globalForPrisma.prisma ?? new PrismaClient({ log: ["query", "info", "warn", "error"] });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
