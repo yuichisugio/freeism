@@ -44,6 +44,7 @@ model User {
 
   @@index([image])
   @@index([isAppOwner])
+  @@index([createdAt])
 }
 
 model Account {
@@ -77,6 +78,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expires])
 }
 
 model VerificationToken {
@@ -102,6 +104,10 @@ model UserSettings {
 
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
+
+  @@index([username])
+  @@index([isEmailEnabled])
+  @@index([isPushEnabled])
 }
 
 model Group {
@@ -124,6 +130,7 @@ model Group {
   tasks            Task[]
 
   @@index([createdBy])
+  @@index([createdAt])
 }
 
 model GroupMembership {
@@ -178,6 +185,7 @@ model Task {
   @@index([groupId])
   @@index([userFixedSubmitterId])
   @@index([status])
+  @@index([createdAt])
   @@index([id, creatorId])
   @@index([groupId, status, createdAt(sort: Desc)], map: "idx_task_groupId_status_createdAt_desc")
   @@index([groupId, contributionType, category], map: "idx_task_groupId_contributionType_category")
@@ -201,6 +209,7 @@ model Analytics {
   @@index([evaluator])
   @@index([groupId, taskId]) // グループ内の特定のタスク分析検索
   @@index([groupId, evaluator])
+  @@index([createdAt])
 }
 
 model Notification {
@@ -236,6 +245,8 @@ model Notification {
   @@index([targetType, auctionEventType], map: "idx_notification_target_event")
   @@index([isRead], type: Gin, map: "idx_notification_isread_gin")
   @@index([sendTimingType, sentAt])
+  @@index([createdAt]) // 追加: 通知リストを生成日時のみでソートする場合
+  @@index([expiresAt]) // 追加: 期限切れ通知のクリーンアップ用
 }
 
 model TaskReporter {
@@ -301,6 +312,7 @@ model GroupPoint {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
+  @@index([balance])
 }
 
 model Auction {
@@ -416,6 +428,8 @@ model AuctionReview {
   @@index([auctionId, reviewerId]) // 特定オークションに対する特定のレビュアーのレビュー検索
   @@index([revieweeId]) // 特定ユーザーが受け取ったレビュー一覧
   @@index([reviewerId]) // 特定ユーザーが行ったレビュー一覧
+  @@index([rating])
+  @@index([isSellerReview])
 }
 
 model AuctionMessage {
