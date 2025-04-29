@@ -25,6 +25,43 @@ import { CountdownDisplay } from "./countdown-display";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * ローディングインジケーター
+ */
+export const LoadingIndicator = memo(function LoadingIndicator() {
+  console.log("src/components/auction/bid/auction-detail.tsx_LoadingIndicator_render");
+
+  return (
+    <div className="flex items-center justify-center p-12">
+      {/* 中央揃えのためのコンテナ */}
+      <div className="text-center">
+        {/* スピナーアイコン (Tailwind CSS アニメーション) */}
+        <div className="border-primary inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-r-transparent align-[-0.125em]"></div>
+        {/* ローディングメッセージ */}
+        <p className="text-muted-foreground mt-4">オークション情報を読み込み中...</p>
+      </div>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * エラーインジケーター
+ */
+export const ErrorIndicator = memo(function ErrorIndicator({ error }: { error: string }) {
+  console.log("src/components/auction/bid/auction-detail.tsx_ErrorIndicator_render");
+
+  return (
+    <div className="border-destructive rounded-lg border p-6 text-center">
+      <AlertTriangle className="text-destructive mx-auto mb-3 h-8 w-8" />
+      <p className="text-destructive">{error}</p>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * オークション詳細ページ
  * @param initialAuction オークション情報
  * @returns オークション詳細ページ
@@ -218,14 +255,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * ローディング状態の表示
    */
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <div className="border-primary inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-r-transparent align-[-0.125em]"></div>
-          <p className="text-muted-foreground mt-4">オークション情報を読み込み中...</p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator />;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -234,12 +264,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
    * エラー状態の表示
    */
   if (error) {
-    return (
-      <div className="border-destructive rounded-lg border p-6 text-center">
-        <AlertTriangle className="text-destructive mx-auto mb-3 h-8 w-8" />
-        <p className="text-destructive">{error}</p>
-      </div>
-    );
+    return <ErrorIndicator error={error} />;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
