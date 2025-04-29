@@ -360,7 +360,7 @@ export const getAuctionListings = cache(async ({ listingsConditions }: GetAuctio
       const highlightParams = keywords.map((_, i) => `$${normalizedQueryParamIndex + 1 + i}`).join(", ");
       // SELECT句にスコアとハイライトを追加
       selectAdditions = `
-            , pgroonga_score(t.tableoid, t.ctid) as score -- Score based on Task table relevance
+            , pgroonga_score(t.tableoid, t.ctid) as score
             , pgroonga_highlight_html(t.task, ${highlightParams}) as task_highlighted
             , pgroonga_highlight_html(t.detail, ${highlightParams}) as detail_highlighted
         `;
@@ -434,24 +434,42 @@ export const getAuctionListings = cache(async ({ listingsConditions }: GetAuctio
      */
     const sql = Prisma.sql`
         SELECT
-            a.id, a."current_highest_bid", a."end_time", a."start_time", a.status, a."created_at",
-            t.task, t.detail, t."image_url", t.category,
-            g.id as "group_id", g.name as "group_name",
-            (SELECT COUNT(*) FROM "BidHistory" bh WHERE bh."auction_id" = a.id)::bigint as "bids_count",
-            (SELECT COUNT(*) FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = $${userIdParamIndex}) > 0 as "is_watched",
+            a.id as "id",
+            a."current_highest_bid" as "current_highest_bid",
+            a."end_time" as "end_time",
+            a."start_time" as "start_time",
+            a.status as "status",
+            a."created_at" as "created_at",
+            t.task as "task",
+            t.detail as "detail",
+            t."image_url" as "image_url",
+            t.category as "category",
+            g.id as "group_id",
+            g.name as "group_name",
             (
-                SELECT json_agg(json_build_object(
-                    'id', te.id,
-                    'user_id', u.id,
-                    'user_image', u.image,
-                    'username', us.username,
-                    'rating', COALESCE((SELECT AVG(r.rating) FROM "AuctionReview" r WHERE r."reviewee_id" = u.id), 0)
-                ))
-                FROM "TaskExecutor" te
-                JOIN "User" u ON te."user_id" = u.id
-                LEFT JOIN "UserSettings" us ON u.id = us."user_id"
-                WHERE te."task_id" = a."task_id"
-            )::text as taskExecutors_json
+              SELECT COUNT(*)
+              FROM "BidHistory" bh
+              WHERE bh."auction_id" = a.id
+            )::bigint as "bids_count",
+            (
+              SELECT COUNT(*)
+              FROM "TaskWatchList" twl
+              WHERE twl."auction_id" = a.id
+              AND twl."user_id" = $${userIdParamIndex}
+            ) > 0 as "is_watched",
+            (
+              SELECT json_agg(json_build_object(
+                'id', te.id,
+                'user_id', u.id,
+                'user_image', u.image,
+                'username', us.username,
+                'rating', COALESCE((SELECT AVG(r.rating) FROM "AuctionReview" r WHERE r."reviewee_id" = u.id), 0)
+              ))
+              FROM "TaskExecutor" te
+              JOIN "User" u ON te."user_id" = u.id
+              LEFT JOIN "UserSettings" us ON u.id = us."user_id"
+              WHERE te."task_id" = a."task_id"
+            )::text as "executors_json",
             ${Prisma.raw(selectAdditions)}
         FROM
             "Auction" a

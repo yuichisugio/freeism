@@ -337,7 +337,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
         >
           <input
             type="search"
-            placeholder="商品名や説明文で検索..."
+            placeholder="⌘+Enterで検索：商品名や説明文で検索..."
             value={changingSearchQuery ?? ""}
             onChange={(e) => setChangingSearchQuery(e.target.value)}
             onKeyDown={(e) => {
