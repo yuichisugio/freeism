@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CardCountdown } from "@/components/auction/listing/auction-countdown";
@@ -33,6 +33,13 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
     auction,
     onToggleWatchlistAction,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスクのタイトルにハイライトがあるかどうかを返す
+   */
+  const hasHighlight = useMemo(() => auction.task_highlighted ?? auction.detail_highlighted, [auction.task_highlighted, auction.detail_highlighted]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -97,18 +104,18 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
           void handleToggleWatchlist();
         }}
         disabled={isUpdating}
-        aria-label={auction.isWatched ? "ウォッチリストから削除" : "ウォッチリストに追加"}
+        aria-label={auction.is_watched ? "ウォッチリストから削除" : "ウォッチリストに追加"}
       >
-        <Heart className={cn("h-4 w-4 transition-colors", auction.isWatched ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300")} />
+        <Heart className={cn("h-4 w-4 transition-colors", auction.is_watched ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300")} />
       </button>
 
       {/* オークション詳細ページへのリンク */}
       <Link href={`/dashboard/auction/${auction.id}`} className="block">
         <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
-          {auction.task.imageUrl ? (
+          {auction.image_url ? (
             <Image
-              src={auction.task.imageUrl}
-              alt={auction.task.task}
+              src={auction.image_url}
+              alt={auction.task}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -120,14 +127,25 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
           )}
 
           {/* ステータスバッジとまもなく終了バッジを縦に配置 */}
-          <div className="absolute bottom-2 left-2 z-10 flex flex-col gap-2">
+          <div className="absolute bottom-2 left-2 z-10 flex flex-col items-start gap-1">
             {!isStarted ? (
-              <Badge className="bg-blue-500 text-white">{getStartMessage()}</Badge>
+              <Badge className="bg-blue-500 text-white shadow-md">{getStartMessage()}</Badge>
             ) : isEnded ? (
-              <Badge variant="destructive">終了しました</Badge>
+              <Badge variant="destructive" className="shadow-md">
+                終了しました
+              </Badge>
             ) : (
-              <Badge variant="outline" className="bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 dark:text-gray-100">
-                <CardCountdown endTime={auction.endTime} onExpire={() => setIsEnded(true)} />
+              <Badge
+                variant="outline"
+                className="border-gray-300 bg-white/80 text-gray-900 shadow-md backdrop-blur-sm dark:border-gray-600 dark:bg-gray-800/80 dark:text-gray-100"
+              >
+                <CardCountdown endTime={auction.end_time} onExpire={() => setIsEnded(true)} />
+              </Badge>
+            )}
+
+            {hasHighlight && (
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 shadow-sm">
+                検索ヒット
               </Badge>
             )}
 
@@ -146,22 +164,26 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
       <div className="p-3 sm:p-4">
         {/* オークションタイトル */}
         <Link href={`/dashboard/auction/${auction.id}`} className="block">
-          <h3 className="hover:text-primary mb-2 line-clamp-2 text-base font-semibold transition-colors sm:text-lg dark:text-gray-100">
-            {auction.task.task}
-          </h3>
+          <h3
+            className="hover:text-primary mb-2 line-clamp-2 text-base font-semibold transition-colors sm:text-lg dark:text-gray-100"
+            dangerouslySetInnerHTML={{ __html: auction.task_highlighted ?? auction.task }}
+          />
+          {auction.detail_highlighted && (
+            <p className="line-clamp-1 text-xs text-gray-500" dangerouslySetInnerHTML={{ __html: auction.detail_highlighted }} />
+          )}
         </Link>
 
         {/* 現在価格 */}
         <div>
           <div className="text-base font-bold text-blue-600 sm:text-lg dark:text-blue-400">
-            現在価格: {auction.currentHighestBid.toLocaleString()} P
+            現在価格: {auction.current_highest_bid.toLocaleString()} P
           </div>
 
           {/* 入札数を落札可能の下に移動 */}
           <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <Users className="h-3 w-3" />
             <span>入札数</span>
-            <div className="text-sm font-medium">{auction.bidsCount}件</div>
+            <div className="text-sm font-medium">{auction.bids_count}件</div>
           </div>
         </div>
 
@@ -172,18 +194,22 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
         <div className="flex flex-col space-y-2">
           {/* 出品者情報 */}
           <div className="flex flex-col items-start gap-2">
-            {auction.task.executors.map((executor) => (
-              <div key={executor.id} className="flex items-center gap-2">
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={executor.user.image ?? ""} alt={executor.user.settings.username ?? "出品者"} />
-                  <AvatarFallback>{executor.user.settings.username?.[0] ?? "U"}</AvatarFallback>
-                </Avatar>
-                <div className="text-xs">{executorRating(executor.rating)}</div>
-                <span className="max-w-[120px] truncate text-xs text-gray-600 dark:text-gray-300">
-                  {executor.user.settings.username ?? "Unknown"}
-                </span>
-              </div>
-            ))}
+            {typeof auction.executors_json === "string" ? (
+              <div className="text-xs text-gray-500 dark:text-gray-400">出品者情報がありません</div>
+            ) : (
+              auction.executors_json.map((executor) => (
+                <div key={executor.id} className="flex items-center gap-2">
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={executor.userImage ?? ""} alt={executor.userSettingsUsername ?? "出品者"} />
+                    <AvatarFallback>{executor.userSettingsUsername?.[0] ?? "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="text-xs">{executorRating(executor.rating)}</div>
+                  <span className="max-w-[120px] truncate text-xs text-gray-600 dark:text-gray-300">
+                    {executor.userSettingsUsername ?? "Unknown"}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
 
           {/* グループ名 */}
@@ -191,18 +217,18 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="text-2xs max-w-full truncate rounded bg-gray-100 px-2 py-1 text-gray-600 sm:text-xs dark:bg-gray-700 dark:text-gray-300">
-                  {auction.group.name}
+                  {auction.group_name}
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>出品グループ: {auction.group.name}</p>
+                <p>出品グループ: {auction.group_name}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
           {/* カテゴリ表示（モック） */}
           <div className="text-2xs max-w-full truncate rounded bg-gray-50 px-2 py-1 text-gray-500 sm:text-xs dark:bg-gray-700/50 dark:text-gray-400">
-            カテゴリ: {auction.task.category ?? "未設定"}
+            カテゴリ: {auction.category ?? "未設定"}
           </div>
         </div>
       </div>

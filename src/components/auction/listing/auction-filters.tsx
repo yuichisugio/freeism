@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import SearchBar from "@/components/ui/SearchBar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
@@ -38,6 +37,7 @@ import {
  * ソートオプション設定
  */
 const sortOptions = [
+  { value: "relevance", label: "関連度順", icon: <Sparkles className="h-4 w-4" /> },
   { value: "newest", label: "新着順", icon: <Sparkles className="h-4 w-4" /> },
   { value: "time_remaining", label: "終了時間順", icon: <Clock className="h-4 w-4" /> },
   { value: "price", label: "入札額", icon: <ArrowDownCircle className="h-4 w-4" /> },
@@ -136,7 +136,7 @@ type PresetButtonsProps = {
 /**
  * プリセットボタングリッドコンポーネント
  */
-function PresetButtons({ presets, onSelectPreset, cols, hoverColors }: PresetButtonsProps): JSX.Element {
+const PresetButtons = memo(function PresetButtons({ presets, onSelectPreset, cols, hoverColors }: PresetButtonsProps): JSX.Element {
   return (
     <div className={`grid grid-cols-${cols} gap-2`}>
       {presets.map((preset) => (
@@ -153,7 +153,7 @@ function PresetButtons({ presets, onSelectPreset, cols, hoverColors }: PresetBut
       ))}
     </div>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -177,7 +177,7 @@ type RangeInputFieldsProps = {
 /**
  * 数値範囲入力フィールドコンポーネント
  */
-function RangeInputFields({
+const RangeInputFields = memo(function RangeInputFields({
   minValue,
   maxValue,
   defaultMaxValue,
@@ -262,7 +262,7 @@ function RangeInputFields({
       </div>
     </div>
   );
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -306,6 +306,10 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
     handleSearchQueryEnter,
     applyAllFilters,
 
+    // サジェスト
+    suggestions,
+    selectSuggestion,
+
     // utilities
     formatTimeDisplay,
     isCategorySelected,
@@ -322,49 +326,75 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
 
   return (
     <div className="mb-4 w-full">
-      {/* 検索バー */}
-      <form
-        className="mb-4 w-full"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSearchQueryEnter(changingSearchQuery ?? "");
-        }}
-      >
-        <div className="flex w-full rounded-lg border border-gray-200 focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200">
-          <SearchBar
-            placeholder="商品名や説明文を検索..."
+      {/* 検索バーとサジェスト */}
+      <div className="relative mb-4 w-full">
+        <form
+          className="flex w-full rounded-lg border border-gray-200 bg-white focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSearchQueryEnter(changingSearchQuery ?? "");
+          }}
+        >
+          <input
+            type="search"
+            placeholder="商品名や説明文で検索..."
             value={changingSearchQuery ?? ""}
             onChange={(e) => setChangingSearchQuery(e.target.value)}
-            className="flex-1 border-0"
+            onKeyDown={(e) => {
+              // Command+Enterでフォーム送信
+              if (e.key === "Enter" && e.metaKey) {
+                e.preventDefault();
+                handleSearchQueryEnter(changingSearchQuery ?? "");
+              }
+            }}
+            className="flex-1 rounded-l-lg border-0 bg-transparent px-4 py-2 text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
           />
-          <Button type="submit" className="rounded-l-none border-0 bg-blue-500 px-6 text-white hover:bg-blue-600">
+          <Button type="submit" className="rounded-l-none rounded-r-lg border-0 bg-blue-500 px-5 text-white hover:bg-blue-600">
             検索
           </Button>
-        </div>
-      </form>
+        </form>
+        {/* サジェストリスト */}
+        {suggestions && suggestions.length > 0 && (
+          <ul className="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800">
+            {suggestions.map((suggestion) => (
+              <li key={suggestion.id}>
+                <button
+                  type="button"
+                  className="relative w-full cursor-pointer px-4 py-2 text-left text-gray-900 select-none hover:bg-blue-50 dark:text-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => selectSuggestion(suggestion.text)}
+                  dangerouslySetInnerHTML={{ __html: suggestion.highlighted }}
+                  aria-label={suggestion.text}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {/* カテゴリタブ */}
-      <div className="relative mx-2 mb-4 sm:mx-0">
-        <div className="scrollbar-hide flex overflow-x-auto pb-2 sm:pb-0">
-          <div className="flex items-center justify-start space-x-1 sm:space-x-2">
-            {categoriesList && categoriesList.length > 0 ? (
-              categoriesList.map((category: string) => (
-                <button
-                  key={category}
-                  className={`rounded-md px-3 py-1.5 text-sm whitespace-nowrap sm:px-4 sm:py-2 ${isCategorySelected(category) ? "bg-primary bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                  onClick={() => {
-                    handleCategorySelect(category);
-                  }}
-                >
-                  {category}
-                </button>
-              ))
-            ) : (
-              <div className="text-red-500">カテゴリが読み込まれていません ({categoriesList ? categoriesList.length : "undefined"})</div>
-            )}
-          </div>
+      <ScrollArea className="relative w-full pb-3 whitespace-nowrap">
+        <div className="mx-2 mb-4 flex space-x-1 sm:mx-0 sm:space-x-2">
+          {categoriesList && categoriesList.length > 0 ? (
+            categoriesList.map((category: string) => (
+              <button
+                key={category}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm transition-colors duration-150 sm:px-4 sm:py-2",
+                  isCategorySelected(category)
+                    ? "bg-blue-500 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600",
+                )}
+                onClick={() => handleCategorySelect(category)}
+              >
+                {category}
+              </button>
+            ))
+          ) : (
+            <div className="text-red-500">カテゴリが読み込まれていません</div>
+          )}
         </div>
-      </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
 
       <div className="mb-4 flex items-center justify-between gap-2">
         {/* フィルターボタン */}
@@ -455,8 +485,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                     {sortOptions.map((option) => (
                       <button
                         key={option.value}
+                        type="button"
                         className={cn(
-                          "hover:border-opacity-80 flex w-full cursor-pointer items-center rounded-md border p-3 text-left transition-all",
+                          "hover:border-opacity-80 flex w-full cursor-pointer items-center rounded-md border p-3 text-left transition-all focus:outline-none",
                           getSortField() === option.value ? "border-blue-500 bg-blue-50 shadow-sm" : "border-gray-200",
                         )}
                         onClick={() =>
@@ -465,15 +496,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                             direction: getSortDirection() ?? "asc",
                           })
                         }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleSortChange({
-                              field: option.value as AuctionSortField,
-                              direction: getSortDirection() ?? "asc",
-                            });
-                          }
-                        }}
+                        aria-pressed={getSortField() === option.value}
                       >
                         <div className="flex w-full items-center justify-between">
                           <div className="flex items-center gap-2">

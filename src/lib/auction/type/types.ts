@@ -136,7 +136,7 @@ export type AuctionFilterTypes = "all" | "watchlist" | "not_bidded" | "bidded" |
 /**
  * ソートField
  */
-export type AuctionSortField = "newest" | "time_remaining" | "bids" | "price";
+export type AuctionSortField = "relevance" | "newest" | "time_remaining" | "bids" | "price" | "score";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -158,37 +158,46 @@ export type AuctionFiltersProps = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * サジェストの型
+ */
+export type Suggestion = {
+  id: string; // Task ID or Auction ID
+  text: string; // Suggestion text (e.g., task name)
+  highlighted: string; // Highlighted text
+  score: number;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * オークションのカードの型
  */
 export type AuctionCard = {
   id: string; // オークションのID
-  currentHighestBid: number; //最高額
-  endTime: Date; // オークションの終了時刻
-  startTime: Date; // オークションの開始時刻
+  current_highest_bid: number; // 最高額
+  end_time: Date; // オークションの終了時刻
+  start_time: Date; // オークションの開始時刻
   status: AuctionStatus; // オークションのステータス
-  bidsCount: number; // 入札数
-  isWatched: boolean; // オークションがウォッチリストに登録されているかどうか
-  group: {
-    id: string; // グループのID
-    name: string; // グループの名前
-  };
-  task: {
-    task: string; // タスクのタイトル
-    detail: string | null; // タスクの詳細
-    imageUrl: string | null; // taskの画像
-    category: string | null; // カテゴリ
-    executors: {
-      id: string; // listのidとして使用
-      rating: number | null; // Executorの評価
-      user: {
+  task: string; // タスクのタイトル
+  detail: string | null; // タスクの詳細
+  image_url: string | null; // taskの画像
+  category: string | null; // カテゴリ
+  group_id: string; // グループのID
+  group_name: string; // グループの名前
+  bids_count: number; // 入札数
+  is_watched: boolean; // オークションがウォッチリストに登録されているかどうか
+  score: number | null; // pgroonga_score
+  task_highlighted: string | null; // タスクのタイトルのハイライト
+  detail_highlighted: string | null; // タスクの詳細のハイライト
+  executors_json:
+    | {
         id: string | null; // listのidとして使用
-        image: string | null; // taskExecutorのicon画像
-        settings: {
-          username: string; // app内で表示される名前
-        };
-      };
-    }[];
-  };
+        rating: number | null; // Executorの評価
+        userId: string | null; // listのidとして使用
+        userImage: string | null; // taskExecutorのicon画像
+        userSettingsUsername: string | null; // app内で表示される名前
+      }[]
+    | string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

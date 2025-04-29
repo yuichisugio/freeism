@@ -36,7 +36,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // URLからパラメータを取得
+  /**
+   * URLからパラメータを取得
+   */
   const searchParams = useSearchParams();
 
   // ページ数のURLパラメータ
@@ -75,6 +77,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * オークション一覧画面のstate
+   */
   // オークション情報
   const [auctions, setAuctions] = useState<AuctionListingResult>([]);
   // 総オークション件数
@@ -82,8 +87,10 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フィルター状態。
-  // 基本はuse-auction-filtersで使用するが、子コンポーネントに渡すために、ここで定義
+  /**
+   * フィルター状態。
+   * 基本はuse-auction-filtersで使用するが、子コンポーネントに渡すために、ここで定義
+   */
   const [listingsConditions, setListingsConditions] = useState<AuctionListingsConditions>({
     categories: currentCategories,
     status: currentStatus,
@@ -108,6 +115,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ウォッチリスト関連
+   */
   // ウォッチリストの変更を追跡
   const [watchlistChanges, setWatchlistChanges] = useState<Set<string>>(new Set());
   // ウォッチリストの変更を保存するタイムアウト
@@ -115,7 +125,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // データ読み込み中の状態
+  /**
+   * データ読み込み中の状態
+   */
   const [isLoading, setIsLoading] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -149,16 +161,11 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // カテゴリ - 複数選択可能になったため、各カテゴリを追加
-      if (newListingsConditions.categories && newListingsConditions.categories.length > 0) {
-        // "すべて"が含まれる場合は他のカテゴリを無視
-        if (newListingsConditions.categories.includes("すべて")) {
-          // すべての場合はパラメータを追加しない（デフォルト値）
-        } else {
-          // 複数カテゴリを追加
-          newListingsConditions.categories.forEach((category) => {
-            if (category) params.append("category", category);
-          });
-        }
+      if (newListingsConditions.categories && newListingsConditions.categories.length > 0 && !newListingsConditions.categories.includes("すべて")) {
+        // 複数カテゴリを追加
+        newListingsConditions.categories.forEach((category) => {
+          if (category) params.append("category", category);
+        });
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -168,11 +175,11 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         newListingsConditions.status.forEach((status) => {
           params.append("status", status);
         });
-      }
 
-      // ステータス結合タイプ
-      if (newListingsConditions.statusConditionJoinType && newListingsConditions.statusConditionJoinType === "AND") {
-        params.set("status_join_type", newListingsConditions.statusConditionJoinType);
+        // ステータス結合タイプ
+        if (newListingsConditions.statusConditionJoinType && newListingsConditions.statusConditionJoinType === "AND") {
+          params.set("status_join_type", newListingsConditions.statusConditionJoinType);
+        }
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -181,14 +188,15 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       if (newListingsConditions.sort && newListingsConditions.sort.length > 0) {
         console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_listingsConditions.sort_start");
         const firstSort = newListingsConditions.sort[0];
+        const defaultSort = newListingsConditions.searchQuery ? "relevance" : "newest";
 
-        if (firstSort.field) {
+        if (firstSort.field && firstSort.field !== defaultSort) {
           params.set("sort", firstSort.field);
           console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.field", firstSort.field);
         }
 
         // ソート方向
-        if (firstSort.direction) {
+        if (firstSort.direction && firstSort.direction !== "desc") {
           params.set("sort_direction", firstSort.direction);
           console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.direction", firstSort.direction);
         }
@@ -309,7 +317,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     async (auctionId: string) => {
       try {
         // 楽観的UI更新
-        setAuctions((prev) => prev.map((auction) => (auction.id === auctionId ? { ...auction, isWatched: !auction.isWatched } : auction)));
+        setAuctions((prev) => prev.map((auction) => (auction.id === auctionId ? { ...auction, is_watched: !auction.is_watched } : auction)));
 
         // 変更を追跡
         setWatchlistChanges((prev) => {

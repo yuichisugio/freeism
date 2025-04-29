@@ -250,50 +250,50 @@ model Notification {
 }
 
 model TaskReporter {
-  id        String   @id @default(cuid())
-  name      String?
+  id   String  @id @default(cuid())
+  name String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  taskId    String   @map("task_id")
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String @map("task_id")
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  userId    String?  @map("user_id")
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId, userId])
 }
 
 model TaskExecutor {
-  id        String   @id @default(cuid())
-  name      String?
+  id   String  @id @default(cuid())
+  name String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  taskId    String   @map("task_id")
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String @map("task_id")
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  userId    String?  @map("user_id")
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId, userId])
 }
 
 model TaskWatchList {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  auctionId String   @map("auction_id")
-  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  auctionId String  @map("auction_id")
+  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
   @@index([userId]) // ユーザーID単体での検索（ウォッチリスト一覧など）を考慮
@@ -316,38 +316,38 @@ model GroupPoint {
 }
 
 model Auction {
-  id                     String           @id @default(cuid())
-  startTime              DateTime         @map("start_time")
-  endTime                DateTime         @map("end_time")
-  currentHighestBid      Int              @default(0) @map("current_highest_bid")
-  status                 AuctionStatus    @default(PENDING)
-  version                Int              @default(1)
-  extensionTotalCount    Int              @default(0) @map("extension_total_count")
-  extensionLimitCount    Int              @default(3) @map("extension_limit_count")
-  extensionTotalTime     Int              @default(0) @map("extension_total_time")
-  extensionLimitTime     Int              @default(10) @map("extension_limit_time")
+  id                  String        @id @default(cuid())
+  startTime           DateTime      @map("start_time")
+  endTime             DateTime      @map("end_time")
+  currentHighestBid   Int           @default(0) @map("current_highest_bid")
+  status              AuctionStatus @default(PENDING)
+  version             Int           @default(1)
+  extensionTotalCount Int           @default(0) @map("extension_total_count")
+  extensionLimitCount Int           @default(3) @map("extension_limit_count")
+  extensionTotalTime  Int           @default(0) @map("extension_total_time")
+  extensionLimitTime  Int           @default(10) @map("extension_limit_time")
 
-  createdAt              DateTime         @default(now()) @map("created_at")
-  updatedAt              DateTime         @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  currentHighestBidderId String?          @map("current_highest_bidder_id")
-  currentHighestBidder   User?            @relation("HighestBidder", fields: [currentHighestBidderId], references: [id])
+  currentHighestBidderId String? @map("current_highest_bidder_id")
+  currentHighestBidder   User?   @relation("HighestBidder", fields: [currentHighestBidderId], references: [id])
 
-  groupId                String           @map("group_id")
-  group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String @map("group_id")
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-  taskId                 String           @unique @map("task_id")
-  task                   Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String @unique @map("task_id")
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  winnerId               String?          @map("winner_id")
-  winner                 User?            @relation("AuctionWinner", fields: [winnerId], references: [id])
+  winnerId String? @map("winner_id")
+  winner   User?   @relation("AuctionWinner", fields: [winnerId], references: [id])
 
-  messages               AuctionMessage[]
-  reviews                AuctionReview[]
-  autoBids               AutoBid[]
-  bidHistories           BidHistory[]
-  notifications          Notification[]
-  watchlists             TaskWatchList[]
+  messages      AuctionMessage[]
+  reviews       AuctionReview[]
+  autoBids      AutoBid[]
+  bidHistories  BidHistory[]
+  notifications Notification[]
+  watchlists    TaskWatchList[]
 
   @@index([currentHighestBidderId])
   @@index([winnerId])
@@ -356,7 +356,7 @@ model Auction {
   @@index([status])
   @@index([startTime])
   @@index([endTime])
-  @@index([groupId, status, endTime(sort: Asc)],  map: "idx_auction_group_status_end")
+  @@index([groupId, status, endTime(sort: Asc)], map: "idx_auction_group_status_end")
   @@index([groupId, status, startTime(sort: Desc)], map: "idx_auction_group_status_start_desc")
   @@index([groupId, currentHighestBid(sort: Desc)], map: "idx_auction_group_highestBid_desc")
   @@index([id, version])
@@ -366,21 +366,21 @@ model Auction {
 }
 
 model BidHistory {
-  id           String    @id @default(cuid())
+  id String @id @default(cuid())
 
   amount       Int
   isAutoBid    Boolean   @default(false) @map("is_auto_bid")
   status       BidStatus @default(BIDDING)
   depositPoint Int?      @map("deposit_point")
 
-  auctionId    String    @map("auction_id")
-  auction      Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  auctionId String  @map("auction_id")
+  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
-  userId       String    @map("user_id")
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([auctionId])
   @@index([userId])

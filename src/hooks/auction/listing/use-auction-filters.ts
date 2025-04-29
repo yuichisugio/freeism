@@ -5,9 +5,11 @@ import type {
   AuctionListingsConditions,
   AuctionSortField,
   SortDirection,
+  Suggestion,
   UseAuctionFiltersProps,
 } from "@/lib/auction/type/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
 import { getUserGroups } from "@/lib/auction/action/user";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 
@@ -52,6 +54,10 @@ type UseAuctionFiltersReturn = {
   handleResetAllFilters: () => void;
   applyAllFilters: () => void;
 
+  // サジェスト関連
+  suggestions: Suggestion[];
+  selectSuggestion: (suggestionText: string) => void;
+
   // utilities
   formatTimeDisplay: (hours: number) => string;
   isCategorySelected: (category: string) => boolean;
@@ -89,6 +95,56 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ユーザーが参加している全てのGroup
   const [joinTypeinedGroupList, setJoinTypeinedGroupList] = useState<Array<{ id: string; name: string }>>([]);
+
+  // サジェスト結果
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サジェスト関連
+   * 検索クエリの変更を監視し、サジェストを取得
+   */
+  const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    // 以前のタイムアウトがあればクリア
+    if (suggestionTimeoutRef.current) {
+      clearTimeout(suggestionTimeoutRef.current);
+    }
+
+    // 新しいタイムアウトを設定 (デバウンス)
+    suggestionTimeoutRef.current = setTimeout(() => {
+      // 検索クエリが空でない場合のみサジェストを取得
+      if (changingSearchQuery && changingSearchQuery.trim() !== "") {
+        // 非同期処理を実行する内部関数
+        const executeFetch = async () => {
+          try {
+            console.log("Fetching suggestions for:", changingSearchQuery);
+            // サーバーアクションを呼び出してサジェストを取得
+            const fetchedSuggestions = await getSearchSuggestions(changingSearchQuery);
+            // サジェスト結果をステートにセット
+            setSuggestions(fetchedSuggestions);
+          } catch (error) {
+            console.error("Failed to fetch suggestions:", error);
+            // エラー発生時はサジェストをクリア
+            setSuggestions([]);
+          }
+        };
+        // 非同期関数を実行
+        void executeFetch();
+      } else {
+        // 検索クエリが空の場合はサジェストをクリア
+        setSuggestions([]);
+      }
+    }, 500); // 500ミリ秒のデバウンス
+
+    // クリーンアップ関数: コンポーネントのアンマウント時や依存配列の変更前にタイムアウトをクリア
+    return () => {
+      if (suggestionTimeoutRef.current) {
+        clearTimeout(suggestionTimeoutRef.current);
+      }
+    };
+  }, [changingSearchQuery]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -406,12 +462,30 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    */
   const handleSearchQueryEnter = useCallback(
     (searchQuery: string) => {
+      setSuggestions([]);
       setListingsConditionsAction({
         ...listingsConditions,
         searchQuery: searchQuery,
+        page: 1,
       });
     },
     [listingsConditions, setListingsConditionsAction],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サジェスト選択ハンドラ
+   */
+  const selectSuggestion = useCallback(
+    (suggestionText: string) => {
+      console.log("Suggestion selected:", suggestionText);
+      setChangingSearchQuery(suggestionText); // 入力ボックスに反映
+      setSuggestions([]); // サジェストを閉じる
+      // listingsConditions を更新して検索を実行
+      handleSearchQueryEnter(suggestionText); // 検索時は1ページ目に戻る
+    },
+    [handleSearchQueryEnter],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -630,6 +704,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     categoriesList,
     areAllGroupsSelected,
     joinTypeinedGroupList,
+
     // action
     setListingsConditionsAction,
     handleSearchQueryEnter,
@@ -654,6 +729,10 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     handleResetAllFilters,
     applyAllFilters,
 
+    // サジェスト関連
+    suggestions,
+    selectSuggestion,
+
     // utilities
     formatTimeDisplay,
     isCategorySelected,
@@ -663,3 +742,5 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     getSortDirection,
   };
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
