@@ -1,5 +1,11 @@
-CREATE EXTENSION IF NOT EXISTS pgroonga;
+CREATE EXTENSION IF NOT EXISTS pgroonga with schema extensions;
 
-CREATE INDEX pgroonga_index_auction_listings ON auction_listings USING pgroonga (fts);
+create index if not exists pgroonga_task_text_mecab_idx
+on public."Task"
+using pgroonga ((task || ' ' || detail))
+with (tokenizer = 'TokenMecab', normalizer = 'NormalizerAuto');
 
-CREATE INDEX pgroonga_index_auction_listings_fts ON auction_listings USING pgroonga (fts);
+create index if not exists pgroonga_task_text_bigram_idx
+on public."Task"
+using pgroonga ((task || ' ' || detail))
+with (tokenizer = 'TokenBigram', normalizer = 'NormalizerAuto');

@@ -49,7 +49,7 @@ jobs:
             ${{ runner.os }}-next-main-
 
       # 4. Prisma Migrate（変更がある時のみ）
-      - name: Check pending migrations
+      - name: Check pending migrations (Prisma)
         id: mig
         run: |
           if pnpm dlx prisma migrate status --schema prisma/schema.prisma; then
@@ -60,15 +60,24 @@ jobs:
             echo "pending=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Apply pending migrations
+      - name: Apply pending migrations (Prisma)
         if: steps.mig.outputs.pending == 'true'
         run: pnpm dlx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
           DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
 
+      - name: Install Supabase CLI
+        run: pnpm add --global supabase
+
+      - name: Apply pending migrations (Supabase)
+        run: supabase db push
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+
       # 必要ならここで Prisma Client を生成
-      - name: Generate Prisma Client
+      - name: Generate Prisma Client (Prisma)
         run: pnpm dlx prisma generate
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
