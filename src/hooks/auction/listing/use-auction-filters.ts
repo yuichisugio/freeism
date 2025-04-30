@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
 import { getUserGroups } from "@/lib/auction/action/user";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -101,6 +102,14 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error("ユーザーIDが取得できませんでした");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * サジェスト関連
    * 検索クエリの変更を監視し、サジェストを取得
@@ -121,7 +130,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
           try {
             console.log("Fetching suggestions for:", changingSearchQuery);
             // サーバーアクションを呼び出してサジェストを取得
-            const fetchedSuggestions = await getSearchSuggestions(changingSearchQuery);
+            const fetchedSuggestions = await getSearchSuggestions(changingSearchQuery, userId);
             // サジェスト結果をステートにセット
             setSuggestions(fetchedSuggestions);
           } catch (error) {
@@ -144,7 +153,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
         clearTimeout(suggestionTimeoutRef.current);
       }
     };
-  }, [changingSearchQuery]);
+  }, [changingSearchQuery, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

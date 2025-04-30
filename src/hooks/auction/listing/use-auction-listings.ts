@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAuctionCount, getAuctionListings } from "@/lib/auction/action/auction-listing";
 import { toggleWatchlist } from "@/lib/auction/action/watchlist";
+import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -33,6 +34,13 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ルーター
   const router = useRouter();
+
+  // オークション一覧データと総件数を並列で取得
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error("ユーザーIDが取得できませんでした");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -267,33 +275,35 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    * オークション一覧データと総件数を取得する関数
    * @returns Promise<void>
    */
-  const getAuctionListingsData = useCallback(async (conditions: AuctionListingsConditions) => {
-    console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_start", conditions);
-    try {
-      // データ取得中の状態
-      setIsLoading(true);
+  const getAuctionListingsData = useCallback(
+    async (conditions: AuctionListingsConditions) => {
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_start", conditions);
+      try {
+        // データ取得中の状態
+        setIsLoading(true);
 
-      // オークション一覧データと総件数を並列で取得
-      const [listingsResult, countResult] = await Promise.all([
-        getAuctionListings({ listingsConditions: conditions }),
-        getAuctionCount({ listingsConditions: conditions }),
-      ]);
+        const [listingsResult, countResult] = await Promise.all([
+          getAuctionListings({ listingsConditions: conditions, userId }),
+          getAuctionCount({ listingsConditions: conditions, userId }),
+        ]);
 
-      // 結果の設定
-      setAuctions(listingsResult);
-      setTotalAuctionsCount(countResult);
+        // 結果の設定
+        setAuctions(listingsResult);
+        setTotalAuctionsCount(countResult);
 
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_success", {
-        auctionsCount: listingsResult.length,
-        totalCount: countResult,
-      });
-    } catch (error) {
-      console.error("use-auction-listings_getAuctionListingsData_error", error);
-    } finally {
-      // データ取得中の状態を解除
-      setIsLoading(false);
-    }
-  }, []); // 依存配列は空
+        console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_success", {
+          auctionsCount: listingsResult.length,
+          totalCount: countResult,
+        });
+      } catch (error) {
+        console.error("use-auction-listings_getAuctionListingsData_error", error);
+      } finally {
+        // データ取得中の状態を解除
+        setIsLoading(false);
+      }
+    },
+    [userId],
+  ); // 依存配列は空
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

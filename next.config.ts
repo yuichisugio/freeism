@@ -16,6 +16,9 @@ const withPWA = require("next-pwa")({
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
+  experimental: {
+    useCache: true,
+  },
   reactStrictMode: true,
   output: "standalone",
   images: {
