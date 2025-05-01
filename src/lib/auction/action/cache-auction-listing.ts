@@ -37,6 +37,7 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
    */
   const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, statusConditionJoinType, searchQuery } =
     listingsConditions;
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_listingsConditions", listingsConditions);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -59,6 +60,9 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
     select: { groupId: true },
   });
   const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
+
+  // コンソール
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_userGroupIds", userGroupIds);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -262,6 +266,15 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // コンソール
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_whereClauses", whereClauses);
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_ftsCondition", ftsCondition);
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_params", params);
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_paramIndex", paramIndex);
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_keywords", keywords);
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_userIdParamIndex", userIdParamIndex);
+  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_userGroupIdsParamIndex", userGroupIdsParamIndex);
+
   /**
    * 戻り値
    */
@@ -333,6 +346,7 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
      * 引数を分解
      */
     const { sort, page, searchQuery } = listingsConditions;
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings", sort, page, searchQuery);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -347,25 +361,46 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
       keywords, // FTS用キーワード
       userIdParamIndex, // userId ($1) のインデックス
     } = await buildRawQueryComponents(listingsConditions, userId);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_baseWhereClauses", baseWhereClauses);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_ftsCondition", ftsCondition);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_baseParams", baseParams);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_nextParamIndex", nextParamIndex);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_keywords", keywords);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_userIdParamIndex", userIdParamIndex);
 
     // ユーザーが参加可能なグループがない場合は即座に空配列を返す
     if (baseWhereClauses.includes("1 = 0")) {
-      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups_参加Groupがないため、オークションを表示できません");
+      console.log(
+        "src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_noUserGroups_参加Groupがないため、オークションを表示できません",
+      );
       return [];
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // パラメータリストのコピーを作成
+    /**
+     * パラメータリストのコピーを作成
+     */
     const finalParams = [...baseParams];
     let currentParamIndex = nextParamIndex; // buildRawQueryComponents が返した次のインデックスから開始
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_finalParams", finalParams);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_currentParamIndex", currentParamIndex);
 
-    // 2. 全文検索関連の準備 (スコア、ハイライト)
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 全文検索関連の準備 (スコア、ハイライト)
+     */
     let ftsSelectSQL = "";
     const ftsWhereSQL = ftsCondition ? `AND ${ftsCondition}` : ""; // ftsCondition は既にパラメータ ($3) を参照
     let ftsOrderBySQL = "";
     let highlightParamsSQL = ""; // ハイライト用パラメータ文字列
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 全文検索関連の準備 (スコア、ハイライト)
+     */
     if (searchQuery && keywords.length > 0) {
       // スコア計算 (パラメータ $3: searchQuery を参照)
       ftsSelectSQL += `, pgroonga_score(t.tableoid, t.ctid) as score`;
@@ -382,9 +417,19 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
           `;
       // FTS検索時はスコアでソートを優先する場合が多い
       ftsOrderBySQL = `score DESC`;
+
+      // コンソール
+      console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_ftsSelectSQL", ftsSelectSQL);
+      console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_ftsWhereSQL", ftsWhereSQL);
+      console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_ftsOrderBySQL", ftsOrderBySQL);
+      console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_highlightParamsSQL", highlightParamsSQL);
     }
 
-    // 3. ソート順の決定
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ソート順の決定
+     */
     let orderBySql = "";
     const defaultSort = ftsOrderBySQL ? ftsOrderBySQL : `a."created_at" DESC`; // FTSがあればスコア順、なければ作成日時順
     if (sort && sort.length > 0) {
@@ -422,7 +467,15 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
       bidsCountSelectForSort = `, (SELECT COUNT(*) FROM "BidHistory" bh_sort WHERE bh_sort."auction_id" = a.id) as bids_count_intermediate`;
     }
 
-    // 4. ページネーションパラメータの追加
+    // コンソール
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_orderBySql", orderBySql);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_bidsCountSelectForSort", bidsCountSelectForSort);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ページネーションパラメータの追加
+     */
     const pageNumber = page ?? 1;
     const skip = (pageNumber - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
     const take = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
@@ -431,12 +484,27 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
     finalParams.push(skip); // OFFSET
     const offsetParamIndex = currentParamIndex++;
 
-    // 5. WHERE句の結合
+    // コンソール
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_pageNumber", pageNumber);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_skip", skip);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_take", take);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_limitParamIndex", limitParamIndex);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * WHERE句の結合
+     */
     // baseWhereClauses には group_id, category, status(EXISTS), price, time などが含まれる
     // ftsWhereSQL には全文検索条件が含まれる
     const finalWhereClause = [...baseWhereClauses, ftsWhereSQL].filter(Boolean).join(" AND ");
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_finalWhereClause", finalWhereClause);
 
-    // 6. SQLクエリの組み立て (CTEを使用)
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * SQLクエリの組み立て (CTEを使用)
+     */
     const sql = Prisma.sql`
       WITH "FilteredAuctionsCTE" AS (
         -- ステップ1: フィルタリングとソートに必要な情報の取得
@@ -528,19 +596,24 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
       ;
     `;
 
-    console.log("Executing Optimized Raw SQL:", sql);
-    console.log("With Params:", finalParams);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_sql", sql);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_finalParams", finalParams);
 
-    // 7. Rawクエリ実行と型適用
-    const auctionsData: RawAuctionData[] = await prisma.$queryRawUnsafe(
-      // $queryRawUnsafe を使用する必要がある場合があります。
-      // SQLインジェクションのリスクがないことを確認してください。
-      // 特に Prisma.raw() を使用する場合。
-      sql.strings.join("?"), // Prisma.sql は内部的に ? プレースホルダを使うことがあるため
-      ...finalParams,
-    );
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 8. 結果の整形 (型の適用)
+    /**
+     * Rawクエリ実行と型適用
+     */
+    const auctionsData: RawAuctionData[] = await prisma.$queryRaw(Prisma.sql`${sql}`, ...finalParams);
+
+    // コンソール
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_auctionsData", auctionsData);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 結果の整形 (型の適用)
+     */
     const items: AuctionListingResult = auctionsData.map<AuctionCard>((auction: RawAuctionData): AuctionCard => {
       // mapの引数と戻り値に型を指定
       // AuctionCard の executors_json の配列要素の型を定義
@@ -617,11 +690,7 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
           taskExecutors = []; // パース失敗時は空配列
         }
       }
-      // executors_json が string 以外の場合の処理は不要 (RawAuctionData で string | null に限定)
 
-      // bigint を number に変換し、boolean を保証
-      // この return 文で AuctionCard 型のオブジェクトを生成する
-      // map が返すオブジェクト全体を AuctionCard にキャストする
       return {
         id: auction.id,
         current_highest_bid: auction.current_highest_bid,
@@ -636,7 +705,6 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
         detail: auction.detail,
         image_url: auction.image_url,
         category: auction.category,
-        // taskExecutors (ExecutorJsonItem[]) を AuctionCard["executors_json"] (ExecutorJsonItem[] | string) にキャストして代入
         executors_json: taskExecutors as AuctionCard["executors_json"],
         task_highlighted: auction.task_highlighted ?? null,
         detail_highlighted: auction.detail_highlighted ?? null,
@@ -644,8 +712,12 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
       } as AuctionCard; // オブジェクト全体をキャスト
     });
 
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_success (Optimized)", { itemsCount: items.length });
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_success", items);
     return items;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("src/lib/auction/action/auction-listing.ts_getAuctionListings_error (Optimized)", error);
     // エラー発生時は空配列を返すか、エラーを再スローするか検討
