@@ -84,7 +84,7 @@ jobs:
           echo "Linking Supabase project..."
           supabase link --project-ref $SUPABASE_PROJECT_ID
           echo "Pushing database changes..."
-          supabase db push --yes
+          supabase db push
           echo "Supabase db push completed."
         # エラーが発生した場合にワークフローを停止させる
         continue-on-error: false
