@@ -289,7 +289,7 @@ type RawAuctionData = {
  * @param params 取得パラメータ
  * @returns オークション一覧
  */
-export const getAuctionListings = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<AuctionListingResult> => {
+export const cachedGetAuctionListings = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<AuctionListingResult> => {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -690,7 +690,7 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
 /**
  * オークション件数取得関数 (キャッシュ対応) - $queryRaw を使用するように修正
  */
-export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> => {
+export const cachedGetAuctionCount = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> => {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -790,7 +790,7 @@ export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetA
  * @param limit 取得件数
  * @returns オークション検索提案
  */
-export const getSearchSuggestions = cache(async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
+export const cachedGetSearchSuggestions = cache(async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_start", query);

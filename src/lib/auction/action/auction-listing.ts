@@ -6,11 +6,7 @@
  */
 import type { AuctionListingResult, Suggestion } from "../type/types";
 import type { GetAuctionListingsParams } from "./cache-auction-listing";
-import {
-  getAuctionCount as cachedGetAuctionCount,
-  getAuctionListings as cachedGetAuctionListings,
-  getSearchSuggestions as cachedGetSearchSuggestions,
-} from "./cache-auction-listing";
+import { cachedGetAuctionCount, cachedGetAuctionListings, cachedGetSearchSuggestions } from "./cache-auction-listing";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
