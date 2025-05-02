@@ -73,8 +73,9 @@ jobs:
       - name: Apply pending migrations (Supabase)
         run: supabase db push
         env:
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DATABASE_PASSWORD }}
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          SUPABASE_PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
 
       # 必要ならここで Prisma Client を生成
       - name: Generate Prisma Client (Prisma)
