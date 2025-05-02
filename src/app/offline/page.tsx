@@ -1,6 +1,5 @@
 "use cache";
 
-import { memo } from "react";
 import { type Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 
@@ -19,7 +18,7 @@ export const metadata: Metadata = {
 /**
  * オフラインページ
  */
-export default memo(async function OfflinePage() {
+export default async function OfflinePage() {
   cacheLife("max");
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
@@ -27,4 +26,4 @@ export default memo(async function OfflinePage() {
       <p>インターネット接続を確認して再度お試しください。</p>
     </div>
   );
-});
+}

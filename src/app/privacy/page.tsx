@@ -1,7 +1,6 @@
 "use cache";
 
 import type { Metadata } from "next";
-import { memo } from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 /**
  * プライバシーポリシーページのコンポーネント
  */
-export default memo(async function PrivacyPage() {
+export default async function PrivacyPage() {
   return (
     <>
       <Header userId={null} buttonDisplay={false} />
@@ -97,4 +96,4 @@ export default memo(async function PrivacyPage() {
       <Footer />
     </>
   );
-});
+}

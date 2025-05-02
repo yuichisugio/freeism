@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cache, memo } from "react";
+import { cache } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
@@ -37,7 +37,7 @@ const getUserSettings = cache(async (userId: string) => {
 /**
  * 設定ページ
  */
-export default memo(async function SettingsPage() {
+export default async function SettingsPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -110,4 +110,4 @@ export default memo(async function SettingsPage() {
       </div>
     </MainTemplate>
   );
-});
+}

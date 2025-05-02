@@ -1,4 +1,6 @@
-import { memo } from "react";
+"use cache";
+
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
@@ -12,7 +14,8 @@ import { Button } from "@/components/ui/button";
  * - 装飾的な背景エフェクトを含む
  * - レスポンシブ対応（画面サイズに応じてサイズを調整）
  */
-export default memo(function NotFound() {
+export default async function NotFound() {
+  cacheLife("max");
   return (
     <div className="flex min-h-screen flex-col">
       {/* ヘッダー */}
@@ -51,4 +54,4 @@ export default memo(function NotFound() {
       <Footer />
     </div>
   );
-});
+}

@@ -1,6 +1,5 @@
 "use cache";
 
-import { memo } from "react";
 import { type Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import { MainTemplate } from "@/components/layout/maintemplate";
@@ -24,7 +23,7 @@ export const metadata: Metadata = {
  * - フルページサイズで通知リストを表示
  * - 通知状態をグローバルに反映
  */
-export default memo(async function NotificationsPage() {
+export default async function NotificationsPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   cacheLife("max");
@@ -41,4 +40,4 @@ export default memo(async function NotificationsPage() {
       </div>
     </MainTemplate>
   );
-});
+}

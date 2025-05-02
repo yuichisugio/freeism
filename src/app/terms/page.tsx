@@ -1,7 +1,6 @@
 "use cache";
 
 import type { Metadata } from "next";
-import { memo } from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 /**
  * 利用規約ページのコンポーネント
  */
-export default memo(async function TermsPage() {
+export default async function TermsPage() {
   return (
     <>
       <Header userId={null} buttonDisplay={false} />
@@ -83,4 +82,4 @@ export default memo(async function TermsPage() {
       <Footer />
     </>
   );
-});
+}
