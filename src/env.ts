@@ -24,6 +24,7 @@ export const env = createEnv({
     FREEISM_APP_API_SECRET_KEY: z.string(),
     SUPABASE_DATABASE_PASSWORD: z.string(),
     SUPABASE_PROJECT_ID: z.string(),
+    SUPABASE_ACCESS_TOKEN: z.string(),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -36,6 +37,7 @@ export const env = createEnv({
   runtimeEnv: {
     SUPABASE_PROJECT_ID: process.env.SUPABASE_PROJECT_ID,
     SUPABASE_DATABASE_PASSWORD: process.env.SUPABASE_DATABASE_PASSWORD,
+    SUPABASE_ACCESS_TOKEN: process.env.SUPABASE_ACCESS_TOKEN,
     FREEISM_APP_API_SECRET_KEY: process.env.FREEISM_APP_API_SECRET_KEY,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
