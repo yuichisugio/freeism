@@ -791,6 +791,10 @@ export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetA
 export const getSearchSuggestions = cache(async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_start", query);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * クエリがない場合は空配列を返す
    */
@@ -805,7 +809,12 @@ export const getSearchSuggestions = cache(async (query: string, userId: string, 
    */
   const userGroupMemberships = await prisma.groupMembership.findMany({ where: { userId }, select: { groupId: true } });
   const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
-  if (userGroupIds.length === 0) return [];
+  if (userGroupIds.length === 0) {
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_noUserGroupIds");
+    return [];
+  }
+
+  const normalizedQuery = query.trim().replace(/\s+/g, " OR ");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -826,7 +835,7 @@ export const getSearchSuggestions = cache(async (query: string, userId: string, 
         JOIN
           "Auction" a ON t.id = a."task_id"
         WHERE
-          public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &^ ${query} -- task と detail を結合して検索
+          public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ${normalizedQuery} -- task と detail を結合して検索
         AND
           a."group_id" = ANY(${userGroupIds}::text[]) -- ユーザーが所属するグループのオークションのみ
         ORDER BY
@@ -834,6 +843,7 @@ export const getSearchSuggestions = cache(async (query: string, userId: string, 
         LIMIT
           ${limit}
       `;
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_sql", sql);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -841,6 +851,7 @@ export const getSearchSuggestions = cache(async (query: string, userId: string, 
      * Rawクエリ実行
      */
     const suggestions: Suggestion[] = await prisma.$queryRaw<Suggestion[]>(sql);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_suggestions", suggestions);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

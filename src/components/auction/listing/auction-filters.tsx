@@ -2,7 +2,7 @@
 
 import type { AuctionSortField } from "@/lib/auction/type/types";
 import type { ReactNode } from "react";
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -310,7 +310,11 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
 
     // サジェスト
     suggestions,
+    highlightedIndex,
     selectSuggestion,
+    handleKeyDown,
+    closeSuggestions,
+    setHighlightedIndex,
 
     // utilities
     formatTimeDisplay,
@@ -326,16 +330,74 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * Ref の定義
+   */
+  // 検索バーとサジェスト全体を囲むコンテナ用
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  // サジェストリスト(ul)用
+  const suggestionListRef = useRef<HTMLUListElement>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サジェスト外クリックで閉じる処理
+   */
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      // searchContainerRef が存在し、クリックされた要素が searchContainer の外側にある場合
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        closeSuggestions(); // サジェストを閉じる
+      }
+    }
+    // イベントリスナーを登録
+    document.addEventListener("mousedown", handleClickOutside);
+    // クリーンアップ関数
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [closeSuggestions]); // closeSuggestions が変更された場合のみ再登録
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 矢印キーでのスクロール処理
+   */
+  useEffect(() => {
+    // highlightedIndex が有効な値で、サジェストリストの ref が存在する場合
+    if (highlightedIndex >= 0 && suggestionListRef.current) {
+      // ハイライトされている li 要素を取得
+      const highlightedItem = suggestionListRef.current.querySelector(`#suggestion-item-${highlightedIndex}`);
+      // 要素が存在すれば、その要素が表示されるようにスクロール
+      if (highlightedItem) {
+        highlightedItem.scrollIntoView({
+          block: "nearest", // 要素全体が画面内に入るように、または最も近い境界にスクロール
+          inline: "nearest",
+        });
+      }
+    }
+  }, [highlightedIndex]); // highlightedIndex が変更された時に実行
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <div className="mb-4 w-full">
       {/* 検索バーとサジェスト */}
-      <div className="relative mb-4 w-full">
+      <div className="relative mb-4 w-full" ref={searchContainerRef}>
         {/* 検索欄 */}
         <form
-          className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
+          className="focus-within:ring-opacity-50 flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
           onSubmit={(e) => {
             e.preventDefault();
-            handleSearchQueryEnter(changingSearchQuery ?? "");
+            if (highlightedIndex === -1) {
+              handleSearchQueryEnter(changingSearchQuery ?? "");
+            } else if (suggestions[highlightedIndex]) {
+              // Enterキーでハイライトされたサジェストを選択する処理は handleKeyDown で行うため、
+              // ここでは何もしないか、必要であれば handleKeyDown と重複しないように調整
+              selectSuggestion(suggestions[highlightedIndex].text);
+            } else {
+              handleSearchQueryEnter(changingSearchQuery ?? "");
+            }
           }}
         >
           <input
@@ -343,34 +405,62 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
             placeholder="商品名や説明文で検索..."
             value={changingSearchQuery ?? ""}
             onChange={(e) => setChangingSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              // Command+Enterでフォーム送信
-              if (e.key === "Enter" && e.metaKey) {
-                e.preventDefault();
-                handleSearchQueryEnter(changingSearchQuery ?? "");
-              }
-            }}
-            className="flex-1 rounded-l-lg border-0 bg-transparent px-4 py-2 text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
+            onKeyDown={handleKeyDown}
+            className="flex-1 rounded-l-lg border-0 bg-transparent px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={suggestions.length > 0}
+            aria-controls="suggestions-list"
+            aria-activedescendant={highlightedIndex >= 0 ? `suggestion-item-${highlightedIndex}` : undefined}
           />
-          <Button type="submit" variant="ghost" className="h-10 rounded-l-none rounded-r-lg border-0 bg-blue-500 px-5 text-white hover:bg-blue-600">
+          <Button
+            type="submit"
+            variant="ghost"
+            className="focus:ring-opacity-50 h-auto rounded-l-none rounded-r-lg border-0 bg-blue-500 px-5 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+          >
             検索
           </Button>
         </form>
 
         {/* サジェストリスト */}
-        {suggestions && suggestions.length > 0 && (
-          <ul className="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800">
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.id}>
-                <button
-                  type="button"
-                  className="relative w-full cursor-pointer px-4 py-2 text-left text-gray-900 select-none hover:bg-blue-50 dark:text-gray-100 dark:hover:bg-gray-700"
+        {changingSearchQuery && changingSearchQuery.trim() !== "" && suggestions && suggestions.length > 0 && (
+          <ul
+            id="suggestions-list" // アクセシビリティ向上のため追加推奨
+            className="ring-opacity-5 absolute z-50 mt-1.5 max-h-72 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-800"
+            role="listbox" // アクセシビリティ向上のため追加推奨
+            ref={suggestionListRef}
+          >
+            {suggestions.map(
+              (
+                suggestion,
+                index, // index を受け取る
+              ) => (
+                <li
+                  key={suggestion.id}
+                  id={`suggestion-item-${index}`} // アクセシビリティ向上のため追加推奨
+                  role="option" // アクセシビリティ向上のため追加推奨
+                  aria-selected={index === highlightedIndex} // アクセシビリティ向上のため追加推奨
+                  className={cn(
+                    "relative cursor-pointer px-4 py-2 text-gray-900 transition-colors duration-100 ease-in-out select-none dark:text-gray-100",
+                    index === highlightedIndex
+                      ? "bg-blue-100 dark:bg-blue-900" // ハイライト時のスタイル
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700", // ホバー時のスタイル
+                  )}
+                  // マウス操作でも選択できるように onClick を維持
                   onClick={() => selectSuggestion(suggestion.text)}
-                  dangerouslySetInnerHTML={{ __html: suggestion.highlighted }}
-                  aria-label={suggestion.text}
-                />
-              </li>
-            ))}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault(); // デフォルトの動作（スペースでのスクロールなど）を防止
+                      selectSuggestion(suggestion.text);
+                    }
+                  }}
+                >
+                  {/* button要素は不要になったため削除し、li要素に直接スタイルとイベントを適用 */}
+                  <span dangerouslySetInnerHTML={{ __html: suggestion.highlighted }} />
+                </li>
+              ),
+            )}
           </ul>
         )}
       </div>

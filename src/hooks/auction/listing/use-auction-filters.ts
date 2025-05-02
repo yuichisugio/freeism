@@ -57,8 +57,11 @@ type UseAuctionFiltersReturn = {
 
   // サジェスト関連
   suggestions: Suggestion[];
+  highlightedIndex: number;
   selectSuggestion: (suggestionText: string) => void;
-
+  handleKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  setHighlightedIndex: React.Dispatch<React.SetStateAction<number>>; // 追加: highlightedIndex state を外部から更新可能にする
+  closeSuggestions: () => void; // 追加: サジェストを閉じる関数
   // utilities
   formatTimeDisplay: (hours: number) => string;
   isCategorySelected: (category: string) => boolean;
@@ -100,6 +103,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
   // サジェスト結果
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
+  // サジェストのハイライトインデックス
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { data: session } = useSession();
@@ -124,19 +130,23 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     // 新しいタイムアウトを設定 (デバウンス)
     suggestionTimeoutRef.current = setTimeout(() => {
       // 検索クエリが空でない場合のみサジェストを取得
-      if (changingSearchQuery && changingSearchQuery.trim() !== "") {
+      if (userId && changingSearchQuery && changingSearchQuery.trim() !== "") {
         // 非同期処理を実行する内部関数
         const executeFetch = async () => {
           try {
-            console.log("Fetching suggestions for:", changingSearchQuery);
+            console.log("src/hooks/auction/listing/use-auction-filters.ts_useEffect_Fetching suggestions for:", changingSearchQuery);
             // サーバーアクションを呼び出してサジェストを取得
             const fetchedSuggestions = await getSearchSuggestions(changingSearchQuery, userId);
             // サジェスト結果をステートにセット
             setSuggestions(fetchedSuggestions);
+            // 新しいサジェストが表示されたらハイライトをリセット
+            setHighlightedIndex(-1);
           } catch (error) {
-            console.error("Failed to fetch suggestions:", error);
+            console.error("src/hooks/auction/listing/use-auction-filters.ts_useEffect_Failed to fetch suggestions:", error);
             // エラー発生時はサジェストをクリア
             setSuggestions([]);
+            // エラー発生時はハイライトをリセット
+            setHighlightedIndex(-1);
           }
         };
         // 非同期関数を実行
@@ -144,8 +154,10 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       } else {
         // 検索クエリが空の場合はサジェストをクリア
         setSuggestions([]);
+        // ハイライトをリセット
+        setHighlightedIndex(-1);
       }
-    }, 500); // 500ミリ秒のデバウンス
+    }, 400); // 400ミリ秒のデバウンス
 
     // クリーンアップ関数: コンポーネントのアンマウント時や依存配列の変更前にタイムアウトをクリア
     return () => {
@@ -471,7 +483,14 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    */
   const handleSearchQueryEnter = useCallback(
     (searchQuery: string) => {
+      console.log("src/hooks/auction/listing/use-auction-filters.ts_handleSearchQueryEnter_Executing search for:", searchQuery);
+      // サジェストをクリア
       setSuggestions([]);
+      // ハイライトをリセット
+      setHighlightedIndex(-1);
+      // 入力値も確定させる
+      setChangingSearchQuery(searchQuery);
+      // 検索条件を更新。検索時は1ページ目に戻る
       setListingsConditionsAction({
         ...listingsConditions,
         searchQuery: searchQuery,
@@ -488,13 +507,71 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    */
   const selectSuggestion = useCallback(
     (suggestionText: string) => {
-      console.log("Suggestion selected:", suggestionText);
-      setChangingSearchQuery(suggestionText); // 入力ボックスに反映
-      setSuggestions([]); // サジェストを閉じる
+      console.log("src/hooks/auction/listing/use-auction-filters.ts_selectSuggestion_Suggestion selected:", suggestionText);
       // listingsConditions を更新して検索を実行
       handleSearchQueryEnter(suggestionText); // 検索時は1ページ目に戻る
     },
     [handleSearchQueryEnter],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サジェストを閉じる関数
+   */
+  const closeSuggestions = useCallback(() => {
+    setSuggestions([]);
+    setHighlightedIndex(-1);
+  }, []); // 依存配列は空でOK
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 検索入力欄でのキーダウンイベントハンドラ
+   * ↓↑キーでサジェストのハイライトを移動
+   * Enterキーでサジェストを選択
+   * Command+Enter または Ctrl+Enter の場合 (通常のフォーム送信とは別)
+   * Escapeキーでサジェストをクリア
+   */
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      // サジェストがある場合
+      if (suggestions.length > 0) {
+        switch (event.key) {
+          // ↓キーでハイライトを下に移動
+          case "ArrowDown":
+            event.preventDefault(); // デフォルトのカーソル移動を防止
+            setHighlightedIndex((prevIndex) => (prevIndex + 1) % suggestions.length);
+            break;
+          // ↑キーでハイライトを上に移動
+          case "ArrowUp":
+            event.preventDefault(); // デフォルトのカーソル移動を防止
+            setHighlightedIndex((prevIndex) => (prevIndex - 1 + suggestions.length) % suggestions.length);
+            break;
+          // Enterキーでサジェストを選択
+          case "Enter":
+            if (highlightedIndex >= 0 && suggestions[highlightedIndex]) {
+              event.preventDefault();
+              selectSuggestion(suggestions[highlightedIndex].text);
+            } else if (event.metaKey || event.ctrlKey) {
+              event.preventDefault();
+              handleSearchQueryEnter(changingSearchQuery ?? "");
+            }
+            break;
+          case "Escape":
+            event.preventDefault(); // 他の動作（例：モーダルを閉じる）を防止する場合
+            closeSuggestions();
+            break;
+          default:
+            break;
+        }
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        // サジェストがない場合の Command/Ctrl + Enter
+        event.preventDefault();
+        handleSearchQueryEnter(changingSearchQuery ?? "");
+      }
+    },
+    [suggestions, highlightedIndex, selectSuggestion, handleSearchQueryEnter, changingSearchQuery, closeSuggestions],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -534,7 +611,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 価格範囲変更時のハンドラー
+  /**
+   * 価格範囲変更時のハンドラー
+   */
   const handlePriceRangeChange = useCallback(
     (value: [number, number]) => {
       setDraftConditions({
@@ -548,7 +627,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 残り時間範囲変更時のハンドラー
+  /**
+   * 残り時間範囲変更時のハンドラー
+   */
   const handleTimeRangeChange = useCallback(
     (value: [number, number]) => {
       setDraftConditions({
@@ -586,7 +667,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 残り時間範囲適用時のハンドラー
+  /**
+   * 残り時間範囲適用時のハンドラー
+   */
   const handleTimeRangeApply = useCallback(() => {
     // 残り時間範囲を指定
     handleFilterChange({
@@ -597,7 +680,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 残り時間範囲のプリセット設定
+  /**
+   * 残り時間範囲のプリセット設定
+   */
   const setTimePreset = useCallback(
     (min: number, max: number) => {
       setDraftConditions({
@@ -611,7 +696,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 価格範囲適用時のハンドラー
+  /**
+   * 価格範囲適用時のハンドラー
+   */
   const handlePriceRangeApply = useCallback(() => {
     handleFilterChange({
       minBid: draftConditions.minBid,
@@ -621,14 +708,18 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フィルター表示切り替え
+  /**
+   * フィルター表示切り替え
+   */
   const toggleFilterDisplay = useCallback(() => {
     setShowFilters(!showFilters);
   }, [showFilters]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 価格範囲のプリセット設定
+  /**
+   * 価格範囲のプリセット設定
+   */
   const setPricePreset = useCallback(
     (min: number, max: number) => {
       setDraftConditions({
@@ -702,6 +793,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 返す
+   */
   return {
     // state
     listingsConditions,
@@ -740,7 +834,11 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
     // サジェスト関連
     suggestions,
+    highlightedIndex,
     selectSuggestion,
+    handleKeyDown,
+    closeSuggestions,
+    setHighlightedIndex,
 
     // utilities
     formatTimeDisplay,
