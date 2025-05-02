@@ -1,3 +1,5 @@
+"use cache";
+
 import { cache } from "react"; // Next.js 15+ のキャッシュ機能
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus, Prisma } from "@prisma/client";

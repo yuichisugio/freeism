@@ -1,3 +1,5 @@
+"use cache";
+
 import type { Metadata } from "next";
 import { memo } from "react";
 import { Footer } from "@/components/layout/footer";

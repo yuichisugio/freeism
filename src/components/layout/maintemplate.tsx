@@ -27,7 +27,7 @@ type MainTemplateProps = {
  * @param component コンポーネント
  * @param children 子コンポーネント
  */
-export const MainTemplate = memo(function MainTemplate({ title, description, component, children }: MainTemplateProps) {
+export const MainTemplate = memo(async function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Fixed header */}
