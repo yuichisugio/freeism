@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { memo } from "react";
+import { cache, memo } from "react";
+import { cacheLife } from "next/dist/server/use-cache/cache-life";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
@@ -9,6 +10,9 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "Settings - Freeism App",
   description: "User settings and preferences",
@@ -16,16 +20,43 @@ export const metadata: Metadata = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-export default memo(async function SettingsPage() {
-  // セッションを取得
-  const userId = await getAuthenticatedSessionUserId();
-
-  // 現在のユーザー設定を取得
+/**
+ * ユーザー設定を取得
+ */
+export const getUserSettings = cache(async (userId: string) => {
+  "use cache";
+  cacheLife("hours");
   const userSettings = await prisma.userSettings.findUnique({
     where: { userId: userId },
   });
+  return userSettings;
+});
 
-  // ユーザー設定が見つからない場合は早期リターン
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 設定ページ
+ */
+export default memo(async function SettingsPage() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーIDを取得
+   */
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザー設定を取得
+   */
+  const userSettings = await getUserSettings(userId);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザー設定が見つからない場合は早期リターン
+   */
   if (!userSettings) {
     return (
       <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
@@ -36,6 +67,11 @@ export default memo(async function SettingsPage() {
     );
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザー設定が見つかった場合は設定ページを表示
+   */
   return (
     <MainTemplate title="Settings" description="アカウント設定とプロフィールを管理します">
       {/* 現在の設定情報 */}

@@ -111,6 +111,9 @@ const sidebarItems = [
  * @returns サイドバー
  */
 export const Sidebar = memo(function Sidebar() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  //
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 

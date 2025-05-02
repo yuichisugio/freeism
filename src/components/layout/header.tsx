@@ -1,6 +1,7 @@
 "use cache";
 
 import { memo } from "react";
+import { cacheLife } from "next/dist/server/use-cache/cache-life";
 import Link from "next/link";
 import { LoginButton } from "@/components/auth/login-button";
 import { LogoutButton } from "@/components/auth/logout-button";
@@ -22,6 +23,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
  */
 export const Header = memo(async function Header({ userId, buttonDisplay = true }: { userId: string | null; buttonDisplay: boolean }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  cacheLife("hours");
 
   console.log("src/components/layout/header.tsx_Header_start");
 

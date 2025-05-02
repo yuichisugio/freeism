@@ -17,9 +17,16 @@ import { AlertCircle } from "lucide-react";
 export const WebPushNotificationToggle = memo(function PushNotificationToggle({ userSettings }: { userSettings: UserSettings }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // プッシュ通知のhookを使用
+  /**
+   * プッシュ通知のhookを使用
+   */
   const { isSupported, subscriptionState, subscribe, unsubscribe, error, permissionState } = usePushNotification();
-  // pushトグルの状態
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * プッシュ通知のトグルの状態
+   */
   const [isEnabled, setIsEnabled] = useState<boolean>(userSettings.isPushEnabled);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -33,7 +40,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新するリスナーとして設定
+  /**
+   * ブラウザの通知許可状態と購読状態に基づいてトグルの状態を更新するリスナーとして設定
+   */
   useEffect(() => {
     void checkPermission();
   }, [subscriptionState, permissionState, checkPermission]);
@@ -109,7 +118,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ブラウザがプッシュ通知をサポートしていない場合
+  /**
+   * ブラウザがプッシュ通知をサポートしていない場合
+   */
   if (!isSupported) {
     return (
       <Card>
@@ -129,6 +140,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * プッシュ通知のトグルを返す
+   */
   return (
     <Card>
       <CardHeader>

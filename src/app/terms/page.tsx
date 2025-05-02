@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default memo(function TermsPage() {
   return (
     <>
-      <Header />
+      <Header userId={null} buttonDisplay={false} />
       <main className="container mx-auto min-h-screen px-4 py-12">
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-8 text-center text-3xl font-bold text-blue-900">利用規約</h1>

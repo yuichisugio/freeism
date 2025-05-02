@@ -88,25 +88,61 @@ const NotificationItem = memo(function NotificationItem({
   notification: NotificationData;
   onToggleReadStatus: (id: string, isRead: boolean) => void;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * state
+   */
+  // 通知アイテムが展開されているかどうか
   const [isExpanded, setIsExpanded] = useState(false);
+  // 通知アイテムが未読かどうか
   const [localIsRead, setLocalIsRead] = useState(notification.isRead);
+  // 通知アイテムの読み込み中かどうか
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * useEffect
+   */
+  // 通知アイテムが未読かどうかを更新
   useEffect(() => {
     if (localIsRead !== notification.isRead) {
       setLocalIsRead(notification.isRead);
     }
   }, [notification.isRead, localIsRead]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * useCallback
+   */
+
+  /**
+   * メッセージを短縮
+   * @param {string} message - メッセージ
+   * @param {number} maxLength - 最大長
+   * @returns {string} 短縮されたメッセージ
+   */
   const truncateMessage = useCallback(function truncateMessage(message: string, maxLength = 50) {
     if (!message) return "";
     return message.length > maxLength ? message.substring(0, maxLength) + "..." : message;
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知アイテムをクリック
+   */
   const handleItemClick = useCallback(function handleItemClick() {
     setIsExpanded((prev) => !prev);
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知アイテムのステータスボタンをクリック
+   */
   const handleStatusButtonClick = useCallback(
     function handleStatusButtonClick(e: React.MouseEvent) {
       e.stopPropagation();
@@ -125,6 +161,11 @@ const NotificationItem = memo(function NotificationItem({
     [isProcessing, localIsRead, notification.id, onToggleReadStatus],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * useMemo
+   */
   const backgroundClass = useMemo(
     function backgroundClass() {
       return localIsRead ? "bg-gray-50 dark:bg-gray-800/50" : "bg-white dark:bg-blue-950/20";
@@ -132,6 +173,11 @@ const NotificationItem = memo(function NotificationItem({
     [localIsRead],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 展開された通知アイテムのパディングクラス
+   */
   const expandedPaddingClass = useMemo(
     function expandedPaddingClass() {
       return isExpanded ? "p-0" : "p-3";
@@ -139,6 +185,11 @@ const NotificationItem = memo(function NotificationItem({
     [isExpanded],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 展開された通知アイテムのヘッダークラス
+   */
   const expandedHeaderClass = useMemo(
     function expandedHeaderClass() {
       return isExpanded ? "border-b p-3" : "";
@@ -146,6 +197,11 @@ const NotificationItem = memo(function NotificationItem({
     [isExpanded],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知アイテムを返す
+   */
   return (
     <li className={`flex flex-col rounded-lg border transition-colors ${backgroundClass} ${expandedPaddingClass}`}>
       <div
@@ -273,6 +329,11 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
   isLoadingMore: boolean;
   activeFilter: FilterType;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * useMemo
+   */
   const emptyMessage = useMemo(
     function emptyMessage() {
       let emptyMessage = "通知はありません";
@@ -288,6 +349,11 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
     [activeFilter],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知が空の場合に表示するコンポーネントを返す
+   */
   return (
     <div className="flex h-[300px] flex-col items-center justify-center text-gray-500">
       <p className="mb-4">{emptyMessage}</p>
@@ -315,6 +381,9 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 読み込み中のコンポーネント
+ */
 const Loading = memo(function Loading() {
   return (
     <div className="flex h-[50vh] items-center justify-center">
@@ -328,6 +397,9 @@ const Loading = memo(function Loading() {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * エラーのコンポーネント
+ */
 const Error = memo(function Error({ error, handleManualRefresh }: { error: string; handleManualRefresh: () => void }) {
   return (
     <div className="flex h-[50vh] items-center justify-center">

@@ -5,11 +5,21 @@ import { TaskInputForm } from "@/components/task/task-input-form";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "新規Task作成 - Freeism App",
   description: "新規タスクを作成します",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 新規Task作成ページ
+ */
 export default async function NewTaskPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
   // グループ選択のComboBoxが必要かのフラグ
   let groupComboBoxFlag = false;

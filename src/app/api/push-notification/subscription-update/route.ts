@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import { getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
 import { getAuthSession } from "@/lib/utils";
 
-// リクエストボディの型定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * リクエストボディの型定義
+ */
 type SubscriptionUpdateRequest = {
   oldEndpoint: string | null;
   newSubscription: {
@@ -16,12 +20,18 @@ type SubscriptionUpdateRequest = {
   };
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * Service Workerからの購読情報更新リクエストを処理するAPI
  */
 export async function POST(req: NextRequest) {
   try {
-    // 認証セッションを取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 認証セッションを取得
+     */
     const session = await getAuthSession();
 
     // リクエストボディを取得
