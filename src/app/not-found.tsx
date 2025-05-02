@@ -16,7 +16,7 @@ export default memo(function NotFound() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* ヘッダー */}
-      <Header />
+      <Header userId={null} buttonDisplay={false} />
 
       {/* メインコンテンツ */}
       <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white">

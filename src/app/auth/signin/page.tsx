@@ -2,7 +2,6 @@
 import type { Metadata } from "next";
 import { SignInButton } from "@/components/auth/sign-in-button";
 import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
 import { GoogleLogoSvg } from "@/components/ui/svg";
 
 export const metadata: Metadata = {
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
 export default function SignInPage() {
   return (
     <>
-      <Header />
       {/* コンテンツ全体の制御 */}
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 dark:border-blue-900 dark:from-gray-950 dark:via-blue-950 dark:to-gray-950">
         {/* 文言が全て載る丸いパーツ。rounded-xlで丸くする */}

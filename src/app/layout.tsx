@@ -7,8 +7,11 @@ import { Providers } from "@/components/provider/providers";
 import { getAuthSession } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 
-import "../styles/globals.css";
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "Freeism-app",
   description: "Freeism-app by sugio",
@@ -35,6 +38,11 @@ export const metadata: Metadata = {
   },
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ビューポート
+ */
 export const viewport: Viewport = {
   themeColor: "#ffffff",
   width: "device-width",
@@ -45,6 +53,11 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ルートレイアウト
+ */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getAuthSession();
   return (

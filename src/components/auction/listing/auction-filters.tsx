@@ -314,7 +314,6 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
     selectSuggestion,
     handleKeyDown,
     closeSuggestions,
-    setHighlightedIndex,
 
     // utilities
     formatTimeDisplay,
@@ -448,7 +447,6 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                   )}
                   // マウス操作でも選択できるように onClick を維持
                   onClick={() => selectSuggestion(suggestion.text)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault(); // デフォルトの動作（スペースでのスクロールなど）を防止

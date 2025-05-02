@@ -1,6 +1,8 @@
 import { memo, Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
+import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -28,10 +30,16 @@ type MainTemplateProps = {
  * @param children 子コンポーネント
  */
 export const MainTemplate = memo(async function MainTemplate({ title, description, component, children }: MainTemplateProps) {
+  const session = await getAuthSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("/auth/signin");
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Fixed header */}
-      <Header />
+      <Header userId={userId} buttonDisplay={true} />
 
       {/* Main content area with fixed sidebar and scrollable children */}
       <div className="flex flex-1 overflow-hidden">

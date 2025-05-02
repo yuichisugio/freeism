@@ -33,7 +33,8 @@ export function useNotificationButton(): NotificationButtonReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // セッション情報を取得
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -41,11 +42,15 @@ export function useNotificationButton(): NotificationButtonReturn {
    * 未読通知をチェックする関数
    */
   const checkNotifications = useCallback(async () => {
+    if (!userId) {
+      console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_noUserId");
+      return;
+    }
     console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_start");
     // 未読通知を取得
-    const unreadCount = await getUnreadNotificationsCount();
+    const unreadCount = await getUnreadNotificationsCount(userId);
     setHasUnreadNotifications(unreadCount > 0);
-  }, []);
+  }, [userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

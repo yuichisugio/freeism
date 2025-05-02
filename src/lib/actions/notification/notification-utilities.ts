@@ -225,14 +225,9 @@ export async function getNotificationTargetUserIds(
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数
  */
-export async function getUnreadNotificationsCount(): Promise<number> {
+export async function getUnreadNotificationsCount(userId: string): Promise<number> {
   console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 認証済みユーザーのIDを取得
-    const userId = await getAuthenticatedSessionUserId();
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーがアクセスできるグループID一覧を取得
@@ -260,6 +255,7 @@ export async function getUnreadNotificationsCount(): Promise<number> {
         OR
         (n."is_read" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
       )
+      LIMIT 1
     `;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

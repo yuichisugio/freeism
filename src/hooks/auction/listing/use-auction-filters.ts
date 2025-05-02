@@ -60,7 +60,6 @@ type UseAuctionFiltersReturn = {
   highlightedIndex: number;
   selectSuggestion: (suggestionText: string) => void;
   handleKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-  setHighlightedIndex: React.Dispatch<React.SetStateAction<number>>; // 追加: highlightedIndex state を外部から更新可能にする
   closeSuggestions: () => void; // 追加: サジェストを閉じる関数
   // utilities
   formatTimeDisplay: (hours: number) => string;
@@ -838,7 +837,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     selectSuggestion,
     handleKeyDown,
     closeSuggestions,
-    setHighlightedIndex,
 
     // utilities
     formatTimeDisplay,

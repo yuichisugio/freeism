@@ -1,3 +1,5 @@
+"use cache";
+
 import { memo } from "react";
 import Link from "next/link";
 import { LoginButton } from "@/components/auth/login-button";
@@ -6,7 +8,6 @@ import { NotificationButton } from "@/components/notification/notification-butto
 import { Button } from "@/components/ui/button";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -19,16 +20,10 @@ import { getAuthSession } from "@/lib/utils";
  *   - スマホ: ハンバーガーメニュー(左) + ロゴ(中央) + 通知(右)
  *   - タブレット/PC: ロゴ(左) + ナビゲーション要素(右)
  */
-export const Header = memo(async function Header() {
+export const Header = memo(async function Header({ userId, buttonDisplay = true }: { userId: string | null; buttonDisplay: boolean }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/layout/header.tsx_Header_start");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 認証状態を取得
-  const session = await getAuthSession();
-  const userId = session?.user?.id;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -74,20 +69,24 @@ export const Header = memo(async function Header() {
           {/* 右: ナビゲーション要素をまとめる */}
           <nav className="flex items-center gap-6 pr-4">
             {/* ログインしている場合のみ通知ボタンを表示 */}
-            {userId && <NotificationButton />}
+            {userId && buttonDisplay && <NotificationButton />}
             <ThemeToggle />
 
             {/* ログイン状態に応じてボタンを切り替え */}
-            {userId ? (
+            {userId && buttonDisplay ? (
               <>
                 <Button variant="outline" asChild className="button-outline-custom">
                   <Link href="/dashboard/grouplist">Dashboard</Link>
                 </Button>
                 <LogoutButton />
               </>
-            ) : (
-              <LoginButton />
-            )}
+            ) : // ボタンが表示される場合。ログインページなど
+            buttonDisplay ? (
+              <>
+                <LoginButton />
+              </>
+            ) : // ボタンが非表示が良い場合。404ページなど
+            null}
           </nav>
         </div>
       </div>
