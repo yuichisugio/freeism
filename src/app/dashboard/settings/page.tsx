@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 /**
  * ユーザー設定を取得
  */
-export const getUserSettings = cache(async (userId: string) => {
+const getUserSettings = cache(async (userId: string) => {
   "use cache";
   cacheLife("hours");
   const userSettings = await prisma.userSettings.findUnique({
