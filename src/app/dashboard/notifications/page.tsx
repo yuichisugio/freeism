@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { type Metadata } from "next";
-import { cacheLife } from "next/dist/server/use-cache/cache-life";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { NotificationList } from "@/components/notification/notification-list";
 

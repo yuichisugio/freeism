@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 /**
  * プライバシーポリシーページのコンポーネント
  */
-export default memo(function PrivacyPage() {
+export default memo(async function PrivacyPage() {
   return (
     <>
       <Header userId={null} buttonDisplay={false} />

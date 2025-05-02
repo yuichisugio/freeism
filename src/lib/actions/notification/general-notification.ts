@@ -4,9 +4,9 @@ import type { NotificationSendTiming, NotificationTargetType } from "@prisma/cli
 import { NotificationSendMethod } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
+import { getNotificationTargetUserIds } from "./cache-notification-utilities";
 import { sendEmailNotification } from "./email-notification";
 import { sendInAppNotification } from "./in-app-notification";
-import { getNotificationTargetUserIds } from "./notification-utilities";
 import { sendPushNotification } from "./push-notification";
 
 /**

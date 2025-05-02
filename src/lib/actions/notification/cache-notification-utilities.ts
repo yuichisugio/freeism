@@ -1,9 +1,9 @@
 "use cache";
 
 import type { NotificationTargetType } from "@prisma/client";
+import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,7 +17,7 @@ export type NotificationData = {
   message: string;
   NotificationTargetType: NotificationTargetType;
   isRead: boolean;
-  sentAt: string;
+  sentAt: string | null;
   readAt: string | null;
   expiresAt: string | null;
   actionUrl: string | null;
@@ -38,7 +38,7 @@ export type NotificationData = {
  * @param userId ユーザーID
  * @returns グループIDの配列
  */
-async function getUserAccessibleGroupIds(userId: string): Promise<string[]> {
+const getUserAccessibleGroupIds = cache(async (userId: string): Promise<string[]> => {
   // アクセス可能なグループIDを取得
   const userGroupList = await prisma.groupMembership.findMany({
     where: { userId },
@@ -54,7 +54,7 @@ async function getUserAccessibleGroupIds(userId: string): Promise<string[]> {
   }
 
   return groupIds;
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -63,7 +63,7 @@ async function getUserAccessibleGroupIds(userId: string): Promise<string[]> {
  * @param groupIds グループIDの配列
  * @returns タスクIDの配列
  */
-async function getTaskIdsByGroupIds(groupIds: string[]): Promise<string[]> {
+const getTaskIdsByGroupIds = cache(async (groupIds: string[]): Promise<string[]> => {
   const taskList = await prisma.task.findMany({
     where: {
       groupId: { in: groupIds },
@@ -72,7 +72,7 @@ async function getTaskIdsByGroupIds(groupIds: string[]): Promise<string[]> {
   });
 
   return taskList.map((t) => t.id).filter(Boolean);
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -83,7 +83,7 @@ async function getTaskIdsByGroupIds(groupIds: string[]): Promise<string[]> {
  * @param taskIds タスクIDの配列 (オプション)
  * @returns Prisma.sqlでラップされたSQL条件文
  */
-function buildNotificationWhereCondition(userId: string, groupIds: string[], taskIds?: string[]): Prisma.Sql {
+const buildNotificationWhereCondition = cache(async (userId: string, groupIds: string[], taskIds?: string[]): Promise<Prisma.Sql> => {
   const taskCondition = taskIds && taskIds.length > 0 ? Prisma.sql`OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))` : Prisma.sql``;
 
   return Prisma.sql`
@@ -99,7 +99,7 @@ function buildNotificationWhereCondition(userId: string, groupIds: string[], tas
       (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
     )
   `;
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -109,10 +109,10 @@ function buildNotificationWhereCondition(userId: string, groupIds: string[], tas
  * @param defaultNow デフォルト値として現在時刻を使うかどうか
  * @returns ISO文字列またはnull
  */
-function formatDateToISOString(date: string | Date | null, defaultNow = false): string | null {
+const formatDateToISOString = cache(async (date: string | Date | null, defaultNow = false): Promise<string | null> => {
   if (!date && !defaultNow) return null;
   return date ? new Date(date).toISOString() : defaultNow ? new Date().toISOString() : null;
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -125,99 +125,101 @@ function formatDateToISOString(date: string | Date | null, defaultNow = false): 
  * @param {string} params.taskId 対象タスクID
  * @returns {string[]} 通知対象のユーザーID配列
  */
-export async function getNotificationTargetUserIds(
-  targetType: NotificationTargetType,
-  params: {
-    userIds?: string[];
-    groupId?: string;
-    taskId?: string;
-  },
-): Promise<string[]> {
-  "use server"; // Server Actions としてマーク
+export const getNotificationTargetUserIds = cache(
+  async (
+    targetType: NotificationTargetType,
+    params: {
+      userIds?: string[];
+      groupId?: string;
+      taskId?: string;
+    },
+  ): Promise<string[]> => {
+    "use server"; // Server Actions としてマーク
 
-  let targetUserIds: string[] = [];
+    let targetUserIds: string[] = [];
 
-  switch (targetType) {
-    case "SYSTEM":
-      // システム全体の通知の場合は全ユーザーを対象
-      const allUsers = await prisma.user.findMany({
-        select: { id: true },
-      });
-      targetUserIds = allUsers.map((user) => user.id);
-      break;
+    switch (targetType) {
+      case "SYSTEM":
+        // システム全体の通知の場合は全ユーザーを対象
+        const allUsers = await prisma.user.findMany({
+          select: { id: true },
+        });
+        targetUserIds = allUsers.map((user) => user.id);
+        break;
 
-    case "USER":
-      // ユーザー向け通知の場合
-      if (!params.userIds) {
-        throw new Error("ユーザーIDが指定されていません");
-      }
-      targetUserIds = [...params.userIds];
-      break;
+      case "USER":
+        // ユーザー向け通知の場合
+        if (!params.userIds) {
+          throw new Error("ユーザーIDが指定されていません");
+        }
+        targetUserIds = [...params.userIds];
+        break;
 
-    case "GROUP":
-      // グループ向け通知の場合
-      if (!params.groupId) {
-        throw new Error("グループIDが指定されていません");
-      }
+      case "GROUP":
+        // グループ向け通知の場合
+        if (!params.groupId) {
+          throw new Error("グループIDが指定されていません");
+        }
 
-      // グループメンバー全員を対象に
-      const groupMembers = await prisma.groupMembership.findMany({
-        where: { groupId: params.groupId },
-        select: { userId: true },
-      });
-      targetUserIds = groupMembers.map((member) => member.userId);
-      break;
-
-    case "TASK":
-      // タスク向け通知の場合
-      if (!params.taskId) {
-        throw new Error("タスクIDが指定されていません");
-      }
-
-      // タスクの作成者と報告者、実行者を対象に
-      const task = await prisma.task.findUnique({
-        where: { id: params.taskId },
-        select: {
-          creatorId: true,
-          groupId: true,
-          reporters: {
-            select: {
-              userId: true,
-            },
-          },
-          executors: {
-            select: {
-              userId: true,
-            },
-          },
-        },
-      });
-
-      if (task) {
-        // タスク作成者を追加
-        targetUserIds.push(task.creatorId);
-
-        // タスク報告者を追加 (登録ユーザーのみ)
-        const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId!);
-        targetUserIds.push(...reporterUserIds);
-
-        // タスク実行者を追加 (登録ユーザーのみ)
-        const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId!);
-        targetUserIds.push(...executorUserIds);
-
-        // タスクが属するグループのメンバーも追加
+        // グループメンバー全員を対象に
         const groupMembers = await prisma.groupMembership.findMany({
-          where: { groupId: task.groupId },
+          where: { groupId: params.groupId },
           select: { userId: true },
         });
-        targetUserIds.push(...groupMembers.map((member) => member.userId));
-      }
-      break;
-  }
+        targetUserIds = groupMembers.map((member) => member.userId);
+        break;
 
-  // 重複を除去して返す
-  return [...new Set(targetUserIds)];
-}
+      case "TASK":
+        // タスク向け通知の場合
+        if (!params.taskId) {
+          throw new Error("タスクIDが指定されていません");
+        }
+
+        // タスクの作成者と報告者、実行者を対象に
+        const task = await prisma.task.findUnique({
+          where: { id: params.taskId },
+          select: {
+            creatorId: true,
+            groupId: true,
+            reporters: {
+              select: {
+                userId: true,
+              },
+            },
+            executors: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        });
+
+        if (task) {
+          // タスク作成者を追加
+          targetUserIds.push(task.creatorId);
+
+          // タスク報告者を追加 (登録ユーザーのみ)
+          const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId!);
+          targetUserIds.push(...reporterUserIds);
+
+          // タスク実行者を追加 (登録ユーザーのみ)
+          const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId!);
+          targetUserIds.push(...executorUserIds);
+
+          // タスクが属するグループのメンバーも追加
+          const groupMembers = await prisma.groupMembership.findMany({
+            where: { groupId: task.groupId },
+            select: { userId: true },
+          });
+          targetUserIds.push(...groupMembers.map((member) => member.userId));
+        }
+        break;
+    }
+
+    // 重複を除去して返す
+    return [...new Set(targetUserIds)];
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -225,7 +227,7 @@ export async function getNotificationTargetUserIds(
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数
  */
-export async function getUnreadNotificationsCount(userId: string): Promise<number> {
+export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<number> => {
   console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -267,7 +269,7 @@ export async function getUnreadNotificationsCount(userId: string): Promise<numbe
     console.error("未読通知カウントエラー:", error);
     return 0;
   }
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -277,39 +279,36 @@ export async function getUnreadNotificationsCount(userId: string): Promise<numbe
  * @param limit 1ページあたりの表示件数
  * @returns 通知リストと未読数
  */
-export async function getNotificationsAndUnreadCount(
-  page = 1,
-  limit = 20,
-): Promise<{
-  notifications: NotificationData[];
-  totalCount: number;
-  unreadCount: number;
-}> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const cachedGetNotificationsAndUnreadCount = cache(
+  async (
+    page = 1,
+    limit = 20,
+    userId: string,
+  ): Promise<{
+    notifications: NotificationData[];
+    totalCount: number;
+    unreadCount: number;
+  }> => {
+    try {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 認証済みユーザーのIDを取得
-    const userId = await getAuthenticatedSessionUserId();
+      // ユーザーがアクセスできるグループID一覧を取得
+      const groupIds = await getUserAccessibleGroupIds(userId);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ユーザーがアクセスできるグループID一覧を取得
-    const groupIds = await getUserAccessibleGroupIds(userId);
+      // グループに関連するタスクID一覧を取得
+      const taskIds = await getTaskIdsByGroupIds(groupIds);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループに関連するタスクID一覧を取得
-    const taskIds = await getTaskIdsByGroupIds(groupIds);
+      // オフセットを計算
+      const offset = (page - 1) * limit;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // オフセットを計算
-    const offset = (page - 1) * limit;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // JSONB演算子を使用して直接DBレベルで既読状態を計算
-    const notificationsRaw = await prisma.$queryRaw`
+      // JSONB演算子を使用して直接DBレベルで既読状態を計算
+      const notificationsRaw = await prisma.$queryRaw`
       SELECT
         n.id,
         n.title,
@@ -346,55 +345,57 @@ export async function getNotificationsAndUnreadCount(
       LIMIT ${limit} OFFSET ${offset}
     `;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 通知データを変換する
-    const notifications = Array.isArray(notificationsRaw)
-      ? notificationsRaw.map(
-          (n: {
-            id: string;
-            title: string | null;
-            message: string | null;
-            NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
-            isRead: boolean;
-            sentAt: string | Date | null;
-            readAt: string | Date | null;
-            expiresAt: string | Date | null;
-            actionUrl: string | null;
-            senderUserId: string | null;
-            groupId: string | null;
-            taskId: string | null;
-            auctionEventType: string | null;
-            auctionId: string | null;
-            userName: string | null;
-            groupName: string | null;
-            taskName: string | null;
-          }): NotificationData => ({
-            id: n.id,
-            title: n.title ?? "",
-            message: n.message ?? "",
-            NotificationTargetType: n.NotificationTargetType,
-            isRead: n.isRead === true,
-            sentAt: formatDateToISOString(n.sentAt, true)!,
-            readAt: formatDateToISOString(n.readAt, false),
-            expiresAt: formatDateToISOString(n.expiresAt, false),
-            actionUrl: n.actionUrl ?? null,
-            senderUserId: n.senderUserId ?? null,
-            groupId: n.groupId ?? null,
-            taskId: n.taskId ?? null,
-            auctionEventType: n.auctionEventType ?? null,
-            auctionId: n.auctionId ?? null,
-            userName: n.userName ?? null,
-            groupName: n.groupName ?? null,
-            taskName: n.taskName ?? null,
-          }),
-        )
-      : [];
+      // 通知データを変換する
+      const notifications = Array.isArray(notificationsRaw)
+        ? await Promise.all(
+            notificationsRaw.map(
+              async (n: {
+                id: string;
+                title: string | null;
+                message: string | null;
+                NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
+                isRead: boolean;
+                sentAt: string | Date | null;
+                readAt: string | Date | null;
+                expiresAt: string | Date | null;
+                actionUrl: string | null;
+                senderUserId: string | null;
+                groupId: string | null;
+                taskId: string | null;
+                auctionEventType: string | null;
+                auctionId: string | null;
+                userName: string | null;
+                groupName: string | null;
+                taskName: string | null;
+              }): Promise<NotificationData> => ({
+                id: n.id,
+                title: n.title ?? "",
+                message: n.message ?? "",
+                NotificationTargetType: n.NotificationTargetType,
+                isRead: n.isRead === true,
+                sentAt: (await formatDateToISOString(n.sentAt, true)) ?? "",
+                readAt: (await formatDateToISOString(n.readAt, false)) ?? "",
+                expiresAt: (await formatDateToISOString(n.expiresAt, false)) ?? "",
+                actionUrl: n.actionUrl ?? null,
+                senderUserId: n.senderUserId ?? null,
+                groupId: n.groupId ?? null,
+                taskId: n.taskId ?? null,
+                auctionEventType: n.auctionEventType ?? null,
+                auctionId: n.auctionId ?? null,
+                userName: n.userName ?? null,
+                groupName: n.groupName ?? null,
+                taskName: n.taskName ?? null,
+              }),
+            ),
+          )
+        : [];
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 未読カウント取得
-    const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
+      // 未読カウント取得
+      const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Notification" n
       WHERE
@@ -409,42 +410,43 @@ export async function getNotificationsAndUnreadCount(
         )
     `;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
+      const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 合計数取得
-    const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
+      // 合計数取得
+      const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Notification" n
       WHERE
         ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
     `;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    const totalCount = Number(totalCountResult[0]?.count ?? 0);
+      const totalCount = Number(totalCountResult[0]?.count ?? 0);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    return {
-      notifications,
-      totalCount,
-      unreadCount,
-    };
+      return {
+        notifications,
+        totalCount,
+        unreadCount,
+      };
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("通知取得エラー:", error);
-    return {
-      notifications: [],
-      totalCount: 0,
-      unreadCount: 0,
-    };
-  }
-}
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    } catch (error) {
+      console.error("通知取得エラー:", error);
+      return {
+        notifications: [],
+        totalCount: 0,
+        unreadCount: 0,
+      };
+    }
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -454,37 +456,37 @@ export async function getNotificationsAndUnreadCount(
  * @param isRead 既読状態
  * @returns 成功したかどうか
  */
-export async function apiUpdateNotificationStatus(notificationId: string, isRead: boolean): Promise<{ success: boolean }> {
-  try {
-    const userId = await getAuthenticatedSessionUserId();
-
-    // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
-    if (isRead) {
-      // 既読にする場合
-      const readAt = new Date().toISOString();
-      await prisma.$executeRaw`
+export const cachedApiUpdateNotificationStatus = cache(
+  async (notificationId: string, isRead: boolean, userId: string): Promise<{ success: boolean }> => {
+    try {
+      // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
+      if (isRead) {
+        // 既読にする場合
+        const readAt = new Date().toISOString();
+        await prisma.$executeRaw`
         UPDATE "Notification"
         SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
         WHERE id = ${notificationId}
       `;
-    } else {
-      // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
-      await prisma.$executeRaw`
+      } else {
+        // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
+        await prisma.$executeRaw`
         UPDATE "Notification"
         SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
         WHERE id = ${notificationId}
       `;
-    }
+      }
 
-    revalidatePath("/dashboard/notifications");
-    return { success: true };
-  } catch (error) {
-    console.error("通知状態更新エラー:", error);
-    return {
-      success: false,
-    };
-  }
-}
+      revalidatePath("/dashboard/notifications");
+      return { success: true };
+    } catch (error) {
+      console.error("通知状態更新エラー:", error);
+      return {
+        success: false,
+      };
+    }
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -492,9 +494,8 @@ export async function apiUpdateNotificationStatus(notificationId: string, isRead
  * 全ての通知を既読にする関数
  * @returns 処理結果
  */
-export async function markAllNotificationsAsRead(): Promise<{ success: boolean }> {
+export const cachedMarkAllNotificationsAsRead = cache(async (userId: string): Promise<{ success: boolean }> => {
   try {
-    const userId = await getAuthenticatedSessionUserId();
     const groupIds = await getUserAccessibleGroupIds(userId);
     const readAt = new Date().toISOString();
 
@@ -515,4 +516,4 @@ export async function markAllNotificationsAsRead(): Promise<{ success: boolean }
     console.error("全通知既読マークエラー:", error);
     return { success: false };
   }
-}
+});

@@ -1,8 +1,10 @@
+"use cache";
+
 import { memo } from "react";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,11 +12,8 @@ import { getAuthSession } from "@/lib/utils";
  * ヒーローセクション
  * @returns ヒーローセクション
  */
-export const HeroSection = memo(async function HeroSection() {
-  // 認証状態を取得
-  const session = await getAuthSession();
-  const userId = session?.user?.id;
-
+export const HeroSection = memo(async function HeroSection({ userId }: { userId: string | null }) {
+  cacheLife("weeks");
   return (
     <section className="relative bg-gradient-to-b from-blue-50 via-white to-white py-16 sm:py-24 lg:py-32 dark:from-blue-950 dark:via-gray-950 dark:to-gray-950">
       {/* 装飾的な背景要素 */}

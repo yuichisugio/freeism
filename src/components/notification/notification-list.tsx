@@ -217,9 +217,11 @@ const NotificationItem = memo(function NotificationItem({
             <div>
               <h4 className="font-semibold">{notification.title}</h4>
             </div>
-            <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
-              {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
-            </time>
+            {notification.sentAt && (
+              <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
+                {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
+              </time>
+            )}
           </div>
 
           <div className="mt-1 flex items-center text-sm text-gray-500">

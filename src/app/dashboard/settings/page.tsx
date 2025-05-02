@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cache, memo } from "react";
-import { cacheLife } from "next/dist/server/use-cache/cache-life";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 /**
  * 利用規約ページのコンポーネント
  */
-export default memo(function TermsPage() {
+export default memo(async function TermsPage() {
   return (
     <>
       <Header userId={null} buttonDisplay={false} />

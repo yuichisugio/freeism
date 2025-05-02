@@ -1,7 +1,6 @@
 import { type Metadata } from "next";
 import { AuctionListings } from "@/components/auction/listing/auction-listings";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

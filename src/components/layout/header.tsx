@@ -1,7 +1,6 @@
 "use cache";
 
-import { memo } from "react";
-import { cacheLife } from "next/dist/server/use-cache/cache-life";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { LoginButton } from "@/components/auth/login-button";
 import { LogoutButton } from "@/components/auth/logout-button";
@@ -21,7 +20,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
  *   - スマホ: ハンバーガーメニュー(左) + ロゴ(中央) + 通知(右)
  *   - タブレット/PC: ロゴ(左) + ナビゲーション要素(右)
  */
-export const Header = memo(async function Header({ userId, buttonDisplay = true }: { userId: string | null; buttonDisplay: boolean }) {
+export async function Header({ userId, buttonDisplay = true }: { userId: string | null; buttonDisplay: boolean }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   cacheLife("hours");
 
@@ -94,4 +93,4 @@ export const Header = memo(async function Header({ userId, buttonDisplay = true 
       </div>
     </header>
   );
-});
+}

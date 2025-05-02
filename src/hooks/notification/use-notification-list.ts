@@ -29,7 +29,7 @@ export type NotificationData = {
   message: string;
   NotificationTargetType: NotificationTargetType;
   isRead: boolean;
-  sentAt: Date;
+  sentAt: Date | null;
   readAt: Date | null;
   actionUrl: string | null;
   groupId: string | null;
@@ -229,18 +229,25 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
         }
 
         // 通知データの正規化
-        const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
-          ...notification,
-          sentAt: new Date(notification.sentAt),
-          readAt: notification.readAt ? new Date(notification.readAt) : null,
-          expiresAt: notification.expiresAt ? new Date(notification.expiresAt) : null,
-          userName: notification.userName ?? null,
-          groupName: notification.groupName ?? null,
-          taskName: notification.taskName ?? null,
-          senderUserId: notification.senderUserId ?? null,
-          auctionEventType: notification.auctionEventType as AuctionEventType | null,
-          auctionId: notification.auctionId ?? null,
-        }));
+        const processedNotifications: NotificationData[] = result.notifications.map((notification) => {
+          // sentAtが有効な日付文字列でない場合はnullにする
+          const sentAtDate = notification.sentAt ? new Date(notification.sentAt) : null;
+          // Invalid Dateの場合はnullにする
+          const validSentAt = sentAtDate instanceof Date && !isNaN(sentAtDate.getTime()) ? sentAtDate : null;
+
+          return {
+            ...notification,
+            sentAt: validSentAt,
+            readAt: notification.readAt ? new Date(notification.readAt) : null,
+            expiresAt: notification.expiresAt ? new Date(notification.expiresAt) : null,
+            userName: notification.userName ?? null,
+            groupName: notification.groupName ?? null,
+            taskName: notification.taskName ?? null,
+            senderUserId: notification.senderUserId ?? null,
+            auctionEventType: notification.auctionEventType as AuctionEventType | null,
+            auctionId: notification.auctionId ?? null,
+          };
+        });
 
         // 通知リストの更新
         if (append) {
@@ -255,8 +262,13 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
             }
           });
 
-          // マップから配列に戻して、sentAtの降順でソート
-          const mergedNotifications = Array.from(existingNotificationsMap.values()).sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
+          // マップから配列に戻して、sentAtの降順でソート (nullを考慮)
+          const mergedNotifications = Array.from(existingNotificationsMap.values()).sort((a, b) => {
+            if (!a.sentAt && !b.sentAt) return 0; // 両方 null なら等価
+            if (!a.sentAt) return 1; // a が null なら b を優先 (後)
+            if (!b.sentAt) return -1; // b が null なら a を優先 (前)
+            return b.sentAt.getTime() - a.sentAt.getTime(); // 両方 Date なら降順
+          });
 
           setNotifications(mergedNotifications);
           console.log(`[通知] 読み込み後の通知数: ${mergedNotifications.length} (重複排除後)`);
@@ -278,8 +290,13 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
             }
           });
 
-          // マップから配列に戻して、sentAtの降順でソート
-          const finalNotifications = Array.from(resultMap.values()).sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
+          // マップから配列に戻して、sentAtの降順でソート (nullを考慮)
+          const finalNotifications = Array.from(resultMap.values()).sort((a, b) => {
+            if (!a.sentAt && !b.sentAt) return 0;
+            if (!a.sentAt) return 1;
+            if (!b.sentAt) return -1;
+            return b.sentAt.getTime() - a.sentAt.getTime();
+          });
 
           setNotifications(finalNotifications);
         }
