@@ -329,7 +329,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
       {/* 検索バーとサジェスト */}
       <div className="relative mb-4 w-full">
         <form
-          className="flex w-full rounded-lg border border-gray-200 bg-white focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
+          className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
           onSubmit={(e) => {
             e.preventDefault();
             handleSearchQueryEnter(changingSearchQuery ?? "");
@@ -337,7 +337,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
         >
           <input
             type="search"
-            placeholder="⌘+Enterで検索：商品名や説明文で検索..."
+            placeholder="商品名や説明文で検索..."
             value={changingSearchQuery ?? ""}
             onChange={(e) => setChangingSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -349,7 +349,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
             }}
             className="flex-1 rounded-l-lg border-0 bg-transparent px-4 py-2 text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
           />
-          <Button type="submit" className="rounded-l-none rounded-r-lg border-0 bg-blue-500 px-5 text-white hover:bg-blue-600">
+          <Button type="submit" variant="ghost" className="h-10 rounded-l-none rounded-r-lg border-0 bg-blue-500 px-5 text-white hover:bg-blue-600">
             検索
           </Button>
         </form>
