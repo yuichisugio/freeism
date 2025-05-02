@@ -40,7 +40,7 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
    */
   const whereClauses: Prisma.Sql[] = [];
   let ftsCondition: Prisma.Sql = Prisma.empty;
-  let keywords: string[] = [];
+  const keywords: string[] = [];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -75,10 +75,11 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
   /**
    * 全文検索条件 (searchQuery がある場合)
    */
+  let normalizedQuery: string | null = null;
   if (searchQuery) {
-    keywords = searchQuery.split(/\s+/).filter(Boolean);
     // 全文検索条件 (&@: 部分一致) - Task テーブル (エイリアス t)
-    ftsCondition = Prisma.sql`public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@ ${keywords.map((k) => `${k}`).join(" OR ")}`;
+    normalizedQuery = searchQuery.trim().replace(/\s+/g, " OR ");
+    ftsCondition = Prisma.sql`public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ${normalizedQuery}`;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -351,7 +352,7 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
         highlightParamIndices.push(Prisma.sql`${kw}`);
       });
       // ハイライト用パラメータの文字列
-      highlightParamsSQL = Prisma.sql`ARRAY[${Prisma.join(highlightParamIndices, ", ")}]`;
+      highlightParamsSQL = Prisma.sql`pgroonga_query_extract_keywords(${keywords.map((k) => `${k}`).join(" OR ")})`;
       // ハイライト (キーワードごとにパラメータを追加)
       ftsHighlightTaskSQL = Prisma.sql`, pgroonga_highlight_html(t.task, ${highlightParamsSQL}) as task_highlighted`;
       ftsHighlightDetailSQL = Prisma.sql`, pgroonga_highlight_html(t.detail, ${highlightParamsSQL}) as detail_highlighted`;

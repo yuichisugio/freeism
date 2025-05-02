@@ -274,7 +274,9 @@ const RangeInputFields = memo(function RangeInputFields({
 export const AuctionFilters = memo(function AuctionFilters({ listingsConditions, setListingsConditionsAction }: AuctionFiltersProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックからロジックを取得
+  /**
+   * カスタムフックからロジックを取得
+   */
   const {
     // state
     showFilters,
@@ -328,6 +330,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
     <div className="mb-4 w-full">
       {/* 検索バーとサジェスト */}
       <div className="relative mb-4 w-full">
+        {/* 検索欄 */}
         <form
           className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
           onSubmit={(e) => {
@@ -353,6 +356,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
             検索
           </Button>
         </form>
+
         {/* サジェストリスト */}
         {suggestions && suggestions.length > 0 && (
           <ul className="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800">

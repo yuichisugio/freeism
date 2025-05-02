@@ -142,7 +142,7 @@ export const AuctionPagination = memo(function AuctionPagination({
                     <PaginationLink
                       aria-current={isActive ? "page" : undefined}
                       onClick={() => handlePageChange(page)}
-                      className={cn(baseButtonClass, isActive ? "bg-primary bg-blue-100 hover:bg-blue-200" : "hover:bg-black/10")}
+                      className={cn(baseButtonClass, isActive ? "bg-primary cursor-not-allowed bg-blue-100" : "hover:bg-black/10")}
                     >
                       {page}
                     </PaginationLink>

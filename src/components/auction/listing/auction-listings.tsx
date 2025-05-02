@@ -16,7 +16,9 @@ import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings
 export const AuctionListings = memo(function AuctionListings() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックからロジックと状態を取得
+  /**
+   * カスタムフックからロジックと状態を取得
+   */
   const {
     // 状態
     auctions,
@@ -31,7 +33,9 @@ export const AuctionListings = memo(function AuctionListings() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 商品が見つからない場合
+  /**
+   * 商品が見つからない場合
+   */
   const noResults = useCallback(() => {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -45,7 +49,9 @@ export const AuctionListings = memo(function AuctionListings() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ローディング状態の場合
+  /**
+   * ローディング状態の場合
+   */
   const loading = useCallback(() => {
     return (
       <>
@@ -79,13 +85,18 @@ export const AuctionListings = memo(function AuctionListings() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ローディング状態の場合
+  /**
+   * ローディング状態の場合
+   */
   if (isLoading) {
     return loading();
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 商品が見つかった場合
+   */
   return (
     <div className="space-y-6">
       {/* フィルターコンポーネント */}

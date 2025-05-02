@@ -56,6 +56,7 @@ export async function getSearchSuggestions(query: string, userId: string): Promi
  */
 export async function getAuctionCount({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> {
   const cachedData = await cachedGetAuctionCount({ listingsConditions, userId });
+  // キャッシュデータがundefinedまたはnullの場合はエラーを投げる。0が来た場合にエラーにならないようにしたい
   if (cachedData !== undefined && cachedData !== null) {
     return cachedData;
   } else {

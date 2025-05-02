@@ -258,7 +258,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-    // router.push(newUrl, { scroll: false });
     window.history.pushState({}, "", newUrl);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
