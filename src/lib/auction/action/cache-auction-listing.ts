@@ -1,5 +1,3 @@
-"use cache";
-
 import { cache } from "react"; // Next.js 15+ のキャッシュ機能
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus, Prisma } from "@prisma/client";
@@ -41,7 +39,7 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
    * パラメータとWHERE句を初期化
    */
   const whereClauses: Prisma.Sql[] = [];
-  let ftsCondition: Prisma.Sql = Prisma.sql``;
+  let ftsCondition: Prisma.Sql = Prisma.empty;
   let keywords: string[] = [];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -80,7 +78,7 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
   if (searchQuery) {
     keywords = searchQuery.split(/\s+/).filter(Boolean);
     // 全文検索条件 (&@: 部分一致) - Task テーブル (エイリアス t)
-    ftsCondition = Prisma.sql`public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@ ${keywords.map((k) => `$${k}`).join(" OR ")}`;
+    ftsCondition = Prisma.sql`public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@ ${keywords.map((k) => `${k}`).join(" OR ")}`;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -113,6 +111,8 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
     const statusWhereClausesSql: Prisma.Sql[] = [];
     const watchlistConditions: Prisma.Sql[] = [];
     const bidConditions: Prisma.Sql[] = [];
+    // 現在時刻を一度だけ取得
+    const now = new Date();
 
     status.forEach((statusItem) => {
       switch (statusItem) {
@@ -120,33 +120,34 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
           // getAuctionCount 用の条件 (getAuctionListings では JOIN で処理)
           // パラメータインデックス $1 (userId) を使用
           watchlistConditions.push(
-            Prisma.sql`EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = $${userId})`,
+            Prisma.sql`EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ${userId})`,
           );
           break;
         case "not_bidded":
           // getAuctionCount 用の条件
           // パラメータインデックス $1 (userId) を使用
-          bidConditions.push(Prisma.sql`NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = $${userId})`);
+          bidConditions.push(Prisma.sql`NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
           break;
         case "bidded":
           // getAuctionCount 用の条件
           // パラメータインデックス $1 (userId) を使用
-          bidConditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = $${userId})`);
+          bidConditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
           break;
         case "ended":
-          statusWhereClausesSql.push(Prisma.sql`a.status = $${AuctionStatus.ENDED}`);
+          // Prisma.sql`${AuctionStatus.ENDED}` を使用
+          statusWhereClausesSql.push(Prisma.sql`a.status::text = ${AuctionStatus.ENDED}`);
           break;
         case "not_ended":
-          // 現在時刻より後に終了するオークション
-          statusWhereClausesSql.push(Prisma.sql`(a.status != $${AuctionStatus.ENDED} AND a."end_time" >= $${new Date()})`);
+          // Prisma.sql`${now}` を使用
+          statusWhereClausesSql.push(Prisma.sql`(a.status::text != ${AuctionStatus.ENDED} AND a."end_time" >= ${now})`);
           break;
         case "not_started":
-          // 現在時刻より後に開始するオークション (PENDING 状態)
-          statusWhereClausesSql.push(Prisma.sql`(a.status = $${AuctionStatus.PENDING} AND a."start_time" >= $${new Date()})`);
+          // Prisma.sql`${now}` を使用
+          statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.PENDING} AND a."start_time" >= ${now})`);
           break;
         case "started":
-          // 現在時刻以前に開始したオークション (ACTIVE 状態)
-          statusWhereClausesSql.push(Prisma.sql`(a.status = $${AuctionStatus.ACTIVE} AND a."start_time" <= $${new Date()})`);
+          // Prisma.sql`${now}` を使用
+          statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.ACTIVE} AND a."start_time" <= ${now})`);
           break;
       }
     });
@@ -182,10 +183,12 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
    * 入札額
    */
   if (minBid !== null && minBid !== undefined) {
-    whereClauses.push(Prisma.sql`a."current_highest_bid" >= $${minBid}`);
+    // Prisma.sql`${minBid}` を使用
+    whereClauses.push(Prisma.sql`a."current_highest_bid" >= ${minBid}`);
   }
   if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
-    whereClauses.push(Prisma.sql`a."current_highest_bid" <= $${maxBid}`);
+    // Prisma.sql`${maxBid}` を使用
+    whereClauses.push(Prisma.sql`a."current_highest_bid" <= ${maxBid}`);
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -193,14 +196,18 @@ async function buildRawQueryComponents(listingsConditions: AuctionListingsCondit
   /**
    * 残り時間
    */
-  const now = new Date();
+  const nowForRemainingTime = new Date(); // 残り時間計算用の現在時刻
   if (minRemainingTime !== null && minRemainingTime !== undefined) {
     // end_time が (現在時刻 + minRemainingTime時間) 以降
-    whereClauses.push(Prisma.sql`a."end_time" >= ${new Date(now.getTime() + minRemainingTime * 60 * 60 * 1000)}`);
+    const minEndTime = new Date(nowForRemainingTime.getTime() + minRemainingTime * 60 * 60 * 1000);
+    // Prisma.sql`${minEndTime}` を使用
+    whereClauses.push(Prisma.sql`a."end_time" >= ${minEndTime}`);
   }
   if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
     // end_time が (現在時刻 + maxRemainingTime時間) 以前
-    whereClauses.push(Prisma.sql`a."end_time" <= ${new Date(now.getTime() + maxRemainingTime * 60 * 60 * 1000)}`);
+    const maxEndTime = new Date(nowForRemainingTime.getTime() + maxRemainingTime * 60 * 60 * 1000);
+    // Prisma.sql`${maxEndTime}` を使用
+    whereClauses.push(Prisma.sql`a."end_time" <= ${maxEndTime}`);
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -301,11 +308,7 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
     /**
      * クエリコンポーネントの構築
      */
-    const {
-      whereClauses, // 基本的なWHERE条件
-      ftsCondition, // 全文検索条件
-      keywords, // FTS用キーワード
-    } = await buildRawQueryComponents(listingsConditions, userId);
+    const { whereClauses, ftsCondition, keywords } = await buildRawQueryComponents(listingsConditions, userId);
     console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_whereClauses", whereClauses);
     console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_ftsCondition", ftsCondition);
     console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_keywords", keywords);
@@ -371,47 +374,51 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
      */
     // ソート順のSQL
     let orderBySql: Prisma.Sql = Prisma.empty;
-    // 全文検索のsearchQueryがある場合は、それを使用する。それ以外の場合は、作成日時順
-    const defaultSort = ftsOrderBySQL ? ftsOrderBySQL : Prisma.sql`a."created_at" DESC`;
-    // ソート順が指定されている場合
+    // デフォルトソート順を定義 (FTS検索がない場合は作成日時降順)
+    const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`a."created_at" DESC`;
+
     if (sort && sort.length > 0) {
       const primarySort = sort[0];
-      // ソート順の方向
-      const direction = primarySort.direction === "asc" ? "ASC NULLS LAST" : "DESC NULLS LAST";
+      // Prisma.sql を使用して安全に方向を構築
+      const directionSql = primarySort.direction === "asc" ? Prisma.sql`ASC NULLS LAST` : Prisma.sql`DESC NULLS LAST`;
+
       switch (primarySort.field) {
         case "relevance":
-          orderBySql = ftsOrderBySQL || defaultSort; // FTS検索がない場合はデフォルトソート
+          // FTS検索がない場合はデフォルトソートを使用
+          orderBySql = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : defaultSort;
           break;
         case "newest":
-          orderBySql = Prisma.sql`a."created_at" ${direction}`;
+          orderBySql = Prisma.sql`a."created_at" ${directionSql}`;
           break;
         case "time_remaining":
-          orderBySql = Prisma.sql`a."end_time" ${direction}`;
+          orderBySql = Prisma.sql`a."end_time" ${directionSql}`;
           break;
         case "bids":
-          // bids_count は後でJOINするため、ここではソートできない。CTE内でソートするか、最終結果でソートする。
-          // CTE内でソートする方が効率的。このケースは後述の CTE 定義で対応。
-          orderBySql = Prisma.sql`"bids_count_intermediate" ${direction}`;
+          // bids_count_intermediate は FilteredAuctionsCTE で定義される
+          orderBySql = Prisma.sql`"bids_count_intermediate" ${directionSql}`;
           break;
         case "price":
-          orderBySql = Prisma.sql`a."current_highest_bid" ${direction}`;
+          orderBySql = Prisma.sql`a."current_highest_bid" ${directionSql}`;
           break;
         default:
           orderBySql = defaultSort;
           break;
       }
     } else {
+      // sort パラメータがない場合はデフォルトソートを使用
       orderBySql = defaultSort;
     }
-    // bids でソートする場合、bids_count をCTE内で計算してソートキーに含める必要がある
+
+    // bids でソートする場合、bids_count をCTE内で計算してソートキーに含める
     let bidsCountSelectForSort: Prisma.Sql = Prisma.empty;
-    if (orderBySql.sql.includes('"bids_count_intermediate"')) {
+    // primarySort.field を直接チェックする方が安全
+    if (sort && sort.length > 0 && sort[0].field === "bids") {
       bidsCountSelectForSort = Prisma.sql`
         , (SELECT COUNT(*) FROM "BidHistory" bh_sort WHERE bh_sort."auction_id" = a.id) as bids_count_intermediate
       `;
     }
 
-    // コンソール
+    // コンソールログはそのまま
     console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_orderBySql", orderBySql);
     console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_bidsCountSelectForSort", bidsCountSelectForSort);
 
@@ -446,6 +453,10 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
     console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_finalWhereClause", finalWhereClause);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // 修正: ORDER BY 句を条件付きで生成
+    const orderByClause = orderBySql !== Prisma.empty ? Prisma.sql`ORDER BY ${orderBySql}` : Prisma.empty;
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_orderByClause", orderByClause);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * SQLクエリの組み立て (CTEを使用)
@@ -463,12 +474,12 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
           ${ftsSelectSQL} -- スコア計算 (FTS時)
         FROM "Auction" a
         JOIN "Task" t ON a."task_id" = t.id
-        WHERE ${finalWhereClause}
-        ORDER BY ${orderBySql}
+        ${finalWhereClause !== Prisma.empty ? Prisma.sql`WHERE ${finalWhereClause}` : Prisma.empty}
+        ${orderByClause} -- 修正: 条件付きで生成した ORDER BY 句を使用
       ),
       "PaginatedAuctionsCTE" AS (
         -- ステップ2: ページネーションの適用
-        SELECT id, task_id ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty}
+        SELECT id, task_id ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty} -- scoreも選択
         FROM "FilteredAuctionsCTE"
         LIMIT ${take} OFFSET ${skip}
       ),
@@ -506,7 +517,7 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
         LEFT JOIN "UserSettings" us ON u.id = us."user_id"
         WHERE te."task_id" IN (SELECT task_id FROM "PaginatedAuctionsCTE")
         GROUP BY te."task_id"
-      ),
+      )
       -- 最終ステップ: 全ての情報を結合して取得
       SELECT
           a.id as "id",
@@ -521,14 +532,13 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
           t.category as "category",
           g.id as "group_id",
           g.name as "group_name",
-          COALESCE(bc.bids_count, 0) as "bids_count", -- BidsCountCTE から取得 (COALESCEで0を保証)
-          COALESCE(wc.is_watched, FALSE) as "is_watched", -- WatchlistCTE から取得 (COALESCEでfalseを保証)
-          ex.executors_json -- ExecutorsCTE から取得
-          -- 修正: PaginatedAuctionsCTE からスコアを取得し、ハイライトを追加
-          ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, p.score as score` : Prisma.empty} -- スコア
+          COALESCE(bc.bids_count, 0) as "bids_count",
+          COALESCE(wc.is_watched, FALSE) as "is_watched",
+          ex.executors_json
+          ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, p.score as score` : Prisma.empty} -- PaginatedAuctionsCTE からスコアを取得 (エイリアス p)
           ${ftsHighlightTaskSQL}    -- タスクハイライト
           ${ftsHighlightDetailSQL}  -- 詳細ハイライト
-      FROM "PaginatedAuctionsCTE" p
+      FROM "PaginatedAuctionsCTE" p -- PaginatedAuctionsCTE にエイリアス p を設定
       JOIN "Auction" a ON p.id = a.id
       JOIN "Task" t ON a."task_id" = t.id
       JOIN "Group" g ON a."group_id" = g.id
@@ -666,8 +676,6 @@ export const getAuctionListings = cache(async ({ listingsConditions, userId }: G
      * 結果を返す
      */
     return items;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("src/lib/auction/action/cache-auction-listing.ts_getAuctionListings_error", error);
     return []; // 空の結果を返す場合
@@ -736,7 +744,7 @@ export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetA
             SELECT COUNT(*)::bigint as count
             FROM "Auction" a
             ${joinClause}
-            WHERE ${Prisma.join(finalWhereClauses, " AND ")}
+            ${finalWhereClauses.length > 0 ? Prisma.sql`WHERE ${Prisma.join(finalWhereClauses, " AND ")}` : Prisma.empty}
         `;
 
     // コンソール
@@ -748,22 +756,21 @@ export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetA
      * Rawクエリ実行
      */
     const result = await prisma.$queryRaw<{ count: bigint }[]>(sql);
-    // コンソール
-    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionCount_result", result);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * 結果の整形
      */
-    const count = result?.[0]?.count ?? BigInt(0);
+    const count = Number(result?.[0]?.count ?? BigInt(0));
+    console.log("src/lib/auction/action/cache-auction-listing.ts_getAuctionCount_result", count);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * 結果の整形
      */
-    return Number(count);
+    return count;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {

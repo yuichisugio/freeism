@@ -56,7 +56,7 @@ export async function getSearchSuggestions(query: string, userId: string): Promi
  */
 export async function getAuctionCount({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> {
   const cachedData = await cachedGetAuctionCount({ listingsConditions, userId });
-  if (cachedData) {
+  if (cachedData !== undefined && cachedData !== null) {
     return cachedData;
   } else {
     throw new Error("キャッシュデータがありません");
