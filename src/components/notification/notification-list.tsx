@@ -557,11 +557,7 @@ const Notifications = memo(function Notifications({
  * 通知リストコンポーネント
  * @param {function} onUnreadStatusChangeAction - 未読状態変更時のコールバック
  */
-export const NotificationList = memo(function NotificationList({
-  onUnreadStatusChangeAction,
-}: {
-  onUnreadStatusChangeAction?: (hasUnread: boolean) => void;
-}) {
+export const NotificationList = memo(function NotificationList() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const {
@@ -580,7 +576,7 @@ export const NotificationList = memo(function NotificationList({
     handleAuctionFilterChange,
     handleManualRefresh,
     requestCounter,
-  } = useNotificationList(onUnreadStatusChangeAction);
+  } = useNotificationList();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

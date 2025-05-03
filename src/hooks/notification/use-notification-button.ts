@@ -10,7 +10,6 @@ type NotificationButtonReturn = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   hasUnreadNotifications: boolean;
-  setHasUnreadNotifications: (hasUnread: boolean) => void;
   status: string;
 };
 
@@ -18,8 +17,8 @@ type NotificationButtonReturn = {
  * 通知ボタン用のカスタムフック
  * - 未読通知の状態管理
  * - 定期的な通知チェック
- * - モーダル開閉状態管理
- * @returns {isOpen: boolean, setIsOpen: (isOpen: boolean) => void, hasUnreadNotifications: boolean, handleUnreadStatusChange: (hasUnread: boolean) => void, status: string}
+ * - モーダー開閉状態管理
+ * @returns {isOpen: boolean, setIsOpen: (isOpen: boolean) => void, hasUnreadNotifications: boolean, status: string}
  */
 export function useNotificationButton(): NotificationButtonReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -99,7 +98,6 @@ export function useNotificationButton(): NotificationButtonReturn {
     isOpen,
     setIsOpen,
     hasUnreadNotifications,
-    setHasUnreadNotifications,
     status,
   };
 }

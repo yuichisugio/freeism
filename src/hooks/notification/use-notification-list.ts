@@ -71,10 +71,9 @@ export type NotificationManagerResult = {
 
 /**
  * 通知管理カスタムフック
- * @param {Function} onUnreadStatusChangeAction - 未読通知の状態が変更された時に呼び出す関数
  * @returns {NotificationManagerResult} 通知管理カスタムフックの返り値
  */
-export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boolean) => void): NotificationManagerResult {
+export function useNotificationList(): NotificationManagerResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知の情報
@@ -195,118 +194,109 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
   /**
    * 通知を取得する関数
    */
-  const fetchNotifications = useCallback(
-    async (page = 1, append = false) => {
-      console.log("src/hooks/notification/use-notification-list.ts_fetchNotifications_start");
+  const fetchNotifications = useCallback(async (page = 1, append = false) => {
+    console.log("src/hooks/notification/use-notification-list.ts_fetchNotifications_start");
 
-      console.log(`[通知] データ取得開始 (ページ: ${page}, 追加: ${append})`);
+    console.log(`[通知] データ取得開始 (ページ: ${page}, 追加: ${append})`);
 
-      try {
-        // ローディング状態の設定
-        if (append) {
-          setIsLoadingMore(true);
-        } else {
-          setIsLoading(true);
-        }
-
-        setError(null);
-
-        // APIからデータ取得
-        const result = await getNotificationsAndUnreadCount(page, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
-
-        if (!result?.notifications) {
-          throw new Error("APIからの応答が無効です");
-        }
-
-        // 通知データの正規化
-        const processedNotifications: NotificationData[] = result.notifications.map((notification) => {
-          // sentAtが有効な日付文字列でない場合はnullにする
-          const sentAtDate = notification.sentAt ? new Date(notification.sentAt) : null;
-          // Invalid Dateの場合はnullにする
-          const validSentAt = sentAtDate instanceof Date && !isNaN(sentAtDate.getTime()) ? sentAtDate : null;
-
-          return {
-            ...notification,
-            sentAt: validSentAt,
-            readAt: notification.readAt ? new Date(notification.readAt) : null,
-            expiresAt: notification.expiresAt ? new Date(notification.expiresAt) : null,
-            userName: notification.userName ?? null,
-            groupName: notification.groupName ?? null,
-            taskName: notification.taskName ?? null,
-            senderUserId: notification.senderUserId ?? null,
-            auctionEventType: notification.auctionEventType as AuctionEventType | null,
-            auctionId: notification.auctionId ?? null,
-          };
-        });
-
-        // 通知リストの更新
-        if (append) {
-          // 追加モード
-          setNotifications((prevNotifications) => {
-            const existingNotificationsMap = new Map(prevNotifications.map((n) => [n.id, n]));
-            processedNotifications.forEach((notification) => {
-              // ローカルで更新された通知は上書きしない (Refを参照)
-              if (!pendingUpdatesRef.current.has(notification.id)) {
-                existingNotificationsMap.set(notification.id, notification);
-              }
-            });
-            const mergedNotifications = Array.from(existingNotificationsMap.values()).sort((a, b) => {
-              if (!a.sentAt && !b.sentAt) return 0;
-              if (!a.sentAt) return 1;
-              if (!b.sentAt) return -1;
-              return b.sentAt.getTime() - a.sentAt.getTime();
-            });
-            console.log(`[通知] 読み込み後の通知数: ${mergedNotifications.length} (重複排除後)`);
-            return mergedNotifications;
-          });
-        } else {
-          // 置換モード
-          setNotifications((prevNotifications) => {
-            const resultMap = new Map(processedNotifications.map((n) => [n.id, n]));
-            // 保留中の更新があれば、そのステータスを優先 (Refを参照)
-            pendingUpdatesRef.current.forEach((isRead, id) => {
-              const notification = resultMap.get(id);
-              if (notification) {
-                resultMap.set(id, { ...notification, isRead, readAt: isRead ? new Date() : null });
-              } else {
-                // API結果に含まれないが保留中の更新がある場合 (例: 古い通知が既読にされた)
-                // このケースをどう扱うか？ prevNotifications から探す？
-                const prevNotification = prevNotifications.find((n) => n.id === id);
-                if (prevNotification) {
-                  resultMap.set(id, { ...prevNotification, isRead, readAt: isRead ? new Date() : null });
-                }
-              }
-            });
-            const finalNotifications = Array.from(resultMap.values()).sort((a, b) => {
-              if (!a.sentAt && !b.sentAt) return 0;
-              if (!a.sentAt) return 1;
-              if (!b.sentAt) return -1;
-              return b.sentAt.getTime() - a.sentAt.getTime();
-            });
-            return finalNotifications;
-          });
-        }
-
-        setHasMore((result.totalCount || 0) > page * NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
-        setCurrentPage(page);
-
-        // 親コンポーネントに未読状態を通知
-        if (onUnreadStatusChangeAction) {
-          onUnreadStatusChangeAction(result.unreadCount > 0);
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? `通知の取得に失敗しました: ${err.message}` : "通知の取得中にエラーが発生しました";
-        setError(errorMessage);
-        console.error("[通知] 取得エラー:", err);
-      } finally {
-        // finallyブロックからsetTimeoutを削除
-        setIsLoading(false);
-        setIsLoadingMore(false);
+    try {
+      // ローディング状態の設定
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
       }
-    },
-    // 親コンポーネントで onUnreadStatusChangeAction がメモ化されていることを期待
-    [onUnreadStatusChangeAction],
-  );
+
+      setError(null);
+
+      // APIからデータ取得
+      const result = await getNotificationsAndUnreadCount(page, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+
+      if (!result?.notifications) {
+        throw new Error("APIからの応答が無効です");
+      }
+
+      // 通知データの正規化
+      const processedNotifications: NotificationData[] = result.notifications.map((notification) => {
+        // sentAtが有効な日付文字列でない場合はnullにする
+        const sentAtDate = notification.sentAt ? new Date(notification.sentAt) : null;
+        // Invalid Dateの場合はnullにする
+        const validSentAt = sentAtDate instanceof Date && !isNaN(sentAtDate.getTime()) ? sentAtDate : null;
+
+        return {
+          ...notification,
+          sentAt: validSentAt,
+          readAt: notification.readAt ? new Date(notification.readAt) : null,
+          expiresAt: notification.expiresAt ? new Date(notification.expiresAt) : null,
+          userName: notification.userName ?? null,
+          groupName: notification.groupName ?? null,
+          taskName: notification.taskName ?? null,
+          senderUserId: notification.senderUserId ?? null,
+          auctionEventType: notification.auctionEventType as AuctionEventType | null,
+          auctionId: notification.auctionId ?? null,
+        };
+      });
+
+      // 通知リストの更新
+      if (append) {
+        // 追加モード
+        setNotifications((prevNotifications) => {
+          const existingNotificationsMap = new Map(prevNotifications.map((n) => [n.id, n]));
+          processedNotifications.forEach((notification) => {
+            // ローカルで更新された通知は上書きしない (Refを参照)
+            if (!pendingUpdatesRef.current.has(notification.id)) {
+              existingNotificationsMap.set(notification.id, notification);
+            }
+          });
+          const mergedNotifications = Array.from(existingNotificationsMap.values()).sort((a, b) => {
+            if (!a.sentAt && !b.sentAt) return 0;
+            if (!a.sentAt) return 1;
+            if (!b.sentAt) return -1;
+            return b.sentAt.getTime() - a.sentAt.getTime();
+          });
+          console.log(`[通知] 読み込み後の通知数: ${mergedNotifications.length} (重複排除後)`);
+          return mergedNotifications;
+        });
+      } else {
+        // 置換モード
+        setNotifications((prevNotifications) => {
+          const resultMap = new Map(processedNotifications.map((n) => [n.id, n]));
+          // 保留中の更新があれば、そのステータスを優先 (Refを参照)
+          pendingUpdatesRef.current.forEach((isRead, id) => {
+            const notification = resultMap.get(id);
+            if (notification) {
+              resultMap.set(id, { ...notification, isRead, readAt: isRead ? new Date() : null });
+            } else {
+              // API結果に含まれないが保留中の更新がある場合 (例: 古い通知が既読にされた)
+              // このケースをどう扱うか？ prevNotifications から探す？
+              const prevNotification = prevNotifications.find((n) => n.id === id);
+              if (prevNotification) {
+                resultMap.set(id, { ...prevNotification, isRead, readAt: isRead ? new Date() : null });
+              }
+            }
+          });
+          const finalNotifications = Array.from(resultMap.values()).sort((a, b) => {
+            if (!a.sentAt && !b.sentAt) return 0;
+            if (!a.sentAt) return 1;
+            if (!b.sentAt) return -1;
+            return b.sentAt.getTime() - a.sentAt.getTime();
+          });
+          return finalNotifications;
+        });
+      }
+
+      setHasMore((result.totalCount || 0) > page * NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+      setCurrentPage(page);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? `通知の取得に失敗しました: ${err.message}` : "通知の取得中にエラーが発生しました";
+      setError(errorMessage);
+      console.error("[通知] 取得エラー:", err);
+    } finally {
+      // finallyブロックからsetTimeoutを削除
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -573,17 +563,13 @@ export function useNotificationList(onUnreadStatusChangeAction?: (hasUnread: boo
     setUnreadCount((prevUnreadCount) => {
       if (prevUnreadCount !== currentUnread) {
         console.log(`[通知] 未読数を ${prevUnreadCount} -> ${currentUnread} に更新`);
-        if (onUnreadStatusChangeAction) {
-          console.log(`[通知] 親コンポーネントに通知 (未読あり: ${currentUnread > 0})`);
-          onUnreadStatusChangeAction(currentUnread > 0);
-        }
         return currentUnread; // 新しい未読数を返す
       }
       return prevUnreadCount; // 変更がない場合は既存の値を返す必要がある
     });
 
     console.log("src/hooks/notification/use-notification-list.ts_useEffect_updateUnreadCount_end");
-  }, [notifications, pendingUpdateCount, onUnreadStatusChangeAction]); // notifications, pendingUpdateCount, コールバック関数に依存
+  }, [notifications, pendingUpdateCount]); // notifications, pendingUpdateCount に依存 (onUnreadStatusChangeAction を削除)
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

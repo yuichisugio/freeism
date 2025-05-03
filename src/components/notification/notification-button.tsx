@@ -22,7 +22,7 @@ export const NotificationButton = memo(function NotificationButton() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知ボタンのフック
-  const { isOpen, setIsOpen, hasUnreadNotifications, setHasUnreadNotifications, status } = useNotificationButton();
+  const { isOpen, setIsOpen, hasUnreadNotifications, status } = useNotificationButton();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -47,7 +47,7 @@ export const NotificationButton = memo(function NotificationButton() {
             <DialogTitle>通知</DialogTitle>
           </DialogHeader>
           <div className="rounded-lg border px-6 py-2 shadow-sm">
-            <NotificationList onUnreadStatusChangeAction={setHasUnreadNotifications} />
+            <NotificationList />
           </div>
         </DialogContent>
       </Dialog>
