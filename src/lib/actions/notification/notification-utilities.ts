@@ -2,14 +2,16 @@
 
 import type { NotificationData } from "@/lib/actions/notification/cache-notification-utilities";
 import { cache } from "react";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import {
-  cachedApiUpdateNotificationStatus,
+  buildCommonNotificationWhereClause,
   cachedGetNotificationsAndUnreadCount,
   cachedGetUnreadNotificationsCount,
-  cachedMarkAllNotificationsAsRead,
 } from "@/lib/actions/notification/cache-notification-utilities";
+import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 未読通知の数を取得する - JSONB最適化版
@@ -77,14 +79,43 @@ export const getNotificationsAndUnreadCount = cache(
  * @param isRead 既読状態
  * @returns 成功したかどうか
  */
-export const apiUpdateNotificationStatus = cache(async (notificationId: string, isRead: boolean): Promise<{ success: boolean }> => {
+export const updateNotificationStatus = cache(async (notificationId: string, isRead: boolean): Promise<{ success: boolean }> => {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     const userId = await getAuthenticatedSessionUserId();
 
-    const result = await cachedApiUpdateNotificationStatus(notificationId, isRead, userId);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
+    if (isRead) {
+      // 既読にする場合
+      const readAt = new Date().toISOString();
+      await prisma.$executeRaw`
+      UPDATE "Notification"
+      SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+      WHERE id = ${notificationId}
+    `;
+    } else {
+      // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
+      await prisma.$executeRaw`
+      UPDATE "Notification"
+      SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
+      WHERE id = ${notificationId}
+    `;
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // キャッシュを更新
+    revalidateTag("notification");
     revalidatePath("/dashboard/notifications");
-    return result;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("通知状態更新エラー:", error);
     return {
@@ -101,14 +132,34 @@ export const apiUpdateNotificationStatus = cache(async (notificationId: string, 
  */
 export const markAllNotificationsAsRead = cache(async (): Promise<{ success: boolean }> => {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     const userId = await getAuthenticatedSessionUserId();
 
-    await cachedMarkAllNotificationsAsRead(userId);
+    // 共通のWHERE句を取得 (タスク条件は不要なので false を指定)
+    const whereClause = await buildCommonNotificationWhereClause(userId, false);
+
+    const readAt = new Date().toISOString();
+
+    // 全ての通知を一括で既読に設定
+    await prisma.$executeRaw`
+      UPDATE "Notification" n -- エイリアス n を追加
+      SET "is_read" =
+        COALESCE(n."is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+      WHERE ${whereClause} -- 結合したWHERE句を使用
+    `;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // キャッシュを更新
+    revalidateTag("notification");
     revalidatePath("/dashboard/notifications");
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("全通知既読マークエラー:", error);
     return { success: false };

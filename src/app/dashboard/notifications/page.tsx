@@ -1,7 +1,4 @@
-"use cache";
-
 import { type Metadata } from "next";
-import { unstable_cacheLife as cacheLife } from "next/cache";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { NotificationList } from "@/components/notification/notification-list";
 
@@ -24,10 +21,6 @@ export const metadata: Metadata = {
  * - 通知状態をグローバルに反映
  */
 export default async function NotificationsPage() {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  cacheLife("max");
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

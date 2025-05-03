@@ -1,4 +1,6 @@
-import { memo } from "react";
+"use cache";
+
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { GitHubLogoSvg, TwitterLogoSvg } from "@/components/ui/svg";
 
@@ -10,7 +12,8 @@ import { GitHubLogoSvg, TwitterLogoSvg } from "@/components/ui/svg";
  * - コピーライト表示
  * - レスポンシブ対応（モバイルでは縦並び、デスクトップでは横並び）
  */
-export const Footer = memo(function Footer() {
+export async function Footer() {
+  cacheLife("max");
   return (
     <footer className="w-full border-t border-blue-100 bg-gradient-to-b from-white to-blue-50 dark:border-blue-900 dark:from-gray-950 dark:to-blue-950">
       <div className="container mx-auto px-4 py-8 sm:py-12">
@@ -76,4 +79,4 @@ export const Footer = memo(function Footer() {
       </div>
     </footer>
   );
-});
+}
