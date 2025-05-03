@@ -8,6 +8,8 @@ import { Bell } from "lucide-react";
 
 import { NotificationList } from "./notification-list";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 通知ボタンコンポーネント
  * - レスポンシブ対応: 画面サイズに応じてモーダルのスタイルを変更
@@ -31,6 +33,8 @@ export const NotificationButton = memo(function NotificationButton() {
     console.log("src/components/notification/notification-button.tsx_NotificationButton_unauthenticated_or_loading");
     return null;
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <>

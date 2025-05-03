@@ -6,12 +6,17 @@ import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 通知ボタン用のカスタムフックの戻り値の型
+ */
 type NotificationButtonReturn = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   hasUnreadNotifications: boolean;
   status: string;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 通知ボタン用のカスタムフック
@@ -23,7 +28,10 @@ type NotificationButtonReturn = {
 export function useNotificationButton(): NotificationButtonReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // モーダルの開閉状態を管理
+  /**
+   * state
+   */
+  // モーダーの開閉状態を管理
   const [isOpen, setIsOpen] = useState(false);
 
   // 未読通知の有無
@@ -31,7 +39,9 @@ export function useNotificationButton(): NotificationButtonReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // セッション情報を取得
+  /**
+   * セッション情報を取得
+   */
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
@@ -95,9 +105,12 @@ export function useNotificationButton(): NotificationButtonReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
     isOpen,
-    setIsOpen,
     hasUnreadNotifications,
     status,
+
+    // function
+    setIsOpen,
   };
 }

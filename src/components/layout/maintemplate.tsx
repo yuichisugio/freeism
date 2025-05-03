@@ -32,6 +32,9 @@ type MainTemplateProps = {
 export const MainTemplate = memo(async function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * セッション情報を取得
+   */
   const userId = await getAuthenticatedSessionUserId();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

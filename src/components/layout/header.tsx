@@ -13,17 +13,21 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 /**
  * ヘッダーコンポーネント
- * - スティッキーヘッダーとして画面上部に固定
- * - ロゴとナビゲーションを表示
- * - ログイン状態に応じてボタンを切り替え
- * - レスポンシブ対応
- *   - スマホ: ハンバーガーメニュー(左) + ロゴ(中央) + 通知(右)
- *   - タブレット/PC: ロゴ(左) + ナビゲーション要素(右)
+ * @param {string | null} userId - ユーザーID
+ * @param {boolean} buttonDisplay - ボタン表示有無
+ * @returns {JSX.Element} - ヘッダーコンポーネント
  */
 export async function Header({ userId, buttonDisplay = true }: { userId: string | null; buttonDisplay: boolean }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュの有効期間を設定
+   */
   cacheLife("hours");
 
+  /**
+   * ログ出力
+   */
   console.log("src/components/layout/header.tsx_Header_start");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
