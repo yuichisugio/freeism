@@ -77,28 +77,23 @@ const getTaskIdsByGroupIds = cache(async (groupIds: string[]): Promise<string[]>
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知クエリの共通条件を生成する関数
+ * 通知クエリの対象条件（ユーザー、グループ、タスク）を生成する関数
  * @param userId ユーザーID
  * @param groupIds グループIDの配列
  * @param taskIds タスクIDの配列 (オプション)
  * @returns Prisma.sqlでラップされたSQL条件文
  */
-const buildNotificationWhereCondition = cache(async (userId: string, groupIds: string[], taskIds?: string[]): Promise<Prisma.Sql> => {
-  const taskCondition = taskIds && taskIds.length > 0 ? Prisma.sql`OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))` : Prisma.sql``;
+const buildNotificationTargetCondition = cache(async (userId: string, groupIds: string[], taskIds?: string[]): Promise<Prisma.Sql> => {
+  const taskCondition = taskIds && taskIds.length > 0 ? Prisma.sql`OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))` : Prisma.empty;
 
-  return Prisma.sql`
-    (
-      (n."target_type" = 'SYSTEM') OR
-      (n."target_type" = 'USER' AND n."sender_user_id" = ${userId}) OR
-      (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
-      ${taskCondition}
-    )
-    AND
-    (
-      (n."send_timing_type" = 'NOW') OR
-      (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())
-    )
-  `;
+  // 対象タイプに関する条件のみを返す (タイミング条件は呼び出し元で追加)
+  // 全体を括弧で囲む
+  return Prisma.sql`(
+    (n."target_type" = 'SYSTEM') OR
+    (n."target_type" = 'USER' AND n."sender_user_id" = ${userId}) OR
+    (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
+    ${taskCondition}
+  )`;
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -112,6 +107,33 @@ const buildNotificationWhereCondition = cache(async (userId: string, groupIds: s
 const formatDateToISOString = cache(async (date: string | Date | null, defaultNow = false): Promise<string | null> => {
   if (!date && !defaultNow) return null;
   return date ? new Date(date).toISOString() : defaultNow ? new Date().toISOString() : null;
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知クエリの共通WHERE条件を生成する関数
+ * @param userId ユーザーID
+ * @param includeTaskCondition タスク条件を含めるかどうか (デフォルト: true)
+ * @returns Prisma.sqlでラップされたWHERE条件文
+ */
+const buildCommonNotificationWhereClause = cache(async (userId: string, includeTaskCondition = true): Promise<Prisma.Sql> => {
+  // ユーザーがアクセスできるグループID一覧を取得
+  const groupIds = await getUserAccessibleGroupIds(userId);
+
+  let taskIds: string[] | undefined;
+  if (includeTaskCondition) {
+    // グループに関連するタスクID一覧を取得 (必要な場合のみ)
+    taskIds = await getTaskIdsByGroupIds(groupIds);
+  }
+
+  // 対象条件を構築
+  const targetCondition = await buildNotificationTargetCondition(userId, groupIds, taskIds);
+  // タイミング条件を構築
+  const timingCondition = Prisma.sql`((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
+
+  // 共通のWHERE句を結合して返す
+  return Prisma.sql`${targetCondition} AND ${timingCondition}`;
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -134,8 +156,6 @@ export const getNotificationTargetUserIds = cache(
       taskId?: string;
     },
   ): Promise<string[]> => {
-    "use server"; // Server Actions としてマーク
-
     let targetUserIds: string[] = [];
 
     switch (targetType) {
@@ -226,48 +246,38 @@ export const getNotificationTargetUserIds = cache(
 /**
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数
+ * 未読の有無のみ知りたいので、1件のみ取得
  */
-export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<number> => {
-  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
+export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<string[]> => {
+  console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ユーザーがアクセスできるグループID一覧を取得
-    const groupIds = await getUserAccessibleGroupIds(userId);
+    // 共通のWHERE句を取得 (タスク条件を含む)
+    const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループに関連するタスクID一覧を取得
-    const taskIds = await getTaskIdsByGroupIds(groupIds);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // 未読条件を追加
+    const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
+    const whereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
 
     // PostgreSQLのJSONB演算子を使用した効率的なクエリ
-    const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(*) as count
+    const countResult = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id
       FROM "Notification" n
-      WHERE (
-        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
-      )
-      AND
-      (
-        n."is_read" IS NULL
-        OR
-        NOT (n."is_read" ? ${userId})
-        OR
-        (n."is_read" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
-      )
+      WHERE ${whereClause} -- 結合したWHERE句を使用
       LIMIT 1
     `;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    return Number(countResult[0].count);
+    return countResult.map((result) => result.id);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("未読通知カウントエラー:", error);
-    return 0;
+    return [];
   }
 });
 
@@ -292,58 +302,52 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // ユーザーがアクセスできるグループID一覧を取得
-      const groupIds = await getUserAccessibleGroupIds(userId);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // グループに関連するタスクID一覧を取得
-      const taskIds = await getTaskIdsByGroupIds(groupIds);
+      // 共通のWHERE句を取得 (タスク条件を含む)
+      const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // オフセットを計算
       const offset = (page - 1) * limit;
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // メインクエリ用のWHERE句 (共通句をそのまま使用)
+      const mainWhereClause = commonWhereClause;
 
       // JSONB演算子を使用して直接DBレベルで既読状態を計算
       const notificationsRaw = await prisma.$queryRaw`
-      SELECT
-        n.id,
-        n.title,
-        n.message,
-        n."target_type" as "NotificationTargetType",
-        CASE
-          WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE
-          THEN true
-          ELSE false
-        END as "isRead",
-        n."sent_at" as "sentAt",
-        CASE
-          WHEN n."is_read" ? ${userId} THEN (n."is_read" -> ${userId} ->> 'readAt')::timestamp
-          ELSE null
-        END as "readAt",
-        n."expires_at" as "expiresAt",
-        n."action_url" as "actionUrl",
-        n."sender_user_id" as "senderUserId",
-        n."group_id" as "groupId",
-        n."task_id" as "taskId",
-        n."auction_event_type" as "auctionEventType",
-        n."auction_id" as "auctionId",
-        u.name as "userName",
-        g.name as "groupName",
-        t.task as "taskName"
-      FROM "Notification" n
-      LEFT JOIN "User" u ON n."sender_user_id" = u.id
-      LEFT JOIN "Group" g ON n."group_id" = g.id
-      LEFT JOIN "Task" t ON n."task_id" = t.id
-      WHERE (
-        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
-      )
-      ORDER BY n."sent_at" DESC, n.id DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
+        SELECT
+          n.id,
+          n.title,
+          n.message,
+          n."target_type" as "NotificationTargetType",
+          CASE
+            WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE
+            THEN true
+            ELSE false
+          END as "isRead",
+          n."sent_at" as "sentAt",
+          CASE
+            WHEN n."is_read" ? ${userId} THEN (n."is_read" -> ${userId} ->> 'readAt')::timestamp
+            ELSE null
+          END as "readAt",
+          n."expires_at" as "expiresAt",
+          n."action_url" as "actionUrl",
+          n."sender_user_id" as "senderUserId",
+          n."group_id" as "groupId",
+          n."task_id" as "taskId",
+          n."auction_event_type" as "auctionEventType",
+          n."auction_id" as "auctionId",
+          u.name as "userName",
+          g.name as "groupName",
+          t.task as "taskName"
+        FROM "Notification" n
+        LEFT JOIN "User" u ON n."sender_user_id" = u.id
+        LEFT JOIN "Group" g ON n."group_id" = g.id
+        LEFT JOIN "Task" t ON n."task_id" = t.id
+        WHERE ${mainWhereClause} -- メインクエリ用WHERE句
+        ORDER BY n."sent_at" DESC, n.id DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -394,38 +398,27 @@ export const cachedGetNotificationsAndUnreadCount = cache(
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 未読カウント取得
+      // 未読カウント取得用のWHERE句 (共通句に未読条件を追加)
+      const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
+      const unreadWhereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
+
       const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(*) as count
-      FROM "Notification" n
-      WHERE
-        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
-        AND
-        (
-          n."is_read" IS NULL
-          OR
-          NOT (n."is_read" ? ${userId})
-          OR
-          (n."is_read" -> ${userId} ->> 'isRead')::boolean IS NOT TRUE
-        )
-    `;
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+        SELECT COUNT(*) as count
+        FROM "Notification" n
+        WHERE ${unreadWhereClause} -- 未読カウント用WHERE句
+      `;
       const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 合計数取得
+      // 合計数取得用のWHERE句 (メインクエリと同じ = 共通句)
+      const totalWhereClause = mainWhereClause; // 同じ条件なので再利用
+
       const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(*) as count
-      FROM "Notification" n
-      WHERE
-        ${buildNotificationWhereCondition(userId, groupIds, taskIds)}
-    `;
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+        SELECT COUNT(*) as count
+        FROM "Notification" n
+        WHERE ${totalWhereClause} -- 合計カウント用WHERE句
+      `;
       const totalCount = Number(totalCountResult[0]?.count ?? 0);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -496,16 +489,17 @@ export const cachedApiUpdateNotificationStatus = cache(
  */
 export const cachedMarkAllNotificationsAsRead = cache(async (userId: string): Promise<{ success: boolean }> => {
   try {
-    const groupIds = await getUserAccessibleGroupIds(userId);
+    // 共通のWHERE句を取得 (タスク条件は不要なので false を指定)
+    const whereClause = await buildCommonNotificationWhereClause(userId, false);
+
     const readAt = new Date().toISOString();
 
     // 全ての通知を一括で既読に設定
     await prisma.$executeRaw`
-      UPDATE "Notification"
-      SET "is_read" = 
-        COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
-      WHERE 
-        ${buildNotificationWhereCondition(userId, groupIds)}
+      UPDATE "Notification" n -- エイリアス n を追加
+      SET "is_read" =
+        COALESCE(n."is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+      WHERE ${whereClause} -- 結合したWHERE句を使用
     `;
 
     // キャッシュを更新

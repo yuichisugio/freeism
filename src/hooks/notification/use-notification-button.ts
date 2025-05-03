@@ -48,8 +48,8 @@ export function useNotificationButton(): NotificationButtonReturn {
     }
     console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_start");
     // 未読通知を取得
-    const unreadCount = await getUnreadNotificationsCount(userId);
-    setHasUnreadNotifications(unreadCount > 0);
+    const unreadNotificationIds = await getUnreadNotificationsCount(userId);
+    setHasUnreadNotifications(unreadNotificationIds.length > 0);
   }, [userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -15,12 +15,13 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数
  */
-export const getUnreadNotificationsCount = cache(async (userId: string): Promise<number> => {
+export const getUnreadNotificationsCount = cache(async (userId: string): Promise<string[]> => {
   console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
 
-  const unreadCount = await cachedGetUnreadNotificationsCount(userId);
+  const unreadNotificationIds = await cachedGetUnreadNotificationsCount(userId);
+  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_unreadNotificationIds", unreadNotificationIds);
 
-  return unreadCount;
+  return unreadNotificationIds;
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
