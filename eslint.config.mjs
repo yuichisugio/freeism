@@ -1,6 +1,7 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
+import tanstackQueryPlugin from "@tanstack/eslint-plugin-query";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
@@ -27,6 +28,7 @@ const eslintConfig = [
       react: reactPlugin,
       "react-hooks": reactHooksPlugin,
       "jsx-a11y": jsxA11yPlugin,
+      "@tanstack/query": tanstackQueryPlugin,
     },
     languageOptions: {
       parser: typescriptParser,
@@ -47,6 +49,7 @@ const eslintConfig = [
       ...reactPlugin.configs["jsx-runtime"].rules,
       ...reactHooksPlugin.configs.recommended.rules,
       ...jsxA11yPlugin.configs.recommended.rules,
+      ...(tanstackQueryPlugin.configs.recommended.rules ?? {}),
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "react/prop-types": "off",

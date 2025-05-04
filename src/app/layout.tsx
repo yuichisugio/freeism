@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "../styles/globals.css";
@@ -65,6 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {/* suppressHydrationWarning={true} を追加することで、ブラウザ拡張機能（Grammarlyなど）が追加する属性によるハイドレーション警告を抑制します */}
       <body suppressHydrationWarning={true}>
         <Providers session={session}>{children}</Providers>
+        <ReactQueryDevtools />
         <Analytics />
         <SpeedInsights />
       </body>
