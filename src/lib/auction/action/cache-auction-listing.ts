@@ -25,227 +25,229 @@ type BuildRawQueryComponentsReturn = {
  * @param listingsConditions 検索条件
  * @returns WHERE句フラグメント、全文検索条件、パラメータ、次のパラメータインデックス、キーワード
  */
-async function buildRawQueryComponents(listingsConditions: AuctionListingsConditions, userId: string): Promise<BuildRawQueryComponentsReturn> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const buildRawQueryComponents = cache(
+  async (listingsConditions: AuctionListingsConditions, userId: string): Promise<BuildRawQueryComponentsReturn> => {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 引数を分解
-   */
-  const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, statusConditionJoinType, searchQuery } =
-    listingsConditions;
-  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_listingsConditions", listingsConditions);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * パラメータとWHERE句を初期化
-   */
-  const whereClauses: Prisma.Sql[] = [];
-  let ftsCondition: Prisma.Sql = Prisma.empty;
-  const keywords: string[] = [];
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーが参加しているグループIDを取得
-   */
-  const userGroupMemberships = await prisma.groupMembership.findMany({
-    where: { userId },
-    select: { groupId: true },
-  });
-  const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
-
-  // コンソール
-  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_userGroupIds", userGroupIds);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーが参加しているグループがない場合、空の結果を返す
-   */
-  if (userGroupIds.length === 0) {
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups");
-    return {
-      whereClauses: [Prisma.empty],
-      ftsCondition: Prisma.empty,
-      keywords: [],
-    };
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 全文検索条件 (searchQuery がある場合)
-   */
-  let normalizedQuery: string | null = null;
-  if (searchQuery) {
-    // 全文検索条件 (&@: 部分一致) - Task テーブル (エイリアス t)
-    normalizedQuery = searchQuery.trim().replace(/\s+/g, " OR ");
-    ftsCondition = Prisma.sql`public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ${normalizedQuery}`;
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 基本的なWHERE条件
-   */
-  // グループID (ユーザーが所属するグループ)
-  whereClauses.push(Prisma.sql`a."group_id" = ANY(${userGroupIds}::text[])`);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * カテゴリー
-   */
-  if (categories && categories.length > 0 && !categories.includes("すべて")) {
-    const validCategories = categories.filter((c) => c !== null && c !== "すべて");
-    if (validCategories.length > 0) {
-      const catClauses = validCategories.map((c) => Prisma.sql`t.category ILIKE ${"%" + c + "%"}`);
-      whereClauses.push(Prisma.sql`(${Prisma.join(catClauses, " OR ")})`);
-    }
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ステータス
-   */
-  if (status && status.length > 0) {
-    const statusWhereClausesSql: Prisma.Sql[] = [];
-    const watchlistConditions: Prisma.Sql[] = [];
-    const bidConditions: Prisma.Sql[] = [];
-    // 現在時刻を一度だけ取得
-    const now = new Date();
-
-    status.forEach((statusItem) => {
-      switch (statusItem) {
-        case "watchlist":
-          // getAuctionCount 用の条件 (getAuctionListings では JOIN で処理)
-          // パラメータインデックス $1 (userId) を使用
-          watchlistConditions.push(
-            Prisma.sql`EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ${userId})`,
-          );
-          break;
-        case "not_bidded":
-          // getAuctionCount 用の条件
-          // パラメータインデックス $1 (userId) を使用
-          bidConditions.push(Prisma.sql`NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
-          break;
-        case "bidded":
-          // getAuctionCount 用の条件
-          // パラメータインデックス $1 (userId) を使用
-          bidConditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
-          break;
-        case "ended":
-          // Prisma.sql`${AuctionStatus.ENDED}` を使用
-          statusWhereClausesSql.push(Prisma.sql`a.status::text = ${AuctionStatus.ENDED}`);
-          break;
-        case "not_ended":
-          // Prisma.sql`${now}` を使用
-          statusWhereClausesSql.push(Prisma.sql`(a.status::text != ${AuctionStatus.ENDED} AND a."end_time" >= ${now})`);
-          break;
-        case "not_started":
-          // Prisma.sql`${now}` を使用
-          statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.PENDING} AND a."start_time" >= ${now})`);
-          break;
-        case "started":
-          // Prisma.sql`${now}` を使用
-          statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.ACTIVE} AND a."start_time" <= ${now})`);
-          break;
-      }
-    });
+    /**
+     * 引数を分解
+     */
+    const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, statusConditionJoinType, searchQuery } =
+      listingsConditions;
+    console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_listingsConditions", listingsConditions);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * ステータスの結合演算子
+     * パラメータとWHERE句を初期化
      */
-    const joinOperatorString = statusConditionJoinType === "AND" ? " AND " : " OR ";
+    const whereClauses: Prisma.Sql[] = [];
+    let ftsCondition: Prisma.Sql = Prisma.empty;
+    const keywords: string[] = [];
 
-    // 各条件グループを結合して whereClauses に追加
-    const combinedStatusConditions: Prisma.Sql[] = [];
-    if (watchlistConditions.length > 0) {
-      combinedStatusConditions.push(Prisma.sql`(${Prisma.join(watchlistConditions, joinOperatorString)})`);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーが参加しているグループIDを取得
+     */
+    const userGroupMemberships = await prisma.groupMembership.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
+
+    // コンソール
+    console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_userGroupIds", userGroupIds);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーが参加しているグループがない場合、空の結果を返す
+     */
+    if (userGroupIds.length === 0) {
+      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups");
+      return {
+        whereClauses: [Prisma.empty],
+        ftsCondition: Prisma.empty,
+        keywords: [],
+      };
     }
-    if (bidConditions.length > 0) {
-      combinedStatusConditions.push(Prisma.sql`(${Prisma.join(bidConditions, joinOperatorString)})`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 全文検索条件 (searchQuery がある場合)
+     */
+    let normalizedQuery: string | null = null;
+    if (searchQuery) {
+      // 全文検索条件 (&@: 部分一致) - Task テーブル (エイリアス t)
+      normalizedQuery = searchQuery.trim().replace(/\s+/g, " OR ");
+      ftsCondition = Prisma.sql`public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ${normalizedQuery}`;
     }
-    if (statusWhereClausesSql.length > 0) {
-      combinedStatusConditions.push(Prisma.sql`(${Prisma.join(statusWhereClausesSql, joinOperatorString)})`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 基本的なWHERE条件
+     */
+    // グループID (ユーザーが所属するグループ)
+    whereClauses.push(Prisma.sql`a."group_id" = ANY(${userGroupIds}::text[])`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * カテゴリー
+     */
+    if (categories && categories.length > 0 && !categories.includes("すべて")) {
+      const validCategories = categories.filter((c) => c !== null && c !== "すべて");
+      if (validCategories.length > 0) {
+        const catClauses = validCategories.map((c) => Prisma.sql`t.category ILIKE ${"%" + c + "%"}`);
+        whereClauses.push(Prisma.sql`(${Prisma.join(catClauses, " OR ")})`);
+      }
     }
 
-    // 最終的なステータス条件を AND で結合 (statusConditionJoinType は各グループ内の結合方法)
-    if (combinedStatusConditions.length > 0) {
-      whereClauses.push(Prisma.sql`(${Prisma.join(combinedStatusConditions, " AND ")})`);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ステータス
+     */
+    if (status && status.length > 0) {
+      const statusWhereClausesSql: Prisma.Sql[] = [];
+      const watchlistConditions: Prisma.Sql[] = [];
+      const bidConditions: Prisma.Sql[] = [];
+      // 現在時刻を一度だけ取得
+      const now = new Date();
+
+      status.forEach((statusItem) => {
+        switch (statusItem) {
+          case "watchlist":
+            // getAuctionCount 用の条件 (getAuctionListings では JOIN で処理)
+            // パラメータインデックス $1 (userId) を使用
+            watchlistConditions.push(
+              Prisma.sql`EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ${userId})`,
+            );
+            break;
+          case "not_bidded":
+            // getAuctionCount 用の条件
+            // パラメータインデックス $1 (userId) を使用
+            bidConditions.push(Prisma.sql`NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
+            break;
+          case "bidded":
+            // getAuctionCount 用の条件
+            // パラメータインデックス $1 (userId) を使用
+            bidConditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
+            break;
+          case "ended":
+            // Prisma.sql`${AuctionStatus.ENDED}` を使用
+            statusWhereClausesSql.push(Prisma.sql`a.status::text = ${AuctionStatus.ENDED}`);
+            break;
+          case "not_ended":
+            // Prisma.sql`${now}` を使用
+            statusWhereClausesSql.push(Prisma.sql`(a.status::text != ${AuctionStatus.ENDED} AND a."end_time" >= ${now})`);
+            break;
+          case "not_started":
+            // Prisma.sql`${now}` を使用
+            statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.PENDING} AND a."start_time" >= ${now})`);
+            break;
+          case "started":
+            // Prisma.sql`${now}` を使用
+            statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.ACTIVE} AND a."start_time" <= ${now})`);
+            break;
+        }
+      });
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * ステータスの結合演算子
+       */
+      const joinOperatorString = statusConditionJoinType === "AND" ? " AND " : " OR ";
+
+      // 各条件グループを結合して whereClauses に追加
+      const combinedStatusConditions: Prisma.Sql[] = [];
+      if (watchlistConditions.length > 0) {
+        combinedStatusConditions.push(Prisma.sql`(${Prisma.join(watchlistConditions, joinOperatorString)})`);
+      }
+      if (bidConditions.length > 0) {
+        combinedStatusConditions.push(Prisma.sql`(${Prisma.join(bidConditions, joinOperatorString)})`);
+      }
+      if (statusWhereClausesSql.length > 0) {
+        combinedStatusConditions.push(Prisma.sql`(${Prisma.join(statusWhereClausesSql, joinOperatorString)})`);
+      }
+
+      // 最終的なステータス条件を AND で結合 (statusConditionJoinType は各グループ内の結合方法)
+      if (combinedStatusConditions.length > 0) {
+        whereClauses.push(Prisma.sql`(${Prisma.join(combinedStatusConditions, " AND ")})`);
+      }
     }
-  }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 入札額
-   */
-  if (minBid !== null && minBid !== undefined) {
-    // Prisma.sql`${minBid}` を使用
-    whereClauses.push(Prisma.sql`a."current_highest_bid" >= ${minBid}`);
-  }
-  if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
-    // Prisma.sql`${maxBid}` を使用
-    whereClauses.push(Prisma.sql`a."current_highest_bid" <= ${maxBid}`);
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 残り時間
-   */
-  const nowForRemainingTime = new Date(); // 残り時間計算用の現在時刻
-  if (minRemainingTime !== null && minRemainingTime !== undefined) {
-    // end_time が (現在時刻 + minRemainingTime時間) 以降
-    const minEndTime = new Date(nowForRemainingTime.getTime() + minRemainingTime * 60 * 60 * 1000);
-    // Prisma.sql`${minEndTime}` を使用
-    whereClauses.push(Prisma.sql`a."end_time" >= ${minEndTime}`);
-  }
-  if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
-    // end_time が (現在時刻 + maxRemainingTime時間) 以前
-    const maxEndTime = new Date(nowForRemainingTime.getTime() + maxRemainingTime * 60 * 60 * 1000);
-    // Prisma.sql`${maxEndTime}` を使用
-    whereClauses.push(Prisma.sql`a."end_time" <= ${maxEndTime}`);
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループID (URLパラメータで指定された場合) - userGroupIdsParamIndex を使って絞り込み
-   */
-  if (groupIds && groupIds.length > 0) {
-    // ユーザーが所属し、かつURLパラメータで指定されたグループに絞り込む
-    const allowedGroupIds = userGroupIds.filter((id) => groupIds.includes(id));
-    if (allowedGroupIds.length > 0) {
-      // 既存の $2 条件に加えて、さらに絞り込む
-      whereClauses.push(Prisma.sql`a."group_id" = ANY(${allowedGroupIds}::text[])`);
-    } else {
-      // 条件に合うグループがない場合は結果を0件にする false 条件を追加
-      whereClauses.push(Prisma.sql`1 = 0`);
+    /**
+     * 入札額
+     */
+    if (minBid !== null && minBid !== undefined) {
+      // Prisma.sql`${minBid}` を使用
+      whereClauses.push(Prisma.sql`a."current_highest_bid" >= ${minBid}`);
     }
-  }
+    if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
+      // Prisma.sql`${maxBid}` を使用
+      whereClauses.push(Prisma.sql`a."current_highest_bid" <= ${maxBid}`);
+    }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // コンソール
-  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_whereClauses", whereClauses);
-  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_ftsCondition", ftsCondition);
-  console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_keywords", keywords);
+    /**
+     * 残り時間
+     */
+    const nowForRemainingTime = new Date(); // 残り時間計算用の現在時刻
+    if (minRemainingTime !== null && minRemainingTime !== undefined) {
+      // end_time が (現在時刻 + minRemainingTime時間) 以降
+      const minEndTime = new Date(nowForRemainingTime.getTime() + minRemainingTime * 60 * 60 * 1000);
+      // Prisma.sql`${minEndTime}` を使用
+      whereClauses.push(Prisma.sql`a."end_time" >= ${minEndTime}`);
+    }
+    if (maxRemainingTime !== null && maxRemainingTime !== undefined && maxRemainingTime !== 0) {
+      // end_time が (現在時刻 + maxRemainingTime時間) 以前
+      const maxEndTime = new Date(nowForRemainingTime.getTime() + maxRemainingTime * 60 * 60 * 1000);
+      // Prisma.sql`${maxEndTime}` を使用
+      whereClauses.push(Prisma.sql`a."end_time" <= ${maxEndTime}`);
+    }
 
-  /**
-   * 戻り値
-   */
-  return {
-    whereClauses,
-    ftsCondition,
-    keywords,
-  };
-}
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループID (URLパラメータで指定された場合) - userGroupIdsParamIndex を使って絞り込み
+     */
+    if (groupIds && groupIds.length > 0) {
+      // ユーザーが所属し、かつURLパラメータで指定されたグループに絞り込む
+      const allowedGroupIds = userGroupIds.filter((id) => groupIds.includes(id));
+      if (allowedGroupIds.length > 0) {
+        // 既存の $2 条件に加えて、さらに絞り込む
+        whereClauses.push(Prisma.sql`a."group_id" = ANY(${allowedGroupIds}::text[])`);
+      } else {
+        // 条件に合うグループがない場合は結果を0件にする false 条件を追加
+        whereClauses.push(Prisma.sql`1 = 0`);
+      }
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // コンソール
+    console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_whereClauses", whereClauses);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_ftsCondition", ftsCondition);
+    console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_keywords", keywords);
+
+    /**
+     * 戻り値
+     */
+    return {
+      whereClauses,
+      ftsCondition,
+      keywords,
+    };
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

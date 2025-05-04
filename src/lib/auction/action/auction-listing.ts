@@ -4,6 +4,8 @@
  * オークション一覧のキャッシュデータを取得する関数
  * use cacheとuse serverを併用できないため、別ファイルとして作成
  */
+import { cache } from "react";
+
 import type { AuctionListingResult, Suggestion } from "../type/types";
 import type { GetAuctionListingsParams } from "./cache-auction-listing";
 import { cachedGetAuctionCount, cachedGetAuctionListings, cachedGetSearchSuggestions } from "./cache-auction-listing";
@@ -16,14 +18,14 @@ import { cachedGetAuctionCount, cachedGetAuctionListings, cachedGetSearchSuggest
  * @param userId ユーザーID
  * @returns オークション一覧
  */
-export async function getAuctionListings({ listingsConditions, userId }: GetAuctionListingsParams): Promise<AuctionListingResult> {
+export const getAuctionListings = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<AuctionListingResult> => {
   const cachedData = await cachedGetAuctionListings({ listingsConditions, userId });
   if (cachedData) {
     return cachedData;
   } else {
     throw new Error("キャッシュデータがありません");
   }
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -33,14 +35,14 @@ export async function getAuctionListings({ listingsConditions, userId }: GetAuct
  * @param userId ユーザーID
  * @returns オークション一覧
  */
-export async function getSearchSuggestions(query: string, userId: string): Promise<Suggestion[]> {
+export const getSearchSuggestions = cache(async (query: string, userId: string): Promise<Suggestion[]> => {
   const cachedData = await cachedGetSearchSuggestions(query, userId);
   if (cachedData) {
     return cachedData;
   } else {
     throw new Error("キャッシュデータがありません");
   }
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -50,7 +52,7 @@ export async function getSearchSuggestions(query: string, userId: string): Promi
  * @param userId ユーザーID
  * @returns オークション一覧
  */
-export async function getAuctionCount({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> {
+export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> => {
   const cachedData = await cachedGetAuctionCount({ listingsConditions, userId });
   // キャッシュデータがundefinedまたはnullの場合はエラーを投げる。0が来た場合にエラーにならないようにしたい
   if (cachedData !== undefined && cachedData !== null) {
@@ -58,6 +60,6 @@ export async function getAuctionCount({ listingsConditions, userId }: GetAuction
   } else {
     throw new Error("キャッシュデータがありません");
   }
-}
+});
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
