@@ -1,15 +1,36 @@
-// カスタムサインインページ
+"use cache";
+
 import type { Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { SignInButton } from "@/components/auth/sign-in-button";
 import { Footer } from "@/components/layout/footer";
 import { GoogleLogoSvg } from "@/components/ui/svg";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "ログイン | Freeism-App",
   description: "Freeism-Appへのログインページです。",
 };
 
-export default function SignInPage() {
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * サインインページ
+ */
+export default async function SignInPage() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュの設定
+   */
+  cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <>
       {/* コンテンツ全体の制御 */}

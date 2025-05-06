@@ -1,5 +1,8 @@
+"use cache";
+
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
@@ -19,15 +22,30 @@ const alertVariants = cva(
   },
 );
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アラート
+ */
 function Alert({ className, variant, ...props }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
+  cacheLife("max");
   return <div data-slot="alert" role="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * アラートのタイトル
+ */
 function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
+  cacheLife("max");
   return <div data-slot="alert-title" className={cn("col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight", className)} {...props} />;
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
+  cacheLife("max");
   return (
     <div
       data-slot="alert-description"
@@ -36,5 +54,7 @@ function AlertDescription({ className, ...props }: React.ComponentProps<"div">) 
     />
   );
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export { Alert, AlertTitle, AlertDescription };

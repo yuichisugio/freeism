@@ -1,11 +1,10 @@
 "use client";
 
 import type { ComponentPropsWithoutRef } from "react";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { signIn } from "next-auth/react";
 
-// import { signIn } from "@/auth";
-// import { signIn } from "@/auth";ではダメだった。
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * サインインボタンコンポーネント
@@ -24,17 +23,32 @@ type SignInButtonProps = ComponentPropsWithoutRef<"button">;
  * - サインイン後はトップページにリダイレクト
  */
 export const SignInButton = memo(function SignInButton({ children, ...props }: SignInButtonProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  /**
+   * サインインボタンのクリックハンドラ
+   */
   const handleClick = useCallback(() => {
     try {
+      setIsLoading(true);
       void signIn("google", { callbackUrl: "/dashboard/grouplist" });
     } catch (error) {
       console.error("サインインに失敗しました:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サインインボタンを表示
+   */
   return (
-    <button type="button" onClick={handleClick} {...props}>
-      {children}
+    <button type="button" disabled={isLoading} onClick={handleClick} {...props}>
+      {isLoading ? "サインイン中..." : children}
     </button>
   );
 });
