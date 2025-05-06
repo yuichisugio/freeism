@@ -2,6 +2,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 import tanstackQueryPlugin from "@tanstack/eslint-plugin-query";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
@@ -19,6 +20,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...pluginQuery.configs["flat/recommended"],
   {
     files: ["**/*.ts", "**/*.tsx"],
     plugins: {
