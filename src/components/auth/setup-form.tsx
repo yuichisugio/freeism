@@ -3,7 +3,7 @@
 import type { UserSettings } from "@prisma/client";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import type * as z from "zod";
-import { cache, memo } from "react";
+import { memo } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
@@ -12,7 +12,6 @@ import { FormLayout } from "@/components/share/form-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateUserSetup } from "@/lib/actions";
 import { getUserSettings } from "@/lib/auction/action/user";
-import { prisma } from "@/lib/prisma";
 import { setupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
