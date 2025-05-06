@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
-import { useWatchlistActions } from "@/hooks/auction/bid/use-watchlist-actions";
+import { useWatchlist } from "@/hooks/auction/bid/use-watchlist-actions";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/utils";
@@ -100,7 +100,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   });
 
   // ウォッチリストアクション
-  const { submitting, toggleWatchlist, isWatchlisted } = useWatchlistActions(!!initialAuction.watchlists?.[0]);
+  const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(!!initialAuction.watchlists?.[0], auction.id, currentUserId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -132,19 +132,6 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
     );
     return auction.task.executors.some((executor) => executor.user?.id === currentUserId);
   }, [auction.task.executors, currentUserId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ウォッチリストボタンのクリックハンドラ
-   */
-  const handleWatchlistToggle = useCallback(async () => {
-    try {
-      await toggleWatchlist(auction.id);
-    } catch (err) {
-      console.error("ウォッチリスト更新エラー:", err);
-    }
-  }, [toggleWatchlist, auction.id]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -299,8 +286,8 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={handleWatchlistToggle}
-                disabled={submitting}
+                onClick={toggleWatchlist}
+                disabled={isLoading}
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${isWatchlisted ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground hover:bg-red-50 hover:text-red-500"} transition-colors duration-200`}
               >
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />

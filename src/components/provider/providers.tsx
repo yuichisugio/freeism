@@ -1,27 +1,32 @@
-"use client";
-
-import type { Session } from "next-auth";
 import { memo } from "react";
+import { persistOptions, queryClient } from "@/lib/tanstack-query";
+import { getAuthSession } from "@/lib/utils";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 
 import { PushNotificationProvider } from "./push-notification-provider";
 
-type ProvidersProps = {
-  children: React.ReactNode;
-  session: Session | null;
-};
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-export const Providers = memo(function Providers({ children, session }: ProvidersProps) {
+/**
+ * プロバイダー
+ */
+export const Providers = memo(async function Providers({ children }: { children: React.ReactNode }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // セッションを取得
+  const session = await getAuthSession();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <SessionProvider session={session}>
-        <PushNotificationProvider>
-          {children}
-          <Toaster />
-        </PushNotificationProvider>
-      </SessionProvider>
+      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
+        <SessionProvider session={session}>
+          <PushNotificationProvider>{children}</PushNotificationProvider>
+        </SessionProvider>
+      </PersistQueryClientProvider>
     </ThemeProvider>
   );
 });

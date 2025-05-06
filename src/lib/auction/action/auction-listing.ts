@@ -4,11 +4,10 @@
  * オークション一覧のキャッシュデータを取得する関数
  * use cacheとuse serverを併用できないため、別ファイルとして作成
  */
+import type { GetAuctionListingsParams } from "@/lib/auction/action/cache/cache-auction-listing";
+import type { AuctionListingResult, Suggestion } from "@/lib/auction/type/types";
 import { cache } from "react";
-
-import type { AuctionListingResult, Suggestion } from "../type/types";
-import type { GetAuctionListingsParams } from "./cache-auction-listing";
-import { cachedGetAuctionCount, cachedGetAuctionListings, cachedGetSearchSuggestions } from "./cache-auction-listing";
+import { cachedGetAuctionCount, cachedGetAuctionListings, cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

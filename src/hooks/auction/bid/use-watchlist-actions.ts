@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { toggleWatchlistAction } from "@/lib/auction/action/watchlist";
+import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action/watchlist";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -9,75 +9,85 @@ import { toast } from "sonner";
 /**
  * ウォッチリスト操作用カスタムフックの型
  */
-type UseWatchlistActionsResult = {
-  submitting: boolean;
-  toggleWatchlist: (auctionId: string | undefined) => Promise<boolean | null>;
+type UseWatchlistReturn = {
+  // state
+  isLoading: boolean;
   isWatchlisted: boolean;
+  // action
+  toggleWatchlist: () => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ウォッチリスト操作用カスタムフック
- * @returns {UseWatchlistActionsResult} ウォッチリスト操作用の関数群
+ * @returns {UseWatchlistReturn} ウォッチリスト操作用の関数群
  */
-export function useWatchlistActions(initialIsWatched: boolean): UseWatchlistActionsResult {
+export function useWatchlist(initialIsWatched: boolean, auctionId: string, userId: string): UseWatchlistReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 処理中フラグ
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  // ウォッチリストの状態
-  const [isWatchlisted, setIsWatchlisted] = useState(initialIsWatched);
+  /**
+   * Tanstack Queryのクエリクライアント
+   */
+  const queryClient = useQueryClient();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ウォッチリストの状態を取得
+   */
+  const { data: isWatchlisted, isPending: isLoading } = useQuery({
+    queryKey: ["watchlist", auctionId, userId],
+    queryFn: () => serverIsAuctionWatched(auctionId, userId),
+    initialData: initialIsWatched,
+    retry: 3,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    refetchIntervalInBackground: false,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ウォッチリストの切り替え
-   * @param auctionId オークションID
-   * @returns ウォッチリストの状態
    */
-  const toggleWatchlist = useCallback(async (auctionId: string | undefined) => {
-    if (!auctionId) {
-      toast.error("useWatchlistActions_toggleWatchlist_オークションIDが指定されていません");
-      return null;
-    }
-
-    setSubmitting(true);
-    try {
-      // ウォッチリストの切り替え（サーバーアクション）
-      const result = await toggleWatchlistAction(auctionId);
-
-      // 結果が正常でない場合
-      if (!result.success) {
-        toast.error(result.message || "useWatchlistActions_toggleWatchlist_ウォッチリストの更新に失敗しました");
-        return null;
+  const { mutate: toggleWatchlist, isPending } = useMutation({
+    mutationKey: ["toggleWatchlist", auctionId, userId],
+    mutationFn: () => serverToggleWatchlist(auctionId, userId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["watchlist", auctionId, userId] });
+      const previousWatchlist = queryClient.getQueryData<boolean>(["watchlist", auctionId, userId]);
+      queryClient.setQueryData(["watchlist", auctionId, userId], (old: boolean | undefined) => (old === undefined ? undefined : !old));
+      return { previousWatchlist };
+    },
+    onError: (error: Error, _variables: void, context: { previousWatchlist: boolean | undefined } | undefined) => {
+      toast.error("ウォッチリストの更新中にエラーが発生しました");
+      if (context !== undefined) {
+        queryClient.setQueryData(["watchlist", auctionId, userId], context.previousWatchlist);
       }
-
-      // ウォッチリストに追加した場合
-      if (result.isWatched) {
-        setIsWatchlisted(true);
+      console.error("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストAPI呼び出しエラー:", error);
+    },
+    onSettled: async (data) => {
+      if (data) {
         toast.success("ウォッチリストに追加しました");
       } else {
-        // ウォッチリストから削除した場合
-        setIsWatchlisted(false);
         toast.success("ウォッチリストから削除しました");
       }
-
-      return result.isWatched;
-    } catch (err) {
-      console.error("useWatchlistActions_toggleWatchlist_ウォッチリストAPI呼び出しエラー:", err);
-      toast.error("ウォッチリストの更新中にエラーが発生しました");
-      return null;
-    } finally {
-      setSubmitting(false);
-    }
-  }, []);
+      await queryClient.invalidateQueries({ queryKey: ["watchlist", auctionId, userId] });
+    },
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
-    submitting,
+    // state
+    isLoading: isLoading || isPending,
     isWatchlisted,
+    // action
     toggleWatchlist,
   };
 }

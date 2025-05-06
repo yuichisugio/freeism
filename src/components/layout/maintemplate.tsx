@@ -41,7 +41,6 @@ export async function MainTemplate({ title, description, component, children }: 
   return (
     <>
       {/* Title/description and component section */}
-      {/* 以前のレイアウトに合わせて flex コンテナを追加 */}
       <div className="flex flex-col justify-between sm:flex-row">
         {title && description && (
           <div>

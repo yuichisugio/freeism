@@ -255,6 +255,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email!;
         session.user.name = token.name as string | null;
         session.user.image = token.image as string | null;
+        session.expires = token.expires as Date & string;
       }
       return session;
     },

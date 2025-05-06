@@ -4,7 +4,7 @@ import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsCondition
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getAuctionCount, getAuctionListings } from "@/lib/auction/action/auction-listing";
-import { toggleWatchlist } from "@/lib/auction/action/watchlist";
+import { serverToggleWatchlist } from "@/lib/auction/action/watchlist";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -346,7 +346,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
             if (changesToSave.length > 0) {
               console.log(`Saving ${changesToSave.length} watchlist changes...`);
               // 非同期で各変更をサーバーに送信
-              Promise.all(changesToSave.map((id) => toggleWatchlist(id)))
+              Promise.all(changesToSave.map((id) => serverToggleWatchlist(id, userId)))
                 .then(() => {
                   console.log("Watchlist changes saved successfully.");
                   // 保存成功後にローカルの変更追跡リストをクリア
@@ -366,7 +366,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         console.error("ウォッチリストの更新に失敗しました", error);
       }
     },
-    [watchlistChanges],
+    [watchlistChanges, userId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -382,7 +382,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         if (watchlistChanges.size > 0) {
           const changes = Array.from(watchlistChanges);
           for (const id of changes) {
-            void toggleWatchlist(id).catch((error) => {
+            void serverToggleWatchlist(id, userId).catch((error) => {
               console.error("クリーンアップ時のウォッチリスト更新に失敗しました", error);
             });
           }
@@ -395,7 +395,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
       void saveRemainingChanges();
     };
-  }, [watchlistChanges]);
+  }, [watchlistChanges, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
