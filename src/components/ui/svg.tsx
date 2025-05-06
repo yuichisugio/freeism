@@ -7,7 +7,7 @@ import { unstable_cacheLife as cacheLife } from "next/cache";
 /**
  * アプリのSVGロゴ
  */
-export function AppLogoSvg() {
+export async function AppLogoSvg() {
   cacheLife("max");
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 overscroll-none sm:h-8 sm:w-8">
@@ -25,7 +25,7 @@ export function AppLogoSvg() {
 /**
  * ツイッターのSVGロゴ
  */
-export function TwitterLogoSvg() {
+export async function TwitterLogoSvg() {
   cacheLife("max");
   return (
     <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -39,7 +39,7 @@ export function TwitterLogoSvg() {
 /**
  * GitHubのSVGロゴ
  */
-export function GitHubLogoSvg() {
+export async function GitHubLogoSvg() {
   cacheLife("max");
   return (
     <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -57,7 +57,7 @@ export function GitHubLogoSvg() {
 /**
  * GoogleのSVGロゴ
  */
-export function GoogleLogoSvg() {
+export async function GoogleLogoSvg() {
   cacheLife("max");
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">

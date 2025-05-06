@@ -31,7 +31,7 @@ const auctionStatusConfig = {
  * オークションステータスバッジ
  * @param status オークションステータス
  */
-export function AuctionStatusBadge({ status }: { status: AuctionStatus }) {
+export async function AuctionStatusBadge({ status }: { status: AuctionStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   cacheLife("max");
 
@@ -69,7 +69,7 @@ const bidStatusConfig = {
  * 入札ステータスバッジ
  * @param status 入札ステータス
  */
-export function BidStatusBadge({ status }: { status: BidStatus }) {
+export async function BidStatusBadge({ status }: { status: BidStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   cacheLife("max");
@@ -118,7 +118,7 @@ const taskStatusConfig = {
  * タスクステータスバッジ
  * @param status タスクステータス
  */
-export function TaskStatusBadge({ status }: { status: TaskStatus }) {
+export async function TaskStatusBadge({ status }: { status: TaskStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   cacheLife("max");

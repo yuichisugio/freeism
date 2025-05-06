@@ -27,7 +27,7 @@ const alertVariants = cva(
 /**
  * アラート
  */
-function Alert({ className, variant, ...props }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
+async function Alert({ className, variant, ...props }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   cacheLife("max");
   return <div data-slot="alert" role="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
 }
@@ -37,14 +37,17 @@ function Alert({ className, variant, ...props }: React.ComponentProps<"div"> & V
 /**
  * アラートのタイトル
  */
-function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
+async function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   cacheLife("max");
   return <div data-slot="alert-title" className={cn("col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight", className)} {...props} />;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
+/**
+ * アラートの説明
+ */
+async function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
   cacheLife("max");
   return (
     <div
