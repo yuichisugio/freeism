@@ -113,16 +113,24 @@ const sidebarItems = [
 export const Sidebar = memo(function Sidebar() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  //
+  // URL
   const pathname = usePathname();
+  // modal
   const [isOpen, setIsOpen] = useState(false);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * toggle
+   */
   const toggleSidebar = useCallback(
     function toggleSidebar() {
       setIsOpen(!isOpen);
     },
     [isOpen],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <AlertDialog>
@@ -166,6 +174,7 @@ export const Sidebar = memo(function Sidebar() {
                   <AlertDialogTrigger key={item.title} asChild>
                     <Link
                       href={item.href}
+                      scroll={false}
                       onClick={() => setIsOpen(false)}
                       className={cn(
                         "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900 dark:hover:bg-blue-900 dark:hover:text-blue-100",
@@ -180,6 +189,7 @@ export const Sidebar = memo(function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    scroll={false}
                     onClick={() => setIsOpen(false)}
                     className={cn(
                       "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900 dark:hover:bg-blue-900 dark:hover:text-blue-100",

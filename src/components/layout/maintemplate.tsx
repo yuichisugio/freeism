@@ -1,8 +1,7 @@
-import { memo, Suspense } from "react";
-import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { Sidebar } from "@/components/layout/sidebar";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+"use cache";
+
+import { Suspense } from "react";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -29,55 +28,33 @@ type MainTemplateProps = {
  * @param component コンポーネント
  * @param children 子コンポーネント
  */
-export const MainTemplate = memo(async function MainTemplate({ title, description, component, children }: MainTemplateProps) {
+export async function MainTemplate({ title, description, component, children }: MainTemplateProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * セッション情報を取得
+   * キャッシュの有効期間を設定
    */
-  const userId = await getAuthenticatedSessionUserId();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーが存在しない場合はリダイレクト
-   */
-  if (!userId) {
-    redirect("/auth/signin");
-  }
+  cacheLife("weeks");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      {/* Fixed header */}
-      <Header userId={userId} buttonDisplay={true} />
-
-      {/* Main content area with fixed sidebar and scrollable children */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Fixed sidebar */}
-        <Sidebar />
-
-        {/* Main content area - fully scrollable except header and sidebar */}
-        <main className="flex-1 overflow-auto">
-          {/* "xl:max-w-none"で、ブラウザの幅が1280px以上の場合は、幅を100%にする */}
-          <div className="container h-full overflow-auto px-8 py-5 sm:space-y-0 xl:max-w-none">
-            {/* Title/description and component section - now scrollable */}
-            <div className="flex flex-col justify-between sm:flex-row">
-              {title && description && (
-                <div>
-                  <h1 className="page-title-custom">{title}</h1>
-                  <p className="page-description-custom">{description}</p>
-                </div>
-              )}
-              <Suspense fallback={<div>Loading...</div>}>{component && component}</Suspense>
-            </div>
-
-            {/* Children section */}
-            {children}
+    <>
+      {/* Title/description and component section */}
+      {/* 以前のレイアウトに合わせて flex コンテナを追加 */}
+      <div className="flex flex-col justify-between sm:flex-row">
+        {title && description && (
+          <div>
+            <h1 className="page-title-custom">{title}</h1>
+            <p className="page-description-custom">{description}</p>
           </div>
-        </main>
+        )}
+        {/* Component section */}
+        {component && <Suspense fallback={<div>Loading...</div>}>{component}</Suspense>}
       </div>
-    </div>
+
+      {/* Children section */}
+      {children}
+    </>
   );
-});
+}

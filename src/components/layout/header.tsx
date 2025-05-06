@@ -53,9 +53,11 @@ export async function Header({ userId, buttonDisplay = true }: { userId: string 
           </div>
 
           {/* 右: 通知ボタン */}
-          <div className="mr-5 flex w-16 items-center justify-end">
-            <NotificationButton />
-          </div>
+          {userId && (
+            <div className="mr-5 flex w-16 items-center justify-end">
+              <NotificationButton userId={userId} />
+            </div>
+          )}
         </div>
 
         {/* タブレット/PC表示用レイアウト (sm以上) */}
@@ -74,7 +76,7 @@ export async function Header({ userId, buttonDisplay = true }: { userId: string 
           {/* 右: ナビゲーション要素をまとめる */}
           <nav className="flex items-center gap-6 pr-4">
             {/* ログインしている場合のみ通知ボタンを表示 */}
-            {userId && buttonDisplay && <NotificationButton />}
+            {userId && buttonDisplay && <NotificationButton userId={userId} />}
             <ThemeToggle />
 
             {/* ログイン状態に応じてボタンを切り替え */}

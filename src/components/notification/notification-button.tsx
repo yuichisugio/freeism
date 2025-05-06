@@ -16,7 +16,7 @@ import { NotificationList } from "./notification-list";
  * - クリック時に通知モーダルを表示
  * - 未読通知がある場合はバッジを表示（通知リストと連動）
  */
-export const NotificationButton = memo(function NotificationButton() {
+export const NotificationButton = memo(function NotificationButton({ userId }: { userId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/notification/notification-button.tsx_NotificationButton_start_render");
@@ -24,15 +24,7 @@ export const NotificationButton = memo(function NotificationButton() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 通知ボタンのフック
-  const { isOpen, setIsOpen, hasUnreadNotifications, status } = useNotificationButton();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 未認証の場合は何も表示しない
-  if (status === "unauthenticated" || status === "loading") {
-    console.log("src/components/notification/notification-button.tsx_NotificationButton_unauthenticated_or_loading");
-    return null;
-  }
+  const { isOpen, setIsOpen, hasUnreadNotifications } = useNotificationButton(userId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
