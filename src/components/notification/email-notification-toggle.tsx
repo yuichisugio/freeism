@@ -6,17 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { updateUserSettings } from "@/lib/actions/user-settings";
+import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * メール通知のトグル
  */
-export const EmailNotificationToggle = memo(function EmailNotificationToggle({ userSettings }: { userSettings: UserSettings }) {
+export const EmailNotificationToggle = memo(function EmailNotificationToggle({
+  isEmailEnabled,
+  userId,
+}: {
+  isEmailEnabled: boolean;
+  userId: string;
+}): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // メール通知のhookを使用
-  const [isEnabled, setIsEnabled] = useState<boolean>(userSettings.isEmailEnabled);
+  const [isEnabled, setIsEnabled] = useState<boolean>(isEmailEnabled);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -25,23 +32,26 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({ u
     async (checked: boolean) => {
       try {
         // ユーザー設定の更新
-        const result = await updateUserSettings(userSettings.userId, checked, "isEmailEnabled");
+        const result = await updateUserSettings(userId, checked, "isEmailEnabled");
 
         // 成功した場合のみ状態を更新
         if (result.success) {
           setIsEnabled(checked);
+          toast.success("メール通知設定を更新しました。");
         } else {
           // エラーの場合は元の状態に戻す
           console.error("メール通知設定の更新に失敗しました:", result.error);
+          toast.error(`メール通知設定の更新に失敗しました: ${result.error}`);
           setIsEnabled(!checked);
         }
       } catch (error) {
         console.error("メール通知設定の更新に失敗しました:", error);
+        toast.error(`メール通知設定の更新中にエラーが発生しました: ${error instanceof Error ? error.message : String(error)}`);
         // エラーが発生した場合は元の状態に戻す
         setIsEnabled(!checked);
       }
     },
-    [userSettings.userId],
+    [userId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -27,7 +27,6 @@ export const AuctionListings = memo(function AuctionListings() {
     isLoading,
 
     // アクション
-    handleToggleWatchlist,
     setListingsConditions,
   } = useAuctionListings();
 

@@ -1,10 +1,9 @@
 "use client";
 
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
-import { serverToggleWatchlist } from "@/lib/auction/action/watchlist";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -20,7 +19,6 @@ type UseAuctionListingsReturn = {
   isLoading: boolean;
 
   // action
-  handleToggleWatchlist: (auctionId: string) => Promise<void>;
   setListingsConditions: (newListingsConditions: AuctionListingsConditions) => void;
 };
 
@@ -117,16 +115,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         : null,
     page: currentPage,
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ウォッチリスト関連
-   */
-  // ウォッチリストの変更を追跡
-  const [watchlistChanges, setWatchlistChanges] = useState<Set<string>>(new Set());
-  // ウォッチリストの変更を保存するタイムアウト
-  const saveWatchlistTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -312,94 +300,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * ウォッチリスト
-   * ウォッチリスト切り替えハンドラ
-   * @param auctionId オークションID
-   * @returns Promise<void>
-   */
-  const handleToggleWatchlist = useCallback(
-    async (auctionId: string) => {
-      try {
-        // 楽観的UI更新
-        setAuctions((prev) => prev.map((auction) => (auction.id === auctionId ? { ...auction, is_watched: !auction.is_watched } : auction)));
-
-        // 変更を追跡
-        setWatchlistChanges((prev) => {
-          const newChanges = new Set(prev);
-          if (newChanges.has(auctionId)) {
-            newChanges.delete(auctionId);
-          } else {
-            newChanges.add(auctionId);
-          }
-          return newChanges;
-        });
-
-        // 既存のタイマーをクリア
-        if (saveWatchlistTimeoutRef.current) {
-          clearTimeout(saveWatchlistTimeoutRef.current);
-        }
-
-        // 一定時間後に一括保存
-        saveWatchlistTimeoutRef.current = setTimeout(
-          () => {
-            const changesToSave = Array.from(watchlistChanges);
-            if (changesToSave.length > 0) {
-              console.log(`Saving ${changesToSave.length} watchlist changes...`);
-              // 非同期で各変更をサーバーに送信
-              Promise.all(changesToSave.map((id) => serverToggleWatchlist(id, userId)))
-                .then(() => {
-                  console.log("Watchlist changes saved successfully.");
-                  // 保存成功後にローカルの変更追跡リストをクリア
-                  setWatchlistChanges(new Set());
-                })
-                .catch((error) => {
-                  console.error("ウォッチリストの一括更新に失敗しました", error);
-                  // エラーハンドリング: 必要であればUIを元に戻すなどの処理
-                  // ここでは、失敗した変更は watchlistChanges に残るため、
-                  // 次回のタイマーやアンマウント時に再試行される可能性がある
-                });
-            }
-          },
-          3000, // 10分後に保存 (例)
-        );
-      } catch (error) {
-        console.error("ウォッチリストの更新に失敗しました", error);
-      }
-    },
-    [watchlistChanges, userId],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ウォッチリスト
-   * 画面を離れる時に未保存のウォッチリストの変更を保存
-   */
-  useEffect(() => {
-    return () => {
-      // クリーンアップ関数：コンポーネントがアンマウントされる時に実行。そのためクリーンアップ部分に記載
-      const saveRemainingChanges = async () => {
-        if (watchlistChanges.size > 0) {
-          const changes = Array.from(watchlistChanges);
-          for (const id of changes) {
-            void serverToggleWatchlist(id, userId).catch((error) => {
-              console.error("クリーンアップ時のウォッチリスト更新に失敗しました", error);
-            });
-          }
-        }
-      };
-
-      if (saveWatchlistTimeoutRef.current) {
-        clearTimeout(saveWatchlistTimeoutRef.current);
-      }
-
-      void saveRemainingChanges();
-    };
-  }, [watchlistChanges, userId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return {
     // state
     auctions,
@@ -408,7 +308,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     isLoading,
 
     // action
-    handleToggleWatchlist,
     setListingsConditions: (newListingsConditions: AuctionListingsConditions) => {
       console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_newConditions", newListingsConditions);
       updateUrlParams(newListingsConditions);

@@ -37,7 +37,7 @@ export async function updateUserSetup(data: SetupForm) {
     });
 
     // 保存が成功した場合
-    return { success: true, redirect: "/dashboard/grouplist" };
+    return { success: true };
   } catch (error) {
     // エラーログを出力
     console.error("Error updating user setup:", error);

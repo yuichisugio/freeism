@@ -1,6 +1,5 @@
 "use client";
 
-import type { UserSettings } from "@prisma/client";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -8,13 +7,14 @@ import { Switch } from "@/components/ui/switch";
 import { usePushNotification } from "@/hooks/notification/use-push-notification";
 import { updateUserSettings } from "@/lib/actions/user-settings";
 import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * プッシュ通知のトグル
  */
-export const WebPushNotificationToggle = memo(function PushNotificationToggle({ userSettings }: { userSettings: UserSettings }) {
+export const WebPushNotificationToggle = memo(function PushNotificationToggle({ isPushEnabled, userId }: { isPushEnabled: boolean; userId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -27,7 +27,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
   /**
    * プッシュ通知のトグルの状態
    */
-  const [isEnabled, setIsEnabled] = useState<boolean>(userSettings.isPushEnabled);
+  const [isEnabled, setIsEnabled] = useState<boolean>(isPushEnabled);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -55,6 +55,12 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
    */
   const handleToggleChange = useCallback(
     async (checked: boolean) => {
+      // ユーザーIDがない場合はエラーを表示
+      if (!userId) {
+        toast.error("ユーザーIDがありません");
+        return;
+      }
+
       // トグルをONにしたとき
       if (checked) {
         // ーーーーーーーーーーーーーーーーーーーーー
@@ -74,7 +80,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
         // ーーーーーーーーーーーーーーーーーーーーー
 
         // ユーザー設定を更新
-        const result = await updateUserSettings(userSettings.userId, checked, "isPushEnabled");
+        const result = await updateUserSettings(userId, checked, "isPushEnabled");
 
         // ーーーーーーーーーーーーーーーーーーーーー
 
@@ -99,7 +105,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
         // ーーーーーーーーーーーーーーーーーーーーー
 
         // ユーザー設定を更新
-        const result = await updateUserSettings(userSettings.userId, checked, "isPushEnabled");
+        const result = await updateUserSettings(userId, checked, "isPushEnabled");
 
         // ーーーーーーーーーーーーーーーーーーーーー
 
@@ -113,7 +119,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
         }
       }
     },
-    [subscribe, unsubscribe, permissionState, userSettings.userId],
+    [subscribe, unsubscribe, permissionState, userId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

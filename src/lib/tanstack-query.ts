@@ -10,8 +10,8 @@ import { del, get, set } from "idb-keyval";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
-      staleTime: 1000 * 60 * 60 * 24 * 30, // 30 days
+      gcTime: Infinity,
+      staleTime: Infinity,
     },
   },
 });
@@ -30,7 +30,7 @@ const persister = createIDBPersister("react-query-persister");
  */
 export const persistOptions = {
   persister: persister,
-  maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+  maxAge: Infinity,
   retry: 1,
   buster: "0",
 };
