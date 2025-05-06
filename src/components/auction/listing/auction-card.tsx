@@ -7,8 +7,9 @@ import { CardCountdown } from "@/components/auction/listing/auction-countdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
 import { useAuctionCard } from "@/hooks/auction/listing/use-auction-card";
-import { type AuctionCardProps } from "@/lib/auction/type/types";
+import { type AuctionCard as AuctionCardType } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
 import { Clock, Heart, Star, Tag, Users } from "lucide-react";
 
@@ -17,9 +18,8 @@ import { Clock, Heart, Star, Tag, Users } from "lucide-react";
 /**
  * オークションカードコンポーネント
  * @param auction オークション
- * @param onToggleWatchlistAction ウォッチリスト更新アクション
  */
-export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps) {
+export const AuctionCard = memo(function AuctionCard({ auction }: { auction: AuctionCardType }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/auction/listing/auction-card.tsx_AuctionCard_start");
@@ -29,10 +29,11 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
   /**
    * カスタムフックからロジックを取得
    */
-  const { isUpdating, isStarted, isEnded, isNew, isEndingSoon, setIsEnded, handleToggleWatchlist, getStartMessage } = useAuctionCard({
-    auction,
-    onToggleWatchlistAction,
-  });
+  // card
+  const { isStarted, isEnded, isNew, isEndingSoon, setIsEnded, getStartMessage } = useAuctionCard({ auction });
+
+  // watchlist
+  const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, auction.is_watched);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -101,12 +102,12 @@ export const AuctionCard = memo(function AuctionCard({ auction, onToggleWatchlis
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          void handleToggleWatchlist();
+          void toggleWatchlist();
         }}
-        disabled={isUpdating}
-        aria-label={auction.is_watched ? "ウォッチリストから削除" : "ウォッチリストに追加"}
+        disabled={isLoading}
+        aria-label={isWatchlisted ? "ウォッチリストから削除" : "ウォッチリストに追加"}
       >
-        <Heart className={cn("h-4 w-4 transition-colors", auction.is_watched ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300")} />
+        <Heart className={cn("h-4 w-4 transition-colors", isWatchlisted ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300")} />
       </button>
 
       {/* オークション詳細ページへのリンク */}

@@ -2,6 +2,7 @@
 
 import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action/watchlist";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -23,7 +24,22 @@ type UseWatchlistReturn = {
  * ウォッチリスト操作用カスタムフック
  * @returns {UseWatchlistReturn} ウォッチリスト操作用の関数群
  */
-export function useWatchlist(auctionId: string, userId: string): UseWatchlistReturn {
+export function useWatchlist(auctionId: string, initialData: boolean | null): UseWatchlistReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/hooks/auction/bid/use-watchlist.ts_useWatchlist_start", auctionId);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーIDを取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error("ユーザーIDが取得できませんでした");
+  }
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -39,7 +55,7 @@ export function useWatchlist(auctionId: string, userId: string): UseWatchlistRet
   const { data: isWatchlisted, isPending: isLoading } = useQuery({
     queryKey: ["watchlist", auctionId, userId],
     queryFn: () => serverIsAuctionWatched(auctionId, userId),
-    initialData: false,
+    initialData: initialData ?? serverIsAuctionWatched(auctionId, userId), // 入札画面は初期データがnullなのでの場合はサーバーから取得
     retry: 3,
     staleTime: Infinity,
     gcTime: Infinity,
@@ -88,7 +104,7 @@ export function useWatchlist(auctionId: string, userId: string): UseWatchlistRet
   return {
     // state
     isLoading: isLoading || isPending,
-    isWatchlisted,
+    isWatchlisted: isWatchlisted as boolean,
     // action
     toggleWatchlist,
   };

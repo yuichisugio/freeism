@@ -209,16 +209,6 @@ export type AuctionListingResult = Array<AuctionCard>;
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークションの出品リストのカードのprops
- */
-export type AuctionCardProps = {
-  auction: AuctionCard;
-  onToggleWatchlistAction: (auctionId: string) => Promise<void>;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 入札フォームの型
  */
 export type BidFormData = {

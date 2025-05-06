@@ -99,8 +99,8 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
     console.log("カウントダウンが終了しました");
   });
 
-  // ウォッチリストアクション
-  const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, currentUserId);
+  // ウォッチリストアクション。watchはuserIdが必要で、userIdを入れるとキャッシュできないため、意図的に取得しない
+  const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { type AuctionCardProps } from "@/lib/auction/type/types";
+import { type AuctionCard } from "@/lib/auction/type/types";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -12,13 +12,11 @@ import { ja } from "date-fns/locale";
  * オークションカード用フックの型定義
  */
 type UseAuctionCardReturn = {
-  isUpdating: boolean;
   isStarted: boolean;
   isEnded: boolean;
   isNew: boolean;
   isEndingSoon: boolean;
   setIsEnded: (isEnded: boolean) => void;
-  handleToggleWatchlist: () => Promise<void>;
   getStartMessage: () => string;
 };
 
@@ -29,14 +27,7 @@ type UseAuctionCardReturn = {
  * @param {AuctionCardHookProps} props オークションカード用フックのプロップ
  * @returns {AuctionCardHookResult} オークションカードの状態とハンドラー
  */
-export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCardProps): UseAuctionCardReturn {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ウォッチリスト更新中の状態
-   */
-  const [isUpdating, setIsUpdating] = useState(false);
-
+export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctionCardReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -75,23 +66,6 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ウォッチリストの切り替え
-   * @returns {void} ウォッチリストの切り替え
-   */
-  const handleToggleWatchlist = useCallback(async () => {
-    if (isUpdating) return;
-
-    setIsUpdating(true);
-    try {
-      await onToggleWatchlistAction(auction.id);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [auction.id, isUpdating, onToggleWatchlistAction]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 開始前の場合のメッセージ
    * @returns {string} 開始前の場合のメッセージ
    */
@@ -103,7 +77,6 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
 
   return {
     // state
-    isUpdating,
     isStarted,
     isEnded,
     isNew,
@@ -111,7 +84,6 @@ export function useAuctionCard({ auction, onToggleWatchlistAction }: AuctionCard
 
     // action
     setIsEnded,
-    handleToggleWatchlist,
     getStartMessage,
   };
 }
