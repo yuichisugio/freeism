@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
-import { useWatchlist } from "@/hooks/auction/bid/use-watchlist-actions";
+import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency } from "@/lib/utils";
@@ -100,7 +100,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   });
 
   // ウォッチリストアクション
-  const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(!!initialAuction.watchlists?.[0], auction.id, currentUserId);
+  const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, currentUserId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

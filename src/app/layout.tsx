@@ -4,7 +4,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../styles/globals.css";
 
 import { Providers } from "@/components/provider/providers";
+import { getAuthSession } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
+import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -58,11 +61,24 @@ export const viewport: Viewport = {
  * ルートレイアウト
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションを取得
+   */
+  const session = await getAuthSession();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   return (
     <html lang="ja" suppressHydrationWarning className="overflow-hidden">
       {/* suppressHydrationWarning={true} を追加することで、ブラウザ拡張機能（Grammarlyなど）が追加する属性によるハイドレーション警告を抑制します */}
       <body suppressHydrationWarning={true}>
-        <Providers>{children}</Providers>
+        <SessionProvider session={session}>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
+        </SessionProvider>
         <Analytics />
         <SpeedInsights />
       </body>

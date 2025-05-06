@@ -3,7 +3,7 @@
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { getAuctionCount, getAuctionListings } from "@/lib/auction/action/auction-listing";
+import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
 import { serverToggleWatchlist } from "@/lib/auction/action/watchlist";
 import { useSession } from "next-auth/react";
 
@@ -276,10 +276,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         // データ取得中の状態
         setIsLoading(true);
 
-        const [listingsResult, countResult] = await Promise.all([
-          getAuctionListings({ listingsConditions: conditions, userId }),
-          getAuctionCount({ listingsConditions: conditions, userId }),
-        ]);
+        // Promise.all を使わずに、新しい関数を呼び出す
+        const { listings: listingsResult, count: countResult } = await getAuctionListingsAndCount({ listingsConditions: conditions, userId });
 
         // 結果の設定
         setAuctions(listingsResult);
@@ -291,6 +289,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         });
       } catch (error) {
         console.error("use-auction-listings_getAuctionListingsData_error", error);
+        // エラー時にもstateを初期化することが望ましい場合がある
+        setAuctions([]);
+        setTotalAuctionsCount(0);
       } finally {
         // データ取得中の状態を解除
         setIsLoading(false);

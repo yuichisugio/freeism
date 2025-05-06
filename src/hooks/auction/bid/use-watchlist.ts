@@ -23,7 +23,7 @@ type UseWatchlistReturn = {
  * ウォッチリスト操作用カスタムフック
  * @returns {UseWatchlistReturn} ウォッチリスト操作用の関数群
  */
-export function useWatchlist(initialIsWatched: boolean, auctionId: string, userId: string): UseWatchlistReturn {
+export function useWatchlist(auctionId: string, userId: string): UseWatchlistReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -39,7 +39,7 @@ export function useWatchlist(initialIsWatched: boolean, auctionId: string, userI
   const { data: isWatchlisted, isPending: isLoading } = useQuery({
     queryKey: ["watchlist", auctionId, userId],
     queryFn: () => serverIsAuctionWatched(auctionId, userId),
-    initialData: initialIsWatched,
+    initialData: false,
     retry: 3,
     staleTime: Infinity,
     gcTime: Infinity,
@@ -73,8 +73,10 @@ export function useWatchlist(initialIsWatched: boolean, auctionId: string, userI
     },
     onSettled: async (data) => {
       if (data) {
+        console.log("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストに追加しました");
         toast.success("ウォッチリストに追加しました");
       } else {
+        console.log("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストから削除しました");
         toast.success("ウォッチリストから削除しました");
       }
       await queryClient.invalidateQueries({ queryKey: ["watchlist", auctionId, userId] });

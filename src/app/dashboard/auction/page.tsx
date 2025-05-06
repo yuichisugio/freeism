@@ -1,4 +1,7 @@
+"use cache";
+
 import { type Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { AuctionListings } from "@/components/auction/listing/auction-listings";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
@@ -21,6 +24,11 @@ export default async function AuctionPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/app/dashboard/auction/page.tsx_AuctionPage_start");
+
+  /**
+   * キャッシュの有効期間を設定
+   */
+  cacheLife("weeks");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

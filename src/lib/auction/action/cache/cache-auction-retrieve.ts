@@ -1,0 +1,112 @@
+"use cache";
+
+import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { type AuctionWithDetails } from "@/lib/auction/type/types";
+import { prisma } from "@/lib/prisma";
+
+/**
+ * オークションIDに関連するオークション情報を取得
+ * @param auctionId オークションID
+ * @returns オークション情報
+ */
+export async function getCachedAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
+  try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // ログ
+    console.log("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_start");
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // オークションIDが指定されていない場合はエラーを返す
+    if (!auctionId) {
+      console.error("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error_auctionId_not_specified");
+      return null;
+    }
+    console.log("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_auctionId", auctionId);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // オークション情報を取得
+    const auction: AuctionWithDetails | null = await prisma.auction.findUnique({
+      where: { id: auctionId },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        currentHighestBid: true,
+        currentHighestBidderId: true,
+        status: true,
+        extensionTotalCount: true,
+        extensionLimitCount: true,
+        extensionTotalTime: true,
+        extensionLimitTime: true,
+        bidHistories: {
+          select: {
+            id: true,
+            amount: true,
+            createdAt: true,
+            isAutoBid: true,
+            user: {
+              select: {
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
+        },
+        task: {
+          select: {
+            task: true,
+            detail: true,
+            imageUrl: true,
+            status: true,
+            category: true,
+            group: {
+              select: {
+                id: true,
+                name: true,
+                depositPeriod: true,
+              },
+            },
+            executors: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    id: true,
+                    settings: {
+                      select: {
+                        username: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    if (!auction) return null;
+
+    console.log("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_auction_success", auction);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    return auction;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  } catch (error) {
+    console.error("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error", error);
+    return null;
+  }
+}

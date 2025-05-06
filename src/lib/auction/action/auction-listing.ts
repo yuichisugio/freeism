@@ -7,57 +7,43 @@
 import type { GetAuctionListingsParams } from "@/lib/auction/action/cache/cache-auction-listing";
 import type { AuctionListingResult, Suggestion } from "@/lib/auction/type/types";
 import { cache } from "react";
-import { cachedGetAuctionCount, cachedGetAuctionListings, cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing";
+import { cachedGetAuctionListingsAndCount, cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション一覧を取得する関数
+ * オークション一覧と総件数を取得する関数
  * @param listingsConditions オークション一覧の条件
  * @param userId ユーザーID
- * @returns オークション一覧
+ * @returns オークション一覧と総件数
  */
-export const getAuctionListings = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<AuctionListingResult> => {
-  const cachedData = await cachedGetAuctionListings({ listingsConditions, userId });
-  if (cachedData) {
-    return cachedData;
-  } else {
-    throw new Error("キャッシュデータがありません");
-  }
-});
+export const getAuctionListingsAndCount = cache(
+  async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_start");
+    const cachedData = await cachedGetAuctionListingsAndCount({ listingsConditions, userId });
+    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_cachedData", cachedData);
+    if (cachedData) {
+      return cachedData;
+    } else {
+      throw new Error("オークション一覧と件数の取得中に予期せぬエラーが発生しました。");
+    }
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション一覧を取得する関数
+ * オークション検索サジェストを取得する関数
  * @param query 検索クエリ
  * @param userId ユーザーID
- * @returns オークション一覧
+ * @returns オークション検索サジェスト
  */
 export const getSearchSuggestions = cache(async (query: string, userId: string): Promise<Suggestion[]> => {
   const cachedData = await cachedGetSearchSuggestions(query, userId);
   if (cachedData) {
     return cachedData;
   } else {
-    throw new Error("キャッシュデータがありません");
-  }
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークション一覧を取得する関数
- * @param listingsConditions オークション一覧の条件
- * @param userId ユーザーID
- * @returns オークション一覧
- */
-export const getAuctionCount = cache(async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<number> => {
-  const cachedData = await cachedGetAuctionCount({ listingsConditions, userId });
-  // キャッシュデータがundefinedまたはnullの場合はエラーを投げる。0が来た場合にエラーにならないようにしたい
-  if (cachedData !== undefined && cachedData !== null) {
-    return cachedData;
-  } else {
-    throw new Error("キャッシュデータがありません");
+    throw new Error("検索サジェストのキャッシュデータがありません");
   }
 });
 

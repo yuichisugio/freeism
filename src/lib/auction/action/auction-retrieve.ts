@@ -1,5 +1,6 @@
 "use server";
 
+import { getCachedAuctionByAuctionId } from "@/lib/auction/action/cache/cache-auction-retrieve";
 import { AUCTION_CONSTANTS, getAuctionUpdateSelect } from "@/lib/auction/constants";
 import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
@@ -7,27 +8,44 @@ import { prisma } from "@/lib/prisma";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション情報を取得
+ * オークション情報を取得。
+ * SSEで取得するため、CACHEがNG
  * @param auctionId オークションID
  * @returns オークション情報
  */
 export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<UpdateAuctionWithDetails | null> {
-  const updatedAuction: UpdateAuctionWithDetails | null = await prisma.auction.findUnique({
-    where: { id: auctionId },
-    select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
-  });
+  try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return updatedAuction;
+    // ログ
+    console.log("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_start");
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    const updatedAuction: UpdateAuctionWithDetails | null = await prisma.auction.findUnique({
+      where: { id: auctionId },
+      select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
+    });
+
+    return updatedAuction;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  } catch (error) {
+    console.error("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_error", error);
+    return null;
+  }
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションIDに関連するオークション情報を取得
+ * オークション情報全般なので、キャッシュを使用する。
+ * 更新が必要な情報は、SSE接続の処理情報として最新のデータを別で取得するので問題はない
  * @param auctionId オークションID
  * @returns オークション情報
  */
-export async function getAuctionByAuctionId(auctionId: string, currentUserId: string): Promise<AuctionWithDetails | null> {
+export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -36,93 +54,7 @@ export async function getAuctionByAuctionId(auctionId: string, currentUserId: st
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // オークションIDが指定されていない場合はエラーを返す
-    if (!auctionId) {
-      console.error("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_error_auctionId_not_specified");
-      return null;
-    }
-    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auctionId", auctionId);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // オークション情報を取得
-    const auction: AuctionWithDetails | null = await prisma.auction.findUnique({
-      where: { id: auctionId },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        currentHighestBid: true,
-        currentHighestBidderId: true,
-        status: true,
-        extensionTotalCount: true,
-        extensionLimitCount: true,
-        extensionTotalTime: true,
-        extensionLimitTime: true,
-        bidHistories: {
-          select: {
-            id: true,
-            amount: true,
-            createdAt: true,
-            isAutoBid: true,
-            user: {
-              select: {
-                settings: {
-                  select: {
-                    username: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: { createdAt: "desc" },
-          take: AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1, // 1件多く取得して、２５＋１にしたい
-        },
-        task: {
-          select: {
-            task: true,
-            detail: true,
-            imageUrl: true,
-            status: true,
-            category: true,
-            group: {
-              select: {
-                id: true,
-                name: true,
-                depositPeriod: true,
-              },
-            },
-            executors: {
-              select: {
-                id: true,
-                user: {
-                  select: {
-                    id: true,
-                    settings: {
-                      select: {
-                        username: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        watchlists: {
-          where: {
-            userId: currentUserId,
-          },
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    if (!auction) return null;
+    const auction = await getCachedAuctionByAuctionId(auctionId);
 
     console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auction_success", auction);
 

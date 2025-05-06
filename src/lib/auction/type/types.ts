@@ -284,9 +284,6 @@ export type AuctionWithDetails = UpdateAuctionWithDetails & {
       } | null;
     }[];
   };
-  watchlists: {
-    id: string;
-  }[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
