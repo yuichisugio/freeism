@@ -1,6 +1,7 @@
 "use client";
 
 import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
+import type { GroupMemberWithUser } from "@/lib/actions/group";
 import type { Task } from "@/types/group";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useGroupDetail, useGroupMembers, useGroupTasks } from "@/hooks/group";
+import { useGroupDetail } from "@/hooks/group/use-group-detail";
+import { useGroupMembers } from "@/hooks/group/use-group-members";
+import { useGroupTasks } from "@/hooks/group/use-group-tasks";
 import {
   Award,
   Check,
@@ -514,8 +517,8 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
                       <CommandEmpty>ユーザーが見つかりません</CommandEmpty>
                       <CommandGroup>
                         {groupMembers
-                          .filter((member) => !member.isGroupOwner)
-                          .map((member) => (
+                          .filter((member: GroupMemberWithUser) => !member.isGroupOwner)
+                          .map((member: GroupMemberWithUser) => (
                             <CommandItem
                               key={member.user.id}
                               value={member.user.name ?? ""}
@@ -597,7 +600,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
                     <CommandList>
                       <CommandEmpty>メンバーが見つかりません</CommandEmpty>
                       <CommandGroup>
-                        {groupMembers.map((member) => (
+                        {groupMembers.map((member: GroupMemberWithUser) => (
                           <CommandItem
                             key={member.user.id}
                             value={member.user.name ?? ""}

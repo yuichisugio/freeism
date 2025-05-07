@@ -1,13 +1,24 @@
+"use client";
+
 import { useState } from "react";
 import { updateTaskStatus } from "@/lib/actions/task";
 import { toast } from "sonner";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクステータスの型
+ */
 export type TaskStatus = {
   label: string;
   value: string;
 };
 
-// タスクステータスの定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクステータスの定義
+ */
 export const taskStatuses: TaskStatus[] = [
   { label: "タスク実施予定", value: "PENDING" },
   { label: "落札済み", value: "BIDDED" },
@@ -18,13 +29,22 @@ export const taskStatuses: TaskStatus[] = [
   { label: "アーカイブ", value: "ARCHIVED" },
 ];
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * タスクステータス管理のためのカスタムフック
  * @returns タスクステータス管理機能
  */
 export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: (data: T[]) => void) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * state
+   */
   // コンボボックスの開閉状態
   const [openStatus, setOpenStatus] = useState<string | null>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * タスクステータス変更処理
@@ -54,10 +74,19 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
     }
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
+    // state
     openStatus,
+
+    // function
     setOpenStatus,
     handleStatusChange,
+
+    // data
     taskStatuses,
   };
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

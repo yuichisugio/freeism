@@ -1,6 +1,6 @@
 "use client";
 
-import type { EditableTask } from "@/hooks/table/use-task-editor";
+import type { EditableTask } from "@/hooks/task/use-task-editor";
 import type { Task, TaskParticipant } from "@/types/group";
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useEffect, useMemo, useState } from "react";

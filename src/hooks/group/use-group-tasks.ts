@@ -26,13 +26,16 @@ type UseGroupTasksProps = {
  * グループタスク用のカスタムフックの戻り値の型
  */
 type UseGroupTasksReturn = {
+  // state
   isLoading: boolean;
   nonRewardTasks: Task[];
   rewardTasks: Task[];
   users: User[];
   isUploadModalOpen: boolean;
-  setIsUploadModalOpen: (open: boolean) => void;
   isExportModalOpen: boolean;
+
+  // action
+  setIsUploadModalOpen: (open: boolean) => void;
   setIsExportModalOpen: (open: boolean) => void;
   getReporterNames: (reporters: TaskParticipant[]) => string;
   getExecutorNames: (executors: TaskParticipant[]) => string;
@@ -56,20 +59,34 @@ type UseGroupTasksReturn = {
 export function useGroupTasks({ initialTasks, userId, isGroupOwner, isAppOwner }: UseGroupTasksProps): UseGroupTasksReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * state
+   */
+  // ローディング中かどうか
   const [isLoading, setIsLoading] = useState(false);
+  // 非報酬タスク
   const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(initialTasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
+  // 報酬タスク
   const [rewardTasks, setRewardTasks] = useState<Task[]>(initialTasks.filter((task) => task.contributionType === contributionType.REWARD));
+  // ユーザー一覧
   const [users, setUsers] = useState<User[]>([]);
+  // アップロードモーダー
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  // エクスポートモーダー
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザー一覧を取得
+  /**
+   * ユーザー一覧を取得
+   */
   useEffect(() => {
     async function fetchUsers() {
       try {
@@ -269,13 +286,16 @@ export function useGroupTasks({ initialTasks, userId, isGroupOwner, isAppOwner }
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
     isLoading,
     nonRewardTasks,
     rewardTasks,
     users,
     isUploadModalOpen,
-    setIsUploadModalOpen,
     isExportModalOpen,
+
+    // action
+    setIsUploadModalOpen,
     setIsExportModalOpen,
     getReporterNames,
     getExecutorNames,

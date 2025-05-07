@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkAppOwner } from "@/lib/actions/group";
@@ -6,16 +8,28 @@ import { getAllUsers } from "@/lib/actions/user";
 import { fetchAuthenticatedUserId } from "@/lib/utils";
 import { toast } from "react-hot-toast";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザーの型
+ */
 type BasicUser = {
   id: string;
   name: string | null;
   email: string;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 簡易ユーザーの型
+ */
 type SimpleUser = {
   id: string;
   name: string;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * マイタスク管理のためのカスタムフック
@@ -23,13 +37,35 @@ type SimpleUser = {
  * @returns タスク管理に必要な状態と関数
  */
 export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[]) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * router
+   */
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * state
+   */
+  // タスクデータ
   const [tasks, setTasks] = useState<T[]>(initialTasks);
+
+  // ユーザーデータ
   const [users, setUsers] = useState<BasicUser[]>([]);
+
+  // ユーザーID
   const [userId, setUserId] = useState<string | null>(null);
+
+  // アプリオーナーかどうか
   const [isAppOwner, setIsAppOwner] = useState(false);
 
-  // ユーザー一覧を取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザー一覧を取得
+   */
   useEffect(() => {
     async function fetchUsers() {
       try {
@@ -43,7 +79,11 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
     void fetchUsers();
   }, []);
 
-  // 権限情報を取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 権限情報を取得
+   */
   useEffect(() => {
     async function checkPermissions() {
       try {
@@ -61,19 +101,31 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
     void checkPermissions();
   }, []);
 
-  // 報告者名を連結する関数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 報告者名を連結する関数
+   */
   const getReporterNames = (reporters: { user?: { name: string | null } | null; name?: string | null }[]): string => {
     if (!reporters || reporters.length === 0) return "-";
     return reporters.map((r) => (r.user ? r.user.name : r.name) ?? "不明").join(", ");
   };
 
-  // 実行者名を連結する関数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 実行者名を連結する関数
+   */
   const getExecutorNames = (executors: { user?: { name: string | null } | null; name?: string | null }[]): string => {
     if (!executors || executors.length === 0) return "-";
     return executors.map((e) => (e.user ? e.user.name : e.name) ?? "不明").join(", ");
   };
 
-  // タスク編集可能かどうかの判定
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク編集可能かどうかの判定
+   */
   const canEditTask = (task: T): boolean => {
     // タスクのステータスを取得
     const status = task.status as string;
@@ -99,7 +151,11 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
     return isAppOwner || isReporter || isExecutor;
   };
 
-  // タスク編集後の更新処理
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク編集後の更新処理
+   */
   const handleTaskEdited = () => {
     void (async () => {
       try {
@@ -120,7 +176,11 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
     })();
   };
 
-  // 編集用のユーザー一覧を整形
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 編集用のユーザー一覧を整形
+   */
   const getSimpleUsers = (): SimpleUser[] => {
     return users.map((user) => ({
       id: user.id,
@@ -128,12 +188,17 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
     }));
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
+    // state
     tasks,
-    setTasks,
     users,
     userId,
     isAppOwner,
+
+    // function
+    setTasks,
     getReporterNames,
     getExecutorNames,
     canEditTask,

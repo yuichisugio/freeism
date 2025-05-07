@@ -4,7 +4,7 @@ import type { BaseRecord, Column } from "@/components/share/data-table";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useMyTasks } from "@/hooks/table/use-my-tasks";
+import { useMyTasks } from "@/hooks/task/use-my-tasks";
 import { type contributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

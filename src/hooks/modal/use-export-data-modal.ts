@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { exportGroupAnalytics, exportGroupTask } from "@/lib/actions/task";
 import { addMonths, endOfDay, format, isAfter, isBefore, startOfDay } from "date-fns";

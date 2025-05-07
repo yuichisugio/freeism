@@ -25,8 +25,11 @@ export type UploadType = "TASK_REPORT" | "CONTRIBUTION_EVALUATION" | "FIXED_CONT
  * カスタムフックの引数型
  */
 export type UseCsvUploadOptions = {
+  // state
   groupId: string;
   isOpen: boolean;
+
+  // action
   onCloseAction: (isOpen: boolean) => void;
 };
 
@@ -319,23 +322,46 @@ export type CsvUploadHookReturn = {
  */
 export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOptions): CsvUploadHookReturn {
   // ---------------------------------------------------------------------------
+
+  /**
+   * state
+   */
+  // アップロードタイプ
   const [uploadType, setUploadType] = useState<UploadType>("TASK_REPORT");
+  // アップロード中かどうか
   const [isUploading, setIsUploading] = useState(false);
+  // アップロード進捗
   const [uploadProgress, setUploadProgress] = useState(0);
+  // 現在のファイル
   const [currentFiles, setCurrentFiles] = useState<File[]>([]);
+  // ファイルオーバー
   const [isFileOver, setIsFileOver] = useState(false);
+  // アプリオーナーかどうか
   const [isAppOwner, setIsAppOwner] = useState(false);
+  // グループオーナーかどうか
   const [isGroupOwner, setIsGroupOwner] = useState(false);
+  // 権限ありかどうか
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   // ---------------------------------------------------------------------------
 
+  /**
+   * ルーター
+   */
   const router = useRouter();
+
+  // ---------------------------------------------------------------------------
+
+  /**
+   * セッション
+   */
   const session = useSession();
 
   // ---------------------------------------------------------------------------
 
-  // 権限チェック
+  /**
+   * 権限チェック
+   */
   useEffect(() => {
     async function checkPermissions() {
       try {
@@ -363,7 +389,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // ファイルドロップ処理
+  /**
+   * ファイルドロップ処理
+   */
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter((file) => {
       if (file.size > MAX_FILE_SIZE) {
@@ -378,7 +406,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // ドロップゾーン設定
+  /**
+   * ドロップゾーン設定
+   */
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     accept: ACCEPTED_FILE_TYPES,
     maxSize: MAX_FILE_SIZE,
@@ -399,7 +429,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // ウィンドウ全体へのドラッグドロップ
+  /**
+   * ウィンドウ全体へのドラッグドロップ
+   */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -468,7 +500,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // モーダルクローズ時の状態リセット
+  /**
+   * モーダルクローズ時の状態リセット
+   */
   useEffect(() => {
     if (!isOpen) {
       setCurrentFiles([]);
@@ -478,21 +512,27 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // ファイル削除
+  /**
+   * ファイル削除
+   */
   const handleRemoveFile = useCallback((fileToRemove: File) => {
     setCurrentFiles((prev) => prev.filter((file) => file !== fileToRemove));
   }, []);
 
   // ---------------------------------------------------------------------------
 
-  // 全ファイル削除
+  /**
+   * 全ファイル削除
+   */
   const handleRemoveAll = useCallback(() => {
     setCurrentFiles([]);
   }, []);
 
   // ---------------------------------------------------------------------------
 
-  // ファイルカードコンポーネント
+  /**
+   * ファイルカードコンポーネント
+   */
   const fileCards = useMemo(() => {
     return currentFiles.map((file, i) => ({
       key: `${file.name}-${i}`,
@@ -503,7 +543,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // キャンセル処理
+  /**
+   * キャンセル処理
+   */
   const onCancel = useCallback(() => {
     if (isUploading) return;
     setCurrentFiles([]);
@@ -513,14 +555,18 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // 必要なカラム取得
+  /**
+   * 必要なカラム取得
+   */
   const getRequiredColumns = useCallback((type: UploadType): string[] => {
     return REQUIRED_COLUMNS[type] ?? [];
   }, []);
 
   // ---------------------------------------------------------------------------
 
-  // アップロードタイプに応じた権限チェック
+  /**
+   * アップロードタイプに応じた権限チェック
+   */
   const hasPermissionForUploadType = useCallback(
     (type: UploadType): boolean => {
       if (type === "FIXED_CONTRIBUTION") {
@@ -533,7 +579,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // CSVデータをTaskReportDataに変換
+  /**
+   * CSVデータをTaskReportDataに変換
+   */
   const convertToTaskReportData = useCallback((data: CsvRow[]): TaskReportData[] => {
     return data.map((row) => {
       // 必須フィールドのデフォルト値を空文字列に設定
@@ -565,7 +613,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // CSVデータをContributionEvaluationDataに変換
+  /**
+   * CSVデータをContributionEvaluationDataに変換
+   */
   const convertToContributionEvaluationData = useCallback((data: CsvRow[]): ContributionEvaluationData[] => {
     return data.map((row) => {
       const taskId = typeof row.taskId === "string" ? row.taskId : "";
@@ -582,7 +632,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // CSVデータをFixedContributionDataに変換
+  /**
+   * CSVデータをFixedContributionDataに変換
+   */
   const convertToFixedContributionData = useCallback((data: CsvRow[]): FixedContributionData[] => {
     return data.map((row) => {
       const id = typeof row.id === "string" ? row.id : "";
@@ -603,7 +655,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // CSVデータをTaskStatusDataに変換
+  /**
+   * CSVデータをTaskStatusDataに変換
+   */
   const convertToTaskStatusData = useCallback((data: CsvRow[]): TaskStatusData[] => {
     return data.map((row) => {
       const taskId = typeof row.taskId === "string" ? row.taskId : "";
@@ -618,7 +672,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // アップロード処理
+  /**
+   * アップロード処理
+   */
   const handleUpload = useCallback(async () => {
     if (currentFiles.length === 0) {
       toast.error("ファイルを選択してください");
@@ -809,7 +865,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
-  // ファイルフォーマット情報表示
+  /**
+   * ファイルフォーマット情報表示
+   */
   const renderFileFormatInfo = useCallback(() => {
     const info = UPLOAD_TYPE_INFO[uploadType];
 
@@ -985,26 +1043,27 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
 
   // ---------------------------------------------------------------------------
 
+  /**
+   * 戻り値
+   */
   return {
-    // 状態
+    // state
     uploadType,
     isUploading,
     uploadProgress,
     currentFiles,
     isFileOver,
     isAuthorized,
-    // ドロップゾーン
+    fileCards,
     dropzoneProps: { getRootProps, getInputProps, isDragActive, open },
-    // ハンドラー
+
+    // action
     setUploadType,
     handleRemoveFile,
     handleRemoveAll,
     handleUpload,
     onCancel,
-    // UI生成
-    fileCards,
     renderFileFormatInfo,
-    // 権限
     hasPermissionForUploadType,
   };
 }

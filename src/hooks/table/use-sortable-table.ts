@@ -1,5 +1,9 @@
+"use client";
+
 import { useState } from "react";
 import { type SortDirection } from "@/lib/auction/type/types";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * テーブルデータのソート機能を提供するカスタムフック
@@ -7,12 +11,22 @@ import { type SortDirection } from "@/lib/auction/type/types";
  * @returns ソート機能を持つテーブルデータとメソッド
  */
 export function useSortableTable<T extends Record<string, unknown>>(initialData: T[]) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * state
+   */
   // データの状態管理
   const [data, setData] = useState<T[]>(initialData);
 
   // ソートの状態管理
   const [sortConfig, setSortConfig] = useState<{ key: keyof T; direction: "asc" | "desc" } | null>(null);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * function
+   */
   // ソート処理関数
   const handleSort = (key: keyof T) => {
     // ソートの方向は、デフォルトではascに設定
@@ -31,6 +45,11 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
     setData(sortedData);
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * function
+   */
   // データソート関数
   const sortData = (dataToSort: T[], key: keyof T, direction: "asc" | "desc"): T[] => {
     return [...dataToSort].sort((a, b) => {
@@ -85,14 +104,24 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
     });
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * function
+   */
   // データの更新処理
   const updateData = (newData: T[]) => {
     setData(newData);
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
+    // state
     data,
     sortConfig,
+
+    // function
     handleSort,
     updateData,
     setData,

@@ -19,25 +19,31 @@ type UseGroupMembersProps = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * グループメンバーのフックの戻り値
+ */
 type UseGroupMembersReturn = {
+  // state
   groupMembers: GroupMemberWithUser[];
   showPermissionDialog: boolean;
-  setShowPermissionDialog: (showPermissionDialog: boolean) => void;
-  selectedUserId: string | null;
-  setSelectedUserId: (selectedUserId: string | null) => void;
-  selectedUserName: string | null;
-  setSelectedUserName: (selectedUserName: string | null) => void;
-  isComboboxOpen: boolean;
-  setIsComboboxOpen: (isComboboxOpen: boolean) => void;
-  removeMemberDialogOpen: boolean;
-  setRemoveMemberDialogOpen: (removeMemberDialogOpen: boolean) => void;
-  selectedMemberForRemoval: string | null;
-  setSelectedMemberForRemoval: (selectedMemberForRemoval: string | null) => void;
-  selectedMemberNameForRemoval: string | null;
-  setSelectedMemberNameForRemoval: (selectedMemberNameForRemoval: string | null) => void;
-  isRemovalComboboxOpen: boolean;
-  setIsRemovalComboboxOpen: (isRemovalComboboxOpen: boolean) => void;
   addToBlackList: boolean;
+  selectedUserId: string | null;
+  selectedUserName: string | null;
+  isComboboxOpen: boolean;
+  removeMemberDialogOpen: boolean;
+  selectedMemberForRemoval: string | null;
+  selectedMemberNameForRemoval: string | null;
+  isRemovalComboboxOpen: boolean;
+
+  // action
+  setShowPermissionDialog: (showPermissionDialog: boolean) => void;
+  setSelectedUserId: (selectedUserId: string | null) => void;
+  setSelectedUserName: (selectedUserName: string | null) => void;
+  setIsComboboxOpen: (isComboboxOpen: boolean) => void;
+  setRemoveMemberDialogOpen: (removeMemberDialogOpen: boolean) => void;
+  setSelectedMemberForRemoval: (selectedMemberForRemoval: string | null) => void;
+  setSelectedMemberNameForRemoval: (selectedMemberNameForRemoval: string | null) => void;
+  setIsRemovalComboboxOpen: (isRemovalComboboxOpen: boolean) => void;
   setAddToBlackList: (addToBlackList: boolean) => void;
   handleOpenPermissionDialog: () => Promise<void>;
   handleGrantPermission: () => Promise<void>;
@@ -53,25 +59,37 @@ type UseGroupMembersReturn = {
  */
 export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupMembersProps): UseGroupMembersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * state
+   */
+  // グループメンバー一覧
   const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
+  // 権限付与ダイアログ
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  // 権限付与ダイアログで選択されたユーザーID
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  // 権限付与ダイアログで選択されたユーザー名
   const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
+  // 権限付与ダイアログのコンボボックスが開いているかどうか
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+  // メンバー除名ダイアログ
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
+  // メンバー除名ダイアログで選択されたユーザーID
   const [selectedMemberForRemoval, setSelectedMemberForRemoval] = useState<string | null>(null);
+  // メンバー除名ダイアログで選択されたユーザー名
   const [selectedMemberNameForRemoval, setSelectedMemberNameForRemoval] = useState<string | null>(null);
+  // メンバー除名ダイアログのコンボボックスが開いているかどうか
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
+  // メンバー除名ダイアログで選択されたユーザーをブラックリストに追加するかどうか
   const [addToBlackList, setAddToBlackList] = useState(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -187,24 +205,27 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
     groupMembers,
     showPermissionDialog,
-    setShowPermissionDialog,
     selectedUserId,
-    setSelectedUserId,
     selectedUserName,
-    setSelectedUserName,
     isComboboxOpen,
-    setIsComboboxOpen,
     removeMemberDialogOpen,
-    setRemoveMemberDialogOpen,
     selectedMemberForRemoval,
-    setSelectedMemberForRemoval,
     selectedMemberNameForRemoval,
-    setSelectedMemberNameForRemoval,
     isRemovalComboboxOpen,
-    setIsRemovalComboboxOpen,
     addToBlackList,
+
+    // action
+    setShowPermissionDialog,
+    setSelectedUserId,
+    setSelectedUserName,
+    setIsComboboxOpen,
+    setRemoveMemberDialogOpen,
+    setSelectedMemberForRemoval,
+    setSelectedMemberNameForRemoval,
+    setIsRemovalComboboxOpen,
     setAddToBlackList,
     handleOpenPermissionDialog,
     handleGrantPermission,

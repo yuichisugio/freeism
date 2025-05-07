@@ -1,7 +1,7 @@
 "use client";
 
 import type { TaskFormValues, User } from "@/hooks/modal/use-task-edit-modal";
-import type { EditableTask } from "@/hooks/table/use-task-editor";
+import type { EditableTask } from "@/hooks/task/use-task-editor";
 import type { Task } from "@/types/group";
 import type { Control } from "react-hook-form";
 import { memo } from "react";

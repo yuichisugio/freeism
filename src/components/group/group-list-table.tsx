@@ -4,7 +4,7 @@ import type { BaseRecord, Column, DataTableProps } from "@/components/share/data
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useGroupJoiner } from "@/hooks/table/use-group-actions";
+import { useGroupJoiner } from "@/hooks/group/use-group-actions";
 import { UserPlus } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

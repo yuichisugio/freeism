@@ -9,34 +9,74 @@ import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-type UseGroupDetailProps = {
-  tasks: Task[];
+/**
+ * グループ詳細ページのフックの戻り値の型
+ */
+type UseGroupDetailReturn = {
+  // state
+  isLoading: boolean;
+  isMember: boolean;
+  isAppOwner: boolean;
+  isGroupOwner: boolean;
+  userId: string | null;
+  deleteDialogOpen: boolean;
+  leaveDialogOpen: boolean;
+  editDialogOpen: boolean;
+
+  // action
+  setDeleteDialogOpen: (open: boolean) => void;
+  setLeaveDialogOpen: (open: boolean) => void;
+  setEditDialogOpen: (open: boolean) => void;
+  handleJoin: (groupId: string) => Promise<void>;
+  handleLeave: () => Promise<void>;
+  executeLeave: (groupId: string) => Promise<void>;
+  handleOpenEditDialog: () => void;
+  handleOpenDeleteDialog: () => void;
+  handleDeleteGroup: (groupId: string) => Promise<void>;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループ詳細ページのフック
  * @param tasks {Task[]} タスクデータ
- * @returns {isLoading: boolean, isMember: boolean, isAppOwner: boolean, isGroupOwner: boolean, userId: string | null, deleteDialogOpen: boolean, leaveDialogOpen: boolean, editDialogOpen: boolean, setDeleteDialogOpen: (open: boolean) => void, setLeaveDialogOpen: (open: boolean) => void, setEditDialogOpen: (open: boolean) => void, handleJoin: (groupId: string) => Promise<void>, handleLeave: () => Promise<void>, executeLeave: (groupId: string) => Promise<void>, handleOpenEditDialog: () => void, handleOpenDeleteDialog: () => void, handleDeleteGroup: (groupId: string) => Promise<void>}
+ * @returns {UseGroupDetailReturn} グループ詳細ページのフックの戻り値
  */
-export function useGroupDetail({ tasks }: UseGroupDetailProps) {
+export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ステート
+   */
+  // ローディング
   const [isLoading, setIsLoading] = useState(false);
+  // メンバー
   const [isMember, setIsMember] = useState(false);
+  // アプリオーナー
   const [isAppOwner, setIsAppOwner] = useState(false);
+  // グループオーナー
   const [isGroupOwner, setIsGroupOwner] = useState(false);
+  // ユーザーID
   const [userId, setUserId] = useState<string | null>(null);
+  // 削除ダイアログ
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // 脱退ダイアログ
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  // 編集ダイアログ
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // コンポーネントマウント時に権限チェックを一度だけ実行
+  /**
+   * コンポーネントマウント時に権限チェックを一度だけ実行
+   */
   useEffect(() => {
     async function checkPermissions() {
       try {
@@ -209,7 +249,11 @@ export function useGroupDetail({ tasks }: UseGroupDetailProps) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 戻り値
+   */
   return {
+    // state
     isLoading,
     isMember,
     isAppOwner,
@@ -218,6 +262,8 @@ export function useGroupDetail({ tasks }: UseGroupDetailProps) {
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
+
+    // action
     setDeleteDialogOpen,
     setLeaveDialogOpen,
     setEditDialogOpen,
