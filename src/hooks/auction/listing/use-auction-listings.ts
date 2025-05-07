@@ -1,9 +1,10 @@
 "use client";
 
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -81,16 +82,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション一覧画面のstate
-   */
-  // オークション情報
-  const [auctions, setAuctions] = useState<AuctionListingResult>([]);
-  // 総オークション件数
-  const [totalAuctionsCount, setTotalAuctionsCount] = useState<number>(0);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * フィルター状態。
    * 基本はuse-auction-filtersで使用するが、子コンポーネントに渡すために、ここで定義
    */
@@ -115,13 +106,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         : null,
     page: currentPage,
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * データ読み込み中の状態
-   */
-  const [isLoading, setIsLoading] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -247,65 +231,36 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
     // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
     window.history.pushState({}, "", newUrl);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション一覧データと総件数を取得する関数
-   * @returns Promise<void>
+   * オークション一覧データと総件数を並列で取得
+   * queryKeyのstate更新のたびにデータ更新&キャッシュ追加
+   * watchlist更新時もキャッシュの内容から更新されてそう
    */
-  const getAuctionListingsData = useCallback(
-    async (conditions: AuctionListingsConditions) => {
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_start", conditions);
-      try {
-        // データ取得中の状態
-        setIsLoading(true);
-
-        // Promise.all を使わずに、新しい関数を呼び出す
-        const { listings: listingsResult, count: countResult } = await getAuctionListingsAndCount({ listingsConditions: conditions, userId });
-
-        // 結果の設定
-        setAuctions(listingsResult);
-        setTotalAuctionsCount(countResult);
-
-        console.log("src/hooks/auction/listing/use-auction-listings.ts_getAuctionListingsData_success", {
-          auctionsCount: listingsResult.length,
-          totalCount: countResult,
-        });
-      } catch (error) {
-        console.error("use-auction-listings_getAuctionListingsData_error", error);
-        // エラー時にもstateを初期化することが望ましい場合がある
-        setAuctions([]);
-        setTotalAuctionsCount(0);
-      } finally {
-        // データ取得中の状態を解除
-        setIsLoading(false);
-      }
-    },
-    [userId],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 初期データ読み込みとフィルタ条件変更時のデータ再取得
-   */
-  useEffect(() => {
-    console.log("src/hooks/auction/listing/use-auction-listings.ts_useEffect[listingsConditions]_start", listingsConditions);
-    void getAuctionListingsData(listingsConditions);
-  }, [listingsConditions, getAuctionListingsData]); // listingsConditions が変更されたら再取得
+  const { data: auctionListings, isPending } = useQuery({
+    queryKey: ["auctionListings", listingsConditions, userId],
+    queryFn: async () => await getAuctionListingsAndCount({ listingsConditions, userId }),
+    staleTime: 1000 * 60 * 60 * 1, // 1時間
+    gcTime: 1000 * 60 * 60 * 1, // 1時間
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    refetchIntervalInBackground: false,
+    enabled: !!listingsConditions && !!userId,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     // state
-    auctions,
-    totalAuctionsCount,
+    auctions: auctionListings?.listings ?? [],
+    totalAuctionsCount: auctionListings?.count ?? 0,
     listingsConditions,
-    isLoading,
+    isLoading: isPending,
 
     // action
     setListingsConditions: (newListingsConditions: AuctionListingsConditions) => {

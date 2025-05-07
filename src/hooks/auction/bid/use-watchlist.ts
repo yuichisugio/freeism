@@ -55,7 +55,7 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
   const { data: isWatchlisted, isPending: isLoading } = useQuery({
     queryKey: ["watchlist", auctionId, userId],
     queryFn: () => serverIsAuctionWatched(auctionId, userId),
-    initialData: initialData ?? serverIsAuctionWatched(auctionId, userId), // 入札画面は初期データがnullなのでの場合はサーバーから取得
+    initialData: initialData,
     retry: 3,
     staleTime: Infinity,
     gcTime: Infinity,
@@ -104,7 +104,7 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
   return {
     // state
     isLoading: isLoading || isPending,
-    isWatchlisted: isWatchlisted as boolean,
+    isWatchlisted: isWatchlisted!,
     // action
     toggleWatchlist,
   };

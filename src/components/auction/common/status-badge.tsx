@@ -1,6 +1,3 @@
-"use cache";
-
-import { unstable_cacheLife as cacheLife } from "next/cache";
 import { Badge } from "@/components/ui/badge";
 import { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
@@ -31,10 +28,7 @@ const auctionStatusConfig = {
  * オークションステータスバッジ
  * @param status オークションステータス
  */
-export async function AuctionStatusBadge({ status }: { status: AuctionStatus }) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  cacheLife("max");
-
+export function AuctionStatusBadge({ status }: { status: AuctionStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const config = auctionStatusConfig[status];
@@ -69,11 +63,7 @@ const bidStatusConfig = {
  * 入札ステータスバッジ
  * @param status 入札ステータス
  */
-export async function BidStatusBadge({ status }: { status: BidStatus }) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  cacheLife("max");
-
+export function BidStatusBadge({ status }: { status: BidStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const config = bidStatusConfig[status];
@@ -118,11 +108,7 @@ const taskStatusConfig = {
  * タスクステータスバッジ
  * @param status タスクステータス
  */
-export async function TaskStatusBadge({ status }: { status: TaskStatus }) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  cacheLife("max");
-
+export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const config = taskStatusConfig[status];
