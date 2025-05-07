@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
@@ -495,7 +495,6 @@ const AuctionFilterControl = memo(function AuctionFilterControl({
  * @param {boolean} hasMore - もっと読み込むボタンの表示有無
  * @param {boolean} isLoadingMore - もっと読み込むボタンのローディング状態
  * @param {FilterType} activeFilter - 現在のフィルター状態
- * @param {function} loadMoreNotifications - もっと読み込むボタンのクリック時のコールバック
  * @param {function} toggleReadStatus - 未読状態変更時のコールバック
  */
 const Notifications = memo(function Notifications({
@@ -503,15 +502,15 @@ const Notifications = memo(function Notifications({
   hasMore,
   isLoadingMore,
   activeFilter,
-  loadMoreNotifications,
   toggleReadStatus,
+  loadMoreNotifications,
 }: {
   notifications: NotificationData[];
   hasMore: boolean;
   isLoadingMore: boolean;
   activeFilter: FilterType;
-  loadMoreNotifications: () => void;
   toggleReadStatus: (id: string, isRead: boolean) => void;
+  loadMoreNotifications: () => void;
 }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -578,11 +577,11 @@ export const NotificationList = memo(function NotificationList() {
     activeFilter,
     activeAuctionFilter,
     toggleReadStatus,
-    loadMoreNotifications,
     markAllAsRead,
     handleFilterChange,
     handleAuctionFilterChange,
     handleManualRefresh,
+    loadMoreNotifications,
   } = useNotificationList();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -637,8 +636,8 @@ export const NotificationList = memo(function NotificationList() {
             hasMore={hasMore}
             isLoadingMore={isLoadingMore}
             activeFilter={activeFilter}
-            loadMoreNotifications={loadMoreNotifications}
             toggleReadStatus={toggleReadStatus}
+            loadMoreNotifications={loadMoreNotifications}
           />
         )}
       </div>
