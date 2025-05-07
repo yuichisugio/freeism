@@ -15,13 +15,13 @@ import { Prisma } from "@prisma/client";
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数
  */
-export const getUnreadNotificationsCount = cache(async (userId: string): Promise<string[]> => {
+export const getUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
   console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
 
-  const unreadNotificationIds = await cachedGetUnreadNotificationsCount(userId);
-  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_unreadNotificationIds", unreadNotificationIds);
+  const hasUnreadNotifications = await cachedGetUnreadNotificationsCount(userId);
+  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_hasUnreadNotifications", hasUnreadNotifications);
 
-  return unreadNotificationIds;
+  return hasUnreadNotifications;
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -51,6 +51,10 @@ export const getNotificationsAndUnreadCount = cache(
 
       const { notifications, totalCount, unreadCount } = await cachedGetNotificationsAndUnreadCount(page, limit, userId);
 
+      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_notifications", notifications);
+      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
+      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_unreadCount", unreadCount);
+
       return {
         notifications,
         totalCount,
@@ -73,11 +77,10 @@ export const getNotificationsAndUnreadCount = cache(
 
 /**
  * 指定された通知の既読状態を更新する - JSONB最適化版
- * @param notificationId 通知ID
- * @param isRead 既読状態
+ * @param updates 更新する通知IDと既読状態のペアの配列
  * @returns 成功したかどうか
  */
-export const updateNotificationStatus = cache(async (notificationId: string, isRead: boolean): Promise<{ success: boolean }> => {
+export const updateNotificationStatus = cache(async (updates: Array<{ notificationId: string; isRead: boolean }>): Promise<{ success: boolean }> => {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -85,23 +88,29 @@ export const updateNotificationStatus = cache(async (notificationId: string, isR
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
-    if (isRead) {
-      // 既読にする場合
-      const readAt = new Date().toISOString();
-      await prisma.$executeRaw`
-      UPDATE "Notification"
-      SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
-      WHERE id = ${notificationId}
-    `;
-    } else {
-      // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
-      await prisma.$executeRaw`
-      UPDATE "Notification"
-      SET "is_read" = "is_read" || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
-      WHERE id = ${notificationId}
-    `;
-    }
+    // Prismaの$transactionを使用して、すべての更新をアトミックに実行
+    await prisma.$transaction(async (tx) => {
+      for (const update of updates) {
+        const { notificationId, isRead } = update;
+        // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
+        if (isRead) {
+          // 既読にする場合
+          const readAt = new Date().toISOString();
+          await tx.$executeRaw`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+            WHERE id = ${notificationId}
+          `;
+        } else {
+          // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
+          await tx.$executeRaw`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
+            WHERE id = ${notificationId}
+          `;
+        }
+      }
+    });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -132,29 +141,50 @@ export const markAllNotificationsAsRead = cache(async (): Promise<{ success: boo
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 認証済みユーザーのIDを取得
+     */
     const userId = await getAuthenticatedSessionUserId();
 
-    // 共通のWHERE句を取得 (タスク条件は不要なので false を指定)
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 共通のWHERE句を取得 (タスク条件は不要なので false を指定)
+     */
     const whereClause = await buildCommonNotificationWhereClause(userId, false);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 全ての通知を一括で既読に設定
+     */
     const readAt = new Date().toISOString();
 
-    // 全ての通知を一括で既読に設定
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 全ての通知を一括で既読に設定
+     */
     await prisma.$executeRaw`
       UPDATE "Notification" n -- エイリアス n を追加
       SET "is_read" =
         COALESCE(n."is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
-      WHERE ${whereClause} -- 結合したWHERE句を使用
+      WHERE ${whereClause}
     `;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // キャッシュを更新
+    /**
+     * キャッシュを更新
+     */
     revalidateTag("notification");
     revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 処理結果を返す
+     */
     return { success: true };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

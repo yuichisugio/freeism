@@ -40,7 +40,7 @@ export type NotificationData = {
  * @returns 未読通知の数
  * 未読の有無のみ知りたいので、1件のみ取得
  */
-export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<string[]> => {
+export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
   cacheTag("notification");
   console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
@@ -66,12 +66,14 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    return countResult.map((result) => result.id);
+    // 未読通知があるかどうかを返す
+    console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_countResult", countResult);
+    return countResult.length > 0;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("未読通知カウントエラー:", error);
-    return [];
+    return false;
   }
 });
 

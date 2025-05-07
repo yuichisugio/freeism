@@ -98,7 +98,9 @@ export type UseCreateNotificationResult = {
 export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNotificationProps): UseCreateNotificationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォームの作成
+  /**
+   * フォームの作成
+   */
   const form = useForm<CreateNotificationFormData>({
     // フォームのスキーマ
     resolver: zodResolver(createNotificationSchema),
@@ -121,21 +123,27 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォームの監視
+  /**
+   * フォームの監視
+   */
   const { watch, setValue, reset } = form;
   const targetType = watch("targetType");
   const sendTiming = watch("sendTiming");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ComboBox用のstate
+  /**
+   * ComboBox用のstate
+   */
   const [userComboOpen, setUserComboOpen] = useState(false);
   const [groupComboOpen, setGroupComboOpen] = useState(false);
   const [taskComboOpen, setTaskComboOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // targetTypeが変わったら関連するフィールドをリセット
+  /**
+   * targetTypeが変わったら関連するフィールドをリセット
+   */
   useEffect(() => {
     setValue("userId", "");
     setValue("groupId", "");
@@ -144,7 +152,9 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 送信タイミングのオプション
+  /**
+   * 送信タイミングのオプション
+   */
   const sendTimingOptions: RadioOption[] = useMemo(
     () => [
       { value: "NOW", label: "即時送信" },
@@ -155,7 +165,9 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 通知対象タイプのオプション（権限によってフィルタリング）
+  /**
+   * 通知対象タイプのオプション（権限によってフィルタリング）
+   */
   const targetTypeOptions: RadioOption[] = useMemo(() => {
     return isAppOwner
       ? [
@@ -172,7 +184,9 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォーム送信処理
+  /**
+   * フォーム送信処理
+   */
   const handleSubmit = useCallback(
     async (data: CreateNotificationFormData) => {
       try {
@@ -290,18 +304,23 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 通知作成フォーム用のカスタムフックの結果
+   */
   return {
+    // state
     form,
     targetType,
     sendTiming,
     userComboOpen,
-    setUserComboOpen,
     groupComboOpen,
-    setGroupComboOpen,
     taskComboOpen,
-    setTaskComboOpen,
     sendTimingOptions,
     targetTypeOptions,
+    // action
     handleSubmit,
+    setUserComboOpen,
+    setGroupComboOpen,
+    setTaskComboOpen,
   };
 }

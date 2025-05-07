@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
+import { useQuery } from "@tanstack/react-query";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,8 +11,8 @@ import { getUnreadNotificationsCount } from "@/lib/actions/notification/notifica
  */
 type NotificationButtonReturn = {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
   hasUnreadNotifications: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -32,62 +33,26 @@ export function useNotificationButton(userId: string): NotificationButtonReturn 
   // モーダーの開閉状態を管理
   const [isOpen, setIsOpen] = useState(false);
 
-  // 未読通知の有無
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 未読通知をチェックする関数
-   */
-  const checkNotifications = useCallback(async () => {
-    console.log("src/hooks/notification/use-notification-button.ts_checkNotifications_start");
-    // 未読通知を取得
-    const unreadNotificationIds = await getUnreadNotificationsCount(userId);
-    setHasUnreadNotifications(unreadNotificationIds.length > 0);
-  }, [userId]);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 初期ロード時と定期的に未読通知をチェック
    */
-  useEffect(() => {
-    console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_start");
-    // 初回実行
-    void checkNotifications();
-    // 定期実行の設定。30分ごと
-    const intervalId: NodeJS.Timeout = setInterval(() => void checkNotifications(), 30 * 60 * 1000);
-    // クリーンアップ
-    return () => {
-      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_cleanup");
-      if (intervalId) {
-        console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_cleanup_clearInterval");
-        clearInterval(intervalId);
-      }
-    };
-  }, [checkNotifications]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * モーダーが開かれたときに最新の通知を取得
-   */
-  useEffect(() => {
-    // モーダーが開かれている場合、最新の通知を取得
-    if (isOpen) {
-      console.log("src/hooks/notification/use-notification-button.ts_useEffect_checkNotifications_isOpen", isOpen);
-      // 最新の通知を取得
-      void checkNotifications();
-    }
-  }, [isOpen, checkNotifications]);
+  const { data: hasUnreadNotifications } = useQuery({
+    queryKey: ["hasUnreadNotifications", userId],
+    queryFn: () => getUnreadNotificationsCount(userId),
+    staleTime: 30 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchInterval: 30 * 60 * 1000,
+    enabled: !!userId,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     // state
     isOpen,
-    hasUnreadNotifications,
+    hasUnreadNotifications: hasUnreadNotifications ?? false,
 
     // function
     setIsOpen,

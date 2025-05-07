@@ -12,6 +12,11 @@ export const queryClient = new QueryClient({
     queries: {
       gcTime: Infinity,
       staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      refetchIntervalInBackground: false,
     },
   },
 });

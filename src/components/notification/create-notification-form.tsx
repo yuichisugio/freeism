@@ -40,7 +40,9 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({
 }: CreateNotificationFormProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 通知作成フォームのフォームオブジェクト
+  /**
+   * 通知作成フォームのフォームオブジェクト
+   */
   const {
     // state
     form,
@@ -73,6 +75,10 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 通知作成フォームのレンダリング
+   * @returns {JSX.Element} 通知作成フォーム
+   */
   return (
     <div className="h-full">
       <div className="text-muted-foreground mb-6 text-sm">{isAppOwner ? "アプリオーナー権限" : "グループオーナー権限"}で操作しています。</div>

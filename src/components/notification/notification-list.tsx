@@ -1,14 +1,14 @@
 "use client";
 
 import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, CheckCircle2, MoreHorizontal, RefreshCw, ShoppingCart } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, MoreHorizontal, RefreshCw, ShoppingCart } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -17,6 +17,41 @@ import { AlertCircle, CheckCircle2, MoreHorizontal, RefreshCw, ShoppingCart } fr
  */
 const LoadingIndicator = memo(function LoadingIndicator() {
   return <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />;
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 読み込み中のコンポーネント
+ */
+const Loading = memo(function Loading() {
+  return (
+    <div className="flex h-[50vh] items-center justify-center">
+      <div className="text-center">
+        <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+        <p className="text-sm text-gray-500">通知を読み込み中...</p>
+      </div>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * エラーのコンポーネント
+ */
+const Error = memo(function Error({ error, handleManualRefresh }: { error: string; handleManualRefresh: () => void }) {
+  return (
+    <div className="flex h-[50vh] items-center justify-center">
+      <div className="text-center text-red-500">
+        <AlertCircle className="mx-auto mb-2 h-6 w-6" />
+        <p className="text-sm">{error}</p>
+        <Button variant="outline" size="sm" className="mt-2" onClick={handleManualRefresh}>
+          再度読み込む
+        </Button>
+      </div>
+    </div>
+  );
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -384,41 +419,6 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 読み込み中のコンポーネント
- */
-const Loading = memo(function Loading() {
-  return (
-    <div className="flex h-[50vh] items-center justify-center">
-      <div className="text-center">
-        <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-        <p className="text-sm text-gray-500">通知を読み込み中...</p>
-      </div>
-    </div>
-  );
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * エラーのコンポーネント
- */
-const Error = memo(function Error({ error, handleManualRefresh }: { error: string; handleManualRefresh: () => void }) {
-  return (
-    <div className="flex h-[50vh] items-center justify-center">
-      <div className="text-center text-red-500">
-        <AlertCircle className="mx-auto mb-2 h-6 w-6" />
-        <p className="text-sm">{error}</p>
-        <Button variant="outline" size="sm" className="mt-2" onClick={handleManualRefresh}>
-          再度読み込む
-        </Button>
-      </div>
-    </div>
-  );
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * オークションイベントタイプを日本語に変換
  */
 const formatAuctionEventType = (eventType: string): string => {
@@ -583,7 +583,6 @@ export const NotificationList = memo(function NotificationList() {
     handleFilterChange,
     handleAuctionFilterChange,
     handleManualRefresh,
-    requestCounter,
   } = useNotificationList();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -602,10 +601,9 @@ export const NotificationList = memo(function NotificationList() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-800 dark:text-gray-200">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
-            <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新">
-              <RefreshCw className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
-            {requestCounter > 0 && <span className="text-xs text-gray-500">リクエスト: {requestCounter}回</span>}
           </div>
 
           {/* すべて既読にするボタン */}

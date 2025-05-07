@@ -23,11 +23,16 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 通知ボタンのフック
+  /**
+   * 通知ボタンのフック
+   */
   const { isOpen, setIsOpen, hasUnreadNotifications } = useNotificationButton(userId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 通知ボタンのレンダリング
+   */
   return (
     <>
       <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)} className="relative" aria-label="通知">
