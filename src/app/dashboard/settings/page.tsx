@@ -2,8 +2,8 @@
 
 import type { Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { SetupForm } from "@/components/auth/setup-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { SetupForm } from "@/components/setting/setup-form";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

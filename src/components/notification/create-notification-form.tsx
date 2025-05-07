@@ -9,6 +9,9 @@ import { type Control, type FieldValues, type UseFormReturn } from "react-hook-f
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 通知作成フォームのprops
+ */
 type CreateNotificationFormProps = {
   isAppOwner: boolean;
   isGroupOwner: boolean;
@@ -61,7 +64,9 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({
     tasks,
   });
 
-  // 型の互換性のために型キャスト
+  /**
+   * 型の互換性のために型キャスト
+   */
   const typedForm = useMemo(() => form as unknown as UseFormReturn<FieldValues>, [form]);
   const typedControl = useMemo(() => form.control as unknown as Control<FieldValues>, [form]);
   const typedHandleSubmit = useMemo(() => handleSubmit as (data: FieldValues) => Promise<void>, [handleSubmit]);

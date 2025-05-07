@@ -1,6 +1,6 @@
 "use server";
 
-import type { SetupForm } from "@/components/auth/setup-form";
+import type { SetupForm } from "@/components/setting/setup-form";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { setupSchema } from "@/lib/zod-schema";

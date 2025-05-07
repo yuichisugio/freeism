@@ -125,31 +125,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ブラウザがプッシュ通知をサポートしていない場合
-   */
-  if (!isSupported) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>通知設定</CardTitle>
-          <CardDescription>このブラウザはプッシュ通知をサポートしていません</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 text-yellow-600">
-            <AlertCircle className="h-5 w-5" />
-            <span>最新のChromeやSafariなどのモダンブラウザでご利用ください</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * プッシュ通知のトグルを返す
    */
-  return (
+  return isSupported ? (
     <Card>
       <CardHeader>
         <CardTitle className="text-app dark:text-app-dark">プッシュ通知設定</CardTitle>
@@ -157,14 +135,27 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({ 
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
-          <Switch id="notification-toggle" checked={isEnabled} onCheckedChange={handleToggleChange} />
-          <Label htmlFor="notification-toggle">現在：{isEnabled ? "受信中" : "受信拒否中"}</Label>
+          <Switch id="push-notification-toggle" checked={isEnabled} onCheckedChange={handleToggleChange} />
+          <Label htmlFor="push-notification-toggle">現在：{isEnabled ? "受信中" : "受信拒否中"}</Label>
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。</p>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
           アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。
         </p>
         {error && <p className="mt-2 text-sm text-red-500">{error.message}</p>}
+      </CardContent>
+    </Card>
+  ) : (
+    <Card>
+      <CardHeader>
+        <CardTitle>通知設定</CardTitle>
+        <CardDescription>このブラウザはプッシュ通知をサポートしていません</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center space-x-2 text-yellow-600">
+          <AlertCircle className="h-5 w-5" />
+          <span>最新のChromeやSafariなどのモダンブラウザでご利用ください</span>
+        </div>
       </CardContent>
     </Card>
   );
