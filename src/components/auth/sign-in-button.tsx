@@ -25,19 +25,22 @@ type SignInButtonProps = ComponentPropsWithoutRef<"button">;
 export const SignInButton = memo(function SignInButton({ children, ...props }: SignInButtonProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * サインインボタンのローディング状態
+   */
   const [isLoading, setIsLoading] = useState(false);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
-   * サインインボタンのクリックハンドラ
+   * サインインボタンのクリックハンドラ。isLodingをfalseにする必要はない。ログイン後は画面遷移するため。
    */
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback(async () => {
     try {
       setIsLoading(true);
-      void signIn("google", { callbackUrl: "/dashboard/grouplist" });
+      await signIn("google", { callbackUrl: "/dashboard/grouplist" });
     } catch (error) {
       console.error("サインインに失敗しました:", error);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 

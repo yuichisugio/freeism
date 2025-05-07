@@ -513,6 +513,11 @@ const Notifications = memo(function Notifications({
   loadMoreNotifications: () => void;
   toggleReadStatus: (id: string, isRead: boolean) => void;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知リストコンポーネントを返す
+   */
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col gap-4 pr-4">
@@ -560,6 +565,9 @@ const Notifications = memo(function Notifications({
 export const NotificationList = memo(function NotificationList() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * カスタムフックからロジックを取得
+   */
   const {
     notifications,
     isLoading,
@@ -580,6 +588,9 @@ export const NotificationList = memo(function NotificationList() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 通知リストコンポーネントを返す
+   */
   return (
     <div className="flex flex-col overflow-hidden">
       {/* フィルタータブ - 固定 */}

@@ -1,9 +1,25 @@
+import { type Metadata } from "next";
 import { DescriptionSection } from "@/components/home/description-section";
 import { HeroSection } from "@/components/home/hero-section";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { getAuthSession } from "@/lib/utils";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
+export const metadata: Metadata = {
+  title: "Freeism",
+  description: "Freeismのホーム画面です。",
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ホームページ
+ */
 export default async function Home() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const session = await getAuthSession();

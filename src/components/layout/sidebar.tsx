@@ -1,8 +1,8 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Bell, History, Home, Menu, PlusCircle, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
+import { Bell, History, Home, Loader2, Menu, PlusCircle, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -117,6 +117,7 @@ export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
   // modal
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedPath, setSelectedPath] = useState(pathname);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -129,6 +130,10 @@ export const Sidebar = memo(function Sidebar() {
     },
     [isOpen],
   );
+
+  useEffect(() => {
+    setSelectedPath(pathname);
+  }, [pathname]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -190,10 +195,15 @@ export const Sidebar = memo(function Sidebar() {
                     key={item.href}
                     href={item.href}
                     scroll={false}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      setSelectedPath(item.href);
+                    }}
                     className={cn(
                       "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900 dark:hover:bg-blue-900 dark:hover:text-blue-100",
-                      pathname === item.href ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100" : "text-gray-900 dark:text-gray-200",
+                      selectedPath === item.href
+                        ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                        : "text-gray-900 dark:text-gray-200",
                     )}
                   >
                     <item.icon className="mr-2 h-4 w-4" />

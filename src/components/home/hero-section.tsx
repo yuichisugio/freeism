@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
-import { signIn } from "@/auth";
+import { signInAction } from "@/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -56,13 +56,7 @@ export const HeroSection = memo(async function HeroSection({ userId }: { userId:
                 <Link href="/dashboard/grouplist">Dashboard</Link>
               </Button>
             ) : (
-              <form
-                className="sm:hidden"
-                action={async () => {
-                  "use server";
-                  await signIn();
-                }}
-              >
+              <form className="sm:hidden" action={signInAction}>
                 <Button
                   type="submit"
                   size="lg"
