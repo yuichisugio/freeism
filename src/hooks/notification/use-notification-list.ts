@@ -90,7 +90,7 @@ export function useNotificationList(): NotificationManagerResult {
   const [currentPage, setCurrentPage] = useState(1);
 
   // 追加ローディングして取得できる情報があるかどうか
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
 
   // フィルター情報
   const [activeFilter, setActiveFilter] = useState<FilterType>("unread");
@@ -115,8 +115,10 @@ export function useNotificationList(): NotificationManagerResult {
   // ルーター（パス変更監視用）
   const pathname = usePathname();
 
+  // 初回レンダリングフラグ
   const isInitialRender = useRef(false);
 
+  // セッション情報
   const session = useSession();
   const userId = session.data?.user?.id;
 
@@ -170,30 +172,40 @@ export function useNotificationList(): NotificationManagerResult {
         return;
       }
 
-      const updatePromises = Array.from(pendingUpdates.entries()).map(async ([notificationId, isRead]) => {
-        return await updateNotificationStatus([{ notificationId, isRead }]);
-      });
-      await Promise.all(updatePromises);
+      const updatePromises = Array.from(pendingUpdates.entries()).map(([notificationId, isRead]) => ({ notificationId, isRead }));
+      await updateNotificationStatus(updatePromises);
     },
     onSuccess: (_data, pendingUpdates: Map<string, boolean>) => {
       console.log("src/hooks/notification/use-notification-list.ts_syncMutation_success");
+      // キャッシュを無効化するだけで、データ取得はuseQuery使用場所が表示されてからなので、呼び出しタイミングで更新したい場合は、setQueryDataで更新する
+      const currentQueryKey: readonly [string, number, number] = ["notifications", currentPage, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE];
+      queryClient.setQueryData<{ notifications: NotificationData[]; totalCount: number }>(currentQueryKey, (oldData) => {
+        // 古いデータがなければ何もしない
+        if (!oldData) return undefined;
 
-      queryClient.setQueriesData<{ notifications: NotificationData[]; totalCount: number }>(
-        { queryKey: ["notifications"], exact: false },
-        (oldData) => {
-          if (!oldData) return undefined;
-          const newNotifications = oldData.notifications.map((notification) => {
-            if (pendingUpdates.has(notification.id)) {
-              const isRead = pendingUpdates.get(notification.id)!;
-              return { ...notification, isRead, readAt: isRead ? new Date() : null };
-            }
-            return notification;
-          });
-          return { ...oldData, notifications: newNotifications };
-        },
-      );
+        // 更新する通知の情報を取得
+        const updatedNotifications = oldData.notifications.map((notification) => {
+          // 更新する通知と同じIDの通知がある場合
+          if (pendingUpdates.has(notification.id)) {
+            // 更新する通知の情報を取得
+            const newIsRead = pendingUpdates.get(notification.id)!;
+            // 通知の情報を更新
+            return {
+              ...notification,
+              isRead: newIsRead,
+              readAt: newIsRead ? new Date() : null,
+            };
+          }
+          // 更新する通知の内容を配列に返す
+          return notification;
+        });
+        // 更新した通知の情報を返す
+        return { ...oldData, notifications: updatedNotifications };
+      });
 
+      // 保留中の更新をクリア
       pendingUpdatesRef.current.clear();
+      // 保留中の更新数を更新
       setPendingUpdateCount(pendingUpdatesRef.current.size);
       console.log("[通知] サーバー同期成功、保留リストクリア、キャッシュ直接更新");
     },
@@ -203,9 +215,8 @@ export function useNotificationList(): NotificationManagerResult {
     },
     onSettled: async () => {
       console.log("src/hooks/notification/use-notification-list.ts_syncMutation_settled");
-      await queryClient.invalidateQueries({ queryKey: ["notifications"], exact: false });
+      // 未読通知数のキャッシュを無効化
       await queryClient.invalidateQueries({ queryKey: ["hasUnreadNotifications", userId] });
-      await queryClient.invalidateQueries({ queryKey: ["notifications", currentPage, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE] });
     },
   });
 
@@ -248,9 +259,11 @@ export function useNotificationList(): NotificationManagerResult {
           auctionId: notification.auctionId ?? null,
         };
       });
-      return { notifications: processedNotifications, totalCount: result.totalCount ?? 0 };
+      return {
+        notifications: processedNotifications,
+        totalCount: result.totalCount ?? 0,
+      };
     },
-    refetchOnMount: "always", // コンポーネントマウント時に常に再フェッチして、通知を開いたら最新の通知を取得
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -298,6 +311,7 @@ export function useNotificationList(): NotificationManagerResult {
         return mergedNotifications;
       });
 
+      // 追加読み込み可能かどうかを設定
       setHasMore(totalCount > currentPage * NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
       // isInitialRender の更新: 最初のデータ取得が完了したことを示す
@@ -425,9 +439,6 @@ export function useNotificationList(): NotificationManagerResult {
 
   // パス変更を検知して保留中の更新を同期
   useEffect(() => {
-    // 初回レンダリング時は isInitialRender の useEffect で処理されるので、ここでは実行しない
-    if (!isInitialRender.current || !pathname) return;
-
     console.log(`[通知] パス変更検知: ${pathname}`);
     console.log("src/hooks/notification/use-notification-list.ts_useEffect_pathname_change_start");
 
@@ -435,7 +446,7 @@ export function useNotificationList(): NotificationManagerResult {
       console.log("src/hooks/notification/use-notification-list.ts_useEffect_pathname_change_sync_start");
       void syncNotificationsMutate(new Map(pendingUpdatesRef.current)); // 非同期で実行、現在の保留内容を渡す
     }
-  }, [pathname, syncNotificationsMutate, isInitialRender]); // isInitialRender を依存配列に追加 (useRefのため効果はないが意図を示す)
+  }, [pathname, syncNotificationsMutate]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -490,8 +501,11 @@ export function useNotificationList(): NotificationManagerResult {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 追加の通知を読み込む関数
+  /**
+   * 追加の通知を読み込む関数
+   */
   const loadMoreNotifications = useCallback(() => {
+    // 追加読み込み可能かつ、フェッチ中でない場合
     if (hasMore && !queryIsFetching) {
       console.log("[通知] 追加読み込み実行");
       setCurrentPage((prevPage) => prevPage + 1);
@@ -500,31 +514,29 @@ export function useNotificationList(): NotificationManagerResult {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // isLoading, isLoadingMore, error を useQuery の状態から派生
-  const derivedIsLoading = queryIsLoading && currentPage === 1 && notifications.length === 0; // 初回ロード中
-  const derivedIsLoadingMore = queryIsFetching && currentPage > 1;
-  const derivedError = queryError
-    ? queryError instanceof Error
-      ? `通知の取得に失敗しました: ${queryError.message}`
-      : "通知の取得中にエラーが発生しました"
-    : null;
-
   return {
+    // state
     notifications: filteredNotifications(),
-    isLoading: derivedIsLoading,
-    isLoadingMore: derivedIsLoadingMore,
-    error: derivedError,
+    isLoading: queryIsLoading && currentPage === 1 && notifications.length === 0,
+    isLoadingMore: queryIsFetching && currentPage > 1,
+    error: queryError
+      ? queryError instanceof Error
+        ? `通知の取得に失敗しました: ${queryError.message}`
+        : "通知の取得中にエラーが発生しました"
+      : null,
     unreadCount,
     hasMore,
     activeFilter,
     activeAuctionFilter,
+    requestCounter,
+    pendingUpdateCount,
+
+    // 関数
     toggleReadStatus,
     markAllAsRead,
     handleFilterChange,
     handleAuctionFilterChange,
     handleManualRefresh,
     loadMoreNotifications,
-    requestCounter,
-    pendingUpdateCount,
   };
 }

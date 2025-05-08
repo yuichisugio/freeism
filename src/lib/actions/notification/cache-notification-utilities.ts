@@ -94,6 +94,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     notifications: NotificationData[];
     totalCount: number;
     unreadCount: number;
+    readCount: number;
   }> => {
     cacheTag("notification");
     try {
@@ -224,6 +225,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
         notifications,
         totalCount,
         unreadCount,
+        readCount: totalCount - unreadCount,
       };
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -233,6 +235,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
         notifications: [],
         totalCount: 0,
         unreadCount: 0,
+        readCount: 0,
       };
     }
   },

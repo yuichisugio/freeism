@@ -40,6 +40,7 @@ export const getNotificationsAndUnreadCount = cache(
     notifications: NotificationData[];
     totalCount: number;
     unreadCount: number;
+    readCount: number;
   }> => {
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -49,16 +50,18 @@ export const getNotificationsAndUnreadCount = cache(
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      const { notifications, totalCount, unreadCount } = await cachedGetNotificationsAndUnreadCount(page, limit, userId);
+      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(page, limit, userId);
 
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_notifications", notifications);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_unreadCount", unreadCount);
+      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_readCount", readCount);
 
       return {
         notifications,
         totalCount,
         unreadCount,
+        readCount,
       };
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -68,6 +71,7 @@ export const getNotificationsAndUnreadCount = cache(
         notifications: [],
         totalCount: 0,
         unreadCount: 0,
+        readCount: 0,
       };
     }
   },

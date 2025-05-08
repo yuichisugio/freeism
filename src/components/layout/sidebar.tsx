@@ -79,11 +79,6 @@ const sidebarItems = [
         href: "/dashboard/my-tasks",
         icon: PlusCircle,
       },
-      {
-        title: "通知一覧",
-        href: "/dashboard/notifications",
-        icon: Bell,
-      },
     ],
   },
   {
