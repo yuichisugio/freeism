@@ -34,6 +34,7 @@ export const getUnreadNotificationsCount = cache(async (userId: string): Promise
  */
 export const getNotificationsAndUnreadCount = cache(
   async (
+    userId: string,
     page = 1,
     limit = 20,
   ): Promise<{
@@ -45,12 +46,13 @@ export const getNotificationsAndUnreadCount = cache(
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 認証済みユーザーのIDを取得
-      const userId = await getAuthenticatedSessionUserId();
+      // 認証済みユーザーのIDを取得 -> 引数の userId を使用するため、この行は不要。
+      // const userId = await getAuthenticatedSessionUserId(); // この行をコメントアウトまたは削除
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(page, limit, userId);
+      // 引数で渡された userId を使用
+      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
 
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_notifications", notifications);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
