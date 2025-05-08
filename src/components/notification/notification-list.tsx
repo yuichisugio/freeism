@@ -60,7 +60,7 @@ const Error = memo(function Error({ error, handleManualRefresh }: { error: strin
  * フィルタータブコンポーネント
  * @param {FilterType} activeFilter - 現在のフィルター状態
  * @param {function} onFilterChange - フィルター状態変更時のコールバック
- * @param {number} unreadCount - 未読通知の数
+ * @param {number} unreadCount - 全体の未読数を期待
  */
 const FilterTabs = memo(function FilterTabs({
   activeFilter,
@@ -568,12 +568,12 @@ export const NotificationList = memo(function NotificationList() {
    * カスタムフックからロジックを取得
    */
   const {
-    notifications,
+    notifications, // これは activeFilter (all, unread, read) と auctionFilter が適用されたリスト
     isLoading,
     isLoadingMore,
     error,
-    unreadCount,
-    hasMore,
+    unreadCount, // これは全体の未読数 (overallUnreadCount)
+    hasMore, // 現在の (activeFilter + auctionFilter) での hasMore
     activeFilter,
     activeAuctionFilter,
     toggleReadStatus,

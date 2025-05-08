@@ -37,6 +37,7 @@ export const getNotificationsAndUnreadCount = cache(
     userId: string,
     page = 1,
     limit = 20,
+    filterType: "all" | "read" | "unread" = "all",
   ): Promise<{
     notifications: NotificationData[];
     totalCount: number;
@@ -52,7 +53,7 @@ export const getNotificationsAndUnreadCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 引数で渡された userId を使用
-      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
+      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit, filterType);
 
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_notifications", notifications);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
