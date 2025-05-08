@@ -4,7 +4,7 @@
  * 通知関連の定数
  */
 export const NOTIFICATION_CONSTANTS = {
-  ITEMS_PER_PAGE: 10,
+  ITEMS_PER_PAGE: 3,
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

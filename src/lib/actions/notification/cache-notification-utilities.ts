@@ -105,13 +105,8 @@ export const cachedGetNotificationsAndUnreadCount = cache(
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 各カテゴリから取得する件数を計算
-      const limitUnread = Math.ceil(limit / 2);
-      const limitRead = limit - limitUnread;
-
       // 各カテゴリのオフセットを計算
-      const offsetUnread = (page - 1) * limitUnread;
-      const offsetRead = (page - 1) * limitRead;
+      const offset = (page - 1) * limit;
 
       // 未読通知取得クエリパート
       const unreadQueryPart = Prisma.sql`
@@ -140,7 +135,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
           LEFT JOIN "Task" t ON n."task_id" = t.id
           WHERE ${commonWhereClause} AND (NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))
           ORDER BY n."sent_at" DESC, n.id DESC
-          LIMIT ${limitUnread} OFFSET ${offsetUnread}
+          LIMIT ${limit} OFFSET ${offset}
         )
       `;
 
@@ -174,7 +169,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
           LEFT JOIN "Task" t ON n."task_id" = t.id
           WHERE ${commonWhereClause} AND (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE)
           ORDER BY n."sent_at" DESC, n.id DESC
-          LIMIT ${limitRead} OFFSET ${offsetRead}
+          LIMIT ${limit} OFFSET ${offset}
         )
       `;
 

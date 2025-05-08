@@ -204,13 +204,12 @@ export function useNotificationList(): NotificationManagerResult {
             return { ...oldData, notifications: updatedNotifications };
           },
         );
-
-        // 保留中の更新をクリア
-        pendingUpdatesRef.current.clear();
-        // 保留中の更新数を更新
-        setPendingUpdateCount(pendingUpdatesRef.current.size);
-        console.log("[通知] サーバー同期成功、保留リストクリア、キャッシュ直接更新");
       }
+      // 保留中の更新をクリア
+      pendingUpdatesRef.current.clear();
+      // 保留中の更新数を更新
+      setPendingUpdateCount(pendingUpdatesRef.current.size);
+      console.log("[通知] サーバー同期成功、保留リストクリア、キャッシュ直接更新");
     },
     onError: (error) => {
       console.log("src/hooks/notification/use-notification-list.ts_syncMutation_error");
@@ -220,6 +219,16 @@ export function useNotificationList(): NotificationManagerResult {
       console.log("src/hooks/notification/use-notification-list.ts_syncMutation_settled");
       // 未読通知数のキャッシュを無効化
       await queryClient.invalidateQueries({ queryKey: ["hasUnreadNotifications", userId] });
+      // 通知リスト全体のキャッシュを無効化 (ページ指定を削除)
+      for (let page = 1; page <= currentPage; page++) {
+        console.log("src/hooks/notification/use-notification-list.ts_syncMutation_settled_invalidateQueries", [
+          "notifications",
+          userId,
+          page,
+          NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE,
+        ]);
+        await queryClient.invalidateQueries({ queryKey: ["notifications", userId, page, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE] });
+      }
       // 通知リスト全体のキャッシュを無効化 (ページ指定を削除)
       await queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
     },
@@ -252,6 +261,7 @@ export function useNotificationList(): NotificationManagerResult {
       }
 
       const result = await getNotificationsAndUnreadCount(userId, currentPage, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+      console.log(`[通知] Fetched page ${currentPage}: items received = ${result.notifications.length}, totalCount = ${result.totalCount}`);
 
       const processedNotifications: NotificationData[] = result.notifications.map((notification) => {
         const sentAtDate = notification.sentAt ? new Date(notification.sentAt) : null;
@@ -277,6 +287,8 @@ export function useNotificationList(): NotificationManagerResult {
         readCount: result.readCount ?? 0,
       };
     },
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 30,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -284,51 +296,45 @@ export function useNotificationList(): NotificationManagerResult {
   // useQuery から取得したデータを notifications state に反映する
   useEffect(() => {
     if (notificationsData) {
-      const { notifications: fetchedItems, totalCount } = notificationsData;
-
-      let mergedNotifications: NotificationData[] = [];
+      const { notifications: fetchedItems } = notificationsData;
 
       setNotifications((prevNotifications) => {
-        let newNotificationsMap: Map<string, NotificationData>;
-
-        if (currentPage === 1) {
-          // 最初のページまたはリフレッシュの場合
-          newNotificationsMap = new Map();
-        } else {
-          // 追加読み込みの場合
-          newNotificationsMap = new Map(prevNotifications.map((n) => [n.id, n]));
-        }
+        const newNotificationsMap = new Map(prevNotifications.map((n) => [n.id, n]));
 
         fetchedItems.forEach((fetchedNotification: NotificationData) => {
           newNotificationsMap.set(fetchedNotification.id, fetchedNotification);
         });
 
         pendingUpdatesRef.current.forEach((isRead, id) => {
-          const notification = newNotificationsMap.get(id);
-          if (notification) {
-            newNotificationsMap.set(id, { ...notification, isRead, readAt: isRead ? new Date() : null });
+          const existingNotificationInNewMap = newNotificationsMap.get(id);
+          if (existingNotificationInNewMap) {
+            // fetchedItems由来の通知、またはprevNotifications由来で既に追加済みの通知の場合、
+            // isRead状態をpendingUpdateのもので更新する。
+            newNotificationsMap.set(id, { ...existingNotificationInNewMap, isRead, readAt: isRead ? new Date() : null });
           } else {
-            const prevNotification = prevNotifications.find((n) => n.id === id);
-            if (prevNotification && currentPage !== 1) {
-              newNotificationsMap.set(id, { ...prevNotification, isRead, readAt: isRead ? new Date() : null });
+            // fetchedItemsには含まれないが、pendingUpdateがあり、かつ過去に読み込まれた通知かもしれない。
+            // (例: currentPage === 1 でリフレッシュされたが、pendingUpdateは2ページ目のアイテムに対するものだった場合など)
+            const notificationFromPrev = prevNotifications.find((n) => n.id === id);
+            if (notificationFromPrev) {
+              // 過去に存在した通知であれば、その情報を元にpendingUpdateを適用して新しいMapに追加する。
+              // これにより、表示ページが切り替わっても、ローカルでの既読/未読変更が保持されやすくなる。
+              newNotificationsMap.set(id, { ...notificationFromPrev, isRead, readAt: isRead ? new Date() : null });
             }
+            // prevNotificationsにも存在しないIDのpendingUpdateは、通常発生しないか、
+            // または孤立した更新なので、ここでは newNotificationsMap には追加しない。
           }
         });
 
-        mergedNotifications = Array.from(newNotificationsMap.values()).sort((a, b) => {
+        const mergedNotifications = Array.from(newNotificationsMap.values()).sort((a, b) => {
           if (!a.sentAt && !b.sentAt) return 0;
           if (!a.sentAt) return 1;
           if (!b.sentAt) return -1;
           return b.sentAt.getTime() - a.sentAt.getTime();
         });
 
-        console.log(`[通知] 読み込み後の通知数: ${mergedNotifications.length}`);
+        console.log(`[通知] setNotifications updated. New count: ${mergedNotifications.length}`);
         return mergedNotifications;
       });
-
-      // 追加読み込み可能かどうかを設定
-      setHasMore(totalCount > mergedNotifications.length);
-      console.log(`[通知] 追加読み込み可能: ${totalCount > mergedNotifications.length}`);
 
       // isInitialRender の更新: 最初のデータ取得が完了したことを示す
       if (!isInitialRender.current && currentPage === 1 && fetchedItems.length > 0) {
@@ -337,6 +343,22 @@ export function useNotificationList(): NotificationManagerResult {
       }
     }
   }, [notificationsData, currentPage, pendingUpdateCount]);
+
+  useEffect(() => {
+    if (notificationsData) {
+      const { totalCount } = notificationsData;
+      // この時点の notifications は、上記の useEffect によって更新された最新の状態を指します
+      console.log("src/hooks/notification/use-notification-list.ts_useEffect_hasMore_start", totalCount, notifications.length);
+      const newHasMore = totalCount > notifications.length;
+      // hasMore の値が実際に変更された場合のみ setHasMore を呼び出し、不要な再レンダリングを防ぎます
+      if (hasMore !== newHasMore) {
+        setHasMore(newHasMore);
+      }
+      console.log(`[通知] hasMore updated. Value: ${newHasMore} (total: ${totalCount}, current: ${notifications.length})`);
+    }
+    // notificationsData が null (初期状態やエラー時など) の場合、hasMore の更新はスキップされます。
+    // hasMore の初期値が false であれば、データ取得までは false のままとなります。
+  }, [notifications, notificationsData, hasMore]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
