@@ -3,7 +3,6 @@
 import type { NotificationData } from "@/lib/actions/notification/cache-notification-utilities";
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "@/lib/actions/notification/cache-notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -45,11 +44,6 @@ export const getNotificationsAndUnreadCount = cache(
     readCount: number;
   }> => {
     try {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 認証済みユーザーのIDを取得 -> 引数の userId を使用するため、この行は不要。
-      // const userId = await getAuthenticatedSessionUserId(); // この行をコメントアウトまたは削除
-
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 引数で渡された userId を使用
@@ -122,8 +116,8 @@ export const updateNotificationStatus = cache(async (updates: Array<{ notificati
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // キャッシュを更新
-    revalidateTag("notification");
-    revalidatePath("/dashboard/notifications");
+    // revalidateTag("notification");
+    // revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -184,8 +178,8 @@ export const markAllNotificationsAsRead = cache(async (): Promise<{ success: boo
     /**
      * キャッシュを更新
      */
-    revalidateTag("notification");
-    revalidatePath("/dashboard/notifications");
+    // revalidateTag("notification");
+    // revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

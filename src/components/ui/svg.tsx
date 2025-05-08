@@ -1,14 +1,14 @@
-"use cache";
+// "use cache";
 
-import { unstable_cacheLife as cacheLife } from "next/cache";
+// import { unstable_cacheLife as cacheLife } from "next/cache";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * アプリのSVGロゴ
  */
-export async function AppLogoSvg() {
-  cacheLife("max");
+export function AppLogoSvg() {
+  // cacheLife("max");
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 overscroll-none sm:h-8 sm:w-8">
       <path d="M15.75 8.25a.75.75 0 01.75.75c0 1.12-.492 2.126-1.27 2.812a.75.75 0 11-.992-1.124A2.243 2.243 0 0015 9a.75.75 0 01.75-.75z" />
@@ -25,8 +25,8 @@ export async function AppLogoSvg() {
 /**
  * ツイッターのSVGロゴ
  */
-export async function TwitterLogoSvg() {
-  cacheLife("max");
+export function TwitterLogoSvg() {
+  // cacheLife("max");
   return (
     <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
@@ -39,8 +39,8 @@ export async function TwitterLogoSvg() {
 /**
  * GitHubのSVGロゴ
  */
-export async function GitHubLogoSvg() {
-  cacheLife("max");
+export function GitHubLogoSvg() {
+  // cacheLife("max");
   return (
     <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -57,8 +57,8 @@ export async function GitHubLogoSvg() {
 /**
  * GoogleのSVGロゴ
  */
-export async function GoogleLogoSvg() {
-  cacheLife("max");
+export function GoogleLogoSvg() {
+  // cacheLife("max");
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path
