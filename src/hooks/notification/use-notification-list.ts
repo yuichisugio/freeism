@@ -2,10 +2,11 @@
 
 import type { AuctionEventType, NotificationTargetType } from "@prisma/client";
 import type { InfiniteData } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { redirect } from "next/navigation";
 import { getNotificationsAndUnreadCount, updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/auction/constants";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -50,7 +51,8 @@ export type NotificationManagerResult = {
   isLoadingMore: boolean;
   error: string | null;
   unreadCount: number;
-  hasMore: boolean | undefined;
+  readHasMore: boolean | undefined;
+  unReadHasMore: boolean | undefined;
   activeFilter: FilterType;
   activeAuctionFilter: AuctionFilterType;
   markAllAsRead: () => void;
@@ -58,6 +60,7 @@ export type NotificationManagerResult = {
   handleAuctionFilterChange: (filter: AuctionFilterType) => void;
   handleManualRefresh: () => Promise<void>;
   loadMoreNotifications: () => Promise<void>;
+  handleToggleRead: (id: string, isRead: boolean) => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -70,10 +73,27 @@ type QueryFnReturnType = {
   readCount: number; // このページ取得時の全体の既読数
 };
 
+// ーーーーーーーーーーーー
+
+/** 既存の useInfiniteQuery から返されるデータの型構造に合わせる */
+type InfiniteQueryData = {
+  pages: {
+    notifications: NotificationData[];
+    totalCount: number;
+    unreadCount: number;
+    readCount: number;
+  }[];
+  pageParams: number[];
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーー
+
 /** `select` 関数が返すデータの型であり、`useInfiniteQuery` フックの `data` の型となる */
 type SelectedResultType = {
   flatNotifications: NotificationData[];
   overallUnreadCount: number;
+  readHasMore: boolean;
+  unReadHasMore: boolean;
   pages: QueryFnReturnType[];
   pageParams: number[];
 };
@@ -87,18 +107,36 @@ type SelectedResultType = {
 export function useNotificationList(): NotificationManagerResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フィルター情報 (ページネーションは useInfiniteQuery が管理)
+  // フィルター情報
   const [activeFilter, setActiveFilter] = useState<FilterType>("unread");
+  // オークションフィルター情報
   const [activeAuctionFilter, setActiveAuctionFilter] = useState<AuctionFilterType>("all");
+
+  // 通知リスト
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  // フィルターに応じた通知リスト
+  const [filteredNotifications, setFilteredNotifications] = useState<NotificationData[]>([]);
+  // 未読数
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /** pending: <通知ID, 最終的な isRead 値> を保持する Map */
+  const pending = useRef<Map<string, boolean>>(new Map());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // クエリクライアント
   const queryClient = useQueryClient();
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // セッション
   const session = useSession();
   const userId = session.data?.user?.id;
+  if (!userId) {
+    redirect("/auth/signin");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -110,27 +148,20 @@ export function useNotificationList(): NotificationManagerResult {
     fetchNextPage,
     hasNextPage,
     refetch,
-  } = useInfiniteQuery<
-    QueryFnReturnType,
-    Error,
-    SelectedResultType,
-    readonly [string, string | undefined, { filter: FilterType; auction: AuctionFilterType }],
-    number
-  >({
-    queryKey: ["notifications", userId, { filter: activeFilter, auction: activeAuctionFilter }],
+  } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string | undefined], number>({
+    queryKey: ["notifications", userId],
     queryFn: async ({ pageParam }) => {
-      console.log(
-        `src/hooks/notification/use-notification-list.ts_useInfiniteQuery_queryFn (filter: ${activeFilter}, auction: ${activeAuctionFilter}, page: ${pageParam})`,
-      );
+      console.log(`src/hooks/notification/use-notification-list.ts_useInfiniteQuery_queryFn (page: ${pageParam})`);
       if (!userId) {
         console.warn("userId is not available for fetching notifications.");
         return { notifications: [], totalCount: 0, unreadCount: 0, readCount: 0 };
       }
-      const result = await getNotificationsAndUnreadCount(userId, pageParam, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE, activeFilter);
-      console.log(
-        `[通知] Fetched filter: ${activeFilter}, page: ${pageParam}: items received = ${result.notifications.length}, totalCount (for filter) = ${result.totalCount}, overallUnread = ${result.unreadCount}`,
-      );
-      const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
+      const result = await getNotificationsAndUnreadCount(userId, pageParam, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+
+      const uniqueNotifications = Array.from(new Map(result.notifications.map((n) => [n.id, n])).values());
+
+      console.log(`[通知] Fetched page: ${pageParam}: items received = ${uniqueNotifications.length}`);
+      const processedNotifications: NotificationData[] = uniqueNotifications.map((notification) => ({
         ...notification,
         isRead: notification.isRead,
         sentAt: notification.sentAt ? new Date(notification.sentAt) : null,
@@ -145,40 +176,97 @@ export function useNotificationList(): NotificationManagerResult {
       }));
       return {
         notifications: processedNotifications,
-        totalCount: result.totalCount ?? 0,
-        unreadCount: result.unreadCount ?? 0,
-        readCount: result.readCount ?? 0,
+        totalCount: result.totalCount,
+        unreadCount: result.unreadCount,
+        readCount: result.readCount,
       };
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      const loadedCount = _allPages.reduce((acc, page) => acc + page.notifications.length, 0);
-      if (loadedCount < lastPage.totalCount) {
+    getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // allPages には今までのページデータ (QueryFnReturnType[]) が格納されている
+      // lastPage には最新のページデータ (QueryFnReturnType) が格納されている
+      // lastPage.readCount はAPIから返された全体の既読通知の総数
+      // lastPage.unreadCount はAPIから返された全体の未読通知の総数
+
+      // これまでに読み込まれた既読・未読の通知数を計算
+      let loadedReadCount = 0;
+      let loadedUnreadCount = 0;
+      allPages.forEach((page) => {
+        page.notifications.forEach((notification) => {
+          if (notification.isRead) {
+            loadedReadCount++;
+          } else {
+            loadedUnreadCount++;
+          }
+        });
+      });
+
+      const hasMoreRead = loadedReadCount < lastPage.readCount;
+      const hasMoreUnread = loadedUnreadCount < lastPage.unreadCount;
+
+      if (hasMoreRead || hasMoreUnread) {
         return lastPageParam + 1;
       }
-      return undefined;
+      return undefined; // これ以上読み込むページがない場合は undefined を返す
     },
     select: (fetchedData: InfiniteData<QueryFnReturnType, number>): SelectedResultType => {
-      let allFetchedNotifications = fetchedData.pages.flatMap((p) => p.notifications);
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      if (activeAuctionFilter === "auction-only") {
-        allFetchedNotifications = allFetchedNotifications.filter((n) => n.auctionEventType !== null);
-      } else if (activeAuctionFilter === "exclude-auction") {
-        allFetchedNotifications = allFetchedNotifications.filter((n) => n.auctionEventType === null);
-      }
+      // 取得したデータをフラット化
+      const allFetchedNotifications = fetchedData.pages.flatMap((p) => p.notifications);
 
-      allFetchedNotifications.sort((a, b) => {
+      //
+      const uniqueNotificationsMap = new Map<string, NotificationData>();
+
+      allFetchedNotifications.forEach((notification) => {
+        uniqueNotificationsMap.set(notification.id, notification);
+      });
+
+      const finalUniqueNotifications = Array.from(uniqueNotificationsMap.values());
+
+      finalUniqueNotifications.sort((a, b) => {
         if (!a.sentAt && !b.sentAt) return 0;
-        if (!a.sentAt) return 1;
-        if (!b.sentAt) return -1;
+        if (!a.sentAt) return 1; // null or undefined sentAt should come after
+        if (!b.sentAt) return -1; // null or undefined sentAt should come after
         return new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime();
       });
 
+      const currentOverallUnreadCount = finalUniqueNotifications.filter((n) => !n.isRead).length;
+
+      // readHasMore と unReadHasMore の計算
+      let currentLoadedReadCount = 0;
+      let currentLoadedUnreadCount = 0;
+      finalUniqueNotifications.forEach((notification) => {
+        if (notification.isRead) {
+          currentLoadedReadCount++;
+        } else {
+          currentLoadedUnreadCount++;
+        }
+      });
+
+      // 最新の総数は、最後のページデータから取得
+      const lastPageData = fetchedData.pages[fetchedData.pages.length - 1];
+      const totalReadFromServer = lastPageData ? lastPageData.readCount : 0;
+      const totalUnreadFromServer = lastPageData ? lastPageData.unreadCount : 0;
+
+      const readHasMore = currentLoadedReadCount < totalReadFromServer;
+      const unReadHasMore = currentLoadedUnreadCount < totalUnreadFromServer;
+      console.log(`[通知] useInfiniteQuery_select: currentLoadedReadCount: ${currentLoadedReadCount}, totalReadFromServer: ${totalReadFromServer}`);
+      console.log(
+        `[通知] useInfiniteQuery_select: currentLoadedUnreadCount: ${currentLoadedUnreadCount}, totalUnreadFromServer: ${totalUnreadFromServer}`,
+      );
+      console.log(`[通知] useInfiniteQuery_select: readHasMore: ${readHasMore}, unReadHasMore: ${unReadHasMore}`);
+
       return {
-        pages: fetchedData.pages,
+        pages: fetchedData.pages.map((page) => ({
+          ...page,
+          notifications: page.notifications,
+        })),
         pageParams: fetchedData.pageParams,
-        flatNotifications: allFetchedNotifications,
-        overallUnreadCount: fetchedData.pages[0]?.unreadCount ?? 0,
+        flatNotifications: finalUniqueNotifications,
+        overallUnreadCount: currentOverallUnreadCount, // 現在クライアントにロードされている通知の中での未読数
+        readHasMore,
+        unReadHasMore,
       };
     },
     staleTime: 1000 * 60 * 30,
@@ -188,61 +276,143 @@ export function useNotificationList(): NotificationManagerResult {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /** すべて既読にする */
-  const { mutate: markAllAsReadMutate } = useMutation({
-    mutationFn: async (notificationIdsToMarkRead: string[]) => {
-      if (!userId || notificationIdsToMarkRead.length === 0) return;
-      const updates = notificationIdsToMarkRead.map((id) => ({ notificationId: id, isRead: true }));
-      await updateNotificationStatus(updates);
-    },
-    onMutate: async (notificationIdsToMarkRead: string[]) => {
-      await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
-      const previousNotificationsData = queryClient.getQueriesData<InfiniteData<QueryFnReturnType, number>>({
-        queryKey: ["notifications", userId],
-      });
+  // データが取得されたら通知リストと未読数を更新
+  useEffect(() => {
+    if (data) {
+      setNotifications(data.flatNotifications);
+      setUnreadCount(data.overallUnreadCount);
+    }
+  }, [data]);
 
-      queryClient.setQueriesData<InfiniteData<QueryFnReturnType, number>>({ queryKey: ["notifications", userId], exact: false }, (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((pageGroup) => ({
-            ...pageGroup,
-            notifications: pageGroup.notifications.map((n) =>
-              notificationIdsToMarkRead.includes(n.id) && !n.isRead ? { ...n, isRead: true, readAt: new Date() } : n,
-            ),
-            unreadCount: 0,
-          })),
-        };
-      });
-      return { previousNotificationsData };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // フィルターが変更されたら通知リストを更新
+  useEffect(() => {
+    let intermediateNotifications = notifications;
+
+    if (activeAuctionFilter === "auction-only") {
+      intermediateNotifications = intermediateNotifications.filter((n) => n.auctionEventType !== null);
+    } else if (activeAuctionFilter === "exclude-auction") {
+      intermediateNotifications = intermediateNotifications.filter((n) => n.auctionEventType === null);
+    }
+
+    if (activeFilter === "unread") {
+      setFilteredNotifications(intermediateNotifications.filter((n) => !n.isRead));
+    } else if (activeFilter === "read") {
+      setFilteredNotifications(intermediateNotifications.filter((n) => n.isRead));
+    } else if (activeFilter === "all") {
+      setFilteredNotifications(intermediateNotifications);
+    }
+  }, [notifications, activeFilter, activeAuctionFilter]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // unreadCount が変更されたら hasUnreadNotifications クエリを更新
+  useEffect(() => {
+    if (userId) {
+      queryClient.setQueryData(["hasUnreadNotifications", userId], unreadCount > 0);
+    }
+  }, [unreadCount, userId, queryClient]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /** 既読/未読を切り替える */
+  const toggleRead = useCallback(
+    (updatedNotificationId: string, newIsReadStatus: boolean) => {
+      // ローカルステートを即時更新
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((prevNotification) =>
+          prevNotification.id === updatedNotificationId
+            ? { ...prevNotification, isRead: newIsReadStatus, readAt: newIsReadStatus ? new Date() : null }
+            : prevNotification,
+        ),
+      );
+      setUnreadCount(unreadCount - (newIsReadStatus ? 1 : -1));
+
+      // 保留リストを更新
+      pending.current.set(updatedNotificationId, newIsReadStatus);
     },
-    onError: (_error, _variables, context) => {
-      if (context?.previousNotificationsData) {
-        context.previousNotificationsData.forEach(([key, queryData]) => {
-          if (queryData !== undefined) {
-            queryClient.setQueryData(key, queryData);
-          }
-        });
+    [unreadCount],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * アンマウント時：pending をまとめてフラッシュ
+   * - DB 更新 → キャッシュ再検証
+   */
+  useEffect(() => {
+    const pendingRefAtEffectSetup = pending.current;
+    return () => {
+      if (!userId || pendingRefAtEffectSetup.size === 0) {
+        return;
       }
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
-      await queryClient.invalidateQueries({ queryKey: ["hasUnreadNotifications", userId] });
-    },
-  });
+
+      const updatesToSync = Array.from(pendingRefAtEffectSetup.entries()).map(([notificationId, isRead]) => ({
+        notificationId,
+        isRead,
+      }));
+
+      if (updatesToSync.length === 0) return;
+
+      updateNotificationStatus(updatesToSync)
+        .then(() => {
+          console.log("[通知] アンマウント時のバッチ更新成功、キャッシュを直接更新します。", updatesToSync);
+          queryClient.setQueriesData<InfiniteQueryData>({ queryKey: ["notifications", userId] }, (oldData) => {
+            if (!oldData) return oldData;
+
+            // updatesToSync を Map 形式に変換して効率的に参照できるようにする
+            const updatesMap = new Map(updatesToSync.map((u) => [u.notificationId, u.isRead]));
+
+            const newPages = oldData.pages.map((page) => {
+              const newNotifications = page.notifications.map((n) => {
+                // pending.current ではなく、同期的に作成した updatesMap を使用して更新を判定
+                if (updatesMap.has(n.id)) {
+                  const newIsRead = updatesMap.get(n.id)!;
+                  return { ...n, isRead: newIsRead, readAt: newIsRead ? new Date() : null };
+                }
+                return n;
+              });
+              return { ...page, notifications: newNotifications };
+            });
+
+            // 更新されたキャッシュ内の全通知から最新の未読総数を再計算
+            const allFinalNotifications = newPages.flatMap((p) => p.notifications);
+            const finalOverallUnreadCount = allFinalNotifications.filter((n) => !n.isRead).length;
+
+            // グローバルな未読件数ステートを更新
+            setUnreadCount(finalOverallUnreadCount);
+            // hasUnreadNotifications クエリも更新
+            queryClient.setQueryData(["hasUnreadNotifications", userId], finalOverallUnreadCount > 0);
+
+            return { ...oldData, pages: newPages };
+          });
+        })
+        .catch((err) => {
+          console.error("[通知] アンマウント時のバッチ更新に失敗しました。", err);
+        });
+    };
+  }, [userId, queryClient]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /** すべて既読にする */
   const markAllAsRead = useCallback(() => {
     console.log("[通知] すべて既読にする");
-    const unreadNotificationIds = data?.flatNotifications?.filter((n) => !n.isRead).map((n) => n.id) ?? [];
-    if (unreadNotificationIds.length > 0) {
-      markAllAsReadMutate(unreadNotificationIds);
-    } else {
-      console.log("[通知] 未読通知がないためスキップ");
-    }
-  }, [data?.flatNotifications, markAllAsReadMutate]);
+    if (!userId) return;
+
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((n) => {
+        if (!n.isRead) {
+          pending.current.set(n.id, true);
+          return { ...n, isRead: true, readAt: new Date() };
+        }
+        return n;
+      }),
+    );
+    setUnreadCount(0);
+    queryClient.setQueryData(["hasUnreadNotifications", userId], false);
+  }, [queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -284,7 +454,7 @@ export function useNotificationList(): NotificationManagerResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
-    notifications: data?.flatNotifications ?? [],
+    notifications: filteredNotifications,
     isLoading,
     isLoadingMore: isFetchingNextPage,
     error: queryError
@@ -292,8 +462,9 @@ export function useNotificationList(): NotificationManagerResult {
         ? `通知の取得に失敗しました: ${queryError.message}`
         : "通知の取得中にエラーが発生しました"
       : null,
-    unreadCount: data?.overallUnreadCount ?? 0,
-    hasMore: hasNextPage,
+    unreadCount: unreadCount,
+    readHasMore: data?.readHasMore ?? false,
+    unReadHasMore: data?.unReadHasMore ?? false,
     activeFilter,
     activeAuctionFilter,
     markAllAsRead,
@@ -301,5 +472,6 @@ export function useNotificationList(): NotificationManagerResult {
     handleAuctionFilterChange,
     handleManualRefresh,
     loadMoreNotifications,
+    handleToggleRead: toggleRead,
   };
 }

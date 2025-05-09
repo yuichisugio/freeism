@@ -1,8 +1,8 @@
-// "use cache";
+"use cache";
 
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
-// import { unstable_cacheTag as cacheTag } from "next/cache";
+import { unstable_cacheTag as cacheTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
@@ -36,12 +36,35 @@ export type NotificationData = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * データベースからの生の通知データ型
+ */
+type RawNotificationFromDB = {
+  id: string;
+  title: string | null;
+  message: string | null;
+  NotificationTargetType: NotificationTargetType; // from @prisma/client
+  isRead: boolean;
+  sentAt: Date | null;
+  readAt: Date | null;
+  expiresAt: Date | null;
+  actionUrl: string | null;
+  senderUserId: string | null;
+  groupId: string | null;
+  taskId: string | null;
+  auctionEventType: string | null;
+  auctionId: string | null;
+  userName: string | null;
+  groupName: string | null;
+  taskName: string | null;
+};
+
+/**
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数
  * 未読の有無のみ知りたいので、1件のみ取得
  */
 export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
-  // cacheTag("notification");
+  cacheTag("notification");
   console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -90,14 +113,13 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     userId: string,
     page = 1,
     limit = 20,
-    filterType: "all" | "read" | "unread" = "all",
   ): Promise<{
     notifications: NotificationData[];
     totalCount: number;
     unreadCount: number;
     readCount: number;
   }> => {
-    // cacheTag("notification");
+    cacheTag("notification");
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -110,16 +132,14 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       const offset = (page - 1) * limit;
 
       // フィルター条件に応じたWHERE句の追加部分
-      let filterCondition = Prisma.empty;
-      if (filterType === "unread") {
-        filterCondition = Prisma.sql`AND (NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
-      } else if (filterType === "read") {
-        filterCondition = Prisma.sql`AND (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE)`;
-      }
+      const unreadFilterCondition = Prisma.sql`AND (NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
+      const readFilterCondition = Prisma.sql`AND (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE)`;
 
-      // 通知取得クエリパート
-      // 以前の未読/既読をUNION ALLするのではなく、指定されたフィルターに基づいて1つのクエリで取得
-      const notificationsQuery = Prisma.sql`
+      const allRawNotificationsFromDb: RawNotificationFromDB[] = [];
+
+      for (const filterCondition of [unreadFilterCondition, readFilterCondition]) {
+        // 通知取得クエリパート
+        const notificationsQuery = Prisma.sql`
         SELECT
           n.id,
           n.title,
@@ -154,34 +174,20 @@ export const cachedGetNotificationsAndUnreadCount = cache(
         LIMIT ${limit} OFFSET ${offset}
       `;
 
-      // 未読と既読の通知を結合して取得し、最終ソート
-      const notificationsRaw = await prisma.$queryRaw(notificationsQuery);
+        // 未読と既読の通知を結合して取得し、最終ソート
+        const currentBatch = await prisma.$queryRaw<RawNotificationFromDB[]>(notificationsQuery);
+        if (Array.isArray(currentBatch)) {
+          allRawNotificationsFromDb.push(...currentBatch);
+        }
+      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 通知データを変換する
-      const notifications = Array.isArray(notificationsRaw)
+      const notifications = Array.isArray(allRawNotificationsFromDb)
         ? await Promise.all(
-            notificationsRaw.map(
-              async (n: {
-                id: string;
-                title: string | null;
-                message: string | null;
-                NotificationTargetType: "SYSTEM" | "USER" | "GROUP" | "TASK";
-                isRead: boolean;
-                sentAt: string | Date | null;
-                readAt: string | Date | null;
-                expiresAt: string | Date | null;
-                actionUrl: string | null;
-                senderUserId: string | null;
-                groupId: string | null;
-                taskId: string | null;
-                auctionEventType: string | null;
-                auctionId: string | null;
-                userName: string | null;
-                groupName: string | null;
-                taskName: string | null;
-              }): Promise<NotificationData> => ({
+            allRawNotificationsFromDb.map(
+              async (n: RawNotificationFromDB): Promise<NotificationData> => ({
                 id: n.id,
                 title: n.title ?? "",
                 message: n.message ?? "",
@@ -206,7 +212,9 @@ export const cachedGetNotificationsAndUnreadCount = cache(
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 未読カウント取得用のWHERE句 (共通句に未読条件を追加)
+      /**
+       * 通知カウント取得
+       */
       const isUnreadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
       const unreadWhereClause = Prisma.sql`${commonWhereClause} AND ${isUnreadCondition}`;
 
@@ -218,25 +226,6 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 合計数取得用のWHERE句 (メインクエリと同じ = 共通句)
-      // const totalWhereClause = commonWhereClause; // 同じ条件なので再利用
-      // フィルター条件を適用した総件数を取得する必要がある
-      const totalWhereClause = Prisma.sql`${commonWhereClause} ${filterCondition}`;
-
-      const totalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
-        SELECT COUNT(*) as count
-        FROM "Notification" n
-        WHERE ${totalWhereClause} -- 合計カウント用WHERE句
-      `;
-      const totalCount = Number(totalCountResult[0]?.count ?? 0);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_notifications", notifications);
-      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_totalCount", totalCount);
-      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_unreadCount", unreadCount);
-
       const allNotificationsTotalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
         SELECT COUNT(*) as count
         FROM "Notification" n
@@ -244,12 +233,20 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       `;
       const allNotificationsTotalCount = Number(allNotificationsTotalCountResult[0]?.count ?? 0);
 
-      //全体の既読数を計算
+      // 全体の既読数を計算
       const readCount = allNotificationsTotalCount - unreadCount;
+
+      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_notifications", notifications);
+      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_unreadCount", unreadCount);
+      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_readCount", readCount);
+      console.log(
+        "src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_allNotificationsTotalCount",
+        allNotificationsTotalCount,
+      );
 
       return {
         notifications,
-        totalCount, // これはフィルター条件に応じた総件数
+        totalCount: allNotificationsTotalCount, // これはフィルター条件に応じた総件数
         unreadCount, // これは全体の未読件数
         readCount, // これは全体の既読件数
       };

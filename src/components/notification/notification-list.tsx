@@ -5,12 +5,10 @@ import { memo, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
-import { useToggleRead } from "@/hooks/notification/use-toggle-read";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AlertCircle, CheckCircle2, Loader2, MoreHorizontal, RefreshCw, ShoppingCart } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -115,12 +113,15 @@ const FilterTabs = memo(function FilterTabs({
 /**
  * 通知アイテムコンポーネント
  * @param {NotificationData} notification - 通知データ
+ * @param {function} handleToggleRead - 既読/未読を切り替える関数
  */
-const NotificationItem = memo(function NotificationItem({ notification }: { notification: NotificationData }) {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
-  const { mutate: toggleReadStatus, isPending: isProcessingToggle } = useToggleRead(userId);
-
+const NotificationItem = memo(function NotificationItem({
+  notification,
+  handleToggleRead,
+}: {
+  notification: NotificationData;
+  handleToggleRead: (id: string, isRead: boolean) => void;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const truncateMessage = useCallback(function truncateMessage(message: string, maxLength = 50) {
@@ -135,12 +136,9 @@ const NotificationItem = memo(function NotificationItem({ notification }: { noti
   const handleStatusButtonClick = useCallback(
     function handleStatusButtonClick(e: React.MouseEvent) {
       e.stopPropagation();
-      if (isProcessingToggle) {
-        return;
-      }
-      toggleReadStatus({ id: notification.id, isRead: !notification.isRead });
+      handleToggleRead(notification.id, !notification.isRead);
     },
-    [isProcessingToggle, notification.id, notification.isRead, toggleReadStatus],
+    [notification.id, notification.isRead, handleToggleRead],
   );
 
   const backgroundClass = useMemo(
@@ -244,18 +242,12 @@ const NotificationItem = memo(function NotificationItem({ notification }: { noti
               variant="ghost"
               size="sm"
               className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300"
-              disabled={isProcessingToggle}
               onClick={handleStatusButtonClick}
             >
-              {isProcessingToggle ? (
+              {notification.isRead ? (
                 <>
-                  <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                  更新中...
-                </>
-              ) : notification.isRead ? (
-                <>
-                  <RefreshCw className="mr-1 h-3 w-3" />
-                  既読にする
+                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                  未読にする
                 </>
               ) : (
                 <>
@@ -293,6 +285,11 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
   isLoadingMore: boolean;
   activeFilter: FilterType;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知が空の場合に表示するメッセージ
+   */
   const emptyMessage = useMemo(
     function emptyMessage() {
       let emptyMessage = "通知はありません";
@@ -307,6 +304,8 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
     },
     [activeFilter],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex h-[300px] flex-col items-center justify-center text-gray-500">
@@ -412,20 +411,38 @@ const AuctionFilterControl = memo(function AuctionFilterControl({
  * @param {boolean} hasMore - もっと読み込むボタンの表示有無
  * @param {boolean} isLoadingMore - もっと読み込むボタンのローディング状態
  * @param {FilterType} activeFilter - 現在のフィルター状態
+ * @param {function} handleToggleRead - 既読/未読を切り替える関数
  */
 const Notifications = memo(function Notifications({
   notifications,
-  hasMore,
+  readHasMore,
+  unReadHasMore,
   isLoadingMore,
   activeFilter,
   loadMoreNotifications,
+  handleToggleRead,
 }: {
   notifications: NotificationData[];
-  hasMore: boolean;
+  readHasMore: boolean;
+  unReadHasMore: boolean;
   isLoadingMore: boolean;
   activeFilter: FilterType;
   loadMoreNotifications: () => void;
+  handleToggleRead: (id: string, isRead: boolean) => void;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const currentHasMore = useMemo(() => {
+    if (activeFilter === "read") {
+      return readHasMore;
+    }
+    if (activeFilter === "unread") {
+      return unReadHasMore;
+    }
+    // "all" またはその他の場合
+    return readHasMore || unReadHasMore;
+  }, [activeFilter, readHasMore, unReadHasMore]);
+
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col gap-4 pr-4">
@@ -433,11 +450,11 @@ const Notifications = memo(function Notifications({
           <>
             <ul className="space-y-3">
               {notifications.map((notification: NotificationData) => (
-                <NotificationItem key={notification.id} notification={notification} />
+                <NotificationItem key={notification.id} notification={notification} handleToggleRead={handleToggleRead} />
               ))}
             </ul>
 
-            {hasMore && (
+            {currentHasMore && (
               <div className="mt-4 flex justify-center py-2">
                 <Button variant="outline" size="sm" onClick={loadMoreNotifications} disabled={isLoadingMore} className="w-full text-sm">
                   {isLoadingMore ? (
@@ -456,12 +473,7 @@ const Notifications = memo(function Notifications({
             )}
           </>
         ) : (
-          <NotificationsEmpty
-            hasMore={hasMore ?? false}
-            onLoadMore={loadMoreNotifications}
-            isLoadingMore={isLoadingMore}
-            activeFilter={activeFilter}
-          />
+          <NotificationsEmpty hasMore={currentHasMore} onLoadMore={loadMoreNotifications} isLoadingMore={isLoadingMore} activeFilter={activeFilter} />
         )}
       </div>
     </ScrollArea>
@@ -481,7 +493,8 @@ export const NotificationList = memo(function NotificationList() {
     isLoadingMore,
     error,
     unreadCount,
-    hasMore,
+    readHasMore,
+    unReadHasMore,
     activeFilter,
     activeAuctionFilter,
     markAllAsRead,
@@ -489,7 +502,10 @@ export const NotificationList = memo(function NotificationList() {
     handleAuctionFilterChange,
     handleManualRefresh,
     loadMoreNotifications,
+    handleToggleRead,
   } = useNotificationList();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -529,10 +545,12 @@ export const NotificationList = memo(function NotificationList() {
         ) : (
           <Notifications
             notifications={notifications}
-            hasMore={hasMore ?? false}
+            readHasMore={readHasMore ?? false}
+            unReadHasMore={unReadHasMore ?? false}
             isLoadingMore={isLoadingMore}
             activeFilter={activeFilter}
             loadMoreNotifications={loadMoreNotifications}
+            handleToggleRead={handleToggleRead}
           />
         )}
       </div>

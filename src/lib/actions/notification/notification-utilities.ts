@@ -3,6 +3,7 @@
 import type { NotificationData } from "@/lib/actions/notification/cache-notification-utilities";
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "@/lib/actions/notification/cache-notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -36,7 +37,6 @@ export const getNotificationsAndUnreadCount = cache(
     userId: string,
     page = 1,
     limit = 20,
-    filterType: "all" | "read" | "unread" = "all",
   ): Promise<{
     notifications: NotificationData[];
     totalCount: number;
@@ -47,7 +47,7 @@ export const getNotificationsAndUnreadCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 引数で渡された userId を使用
-      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit, filterType);
+      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
 
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_notifications", notifications);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
@@ -116,8 +116,8 @@ export const updateNotificationStatus = cache(async (updates: Array<{ notificati
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // キャッシュを更新
-    // revalidateTag("notification");
-    // revalidatePath("/dashboard/notifications");
+    revalidateTag("notification");
+    revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -178,8 +178,8 @@ export const markAllNotificationsAsRead = cache(async (): Promise<{ success: boo
     /**
      * キャッシュを更新
      */
-    // revalidateTag("notification");
-    // revalidatePath("/dashboard/notifications");
+    revalidateTag("notification");
+    revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
