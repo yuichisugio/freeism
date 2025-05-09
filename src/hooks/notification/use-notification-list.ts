@@ -239,21 +239,33 @@ export function useNotificationList(): NotificationManagerResult {
       finalUniqueNotifications.forEach((notification) => {
         if (notification.isRead) {
           currentLoadedReadCount++;
-        } else {
+        } else if (!notification.isRead) {
           currentLoadedUnreadCount++;
         }
       });
 
       // 最新の総数は、最後のページデータから取得
       const lastPageData = fetchedData.pages[fetchedData.pages.length - 1];
-      const totalReadFromServer = lastPageData ? lastPageData.readCount : 0;
-      const totalUnreadFromServer = lastPageData ? lastPageData.unreadCount : 0;
+      let readHasMore = false;
+      let unReadHasMore = false;
 
-      const readHasMore = currentLoadedReadCount < totalReadFromServer;
-      const unReadHasMore = currentLoadedUnreadCount < totalUnreadFromServer;
-      console.log(`[通知] useInfiniteQuery_select: currentLoadedReadCount: ${currentLoadedReadCount}, totalReadFromServer: ${totalReadFromServer}`);
+      // 読み込まれた通知数が総数と一致したら、hasMoreをfalseにする。
+      // useInfiniteQueryは前回取得した値が入る。
+      // 全件取得後はuseInfiniteQuery実行後も未読/既読のそれぞれの件数の内容は変わらないが、setQueryDataでキャッシュを更新しているため、通知全権取得後は数がズレる。なので全件取得後はtotalCountと読み込まれた数が一致するかでhasMoreを判断する。
+      if (lastPageData.totalCount == currentLoadedReadCount + currentLoadedUnreadCount) {
+        readHasMore = false;
+        unReadHasMore = false;
+        // 総数と一致しない場合は、読み込みを継続
+      } else {
+        readHasMore = currentLoadedReadCount < lastPageData.readCount;
+        unReadHasMore = currentLoadedUnreadCount < lastPageData.unreadCount;
+      }
+
       console.log(
-        `[通知] useInfiniteQuery_select: currentLoadedUnreadCount: ${currentLoadedUnreadCount}, totalUnreadFromServer: ${totalUnreadFromServer}`,
+        `[通知] useInfiniteQuery_select: currentLoadedReadCount: ${currentLoadedReadCount}, totalReadFromServer: ${lastPageData.readCount}`,
+      );
+      console.log(
+        `[通知] useInfiniteQuery_select: currentLoadedUnreadCount: ${currentLoadedUnreadCount}, totalUnreadFromServer: ${lastPageData.unreadCount}`,
       );
       console.log(`[通知] useInfiniteQuery_select: readHasMore: ${readHasMore}, unReadHasMore: ${unReadHasMore}`);
 

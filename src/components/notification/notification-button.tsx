@@ -35,8 +35,8 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
    */
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)} className="relative" aria-label="通知">
-        <Bell className="h-5 w-5" />
+      <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)} className="relative transition-colors hover:bg-gray-100" aria-label="通知">
+        <Bell className="h-5 w-5 text-gray-700" />
         {/* 未読通知がある場合は赤いドットを表示 */}
         {hasUnreadNotifications && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />}
       </Button>
@@ -45,9 +45,9 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[80%]">
           <DialogHeader>
-            <DialogTitle>通知</DialogTitle>
+            <DialogTitle className="text-app">通知</DialogTitle>
           </DialogHeader>
-          <div className="rounded-lg border px-6 py-2 shadow-sm">
+          <div className="h-[95vh] rounded-lg border px-6 py-2 shadow-sm">
             <NotificationList />
           </div>
         </DialogContent>
