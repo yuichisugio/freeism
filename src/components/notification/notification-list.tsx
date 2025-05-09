@@ -28,8 +28,8 @@ const Loading = memo(function Loading() {
   return (
     <div className="flex h-[50vh] items-center justify-center">
       <div className="text-center">
-        <div className="border-primary mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-        <p className="text-sm text-gray-500">通知を読み込み中...</p>
+        <div className="border-primary mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">通知を読み込み中...</p>
       </div>
     </div>
   );
@@ -43,10 +43,10 @@ const Loading = memo(function Loading() {
 const Error = memo(function Error({ error, handleManualRefresh }: { error: string; handleManualRefresh: () => void }) {
   return (
     <div className="flex h-[50vh] items-center justify-center">
-      <div className="text-center text-red-500">
-        <AlertCircle className="mx-auto mb-2 h-6 w-6" />
-        <p className="text-sm">{error}</p>
-        <Button variant="outline" size="sm" className="mt-2" onClick={handleManualRefresh}>
+      <div className="text-center">
+        <AlertCircle className="mx-auto mb-3 h-6 w-6 text-red-500" />
+        <p className="mb-3 text-sm text-red-500">{error}</p>
+        <Button variant="outline" size="sm" onClick={handleManualRefresh} className="rounded-full px-4">
           再度読み込む
         </Button>
       </div>
@@ -72,35 +72,42 @@ const FilterTabs = memo(function FilterTabs({
   unreadCount: number;
 }) {
   return (
-    <div className="sticky top-0 z-10 mb-3 flex border-b bg-white">
+    <div className="dark:bg-gray-850 sticky top-0 z-10 mb-4 flex rounded-lg bg-white p-1 shadow-sm">
       <button
         onClick={() => onFilterChange("all")}
-        className={
+        className={cn(
+          "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "all"
-            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
-            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
-        }
+            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
+        )}
       >
         全て
       </button>
       <button
         onClick={() => onFilterChange("unread")}
-        className={
+        className={cn(
+          "relative flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "unread"
-            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
-            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
-        }
+            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
+        )}
       >
         未読
-        {unreadCount > 0 && <span className="ml-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs text-white">{unreadCount}</span>}
+        {unreadCount > 0 && (
+          <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
+            {unreadCount}
+          </span>
+        )}
       </button>
       <button
         onClick={() => onFilterChange("read")}
-        className={
+        className={cn(
+          "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "read"
-            ? "border-b-2 border-blue-500 px-4 py-2 font-medium text-blue-600"
-            : "px-4 py-2 font-medium text-gray-500 hover:text-gray-700"
-        }
+            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
+        )}
       >
         既読
       </button>
@@ -143,29 +150,29 @@ const NotificationItem = memo(function NotificationItem({
 
   const backgroundClass = useMemo(
     function backgroundClass() {
-      return notification.isRead ? "bg-gray-50 dark:bg-gray-800/50" : "bg-white dark:bg-blue-950/20";
+      return notification.isRead ? "bg-gray-50 dark:bg-gray-800/40" : "bg-white dark:bg-gray-800/10 shadow-sm";
     },
     [notification.isRead],
   );
 
   const expandedPaddingClass = useMemo(
     function expandedPaddingClass() {
-      return isExpanded ? "p-0" : "p-3";
+      return isExpanded ? "p-0" : "p-4";
     },
     [isExpanded],
   );
 
   const expandedHeaderClass = useMemo(
     function expandedHeaderClass() {
-      return isExpanded ? "border-b p-3" : "";
+      return isExpanded ? "border-b p-4" : "";
     },
     [isExpanded],
   );
 
   return (
-    <li className={`flex flex-col rounded-lg border transition-colors ${backgroundClass} ${expandedPaddingClass}`}>
+    <li className={`flex flex-col overflow-hidden rounded-xl border transition-all duration-200 ${backgroundClass} ${expandedPaddingClass}`}>
       <div
-        className={`flex cursor-pointer items-start gap-3 ${expandedHeaderClass}`}
+        className={`flex cursor-pointer items-start gap-4 ${expandedHeaderClass}`}
         onClick={handleItemClick}
         onKeyDown={(e) => e.key === "Enter" && handleItemClick()}
         role="button"
@@ -175,16 +182,16 @@ const NotificationItem = memo(function NotificationItem({
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h4 className="font-semibold">{notification.title}</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">{notification.title}</h4>
             </div>
             {notification.sentAt && (
-              <time className="text-xs text-gray-500" dateTime={notification.sentAt.toISOString()}>
+              <time className="text-xs whitespace-nowrap text-gray-500 dark:text-gray-400" dateTime={notification.sentAt.toISOString()}>
                 {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
               </time>
             )}
           </div>
 
-          <div className="mt-1 flex items-center text-sm text-gray-500">
+          <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
             {notification.NotificationTargetType === "USER" && notification.senderUserId && (
               <>
                 <span className="mr-1">👤</span>
@@ -210,22 +217,22 @@ const NotificationItem = memo(function NotificationItem({
               </>
             )}
             {notification.auctionEventType && (
-              <span className="ml-2 flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+              <span className="ml-2 flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
                 <ShoppingCart className="mr-1 inline-block h-3 w-3" />
                 <span className="leading-none">オークション: {formatAuctionEventType(notification.auctionEventType)}</span>
               </span>
             )}
           </div>
 
-          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{isExpanded ? notification.message : truncateMessage(notification.message)}</p>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{isExpanded ? notification.message : truncateMessage(notification.message)}</p>
 
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex-1">
               {isExpanded && notification.actionUrl && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs"
+                  className="rounded-full text-xs"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (notification.actionUrl) {
@@ -241,7 +248,7 @@ const NotificationItem = memo(function NotificationItem({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 bg-gray-100 px-2 text-xs text-gray-500 hover:bg-gray-300"
+              className="rounded-full bg-gray-100 px-3 text-xs text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={handleStatusButtonClick}
             >
               {notification.isRead ? (
@@ -259,7 +266,7 @@ const NotificationItem = memo(function NotificationItem({
           </div>
         </div>
 
-        {notification.isRead ? <span className="invisible mt-1 h-2 w-2" /> : <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}
+        {notification.isRead ? <span className="invisible mt-1 h-2 w-2" /> : <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-blue-500" />}
       </div>
     </li>
   );
@@ -308,12 +315,18 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex h-[300px] flex-col items-center justify-center text-gray-500">
-      <p className="mb-4">{emptyMessage}</p>
+    <div className="flex h-[300px] flex-col items-center justify-center">
+      <p className="mb-5 text-gray-500 dark:text-gray-400">{emptyMessage}</p>
 
       {hasMore && (
         <div className="flex justify-center py-2">
-          <Button variant="outline" size="sm" onClick={onLoadMore} disabled={isLoadingMore} className="w-full text-sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onLoadMore}
+            disabled={isLoadingMore}
+            className="w-48 rounded-full text-sm shadow-sm transition-all duration-200 hover:shadow"
+          >
             {isLoadingMore ? (
               <>
                 <LoadingIndicator />
@@ -367,12 +380,14 @@ const AuctionFilterControl = memo(function AuctionFilterControl({
   onAuctionFilterChange: (filter: AuctionFilterType) => void;
 }) {
   return (
-    <div className="mb-2 flex items-center">
-      <div className="flex h-8 items-center gap-1 rounded-lg bg-gray-100 p-1">
+    <div className="mb-4 flex items-center">
+      <div className="flex h-9 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
         <button
           className={cn(
-            "flex h-6 items-center gap-1 rounded-md px-2 text-xs transition-colors",
-            activeAuctionFilter === "all" ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900",
+            "flex h-7 items-center gap-1 rounded-md px-3 text-xs font-medium transition-all duration-200",
+            activeAuctionFilter === "all"
+              ? "bg-white text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100"
+              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200",
           )}
           onClick={() => onAuctionFilterChange("all")}
         >
@@ -380,22 +395,26 @@ const AuctionFilterControl = memo(function AuctionFilterControl({
         </button>
         <button
           className={cn(
-            "flex h-6 items-center gap-1 rounded-md px-2 text-xs transition-colors",
-            activeAuctionFilter === "auction-only" ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900",
+            "flex h-7 items-center gap-1 rounded-md px-3 text-xs font-medium transition-all duration-200",
+            activeAuctionFilter === "auction-only"
+              ? "bg-white text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100"
+              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200",
           )}
           onClick={() => onAuctionFilterChange("auction-only")}
         >
-          <ShoppingCart className="h-3 w-3" />
+          <ShoppingCart className="mr-1 h-3 w-3" />
           オークションのみ
         </button>
         <button
           className={cn(
-            "flex h-6 items-center gap-1 rounded-md px-2 text-xs transition-colors",
-            activeAuctionFilter === "exclude-auction" ? "bg-white text-black shadow-sm" : "text-gray-600 hover:text-gray-900",
+            "flex h-7 items-center gap-1 rounded-md px-3 text-xs font-medium transition-all duration-200",
+            activeAuctionFilter === "exclude-auction"
+              ? "bg-white text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100"
+              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200",
           )}
           onClick={() => onAuctionFilterChange("exclude-auction")}
         >
-          <ShoppingCart className="h-3 w-3" />
+          <ShoppingCart className="mr-1 h-3 w-3" />
           オークション以外
         </button>
       </div>
@@ -444,19 +463,25 @@ const Notifications = memo(function Notifications({
   }, [activeFilter, readHasMore, unReadHasMore]);
 
   return (
-    <ScrollArea className="h-full">
-      <div className="flex flex-col gap-4 pr-4">
+    <ScrollArea className="h-full px-6">
+      <div className="flex flex-col gap-4 py-4">
         {notifications.length > 0 ? (
           <>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {notifications.map((notification: NotificationData) => (
                 <NotificationItem key={notification.id} notification={notification} handleToggleRead={handleToggleRead} />
               ))}
             </ul>
 
             {currentHasMore && (
-              <div className="mt-4 flex justify-center py-2">
-                <Button variant="outline" size="sm" onClick={loadMoreNotifications} disabled={isLoadingMore} className="w-full text-sm">
+              <div className="mt-6 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMoreNotifications}
+                  disabled={isLoadingMore}
+                  className="w-48 rounded-full text-sm shadow-sm transition-all duration-200 hover:shadow"
+                >
                   {isLoadingMore ? (
                     <>
                       <LoadingIndicator />
@@ -508,36 +533,51 @@ export const NotificationList = memo(function NotificationList() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex flex-col overflow-hidden">
-      <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
+    <div className="flex h-full flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="px-6 pt-4">
+        <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
 
-      <div className="mb-4 flex flex-col">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-800 dark:text-gray-200">{unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}</span>
-            <Button variant="ghost" size="icon" onClick={handleManualRefresh} className="h-7 w-7 rounded-full" title="手動更新" disabled={isLoading}>
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
+        <div className="mb-4 flex flex-col">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                {unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}
+              </span>
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={markAllAsRead}
-                className="bg-gray-100 text-xs text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                size="icon"
+                onClick={handleManualRefresh}
+                className="h-7 w-7 rounded-full transition-all duration-200"
+                title="手動更新"
+                disabled={isLoading}
               >
-                すべて既読にする
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                )}
               </Button>
-            )}
-          </div>
-        </div>
+            </div>
 
-        <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  className="rounded-full bg-gray-100 px-3 text-xs font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  すべて既読にする
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
+        </div>
       </div>
 
-      <div className="overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {isLoading ? (
           <Loading />
         ) : error ? (

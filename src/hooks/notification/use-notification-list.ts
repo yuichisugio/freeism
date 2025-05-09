@@ -51,8 +51,8 @@ export type NotificationManagerResult = {
   isLoadingMore: boolean;
   error: string | null;
   unreadCount: number;
-  readHasMore: boolean | undefined;
-  unReadHasMore: boolean | undefined;
+  readHasMore: boolean;
+  unReadHasMore: boolean;
   activeFilter: FilterType;
   activeAuctionFilter: AuctionFilterType;
   markAllAsRead: () => void;

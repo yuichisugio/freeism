@@ -35,10 +35,18 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
    */
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)} className="relative transition-colors hover:bg-gray-100" aria-label="通知">
-        <Bell className="h-5 w-5 text-gray-700" />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsOpen(true)}
+        className="relative h-9 w-9 rounded-full transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+        aria-label="通知"
+      >
+        <Bell className="h-[18px] w-[18px] text-gray-700 dark:text-gray-300" />
         {/* 未読通知がある場合は赤いドットを表示 */}
-        {hasUnreadNotifications && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />}
+        {hasUnreadNotifications && (
+          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
+        )}
       </Button>
 
       {/* 通知モーダル */}

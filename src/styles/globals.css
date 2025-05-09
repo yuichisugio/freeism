@@ -6,7 +6,7 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
-  --color-app: var(--color-blue-700);
+  --color-app: var(--color-blue-600);
   --color-app-dark: var(--color-blue-400);
 }
 
