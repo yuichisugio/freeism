@@ -60,7 +60,8 @@ type UseAuctionFiltersReturn = {
   highlightedIndex: number;
   selectSuggestion: (suggestionText: string) => void;
   handleKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-  closeSuggestions: () => void; // 追加: サジェストを閉じる関数
+  closeSuggestions: () => void;
+
   // utilities
   formatTimeDisplay: (hours: number) => string;
   isCategorySelected: (category: string) => boolean;

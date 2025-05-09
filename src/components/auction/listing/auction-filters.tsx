@@ -391,8 +391,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
             if (highlightedIndex === -1) {
               handleSearchQueryEnter(changingSearchQuery ?? "");
             } else if (suggestions[highlightedIndex]) {
-              // Enterキーでハイライトされたサジェストを選択する処理は handleKeyDown で行うため、
-              // ここでは何もしないか、必要であれば handleKeyDown と重複しないように調整
+              // Enterキーでハイライトされたサジェストを選択する処理は handleKeyDown で行うため、ここでは何もしないか、必要であれば handleKeyDown と重複しないように調整
               selectSuggestion(suggestions[highlightedIndex].text);
             } else {
               handleSearchQueryEnter(changingSearchQuery ?? "");
