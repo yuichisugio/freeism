@@ -1,9 +1,8 @@
 "use client";
 
 import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -72,13 +71,13 @@ const FilterTabs = memo(function FilterTabs({
   unreadCount: number;
 }) {
   return (
-    <div className="dark:bg-gray-850 sticky top-0 z-10 mb-4 flex rounded-lg bg-white p-1 shadow-sm">
+    <div className="dark:bg-gray-850 z-10 mb-4 flex rounded-lg bg-white p-1 shadow-sm">
       <button
         onClick={() => onFilterChange("all")}
         className={cn(
           "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "all"
-            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+            ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
         )}
       >
@@ -89,13 +88,13 @@ const FilterTabs = memo(function FilterTabs({
         className={cn(
           "relative flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "unread"
-            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+            ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
         )}
       >
         未読
         {unreadCount > 0 && (
-          <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-medium text-white">
+          <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-green-400 px-1.5 text-xs font-medium text-white">
             {unreadCount}
           </span>
         )}
@@ -105,7 +104,7 @@ const FilterTabs = memo(function FilterTabs({
         className={cn(
           "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "read"
-            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+            ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
         )}
       >
@@ -129,17 +128,6 @@ const NotificationItem = memo(function NotificationItem({
   notification: NotificationData;
   handleToggleRead: (id: string, isRead: boolean) => void;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const truncateMessage = useCallback(function truncateMessage(message: string, maxLength = 50) {
-    if (!message) return "";
-    return message.length > maxLength ? message.substring(0, maxLength) + "..." : message;
-  }, []);
-
-  const handleItemClick = useCallback(function handleItemClick() {
-    setIsExpanded((prev) => !prev);
-  }, []);
-
   const handleStatusButtonClick = useCallback(
     function handleStatusButtonClick(e: React.MouseEvent) {
       e.stopPropagation();
@@ -150,38 +138,20 @@ const NotificationItem = memo(function NotificationItem({
 
   const backgroundClass = useMemo(
     function backgroundClass() {
-      return notification.isRead ? "bg-gray-50 dark:bg-gray-800/40" : "bg-white dark:bg-gray-800/10 shadow-sm";
+      return notification.isRead ? "bg-white dark:bg-gray-800" : "bg-white dark:bg-gray-800/10 shadow-sm border-green-400";
     },
     [notification.isRead],
   );
 
-  const expandedPaddingClass = useMemo(
-    function expandedPaddingClass() {
-      return isExpanded ? "p-0" : "p-4";
-    },
-    [isExpanded],
-  );
-
-  const expandedHeaderClass = useMemo(
-    function expandedHeaderClass() {
-      return isExpanded ? "border-b p-4" : "";
-    },
-    [isExpanded],
-  );
+  const paddingClass = "p-4";
 
   return (
-    <li className={`flex flex-col overflow-hidden rounded-xl border transition-all duration-200 ${backgroundClass} ${expandedPaddingClass}`}>
-      <div
-        className={`flex cursor-pointer items-start gap-4 ${expandedHeaderClass}`}
-        onClick={handleItemClick}
-        onKeyDown={(e) => e.key === "Enter" && handleItemClick()}
-        role="button"
-        tabIndex={0}
-        aria-label={`通知: ${notification.title}`}
-      >
+    <li className={`flex flex-col overflow-hidden rounded-xl border transition-all duration-200 ${backgroundClass} ${paddingClass}`}>
+      <div className="flex items-start gap-4" aria-label={`通知: ${notification.title}`}>
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
-            <div>
+            <div className="flex items-start gap-2">
+              {notification.isRead ? <span className="invisible mt-1 h-2 w-2" /> : <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-green-500" />}
               <h4 className="font-medium text-gray-900 dark:text-gray-100">{notification.title}</h4>
             </div>
             {notification.sentAt && (
@@ -224,11 +194,11 @@ const NotificationItem = memo(function NotificationItem({
             )}
           </div>
 
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{isExpanded ? notification.message : truncateMessage(notification.message)}</p>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{notification.message}</p>
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex-1">
-              {isExpanded && notification.actionUrl && (
+              {notification.actionUrl && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -246,7 +216,7 @@ const NotificationItem = memo(function NotificationItem({
             </div>
 
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="rounded-full bg-gray-100 px-3 text-xs text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={handleStatusButtonClick}
@@ -265,8 +235,6 @@ const NotificationItem = memo(function NotificationItem({
             </Button>
           </div>
         </div>
-
-        {notification.isRead ? <span className="invisible mt-1 h-2 w-2" /> : <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-blue-500" />}
       </div>
     </li>
   );
@@ -380,7 +348,7 @@ const AuctionFilterControl = memo(function AuctionFilterControl({
   onAuctionFilterChange: (filter: AuctionFilterType) => void;
 }) {
   return (
-    <div className="mb-4 flex items-center">
+    <div className="mt-3 mb-1 flex items-center">
       <div className="flex h-9 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
         <button
           className={cn(
@@ -463,45 +431,43 @@ const Notifications = memo(function Notifications({
   }, [activeFilter, readHasMore, unReadHasMore]);
 
   return (
-    <ScrollArea className="h-full px-6">
-      <div className="flex flex-col gap-4 py-4">
-        {notifications.length > 0 ? (
-          <>
-            <ul className="space-y-4">
-              {notifications.map((notification: NotificationData) => (
-                <NotificationItem key={notification.id} notification={notification} handleToggleRead={handleToggleRead} />
-              ))}
-            </ul>
+    <div className="flex flex-col py-4">
+      {notifications.length > 0 ? (
+        <>
+          <ul className="space-y-4">
+            {notifications.map((notification: NotificationData) => (
+              <NotificationItem key={notification.id} notification={notification} handleToggleRead={handleToggleRead} />
+            ))}
+          </ul>
 
-            {currentHasMore && (
-              <div className="mt-6 flex justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadMoreNotifications}
-                  disabled={isLoadingMore}
-                  className="w-48 rounded-full text-sm shadow-sm transition-all duration-200 hover:shadow"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <LoadingIndicator />
-                      読み込み中...
-                    </>
-                  ) : (
-                    <>
-                      <MoreHorizontal className="mr-1 h-4 w-4" />
-                      もっと読み込む
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
-          <NotificationsEmpty hasMore={currentHasMore} onLoadMore={loadMoreNotifications} isLoadingMore={isLoadingMore} activeFilter={activeFilter} />
-        )}
-      </div>
-    </ScrollArea>
+          {currentHasMore && (
+            <div className="mt-6 flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadMoreNotifications}
+                disabled={isLoadingMore}
+                className="w-48 rounded-full text-sm shadow-sm transition-all duration-200 hover:shadow"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <LoadingIndicator />
+                    読み込み中...
+                  </>
+                ) : (
+                  <>
+                    <MoreHorizontal className="mr-1 h-4 w-4" />
+                    もっと読み込む
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <NotificationsEmpty hasMore={currentHasMore} onLoadMore={loadMoreNotifications} isLoadingMore={isLoadingMore} activeFilter={activeFilter} />
+      )}
+    </div>
   );
 });
 
@@ -533,11 +499,11 @@ export const NotificationList = memo(function NotificationList() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
-      <div className="px-6 pt-4">
+    <div className="flex min-h-0 flex-col">
+      <div className="px-6">
         <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
 
-        <div className="mb-4 flex flex-col">
+        <div className="flex flex-col">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -562,7 +528,7 @@ export const NotificationList = memo(function NotificationList() {
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={markAllAsRead}
                   className="rounded-full bg-gray-100 px-3 text-xs font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -577,7 +543,7 @@ export const NotificationList = memo(function NotificationList() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 px-6">
         {isLoading ? (
           <Loading />
         ) : error ? (

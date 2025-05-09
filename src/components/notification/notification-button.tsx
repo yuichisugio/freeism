@@ -51,13 +51,14 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
 
       {/* 通知モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[80%]">
+        <DialogContent className="h-[95vh] overflow-y-auto bg-gray-50 px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[90%] dark:bg-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-app">通知</DialogTitle>
+            <DialogTitle className="flex text-lg font-semibold text-gray-800 dark:text-gray-200">
+              <Bell className="mt-1 mr-2 ml-3 h-5 w-5" />
+              通知
+            </DialogTitle>
           </DialogHeader>
-          <div className="h-[95vh] rounded-lg border px-6 py-2 shadow-sm">
-            <NotificationList />
-          </div>
+          <NotificationList />
         </DialogContent>
       </Dialog>
     </>
