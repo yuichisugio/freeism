@@ -181,7 +181,7 @@ export function useNotificationList(): NotificationManagerResult {
         overallUnreadCount: fetchedData.pages[0]?.unreadCount ?? 0,
       };
     },
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 30,
     enabled: !!userId,
   });
