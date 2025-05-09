@@ -71,7 +71,7 @@ const FilterTabs = memo(function FilterTabs({
   unreadCount: number;
 }) {
   return (
-    <div className="dark:bg-gray-850 z-10 mb-4 flex rounded-lg bg-white p-1 shadow-sm">
+    <div className="dark:bg-gray-850 mb-4 flex w-full rounded-lg bg-white p-1 shadow-sm">
       <button
         onClick={() => onFilterChange("all")}
         className={cn(
@@ -218,7 +218,9 @@ const NotificationItem = memo(function NotificationItem({
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full bg-gray-100 px-3 text-xs text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              className={`rounded-full bg-gray-100 px-3 text-xs text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${
+                notification.isRead ? "text-gray-600" : "bg-green-100 text-gray-800 hover:bg-green-200"
+              }`}
               onClick={handleStatusButtonClick}
             >
               {notification.isRead ? (
@@ -284,7 +286,7 @@ const NotificationsEmpty = memo(function NotificationsEmpty({
 
   return (
     <div className="flex h-[300px] flex-col items-center justify-center">
-      <p className="mb-5 text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+      {!hasMore && <p className="mb-5 text-gray-500 dark:text-gray-400">{emptyMessage}</p>}
 
       {hasMore && (
         <div className="flex justify-center py-2">
@@ -482,6 +484,7 @@ export const NotificationList = memo(function NotificationList() {
     notifications,
     isLoading,
     isLoadingMore,
+    isRefreshing,
     error,
     unreadCount,
     readHasMore,
@@ -499,47 +502,48 @@ export const NotificationList = memo(function NotificationList() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="flex min-h-0 flex-col">
+    <div className="flex flex-col">
       <div className="px-6">
         <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
 
-        <div className="flex flex-col">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                {unreadCount > 0 ? `${unreadCount}件の未読` : "未読はありません"}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleManualRefresh}
-                className="h-7 w-7 rounded-full transition-all duration-200"
-                title="手動更新"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                )}
-              </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <label className="ml-1 flex items-center rounded-full border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 shadow-xs transition-all duration-200 hover:bg-gray-200 hover:text-neutral-900 dark:border-neutral-200 dark:dark:border-neutral-800 dark:bg-gray-800 dark:dark:bg-neutral-800/30 dark:text-gray-300 dark:dark:hover:bg-neutral-800/50 dark:hover:bg-gray-700 dark:hover:text-neutral-50">
+                  手動更新
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleManualRefresh}
+                    className="ml-1 h-7 w-7 rounded-full px-3 text-xs font-medium text-gray-700 transition-all duration-200 dark:bg-gray-800 dark:text-gray-300"
+                    title="手動更新"
+                    disabled={isLoading || isRefreshing}
+                  >
+                    {isRefreshing ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    )}
+                  </Button>
+                </label>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={markAllAsRead}
-                  className="rounded-full bg-gray-100 px-3 text-xs font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  すべて既読にする
-                </Button>
-              )}
-            </div>
+            <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
           </div>
-
-          <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={markAllAsRead}
+                className="self-center rounded-full px-3 text-xs font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                すべて既読にする
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

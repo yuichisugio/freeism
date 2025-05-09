@@ -49,6 +49,7 @@ export type NotificationManagerResult = {
   notifications: NotificationData[];
   isLoading: boolean;
   isLoadingMore: boolean;
+  isRefreshing: boolean;
   error: string | null;
   unreadCount: number;
   readHasMore: boolean;
@@ -143,6 +144,7 @@ export function useNotificationList(): NotificationManagerResult {
   const {
     data,
     isLoading,
+    isFetching,
     isFetchingNextPage,
     error: queryError,
     fetchNextPage,
@@ -465,10 +467,18 @@ export function useNotificationList(): NotificationManagerResult {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // 手動リフレッシュ（または他の種類のrefetch）に特化した状態
+  // isLoading: 初回読み込み時true
+  // isFetching: 読み込み中なら常にtrue (初回、refetch, fetchNextPage)
+  // isFetchingNextPage: 次のページ読み込み中ならtrue
+  // isRefreshing: isFetchingがtrue で、かつ isLoading (初回) でもなく isFetchingNextPage (次ページ) でもない場合
+  const isRefreshing = isFetching && !isLoading && !isFetchingNextPage;
+
   return {
     notifications: filteredNotifications,
     isLoading,
     isLoadingMore: isFetchingNextPage,
+    isRefreshing,
     error: queryError
       ? queryError instanceof Error
         ? `通知の取得に失敗しました: ${queryError.message}`

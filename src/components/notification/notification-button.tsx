@@ -51,10 +51,13 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
 
       {/* 通知モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="h-[95vh] overflow-y-auto bg-gray-50 px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[90%] dark:bg-gray-900">
+        <DialogContent
+          className="grid h-[95vh] grid-rows-[auto_1fr] overflow-y-auto bg-gray-50 px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[90%] dark:bg-gray-900"
+          style={{ scrollbarGutter: "stable" }}
+        >
           <DialogHeader>
             <DialogTitle className="flex text-lg font-semibold text-gray-800 dark:text-gray-200">
-              <Bell className="mt-1 mr-2 ml-3 h-5 w-5" />
+              <Bell className="mt-1 mr-2 ml-8 h-5 w-5" />
               通知
             </DialogTitle>
           </DialogHeader>
