@@ -4,11 +4,21 @@ import { MainTemplate } from "@/components/layout/maintemplate";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "参加Group一覧 - Freeism App",
   description: "参加しているグループ一覧を表示します",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 参加Group一覧ページ
+ */
 export default async function MyGroupsPage() {
   const userId = await getAuthenticatedSessionUserId();
 

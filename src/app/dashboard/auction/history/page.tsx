@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 /**
  * 入札・落札履歴ページ
  */
-export default function AuctionHistoryPage() {
+export default async function AuctionHistoryPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

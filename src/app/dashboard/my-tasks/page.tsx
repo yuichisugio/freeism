@@ -7,10 +7,17 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { PlusCircle } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "My Task一覧 - Freeism App",
   description: "自分のタスク一覧を表示します",
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ログインしているユーザーのタスク一覧を表示するページ
