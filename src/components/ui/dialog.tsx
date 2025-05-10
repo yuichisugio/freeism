@@ -54,9 +54,11 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
+        <div className="overflow-y-auto" style={{ scrollbarGutter: "stable", direction: "rtl" }}>
+          <div style={{ direction: "ltr" }}>{children}</div>
+        </div>
         {closeButton && (
-          <DialogPrimitive.Close className="opacity-70transition-opacity absolute top-4 right-4 rounded-xs hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-neutral-100 data-[state=open]:text-neutral-500 dark:data-[state=open]:bg-neutral-800 dark:data-[state=open]:text-neutral-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+          <DialogPrimitive.Close className="opacity-70transition-opacity absolute top-4 right-2 rounded-xs hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-neutral-100 data-[state=open]:text-neutral-500 dark:data-[state=open]:bg-neutral-800 dark:data-[state=open]:text-neutral-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
             <XIcon className="size-8" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>

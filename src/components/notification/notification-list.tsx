@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
 import { useShortcut } from "@/hooks/utils/use-shortcut";
@@ -106,8 +106,8 @@ const FilterTabs = memo(function FilterTabs({
       <button
         onClick={() => onFilterChange("all")}
         className={cn(
-          "focus:outline-none focus-visible:ring-0",
-          "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
+          "tracking-[.1em] focus:outline-none focus-visible:ring-0",
+          "flex-1 rounded-md px-4 py-2 text-sm font-semibold transition-all duration-200",
           activeFilter === "all"
             ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
@@ -118,8 +118,8 @@ const FilterTabs = memo(function FilterTabs({
       <button
         onClick={() => onFilterChange("unread")}
         className={cn(
-          "focus:outline-none focus-visible:ring-0",
-          "relative flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
+          "tracking-[.1em] focus:outline-none focus-visible:ring-0",
+          "relative flex-1 rounded-md px-4 py-2 text-sm font-semibold transition-all duration-200",
           activeFilter === "unread"
             ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
@@ -127,7 +127,12 @@ const FilterTabs = memo(function FilterTabs({
       >
         未読
         {unreadCount > 0 && (
-          <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-green-400 px-1.5 text-xs font-medium text-white">
+          <span
+            className={cn(
+              "ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gray-700 px-1.5 text-xs font-semibold text-white dark:bg-gray-800/30 dark:text-gray-300",
+              activeFilter === "unread" && "bg-gray-700 text-white dark:bg-gray-800/30 dark:text-gray-300",
+            )}
+          >
             {unreadCount}
           </span>
         )}
@@ -135,8 +140,8 @@ const FilterTabs = memo(function FilterTabs({
       <button
         onClick={() => onFilterChange("read")}
         className={cn(
-          "focus:outline-none focus-visible:ring-0",
-          "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
+          "tracking-[.1em] focus:outline-none focus-visible:ring-0",
+          "flex-1 rounded-md px-4 py-2 text-sm font-semibold transition-all duration-200",
           activeFilter === "read"
             ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
@@ -162,6 +167,18 @@ const NotificationItem = memo(function NotificationItem({
   notification: NotificationData;
   handleToggleRead: (id: string, isRead: boolean) => void;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知の展開状態
+   */
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 既読/未読ボタンのクリック時の処理
+   */
   const handleStatusButtonClick = useCallback(
     function handleStatusButtonClick(e: React.MouseEvent) {
       e.stopPropagation();
@@ -170,6 +187,11 @@ const NotificationItem = memo(function NotificationItem({
     [notification.id, notification.isRead, handleToggleRead],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 背景色のクラス
+   */
   const backgroundClass = useMemo(
     function backgroundClass() {
       return notification.isRead ? "bg-white dark:bg-gray-800" : "bg-white dark:bg-gray-800/10 shadow-sm border-green-400";
@@ -177,60 +199,108 @@ const NotificationItem = memo(function NotificationItem({
     [notification.isRead],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パディングのクラス
+   */
   const paddingClass = "p-4";
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キーボードイベントの処理 (Enter または Space で展開/折りたたみ)
+   */
+  const handleKeyDown = useCallback(
+    function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault(); // ボタンとしてのデフォルトの動作（スクロールなど）を防ぐ
+        setIsExpanded((prev) => !prev);
+      }
+    },
+    [setIsExpanded],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
-    <li className={`flex flex-col overflow-hidden rounded-xl border transition-all duration-200 ${backgroundClass} ${paddingClass}`}>
-      <div className="flex items-start gap-4" aria-label={`通知: ${notification.title}`}>
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2">
-              {notification.isRead ? <span className="invisible mt-1 h-2 w-2" /> : <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-green-500" />}
-              <h4 className="font-medium text-gray-900 dark:text-gray-100">{notification.title}</h4>
+    <div
+      onClick={() => setIsExpanded((prev) => !prev)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isExpanded}
+      className={cn(
+        "cursor-pointer overflow-hidden rounded-xl border transition-all duration-200",
+        backgroundClass,
+        paddingClass,
+        isExpanded ? "h-auto" : "h-40",
+      )}
+    >
+      <div className="flex h-full flex-col">
+        <div className="flex-grow overflow-hidden">
+          <div className="flex items-start gap-4" aria-label={`通知: ${notification.title}`}>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-start gap-2">
+                  {notification.isRead ? (
+                    <span className="invisible mt-1 h-2 w-2 flex-shrink-0" />
+                  ) : (
+                    <span className="mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-green-500" />
+                  )}
+                  <h4 className="truncate font-medium text-gray-900 dark:text-gray-100">{notification.title}</h4>
+                </div>
+                {notification.sentAt && (
+                  <time
+                    className="flex-shrink-0 text-xs whitespace-nowrap text-gray-500 dark:text-gray-400"
+                    dateTime={notification.sentAt.toISOString()}
+                  >
+                    {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
+                  </time>
+                )}
+              </div>
+              <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
+                {notification.NotificationTargetType === "USER" && notification.senderUserId && (
+                  <>
+                    <span className="mr-1 flex-shrink-0">👤</span>
+                    <span className="truncate">ユーザー: {notification.userName ?? notification.senderUserId}</span>
+                  </>
+                )}
+                {notification.NotificationTargetType === "GROUP" && notification.groupId && (
+                  <>
+                    <span className="mr-1 flex-shrink-0">👥</span>
+                    <span className="truncate">グループ: {notification.groupName ?? notification.groupId}</span>
+                  </>
+                )}
+                {notification.NotificationTargetType === "TASK" && notification.taskId && (
+                  <>
+                    <span className="mr-1 flex-shrink-0">📋</span>
+                    <span className="truncate">タスク: {notification.taskName ?? notification.taskId}</span>
+                  </>
+                )}
+                {notification.NotificationTargetType === "SYSTEM" && (
+                  <>
+                    <span className="mr-1 flex-shrink-0">🔔</span>
+                    <span>システム全体</span>
+                  </>
+                )}
+                {notification.auctionEventType && (
+                  <span className="ml-2 flex items-center truncate rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
+                    <ShoppingCart className="mr-1 inline-block h-3 w-3 flex-shrink-0" />
+                    <span className="leading-none">オークション: {formatAuctionEventType(notification.auctionEventType)}</span>
+                  </span>
+                )}
+              </div>
+              <div className="mt-2">
+                <p className={cn("text-sm text-gray-700 dark:text-gray-300", isExpanded ? "whitespace-pre-wrap" : "truncate")}>
+                  {notification.message}
+                </p>
+              </div>
             </div>
-            {notification.sentAt && (
-              <time className="text-xs whitespace-nowrap text-gray-500 dark:text-gray-400" dateTime={notification.sentAt.toISOString()}>
-                {formatDistanceToNow(notification.sentAt, { addSuffix: true, locale: ja })}
-              </time>
-            )}
           </div>
-
-          <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
-            {notification.NotificationTargetType === "USER" && notification.senderUserId && (
-              <>
-                <span className="mr-1">👤</span>
-                <span>ユーザー: {notification.userName ?? notification.senderUserId}</span>
-              </>
-            )}
-            {notification.NotificationTargetType === "GROUP" && notification.groupId && (
-              <>
-                <span className="mr-1">👥</span>
-                <span>グループ: {notification.groupName ?? notification.groupId}</span>
-              </>
-            )}
-            {notification.NotificationTargetType === "TASK" && notification.taskId && (
-              <>
-                <span className="mr-1">📋</span>
-                <span>タスク: {notification.taskName ?? notification.taskId}</span>
-              </>
-            )}
-            {notification.NotificationTargetType === "SYSTEM" && (
-              <>
-                <span className="mr-1">🔔</span>
-                <span>システム全体</span>
-              </>
-            )}
-            {notification.auctionEventType && (
-              <span className="ml-2 flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
-                <ShoppingCart className="mr-1 inline-block h-3 w-3" />
-                <span className="leading-none">オークション: {formatAuctionEventType(notification.auctionEventType)}</span>
-              </span>
-            )}
-          </div>
-
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{notification.message}</p>
-
-          <div className="mt-3 flex items-center justify-between">
+        </div>
+        <div className="mt-auto pt-3">
+          <div className="flex items-center justify-between">
             <div className="flex-1">
               {notification.actionUrl && (
                 <Button
@@ -252,9 +322,12 @@ const NotificationItem = memo(function NotificationItem({
             <Button
               variant="outline"
               size="sm"
-              className={`rounded-full bg-gray-100 px-3 text-xs text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 ${
-                notification.isRead ? "text-gray-600" : "bg-green-100 text-gray-800 hover:bg-green-200"
-              }`}
+              className={cn(
+                "rounded-full px-3 text-xs",
+                notification.isRead
+                  ? "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  : "bg-green-100 text-gray-800 hover:bg-green-200 dark:bg-green-700/30 dark:text-green-100 dark:hover:bg-green-700/50",
+              )}
               onClick={handleStatusButtonClick}
             >
               {notification.isRead ? (
@@ -272,7 +345,7 @@ const NotificationItem = memo(function NotificationItem({
           </div>
         </div>
       </div>
-    </li>
+    </div>
   );
 });
 
@@ -470,11 +543,11 @@ const Notifications = memo(function Notifications({
     <div className="flex flex-col py-4">
       {notifications.length > 0 ? (
         <>
-          <ul className="space-y-4">
+          <div className="space-y-4">
             {notifications.map((notification: NotificationData) => (
               <NotificationItem key={notification.id} notification={notification} handleToggleRead={handleToggleRead} />
             ))}
-          </ul>
+          </div>
 
           {currentHasMore && (
             <div className="mt-6 flex justify-center">
