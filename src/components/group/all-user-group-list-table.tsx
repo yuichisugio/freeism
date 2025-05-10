@@ -4,7 +4,8 @@ import type { BaseRecord, Column, DataTableProps } from "@/components/share/data
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useGroupJoiner } from "@/hooks/group/use-group-actions";
+import { useGroupJoiner } from "@/hooks/group/use-all-user-group-list";
+import { type Group } from "@/types/group-types";
 import { UserPlus } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -12,21 +13,7 @@ import { UserPlus } from "lucide-react";
 /**
  * グループのデータの型
  */
-export type Group = BaseRecord & {
-  name: string;
-  goal: string;
-  evaluationMethod: string;
-  maxParticipants: number;
-  members: { id: string }[];
-  createdBy: string;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループのデータの型
- */
-export const GroupListTable = memo(function GroupListTable(): JSX.Element {
+export const AllUserGroupListTable = memo(function AllUserGroupListTable(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -44,7 +31,14 @@ export const GroupListTable = memo(function GroupListTable(): JSX.Element {
       {
         key: "id" as keyof Group,
         header: "Group操作",
+        cell: () => null,
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: true,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
         modalList: [
           {
             title: "グループに参加しますか？",
@@ -60,8 +54,15 @@ export const GroupListTable = memo(function GroupListTable(): JSX.Element {
       },
       {
         key: "name" as keyof Group,
-        header: "GROUP NAME",
+        header: "グループ名",
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
         cell: (row: Group) => (
           <Link href={`/dashboard/group/${row.id}`} className="text-app hover:underline">
             {row.name}
@@ -71,20 +72,80 @@ export const GroupListTable = memo(function GroupListTable(): JSX.Element {
       {
         key: "maxParticipants" as keyof Group,
         header: "参加人数",
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
+        cell: (row: Group) => `${row.joinMembersCount}人`,
+      },
+      {
+        key: "maxParticipants" as keyof Group,
+        header: "参加可能上限数",
+        className: null,
+        statusCombobox: false,
+        sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
         cell: (row: Group) => `${row.maxParticipants}人`,
       },
       {
         key: "evaluationMethod" as keyof Group,
-        header: "KPI",
+        header: "評価方法",
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
         cell: (row: Group) => row.evaluationMethod,
       },
       {
         key: "goal" as keyof Group,
-        header: "DESCRIPTION",
+        header: "グループ目標",
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
         cell: (row: Group) => row.goal,
+      },
+      {
+        key: "depositPeriod" as keyof Group,
+        header: "デポジット期間",
+        className: null,
+        statusCombobox: false,
+        sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
+        cell: (row: Group) => `${row.depositPeriod}日`,
+      },
+      {
+        key: "createdBy" as keyof Group,
+        header: "作成者",
+        className: null,
+        statusCombobox: false,
+        sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
+        modalList: null,
+        cell: (row: Group) => row.createdBy,
       },
     ],
     [handleJoin],
@@ -97,7 +158,7 @@ export const GroupListTable = memo(function GroupListTable(): JSX.Element {
    */
   const dataTableProps: DataTableProps<BaseRecord> = useMemo(
     () => ({
-      data: groups as unknown as BaseRecord[],
+      initialData: groups as unknown as BaseRecord[],
       columns: columns as unknown as Column<BaseRecord>[],
       pagination: true,
       onDataChange: (data) => setGroups(data as unknown as Group[]),

@@ -4,7 +4,7 @@ import type { BaseRecord, Column, DataTableProps } from "@/components/share/data
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useGroupLeaver, useGroupPoints } from "@/hooks/group/use-group-actions";
+import { useGroupLeaver, useGroupPoints } from "@/hooks/group/use-my-group-list";
 import { LogOut } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -31,20 +31,11 @@ type GroupMembership = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * マイグループテーブルの型
- */
-type MyGroupsTableProps = {
-  memberships: GroupMembership[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * マイグループテーブル
  * @param memberships グループメンバーシップ
  * @returns マイグループテーブル
  */
-export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialMemberships }: MyGroupsTableProps): JSX.Element {
+export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialMemberships }: { memberships: GroupMembership[] }): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックを使用してグループ脱退機能を実装
@@ -67,7 +58,14 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
       {
         key: "id" as keyof GroupMembership,
         header: "操作",
+        cell: () => null,
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: true,
+        editTask: false,
+        deleteTask: null,
         modalList: [
           {
             title: "グループから脱退しますか？",
@@ -83,7 +81,14 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
       {
         key: "group" as keyof GroupMembership,
         header: "GROUP NAME",
+        className: null,
+        statusCombobox: false,
         sortable: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        editTask: false,
+        deleteTask: null,
         cell: (row: GroupMembership) => (
           <Link href={`/dashboard/group/${row.group.id}`} className="text-app hover:underline">
             {row.group.name}
@@ -94,24 +99,52 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
         key: "group" as keyof GroupMembership,
         header: "保有ポイント",
         sortable: true,
+        className: null,
+        statusCombobox: false,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        editTask: false,
+        deleteTask: null,
         cell: (row: GroupMembership) => totalContributionPointsByGroup[row.group.id],
       },
       {
         key: "group" as keyof GroupMembership,
         header: "参加人数",
         sortable: true,
+        className: null,
+        statusCombobox: false,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        editTask: false,
+        deleteTask: null,
         cell: (row: GroupMembership) => `${row.group.maxParticipants}人`,
       },
       {
         key: "group" as keyof GroupMembership,
         header: "KPI",
         sortable: true,
+        className: null,
+        statusCombobox: false,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        editTask: false,
+        deleteTask: null,
         cell: (row: GroupMembership) => row.group.evaluationMethod,
       },
       {
         key: "group" as keyof GroupMembership,
         header: "DESCRIPTION",
         sortable: true,
+        className: null,
+        statusCombobox: false,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        editTask: false,
+        deleteTask: null,
         cell: (row: GroupMembership) => row.group.goal,
       },
     ],
@@ -122,7 +155,7 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
 
   const dataTableProps: DataTableProps<GroupMembership> = useMemo(
     () => ({
-      data: memberships,
+      initialData: memberships,
       columns: columns,
       pagination: true,
       onDataChange: setMemberships,

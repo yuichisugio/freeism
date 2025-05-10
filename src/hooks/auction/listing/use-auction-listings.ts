@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/lib/auction/type/types";
+import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/types/auction-types";
 import { useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionWithDetails } from "@/lib/auction/type/types";
+import type { AuctionWithDetails } from "@/types/auction-types";
 import { memo, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 

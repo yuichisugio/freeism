@@ -7,7 +7,7 @@ import type {
   SortDirection,
   Suggestion,
   UseAuctionFiltersProps,
-} from "@/lib/auction/type/types";
+} from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
 import { getUserGroups } from "@/lib/auction/action/user";

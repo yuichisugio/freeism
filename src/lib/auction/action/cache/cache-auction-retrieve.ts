@@ -1,8 +1,8 @@
 "use cache";
 
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
-import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { prisma } from "@/lib/prisma";
+import { type AuctionWithDetails } from "@/types/auction-types";
 
 /**
  * オークションIDに関連するオークション情報を取得

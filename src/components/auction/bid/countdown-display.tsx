@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { type CountdownDisplayProps } from "@/lib/auction/type/types";
+import { type CountdownDisplayProps } from "@/types/auction-types";
 import { motion } from "framer-motion";
 import { AlertTriangle, Clock } from "lucide-react";
 

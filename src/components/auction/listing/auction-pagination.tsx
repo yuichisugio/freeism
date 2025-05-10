@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionListingsConditions } from "@/lib/auction/type/types";
+import type { AuctionListingsConditions } from "@/types/auction-types";
 import { memo, useMemo } from "react";
 import {
   Pagination,

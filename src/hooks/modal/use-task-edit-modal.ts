@@ -1,7 +1,7 @@
 "use client";
 
 import type { EditableTask } from "@/hooks/task/use-task-editor";
-import type { Task, TaskParticipant } from "@/types/group";
+import type { Task, TaskParticipant } from "@/types/group-types";
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";

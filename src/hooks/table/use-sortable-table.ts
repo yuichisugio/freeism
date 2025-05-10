@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { type SortDirection } from "@/lib/auction/type/types";
+import { useCallback, useState } from "react";
+import { type SortDirection } from "@/types/auction-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -17,7 +17,7 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
    * state
    */
   // データの状態管理
-  const [data, setData] = useState<T[]>(initialData);
+  const [sortedData, setSortedData] = useState<T[]>(initialData);
 
   // ソートの状態管理
   const [sortConfig, setSortConfig] = useState<{ key: keyof T; direction: "asc" | "desc" } | null>(null);
@@ -27,31 +27,8 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
   /**
    * function
    */
-  // ソート処理関数
-  const handleSort = (key: keyof T) => {
-    // ソートの方向は、デフォルトではascに設定
-    let direction: SortDirection = "asc";
-
-    // 2回連続同じカラムをクリックした時のみ、descに変更。それ以外は初回のカラムを選択ではascになる。
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-
-    // ソート設定を更新
-    setSortConfig({ key, direction });
-
-    // データをソート
-    const sortedData = sortData(data, key, direction);
-    setData(sortedData);
-  };
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * function
-   */
   // データソート関数
-  const sortData = (dataToSort: T[], key: keyof T, direction: "asc" | "desc"): T[] => {
+  const sortData = useCallback((dataToSort: T[], key: keyof T, direction: "asc" | "desc"): T[] => {
     return [...dataToSort].sort((a, b) => {
       // ソートするカラムが存在しない場合は並び替えない
       if (!(key in a) || !(key in b)) return 0;
@@ -102,7 +79,33 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
       // その他の型は比較不能なので変更なし
       return 0;
     });
-  };
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * function
+   */
+  // ソート処理関数
+  const handleSort = useCallback(
+    (key: keyof T) => {
+      // ソートの方向は、デフォルトではascに設定
+      let direction: SortDirection = "asc";
+
+      // 2回連続同じカラムをクリックした時のみ、descに変更。それ以外は初回のカラムを選択ではascになる。
+      if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+        direction = "desc";
+      }
+
+      // ソート設定を更新
+      setSortConfig({ key, direction });
+
+      // データをソート
+      const newSortedData = sortData(sortedData, key, direction);
+      setSortedData(newSortedData);
+    },
+    [sortedData, setSortedData, sortConfig, sortData],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -110,20 +113,25 @@ export function useSortableTable<T extends Record<string, unknown>>(initialData:
    * function
    */
   // データの更新処理
-  const updateData = (newData: T[]) => {
-    setData(newData);
-  };
+  const updateData = useCallback(
+    (newData: T[]) => {
+      setSortedData(newData);
+    },
+    [setSortedData],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     // state
-    data,
+    sortedData,
     sortConfig,
 
     // function
     handleSort,
     updateData,
-    setData,
+    setSortedData,
   };
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

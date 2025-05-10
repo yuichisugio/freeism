@@ -28,7 +28,7 @@ export type EditableTask = {
  * タスク編集機能のためのカスタムフック
  * @returns タスク編集関連の状態と処理
  */
-export function useTaskEditor<T extends { id: string; [key: string]: unknown }>() {
+export function useTaskEditor<T extends EditableTask>() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

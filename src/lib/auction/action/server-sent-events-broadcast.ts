@@ -1,6 +1,6 @@
 "use server";
 
-import type { UpdateAuctionWithDetails } from "../type/types";
+import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

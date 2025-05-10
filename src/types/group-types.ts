@@ -1,4 +1,21 @@
+import { type BaseRecord } from "@/components/share/data-table";
 import { type contributionType } from "@prisma/client";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループのデータの型
+ */
+export type Group = BaseRecord & {
+  name: string;
+  goal: string;
+  evaluationMethod: string;
+  maxParticipants: number;
+  joinMembersCount: number;
+  depositPeriod: number;
+  isJoined: boolean;
+  createdBy: string;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

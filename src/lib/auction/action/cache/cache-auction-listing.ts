@@ -1,6 +1,6 @@
 "use cache";
 
-import type { AuctionCard, AuctionListingResult, AuctionListingsConditions, Suggestion } from "@/lib/auction/type/types";
+import type { AuctionCard, AuctionListingResult, AuctionListingsConditions, Suggestion } from "@/types/auction-types";
 import { cache } from "react";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { prisma } from "@/lib/prisma";

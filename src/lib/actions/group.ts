@@ -2,6 +2,7 @@
 
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
+import { getCachedGroupList } from "@/lib/actions/cache/cache-group";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
@@ -10,34 +11,35 @@ import { z } from "zod";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * グループ一覧を取得する関数
+ * 全ユーザー共通なので、サーバー側でキャッシュする
+ * @returns グループ一覧
+ */
+export async function getGroupList() {
+  const groupsData = await getCachedGroupList();
+
+  return groupsData;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * ユーザーのグループ一覧を取得する関数
+ * ユーザーごとにデータが異なるので、サーバー側ではキャッシュしない
  * @param userId - ユーザーのID
  * @returns ユーザーのグループ一覧
  */
-export async function getUserGroups(userId: string) {
-  const groupsData = await prisma.group.findMany({
-    select: {
-      id: true,
-      name: true,
-      goal: true,
-      evaluationMethod: true,
-      maxParticipants: true,
-      members: {
-        where: {
-          userId: userId,
-        },
-        select: {
-          id: true,
-        },
-      },
-      createdBy: true,
+export async function getUserJoinGroupIds(userId: string) {
+  const userJoinGroupIds = await prisma.groupMembership.findMany({
+    where: {
+      userId: userId,
     },
-    orderBy: {
-      createdAt: "desc",
+    select: {
+      groupId: true,
     },
   });
 
-  return groupsData;
+  return userJoinGroupIds;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

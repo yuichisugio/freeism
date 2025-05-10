@@ -7,7 +7,7 @@ import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/component
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUserCreatedAuctions, getUserLatestBids, getUserWonAuctions } from "@/lib/auction/action/history";
-import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/lib/auction/type/types";
+import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Award, Clock, Loader2, Tag } from "lucide-react";

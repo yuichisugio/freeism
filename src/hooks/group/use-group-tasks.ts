@@ -1,6 +1,6 @@
 "use client";
 
-import type { Task, TaskParticipant, User } from "@/types/group";
+import type { Task, TaskParticipant, User } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteTask, getTasksByGroupId } from "@/lib/actions/task";

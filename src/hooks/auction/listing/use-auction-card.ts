@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { type AuctionCard } from "@/lib/auction/type/types";
+import { type AuctionCard } from "@/types/auction-types";
 import { AuctionStatus } from "@prisma/client";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";

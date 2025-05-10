@@ -3,10 +3,9 @@
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
 import { unstable_cacheTag as cacheTag } from "next/cache";
+import { buildCommonNotificationWhereClause, formatDateToISOString } from "@/lib/actions/notification/notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-
-import { buildCommonNotificationWhereClause, formatDateToISOString } from "./notification-utilities";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

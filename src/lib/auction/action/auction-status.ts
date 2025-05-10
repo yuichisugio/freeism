@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
-import { type AuctionWithDetails } from "../type/types";
+import { type AuctionWithDetails } from "../../../types/auction-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

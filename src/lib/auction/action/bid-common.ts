@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
 
-import type { UpdateAuctionWithDetails } from "../type/types";
+import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
 import type { ProcessAutoBidParams } from "./auto-bid";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 

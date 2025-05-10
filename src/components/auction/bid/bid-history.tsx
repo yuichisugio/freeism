@@ -3,8 +3,8 @@
 import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { type AuctionWithDetails } from "@/lib/auction/type/types";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { type AuctionWithDetails } from "@/types/auction-types";
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, HandCoins } from "lucide-react";
 

@@ -1,10 +1,10 @@
 "use server";
 
-import type { NotificationData } from "@/lib/actions/notification/cache-notification-utilities";
+import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "@/lib/actions/notification/cache-notification-utilities";
+import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "@/lib/actions/cache/cache-notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { Prisma } from "@prisma/client";

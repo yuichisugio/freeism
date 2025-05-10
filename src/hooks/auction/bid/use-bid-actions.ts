@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { executeBid } from "@/lib/auction/action/bid-common";
-import { type BidFormData } from "@/lib/auction/type/types";
+import { type BidFormData } from "@/types/auction-types";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

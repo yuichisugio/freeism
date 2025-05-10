@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
 import { useAuctionCard } from "@/hooks/auction/listing/use-auction-card";
-import { type AuctionCard as AuctionCardType } from "@/lib/auction/type/types";
 import { cn } from "@/lib/utils";
+import { type AuctionCard as AuctionCardType } from "@/types/auction-types";
 import { Clock, Heart, Star, Tag, Users } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
