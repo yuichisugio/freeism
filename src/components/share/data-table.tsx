@@ -64,10 +64,10 @@ export type ModalListType = {
   description: string;
   action: (rowId: string) => Promise<void>;
   actionLabel: string;
-  triggerIcon?: React.ReactNode;
+  triggerIcon: React.ReactNode | null;
   triggerContent: string[];
-  triggerClassName?: string;
-  joinModal?: boolean;
+  triggerClassName: string | null;
+  joinModal: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -101,33 +101,33 @@ export type Column<T extends BaseRecord> = {
 export type DataTableProps<T extends BaseRecord> = {
   initialData: T[];
   columns: Column<T>[];
-  className?: string;
-  pagination?: boolean;
-  onSort?: (key: keyof T) => void;
-  onDataChange?: (data: T[]) => void;
-  maxHeight?: string;
-  rowClassName?: string;
-  headerClassName?: string;
-  cellClassName?: string;
-  stickyHeader?: boolean;
-  editTask?: {
+  className: string | null;
+  pagination: boolean;
+  onSort: (key: keyof T) => void | null;
+  onDataChange: (data: T[]) => void | null;
+  maxHeight: string | null;
+  rowClassName: string | null;
+  headerClassName: string | null;
+  cellClassName: string | null;
+  stickyHeader: boolean;
+  editTask: {
     canEdit: (row: T) => boolean;
     onEdit: (row: T) => void;
     users?: { id: string; name: string }[];
-  };
-  deleteModal?: {
+  } | null;
+  deleteModal: {
     title: string;
     description: string;
     actionLabel: string;
-  };
+  } | null;
   // 任意の型情報を保持するためのプロパティ
-  renderEditModal?: (props: {
+  renderEditModal: (props: {
     editingTask: T | null;
     modalOpen: boolean;
     setModalOpen: (open: boolean) => void;
     onTaskUpdated: () => void;
     users?: { id: string; name: string }[];
-  }) => React.ReactNode;
+  }) => React.ReactNode | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -277,14 +277,14 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
             <tbody>
               {/* テーブルの行ごとに繰り返す */}
               {sortedData.map((row, rowIndex) => (
-                <tr key={rowIndex} className={rowClassName}>
+                <tr key={rowIndex} className={rowClassName ?? ""}>
                   {/* 列ごとにデータを作成(セルを作成) */}
                   {columns.map((column, colIndex) => (
                     <td key={colIndex} className={cn(cellClassName, column.className)}>
                       {/* ステータスコンボボックスの場合 */}
                       {column.statusCombobox
                         ? (() => {
-                            const safeList = Array.isArray(taskStatuses) ? taskStatuses : [];
+                            const safeList = taskStatuses ?? [];
                             const rowValue = String(row[column.key]);
                             const selectedLabel = safeList.find((option) => option.value === rowValue)?.label ?? "ステータスを選択";
                             const rowId = row.id;
@@ -374,8 +374,10 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
-                                        <AlertDialogTitle>{deleteModal.title}</AlertDialogTitle>
-                                        <AlertDialogDescription>{deleteModal.description}</AlertDialogDescription>
+                                        <AlertDialogTitle>{deleteModal?.title ?? "タスクを削除"}</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          {deleteModal?.description ?? "このタスクを削除してもよろしいですか？"}
+                                        </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>キャンセル</AlertDialogCancel>
@@ -393,7 +395,7 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                                           }}
                                           className="bg-red-500 hover:bg-red-600"
                                         >
-                                          {deleteModal.actionLabel}
+                                          {deleteModal?.actionLabel ?? "削除する"}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>

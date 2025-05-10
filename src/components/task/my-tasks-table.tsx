@@ -55,20 +55,11 @@ type MyTask = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * タスクテーブルの型
- */
-type MyTasksTableProps = {
-  tasks: MyTask[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * タスクテーブル
  * @param tasks タスク
  * @returns タスクテーブル
  */
-export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: MyTasksTableProps): JSX.Element {
+export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: { tasks: MyTask[] }): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックを使用してタスク管理機能を実装
@@ -235,6 +226,16 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
           onEdit: () => handleTaskEdited(),
           users: getSimpleUsers(),
         },
+        className: null,
+        onSort: () => null,
+        maxHeight: null,
+        rowClassName: null,
+        headerClassName: null,
+        cellClassName: null,
+        stickyHeader: false,
+        deleteModal: null,
+        renderEditModal: () => null,
+        pagination: true,
       }}
     />
   );
