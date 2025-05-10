@@ -3,12 +3,13 @@
 import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
 import { memo, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
 import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, CheckCircle2, Loader2, MoreHorizontal, RefreshCw, ShoppingCart } from "lucide-react";
+import { AlertCircle, CheckCircle2, HelpCircle, Loader2, MoreHorizontal, RefreshCw, ShoppingCart } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -109,8 +110,8 @@ const FilterTabs = memo(function FilterTabs({
           "tracking-[.1em] focus:outline-none focus-visible:ring-0",
           "flex-1 rounded-md px-4 py-2 text-sm font-semibold transition-all duration-200",
           activeFilter === "all"
-            ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
-            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
+            ? "bg-green-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800/30 dark:hover:text-gray-100",
         )}
       >
         全て
@@ -121,16 +122,16 @@ const FilterTabs = memo(function FilterTabs({
           "tracking-[.1em] focus:outline-none focus-visible:ring-0",
           "relative flex-1 rounded-md px-4 py-2 text-sm font-semibold transition-all duration-200",
           activeFilter === "unread"
-            ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
-            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
+            ? "bg-green-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800/30 dark:hover:text-gray-100",
         )}
       >
         未読
         {unreadCount > 0 && (
           <span
             className={cn(
-              "ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gray-700 px-1.5 text-xs font-semibold text-white dark:bg-gray-800/30 dark:text-gray-300",
-              activeFilter === "unread" && "bg-gray-700 text-white dark:bg-gray-800/30 dark:text-gray-300",
+              "ml-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 px-1.5 text-xs font-semibold text-white dark:bg-gray-900 dark:text-white",
+              activeFilter === "unread" && "bg-gray-700 text-white dark:bg-white dark:text-gray-900",
             )}
           >
             {unreadCount}
@@ -143,8 +144,8 @@ const FilterTabs = memo(function FilterTabs({
           "tracking-[.1em] focus:outline-none focus-visible:ring-0",
           "flex-1 rounded-md px-4 py-2 text-sm font-semibold transition-all duration-200",
           activeFilter === "read"
-            ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
-            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200",
+            ? "bg-green-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800/30 dark:hover:text-gray-100",
         )}
       >
         既読
@@ -611,10 +612,13 @@ export const NotificationList = memo(function NotificationList() {
   return (
     <div className="flex flex-col">
       <div className="px-6">
+        {/* フィルター */}
         <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} unreadCount={unreadCount} />
 
+        {/* 手動更新ボタンとオークションフィルター */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
+            {/* 手動更新ボタン */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <label className="ml-1 flex items-center rounded-full border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 shadow-xs transition-all duration-200 hover:bg-gray-200 hover:text-neutral-900 dark:border-neutral-200 dark:dark:border-neutral-800 dark:bg-gray-800 dark:dark:bg-neutral-800/30 dark:text-gray-300 dark:dark:hover:bg-neutral-800/50 dark:hover:bg-gray-700 dark:hover:text-neutral-50">
@@ -634,11 +638,67 @@ export const NotificationList = memo(function NotificationList() {
                     )}
                   </Button>
                 </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50"
+                      aria-label="通知コマンドのヘルプ"
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={5}>
+                    <div className="text-left text-xs">
+                      <p className="mb-1 font-semibold">キーボードショートカット</p>
+                      <ul className="list-inside list-disc">
+                        <li>
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            Option
+                          </kbd>{" "}
+                          +{" "}
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            n
+                          </kbd>{" "}
+                          : 通知を開く
+                        </li>
+                        <li>
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            Option
+                          </kbd>{" "}
+                          +{" "}
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            ←
+                          </kbd>{" "}
+                          : 前のフィルター
+                        </li>
+                        <li>
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            Option
+                          </kbd>{" "}
+                          +{" "}
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            →
+                          </kbd>{" "}
+                          : 次のフィルター
+                        </li>
+                      </ul>
+                      <p className="mt-3 mb-1 font-semibold">注意点</p>
+                      <ul className="mb-2 list-inside list-disc">
+                        <li>通知の表示がバグっている場合は、「手動更新」ボタンで更新して下さい。</li>
+                      </ul>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
 
+            {/* オークションフィルター */}
             <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
           </div>
+
+          {/* 全て既読ボタン */}
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <Button
@@ -654,6 +714,7 @@ export const NotificationList = memo(function NotificationList() {
         </div>
       </div>
 
+      {/* 通知リスト */}
       <div className="flex-1 px-6">
         {isLoading ? (
           <Loading />
