@@ -6,12 +6,24 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "通知作成 - Freeism App",
   description: "アプリ内通知を作成します",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知作成ページ
+ */
 export default async function CreateNotificationPage() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const userId = await getAuthenticatedSessionUserId();
 
   // ユーザー情報とAppオーナー情報を取得

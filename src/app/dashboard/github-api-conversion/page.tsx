@@ -25,7 +25,7 @@ export default async function GitHubApiConversionPage() {
   /**
    * キャッシュの有効期間を設定
    */
-  cacheLife("weeks");
+  cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

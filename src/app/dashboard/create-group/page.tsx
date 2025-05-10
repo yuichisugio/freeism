@@ -1,7 +1,11 @@
+"use cache";
+
 import type { Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { CreateGroupForm } from "@/components/group/create-group-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 新規Group作成ページのメタデータ
@@ -12,21 +16,25 @@ export const metadata: Metadata = {
   description: "新しいグループを作成します",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 新規Group作成ページ
  * @returns 新規Group作成ページ
  */
 export default async function CreateGroupPage() {
-  const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  if (!userId) {
-    return (
-      <div className="container max-w-4xl py-10">
-        <p className="text-gray-600">このページを利用するにはログインが必要です。</p>
-      </div>
-    );
-  }
+  /**
+   * キャッシュの有効期間を設定
+   */
+  cacheLife("max");
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 新規Group作成ページを返す
+   */
   return (
     <MainTemplate title="新規Group作成" description="新しいグループを作成します">
       <CreateGroupForm />

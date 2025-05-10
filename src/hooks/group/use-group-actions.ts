@@ -104,6 +104,11 @@ export function useGroupJoiner() {
     [setGroups],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ参加関連機能
+   */
   return {
     groups,
     setGroups,
@@ -145,6 +150,11 @@ export function useGroupLeaver<T extends Record<string, unknown>>(initialMembers
     [setMemberships],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ脱退関連機能
+   */
   return {
     memberships,
     setMemberships,

@@ -28,12 +28,17 @@ export type CreateGroupFormData = z.infer<typeof createGroupSchema>;
  */
 export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // ルーティング
+
+  /**
+   * ルーティング
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォーム
+  /**
+   * フォーム
+   */
   const form = useForm<CreateGroupFormData>({
     resolver: zodResolver(createGroupSchema),
     defaultValues: {
@@ -47,6 +52,9 @@ export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループ作成フォームの送信処理
+   */
   const onSubmit = useCallback(
     async (data: CreateGroupFormData) => {
       try {

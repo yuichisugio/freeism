@@ -27,26 +27,40 @@ export const metadata: Metadata = {
  */
 export default async function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュの有効期間を設定
+   */
   cacheLife("max");
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // パラメータを取得
+  /**
+   * パラメータを取得
+   */
   const { id } = await params;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループの詳細を取得
+  /**
+   * グループの詳細を取得
+   */
   const tasks = await getTasksByGroupId(id);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループが見つからない場合は404エラーを返す
+  /**
+   * グループが見つからない場合は404エラーを返す
+   */
   if (!tasks) {
     notFound();
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループ詳細ページを返す
+   */
   return (
     <MainTemplate title={false} description={false}>
       <Suspense fallback={<GroupDetailSkeleton />}>

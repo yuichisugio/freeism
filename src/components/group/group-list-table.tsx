@@ -92,6 +92,9 @@ export const GroupListTable = memo(function GroupListTable(): JSX.Element {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループリストのテーブルのプロップスを定義
+   */
   const dataTableProps: DataTableProps<BaseRecord> = useMemo(
     () => ({
       data: groups as unknown as BaseRecord[],
@@ -113,6 +116,9 @@ export const GroupListTable = memo(function GroupListTable(): JSX.Element {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // DataTableコンポーネントを返す。onDataChangeは、データが更新されたときに呼び出される関数で、DataTable内でデータ更新したらsetGroupsをDataTable内で呼び出し、↑のgroupsのStateを使用している部分も更新できるようにする。
+  /**
+   * DataTableコンポーネントを返す。
+   * onDataChangeは、データが更新されたときに呼び出される関数で、DataTable内でデータ更新したらsetGroupsをDataTable内で呼び出し、↑のgroupsのStateを使用している部分も更新できるようにする。
+   */
   return <DataTable dataTableProps={dataTableProps} />;
 });
