@@ -81,6 +81,7 @@ const FilterTabs = memo(function FilterTabs({
     {
       code: "ArrowLeft",
       alt: true,
+      preventDefault: true,
       callback: () => {
         const currentIndex = filters.indexOf(activeFilter);
         const prevIndex = (currentIndex - 1 + filters.length) % filters.length; // 前のフィルターへ（配列の先頭に来たら末尾へ）
@@ -105,6 +106,7 @@ const FilterTabs = memo(function FilterTabs({
       <button
         onClick={() => onFilterChange("all")}
         className={cn(
+          "focus:outline-none focus-visible:ring-0",
           "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "all"
             ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
@@ -116,6 +118,7 @@ const FilterTabs = memo(function FilterTabs({
       <button
         onClick={() => onFilterChange("unread")}
         className={cn(
+          "focus:outline-none focus-visible:ring-0",
           "relative flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "unread"
             ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"
@@ -132,6 +135,7 @@ const FilterTabs = memo(function FilterTabs({
       <button
         onClick={() => onFilterChange("read")}
         className={cn(
+          "focus:outline-none focus-visible:ring-0",
           "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200",
           activeFilter === "read"
             ? "bg-green-100 text-gray-900 dark:bg-gray-800/30 dark:text-gray-300"

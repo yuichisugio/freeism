@@ -55,25 +55,25 @@ export const NotificationButton = memo(function NotificationButton() {
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="relative h-9 w-9 rounded-full transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="relative h-9 w-9 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-0 dark:hover:bg-gray-800"
         aria-label="通知"
       >
-        <Bell className="h-[18px] w-[18px] text-gray-700 dark:text-gray-300" />
+        <Bell className="h-[18px] w-[18px] text-gray-700 focus:outline-none focus-visible:ring-0 dark:text-gray-300" />
         {/* 未読通知がある場合は赤いドットを表示 */}
         {hasUnreadNotifications && (
-          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
+          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white focus:outline-none focus-visible:ring-0 dark:ring-gray-900" />
         )}
       </Button>
 
       {/* 通知モーダル */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent
-          className="grid h-[95vh] grid-rows-[auto_1fr] overflow-y-auto bg-gray-50 px-4 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[90%] dark:bg-gray-900"
+          className="grid h-[95vh] grid-rows-[auto_1fr] overflow-y-auto bg-gray-50 px-4 focus:outline-none focus-visible:ring-0 sm:max-w-[600px] md:max-w-[75%] lg:max-w-[85%] xl:max-w-[90%] dark:bg-gray-900"
           style={{ scrollbarGutter: "stable" }}
         >
           <DialogHeader>
             <DialogTitle className="flex text-lg font-semibold text-gray-800 dark:text-gray-200">
-              <Bell className="mt-1 mr-2 ml-8 h-5 w-5" />
+              <Bell className="mt-1 mr-4 ml-8 h-5 w-5" />
               通知
             </DialogTitle>
           </DialogHeader>
