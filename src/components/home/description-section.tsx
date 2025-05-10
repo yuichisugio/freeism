@@ -15,7 +15,7 @@ export const DescriptionSection = memo(async function DescriptionSection() {
   /**
    * キャッシュの有効期間を設定
    */
-  cacheLife("weeks");
+  cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   return (

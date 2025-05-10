@@ -17,7 +17,7 @@ export const HeroSection = memo(async function HeroSection() {
   /**
    * キャッシュの有効期間を設定
    */
-  cacheLife("weeks");
+  cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   return (

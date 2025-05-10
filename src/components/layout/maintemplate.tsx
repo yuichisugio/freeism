@@ -34,7 +34,7 @@ export async function MainTemplate({ title, description, component, children }: 
   /**
    * キャッシュの有効期間を設定
    */
-  cacheLife("weeks");
+  cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

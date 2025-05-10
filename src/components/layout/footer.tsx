@@ -4,16 +4,21 @@ import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { GitHubLogoSvg, TwitterLogoSvg } from "@/components/ui/svg";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * フッターコンポーネント
- * - サイトの基本情報とリンクを表示
- * - Legal情報へのリンク（利用規約、プライバシーポリシー）
- * - SNSリンク（Twitter、GitHub）
- * - コピーライト表示
- * - レスポンシブ対応（モバイルでは縦並び、デスクトップでは横並び）
  */
 export async function Footer() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュの設定
+   */
   cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <footer className="w-full border-t border-blue-100 bg-gradient-to-b from-white to-blue-50 dark:border-blue-900 dark:from-gray-950 dark:to-blue-950">
       <div className="container mx-auto px-4 py-8 sm:py-12">
