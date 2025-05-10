@@ -53,7 +53,7 @@ export async function Header({ buttonDisplay = true }: { buttonDisplay: boolean 
           {/* 右: 通知ボタン */}
           {buttonDisplay && (
             <div className="mr-5 flex w-16 items-center justify-end">
-              <NotificationButtonWrapper />
+              <NotificationButtonWrapper isMobile={true} />
             </div>
           )}
         </div>
@@ -74,7 +74,7 @@ export async function Header({ buttonDisplay = true }: { buttonDisplay: boolean 
           {/* 右: ナビゲーション要素をまとめる */}
           <nav className="flex items-center gap-6 pr-4">
             {/* ログインしている場合のみ通知ボタンを表示 */}
-            {buttonDisplay && <NotificationButtonWrapper />}
+            {buttonDisplay && <NotificationButtonWrapper isMobile={false} />}
             <ThemeToggle />
           </nav>
         </div>

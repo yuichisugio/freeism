@@ -1,10 +1,12 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ブレークポイントを管理するカスタムフック
- * @returns {Object} ブレークポイントの状態
+ * @returns {boolean} ブレークポイントの状態
  */
 export const useBreakpoint = (): { isSmUp: boolean } => {
   const [isSmUp, setIsSmUp] = useState<boolean>(() => (typeof window !== "undefined" ? window.matchMedia("(min-width: 640px)").matches : false));

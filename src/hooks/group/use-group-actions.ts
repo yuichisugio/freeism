@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import { type Group } from "@/components/group/group-list-table";
-import { joinGroup, leaveGroup } from "@/lib/actions/group";
-import { prisma } from "@/lib/prisma";
+import { getUserGroups, joinGroup, leaveGroup } from "@/lib/actions/group";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -30,7 +29,7 @@ export function useGroupJoiner() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   if (!userId) {
-    redirect("auth/signin");
+    redirect("/auth/signin");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -42,27 +41,7 @@ export function useGroupJoiner() {
     const fetchGroups = async () => {
       try {
         // グループ一覧を取得（参加状況も含める）
-        const groupsData = await prisma.group.findMany({
-          select: {
-            id: true,
-            name: true,
-            goal: true,
-            evaluationMethod: true,
-            maxParticipants: true,
-            members: {
-              where: {
-                userId: userId,
-              },
-              select: {
-                id: true,
-              },
-            },
-            createdBy: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        });
+        const groupsData = await getUserGroups(userId);
         setGroups(groupsData);
       } catch (error) {
         console.error("Failed to fetch groups:", error);

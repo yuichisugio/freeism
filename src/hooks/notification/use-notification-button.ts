@@ -43,7 +43,7 @@ export function useNotificationButton(): NotificationButtonReturn {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   if (!userId) {
-    redirect("auth/signin");
+    redirect("/auth/signin");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

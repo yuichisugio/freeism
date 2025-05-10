@@ -10,6 +10,39 @@ import { z } from "zod";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * ユーザーのグループ一覧を取得する関数
+ * @param userId - ユーザーのID
+ * @returns ユーザーのグループ一覧
+ */
+export async function getUserGroups(userId: string) {
+  const groupsData = await prisma.group.findMany({
+    select: {
+      id: true,
+      name: true,
+      goal: true,
+      evaluationMethod: true,
+      maxParticipants: true,
+      members: {
+        where: {
+          userId: userId,
+        },
+        select: {
+          id: true,
+        },
+      },
+      createdBy: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return groupsData;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * グループを作成する関数
  * @param data - 作成するグループのデータ
  * @returns 処理結果を含むオブジェクト
