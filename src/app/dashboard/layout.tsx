@@ -1,7 +1,8 @@
-import { redirect } from "next/navigation";
+"use cache";
+
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 /**
  * ダッシュボードレイアウト
@@ -11,25 +12,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * セッション情報を取得
+   * キャッシュの有効期間を設定
    */
-  const userId = await getAuthenticatedSessionUserId();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーが存在しない場合はリダイレクト
-   */
-  if (!userId) {
-    redirect("/auth/signin");
-  }
+  cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Fixed header */}
-      <Header userId={userId} buttonDisplay={true} />
+      <Header buttonDisplay={true} />
 
       {/* Main content area with fixed sidebar and scrollable children */}
       <div className="flex flex-1 overflow-hidden">

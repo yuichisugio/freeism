@@ -1,9 +1,11 @@
+"use cache";
+
 import { type Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { DescriptionSection } from "@/components/home/description-section";
 import { HeroSection } from "@/components/home/hero-section";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -22,15 +24,20 @@ export const metadata: Metadata = {
  */
 export default async function Home() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  const session = await getAuthSession();
-  const userId = session?.user?.id;
+
+  /**
+   * キャッシュの有効期間を設定
+   */
+  cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      <Header userId={userId ?? null} buttonDisplay={true} />
+      <Header buttonDisplay={false} />
 
       <div className="flex-1 overflow-auto">
-        <HeroSection userId={userId ?? null} />
+        <HeroSection />
         <DescriptionSection />
         <Footer />
       </div>

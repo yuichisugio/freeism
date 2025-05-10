@@ -1,51 +1,37 @@
+"use cache";
+
 import type { Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { GroupListTable } from "@/components/group/group-list-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { Button } from "@/components/ui/button";
-import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { Plus } from "lucide-react";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メタデータ
+ */
 export const metadata: Metadata = {
   title: "Group一覧 - Freeism App",
   description: "グループ一覧を表示します",
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループ一覧ページ
+ */
 export default async function GroupListPage() {
-  const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループ一覧を取得（参加状況も含める）
-  const groups = await prisma.group.findMany({
-    select: {
-      id: true,
-      name: true,
-      goal: true,
-      evaluationMethod: true,
-      maxParticipants: true,
-      members: {
-        where: {
-          userId: userId,
-        },
-        select: {
-          id: true,
-        },
-      },
-      createdBy: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  /**
+   * キャッシュの有効期間を設定
+   */
+  cacheLife("max");
 
-  // グループがない場合は、グループがない旨を表示
-  if (groups.length === 0) {
-    return (
-      <MainTemplate title="Group一覧" description="現在参加可能なグループ一覧を表示します">
-        <div>グループがありません</div>
-      </MainTemplate>
-    );
-  }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <MainTemplate
@@ -62,7 +48,7 @@ export default async function GroupListPage() {
         </Button>
       }
     >
-      <GroupListTable groups={groups} />
+      <GroupListTable />
     </MainTemplate>
   );
 }

@@ -7,7 +7,7 @@ import { useCallback, useEffect } from "react";
  */
 type ShortcutConfig = {
   // 押されるべきキー（例: 's', 'Enter', 'ArrowUp'など）
-  key: string;
+  code: string;
   // Ctrlキー（Windows/Linux）またはCommandキー（Mac）が押されている必要があるか
   ctrlOrMeta?: boolean;
   // Shiftキーが押されている必要があるか
@@ -35,6 +35,7 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
    */
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      console.log("src/hooks/shortcut/use-shortcut.ts_handleKeyDown_start_render", event);
       // 現在フォーカスされている要素を取得
       const activeElement = document.activeElement;
       // 設定された各ショートカットについて処理を行う
@@ -49,7 +50,7 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
         }
 
         // 押されたキーが設定されたキーと一致するか確認 (大文字・小文字を区別しない)
-        const keyMatch = event.key.toLowerCase() === config.key.toLowerCase();
+        const codeMatch = event.code.toLowerCase() === config.code.toLowerCase();
         // CtrlキーまたはMetaキーの条件が一致するか確認
         // config.ctrlOrMetaがtrueの場合、event.ctrlKeyまたはevent.metaKeyのどちらかがtrueである必要がある
         // config.ctrlOrMetaがfalseまたは未定義の場合、event.ctrlKeyとevent.metaKeyの両方がfalseである必要がある
@@ -64,7 +65,7 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
         const altMatch = config.alt ? event.altKey : !event.altKey;
 
         // すべての条件（キー、Ctrl/Meta、Shift、Alt）が一致した場合
-        if (keyMatch && ctrlOrMetaMatch && shiftMatch && altMatch) {
+        if (codeMatch && ctrlOrMetaMatch && shiftMatch && altMatch) {
           // preventDefaultがtrueに設定されていれば、ブラウザのデフォルト動作をキャンセル
           if (config.preventDefault) {
             event.preventDefault();

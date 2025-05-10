@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNotificationButton } from "@/hooks/notification/use-notification-button";
+import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { Bell } from "lucide-react";
 
 import { NotificationList } from "./notification-list";
@@ -16,7 +17,7 @@ import { NotificationList } from "./notification-list";
  * - クリック時に通知モーダルを表示
  * - 未読通知がある場合はバッジを表示（通知リストと連動）
  */
-export const NotificationButton = memo(function NotificationButton({ userId }: { userId: string }) {
+export const NotificationButton = memo(function NotificationButton() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/components/notification/notification-button.tsx_NotificationButton_start_render");
@@ -26,7 +27,22 @@ export const NotificationButton = memo(function NotificationButton({ userId }: {
   /**
    * 通知ボタンのフック
    */
-  const { isOpen, setIsOpen, hasUnreadNotifications } = useNotificationButton(userId);
+  const { isOpen, setIsOpen, hasUnreadNotifications } = useNotificationButton();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ショートカットキーの設定
+   * n+alt+ctrlで通知モーダーを開く
+   */
+  useShortcut([
+    {
+      code: "KeyN",
+      alt: true,
+      callback: () => setIsOpen(true),
+      preventDefault: true,
+    },
+  ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

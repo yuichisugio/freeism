@@ -1,7 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { redirect } from "next/navigation";
+import { type Group } from "@/components/group/group-list-table";
 import { joinGroup, leaveGroup } from "@/lib/actions/group";
+import { prisma } from "@/lib/prisma";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -10,8 +14,65 @@ import { toast } from "sonner";
  * グループ参加処理のためのカスタムフック
  * @returns グループ参加関連機能
  */
-export function useGroupJoiner<T extends Record<string, unknown>>(initialGroups: T[]) {
-  const [groups, setGroups] = useState<T[]>(initialGroups);
+export function useGroupJoiner() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ参加関連機能
+   */
+  const [groups, setGroups] = useState<Group[]>([]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションのユーザーIDを取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("auth/signin");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ参加関連機能
+   */
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        // グループ一覧を取得（参加状況も含める）
+        const groupsData = await prisma.group.findMany({
+          select: {
+            id: true,
+            name: true,
+            goal: true,
+            evaluationMethod: true,
+            maxParticipants: true,
+            members: {
+              where: {
+                userId: userId,
+              },
+              select: {
+                id: true,
+              },
+            },
+            createdBy: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+        setGroups(groupsData);
+      } catch (error) {
+        console.error("Failed to fetch groups:", error);
+        toast.error("グループの取得に失敗しました。");
+      }
+    };
+    void fetchGroups();
+  }, [userId]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループ参加処理

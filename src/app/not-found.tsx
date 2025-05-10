@@ -8,18 +8,20 @@ import { Button } from "@/components/ui/button";
 
 /**
  * 404エラーページコンポーネント
- * - ページが見つからない場合に表示
- * - エラーメッセージと説明文を表示
- * - トップページへの戻るボタンを配置
- * - 装飾的な背景エフェクトを含む
- * - レスポンシブ対応（画面サイズに応じてサイズを調整）
  */
 export default async function NotFound() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  /**
+   * キャッシュの有効期間を設定
+   */
   cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* ヘッダー */}
-      <Header userId={null} buttonDisplay={false} />
+      <Header buttonDisplay={false} />
 
       {/* メインコンテンツ */}
       <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white">

@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
-import { signInAction } from "@/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -12,8 +11,15 @@ import { Button } from "@/components/ui/button";
  * ヒーローセクション
  * @returns ヒーローセクション
  */
-export const HeroSection = memo(async function HeroSection({ userId }: { userId: string | null }) {
+export const HeroSection = memo(async function HeroSection() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュの有効期間を設定
+   */
   cacheLife("weeks");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   return (
     <section className="relative bg-gradient-to-b from-blue-50 via-white to-white py-16 sm:py-24 lg:py-32 dark:from-blue-950 dark:via-gray-950 dark:to-gray-950">
       {/* 装飾的な背景要素 */}
@@ -46,26 +52,13 @@ export const HeroSection = memo(async function HeroSection({ userId }: { userId:
                 詳細
               </Link>
             </Button>
-            {/* sm(モバイル)では、ヘッダーにログイン/dashboardボタンがないため、↓に表示。ログイン済みの場合はdashboardボタンを表示 */}
-            {userId ? (
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-40 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-700 sm:hidden sm:w-auto sm:min-w-[200px] dark:border-blue-800 dark:bg-gray-950 dark:text-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-200"
-              >
-                <Link href="/dashboard/grouplist">Dashboard</Link>
-              </Button>
-            ) : (
-              <form className="sm:hidden" action={signInAction}>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-40 bg-blue-600 text-white hover:bg-blue-700 hover:text-white sm:w-auto sm:min-w-[200px] dark:bg-blue-700 dark:hover:bg-blue-800"
-                >
-                  利用する
-                </Button>
-              </form>
-            )}
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-40 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-700 sm:w-auto sm:min-w-[200px] dark:border-blue-800 dark:bg-gray-950 dark:text-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-200"
+            >
+              <Link href="/dashboard/grouplist">利用する</Link>
+            </Button>
           </div>
         </div>
       </div>

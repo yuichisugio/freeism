@@ -4,6 +4,7 @@ import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/no
 import { memo, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useNotificationList } from "@/hooks/notification/use-notification-list";
+import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -70,6 +71,35 @@ const FilterTabs = memo(function FilterTabs({
   onFilterChange: (filter: FilterType) => void;
   unreadCount: number;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ショートカットキーの設定
+   */
+  const filters = ["all", "unread", "read"] as const; // 変数名を filter から filters に変更 (可読性のため)
+  useShortcut([
+    {
+      code: "ArrowLeft",
+      alt: true,
+      callback: () => {
+        const currentIndex = filters.indexOf(activeFilter);
+        const prevIndex = (currentIndex - 1 + filters.length) % filters.length; // 前のフィルターへ（配列の先頭に来たら末尾へ）
+        onFilterChange(filters[prevIndex]);
+      },
+    },
+    {
+      code: "ArrowRight",
+      alt: true,
+      callback: () => {
+        const currentIndex = filters.indexOf(activeFilter);
+        const nextIndex = (currentIndex + 1) % filters.length; // 次のフィルターへ（配列の末尾に来たら先頭へ）
+        onFilterChange(filters[nextIndex]);
+      },
+    },
+  ]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <div className="dark:bg-gray-850 mb-4 flex w-full rounded-lg bg-white p-1 shadow-sm">
       <button

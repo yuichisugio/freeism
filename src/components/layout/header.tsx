@@ -2,10 +2,7 @@
 
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
-import { LoginButton } from "@/components/auth/login-button";
-import { LogoutButton } from "@/components/auth/logout-button";
-import { NotificationButton } from "@/components/notification/notification-button";
-import { Button } from "@/components/ui/button";
+import { NotificationButtonWrapper } from "@/components/notification/notification-button-wrapper";
 import { AppLogoSvg } from "@/components/ui/svg";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -13,17 +10,18 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 /**
  * ヘッダーコンポーネント
- * @param {string | null} userId - ユーザーID
  * @param {boolean} buttonDisplay - ボタン表示有無
  * @returns {JSX.Element} - ヘッダーコンポーネント
  */
-export async function Header({ userId, buttonDisplay = true }: { userId: string | null; buttonDisplay: boolean }) {
+export async function Header({ buttonDisplay = true }: { buttonDisplay: boolean }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * キャッシュの有効期間を設定
    */
-  cacheLife("hours");
+  cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ログ出力
@@ -53,9 +51,9 @@ export async function Header({ userId, buttonDisplay = true }: { userId: string 
           </div>
 
           {/* 右: 通知ボタン */}
-          {userId && (
+          {buttonDisplay && (
             <div className="mr-5 flex w-16 items-center justify-end">
-              <NotificationButton userId={userId} />
+              <NotificationButtonWrapper />
             </div>
           )}
         </div>
@@ -76,24 +74,8 @@ export async function Header({ userId, buttonDisplay = true }: { userId: string 
           {/* 右: ナビゲーション要素をまとめる */}
           <nav className="flex items-center gap-6 pr-4">
             {/* ログインしている場合のみ通知ボタンを表示 */}
-            {userId && buttonDisplay && <NotificationButton userId={userId} />}
+            {buttonDisplay && <NotificationButtonWrapper />}
             <ThemeToggle />
-
-            {/* ログイン状態に応じてボタンを切り替え */}
-            {userId && buttonDisplay ? (
-              <>
-                <Button variant="outline" asChild className="button-outline-custom">
-                  <Link href="/dashboard/grouplist">Dashboard</Link>
-                </Button>
-                <LogoutButton />
-              </>
-            ) : // ボタンが表示される場合。ログインページなど
-            buttonDisplay ? (
-              <>
-                <LoginButton />
-              </>
-            ) : // ボタンが非表示が良い場合。404ページなど
-            null}
           </nav>
         </div>
       </div>

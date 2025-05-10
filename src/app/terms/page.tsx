@@ -1,6 +1,7 @@
 "use cache";
 
 import type { Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
@@ -20,9 +21,18 @@ export const metadata: Metadata = {
  * 利用規約ページのコンポーネント
  */
 export default async function TermsPage() {
+  // --------------------------------------------------
+
+  /**
+   * キャッシュの有効期間を設定
+   */
+  cacheLife("max");
+
+  // --------------------------------------------------
+
   return (
     <>
-      <Header userId={null} buttonDisplay={false} />
+      <Header buttonDisplay={false} />
       <main className="container mx-auto min-h-screen px-4 py-12">
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-8 text-center text-3xl font-bold text-blue-900">利用規約</h1>

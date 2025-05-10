@@ -7,13 +7,17 @@ import { unstable_cacheLife as cacheLife } from "next/cache";
 
 /**
  * 説明セクションコンポーネント
- * - サービスの特徴を説明するセクション
- * - Googleドキュメントを埋め込んで詳細な説明を表示
- * - 装飾的な背景エフェクトを含む
- * - レスポンシブ対応（画面サイズに応じて高さと幅を調整）
+ * Googleドキュメントを埋め込んで詳細な説明を表示
  */
 export const DescriptionSection = memo(async function DescriptionSection() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュの有効期間を設定
+   */
   cacheLife("weeks");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   return (
     <section
       className="relative overflow-hidden border-t border-blue-100 bg-gradient-to-b from-white via-blue-50 to-white py-16 sm:py-20 lg:py-24 dark:border-blue-900 dark:from-gray-950 dark:via-blue-950 dark:to-gray-950"

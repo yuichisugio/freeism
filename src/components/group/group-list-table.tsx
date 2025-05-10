@@ -12,7 +12,7 @@ import { UserPlus } from "lucide-react";
 /**
  * グループのデータの型
  */
-type Group = BaseRecord & {
+export type Group = BaseRecord & {
   name: string;
   goal: string;
   evaluationMethod: string;
@@ -26,23 +26,19 @@ type Group = BaseRecord & {
 /**
  * グループのデータの型
  */
-type GroupListTableProps = {
-  groups: Group[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループのデータの型
- */
-export const GroupListTable = memo(function GroupListTable({ groups: initialGroups }: GroupListTableProps): JSX.Element {
+export const GroupListTable = memo(function GroupListTable(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // カスタムフックを使用してグループ参加機能を実装
-  const { groups, setGroups, handleJoin } = useGroupJoiner<Group>(initialGroups);
+
+  /**
+   * カスタムフックを使用してグループ参加機能を実装
+   */
+  const { groups, setGroups, handleJoin } = useGroupJoiner();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループリストのテーブルの列を定義
+  /**
+   * グループリストのテーブルの列を定義
+   */
   const columns: Column<Group>[] = useMemo(
     () => [
       {
@@ -105,6 +101,15 @@ export const GroupListTable = memo(function GroupListTable({ groups: initialGrou
     }),
     [groups, setGroups, columns],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループがない場合は、グループがない旨を表示
+   */
+  if (groups.length === 0) {
+    return <div>グループがありません</div>;
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

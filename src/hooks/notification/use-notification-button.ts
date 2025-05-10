@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { redirect } from "next/navigation";
 import { getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
 import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -24,7 +26,7 @@ type NotificationButtonReturn = {
  * - モーダー開閉状態管理
  * @returns {isOpen: boolean, setIsOpen: (isOpen: boolean) => void, hasUnreadNotifications: boolean}
  */
-export function useNotificationButton(userId: string): NotificationButtonReturn {
+export function useNotificationButton(): NotificationButtonReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -32,6 +34,17 @@ export function useNotificationButton(userId: string): NotificationButtonReturn 
    */
   // モーダーの開閉状態を管理
   const [isOpen, setIsOpen] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションのチェック
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("auth/signin");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
