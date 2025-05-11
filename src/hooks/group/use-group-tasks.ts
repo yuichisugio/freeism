@@ -3,7 +3,7 @@
 import type { Task, TaskParticipant, User } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { deleteTask, getTasksByGroupId } from "@/lib/actions/task";
+import { deleteTask, getTasksByGroupId } from "@/lib/actions/task/task";
 import { getAllUsers } from "@/lib/actions/user";
 import { contributionType } from "@prisma/client";
 import { toast } from "sonner";

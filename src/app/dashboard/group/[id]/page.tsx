@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { GroupDetail } from "@/components/group/group-detail";
 import { GroupDetailSkeleton } from "@/components/group/group-detail-skeleton";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getTasksByGroupId } from "@/lib/actions/task";
+import { getTasksByGroupId } from "@/lib/actions/task/task";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

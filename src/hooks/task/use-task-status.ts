@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateTaskStatus } from "@/lib/actions/task";
+import { updateTaskStatus } from "@/lib/actions/task/task";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

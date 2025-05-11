@@ -217,7 +217,6 @@ export function useNotificationList(): NotificationManagerResult {
       // 取得したデータをフラット化
       const allFetchedNotifications = fetchedData.pages.flatMap((p) => p.notifications);
 
-      //
       const uniqueNotificationsMap = new Map<string, NotificationData>();
 
       allFetchedNotifications.forEach((notification) => {

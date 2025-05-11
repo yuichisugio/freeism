@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkAppOwner } from "@/lib/actions/group";
-import { getMyTasks } from "@/lib/actions/task";
+import { getMyTaskData } from "@/lib/actions/task/my-task-table";
 import { getAllUsers } from "@/lib/actions/user";
 import { fetchAuthenticatedUserId } from "@/lib/utils";
 import { toast } from "react-hot-toast";
@@ -36,7 +36,7 @@ type SimpleUser = {
  * @param initialTasks - 初期タスクデータ
  * @returns タスク管理に必要な状態と関数
  */
-export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[]) {
+export function useMyTaskTable<T extends Record<string, unknown>>() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -50,7 +50,7 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
    * state
    */
   // タスクデータ
-  const [tasks, setTasks] = useState<T[]>(initialTasks);
+  const [tasks, setTasks] = useState<T[]>([]);
 
   // ユーザーデータ
   const [users, setUsers] = useState<BasicUser[]>([]);
@@ -60,6 +60,19 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
 
   // アプリオーナーかどうか
   const [isAppOwner, setIsAppOwner] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスクデータを取得
+   */
+  useEffect(() => {
+    async function fetchTasks() {
+      const tasks = await getMyTaskData();
+      setTasks(tasks as unknown as T[]);
+    }
+    void fetchTasks();
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -160,7 +173,7 @@ export function useMyTasks<T extends Record<string, unknown>>(initialTasks: T[])
     void (async () => {
       try {
         // タスクデータを再取得
-        const updatedTasks = await getMyTasks();
+        const updatedTasks = await getMyTaskData();
 
         // 表示用のタスクデータを更新
         if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {

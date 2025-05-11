@@ -28,35 +28,6 @@ import { TaskEditModal } from "../task/task-edit-modal";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 基本的なインターフェース
- */
-export type BaseRecord = Record<string, unknown> & {
-  id: string;
-  task?: string;
-  status?: string;
-  contributionType?: string;
-  reference?: string | null;
-  fixedContributionPoint?: number | null;
-  fixedEvaluator?: string | null;
-  fixedEvaluationLogic?: string | null;
-  reporters?: unknown[];
-  executors?: unknown[];
-  group?: {
-    id: string;
-    name: string;
-    [key: string]: unknown;
-  };
-  creator?: {
-    id: string;
-    name: string | null;
-    [key: string]: unknown;
-  };
-  members?: unknown[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * ModalList型
  */
 export type ModalListType = {
@@ -67,7 +38,7 @@ export type ModalListType = {
   triggerIcon: React.ReactNode | null;
   triggerContent: string[];
   triggerClassName: string | null;
-  joinModal: boolean;
+  isJoined: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -75,7 +46,7 @@ export type ModalListType = {
 /**
  * 列の型定義
  */
-export type Column<T extends BaseRecord> = {
+export type Column<T> = {
   key: keyof T;
   header: string;
   cell: (row: T) => React.ReactNode | null;
@@ -90,20 +61,19 @@ export type Column<T extends BaseRecord> = {
     canDelete: (row: T) => boolean;
     onDelete: (rowId: string) => Promise<void>;
   } | null;
-  [key: string]: unknown;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * テーブル全体の型定義
+ * extends { id: string }を記載して、Tがidを持つことを保証
  */
-export type DataTableProps<T extends BaseRecord> = {
+export type DataTableProps<T> = {
   initialData: T[];
   columns: Column<T>[];
   className: string | null;
   pagination: boolean;
-  onSort: (key: keyof T) => void | null;
   onDataChange: (data: T[]) => void | null;
   maxHeight: string | null;
   rowClassName: string | null;
@@ -113,49 +83,41 @@ export type DataTableProps<T extends BaseRecord> = {
   editTask: {
     canEdit: (row: T) => boolean;
     onEdit: (row: T) => void;
-    users?: { id: string; name: string }[];
+    users: { id: string; name: string }[] | null;
   } | null;
   deleteModal: {
     title: string;
     description: string;
     actionLabel: string;
   } | null;
-  // 任意の型情報を保持するためのプロパティ
   renderEditModal: (props: {
     editingTask: T | null;
     modalOpen: boolean;
     setModalOpen: (open: boolean) => void;
     onTaskUpdated: () => void;
-    users?: { id: string; name: string }[];
+    users: { id: string; name: string }[] | null;
   }) => React.ReactNode | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-/**
- * 編集可能なレコードのインターフェース
- */
-export type EditableRecord = {
-  status?: string;
-  [key: string]: unknown;
-} & BaseRecord;
+// DataTableコンポーネントのpropsの型を明示的にインターフェースとして定義
+type DataTableComponentProps<T extends { id: string }> = {
+  dataTableProps: DataTableProps<T>;
+};
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * DataTableコンポーネント
- */
-export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { dataTableProps: DataTableProps<T> }) {
+// memo化する前の純粋な関数コンポーネント
+function DataTableInner<T extends { id: string }>(props: DataTableComponentProps<T>) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * コンポーネントの引数
    */
   const {
-    initialData: initialData,
-    columns: columns,
-    className = "",
-    pagination = true,
+    initialData,
+    columns,
+    className,
+    pagination,
     onDataChange,
     maxHeight = "h-[calc(100vh-16rem)]",
     rowClassName = "border-b border-blue-50 hover:bg-blue-50/50",
@@ -407,9 +369,9 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                               column.modalList
                               ? column.modalList.map((modal, modalIndex) => {
                                   // 参加モーダーの場合のみ、ボタンを無効化する
-                                  const isJoinModal = modal.joinModal;
+                                  const isJoinModal = column.joinGroupModal;
                                   // isJoined を型安全に取得
-                                  const isJoined = row.isJoined;
+                                  const isJoined = modal.isJoined;
                                   // 参加モーダーなら、参加中の場合は [0] を、未参加の場合は [1] を表示
                                   const buttonText = isJoinModal
                                     ? isJoined
@@ -417,7 +379,7 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
                                       : modal.triggerContent[1]
                                     : modal.triggerContent[0];
                                   // 参加モーダーの場合、参加中の場合はボタンを無効化する
-                                  const isDisabled = isJoinModal && (isJoined as boolean);
+                                  const isDisabled = isJoinModal && isJoined;
                                   const rowId = row.id;
 
                                   return (
@@ -483,7 +445,7 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
             modalOpen: editModalOpen,
             setModalOpen: setEditModalOpen,
             onTaskUpdated: handleTaskUpdated,
-            users: editTask?.users,
+            users: editTask?.users ?? null,
           })}
 
         {/* デフォルトの編集モーダル（renderEditModalが提供されていない場合） */}
@@ -499,4 +461,7 @@ export const DataTable = memo(function DataTable<T extends BaseRecord>(props: { 
       </div>
     </>
   );
-});
+}
+
+// memo化し、型アサーションでジェネリック型を明示
+export const DataTable = memo(DataTableInner) as <T extends { id: string }>(props: DataTableComponentProps<T>) => JSX.Element;

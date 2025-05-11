@@ -45,6 +45,61 @@ export async function getUserJoinGroupIds(userId: string) {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * ユーザーの参加しているグループ一覧を取得する関数
+ * @returns ユーザーの参加しているグループ一覧
+ */
+export async function getUserJoinGroupData() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 認証処理
+   */
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーの参加しているグループ一覧を取得
+   */
+  const memberships = await prisma.groupMembership.findMany({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+      group: {
+        select: {
+          id: true,
+          name: true,
+          goal: true,
+          evaluationMethod: true,
+          maxParticipants: true,
+          tasks: {
+            where: {
+              executors: {
+                some: {
+                  userId: userId,
+                },
+              },
+            },
+            select: {
+              fixedContributionPoint: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      joinedAt: "desc",
+    },
+  });
+
+  return memberships;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * グループを作成する関数
  * @param data - 作成するグループのデータ
  * @returns 処理結果を含むオブジェクト

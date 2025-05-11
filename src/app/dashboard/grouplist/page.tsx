@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
-import { AllUserGroupListTable } from "@/components/group/all-user-group-list-table";
+import { AllUserGroupTable } from "@/components/group/all-user-group-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 /**
  * グループ一覧ページ
  */
-export default async function GroupListPage() {
+export default async function AllUserGroupTablePage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -46,7 +46,7 @@ export default async function GroupListPage() {
         </Button>
       }
     >
-      <AllUserGroupListTable />
+      <AllUserGroupTable />
     </MainTemplate>
   );
 }

@@ -1,4 +1,3 @@
-import { type BaseRecord } from "@/components/share/data-table";
 import { type contributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -6,7 +5,8 @@ import { type contributionType } from "@prisma/client";
 /**
  * グループのデータの型
  */
-export type Group = BaseRecord & {
+export type Group = {
+  id: string;
   name: string;
   goal: string;
   evaluationMethod: string;

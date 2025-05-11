@@ -3,7 +3,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTask } from "@/lib/actions/task";
+import { createTask } from "@/lib/actions/task/task";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";

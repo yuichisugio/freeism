@@ -1,10 +1,10 @@
 "use client";
 
-import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useGroupJoiner } from "@/hooks/group/use-all-user-group-list";
+import { useAllUserGroupTable } from "@/hooks/group/use-all-user-group-table";
 import { type Group } from "@/types/group-types";
 import { UserPlus } from "lucide-react";
 
@@ -13,13 +13,13 @@ import { UserPlus } from "lucide-react";
 /**
  * グループのデータの型
  */
-export const AllUserGroupListTable = memo(function AllUserGroupListTable(): JSX.Element {
+export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * カスタムフックを使用してグループ参加機能を実装
    */
-  const { groups, setGroups, handleJoin } = useGroupJoiner();
+  const { groups, setGroups, handleJoin } = useAllUserGroupTable();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -48,7 +48,7 @@ export const AllUserGroupListTable = memo(function AllUserGroupListTable(): JSX.
             triggerClassName: "button-join-custom",
             triggerContent: ["参加中", "参加"],
             triggerIcon: <UserPlus className="h-4 w-4" />,
-            joinModal: true,
+            isJoined: false,
           },
         ],
       },
@@ -156,10 +156,10 @@ export const AllUserGroupListTable = memo(function AllUserGroupListTable(): JSX.
   /**
    * グループリストのテーブルのプロップスを定義
    */
-  const dataTableProps: DataTableProps<BaseRecord> = useMemo(
+  const dataTableProps: DataTableProps<Group> = useMemo(
     () => ({
-      initialData: groups as unknown as BaseRecord[],
-      columns: columns as unknown as Column<BaseRecord>[],
+      initialData: groups,
+      columns: columns,
       pagination: true,
       onDataChange: (data) => setGroups(data as unknown as Group[]),
       className: null,

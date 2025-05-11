@@ -1,6 +1,6 @@
 "use client";
 
-import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
 import type { GroupMemberWithUser } from "@/lib/actions/group";
 import type { Task } from "@/types/group-types";
 import { memo, useMemo } from "react";
@@ -161,12 +161,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 共通のテーブル列定義（contributionType列を含まない）
-  const commonColumns: Column<BaseRecord>[] = useMemo(
+  const commonColumns: Column<Task>[] = useMemo(
     () => [
       {
-        key: "task" as keyof BaseRecord,
+        key: "task" as keyof Task,
         header: "TASK",
-        cell: (row: BaseRecord) => (row as unknown as Task).task ?? "不明",
+        cell: (row: Task) => (row as unknown as Task).task ?? "不明",
         className: null,
         sortable: true,
         statusCombobox: false,
@@ -177,9 +177,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "name" as keyof BaseRecord,
+        key: "name" as keyof Task,
         header: "作成者",
-        cell: (row: BaseRecord) => (row as unknown as Task).creator.name ?? "-",
+        cell: (row: Task) => (row as unknown as Task).creator.name ?? "-",
         className: null,
         sortable: true,
         statusCombobox: false,
@@ -190,9 +190,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "reporters" as keyof BaseRecord,
+        key: "reporters" as keyof Task,
         header: "報告者",
-        cell: (row: BaseRecord) => {
+        cell: (row: Task) => {
           const typedRow = row as unknown as Task;
           if (typeof getReporterNames === "function") {
             return getReporterNames(typedRow.reporters);
@@ -209,9 +209,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "executors" as keyof BaseRecord,
+        key: "executors" as keyof Task,
         header: "実行者",
-        cell: (row: BaseRecord) => {
+        cell: (row: Task) => {
           const typedRow = row as unknown as Task;
           if (typeof getExecutorNames === "function") {
             return getExecutorNames(typedRow.executors);
@@ -228,9 +228,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "fixedEvaluator" as keyof BaseRecord,
+        key: "fixedEvaluator" as keyof Task,
         header: "評価者",
-        cell: (row: BaseRecord) => (row as unknown as Task).fixedEvaluator ?? "-",
+        cell: (row: Task) => (row as unknown as Task).fixedEvaluator ?? "-",
         className: null,
         sortable: true,
         statusCombobox: false,
@@ -241,9 +241,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "fixedEvaluationLogic" as keyof BaseRecord,
+        key: "fixedEvaluationLogic" as keyof Task,
         header: "評価ロジック",
-        cell: (row: BaseRecord) => (row as unknown as Task).fixedEvaluationLogic ?? "-",
+        cell: (row: Task) => (row as unknown as Task).fixedEvaluationLogic ?? "-",
         className: null,
         sortable: true,
         statusCombobox: false,
@@ -254,7 +254,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "status" as keyof BaseRecord,
+        key: "status" as keyof Task,
         header: "ステータス",
         className: null,
         cell: () => null,
@@ -267,7 +267,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "action" as keyof BaseRecord,
+        key: "action" as keyof Task,
         header: "アクション",
         className: null,
         cell: () => null,
@@ -280,9 +280,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "detail" as keyof BaseRecord,
+        key: "detail" as keyof Task,
         header: "詳細",
-        cell: (row: BaseRecord) => (row as unknown as Task).detail ?? "-",
+        cell: (row: Task) => (row as unknown as Task).detail ?? "-",
         className: null,
         sortable: false,
         statusCombobox: false,
@@ -299,16 +299,16 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 非報酬タスク用のカラム
-  const nonRewardColumns: Column<BaseRecord>[] = useMemo(
+  const nonRewardColumns: Column<Task>[] = useMemo(
     () => [
       ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
       {
-        key: "contributionPoint" as keyof BaseRecord,
+        key: "contributionPoint" as keyof Task,
         header: "貢献ポイント",
         joinGroupModal: false,
         leaveGroupModal: false,
         modalList: null,
-        cell: (row: BaseRecord) => {
+        cell: (row: Task) => {
           const typedRow = row as unknown as Task;
           return typedRow.fixedContributionPoint ? `${typedRow.fixedContributionPoint}p` : "評価待ち";
         },
@@ -320,7 +320,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       },
       ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
-        key: "action" as keyof BaseRecord,
+        key: "action" as keyof Task,
         cell: () => null,
         header: "アクション",
         sortable: false,
@@ -333,7 +333,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "delete" as keyof BaseRecord,
+        key: "delete" as keyof Task,
         cell: () => null,
         header: "削除",
         sortable: false,
@@ -341,7 +341,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         statusCombobox: false,
         editTask: false,
         deleteTask: {
-          canDelete: (row: BaseRecord) => canDeleteTask(row as unknown as Task),
+          canDelete: (row: Task) => canDeleteTask(row),
           onDelete: handleDeleteTask,
         },
         joinGroupModal: false,
@@ -349,9 +349,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
       },
       {
-        key: "detail" as keyof BaseRecord,
+        key: "detail" as keyof Task,
         header: "詳細",
-        cell: (row: BaseRecord) => (row as unknown as Task).detail ?? "-",
+        cell: (row: Task) => (row as unknown as Task).detail ?? "-",
         sortable: false,
         className: null,
         statusCombobox: false,
@@ -368,12 +368,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 報酬タスク用のカラム
-  const rewardColumns: Column<BaseRecord>[] = useMemo(
+  const rewardColumns: Column<Task>[] = useMemo(
     () => [
       {
-        key: "auction" as keyof BaseRecord,
+        key: "auction" as keyof Task,
         header: "オークション",
-        cell: (row: BaseRecord) => {
+        cell: (row: Task) => {
           const typedRow = row as unknown as Task;
           return (
             <Button
@@ -396,9 +396,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       },
       ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
       {
-        key: "contributionPoint" as keyof BaseRecord,
+        key: "contributionPoint" as keyof Task,
         header: "現在の入札額",
-        cell: (row: BaseRecord) => `${(row as unknown as Task).fixedContributionPoint ?? 0}p`,
+        cell: (row: Task) => `${(row as unknown as Task).fixedContributionPoint ?? 0}p`,
         sortable: true,
         className: null,
         statusCombobox: false,
@@ -410,7 +410,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       },
       ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
-        key: "action" as keyof BaseRecord,
+        key: "action" as keyof Task,
         header: "アクション",
         cell: () => null,
         sortable: false,
@@ -423,11 +423,11 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         deleteTask: null,
       },
       {
-        key: "delete" as keyof BaseRecord,
+        key: "delete" as keyof Task,
         header: "削除",
         cell: () => null,
         deleteTask: {
-          canDelete: (row: BaseRecord) => canDeleteTask(row as unknown as Task),
+          canDelete: (row: Task) => canDeleteTask(row),
           onDelete: handleDeleteTask,
         },
         sortable: false,
@@ -439,9 +439,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         editTask: false,
       },
       {
-        key: "detail" as keyof BaseRecord,
+        key: "detail" as keyof Task,
         header: "詳細",
-        cell: (row: BaseRecord) => (row as unknown as Task).detail ?? "-",
+        cell: (row: Task) => (row as unknown as Task).detail ?? "-",
         sortable: false,
         className: null,
         statusCombobox: false,
@@ -458,10 +458,10 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // DataTableコンポーネントのpropsを設定
-  const taskDataTableProps: DataTableProps<BaseRecord> = useMemo(
+  const taskDataTableProps: DataTableProps<Task> = useMemo(
     () => ({
-      initialData: nonRewardTasks as unknown as BaseRecord[],
-      columns: nonRewardColumns as unknown as Column<BaseRecord>[],
+      initialData: nonRewardTasks as unknown as Task[],
+      columns: nonRewardColumns as unknown as Column<Task>[],
       pagination: true,
       onDataChange: (data) => updateNonRewardTasks(data as unknown as Task[]),
       stickyHeader: true,
@@ -493,10 +493,10 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const rewardTaskDataTableProps: DataTableProps<BaseRecord> = useMemo(
+  const rewardTaskDataTableProps: DataTableProps<Task> = useMemo(
     () => ({
-      initialData: rewardTasks as unknown as BaseRecord[],
-      columns: rewardColumns as unknown as Column<BaseRecord>[],
+      initialData: rewardTasks as unknown as Task[],
+      columns: rewardColumns as unknown as Column<Task>[],
       pagination: true,
       onDataChange: (data) => updateRewardTasks(data as unknown as Task[]),
       stickyHeader: true,

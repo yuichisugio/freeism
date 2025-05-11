@@ -13,7 +13,7 @@ import { toast } from "sonner";
  * グループ参加処理のためのカスタムフック
  * @returns グループ参加関連機能
  */
-export function useGroupJoiner() {
+export function useAllUserGroupTable() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

@@ -73,7 +73,9 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // アクティブタブ
+  /**
+   * アクティブタブ
+   *  */
   const [activeTab, setActiveTab] = useState("details");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -259,7 +261,7 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-8">
       {/* SSEデバッグ情報表示エリア */}
-      {lastMsg && (
+      {process.env.NODE_ENV == "development" && lastMsg && (
         <div className="overflow-x-auto rounded-md bg-slate-100 p-2 font-mono text-xs">
           <p className="mb-1 font-semibold">最後に受信したSSEメッセージ:</p>
           <pre className="break-all whitespace-pre-wrap">{lastMsg}</pre>

@@ -11,7 +11,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/Pagination";
-import { usePagination } from "@/hooks/auction/listing/use-pagination";
+import { usePagination } from "@/hooks/utils/use-pagination";
 import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
 import { cn } from "@/lib/utils";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";

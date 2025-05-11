@@ -1,10 +1,10 @@
 "use client";
 
-import type { BaseRecord, Column } from "@/components/share/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useMyTasks } from "@/hooks/task/use-my-tasks";
+import { useMyTaskTable } from "@/hooks/task/use-my-task-table";
 import { type contributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -26,8 +26,9 @@ type TaskParticipant = {
 /**
  * MyTasksTable用のタスク型
  */
-type MyTask = {
+export type MyTask = {
   id: string;
+  action: string;
   task: string;
   detail: string | null;
   reference: string | null;
@@ -36,20 +37,16 @@ type MyTask = {
   fixedEvaluator: string | null;
   fixedEvaluationLogic: string | null;
   contributionType: contributionType;
-  // 作成者・報告者・実行者情報
   creator: {
     id: string;
     name: string | null;
-    [key: string]: unknown;
   };
   reporters: TaskParticipant[];
   executors: TaskParticipant[];
   group: {
     id: string;
     name: string;
-    [key: string]: unknown;
   };
-  [key: string]: unknown;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -59,15 +56,15 @@ type MyTask = {
  * @param tasks タスク
  * @returns タスクテーブル
  */
-export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: { tasks: MyTask[] }): JSX.Element {
+export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // カスタムフックを使用してタスク管理機能を実装
-  const { tasks, setTasks, getReporterNames, getExecutorNames, canEditTask, handleTaskEdited, getSimpleUsers } = useMyTasks<MyTask>(initialTasks);
+  const { tasks, setTasks, getReporterNames, getExecutorNames, canEditTask, handleTaskEdited, getSimpleUsers } = useMyTaskTable<MyTask>();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const columns = useMemo<Column<BaseRecord>[]>(
+  const columns = useMemo<Column<MyTask>[]>(
     () => [
       {
         key: "group",
@@ -81,7 +78,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         editTask: false,
         deleteTask: null,
         cell: (row) => {
-          const typedRow = row as MyTask;
+          const typedRow = row;
           return (
             <Link href={`/dashboard/group/${typedRow.group.id}`} className="text-app hover:underline">
               {typedRow.group.name}
@@ -93,7 +90,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         key: "task",
         header: "TASK",
         sortable: true,
-        cell: (row) => (row as MyTask).task,
+        cell: (row) => row.task,
         className: null,
         statusCombobox: false,
         joinGroupModal: false,
@@ -106,7 +103,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         key: "detail",
         header: "DETAIL",
         sortable: true,
-        cell: (row) => (row as MyTask).detail,
+        cell: (row) => row.detail,
         className: null,
         statusCombobox: false,
         joinGroupModal: false,
@@ -119,7 +116,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         key: "reporters",
         header: "報告者",
         sortable: false,
-        cell: (row) => getReporterNames((row as MyTask).reporters),
+        cell: (row) => getReporterNames(row.reporters),
         className: null,
         statusCombobox: false,
         joinGroupModal: false,
@@ -132,7 +129,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         key: "executors",
         header: "実行者",
         sortable: false,
-        cell: (row) => getExecutorNames((row as MyTask).executors),
+        cell: (row) => getExecutorNames(row.executors),
         className: null,
         statusCombobox: false,
         joinGroupModal: false,
@@ -142,11 +139,11 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         deleteTask: null,
       },
       {
-        key: "contributionPoint",
+        key: "fixedContributionPoint",
         header: "Contribution Point",
         sortable: true,
         cell: (row) => {
-          const typedRow = row as MyTask;
+          const typedRow = row;
           return typedRow.fixedContributionPoint ? `${typedRow.fixedContributionPoint}p` : "評価待ち";
         },
         className: null,
@@ -161,7 +158,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         key: "fixedEvaluator",
         header: "算出者",
         sortable: true,
-        cell: (row) => (row as MyTask).fixedEvaluator ?? "-",
+        cell: (row) => row.fixedEvaluator ?? "-",
         className: null,
         statusCombobox: false,
         joinGroupModal: false,
@@ -174,7 +171,7 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
         key: "fixedEvaluationLogic",
         header: "算出ロジック",
         sortable: true,
-        cell: (row) => (row as MyTask).fixedEvaluationLogic ?? "-",
+        cell: (row) => row.fixedEvaluationLogic ?? "-",
         className: null,
         statusCombobox: false,
         joinGroupModal: false,
@@ -215,28 +212,25 @@ export const MyTasksTable = memo(function MyTasksTable({ tasks: initialTasks }: 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return (
-    <DataTable
-      dataTableProps={{
-        initialData: tasks as unknown as BaseRecord[],
-        columns,
-        onDataChange: (changedData) => setTasks(changedData as unknown as MyTask[]),
-        editTask: {
-          canEdit: (row) => canEditTask(row as MyTask),
-          onEdit: () => handleTaskEdited(),
-          users: getSimpleUsers(),
-        },
-        className: null,
-        onSort: () => null,
-        maxHeight: null,
-        rowClassName: null,
-        headerClassName: null,
-        cellClassName: null,
-        stickyHeader: false,
-        deleteModal: null,
-        renderEditModal: () => null,
-        pagination: true,
-      }}
-    />
-  );
+  const dataTableProps: DataTableProps<MyTask> = {
+    initialData: tasks,
+    columns: columns,
+    onDataChange: (changedData) => setTasks(changedData),
+    editTask: {
+      canEdit: (row) => canEditTask(row),
+      onEdit: () => handleTaskEdited(),
+      users: getSimpleUsers(),
+    },
+    className: null,
+    maxHeight: null,
+    rowClassName: null,
+    headerClassName: null,
+    cellClassName: null,
+    stickyHeader: false,
+    deleteModal: null,
+    renderEditModal: () => null,
+    pagination: true,
+  };
+
+  return <DataTable dataTableProps={dataTableProps} />;
 });

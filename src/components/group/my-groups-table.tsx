@@ -1,71 +1,52 @@
 "use client";
 
-import type { BaseRecord, Column, DataTableProps } from "@/components/share/data-table";
+import type { Column, DataTableProps } from "@/components/share/data-table";
+import type { MyGroupMembership } from "@/hooks/group/use-my-group-table";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
-import { useGroupLeaver, useGroupPoints } from "@/hooks/group/use-my-group-list";
+import { useMyGroupTable } from "@/hooks/group/use-my-group-table";
 import { LogOut } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * グループメンバーシップの型
- */
-type GroupMembership = {
-  id: string;
-  group: {
-    id: string;
-    name: string;
-    goal: string;
-    evaluationMethod: string;
-    maxParticipants: number;
-    tasks: {
-      fixedContributionPoint: number | null;
-    }[];
-  };
-  // インデックスシグネチャを追加して、Record<string, unknown>と互換性を持たせる
-  [key: string]: unknown;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * マイグループテーブル
- * @param memberships グループメンバーシップ
  * @returns マイグループテーブル
  */
-export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialMemberships }: { memberships: GroupMembership[] }): JSX.Element {
+export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックを使用してグループ脱退機能を実装
-  const { memberships, setMemberships, handleLeave } = useGroupLeaver<GroupMembership>(initialMemberships);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // カスタムフックを使用してグループポイント計算を実装
-  const { calculateTotalPointsByGroup } = useGroupPoints<GroupMembership>(memberships);
+  /**
+   * グループ脱退処理のためのカスタムフック
+   */
+  const { memberships, setMemberships, handleLeave, calculateTotalPointsByGroup } = useMyGroupTable();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ポイントを計算
-  const totalContributionPointsByGroup = useMemo(() => calculateTotalPointsByGroup(), [calculateTotalPointsByGroup]);
+  /**
+   * グループごとの保有ポイントを計算
+   */
+  const totalPointsByGroup = useMemo(() => {
+    return calculateTotalPointsByGroup();
+  }, [calculateTotalPointsByGroup]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const columns: Column<GroupMembership>[] = useMemo(
+  /**
+   * グループテーブルの列
+   */
+  const columns: Column<MyGroupMembership>[] = useMemo(
     () => [
       {
-        key: "id" as keyof GroupMembership,
+        key: "id" as keyof MyGroupMembership,
         header: "操作",
         cell: () => null,
+        sortable: true,
         className: null,
         statusCombobox: false,
-        sortable: true,
         joinGroupModal: false,
         leaveGroupModal: true,
-        editTask: false,
-        deleteTask: null,
         modalList: [
           {
             title: "グループから脱退しますか？",
@@ -75,13 +56,15 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
             triggerClassName: "button-danger-custom",
             triggerIcon: <LogOut className="h-4 w-4" />,
             triggerContent: ["脱退"],
-            className: null,
             joinModal: false,
+            isJoined: false,
           },
         ],
+        editTask: false,
+        deleteTask: null,
       },
       {
-        key: "group" as keyof GroupMembership,
+        key: "group" as keyof MyGroupMembership,
         header: "GROUP NAME",
         className: null,
         statusCombobox: false,
@@ -91,14 +74,14 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
         modalList: null,
         editTask: false,
         deleteTask: null,
-        cell: (row: GroupMembership) => (
+        cell: (row: MyGroupMembership) => (
           <Link href={`/dashboard/group/${row.group.id}`} className="text-app hover:underline">
             {row.group.name}
           </Link>
         ),
       },
       {
-        key: "group" as keyof GroupMembership,
+        key: "group" as keyof MyGroupMembership,
         header: "保有ポイント",
         sortable: true,
         className: null,
@@ -108,10 +91,10 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
         modalList: null,
         editTask: false,
         deleteTask: null,
-        cell: (row: GroupMembership) => totalContributionPointsByGroup[row.group.id],
+        cell: (row: MyGroupMembership) => totalPointsByGroup[row.group.id] ?? 0,
       },
       {
-        key: "group" as keyof GroupMembership,
+        key: "group" as keyof MyGroupMembership,
         header: "参加人数",
         sortable: true,
         className: null,
@@ -121,10 +104,10 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
         modalList: null,
         editTask: false,
         deleteTask: null,
-        cell: (row: GroupMembership) => `${row.group.maxParticipants}人`,
+        cell: (row: MyGroupMembership) => `${row.group.maxParticipants}人`,
       },
       {
-        key: "group" as keyof GroupMembership,
+        key: "group" as keyof MyGroupMembership,
         header: "KPI",
         sortable: true,
         className: null,
@@ -134,10 +117,10 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
         modalList: null,
         editTask: false,
         deleteTask: null,
-        cell: (row: GroupMembership) => row.group.evaluationMethod,
+        cell: (row: MyGroupMembership) => row.group.evaluationMethod,
       },
       {
-        key: "group" as keyof GroupMembership,
+        key: "group" as keyof MyGroupMembership,
         header: "DESCRIPTION",
         sortable: true,
         className: null,
@@ -147,22 +130,24 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
         modalList: null,
         editTask: false,
         deleteTask: null,
-        cell: (row: GroupMembership) => row.group.goal,
+        cell: (row: MyGroupMembership) => row.group.goal,
       },
     ],
-    [handleLeave, totalContributionPointsByGroup],
+    [handleLeave, totalPointsByGroup],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const dataTableProps: DataTableProps<GroupMembership> = useMemo(
+  /**
+   * データテーブルのプロパティ
+   */
+  const dataTableProps: DataTableProps<MyGroupMembership> = useMemo(
     () => ({
       initialData: memberships,
       columns: columns,
       pagination: true,
       onDataChange: setMemberships,
       className: null,
-      onSort: () => null,
       maxHeight: null,
       rowClassName: null,
       headerClassName: null,
@@ -177,5 +162,8 @@ export const MyGroupsTable = memo(function MyGroupsTable({ memberships: initialM
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return <DataTable dataTableProps={dataTableProps as unknown as DataTableProps<BaseRecord>} />;
+  /**
+   * データテーブル
+   */
+  return <DataTable dataTableProps={dataTableProps} />;
 });

@@ -1,8 +1,9 @@
+"use cache";
+
 import type { Metadata } from "next";
-import { MyGroupsTable } from "@/components/group/my-groups-table";
+import { unstable_cacheLife as cacheLife } from "next/cache";
+import { MyGroupTable } from "@/components/group/my-groups-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -20,45 +21,18 @@ export const metadata: Metadata = {
  * 参加Group一覧ページ
  */
 export default async function MyGroupsPage() {
-  const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 参加しているグループ一覧を取得
-  const memberships = await prisma.groupMembership.findMany({
-    where: {
-      userId: userId,
-    },
-    select: {
-      id: true,
-      group: {
-        select: {
-          id: true,
-          name: true,
-          goal: true,
-          evaluationMethod: true,
-          maxParticipants: true,
-          tasks: {
-            where: {
-              executors: {
-                some: {
-                  userId: userId,
-                },
-              },
-            },
-            select: {
-              fixedContributionPoint: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      joinedAt: "desc",
-    },
-  });
+  /**
+   * キャッシュの有効期間を最大にする
+   */
+  cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <MainTemplate title="参加Group一覧" description="参加しているグループ一覧を表示します">
-      <MyGroupsTable memberships={memberships} />
+      <MyGroupTable />
     </MainTemplate>
   );
 }
