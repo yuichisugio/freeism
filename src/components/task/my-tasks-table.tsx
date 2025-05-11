@@ -1,6 +1,6 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
+import type { Column, DataTableProps } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
@@ -220,6 +220,12 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       canEdit: (row) => canEditTask(row),
       onEdit: () => handleTaskEdited(),
       users: getSimpleUsers(),
+    },
+    pagination: {
+      totalRowCount: tasks.length,
+      currentPage: 1,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onPageChange: () => {},
     },
   };
 

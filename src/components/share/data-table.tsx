@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, useEffect } from "react";
+import type { DataTableComponentProps } from "@/types/group-types";
+import { memo, useEffect, useMemo } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,75 +15,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSortableTable } from "@/hooks/table/use-sortable-table";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
+import { usePagination } from "@/hooks/utils/use-pagination";
+import { TABLE_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
+import { ArrowUpDown, Check, ChevronsLeftIcon, ChevronsRightIcon, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ModalList型
- */
-export type ModalListType = {
-  title: string;
-  description: string;
-  action: (rowId: string) => Promise<void>;
-  actionLabel: string;
-  triggerIcon: React.ReactNode | null;
-  triggerContent: string[];
-  triggerClassName: string | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 列の型定義
- */
-export type Column<T> = {
-  key: keyof T;
-  header: string;
-  cell: (row: T) => React.ReactNode | null;
-  cellClassName: string | null;
-  sortable: boolean;
-  statusCombobox: boolean;
-  joinGroupModal: boolean;
-  leaveGroupModal: boolean;
-  modalList: ModalListType[] | null;
-  editTask: boolean;
-  deleteTask: {
-    canDelete: (row: T) => boolean;
-    onDelete: (rowId: string) => Promise<void>;
-  } | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * テーブル全体の型定義
- * extends { id: string }を記載して、Tがidを持つことを保証
- */
-export type DataTableProps<T> = {
-  initialData: T[];
-  columns: Column<T>[];
-  onDataChange: (data: T[]) => void | null;
-  editTask: {
-    canEdit: (row: T) => boolean;
-    onEdit: (row: T) => void;
-    users: { id: string; name: string }[] | null;
-  } | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * DataTableコンポーネントのpropsの型を明示的にインターフェースとして定義
- */
-type DataTableComponentProps<T extends { id: string; isJoined?: boolean }> = {
-  dataTableProps: DataTableProps<T>;
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -95,7 +36,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   /**
    * コンポーネントの引数
    */
-  const { initialData, columns, onDataChange, editTask } = props.dataTableProps;
+  const { initialData, columns, onDataChange, editTask, pagination } = props.dataTableProps;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -110,6 +51,42 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
    * タスクステータス管理フック
    */
   const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange ? (updatedData) => onDataChange(updatedData) : undefined);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ページネーションの条件
+   */
+  const calculatedTotalPages = useMemo(
+    () => Math.ceil((pagination?.totalRowCount ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE),
+    [pagination?.totalRowCount],
+  );
+  const { currentPage, totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
+    totalPages: calculatedTotalPages,
+    currentPage: pagination?.currentPage ?? 1,
+    maxPageToShow: TABLE_CONSTANTS.ITEMS_PER_PAGE,
+    totalCount: pagination?.totalRowCount ?? 0,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ページ変更ハンドラ
+   * @param page - 新しいページ番号
+   */
+  const handlePageChange = (page: number) => {
+    if (pagination?.onPageChange) {
+      pagination.onPageChange(page);
+    }
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 表示アイテム範囲の計算
+   */
+  const startItem = pagination && pagination.totalRowCount > 0 ? (currentPage - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE + 1 : 0;
+  const endItem = pagination ? Math.min(currentPage * TABLE_CONSTANTS.ITEMS_PER_PAGE, pagination.totalRowCount) : sortedData.length;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -344,23 +321,99 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
         </div>
 
         {/* ページネーション */}
-        <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
-          <div className="text-sm text-neutral-600">
-            Showing 1-{sortedData.length} of {sortedData.length}
+        <div className="flex items-center justify-between border-t border-blue-100 px-4 py-3">
+          <div className="text-sm font-medium text-neutral-600">
+            {pagination && pagination.totalRowCount > 0 ? `${startItem}-${endItem} / ${pagination.totalRowCount}件` : `0 / 0件`}
           </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-              Previous
-            </Button>
-            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-              Next
-            </Button>
-          </div>
+          {pagination && (
+            <div className="flex items-center space-x-1">
+              {/* 最初のページボタン */}
+              {!isFirstPage && (
+                <button
+                  onClick={() => handlePageChange(1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  aria-label="最初のページへ"
+                >
+                  <ChevronsLeftIcon className="h-4 w-4" />
+                </button>
+              )}
+
+              {/* 前のページに進むかどうか */}
+              {hasPreviousPage && (
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  aria-label="前のページへ"
+                >
+                  <PaginationPrevious className="h-4 w-4" />
+                </button>
+              )}
+
+              {/* ページネーションの表示 */}
+              <div className="flex items-center">
+                {pageNumbers.map((page, index) => {
+                  if (page === -1 || page === -2) {
+                    return (
+                      <div key={`ellipsis-${index}`} className="px-1">
+                        <span className="text-neutral-500">...</span>
+                      </div>
+                    );
+                  }
+
+                  const isActive = page === currentPage;
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      disabled={isActive}
+                      className={cn(
+                        "mx-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors",
+                        isActive ? "border border-blue-600 bg-blue-50 text-blue-600" : "border border-blue-200 bg-white hover:bg-blue-50",
+                      )}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 次のページに進むかどうか */}
+              {hasNextPage && (
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  aria-label="次のページへ"
+                >
+                  <PaginationNext className="h-4 w-4" />
+                </button>
+              )}
+
+              {/* 最後のページボタン */}
+              {!isLastPage && totalPages > 0 && (
+                <button
+                  onClick={() => handlePageChange(totalPages)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  aria-label="最後のページへ"
+                >
+                  <ChevronsRightIcon className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>
   );
 }
 
-// memo化し、型アサーションでジェネリック型を明示
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * DataTableコンポーネント
+ * memo化し、型アサーションでジェネリック型を明示
+ * @param props - DataTableComponentProps
+ * @returns JSX.Element
+ */
 export const DataTable = memo(DataTableInner) as <T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) => JSX.Element;

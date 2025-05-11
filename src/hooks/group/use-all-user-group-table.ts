@@ -18,6 +18,7 @@ type UseAllUserGroupTableReturn = {
   groups: Group[];
   isLoading: boolean;
   tableConditions: TableConditions;
+  totalGroupCount: number;
   // function
   changeTableConditions: (tableConditions: TableConditions) => void;
   handleJoin: (groupId: string) => void;
@@ -132,10 +133,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
   /**
    * データ取得
+   * TODO: searchQueryの検索は未実装
    */
-  const { data: groups, isPending: isGroupsLoading } = useQuery({
+  const { data, isPending: isGroupsLoading } = useQuery({
     queryKey: ["all-user-group-table", tableConditions],
-    queryFn: async () => await getGroupList(),
+    queryFn: async () =>
+      await getGroupList(tableConditions.page, tableConditions.sort?.field ?? "createdAt", tableConditions.sort?.direction ?? "desc"),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!tableConditions,
@@ -184,7 +187,8 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   return {
     // state
-    groups: groups ?? [],
+    groups: data?.GroupList ?? [],
+    totalGroupCount: data?.totalGroupCount ?? 0,
     isLoading: isGroupsLoading || isJoinLoading,
     tableConditions,
 

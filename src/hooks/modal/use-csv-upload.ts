@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/lib/actions/evaluation";
 import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
 import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/lib/actions/task/task";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Papa from "papaparse";

@@ -1,19 +1,19 @@
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知関連の定数
+ * テーブル関連の定数
  */
-export const NOTIFICATION_CONSTANTS = {
-  ITEMS_PER_PAGE: 50,
+export const TABLE_CONSTANTS = {
+  ITEMS_PER_PAGE: 5,
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * SSE設定パラメータ
+ * 通知関連の定数
  */
-export const SSE_CONFIG = {
-  HEARTBEAT_INTERVAL: 20 * 1000, // 20秒ごとにハートビート
+export const NOTIFICATION_CONSTANTS = {
+  ITEMS_PER_PAGE: 50,
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

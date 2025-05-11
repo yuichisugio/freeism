@@ -1,7 +1,7 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
 import type { MyGroupMembership } from "@/hooks/group/use-my-group-table";
+import type { Column, DataTableProps } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
@@ -147,6 +147,12 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
       columns: columns,
       onDataChange: setMemberships,
       editTask: null,
+      pagination: {
+        totalRowCount: memberships.length,
+        currentPage: 1,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onPageChange: () => {},
+      },
     }),
     [memberships, setMemberships, columns],
   );

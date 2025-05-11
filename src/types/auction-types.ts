@@ -1,4 +1,4 @@
-import type { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import type { AUCTION_CONSTANTS } from "@/lib/constants";
 import type { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

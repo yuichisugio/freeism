@@ -1,6 +1,6 @@
 "use cache";
 
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { type AuctionWithDetails } from "@/types/auction-types";
 

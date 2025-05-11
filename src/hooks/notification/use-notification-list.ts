@@ -5,7 +5,7 @@ import type { InfiniteData } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { redirect } from "next/navigation";
 import { getNotificationsAndUnreadCount, updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
-import { NOTIFICATION_CONSTANTS } from "@/lib/auction/constants";
+import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 

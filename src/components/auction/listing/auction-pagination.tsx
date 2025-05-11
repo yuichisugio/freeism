@@ -12,7 +12,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/utils/use-pagination";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 

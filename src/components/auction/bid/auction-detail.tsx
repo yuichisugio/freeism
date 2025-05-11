@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import { type AuctionWithDetails } from "@/types/auction-types";
 import { AuctionStatus } from "@prisma/client";

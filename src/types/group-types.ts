@@ -4,6 +4,74 @@ import { type contributionType } from "@prisma/client";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * ModalList型
+ */
+export type ModalListType = {
+  title: string;
+  description: string;
+  action: (rowId: string) => Promise<void>;
+  actionLabel: string;
+  triggerIcon: React.ReactNode | null;
+  triggerContent: string[];
+  triggerClassName: string | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 列の型定義
+ */
+export type Column<T> = {
+  key: keyof T;
+  header: string;
+  cell: (row: T) => React.ReactNode | null;
+  cellClassName: string | null;
+  sortable: boolean;
+  statusCombobox: boolean;
+  joinGroupModal: boolean;
+  leaveGroupModal: boolean;
+  modalList: ModalListType[] | null;
+  editTask: boolean;
+  deleteTask: {
+    canDelete: (row: T) => boolean;
+    onDelete: (rowId: string) => Promise<void>;
+  } | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テーブル全体の型定義
+ * extends { id: string }を記載して、Tがidを持つことを保証
+ */
+export type DataTableProps<T> = {
+  initialData: T[];
+  columns: Column<T>[];
+  onDataChange: (data: T[]) => void | null;
+  editTask: {
+    canEdit: (row: T) => boolean;
+    onEdit: (row: T) => void;
+    users: { id: string; name: string }[] | null;
+  } | null;
+  pagination: {
+    totalRowCount: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
+  } | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * DataTableコンポーネントのpropsの型を明示的にインターフェースとして定義
+ */
+export type DataTableComponentProps<T extends { id: string; isJoined?: boolean }> = {
+  dataTableProps: DataTableProps<T>;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * AllUserGroupTableのテーブルの条件の型
  */
 export type TableConditions = {

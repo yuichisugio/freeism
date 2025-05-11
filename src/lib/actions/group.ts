@@ -2,7 +2,7 @@
 
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
-import { getCachedGroupList } from "@/lib/actions/cache/cache-group";
+import { getCachedGroupList, getCachedTotalGroupCount } from "@/lib/actions/cache/cache-group";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
@@ -15,7 +15,7 @@ import { z } from "zod";
  * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
  * @returns グループ一覧
  */
-export async function getGroupList() {
+export async function getGroupList(page: number, sortField: string, sortDirection: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -28,10 +28,33 @@ export async function getGroupList() {
   /**
    * グループ一覧を取得
    */
-  const [cachedAllGroupsData, userJoinGroupIds] = await Promise.all([getCachedGroupList(), getUserJoinGroupIds(userId)]);
-  const returnGroupsData = cachedAllGroupsData.map((group) => ({ ...group, isJoined: userJoinGroupIds.includes(group.id) }));
+  const [cachedAllGroupsData, userJoinGroupIds, totalGroupCount] = await Promise.all([
+    getCachedGroupList(page, sortField, sortDirection),
+    getUserJoinGroupIds(userId),
+    getCachedTotalGroupCount(),
+  ]);
+  const GroupList = cachedAllGroupsData.map((group) => ({ ...group, isJoined: userJoinGroupIds.includes(group.id) }));
 
-  return returnGroupsData;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * sortFieldがisJoinedの場合、キャッシュしたデータをソートする
+   */
+  if (sortField === "isJoined") {
+    const sortedGroupList = [...GroupList].sort((a, b) => {
+      // boolean値を数値に変換 (true: 1, false: 0)
+      const valueA = Number(a.isJoined);
+      const valueB = Number(b.isJoined);
+
+      if (sortDirection === "asc") {
+        return valueA - valueB; // 昇順: false (0) が先
+      }
+      return valueB - valueA; // 降順: true (1) が先
+    });
+    return { GroupList: sortedGroupList, totalGroupCount };
+  }
+
+  return { GroupList, totalGroupCount };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

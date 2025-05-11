@@ -2,7 +2,7 @@
 
 import type { AuctionCard, AuctionListingResult, AuctionListingsConditions, Suggestion } from "@/types/auction-types";
 import { cache } from "react";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { AuctionStatus, Prisma } from "@prisma/client";
 

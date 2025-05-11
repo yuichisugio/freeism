@@ -1,8 +1,7 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
 import type { GroupMemberWithUser } from "@/lib/actions/group";
-import type { Task } from "@/types/group-types";
+import type { Column, DataTableProps, Task } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
@@ -478,6 +477,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
             }))
           : [],
       },
+      pagination: {
+        totalRowCount: nonRewardTasks.length,
+        currentPage: 1,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onPageChange: () => {},
+      },
     }),
     [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
   );
@@ -498,6 +503,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
               name: user.name ?? "",
             }))
           : [],
+      },
+      pagination: {
+        totalRowCount: rewardTasks.length,
+        currentPage: 1,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onPageChange: () => {},
       },
     }),
     [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],

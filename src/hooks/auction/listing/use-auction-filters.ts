@@ -11,7 +11,7 @@ import type {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
 import { getUserGroups } from "@/lib/auction/action/user";
-import { AUCTION_CONSTANTS } from "@/lib/auction/constants";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

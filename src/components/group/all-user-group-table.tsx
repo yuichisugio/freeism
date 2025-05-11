@@ -1,7 +1,6 @@
 "use client";
 
-import type { Column, DataTableProps } from "@/components/share/data-table";
-import type { Group } from "@/types/group-types";
+import type { Column, DataTableProps, Group } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
@@ -24,6 +23,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
     groups,
     tableConditions,
     isLoading,
+    totalGroupCount,
 
     // function
     changeTableConditions,
@@ -172,8 +172,13 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       columns: columns,
       onDataChange: () => null,
       editTask: null,
+      pagination: {
+        totalRowCount: totalGroupCount,
+        currentPage: tableConditions.page,
+        onPageChange: (page: number) => changeTableConditions({ ...tableConditions, page }),
+      },
     }),
-    [groups, columns],
+    [groups, columns, totalGroupCount, tableConditions, changeTableConditions],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

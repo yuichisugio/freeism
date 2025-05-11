@@ -2,7 +2,7 @@
 
 import type { Session } from "next-auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
-import { getAuctionUpdateSelect } from "@/lib/auction/constants";
+import { getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
