@@ -174,6 +174,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "name" as keyof Task,
@@ -186,6 +187,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "reporters" as keyof Task,
@@ -204,6 +206,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "executors" as keyof Task,
@@ -222,6 +225,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "fixedEvaluator" as keyof Task,
@@ -234,6 +238,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "fixedEvaluationLogic" as keyof Task,
@@ -246,6 +251,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "status" as keyof Task,
@@ -258,6 +264,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "action" as keyof Task,
@@ -270,6 +277,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         leaveGroupModal: false,
         modalList: null,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "detail" as keyof Task,
@@ -282,6 +290,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
     ],
     [getReporterNames, getExecutorNames],
@@ -307,6 +316,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         statusCombobox: false,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
@@ -320,6 +330,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         leaveGroupModal: false,
         modalList: null,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "delete" as keyof Task,
@@ -335,6 +346,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         joinGroupModal: false,
         leaveGroupModal: false,
         modalList: null,
+        cellClassName: null,
       },
       {
         key: "detail" as keyof Task,
@@ -347,6 +359,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
     ],
     [canDeleteTask, handleDeleteTask, commonColumns],
@@ -380,6 +393,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
       {
@@ -394,6 +408,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: "text-center",
       },
       ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
@@ -408,6 +423,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         leaveGroupModal: false,
         modalList: null,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "delete" as keyof Task,
@@ -424,6 +440,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         leaveGroupModal: false,
         modalList: null,
         editTask: false,
+        cellClassName: null,
       },
       {
         key: "detail" as keyof Task,
@@ -437,6 +454,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
     ],
     [canDeleteTask, router, handleDeleteTask, commonColumns],

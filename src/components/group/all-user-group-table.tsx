@@ -49,6 +49,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         leaveGroupModal: false,
         editTask: false,
         deleteTask: null,
+        cellClassName: "text-center",
       },
       {
         key: "name" as keyof Group,
@@ -65,6 +66,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
             {row.name}
           </Link>
         ),
+        cellClassName: null,
       },
       {
         key: "maxParticipants" as keyof Group,
@@ -77,6 +79,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         deleteTask: null,
         modalList: null,
         cell: (row: Group) => `${row.joinMembersCount}人`,
+        cellClassName: "text-center",
       },
       {
         key: "maxParticipants" as keyof Group,
@@ -89,6 +92,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         deleteTask: null,
         modalList: null,
         cell: (row: Group) => `${row.maxParticipants}人`,
+        cellClassName: "text-center",
       },
       {
         key: "evaluationMethod" as keyof Group,
@@ -101,6 +105,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         deleteTask: null,
         modalList: null,
         cell: (row: Group) => row.evaluationMethod,
+        cellClassName: null,
       },
       {
         key: "goal" as keyof Group,
@@ -113,6 +118,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         deleteTask: null,
         modalList: null,
         cell: (row: Group) => row.goal,
+        cellClassName: null,
       },
       {
         key: "depositPeriod" as keyof Group,
@@ -125,6 +131,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         deleteTask: null,
         modalList: null,
         cell: (row: Group) => `${row.depositPeriod}日`,
+        cellClassName: "text-center",
       },
       {
         key: "createdBy" as keyof Group,
@@ -137,6 +144,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         deleteTask: null,
         modalList: null,
         cell: (row: Group) => row.createdBy,
+        cellClassName: null,
       },
     ],
     [handleJoin],

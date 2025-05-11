@@ -1,4 +1,4 @@
-// "use cache";
+"use cache";
 
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -15,8 +15,8 @@ export async function getCachedGroupList() {
   /**
    * キャッシュタグを設定
    * */
-  // cacheTag("groupList");
-  // cacheLife("hours");
+  cacheTag("groupList");
+  cacheLife("hours");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   /**
@@ -52,7 +52,7 @@ export async function getCachedGroupList() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   /**
-   * グループ一覧とメンバー数を返す
+   * グループ一覧のデータを整える
    * */
   const groups = groupsData.map((group) => ({
     id: group.id,
@@ -61,11 +61,9 @@ export async function getCachedGroupList() {
     evaluationMethod: group.evaluationMethod,
     maxParticipants: group.maxParticipants,
     depositPeriod: group.depositPeriod,
-    createdBy: group.user?.settings?.username ?? "不明なユーザー",
+    createdBy: group.user?.settings?.username ?? "未設定",
     joinMembersCount: group._count.members,
   }));
-
-  console.log(groups);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   /**

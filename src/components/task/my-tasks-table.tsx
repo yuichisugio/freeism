@@ -84,6 +84,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
             </Link>
           );
         },
+        cellClassName: null,
       },
       {
         key: "task",
@@ -96,6 +97,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "detail",
@@ -108,6 +110,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "reporters",
@@ -120,6 +123,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "executors",
@@ -132,6 +136,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "fixedContributionPoint",
@@ -147,6 +152,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: "text-center",
       },
       {
         key: "fixedEvaluator",
@@ -159,6 +165,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "fixedEvaluationLogic",
@@ -171,6 +178,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "status",
@@ -183,6 +191,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         modalList: null,
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "action",
@@ -195,6 +204,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         leaveGroupModal: false,
         modalList: null,
         deleteTask: null,
+        cellClassName: null,
       },
     ],
     [getReporterNames, getExecutorNames],

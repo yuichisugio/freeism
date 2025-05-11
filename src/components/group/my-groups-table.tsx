@@ -61,6 +61,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         ],
         editTask: false,
         deleteTask: null,
+        cellClassName: null,
       },
       {
         key: "group" as keyof MyGroupMembership,
@@ -77,6 +78,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
             {row.group.name}
           </Link>
         ),
+        cellClassName: null,
       },
       {
         key: "group" as keyof MyGroupMembership,
@@ -89,6 +91,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         editTask: false,
         deleteTask: null,
         cell: (row: MyGroupMembership) => totalPointsByGroup[row.group.id] ?? 0,
+        cellClassName: "text-center",
       },
       {
         key: "group" as keyof MyGroupMembership,
@@ -101,6 +104,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         editTask: false,
         deleteTask: null,
         cell: (row: MyGroupMembership) => `${row.group.maxParticipants}人`,
+        cellClassName: "text-center",
       },
       {
         key: "group" as keyof MyGroupMembership,
@@ -113,6 +117,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         editTask: false,
         deleteTask: null,
         cell: (row: MyGroupMembership) => row.group.evaluationMethod,
+        cellClassName: null,
       },
       {
         key: "group" as keyof MyGroupMembership,
@@ -125,6 +130,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         editTask: false,
         deleteTask: null,
         cell: (row: MyGroupMembership) => row.group.goal,
+        cellClassName: null,
       },
     ],
     [handleLeave, totalPointsByGroup],

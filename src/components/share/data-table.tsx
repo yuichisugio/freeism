@@ -45,6 +45,7 @@ export type Column<T> = {
   key: keyof T;
   header: string;
   cell: (row: T) => React.ReactNode | null;
+  cellClassName: string | null;
   sortable: boolean;
   statusCombobox: boolean;
   joinGroupModal: boolean;
@@ -76,12 +77,18 @@ export type DataTableProps<T> = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// DataTableコンポーネントのpropsの型を明示的にインターフェースとして定義
+/**
+ * DataTableコンポーネントのpropsの型を明示的にインターフェースとして定義
+ */
 type DataTableComponentProps<T extends { id: string; isJoined?: boolean }> = {
   dataTableProps: DataTableProps<T>;
 };
 
-// memo化する前の純粋な関数コンポーネント
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * DataTableコンポーネントの内部関数
+ */
 function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -158,7 +165,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                 <tr key={rowIndex} className="border-b border-blue-50 hover:bg-blue-50/50">
                   {/* 列ごとにデータを作成(セルを作成) */}
                   {columns.map((column, colIndex) => (
-                    <td key={colIndex} className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600")}>
+                    <td key={colIndex} className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600", column.cellClassName)}>
                       {/* ステータスコンボボックスの場合 */}
                       {column.statusCombobox
                         ? (() => {
