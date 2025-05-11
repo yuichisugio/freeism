@@ -1,11 +1,11 @@
 "use client";
 
 import type { Column, DataTableProps } from "@/components/share/data-table";
+import type { Group } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
 import { useAllUserGroupTable } from "@/hooks/group/use-all-user-group-table";
-import { type Group } from "@/types/group-types";
 import { UserPlus } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -19,7 +19,16 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   /**
    * カスタムフックを使用してグループ参加機能を実装
    */
-  const { groups, setGroups, handleJoin } = useAllUserGroupTable();
+  const {
+    // state
+    groups,
+    tableConditions,
+    isLoading,
+
+    // function
+    changeTableConditions,
+    handleJoin,
+  } = useAllUserGroupTable();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -37,7 +46,9 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
           {
             title: "グループに参加しますか？",
             description: "グループに参加すると、グループのメンバーとして参加できます。",
-            action: handleJoin,
+            action: async (groupId: string) => {
+              handleJoin(groupId);
+            },
             actionLabel: "参加する",
             triggerClassName: "button-join-custom",
             triggerContent: ["参加中", "参加"],
@@ -55,7 +66,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         key: "name" as keyof Group,
         header: "グループ名",
         statusCombobox: false,
-        sortable: true,
+        sortable: false,
         joinGroupModal: false,
         leaveGroupModal: false,
         editTask: false,
@@ -98,7 +109,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         key: "evaluationMethod" as keyof Group,
         header: "評価方法",
         statusCombobox: false,
-        sortable: true,
+        sortable: false,
         joinGroupModal: false,
         leaveGroupModal: false,
         editTask: false,
@@ -111,7 +122,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         key: "goal" as keyof Group,
         header: "グループ目標",
         statusCombobox: false,
-        sortable: true,
+        sortable: false,
         joinGroupModal: false,
         leaveGroupModal: false,
         editTask: false,
@@ -137,7 +148,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         key: "createdBy" as keyof Group,
         header: "作成者",
         statusCombobox: false,
-        sortable: true,
+        sortable: false,
         joinGroupModal: false,
         leaveGroupModal: false,
         editTask: false,
@@ -159,10 +170,10 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
     () => ({
       initialData: groups,
       columns: columns,
-      onDataChange: (data) => setGroups(data as unknown as Group[]),
+      onDataChange: () => null,
       editTask: null,
     }),
-    [groups, setGroups, columns],
+    [groups, columns],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -177,8 +188,16 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * ローディング中は、ローディング中の表示を返す
+   */
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * DataTableコンポーネントを返す。
-   * onDataChangeは、データが更新されたときに呼び出される関数で、DataTable内でデータ更新したらsetGroupsをDataTable内で呼び出し、↑のgroupsのStateを使用している部分も更新できるようにする。
    */
   return <DataTable dataTableProps={dataTableProps} />;
 });

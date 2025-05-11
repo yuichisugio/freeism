@@ -1,4 +1,19 @@
+import { type SortDirection } from "@/types/auction-types";
 import { type contributionType } from "@prisma/client";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * AllUserGroupTableのテーブルの条件の型
+ */
+export type TableConditions = {
+  sort: {
+    field: keyof Group;
+    direction: SortDirection;
+  } | null;
+  page: number;
+  searchQuery: string | null;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -2,7 +2,7 @@
 
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/types/auction-types";
 import { useCallback, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -37,7 +37,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   if (!userId) {
-    throw new Error("ユーザーIDが取得できませんでした");
+    redirect("/auth/signin");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -247,11 +247,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     queryFn: async () => await getAuctionListingsAndCount({ listingsConditions, userId }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchInterval: false,
-    refetchIntervalInBackground: false,
     enabled: !!listingsConditions && !!userId,
   });
 

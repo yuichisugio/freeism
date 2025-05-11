@@ -11,14 +11,27 @@ import { z } from "zod";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * グループ一覧を取得する関数
- * 全ユーザー共通なので、サーバー側でキャッシュする
+ * グループ一覧・ユーザーの参加しているグループ一覧を取得する関数
+ * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
  * @returns グループ一覧
  */
 export async function getGroupList() {
-  const groupsData = await getCachedGroupList();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return groupsData;
+  /**
+   * 認証処理
+   */
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ一覧を取得
+   */
+  const [cachedAllGroupsData, userJoinGroupIds] = await Promise.all([getCachedGroupList(), getUserJoinGroupIds(userId)]);
+  const returnGroupsData = cachedAllGroupsData.map((group) => ({ ...group, isJoined: userJoinGroupIds.includes(group.id) }));
+
+  return returnGroupsData;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -30,7 +43,7 @@ export async function getGroupList() {
  * @returns ユーザーのグループ一覧
  */
 export async function getUserJoinGroupIds(userId: string) {
-  const userJoinGroupIds = await prisma.groupMembership.findMany({
+  const userJoinGroups = await prisma.groupMembership.findMany({
     where: {
       userId: userId,
     },
@@ -39,7 +52,7 @@ export async function getUserJoinGroupIds(userId: string) {
     },
   });
 
-  return userJoinGroupIds;
+  return userJoinGroups.map((membership) => membership.groupId);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -145,6 +158,7 @@ export async function createGroup(data: CreateGroupFormData) {
  * @returns 処理結果を含むオブジェクト
  */
 export async function joinGroup(groupId: string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   try {
     // 認証処理
     const userId = await getAuthenticatedSessionUserId();
