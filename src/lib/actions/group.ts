@@ -34,6 +34,7 @@ export async function getGroupList(page: number, sortField: string, sortDirectio
     getCachedTotalGroupCount(),
   ]);
   const GroupList = cachedAllGroupsData.map((group) => ({ ...group, isJoined: userJoinGroupIds.includes(group.id) }));
+  console.log("src/lib/actions/group.ts_GroupList", GroupList);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

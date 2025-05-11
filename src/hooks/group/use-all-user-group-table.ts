@@ -1,7 +1,7 @@
 "use client";
 
 import type { Group, TableConditions } from "@/types/group-types";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getGroupList, joinGroup } from "@/lib/actions/group";
 import { type SortDirection } from "@/types/auction-types";
@@ -163,6 +163,10 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       await queryClient.invalidateQueries({ queryKey: ["all-user-group-table"], exact: false }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
     },
   });
+
+  useEffect(() => {
+    console.log("src/hooks/group/use-all-user-group-table.ts_data", data?.GroupList);
+  }, [data]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

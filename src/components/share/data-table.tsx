@@ -331,10 +331,11 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
               {!isFirstPage && (
                 <button
                   onClick={() => handlePageChange(1)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-3 text-sm shadow-sm transition-colors hover:bg-blue-50"
                   aria-label="最初のページへ"
                 >
-                  <ChevronsLeftIcon className="h-4 w-4" />
+                  <ChevronsLeftIcon className="mr-1 h-4 w-4" />
+                  <span className="hidden sm:block">最初</span>
                 </button>
               )}
 
@@ -342,7 +343,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
               {hasPreviousPage && (
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-5 text-sm shadow-sm transition-colors hover:bg-blue-50"
                   aria-label="前のページへ"
                 >
                   <PaginationPrevious className="h-4 w-4" />
@@ -369,7 +370,9 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                       disabled={isActive}
                       className={cn(
                         "mx-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors",
-                        isActive ? "border border-blue-600 bg-blue-50 text-blue-600" : "border border-blue-200 bg-white hover:bg-blue-50",
+                        isActive
+                          ? "cursor-not-allowed border border-blue-600 bg-blue-50 text-blue-600"
+                          : "border border-blue-200 bg-white hover:bg-blue-50",
                       )}
                       aria-current={isActive ? "page" : undefined}
                     >
@@ -383,7 +386,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
               {hasNextPage && (
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-5 text-sm shadow-sm transition-colors hover:bg-blue-50"
                   aria-label="次のページへ"
                 >
                   <PaginationNext className="h-4 w-4" />
@@ -394,10 +397,11 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
               {!isLastPage && totalPages > 0 && (
                 <button
                   onClick={() => handlePageChange(totalPages)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-white text-sm shadow-sm transition-colors hover:bg-blue-50"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-3 text-sm shadow-sm transition-colors hover:bg-blue-50"
                   aria-label="最後のページへ"
                 >
-                  <ChevronsRightIcon className="h-4 w-4" />
+                  <span className="hidden sm:block">最後</span>
+                  <ChevronsRightIcon className="ml-1 h-4 w-4" />
                 </button>
               )}
             </div>
