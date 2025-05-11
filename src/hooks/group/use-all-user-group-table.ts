@@ -35,7 +35,7 @@ export function useAllUserGroupTable() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループ参加関連機能
+   * グループのデータ取得
    */
   useEffect(() => {
     const fetchGroups = async () => {

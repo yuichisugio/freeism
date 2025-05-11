@@ -38,7 +38,6 @@ export type ModalListType = {
   triggerIcon: React.ReactNode | null;
   triggerContent: string[];
   triggerClassName: string | null;
-  isJoined: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -102,12 +101,12 @@ export type DataTableProps<T> = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // DataTableコンポーネントのpropsの型を明示的にインターフェースとして定義
-type DataTableComponentProps<T extends { id: string }> = {
+type DataTableComponentProps<T extends { id: string; isJoined?: boolean }> = {
   dataTableProps: DataTableProps<T>;
 };
 
 // memo化する前の純粋な関数コンポーネント
-function DataTableInner<T extends { id: string }>(props: DataTableComponentProps<T>) {
+function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -371,7 +370,7 @@ function DataTableInner<T extends { id: string }>(props: DataTableComponentProps
                                   // 参加モーダーの場合のみ、ボタンを無効化する
                                   const isJoinModal = column.joinGroupModal;
                                   // isJoined を型安全に取得
-                                  const isJoined = modal.isJoined;
+                                  const isJoined = row.isJoined;
                                   // 参加モーダーなら、参加中の場合は [0] を、未参加の場合は [1] を表示
                                   const buttonText = isJoinModal
                                     ? isJoined
@@ -464,4 +463,4 @@ function DataTableInner<T extends { id: string }>(props: DataTableComponentProps
 }
 
 // memo化し、型アサーションでジェネリック型を明示
-export const DataTable = memo(DataTableInner) as <T extends { id: string }>(props: DataTableComponentProps<T>) => JSX.Element;
+export const DataTable = memo(DataTableInner) as <T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) => JSX.Element;

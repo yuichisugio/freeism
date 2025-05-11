@@ -31,14 +31,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "id" as keyof Group,
         header: "Group操作",
-        cell: () => null,
-        className: null,
-        statusCombobox: false,
         sortable: true,
         joinGroupModal: true,
-        leaveGroupModal: false,
-        editTask: false,
-        deleteTask: null,
         modalList: [
           {
             title: "グループに参加しますか？",
@@ -48,9 +42,14 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
             triggerClassName: "button-join-custom",
             triggerContent: ["参加中", "参加"],
             triggerIcon: <UserPlus className="h-4 w-4" />,
-            isJoined: false,
           },
         ],
+        cell: () => null,
+        className: null,
+        statusCombobox: false,
+        leaveGroupModal: false,
+        editTask: false,
+        deleteTask: null,
       },
       {
         key: "name" as keyof Group,
