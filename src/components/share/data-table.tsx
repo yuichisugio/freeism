@@ -46,7 +46,6 @@ export type Column<T> = {
   header: string;
   cell: (row: T) => React.ReactNode | null;
   sortable: boolean;
-  className: string | null;
   statusCombobox: boolean;
   joinGroupModal: boolean;
   leaveGroupModal: boolean;
@@ -159,7 +158,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                 <tr key={rowIndex} className="border-b border-blue-50 hover:bg-blue-50/50">
                   {/* 列ごとにデータを作成(セルを作成) */}
                   {columns.map((column, colIndex) => (
-                    <td key={colIndex} className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600", column.className)}>
+                    <td key={colIndex} className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600")}>
                       {/* ステータスコンボボックスの場合 */}
                       {column.statusCombobox
                         ? (() => {

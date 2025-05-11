@@ -167,7 +167,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         key: "task" as keyof Task,
         header: "TASK",
         cell: (row: Task) => (row as unknown as Task).task ?? "不明",
-        className: null,
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -180,7 +179,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         key: "name" as keyof Task,
         header: "作成者",
         cell: (row: Task) => (row as unknown as Task).creator.name ?? "-",
-        className: null,
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -199,7 +197,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
           }
           return "-";
         },
-        className: null,
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -218,7 +215,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
           }
           return "-";
         },
-        className: null,
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -231,7 +227,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         key: "fixedEvaluator" as keyof Task,
         header: "評価者",
         cell: (row: Task) => (row as unknown as Task).fixedEvaluator ?? "-",
-        className: null,
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -244,7 +239,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         key: "fixedEvaluationLogic" as keyof Task,
         header: "評価ロジック",
         cell: (row: Task) => (row as unknown as Task).fixedEvaluationLogic ?? "-",
-        className: null,
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -256,7 +250,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       {
         key: "status" as keyof Task,
         header: "ステータス",
-        className: null,
         cell: () => null,
         statusCombobox: true,
         sortable: true,
@@ -269,7 +262,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       {
         key: "action" as keyof Task,
         header: "アクション",
-        className: null,
         cell: () => null,
         sortable: false,
         statusCombobox: false,
@@ -283,7 +275,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         key: "detail" as keyof Task,
         header: "詳細",
         cell: (row: Task) => (row as unknown as Task).detail ?? "-",
-        className: null,
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -313,7 +304,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
           return typedRow.fixedContributionPoint ? `${typedRow.fixedContributionPoint}p` : "評価待ち";
         },
         sortable: true,
-        className: null,
         statusCombobox: false,
         editTask: false,
         deleteTask: null,
@@ -324,7 +314,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         cell: () => null,
         header: "アクション",
         sortable: false,
-        className: null,
         statusCombobox: false,
         editTask: true,
         joinGroupModal: false,
@@ -337,7 +326,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         cell: () => null,
         header: "削除",
         sortable: false,
-        className: null,
         statusCombobox: false,
         editTask: false,
         deleteTask: {
@@ -353,7 +341,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         header: "詳細",
         cell: (row: Task) => (row as unknown as Task).detail ?? "-",
         sortable: false,
-        className: null,
         statusCombobox: false,
         joinGroupModal: false,
         leaveGroupModal: false,

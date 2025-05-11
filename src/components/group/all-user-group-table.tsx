@@ -45,7 +45,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
           },
         ],
         cell: () => null,
-        className: null,
         statusCombobox: false,
         leaveGroupModal: false,
         editTask: false,
@@ -54,7 +53,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "name" as keyof Group,
         header: "グループ名",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
@@ -71,7 +69,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "maxParticipants" as keyof Group,
         header: "参加人数",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
@@ -84,7 +81,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "maxParticipants" as keyof Group,
         header: "参加可能上限数",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
@@ -97,7 +93,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "evaluationMethod" as keyof Group,
         header: "評価方法",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
@@ -110,7 +105,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "goal" as keyof Group,
         header: "グループ目標",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
@@ -123,7 +117,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "depositPeriod" as keyof Group,
         header: "デポジット期間",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
@@ -136,7 +129,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "createdBy" as keyof Group,
         header: "作成者",
-        className: null,
         statusCombobox: false,
         sortable: true,
         joinGroupModal: false,
