@@ -462,9 +462,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     () => ({
       initialData: nonRewardTasks as unknown as Task[],
       columns: nonRewardColumns as unknown as Column<Task>[],
-      pagination: true,
       onDataChange: (data) => updateNonRewardTasks(data as unknown as Task[]),
-      stickyHeader: true,
       editTask: {
         canEdit: (row) => canEditTask(row as unknown as Task),
         onEdit: () => handleTaskEdited(),
@@ -475,18 +473,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
             }))
           : [],
       },
-      deleteModal: {
-        title: "タスクを削除",
-        description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
-        actionLabel: "削除する",
-      },
-      renderEditModal: () => null,
-      className: null,
-      onSort: () => null,
-      maxHeight: null,
-      rowClassName: null,
-      headerClassName: null,
-      cellClassName: null,
     }),
     [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
   );
@@ -497,9 +483,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     () => ({
       initialData: rewardTasks as unknown as Task[],
       columns: rewardColumns as unknown as Column<Task>[],
-      pagination: true,
       onDataChange: (data) => updateRewardTasks(data as unknown as Task[]),
-      stickyHeader: true,
       editTask: {
         canEdit: (row) => canEditTask(row as unknown as Task),
         onEdit: () => handleTaskEdited(),
@@ -510,18 +494,6 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
             }))
           : [],
       },
-      deleteModal: {
-        title: "タスクを削除",
-        description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。タスクに関連するデータも全て削除されます。",
-        actionLabel: "削除する",
-      },
-      renderEditModal: () => null,
-      className: null,
-      onSort: () => null,
-      maxHeight: null,
-      rowClassName: null,
-      headerClassName: null,
-      cellClassName: null,
     }),
     [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],
   );

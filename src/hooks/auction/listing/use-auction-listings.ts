@@ -23,6 +23,8 @@ type UseAuctionListingsReturn = {
   setListingsConditions: (newListingsConditions: AuctionListingsConditions) => void;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークション一覧画面のロジックを管理するカスタムフック
  * @returns オークション一覧画面のロジック

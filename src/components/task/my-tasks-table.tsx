@@ -221,15 +221,6 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       onEdit: () => handleTaskEdited(),
       users: getSimpleUsers(),
     },
-    className: null,
-    maxHeight: null,
-    rowClassName: null,
-    headerClassName: null,
-    cellClassName: null,
-    stickyHeader: false,
-    deleteModal: null,
-    renderEditModal: () => null,
-    pagination: true,
   };
 
   return <DataTable dataTableProps={dataTableProps} />;

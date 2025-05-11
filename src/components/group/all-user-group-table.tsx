@@ -159,18 +159,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
     () => ({
       initialData: groups,
       columns: columns,
-      pagination: true,
       onDataChange: (data) => setGroups(data as unknown as Group[]),
-      className: null,
-      onSort: () => null,
-      maxHeight: null,
-      rowClassName: null,
-      headerClassName: null,
-      cellClassName: null,
-      stickyHeader: false,
       editTask: null,
-      deleteModal: null,
-      renderEditModal: () => null,
     }),
     [groups, setGroups, columns],
   );

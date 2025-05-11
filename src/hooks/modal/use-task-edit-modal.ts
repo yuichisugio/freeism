@@ -1,6 +1,5 @@
 "use client";
 
-import type { EditableTask } from "@/hooks/task/use-task-editor";
 import type { Task, TaskParticipant } from "@/types/group-types";
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -68,7 +67,7 @@ export type TaskFormValues = z.infer<typeof formSchema>;
 export type UseTaskEditModalProps = {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
-  task: Task | EditableTask | null;
+  task: Task | null;
   users?: User[];
   onTaskUpdated?: () => void;
 };
@@ -151,13 +150,12 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
   // タスクデータが変更されたときにフォームをリセット
   useEffect(() => {
     if (task) {
-      // EditableTaskとTaskの両方に対応するため、安全にアクセス
       const taskName = typeof task.task === "string" ? task.task : "";
       const taskDetail = typeof task.detail === "string" ? task.detail : "";
       const taskReference = typeof task.reference === "string" ? task.reference : "";
       const taskInfo = typeof task.info === "string" ? task.info : "";
       const taskImageUrl = typeof task.imageUrl === "string" ? task.imageUrl : "";
-      const taskContributionType = task.contributionType as contributionType;
+      const taskContributionType = task.contributionType;
       const taskCategory = typeof task.category === "string" ? task.category : "その他";
 
       form.reset({

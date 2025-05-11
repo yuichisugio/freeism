@@ -145,17 +145,8 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
     () => ({
       initialData: memberships,
       columns: columns,
-      pagination: true,
       onDataChange: setMemberships,
-      className: null,
-      maxHeight: null,
-      rowClassName: null,
-      headerClassName: null,
-      cellClassName: null,
-      stickyHeader: false,
       editTask: null,
-      deleteModal: null,
-      renderEditModal: () => null,
     }),
     [memberships, setMemberships, columns],
   );

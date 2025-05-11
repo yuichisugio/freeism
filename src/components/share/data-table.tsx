@@ -1,7 +1,6 @@
 "use client";
 
-import type { Task } from "@/types/group-types";
-import { memo, useCallback, useEffect } from "react";
+import { memo, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,13 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSortableTable } from "@/hooks/table/use-sortable-table";
-import { useTaskEditor } from "@/hooks/task/use-task-editor";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { cn } from "@/lib/utils";
 import { ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-import { TaskEditModal } from "../task/task-edit-modal";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -71,31 +67,12 @@ export type Column<T> = {
 export type DataTableProps<T> = {
   initialData: T[];
   columns: Column<T>[];
-  className: string | null;
-  pagination: boolean;
   onDataChange: (data: T[]) => void | null;
-  maxHeight: string | null;
-  rowClassName: string | null;
-  headerClassName: string | null;
-  cellClassName: string | null;
-  stickyHeader: boolean;
   editTask: {
     canEdit: (row: T) => boolean;
     onEdit: (row: T) => void;
     users: { id: string; name: string }[] | null;
   } | null;
-  deleteModal: {
-    title: string;
-    description: string;
-    actionLabel: string;
-  } | null;
-  renderEditModal: (props: {
-    editingTask: T | null;
-    modalOpen: boolean;
-    setModalOpen: (open: boolean) => void;
-    onTaskUpdated: () => void;
-    users: { id: string; name: string }[] | null;
-  }) => React.ReactNode | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -112,25 +89,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   /**
    * コンポーネントの引数
    */
-  const {
-    initialData,
-    columns,
-    className,
-    pagination,
-    onDataChange,
-    maxHeight = "h-[calc(100vh-16rem)]",
-    rowClassName = "border-b border-blue-50 hover:bg-blue-50/50",
-    headerClassName = "border-b border-blue-100 bg-blue-50",
-    cellClassName = "px-5 py-3 text-sm whitespace-nowrap text-neutral-600",
-    stickyHeader = true,
-    editTask,
-    deleteModal = {
-      title: "タスクを削除",
-      description: "このタスクを削除してもよろしいですか？この操作は元に戻せません。",
-      actionLabel: "削除する",
-    },
-    renderEditModal,
-  } = props.dataTableProps;
+  const { initialData, columns, onDataChange, editTask } = props.dataTableProps;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -145,38 +104,6 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
    * タスクステータス管理フック
    */
   const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange ? (updatedData) => onDataChange(updatedData) : undefined);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク編集フック
-   */
-  const { editingTask, editModalOpen, setEditModalOpen, handleEditTask: handleEditTaskBase } = useTaskEditor<T>();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク編集ハンドララッパー
-   */
-  const handleEditTask = useCallback(
-    (row: T) => {
-      if (editTask?.canEdit) {
-        handleEditTaskBase(row, editTask.canEdit);
-      }
-    },
-    [editTask, handleEditTaskBase],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク更新後のハンドラ
-   */
-  const handleTaskUpdated = useCallback(() => {
-    if (editTask?.onEdit && editingTask) {
-      editTask.onEdit(editingTask);
-    }
-  }, [editTask, editingTask]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -197,26 +124,17 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   return (
     <>
       {/* テーブルの外側のdiv */}
-      <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm", className)}>
+      <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm")}>
         {/* テーブルの内側のdiv */}
-        <div
-          className={cn(
-            "relative w-full table-auto overflow-x-auto overflow-y-auto",
-            maxHeight ? maxHeight.replace(/^h-/, "max-h-") : pagination ? "max-h-[calc(100vh-16rem)]" : "",
-          )}
-        >
+        <div className="relative h-[calc(100vh-16rem)] w-full table-auto overflow-x-auto overflow-y-auto">
           <table>
             {/* テーブルのヘッダー */}
-            <thead className={cn(headerClassName, "bg-white")}>
+            <thead className="border-b border-blue-100 bg-blue-50">
               <tr>
                 {columns.map((column, index) => (
                   <th
                     key={index}
-                    className={cn(
-                      "w-full px-5 py-3 text-left text-sm font-medium",
-                      headerClassName,
-                      stickyHeader && "sticky top-0 z-20 border-b border-blue-100 shadow-md",
-                    )}
+                    className="sticky top-0 z-20 w-full border-b border-blue-100 bg-blue-50 px-5 py-3 text-left text-sm font-medium shadow-md"
                   >
                     {column.sortable ? (
                       <button
@@ -238,10 +156,10 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
             <tbody>
               {/* テーブルの行ごとに繰り返す */}
               {sortedData.map((row, rowIndex) => (
-                <tr key={rowIndex} className={rowClassName ?? ""}>
+                <tr key={rowIndex} className="border-b border-blue-50 hover:bg-blue-50/50">
                   {/* 列ごとにデータを作成(セルを作成) */}
                   {columns.map((column, colIndex) => (
-                    <td key={colIndex} className={cn(cellClassName, column.className)}>
+                    <td key={colIndex} className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600", column.className)}>
                       {/* ステータスコンボボックスの場合 */}
                       {column.statusCombobox
                         ? (() => {
@@ -300,7 +218,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleEditTask(row)}
+                                  onClick={() => editTask.onEdit(row)}
                                   disabled={!canEdit}
                                   className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}
                                 >
@@ -335,9 +253,9 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
-                                        <AlertDialogTitle>{deleteModal?.title ?? "タスクを削除"}</AlertDialogTitle>
+                                        <AlertDialogTitle>{"タスクを削除"}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          {deleteModal?.description ?? "このタスクを削除してもよろしいですか？"}
+                                          {"このタスクを削除してもよろしいですか？この操作は元に戻せません。"}
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
@@ -356,7 +274,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                                           }}
                                           className="bg-red-500 hover:bg-red-600"
                                         >
-                                          {deleteModal?.actionLabel ?? "削除する"}
+                                          {"削除する"}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -420,43 +338,19 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
         </div>
 
         {/* ページネーション */}
-        {pagination && (
-          <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
-            <div className="text-sm text-neutral-600">
-              Showing 1-{sortedData.length} of {sortedData.length}
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" className="text-neutral-600" disabled>
-                Next
-              </Button>
-            </div>
+        <div className="flex items-center justify-between border-t border-blue-100 px-4 py-1">
+          <div className="text-sm text-neutral-600">
+            Showing 1-{sortedData.length} of {sortedData.length}
           </div>
-        )}
-
-        {/* カスタム編集モーダル */}
-        {renderEditModal &&
-          editingTask &&
-          renderEditModal({
-            editingTask,
-            modalOpen: editModalOpen,
-            setModalOpen: setEditModalOpen,
-            onTaskUpdated: handleTaskUpdated,
-            users: editTask?.users ?? null,
-          })}
-
-        {/* デフォルトの編集モーダル（renderEditModalが提供されていない場合） */}
-        {!renderEditModal && editingTask && editTask?.users && (
-          <TaskEditModal
-            open={editModalOpen}
-            onOpenChangeAction={setEditModalOpen}
-            task={editingTask as unknown as Task}
-            users={editTask.users}
-            onTaskUpdated={handleTaskUpdated}
-          />
-        )}
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" className="text-neutral-600" disabled>
+              Next
+            </Button>
+          </div>
+        </div>
       </div>
     </>
   );
