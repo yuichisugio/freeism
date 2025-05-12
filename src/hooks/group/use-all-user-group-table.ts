@@ -1,7 +1,7 @@
 "use client";
 
 import type { Group, TableConditions } from "@/types/group-types";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getGroupList, joinGroup } from "@/lib/actions/group";
 import { type SortDirection } from "@/types/auction-types";
@@ -38,34 +38,49 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   const searchParams = useSearchParams();
 
-  // ページ数のURLパラメータ
-  const currentPage = Number(searchParams.get("page") ?? 1);
+  const getListingsConditionsFromParams = useCallback((): TableConditions => {
+    // ページ数のURLパラメータ
+    const currentPage = Number(searchParams.get("page") ?? 1);
 
-  // ソートのURLパラメータ
-  const currentSort = searchParams.get("sort") as keyof Group | null;
+    // ソートのURLパラメータ
+    const currentSortField = searchParams.get("sort_field") as keyof Group | null;
 
-  // ソートの降順/昇順の方向のURLパラメータ
-  const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
+    // ソートの降順/昇順の方向のURLパラメータ
+    const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
 
-  // 検索クエリのURLパラメータ
-  const currentQuery = searchParams.get("q");
+    // 検索クエリのURLパラメータ
+    const currentQuery = searchParams.get("q");
+
+    // データ取得のためのパラメータを返す
+    return {
+      sort:
+        currentSortField && currentSortDirection
+          ? {
+              field: currentSortField,
+              direction: currentSortDirection,
+            }
+          : null,
+      page: currentPage,
+      searchQuery: currentQuery,
+    };
+  }, [searchParams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * テーブルの条件を管理する
    */
-  const [tableConditions, setTableConditions] = useState<TableConditions>({
-    sort:
-      currentSort && currentSortDirection
-        ? {
-            field: currentSort,
-            direction: currentSortDirection,
-          }
-        : null,
-    page: currentPage,
-    searchQuery: currentQuery,
-  });
+  const [tableConditions, setTableConditions] = useState<TableConditions>(getListingsConditionsFromParams());
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * URLパラメータが変更された際に、listingsConditionsを更新
+   * ブラウザの戻るボタンを押してURLが変わった場合に、データを反映させるために必要
+   */
+  useEffect(() => {
+    setTableConditions(getListingsConditionsFromParams());
+  }, [searchParams, getListingsConditionsFromParams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -98,12 +113,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
       // ソートする列
       if (newListingsConditions.sort.field) {
-        params.set("sort", newListingsConditions.sort.field);
+        params.set("sort_field", newListingsConditions.sort.field);
         console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_firstSort.field", newListingsConditions.sort.field);
       }
 
       // ソート方向
-      if (newListingsConditions.sort.direction && newListingsConditions.sort.direction !== "desc") {
+      if (newListingsConditions.sort.direction) {
         params.set("sort_direction", newListingsConditions.sort.direction);
         console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_firstSort.direction", newListingsConditions.sort.direction);
       }
@@ -147,6 +162,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!tableConditions,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  useEffect(() => {
+    console.log("src/hooks/group/use-all-user-group-table.ts_data", data);
+  }, [data]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

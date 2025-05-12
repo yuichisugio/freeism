@@ -1,5 +1,6 @@
 "use cache";
 
+import type { Prisma } from "@prisma/client";
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
@@ -39,12 +40,21 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
   /**
    * sortの条件
    */
-  if (sortField === "joinMembersCount") {
-    sortField = "_count.members";
+  let orderBy: Prisma.GroupOrderByWithRelationInput;
+  if (sortField === "currentParticipants") {
+    orderBy = {
+      members: {
+        _count: sortDirection as Prisma.SortOrder,
+      },
+    };
   } else if (sortField === "isJoined") {
-    // CL側でソートするため、一旦createdAtでソート
-    sortField = "createdAt";
-    sortDirection = "desc";
+    orderBy = {
+      createdAt: sortDirection as Prisma.SortOrder,
+    };
+  } else {
+    orderBy = {
+      [sortField]: sortDirection as Prisma.SortOrder,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -77,9 +87,7 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
         },
       },
     },
-    orderBy: {
-      [sortField]: sortDirection,
-    },
+    orderBy: orderBy,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

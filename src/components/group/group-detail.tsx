@@ -483,6 +483,13 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPageChange: () => {},
       },
+      sort: {
+        field: "contributionPoint",
+        direction: "desc",
+        onSortChange: (field: keyof Task) => {
+          console.log(field);
+        },
+      },
     }),
     [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
   );
@@ -509,6 +516,13 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         currentPage: 1,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPageChange: () => {},
+      },
+      sort: {
+        field: "contributionPoint",
+        direction: "desc",
+        onSortChange: (field: keyof Task) => {
+          console.log(field);
+        },
       },
     }),
     [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],

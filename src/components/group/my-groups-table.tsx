@@ -153,6 +153,13 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPageChange: () => {},
       },
+      sort: {
+        field: "contributionPoint",
+        direction: "desc",
+        onSortChange: (field: keyof MyGroupMembership) => {
+          console.log(field);
+        },
+      },
     }),
     [memberships, setMemberships, columns],
   );

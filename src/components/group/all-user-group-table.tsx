@@ -40,8 +40,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   const columns: Column<Group>[] = useMemo(
     () => [
       {
-        key: "id" as keyof Group,
-        header: "Group操作",
+        key: "isJoined" as keyof Group,
+        header: "参加Flag",
         sortable: true,
         joinGroupModal: true,
         modalList: [
@@ -82,7 +82,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         cellClassName: null,
       },
       {
-        key: "maxParticipants" as keyof Group,
+        key: "currentParticipants" as keyof Group,
         header: "参加人数",
         statusCombobox: false,
         sortable: true,

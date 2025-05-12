@@ -227,6 +227,11 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       onPageChange: () => {},
     },
+    sort: {
+      onSortChange: (field: keyof MyTask) => {
+        console.log(field);
+      },
+    },
   };
 
   return <DataTable dataTableProps={dataTableProps} />;

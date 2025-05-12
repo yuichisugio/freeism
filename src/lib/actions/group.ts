@@ -34,7 +34,6 @@ export async function getGroupList(page: number, sortField: string, sortDirectio
     getCachedTotalGroupCount(),
   ]);
   const GroupList = cachedAllGroupsData.map((group) => ({ ...group, isJoined: userJoinGroupIds.includes(group.id) }));
-  console.log("src/lib/actions/group.ts_GroupList", GroupList);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -44,16 +43,24 @@ export async function getGroupList(page: number, sortField: string, sortDirectio
   if (sortField === "isJoined") {
     const sortedGroupList = [...GroupList].sort((a, b) => {
       // boolean値を数値に変換 (true: 1, false: 0)
+      // a.isJoined: グループaに参加済みならtrue (1)、未参加ならfalse (0)
+      // b.isJoined: グループbに参加済みならtrue (1)、未参加ならfalse (0)
       const valueA = Number(a.isJoined);
       const valueB = Number(b.isJoined);
 
       if (sortDirection === "asc") {
-        return valueA - valueB; // 昇順: false (0) が先
+        // 参加済み (1) を先に表示 (降順ソート)
+        return valueB - valueA;
       }
-      return valueB - valueA; // 降順: true (1) が先
+      // desc の場合: 未参加 (0) を先に表示 (昇順ソート)
+      return valueA - valueB;
     });
     return { GroupList: sortedGroupList, totalGroupCount };
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/lib/actions/group.ts_GroupList", GroupList);
 
   return { GroupList, totalGroupCount };
 }
