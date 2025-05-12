@@ -1,7 +1,7 @@
 "use client";
 
 import type { Group, TableConditions } from "@/types/group-types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getGroupList, joinGroup } from "@/lib/actions/group";
 import { type SortDirection } from "@/types/auction-types";
@@ -135,7 +135,11 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * データ取得
    * TODO: searchQueryの検索は未実装
    */
-  const { data, isPending: isGroupsLoading } = useQuery({
+  const {
+    data,
+    isFetching: isGroupsFetching,
+    isPending: isGroupsPending,
+  } = useQuery({
     queryKey: ["all-user-group-table", tableConditions],
     queryFn: async () =>
       await getGroupList(tableConditions.page, tableConditions.sort?.field ?? "createdAt", tableConditions.sort?.direction ?? "desc"),
@@ -164,10 +168,6 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     },
   });
 
-  useEffect(() => {
-    console.log("src/hooks/group/use-all-user-group-table.ts_data", data?.GroupList);
-  }, [data]);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -193,7 +193,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     // state
     groups: data?.GroupList ?? [],
     totalGroupCount: data?.totalGroupCount ?? 0,
-    isLoading: isGroupsLoading || isJoinLoading,
+    isLoading: isGroupsFetching || isJoinLoading || isGroupsPending,
     tableConditions,
 
     // function

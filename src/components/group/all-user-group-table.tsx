@@ -4,6 +4,8 @@ import type { Column, DataTableProps, Group } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/share/data-table";
+import { Loading } from "@/components/share/loading";
+import { NoResult } from "@/components/share/no-result";
 import { useAllUserGroupTable } from "@/hooks/group/use-all-user-group-table";
 import { UserPlus } from "lucide-react";
 
@@ -184,19 +186,20 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループがない場合は、グループがない旨を表示
+   * ローディング中は、ローディング中の表示を返す
+   * groups.length === 0より先に記載して、Loading中ならLoading中の表示を返す
    */
-  if (groups.length === 0) {
-    return <div>グループがありません</div>;
+  if (isLoading) {
+    return <Loading />;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ローディング中は、ローディング中の表示を返す
+   * グループがない場合は、グループがない旨を表示
    */
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (groups.length === 0) {
+    return <NoResult message="グループがありません" />;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
