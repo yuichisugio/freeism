@@ -162,6 +162,7 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
       },
       filter: [
         {
+          filterType: "input",
           filterText: "",
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           onFilterChange: () => {},

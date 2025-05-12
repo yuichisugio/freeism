@@ -52,6 +52,9 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     // 検索クエリのURLパラメータ
     const currentQuery = searchParams.get("q");
 
+    // グループ参加状態のURLパラメータ
+    const currentIsJoined = searchParams.get("is_joined") as "true" | "false" | null;
+
     // データ取得のためのパラメータを返す
     return {
       sort:
@@ -63,6 +66,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
           : null,
       page: currentPage,
       searchQuery: currentQuery,
+      isJoined: currentIsJoined,
     };
   }, [searchParams]);
 
@@ -134,6 +138,13 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // グループ参加状態
+    if (newListingsConditions.isJoined) {
+      params.set("is_joined", newListingsConditions.isJoined);
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // URLパラメータを作成
     const newUrl = `/dashboard/grouplist${params.toString() ? `?${params.toString()}` : ""}`;
 
@@ -149,7 +160,6 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
   /**
    * データ取得
-   * TODO: searchQueryの検索は未実装
    */
   const {
     data,
@@ -158,12 +168,13 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
   } = useQuery({
     queryKey: ["all-user-group-table", tableConditions],
     queryFn: async () =>
-      await getAllUserGroupsAndCount(
-        tableConditions.page,
-        tableConditions.sort?.field ?? "createdAt",
-        tableConditions.sort?.direction ?? "desc",
-        tableConditions.searchQuery ?? "",
-      ),
+      await getAllUserGroupsAndCount({
+        page: tableConditions.page,
+        sortField: tableConditions.sort?.field ?? "createdAt",
+        sortDirection: tableConditions.sort?.direction ?? "desc",
+        searchQuery: tableConditions.searchQuery ?? "",
+        isJoined: tableConditions.isJoined,
+      }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!tableConditions,

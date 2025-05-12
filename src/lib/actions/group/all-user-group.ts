@@ -8,20 +8,40 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * getAllUserGroupsAndCountのpropsの型
+ */
+type getAllUserGroupsAndCountProps = {
+  page: number;
+  sortField: string;
+  sortDirection: string;
+  searchQuery: string;
+  isJoined: "true" | "false" | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * グループ一覧・ユーザーの参加しているグループ一覧を取得する関数
  * userごとなので、サーバー側でキャッシュしない
  * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
  * @returns グループ一覧
  */
-export async function getAllUserGroupsAndCount(page: number, sortField: string, sortDirection: string, searchQuery: string) {
+export async function getAllUserGroupsAndCount({ page, sortField, sortDirection, searchQuery, isJoined }: getAllUserGroupsAndCountProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 認証処理
+   */
+  const userId = await getAuthenticatedSessionUserId();
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループ一覧と総数を取得
    */
   const [AllUserGroupList, AllUserGroupTotalCount] = await Promise.all([
-    getAllUserGroups(page, sortField, sortDirection, searchQuery),
-    getAllUserGroupsCount(searchQuery),
+    getAllUserGroups(page, sortField, sortDirection, searchQuery, isJoined, userId),
+    getAllUserGroupsCount(searchQuery, isJoined, userId),
   ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -38,16 +58,18 @@ export async function getAllUserGroupsAndCount(page: number, sortField: string, 
  * ユーザーの参加しているグループ一覧を取得する関数
  * @returns ユーザーの参加しているグループ一覧
  */
-export async function getAllUserGroups(page: number, sortField: string, sortDirection: string, searchQuery: string) {
-  /**
-   * 認証処理
-   */
-  const userId = await getAuthenticatedSessionUserId();
-
+export async function getAllUserGroups(
+  page: number,
+  sortField: string,
+  sortDirection: string,
+  searchQuery: string,
+  isJoined: "true" | "false" | null,
+  userId: string,
+) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * sortの条件
+   * グループ一覧のsortの条件
    */
   let orderBy: Prisma.GroupOrderByWithRelationInput;
   if (sortField === "currentParticipants") {
@@ -63,6 +85,42 @@ export async function getAllUserGroups(page: number, sortField: string, sortDire
   } else {
     orderBy = {
       [sortField]: sortDirection as Prisma.SortOrder,
+    };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ一覧のwhereの条件
+   */
+  let where: Prisma.GroupWhereInput = {};
+  // 参加しているグループの場合
+  if (isJoined === "true") {
+    where = {
+      members: {
+        some: {
+          userId: userId,
+        },
+      },
+    };
+  } else if (isJoined === "false") {
+    // 参加していないグループの場合
+    where = {
+      members: {
+        none: {
+          userId: userId,
+        },
+      },
+    };
+  }
+
+  // 検索クエリがある場合
+  if (searchQuery) {
+    where = {
+      ...where,
+      name: {
+        contains: searchQuery,
+      },
     };
   }
 
@@ -105,11 +163,7 @@ export async function getAllUserGroups(page: number, sortField: string, sortDire
       },
     },
     orderBy: orderBy,
-    where: {
-      name: {
-        contains: searchQuery,
-      },
-    },
+    where: where,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -153,13 +207,47 @@ export async function getAllUserGroups(page: number, sortField: string, sortDire
  * ユーザーの参加しているグループ一覧の総数を取得する関数
  * @returns ユーザーの参加しているグループ一覧の総数
  */
-export async function getAllUserGroupsCount(searchQuery: string) {
-  return prisma.group.count({
-    where: {
+export async function getAllUserGroupsCount(searchQuery: string, isJoined: "true" | "false" | null, userId: string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ一覧のwhereの条件
+   */
+  let where: Prisma.GroupWhereInput = {};
+  // 参加しているグループの場合
+  if (isJoined === "true") {
+    where = {
+      members: {
+        some: {
+          userId: userId,
+        },
+      },
+    };
+  } else if (isJoined === "false") {
+    // 参加していないグループの場合
+    where = {
+      members: {
+        none: {
+          userId: userId,
+        },
+      },
+    };
+  }
+
+  // 検索クエリがある場合
+  if (searchQuery) {
+    where = {
+      ...where,
       name: {
         contains: searchQuery,
       },
-    },
+    };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  return prisma.group.count({
+    where: where, // 修正：isJoinedに応じたwhere条件を使用
   });
 }
 

@@ -488,6 +488,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       },
       filter: [
         {
+          filterType: "input",
           filterText: "",
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           onFilterChange: () => {},
@@ -530,6 +531,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       },
       filter: [
         {
+          filterType: "input",
           filterText: "",
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           onFilterChange: () => {},

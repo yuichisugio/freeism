@@ -190,9 +190,20 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       },
       filter: [
         {
+          filterType: "input",
           filterText: tableConditions.searchQuery ?? "",
           onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, searchQuery: value }),
           placeholder: "グループ名で絞り込み...",
+        },
+        {
+          filterType: "radio",
+          filterText: tableConditions.isJoined ?? "",
+          onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "true" | "false" }),
+          placeholder: "グループ参加状態で絞り込み...",
+          radioOptions: [
+            { value: "true", label: "参加中" },
+            { value: "false", label: "参加していない" },
+          ],
         },
       ],
     }),

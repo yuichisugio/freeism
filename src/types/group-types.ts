@@ -65,6 +65,7 @@ export type DataTableProps<T> = {
   } | null;
   filter:
     | {
+        filterType: "input" | "radio";
         filterText: string;
         onFilterChange: (value: string) => void;
         placeholder: string;
@@ -93,6 +94,7 @@ export type TableConditions = {
   } | null;
   page: number;
   searchQuery: string | null;
+  isJoined: "true" | "false" | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

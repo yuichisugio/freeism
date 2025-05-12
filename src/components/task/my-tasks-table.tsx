@@ -236,6 +236,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
     },
     filter: [
       {
+        filterType: "input",
         filterText: "",
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onFilterChange: () => {},
