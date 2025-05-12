@@ -109,7 +109,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
       {/* テーブルの外側のdiv */}
       <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm")}>
         {/* テーブルの内側のdiv */}
-        <div className="relative h-[calc(100vh-16rem)] w-full table-auto overflow-x-auto overflow-y-auto">
+        <div className="relative h-auto max-h-[calc(100vh-16rem)] w-full table-auto overflow-x-auto overflow-y-auto">
           <table>
             {/* テーブルのヘッダー */}
             <thead className="border-b border-blue-100 bg-blue-50">
