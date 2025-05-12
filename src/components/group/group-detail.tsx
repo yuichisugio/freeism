@@ -486,12 +486,14 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         sortField: "id",
         sortDirection: "desc",
       },
-      filter: {
-        filterText: "",
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onFilterChange: () => {},
-        placeholder: "グループ名で絞り込み...",
-      },
+      filter: [
+        {
+          filterText: "",
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onFilterChange: () => {},
+          placeholder: "グループ名で絞り込み...",
+        },
+      ],
     }),
     [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
   );
@@ -526,12 +528,14 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
           console.log(field);
         },
       },
-      filter: {
-        filterText: "",
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onFilterChange: () => {},
-        placeholder: "グループ名で絞り込み...",
-      },
+      filter: [
+        {
+          filterText: "",
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onFilterChange: () => {},
+          placeholder: "グループ名で絞り込み...",
+        },
+      ],
     }),
     [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],
   );

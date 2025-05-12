@@ -64,7 +64,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   return (
     <>
       {/* テーブルのフィルター */}
-      {filter && <ShareTableFilter filter={filter} />}
+      {filter && <ShareTableFilter filtersArray={filter} />}
 
       {/* テーブルの外側のdiv */}
       <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm")}>

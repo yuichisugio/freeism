@@ -234,12 +234,14 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       sortDirection: "desc",
       sortField: "id",
     },
-    filter: {
-      filterText: "",
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onFilterChange: () => {},
-      placeholder: "グループ名で絞り込み...",
-    },
+    filter: [
+      {
+        filterText: "",
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onFilterChange: () => {},
+        placeholder: "グループ名で絞り込み...",
+      },
+    ],
   };
 
   return <ShareTable dataTableProps={dataTableProps} />;

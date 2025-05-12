@@ -63,11 +63,13 @@ export type DataTableProps<T> = {
     sortDirection: SortDirection;
     sortField: keyof T;
   } | null;
-  filter: {
-    filterText: string;
-    onFilterChange: (value: string) => void;
-    placeholder?: string;
-  } | null;
+  filter:
+    | {
+        filterText: string;
+        onFilterChange: (value: string) => void;
+        placeholder: string;
+      }[]
+    | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

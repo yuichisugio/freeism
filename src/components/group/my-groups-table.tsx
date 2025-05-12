@@ -160,12 +160,14 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         sortDirection: "desc",
         sortField: "id",
       },
-      filter: {
-        filterText: "",
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onFilterChange: () => {},
-        placeholder: "グループ名で絞り込み...",
-      },
+      filter: [
+        {
+          filterText: "",
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onFilterChange: () => {},
+          placeholder: "グループ名で絞り込み...",
+        },
+      ],
     }),
     [memberships, setMemberships, columns],
   );
