@@ -3,7 +3,7 @@
 import type { Column, DataTableProps } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { DataTable } from "@/components/share/data-table";
+import { ShareTable } from "@/components/share/share-table";
 import { useMyTaskTable } from "@/hooks/task/use-my-task-table";
 import { type contributionType } from "@prisma/client";
 
@@ -232,7 +232,13 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         console.log(field);
       },
     },
+    filter: {
+      filterText: "",
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onFilterChange: () => {},
+      placeholder: "グループ名で絞り込み...",
+    },
   };
 
-  return <DataTable dataTableProps={dataTableProps} />;
+  return <ShareTable dataTableProps={dataTableProps} />;
 });

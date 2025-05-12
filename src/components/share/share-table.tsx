@@ -1,7 +1,9 @@
 "use client";
 
 import type { DataTableComponentProps } from "@/types/group-types";
-import { memo, useEffect, useMemo } from "react";
+import { memo, useEffect } from "react";
+import { ShareTableFilter } from "@/components/share/share-table-filter";
+import { ShareTablePagination } from "@/components/share/share-table-pagination";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +17,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
-import { usePagination } from "@/hooks/utils/use-pagination";
-import { TABLE_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Check, ChevronsLeftIcon, ChevronsRightIcon, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
+import { ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,13 +28,13 @@ import { toast } from "sonner";
 /**
  * DataTableコンポーネントの内部関数
  */
-function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) {
+function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * コンポーネントの引数
    */
-  const { initialData, columns, onDataChange, editTask, pagination, sort } = props.dataTableProps;
+  const { initialData, columns, onDataChange, editTask, sort, pagination, filter } = props.dataTableProps;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -45,37 +44,6 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange ? (updatedData) => onDataChange(updatedData) : undefined);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページネーションの条件
-   */
-  // TotalPageを計算
-  const calculatedTotalPages = useMemo(
-    () => Math.ceil((pagination?.totalRowCount ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE),
-    [pagination?.totalRowCount],
-  );
-  // ページネーションの条件
-  const { currentPage, totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
-    totalPages: calculatedTotalPages,
-    currentPage: pagination?.currentPage ?? 1,
-    maxPageToShow: TABLE_CONSTANTS.ITEMS_PER_PAGE,
-    totalCount: pagination?.totalRowCount ?? 0,
-  });
-  // 表示アイテム範囲の計算
-  const startItem = pagination && pagination.totalRowCount > 0 ? (currentPage - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE + 1 : 0;
-  const endItem = pagination ? Math.min(currentPage * TABLE_CONSTANTS.ITEMS_PER_PAGE, pagination.totalRowCount) : initialData.length;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページ変更ハンドラ
-   * @param page - 新しいページ番号
-   */
-  const handlePageChange = (page: number) => {
-    if (pagination?.onPageChange) {
-      pagination.onPageChange(page);
-    }
-  };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -95,6 +63,9 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
    */
   return (
     <>
+      {/* テーブルのフィルター */}
+      {filter && <ShareTableFilter filter={filter} />}
+
       {/* テーブルの外側のdiv */}
       <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm")}>
         {/* テーブルの内側のdiv */}
@@ -310,92 +281,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
         </div>
 
         {/* ページネーション */}
-        <div className="flex items-center justify-between border-t border-blue-100 px-4 py-3">
-          <div className="text-sm font-medium text-neutral-600">
-            {pagination && pagination.totalRowCount > 0 ? `${startItem}-${endItem} / ${pagination.totalRowCount}件` : `0 / 0件`}
-          </div>
-          {pagination && (
-            <div className="flex items-center space-x-1">
-              {/* 最初のページボタン */}
-              {!isFirstPage && (
-                <button
-                  onClick={() => handlePageChange(1)}
-                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-3 text-sm shadow-sm transition-colors hover:bg-blue-50"
-                  aria-label="最初のページへ"
-                >
-                  <ChevronsLeftIcon className="mr-1 h-4 w-4" />
-                  <span className="hidden sm:block">最初</span>
-                </button>
-              )}
-
-              {/* 前のページに進むかどうか */}
-              {hasPreviousPage && (
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-5 text-sm shadow-sm transition-colors hover:bg-blue-50"
-                  aria-label="前のページへ"
-                >
-                  <PaginationPrevious className="h-4 w-4" />
-                </button>
-              )}
-
-              {/* ページネーションの表示 */}
-              <div className="flex items-center">
-                {pageNumbers.map((page, index) => {
-                  if (page === -1 || page === -2) {
-                    return (
-                      <div key={`ellipsis-${index}`} className="px-1">
-                        <span className="text-neutral-500">...</span>
-                      </div>
-                    );
-                  }
-
-                  const isActive = page === currentPage;
-
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      disabled={isActive}
-                      className={cn(
-                        "mx-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors",
-                        isActive
-                          ? "cursor-not-allowed border border-blue-600 bg-blue-50 text-blue-600"
-                          : "border border-blue-200 bg-white hover:bg-blue-50",
-                      )}
-                      aria-current={isActive ? "page" : undefined}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* 次のページに進むかどうか */}
-              {hasNextPage && (
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-5 text-sm shadow-sm transition-colors hover:bg-blue-50"
-                  aria-label="次のページへ"
-                >
-                  <PaginationNext className="h-4 w-4" />
-                </button>
-              )}
-
-              {/* 最後のページボタン */}
-              {!isLastPage && totalPages > 0 && (
-                <button
-                  onClick={() => handlePageChange(totalPages)}
-                  className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-3 text-sm shadow-sm transition-colors hover:bg-blue-50"
-                  aria-label="最後のページへ"
-                >
-                  <span className="hidden sm:block">最後</span>
-                  <ChevronsRightIcon className="ml-1 h-4 w-4" />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+        {pagination && <ShareTablePagination pagination={pagination} />}
       </div>
     </>
   );
@@ -409,4 +295,4 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
  * @param props - DataTableComponentProps
  * @returns JSX.Element
  */
-export const DataTable = memo(DataTableInner) as <T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) => JSX.Element;
+export const ShareTable = memo(ShareTableInner) as <T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) => JSX.Element;

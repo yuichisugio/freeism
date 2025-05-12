@@ -2,91 +2,10 @@
 
 import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import { revalidatePath } from "next/cache";
-import { getCachedGroupList, getCachedTotalGroupCount } from "@/lib/actions/cache/cache-group";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループ一覧・ユーザーの参加しているグループ一覧を取得する関数
- * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
- * @returns グループ一覧
- */
-export async function getGroupList(page: number, sortField: string, sortDirection: string) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 認証処理
-   */
-  const userId = await getAuthenticatedSessionUserId();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループ一覧を取得
-   */
-  const [cachedAllGroupsData, userJoinGroupIds, totalGroupCount] = await Promise.all([
-    getCachedGroupList(page, sortField, sortDirection),
-    getUserJoinGroupIds(userId),
-    getCachedTotalGroupCount(),
-  ]);
-  const GroupList = cachedAllGroupsData.map((group) => ({ ...group, isJoined: userJoinGroupIds.includes(group.id) }));
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * sortFieldがisJoinedの場合、キャッシュしたデータをソートする
-   */
-  if (sortField === "isJoined") {
-    const sortedGroupList = [...GroupList].sort((a, b) => {
-      // boolean値を数値に変換 (true: 1, false: 0)
-      // a.isJoined: グループaに参加済みならtrue (1)、未参加ならfalse (0)
-      // b.isJoined: グループbに参加済みならtrue (1)、未参加ならfalse (0)
-      const valueA = Number(a.isJoined);
-      const valueB = Number(b.isJoined);
-
-      if (sortDirection === "asc") {
-        // 参加済み (1) を先に表示 (降順ソート)
-        return valueB - valueA;
-      }
-      // desc の場合: 未参加 (0) を先に表示 (昇順ソート)
-      return valueA - valueB;
-    });
-    return { GroupList: sortedGroupList, totalGroupCount };
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  console.log("src/lib/actions/group.ts_GroupList", GroupList);
-
-  return { GroupList, totalGroupCount };
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ユーザーのグループ一覧を取得する関数
- * ユーザーごとにデータが異なるので、サーバー側ではキャッシュしない
- * @param userId - ユーザーのID
- * @returns ユーザーのグループ一覧
- */
-export async function getUserJoinGroupIds(userId: string) {
-  const userJoinGroups = await prisma.groupMembership.findMany({
-    where: {
-      userId: userId,
-    },
-    select: {
-      groupId: true,
-    },
-  });
-
-  return userJoinGroups.map((membership) => membership.groupId);
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ユーザーの参加しているグループ一覧を取得する関数

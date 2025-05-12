@@ -3,7 +3,8 @@
 import type { Group, TableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { getGroupList, joinGroup } from "@/lib/actions/group";
+import { joinGroup } from "@/lib/actions/group";
+import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
 import { type SortDirection } from "@/types/auction-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -157,7 +158,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
   } = useQuery({
     queryKey: ["all-user-group-table", tableConditions],
     queryFn: async () =>
-      await getGroupList(tableConditions.page, tableConditions.sort?.field ?? "createdAt", tableConditions.sort?.direction ?? "desc"),
+      await getAllUserGroupsAndCount(tableConditions.page, tableConditions.sort?.field ?? "createdAt", tableConditions.sort?.direction ?? "desc"),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!tableConditions,
@@ -165,6 +166,9 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * データ取得のデバッグ用
+   */
   useEffect(() => {
     console.log("src/hooks/group/use-all-user-group-table.ts_data", data);
   }, [data]);
@@ -212,8 +216,8 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   return {
     // state
-    groups: data?.GroupList ?? [],
-    totalGroupCount: data?.totalGroupCount ?? 0,
+    groups: data?.AllUserGroupList ?? [],
+    totalGroupCount: data?.AllUserGroupTotalCount ?? 0,
     isLoading: isGroupsFetching || isJoinLoading || isGroupsPending,
     tableConditions,
 

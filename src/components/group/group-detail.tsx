@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { CsvUploadModal } from "@/components/group/csv-upload-modal";
 import { EditGroupForm } from "@/components/group/edit-group-form";
 import { ExportDataModal } from "@/components/group/export-data-modal";
-import { DataTable } from "@/components/share/data-table";
+import { ShareTable } from "@/components/share/share-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -375,11 +375,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         cell: (row: Task) => {
           const typedRow = row as unknown as Task;
           return (
-            <Button
-              onClick={() => router.push(`/dashboard/group/${typedRow.group.id}/auction/${typedRow.id}`)}
-              className="button-default-custom"
-              size="sm"
-            >
+            <Button onClick={() => router.push(`/dashboard/auction/${typedRow.id}`)} className="button-default-custom" size="sm">
               オークションに参加
             </Button>
           );
@@ -490,6 +486,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
           console.log(field);
         },
       },
+      filter: {
+        filterText: "",
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onFilterChange: () => {},
+        placeholder: "グループ名で絞り込み...",
+      },
     }),
     [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
   );
@@ -523,6 +525,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         onSortChange: (field: keyof Task) => {
           console.log(field);
         },
+      },
+      filter: {
+        filterText: "",
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onFilterChange: () => {},
+        placeholder: "グループ名で絞り込み...",
       },
     }),
     [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],
@@ -819,7 +827,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
             <ClipboardList className="mr-2 h-5 w-5 text-gray-500" />
             <h2 className="text-xl font-semibold text-gray-900">タスク一覧</h2>
           </div>
-          <DataTable dataTableProps={taskDataTableProps} />
+          <ShareTable dataTableProps={taskDataTableProps} />
         </div>
 
         {/* 報酬一覧（REWARDタイプのタスクのみ表示） */}
@@ -828,7 +836,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
             <Award className="mr-2 h-5 w-5 text-gray-500" />
             <h2 className="text-xl font-semibold text-gray-900">報酬一覧</h2>
           </div>
-          <DataTable dataTableProps={rewardTaskDataTableProps} />
+          <ShareTable dataTableProps={rewardTaskDataTableProps} />
         </div>
       </div>
 

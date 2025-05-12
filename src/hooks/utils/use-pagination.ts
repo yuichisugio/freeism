@@ -24,7 +24,6 @@ type UsePaginationResult = {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
   totalPages: number;
-  currentPage: number;
   isFirstPage: boolean;
   isLastPage: boolean;
 };
@@ -121,7 +120,6 @@ export function usePagination({ currentPage, totalPages, maxPageToShow = 10 }: U
     hasPreviousPage,
     hasNextPage,
     totalPages,
-    currentPage,
     isFirstPage,
     isLastPage,
   };

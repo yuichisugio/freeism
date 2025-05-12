@@ -3,9 +3,9 @@
 import type { Column, DataTableProps, Group } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { DataTable } from "@/components/share/data-table";
 import { Loading } from "@/components/share/loading";
 import { NoResult } from "@/components/share/no-result";
+import { ShareTable } from "@/components/share/share-table";
 import { useAllUserGroupTable } from "@/hooks/group/use-all-user-group-table";
 import { UserPlus } from "lucide-react";
 
@@ -42,7 +42,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       {
         key: "isJoined" as keyof Group,
         header: "参加Flag",
-        sortable: true,
+        sortable: false,
         joinGroupModal: true,
         modalList: [
           {
@@ -186,6 +186,11 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
             sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
           }),
       },
+      filter: {
+        filterText: tableConditions.searchQuery ?? "",
+        onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, searchQuery: value }),
+        placeholder: "グループ名で絞り込み...",
+      },
     }),
     [groups, columns, totalGroupCount, tableConditions, changeTableConditions],
   );
@@ -214,5 +219,5 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   /**
    * DataTableコンポーネントを返す。
    */
-  return <DataTable dataTableProps={dataTableProps} />;
+  return <ShareTable dataTableProps={dataTableProps} />;
 });

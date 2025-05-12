@@ -1,39 +1,45 @@
-"use cache";
+"use server";
 
 import type { Prisma } from "@prisma/client";
-import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * グループ一覧の総数を取得する関数
- * @returns グループ一覧の総数
+ * グループ一覧・ユーザーの参加しているグループ一覧を取得する関数
+ * userごとなので、サーバー側でキャッシュしない
+ * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
+ * @returns グループ一覧
  */
-export async function getCachedTotalGroupCount() {
+export async function getAllUserGroupsAndCount(page: number, sortField: string, sortDirection: string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
-   * キャッシュタグを設定
-   * */
-  cacheTag("groupList");
-  cacheLife("hours");
-  return await prisma.group.count();
+   * グループ一覧と総数を取得
+   */
+  const [AllUserGroupList, AllUserGroupTotalCount] = await Promise.all([getAllUserGroups(page, sortField, sortDirection), getAllUserGroupsCount()]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ一覧を返す
+   */
+  return { AllUserGroupList, AllUserGroupTotalCount };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * グループ一覧とメンバー数を取得する関数
- * @returns グループ一覧とメンバー数
+ * ユーザーの参加しているグループ一覧を取得する関数
+ * @returns ユーザーの参加しているグループ一覧
  */
-export async function getCachedGroupList(page: number, sortField: string, sortDirection: string) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+export async function getAllUserGroups(page: number, sortField: string, sortDirection: string) {
   /**
-   * キャッシュタグを設定
-   * */
-  cacheTag("groupList");
-  cacheLife("hours");
+   * 認証処理
+   */
+  const userId = await getAuthenticatedSessionUserId();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -49,7 +55,7 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
     };
   } else if (sortField === "isJoined") {
     orderBy = {
-      createdAt: sortDirection as Prisma.SortOrder,
+      createdAt: "desc",
     };
   } else {
     orderBy = {
@@ -62,7 +68,7 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
   /**
    * グループ一覧を取得
    * */
-  const groupsData = await prisma.group.findMany({
+  const prismaReturnGroups = await prisma.group.findMany({
     skip: (page - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE,
     take: TABLE_CONSTANTS.ITEMS_PER_PAGE,
     select: {
@@ -81,6 +87,14 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
           },
         },
       },
+      members: {
+        where: {
+          userId: userId,
+        },
+        select: {
+          id: true,
+        },
+      },
       _count: {
         select: {
           members: true,
@@ -91,10 +105,11 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * グループ一覧のデータを整える
    * */
-  const groups = groupsData.map((group) => ({
+  const AllUserGroupList = prismaReturnGroups.map((group) => ({
     id: group.id,
     name: group.name,
     goal: group.goal,
@@ -103,13 +118,35 @@ export async function getCachedGroupList(page: number, sortField: string, sortDi
     depositPeriod: group.depositPeriod,
     createdBy: group.user?.settings?.username ?? "未設定",
     joinMembersCount: group._count.members,
+    isJoined: group.members.length > 0,
   }));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
-   * グループ一覧を返す
-   * */
-  return groups;
+   * グループ一覧の総数を取得
+   */
+  const AllUserGroupTotalCount = prismaReturnGroups.length;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データ取得のデバッグ用
+   */
+  console.log("src/lib/actions/group.ts_AllUserGroupList", AllUserGroupList);
+  console.log("src/lib/actions/group.ts_AllUserGroupTotalCount", AllUserGroupTotalCount);
+
+  return AllUserGroupList;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザーの参加しているグループ一覧の総数を取得する関数
+ * @returns ユーザーの参加しているグループ一覧の総数
+ */
+export async function getAllUserGroupsCount() {
+  return prisma.group.count();
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

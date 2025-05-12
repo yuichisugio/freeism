@@ -4,7 +4,7 @@ import type { MyGroupMembership } from "@/hooks/group/use-my-group-table";
 import type { Column, DataTableProps } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { DataTable } from "@/components/share/data-table";
+import { ShareTable } from "@/components/share/share-table";
 import { useMyGroupTable } from "@/hooks/group/use-my-group-table";
 import { LogOut } from "lucide-react";
 
@@ -160,6 +160,12 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
           console.log(field);
         },
       },
+      filter: {
+        filterText: "",
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onFilterChange: () => {},
+        placeholder: "グループ名で絞り込み...",
+      },
     }),
     [memberships, setMemberships, columns],
   );
@@ -169,5 +175,5 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
   /**
    * データテーブル
    */
-  return <DataTable dataTableProps={dataTableProps} />;
+  return <ShareTable dataTableProps={dataTableProps} />;
 });

@@ -57,9 +57,14 @@ export type DataTableProps<T> = {
     totalRowCount: number;
     currentPage: number;
     onPageChange: (page: number) => void;
-  } | null;
+  };
   sort: {
     onSortChange: (field: keyof T) => void;
+  } | null;
+  filter: {
+    filterText: string;
+    onFilterChange: (value: string) => void;
+    placeholder?: string;
   } | null;
 };
 
