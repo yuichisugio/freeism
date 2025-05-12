@@ -5,9 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { joinGroup } from "@/lib/actions/group";
 import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
+import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type SortDirection } from "@/types/auction-types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -33,6 +34,13 @@ type UseAllUserGroupTableReturn = {
  * @returns グループ参加関連機能
  */
 export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * クエリクライアント
+   */
+  const queryClient = useQueryClient();
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -166,6 +174,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     data,
     isFetching: isGroupsFetching,
     isPending: isGroupsPending,
+    isPlaceholderData, // Loading中に代わりに前回の値を表示しているかのフラグ。つまりLoadingフラグと同じ
   } = useQuery({
     queryKey: queryCacheKeys.table.groupAllConditions(tableConditions),
     queryFn: async () =>
@@ -176,10 +185,46 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
         searchQuery: tableConditions.searchQuery ?? "",
         isJoined: tableConditions.isJoined,
       }),
+    placeholderData: keepPreviousData, // 前のデータを保持して、新しいデータが取得されるまで表示。Loading状態を表示しないことで、チラつきをなくす
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!tableConditions,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 次のページをprefetch
+   */
+  useEffect(() => {
+    // 現在のページ数
+    const currentPage = tableConditions.page;
+
+    // 総ページ数
+    const totalPages = Math.ceil((data?.AllUserGroupTotalCount ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE);
+
+    // データが取得されていて、かつ、現在のページ数が総ページ数より小さい場合
+    if (!isPlaceholderData && data?.AllUserGroupList.length && currentPage < totalPages) {
+      // 次のページ数
+      const nextPage = currentPage + 1;
+
+      // 次のページをprefetch
+      void queryClient.prefetchQuery({
+        queryKey: queryCacheKeys.table.groupAllConditions({ ...tableConditions, page: nextPage }),
+        queryFn: async () =>
+          await getAllUserGroupsAndCount({
+            page: nextPage,
+            sortField: tableConditions.sort?.field ?? "createdAt",
+            sortDirection: tableConditions.sort?.direction ?? "desc",
+            searchQuery: tableConditions.searchQuery ?? "",
+            isJoined: tableConditions.isJoined,
+          }),
+      });
+      console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_nextPage", nextPage);
+      console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_executed");
+    }
+    console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_end");
+  }, [data, tableConditions, isPlaceholderData, queryClient]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -196,7 +241,6 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * グループ参加処理
    * @param groupId - 参加するグループID
    */
-  const queryClient = useQueryClient();
   const { mutate: handleJoin, isPending: isJoinLoading } = useMutation({
     mutationFn: async (groupId: string) => await joinGroup(groupId),
     onSuccess: () => {
