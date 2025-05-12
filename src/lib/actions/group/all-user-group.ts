@@ -13,13 +13,16 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
  * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
  * @returns グループ一覧
  */
-export async function getAllUserGroupsAndCount(page: number, sortField: string, sortDirection: string) {
+export async function getAllUserGroupsAndCount(page: number, sortField: string, sortDirection: string, searchQuery: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループ一覧と総数を取得
    */
-  const [AllUserGroupList, AllUserGroupTotalCount] = await Promise.all([getAllUserGroups(page, sortField, sortDirection), getAllUserGroupsCount()]);
+  const [AllUserGroupList, AllUserGroupTotalCount] = await Promise.all([
+    getAllUserGroups(page, sortField, sortDirection, searchQuery),
+    getAllUserGroupsCount(searchQuery),
+  ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -35,7 +38,7 @@ export async function getAllUserGroupsAndCount(page: number, sortField: string, 
  * ユーザーの参加しているグループ一覧を取得する関数
  * @returns ユーザーの参加しているグループ一覧
  */
-export async function getAllUserGroups(page: number, sortField: string, sortDirection: string) {
+export async function getAllUserGroups(page: number, sortField: string, sortDirection: string, searchQuery: string) {
   /**
    * 認証処理
    */
@@ -102,6 +105,11 @@ export async function getAllUserGroups(page: number, sortField: string, sortDire
       },
     },
     orderBy: orderBy,
+    where: {
+      name: {
+        contains: searchQuery,
+      },
+    },
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -145,8 +153,14 @@ export async function getAllUserGroups(page: number, sortField: string, sortDire
  * ユーザーの参加しているグループ一覧の総数を取得する関数
  * @returns ユーザーの参加しているグループ一覧の総数
  */
-export async function getAllUserGroupsCount() {
-  return prisma.group.count();
+export async function getAllUserGroupsCount(searchQuery: string) {
+  return prisma.group.count({
+    where: {
+      name: {
+        contains: searchQuery,
+      },
+    },
+  });
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

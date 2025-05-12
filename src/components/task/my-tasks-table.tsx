@@ -231,6 +231,8 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       onSortChange: (field: keyof MyTask) => {
         console.log(field);
       },
+      sortDirection: "desc",
+      sortField: "id",
     },
     filter: {
       filterText: "",

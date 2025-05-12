@@ -158,7 +158,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
   } = useQuery({
     queryKey: ["all-user-group-table", tableConditions],
     queryFn: async () =>
-      await getAllUserGroupsAndCount(tableConditions.page, tableConditions.sort?.field ?? "createdAt", tableConditions.sort?.direction ?? "desc"),
+      await getAllUserGroupsAndCount(
+        tableConditions.page,
+        tableConditions.sort?.field ?? "createdAt",
+        tableConditions.sort?.direction ?? "desc",
+        tableConditions.searchQuery ?? "",
+      ),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!tableConditions,

@@ -20,7 +20,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -85,7 +85,15 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                         className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
                       >
                         {column.header}
-                        <ArrowUpDown className="ml-1 h-4 w-4" />
+                        {sort?.sortField === column.key ? (
+                          sort?.sortDirection === "asc" ? (
+                            <ArrowUp className="ml-1 h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="ml-1 h-4 w-4" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="ml-1 h-4 w-4" />
+                        )}
                       </button>
                     ) : (
                       <span className="text-app inline-flex flex-nowrap items-center whitespace-nowrap">{column.header}</span>

@@ -60,6 +60,8 @@ export type DataTableProps<T> = {
   };
   sort: {
     onSortChange: (field: keyof T) => void;
+    sortDirection: SortDirection;
+    sortField: keyof T;
   } | null;
   filter: {
     filterText: string;

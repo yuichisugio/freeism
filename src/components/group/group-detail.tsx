@@ -480,11 +480,11 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         onPageChange: () => {},
       },
       sort: {
-        field: "contributionPoint",
-        direction: "desc",
         onSortChange: (field: keyof Task) => {
           console.log(field);
         },
+        sortField: "id",
+        sortDirection: "desc",
       },
       filter: {
         filterText: "",
@@ -520,8 +520,8 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         onPageChange: () => {},
       },
       sort: {
-        field: "contributionPoint",
-        direction: "desc",
+        sortField: "id",
+        sortDirection: "desc",
         onSortChange: (field: keyof Task) => {
           console.log(field);
         },

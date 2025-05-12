@@ -154,11 +154,11 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         onPageChange: () => {},
       },
       sort: {
-        field: "contributionPoint",
-        direction: "desc",
         onSortChange: (field: keyof MyGroupMembership) => {
           console.log(field);
         },
+        sortDirection: "desc",
+        sortField: "id",
       },
       filter: {
         filterText: "",

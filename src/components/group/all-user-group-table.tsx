@@ -185,6 +185,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
             ...tableConditions,
             sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
           }),
+        sortDirection: tableConditions.sort?.direction ?? "desc",
+        sortField: tableConditions.sort?.field ?? "isJoined",
       },
       filter: {
         filterText: tableConditions.searchQuery ?? "",
