@@ -4,6 +4,7 @@ import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsCondition
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useSearchParams } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
@@ -261,7 +262,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    * watchlist更新時もキャッシュの内容から更新されてそう
    */
   const { data: auctionListings, isPending } = useQuery({
-    queryKey: ["auctionListings", listingsConditions, userId],
+    queryKey: queryCacheKeys.auctionListings.userAllConditions(userId, listingsConditions),
     queryFn: async () => await getAuctionListingsAndCount({ listingsConditions, userId }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間

@@ -201,8 +201,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
           onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "true" | "false" }),
           placeholder: "グループ参加状態で絞り込み...",
           radioOptions: [
-            { value: "true", label: "参加中" },
-            { value: "false", label: "参加していない" },
+            { value: "true", label: "グループ参加中" },
+            { value: "false", label: "グループ未参加" },
           ],
         },
       ],

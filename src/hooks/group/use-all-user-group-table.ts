@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { joinGroup } from "@/lib/actions/group";
 import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type SortDirection } from "@/types/auction-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -166,7 +167,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     isFetching: isGroupsFetching,
     isPending: isGroupsPending,
   } = useQuery({
-    queryKey: ["all-user-group-table", tableConditions],
+    queryKey: queryCacheKeys.table.groupAllConditions(tableConditions),
     queryFn: async () =>
       await getAllUserGroupsAndCount({
         page: tableConditions.page,
@@ -205,7 +206,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       toast.error("エラーが発生しました");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["all-user-group-table"], exact: false }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.groupAll(), exact: false }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
     },
   });
 

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePushNotification } from "@/hooks/notification/use-push-notification";
 import { updateUserSettings } from "@/lib/actions/user-settings";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -154,7 +155,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
     },
     onSettled: async () => {
       // 成功・失敗に関わらず、サーバーの最新の状態で関連クエリを無効化して再フェッチ
-      await queryClient.invalidateQueries({ queryKey: ["userSettings", userId] });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
       // 再フェッチ後、新しい initialIsPushEnabled が渡され、useEffect を通じて isEnabled が更新され、
       // syncEnabledStateWithBrowser によりブラウザの実際の状態と最終同期される。
     },

@@ -1,6 +1,7 @@
 "use client";
 
 import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action/watchlist";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -53,7 +54,7 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
    * ウォッチリストの状態を取得
    */
   const { data: isWatchlisted, isPending: isLoading } = useQuery({
-    queryKey: ["watchlist", auctionId, userId],
+    queryKey: queryCacheKeys.watchlist.userAuction(userId, auctionId),
     queryFn: () => serverIsAuctionWatched(auctionId, userId),
     initialData: initialData,
     retry: 3,
@@ -67,18 +68,20 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
    * ウォッチリストの切り替え
    */
   const { mutate: toggleWatchlist, isPending } = useMutation({
-    mutationKey: ["toggleWatchlist", auctionId, userId],
+    mutationKey: queryCacheKeys.watchlist.update(userId),
     mutationFn: () => serverToggleWatchlist(auctionId, userId),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["watchlist", auctionId, userId] });
-      const previousWatchlist = queryClient.getQueryData<boolean>(["watchlist", auctionId, userId]);
-      queryClient.setQueryData(["watchlist", auctionId, userId], (old: boolean | undefined) => (old === undefined ? undefined : !old));
+      await queryClient.cancelQueries({ queryKey: queryCacheKeys.watchlist.userAuction(auctionId, userId) });
+      const previousWatchlist = queryClient.getQueryData<boolean>(queryCacheKeys.watchlist.userAuction(auctionId, userId));
+      queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(auctionId, userId), (old: boolean | undefined) =>
+        old === undefined ? undefined : !old,
+      );
       return { previousWatchlist };
     },
     onError: (error: Error, _variables: void, context: { previousWatchlist: boolean | undefined } | undefined) => {
       toast.error("ウォッチリストの更新中にエラーが発生しました");
       if (context !== undefined) {
-        queryClient.setQueryData(["watchlist", auctionId, userId], context.previousWatchlist);
+        queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(auctionId, userId), context.previousWatchlist);
       }
       console.error("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストAPI呼び出しエラー:", error);
     },
@@ -90,7 +93,7 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
         console.log("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストから削除しました");
         toast.success("ウォッチリストから削除しました");
       }
-      await queryClient.invalidateQueries({ queryKey: ["watchlist", auctionId, userId] });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.watchlist.userAuction(auctionId, userId) });
     },
   });
 

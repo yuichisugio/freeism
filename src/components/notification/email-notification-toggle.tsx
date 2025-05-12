@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { updateUserSettings } from "@/lib/actions/user-settings";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -36,7 +37,7 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
       console.error("メール通知設定の更新に失敗しました:", error);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["userSettings", userId] });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
     },
   });
 

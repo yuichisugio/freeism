@@ -12,6 +12,7 @@ import { FormLayout } from "@/components/share/form-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateUserSetup } from "@/lib/actions";
 import { getUserSettings } from "@/lib/auction/action/user";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { setupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -65,7 +66,7 @@ export const SetupForm = memo(function SetupForm() {
    * ユーザー設定を取得
    */
   const { data: userSettings, isLoading } = useQuery<UserSettings | null, Error, UserSettings | null, Readonly<[string, string]>>({
-    queryKey: ["userSettings", userId],
+    queryKey: queryCacheKeys.userSettings.userAll(userId),
     queryFn: async (): Promise<UserSettings | null> => getUserSettings(userId),
     enabled: !!userId,
     staleTime: Infinity,
@@ -84,7 +85,7 @@ export const SetupForm = memo(function SetupForm() {
    * ユーザー設定を更新する
    */
   const { mutate, isPending, variables } = useMutation({
-    mutationKey: ["updateUserSettings", userId],
+    mutationKey: queryCacheKeys.userSettings.update(userId),
     gcTime: Infinity,
     mutationFn: (userSettings: SetupForm): Promise<{ success: boolean; error?: string }> => updateUserSetup(userSettings),
     onError: (error: Error, _variables: SetupForm, context: { previousUserSettings: UserSettings | undefined } | undefined) => {
@@ -92,7 +93,7 @@ export const SetupForm = memo(function SetupForm() {
       console.error("ユーザー設定の更新に失敗しました:", error);
       form.setError("root", { message: error.message });
       if (context !== undefined) {
-        queryClient.setQueryData(["userSettings", userId], context.previousUserSettings);
+        queryClient.setQueryData(queryCacheKeys.userSettings.userAll(userId), context.previousUserSettings);
       }
     },
     onSuccess: (data) => {
@@ -102,7 +103,7 @@ export const SetupForm = memo(function SetupForm() {
       }
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["userSettings", userId] });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
     },
   });
 

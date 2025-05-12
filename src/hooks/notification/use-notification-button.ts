@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { redirect } from "next/navigation";
 import { getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
@@ -52,7 +53,7 @@ export function useNotificationButton(): NotificationButtonReturn {
    * 初期ロード時と定期的に未読通知をチェック
    */
   const { data: hasUnreadNotifications } = useQuery({
-    queryKey: ["hasUnreadNotifications", userId],
+    queryKey: queryCacheKeys.Notification.hasUnreadNotifications(userId),
     queryFn: () => getUnreadNotificationsCount(userId),
     staleTime: 30 * 60 * 1000,
     gcTime: 30 * 60 * 1000,

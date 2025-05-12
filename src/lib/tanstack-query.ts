@@ -1,6 +1,54 @@
+import type { AuctionListingsConditions } from "@/types/auction-types";
+import type { TableConditions } from "@/types/group-types";
 import { QueryClient } from "@tanstack/react-query";
 import { type PersistedClient, type Persister } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * Tanstack Queryのキャッシュキーのファクトリー関数
+ * オブジェクトは順序が異なることがあり、キャッシュキーが一致しない場合があるため、文字列にしている
+ */
+export const queryCacheKeys = {
+  Notification: {
+    _root: ["notification"] as const,
+    all: () => [...queryCacheKeys.Notification._root] as const,
+    userAllNotifications: (userId: string) => [...queryCacheKeys.Notification.all(), userId] as const,
+    hasUnreadNotifications: (userId: string) => [...queryCacheKeys.Notification.userAllNotifications(userId), "hasUnreadNotifications"] as const,
+    details: () => [...queryCacheKeys.Notification.all(), "detail"] as const,
+    detail: (id: number) => [...queryCacheKeys.Notification.details(), id] as const,
+  },
+
+  userSettings: {
+    _root: ["userSettings"] as const,
+    all: () => [...queryCacheKeys.userSettings._root] as const,
+    userAll: (userId: string) => [...queryCacheKeys.userSettings.all(), userId] as const,
+    update: (userId: string) => [...queryCacheKeys.userSettings.userAll(userId), "update"] as const,
+  },
+
+  watchlist: {
+    _root: ["watchlist"] as const,
+    all: () => [...queryCacheKeys.watchlist._root] as const,
+    userAll: (userId: string) => [...queryCacheKeys.watchlist.all(), userId] as const,
+    userAuction: (auctionId: string, userId: string) => [...queryCacheKeys.watchlist.userAll(userId), auctionId] as const,
+    update: (userId: string) => [...queryCacheKeys.watchlist.userAll(userId), "update"] as const,
+  },
+
+  auctionListings: {
+    _root: ["auctionListings"] as const,
+    all: () => [...queryCacheKeys.auctionListings._root] as const,
+    userAllConditions: (userId: string, listingsConditions: AuctionListingsConditions) =>
+      [...queryCacheKeys.auctionListings.all(), JSON.stringify(listingsConditions), userId] as const,
+  },
+
+  table: {
+    _root: ["table"] as const,
+    all: () => [...queryCacheKeys.table._root] as const,
+    groupAll: () => [...queryCacheKeys.table.all(), "group"] as const, // exact: falseでキャッシュを無効化するため、キャッシュキーには"group"を含める
+    groupAllConditions: (tableConditions: TableConditions) => [...queryCacheKeys.table.groupAll(), JSON.stringify(tableConditions)] as const,
+  },
+} as const;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -26,25 +74,6 @@ export const queryClient = new QueryClient({
 /**
  * Tanstack Queryの永続化
  */
-const persister = createIDBPersister("react-query-persister");
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * Tanstack Queryの永続化オプション
- */
-export const persistOptions = {
-  persister: persister,
-  maxAge: Infinity,
-  retry: 1,
-  buster: "0",
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * Tanstack Queryの永続化
- */
 function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
   return {
     persistClient: async (client: PersistedClient) => {
@@ -58,3 +87,22 @@ function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
     },
   } satisfies Persister;
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * Tanstack Queryの永続化
+ */
+const persister = createIDBPersister("react-query-persister");
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * Tanstack Queryの永続化オプション
+ */
+export const persistOptions = {
+  persister: persister,
+  maxAge: Infinity,
+  retry: 1,
+  buster: "0",
+};

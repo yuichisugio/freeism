@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { redirect } from "next/navigation";
 import { getNotificationsAndUnreadCount, updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
@@ -151,7 +152,7 @@ export function useNotificationList(): NotificationManagerResult {
     hasNextPage,
     refetch,
   } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string | undefined], number>({
-    queryKey: ["notifications", userId],
+    queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
     queryFn: async ({ pageParam }) => {
       console.log(`src/hooks/notification/use-notification-list.ts_useInfiniteQuery_queryFn (page: ${pageParam})`);
       if (!userId) {
@@ -323,7 +324,7 @@ export function useNotificationList(): NotificationManagerResult {
   // unreadCount が変更されたら hasUnreadNotifications クエリを更新
   useEffect(() => {
     if (userId) {
-      queryClient.setQueryData(["hasUnreadNotifications", userId], unreadCount > 0);
+      queryClient.setQueryData(queryCacheKeys.Notification.hasUnreadNotifications(userId), unreadCount > 0);
     }
   }, [unreadCount, userId, queryClient]);
 
@@ -371,7 +372,7 @@ export function useNotificationList(): NotificationManagerResult {
       updateNotificationStatus(updatesToSync)
         .then(() => {
           console.log("[通知] アンマウント時のバッチ更新成功、キャッシュを直接更新します。", updatesToSync);
-          queryClient.setQueriesData<InfiniteQueryData>({ queryKey: ["notifications", userId] }, (oldData) => {
+          queryClient.setQueriesData<InfiniteQueryData>({ queryKey: queryCacheKeys.Notification.userAllNotifications(userId) }, (oldData) => {
             if (!oldData) return oldData;
 
             // updatesToSync を Map 形式に変換して効率的に参照できるようにする
@@ -396,7 +397,7 @@ export function useNotificationList(): NotificationManagerResult {
             // グローバルな未読件数ステートを更新
             setUnreadCount(finalOverallUnreadCount);
             // hasUnreadNotifications クエリも更新
-            queryClient.setQueryData(["hasUnreadNotifications", userId], finalOverallUnreadCount > 0);
+            queryClient.setQueryData(queryCacheKeys.Notification.hasUnreadNotifications(userId), finalOverallUnreadCount > 0);
 
             return { ...oldData, pages: newPages };
           });
@@ -424,7 +425,7 @@ export function useNotificationList(): NotificationManagerResult {
       }),
     );
     setUnreadCount(0);
-    queryClient.setQueryData(["hasUnreadNotifications", userId], false);
+    queryClient.setQueryData(queryCacheKeys.Notification.hasUnreadNotifications(userId), false);
   }, [queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -449,7 +450,7 @@ export function useNotificationList(): NotificationManagerResult {
   const handleManualRefresh = useCallback(async (): Promise<void> => {
     console.log("[通知] 手動更新");
     await refetch();
-    await queryClient.invalidateQueries({ queryKey: ["hasUnreadNotifications", userId] });
+    await queryClient.invalidateQueries({ queryKey: queryCacheKeys.Notification.hasUnreadNotifications(userId) });
   }, [refetch, queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
