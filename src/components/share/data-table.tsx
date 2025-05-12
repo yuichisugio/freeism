@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useSortableTable } from "@/hooks/table/use-sortable-table";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { usePagination } from "@/hooks/utils/use-pagination";
 import { TABLE_CONSTANTS } from "@/lib/constants";
@@ -36,14 +35,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   /**
    * コンポーネントの引数
    */
-  const { initialData, columns, onDataChange, editTask, pagination } = props.dataTableProps;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * カスタムフックを使用してデータとソート機能を管理
-   */
-  const { sortedData, handleSort } = useSortableTable<T>(initialData);
+  const { initialData, columns, onDataChange, editTask, pagination, sort } = props.dataTableProps;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -57,16 +49,21 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   /**
    * ページネーションの条件
    */
+  // TotalPageを計算
   const calculatedTotalPages = useMemo(
     () => Math.ceil((pagination?.totalRowCount ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE),
     [pagination?.totalRowCount],
   );
+  // ページネーションの条件
   const { currentPage, totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     totalPages: calculatedTotalPages,
     currentPage: pagination?.currentPage ?? 1,
     maxPageToShow: TABLE_CONSTANTS.ITEMS_PER_PAGE,
     totalCount: pagination?.totalRowCount ?? 0,
   });
+  // 表示アイテム範囲の計算
+  const startItem = pagination && pagination.totalRowCount > 0 ? (currentPage - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE + 1 : 0;
+  const endItem = pagination ? Math.min(currentPage * TABLE_CONSTANTS.ITEMS_PER_PAGE, pagination.totalRowCount) : initialData.length;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -83,21 +80,13 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 表示アイテム範囲の計算
-   */
-  const startItem = pagination && pagination.totalRowCount > 0 ? (currentPage - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE + 1 : 0;
-  const endItem = pagination ? Math.min(currentPage * TABLE_CONSTANTS.ITEMS_PER_PAGE, pagination.totalRowCount) : sortedData.length;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 外部からデータが更新されたときの処理
    */
   useEffect(() => {
     if (onDataChange) {
-      onDataChange(sortedData);
+      onDataChange(initialData);
     }
-  }, [sortedData, onDataChange]);
+  }, [initialData, onDataChange]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -121,7 +110,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                   >
                     {column.sortable ? (
                       <button
-                        onClick={() => handleSort(column.key)}
+                        onClick={() => sort?.onSortChange(column.key)}
                         className="text-app sticky top-0 z-20 inline-flex flex-nowrap items-center whitespace-nowrap hover:text-blue-600"
                       >
                         {column.header}
@@ -138,7 +127,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
             {/* テーブルのボディ */}
             <tbody>
               {/* テーブルの行ごとに繰り返す */}
-              {sortedData.map((row, rowIndex) => (
+              {initialData.map((row, rowIndex) => (
                 <tr key={rowIndex} className="border-b border-blue-50 hover:bg-blue-50/50">
                   {/* 列ごとにデータを作成(セルを作成) */}
                   {columns.map((column, colIndex) => (
@@ -170,7 +159,7 @@ function DataTableInner<T extends { id: string; isJoined?: boolean }>(props: Dat
                                             key={option.value}
                                             value={option.label}
                                             onSelect={() => {
-                                              handleStatusChange(rowId, option.value, sortedData)
+                                              handleStatusChange(rowId, option.value, initialData)
                                                 .catch((error) => {
                                                   console.error(error);
                                                 })

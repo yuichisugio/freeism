@@ -58,6 +58,9 @@ export type DataTableProps<T> = {
     currentPage: number;
     onPageChange: (page: number) => void;
   } | null;
+  sort: {
+    onSortChange: (field: keyof T) => void;
+  } | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

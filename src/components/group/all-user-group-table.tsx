@@ -179,6 +179,13 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         currentPage: tableConditions.page,
         onPageChange: (page: number) => changeTableConditions({ ...tableConditions, page }),
       },
+      sort: {
+        onSortChange: (field: keyof Group) =>
+          changeTableConditions({
+            ...tableConditions,
+            sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
+          }),
+      },
     }),
     [groups, columns, totalGroupCount, tableConditions, changeTableConditions],
   );
