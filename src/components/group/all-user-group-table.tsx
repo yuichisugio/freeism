@@ -62,7 +62,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         leaveGroupModal: false,
         editTask: false,
         deleteTask: null,
-        cellClassName: "text-center",
+        cellClassName: null,
       },
       {
         key: "name" as keyof Group,

@@ -69,7 +69,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
       {/* テーブルの外側のdiv */}
       <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm")}>
         {/* テーブルの内側のdiv */}
-        <div className="relative h-auto max-h-[calc(100vh-22rem)] w-full table-auto overflow-x-auto overflow-y-auto">
+        <div className="relative h-auto max-h-[calc(100vh-22rem)] w-full overflow-x-auto overflow-y-auto">
           <table>
             {/* テーブルのヘッダー */}
             <thead className="border-b border-blue-100 bg-blue-50">
@@ -77,7 +77,11 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                 {columns.map((column, index) => (
                   <th
                     key={index}
-                    className="sticky top-0 z-20 w-full border-b border-blue-100 bg-blue-50 px-5 py-3 text-left text-sm font-medium shadow-md"
+                    className={cn(
+                      "sticky top-0 z-20 border-b border-blue-100 bg-blue-50 px-5 py-3 text-left text-sm font-medium shadow-md",
+                      column.cellClassName, //大きい場面の場合に中央寄せするために必要
+                    )}
+                    style={{ width: `${100 / columns.length}%` }} // 画面幅が大きいモニターの場合に列の幅を均等にするために必要
                   >
                     {column.sortable ? (
                       <button
