@@ -4,8 +4,9 @@ import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsCondition
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useSearchParams } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -65,6 +66,13 @@ function sortArraysAreEqual(
  * @description オークション一覧画面のロジックを管理するカスタムフック
  */
 export function useAuctionListings(): UseAuctionListingsReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * クエリクライアントを取得
+   */
+  const queryClient = useQueryClient();
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -322,13 +330,43 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    * queryKeyのstate更新のたびにデータ更新&キャッシュ追加
    * watchlist更新時もキャッシュの内容から更新されてそう
    */
-  const { data: auctionListings, isPending } = useQuery({
+  const {
+    data: auctionListings,
+    isPending,
+    isPlaceholderData,
+  } = useQuery({
     queryKey: queryCacheKeys.auctionListings.userAllConditions(userId, listingsConditions),
     queryFn: async () => await getAuctionListingsAndCount({ listingsConditions, userId }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!listingsConditions && !!userId,
   });
+
+  /**
+   * 次のページをprefetch
+   */
+  useEffect(() => {
+    // 現在のページ数
+    const currentPage = listingsConditions.page;
+
+    // 総ページ数
+    const totalPages = Math.ceil((auctionListings?.count ?? 0) / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
+
+    // データが取得されていて、かつ、現在のページ数が総ページ数より小さい場合
+    if (!isPlaceholderData && !isPending && auctionListings?.count && currentPage < totalPages) {
+      // 次のページ数
+      const nextPage = currentPage + 1;
+
+      // 次のページをprefetch
+      void queryClient.prefetchQuery({
+        queryKey: queryCacheKeys.auctionListings.userAllConditions(userId, { ...listingsConditions, page: nextPage }),
+        queryFn: async () => await getAuctionListingsAndCount({ listingsConditions: { ...listingsConditions, page: nextPage }, userId }),
+      });
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_nextPage", nextPage);
+      console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_executed");
+    }
+    console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_end");
+  }, [auctionListings, listingsConditions, isPlaceholderData, queryClient, isPending, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

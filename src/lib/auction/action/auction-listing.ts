@@ -19,13 +19,30 @@ import { cachedGetAuctionListingsAndCount, cachedGetSearchSuggestions } from "@/
  */
 export const getAuctionListingsAndCount = cache(
   async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_start");
-    const cachedData = await cachedGetAuctionListingsAndCount({ listingsConditions, userId });
-    console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_cachedData", cachedData);
-    if (cachedData) {
-      return cachedData;
-    } else {
-      throw new Error("オークション一覧と件数の取得中に予期せぬエラーが発生しました。");
+    try {
+      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_start");
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * キャッシュデータを取得
+       */
+      const cachedData = await cachedGetAuctionListingsAndCount({ listingsConditions, userId });
+      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_cachedData", cachedData);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * キャッシュデータがあればそれを返す
+       */
+      if (cachedData) {
+        return cachedData;
+      } else {
+        throw new Error("オークション一覧と件数の取得中に予期せぬエラーが発生しました。");
+      }
+    } catch (error) {
+      console.error("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_error", error);
+      throw error;
     }
   },
 );

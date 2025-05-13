@@ -7,6 +7,8 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { z } from "zod";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * ユーザーの参加しているグループ一覧を取得する関数
  * @returns ユーザーの参加しているグループ一覧
