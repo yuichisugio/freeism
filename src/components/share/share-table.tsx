@@ -1,7 +1,7 @@
 "use client";
 
 import type { DataTableComponentProps } from "@/types/group-types";
-import { memo, useEffect } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { ShareTableFilter } from "@/components/share/share-table-filter";
 import { ShareTablePagination } from "@/components/share/share-table-pagination";
 import {
@@ -20,7 +20,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { cn } from "@/lib/utils";
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Maximize, Minimize, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -39,11 +39,65 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * テーブルをフルスクリーン（全画面表示）するための設定
+   */
+  // フルスクリーンモードの状態を管理
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  // テーブルのコンテナを参照
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  // フルスクリーンモードを切り替えるための関数
+  const toggleFullScreen = useCallback(async () => {
+    const element = tableContainerRef.current;
+    if (!element) return;
+
+    if (!document.fullscreenElement) {
+      try {
+        await element.requestFullscreen({ navigationUI: "hide" });
+        setIsFullScreen(true);
+        document.body.classList.add("fullscreen-active"); // bodyにクラスを追加
+      } catch (err) {
+        console.error(`Error attempting to enable full-screen mode: ${(err as Error).message} (${(err as Error).name})`);
+        toast.error("フルスクリーンモードへの切り替えに失敗しました。");
+      }
+    } else {
+      if (document.exitFullscreen) {
+        try {
+          await document.exitFullscreen();
+          setIsFullScreen(false);
+          document.body.classList.remove("fullscreen-active"); // bodyからクラスを削除
+        } catch (err) {
+          console.error(`Error attempting to disable full-screen mode: ${(err as Error).message} (${(err as Error).name})`);
+        }
+      }
+    }
+  }, []);
+
+  // フルスクリーンモードの変更を監視
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+      if (!document.fullscreenElement) {
+        document.body.classList.remove("fullscreen-active");
+      } else {
+        document.body.classList.add("fullscreen-active");
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullScreenChange);
+      // コンポーネントアンマウント時にbodyからクラスを削除（念のため）
+      document.body.classList.remove("fullscreen-active");
+    };
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * タスクステータス管理フック
    */
   const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange ? (updatedData) => onDataChange(updatedData) : undefined);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -66,13 +120,31 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
       {/* テーブルのフィルター */}
       {filter && <ShareTableFilter filtersArray={filter} />}
 
+      {/* 追加: フルスクリーンボタン (フィルターの上に配置、フルスクリーン時は表示位置調整の可能性あり) */}
+      <div className="mb-2 flex justify-end">
+        <Button onClick={toggleFullScreen} variant="outline" size="sm">
+          {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
+          {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
+        </Button>
+      </div>
+
       {/* テーブルの外側のdiv */}
-      <div className={cn("w-full rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm")}>
+      <div
+        ref={tableContainerRef}
+        className={cn(
+          "rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm",
+          isFullScreen
+            ? "fixed inset-0 z-[9999] h-screen w-screen overflow-auto bg-white" // フルスクリーン時のスタイル
+            : "w-full", // 通常時のスタイル
+        )}
+      >
         {/* テーブルの内側のdiv */}
-        <div className="relative h-auto max-h-[calc(100vh-22rem)] w-full overflow-x-auto overflow-y-auto">
+        <div
+          className={cn("relative w-full overflow-x-auto overflow-y-auto", isFullScreen ? "h-full max-h-full" : "h-auto max-h-[calc(100vh-22rem)]")}
+        >
           <table>
             {/* テーブルのヘッダー */}
-            <thead className="border-b border-blue-100 bg-blue-50">
+            <thead className={cn("border-b border-blue-100 bg-blue-50", isFullScreen && "sticky top-0 z-30")}>
               <tr>
                 {columns.map((column, index) => (
                   <th
@@ -293,7 +365,13 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         </div>
 
         {/* ページネーション */}
-        {pagination && <ShareTablePagination pagination={pagination} />}
+        {pagination && !isFullScreen && <ShareTablePagination pagination={pagination} />}
+        {pagination &&
+          isFullScreen && ( // フルスクリーン時のページネーション（必要であればスタイル調整）
+            <div className="sticky bottom-0 z-10 border-t border-blue-100 bg-white/80 p-2 backdrop-blur-sm">
+              <ShareTablePagination pagination={pagination} />
+            </div>
+          )}
       </div>
     </>
   );

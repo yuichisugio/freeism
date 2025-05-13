@@ -24,6 +24,41 @@
   }
 }
 
+body.fullscreen-active {
+  overflow: hidden !important; /* フルスクリーン時に背景のスクロールを禁止 */
+}
+
+/* フルスクリーンモード時に Header (#app-header) と Sidebar (#app-sidebar) を非表示にする 
+  重要度を上げて、他のスタイルよりも優先されるようにする
+*/
+body.fullscreen-active #app-header,
+body.fullscreen-active #app-sidebar {
+  display: none !important;
+}
+
+/* フルスクリーンモード時に DashboardLayout 内のメインコンテンツエリア (<main>) と 
+  その中のコンテナ (<div class="container ...">) の余白や最大幅制限を解除し、
+  画面全体に広がるようにする。
+*/
+body.fullscreen-active main.flex-1.overflow-auto,
+body.fullscreen-active main.flex-1.overflow-auto > div.container {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important; /* Tailwindのmax-w-noneを上書き */
+  width: 100% !important;     /* 幅を100%に */
+  height: 100% !important;    /* 高さを100%に */
+}
+
+/* オプション: フルスクリーンモード時に MainTemplate によって表示される
+  ページタイトルや説明 (.page-title-custom, .page-description-custom) も非表示にする場合。
+  テーブルコンテンツのみを最大化したい場合は、以下のコメントアウトを解除。
+*/
+body.table-fullscreen-active .page-title-custom,
+body.table-fullscreen-active .page-description-custom {
+  display: none !important;
+}
+
+
 @layer base {
   :root {
     --radius: 0.5rem;

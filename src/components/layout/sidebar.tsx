@@ -159,6 +159,7 @@ export const Sidebar = memo(function Sidebar() {
 
       {/* Sidebar本体 - スクロール機能を追加 */}
       <aside
+        id="app-sidebar"
         className={cn(
           "sm:static sm:translate-x-0",
           "fixed top-16 left-0 z-45 h-[calc(100vh-4rem)] w-48 border-r border-blue-100 bg-white transition-transform duration-50 dark:border-blue-900 dark:bg-gray-950",

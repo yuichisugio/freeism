@@ -31,7 +31,10 @@ export async function Header({ buttonDisplay = true }: { buttonDisplay: boolean 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <header className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-colors duration-200 dark:border-blue-900 dark:bg-gray-950/80">
+    <header
+      id="app-header"
+      className="sticky top-0 z-50 w-full transform-gpu border-b border-blue-100 bg-white/80 backdrop-blur-lg transition-colors duration-200 dark:border-blue-900 dark:bg-gray-950/80"
+    >
       {/* ヘッダーコンテンツのコンテナ */}
       <div className="h-16 w-full px-4">
         {/* スマホ表示用レイアウト (sm未満) */}
