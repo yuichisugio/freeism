@@ -29,8 +29,7 @@ type UseAuctionListingsReturn = {
 /**
  * 配列が等しいかどうかを判定するヘルパー関数 (null/undefinedも考慮)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function arraysAreEqual(arr1: any[] | null | undefined, arr2: any[] | null | undefined): boolean {
+function arraysAreEqual(arr1: string[] | null | undefined, arr2: string[] | null | undefined): boolean {
   if (arr1 === arr2) return true; // 同じ参照または両方 null/undefined
   if (!arr1 || !arr2) return false; // どちらかが null/undefined
   if (arr1.length !== arr2.length) return false; // 長さが違う
@@ -118,7 +117,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     const maxRemainingTime = searchParams.get("max_remaining_time") ? Number(searchParams.get("max_remaining_time")) : null;
 
     // グループリスト。複数あるのでgetAllで取得?groupId=1&groupId=2&groupId=3
-    const groupIds = searchParams.getAll("group_id");
+    const groupIdsRaw = searchParams.getAll("group_id");
+    const groupIds = groupIdsRaw.filter((id): id is string => id !== null);
 
     // データ取得のためのパラメータを返す
     return {

@@ -111,7 +111,7 @@ export type UseAuctionFiltersProps = {
  * オークションの出品一覧をフィルター・ソートするためのパラメータの型定義
  */
 export type AuctionListingsConditions = {
-  categories: ((typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number] | null)[] | null;
+  categories: (typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number][] | null;
   status: AuctionFilterTypes[] | null;
   statusConditionJoinType: "OR" | "AND"; // ステータス条件の結合タイプ（OR/AND）
   minBid: number | null;
