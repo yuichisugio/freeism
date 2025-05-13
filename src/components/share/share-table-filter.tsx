@@ -41,14 +41,14 @@ export function ShareTableFilter({ filtersArray }: ShareTableFilterProps) {
   return (
     <>
       {filtersArray.map((filter: Filter, index: number) => (
-        <div key={index} className="mb-4 flex w-full max-w-xs items-center">
+        <div key={index} className="mb-4 flex w-full items-center">
           {filter.filterType === "input" ? (
             <Input
               type="text"
               value={filter.filterText ?? ""}
               onChange={(e: ChangeEvent<HTMLInputElement>) => filter.onFilterChange(e.target.value)}
               placeholder={filter.placeholder ?? "キーワードで絞り込み..."}
-              className="w-full border-blue-200 bg-white/80 text-sm focus:border-blue-400 focus:ring-blue-400"
+              className="w-[50%] border-blue-200 bg-white/80 text-sm focus:border-blue-400 focus:ring-blue-400"
             />
           ) : (
             filter.filterType === "radio" &&

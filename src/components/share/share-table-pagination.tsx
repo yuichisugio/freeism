@@ -24,6 +24,7 @@ export type ShareTablePaginationProps = {
  * ページネーションのコンポーネント
  */
 export function ShareTablePagination({ pagination }: { pagination: ShareTablePaginationProps }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   /**
    * ページネーションのprops
    */
@@ -45,7 +46,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
   const startItem = totalRowCount > 0 ? (currentPage - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE + 1 : 0;
   const endItem = Math.min(currentPage * TABLE_CONSTANTS.ITEMS_PER_PAGE, totalRowCount);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ページネーションのコンポーネント

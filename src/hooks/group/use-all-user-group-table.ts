@@ -102,68 +102,81 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * URLパラメータを更新する関数
    * 必要なパラメータのみURLに含める（デフォルト値は含めない）
    */
-  const updateUrlParams = useCallback((newListingsConditions: TableConditions) => {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const updateUrlParams = useCallback(
+    (newTableConditions: TableConditions) => {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_start", newListingsConditions);
+      console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_start", newTableConditions);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // URLパラメータを作成
-    const params = new URLSearchParams();
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ページ数
-    if (newListingsConditions.page > 1) {
-      params.set("page", String(newListingsConditions.page));
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ソート - 複数選択可能になったため、最初のソート条件のみ使用
-    if (newListingsConditions.sort) {
-      console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_listingsConditions.sort_start");
-
-      // ソートする列
-      if (newListingsConditions.sort.field) {
-        params.set("sort_field", newListingsConditions.sort.field);
-        console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_firstSort.field", newListingsConditions.sort.field);
+      // ページ以外の条件が変更された場合は、ページを1に戻す
+      if (
+        tableConditions.sort?.field !== newTableConditions.sort?.field ||
+        tableConditions.sort?.direction !== newTableConditions.sort?.direction ||
+        tableConditions.searchQuery !== newTableConditions.searchQuery ||
+        tableConditions.isJoined !== newTableConditions.isJoined
+      ) {
+        newTableConditions.page = 1;
       }
 
-      // ソート方向
-      if (newListingsConditions.sort.direction) {
-        params.set("sort_direction", newListingsConditions.sort.direction);
-        console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_firstSort.direction", newListingsConditions.sort.direction);
+      // URLパラメータを作成
+      const params = new URLSearchParams();
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // ページ数
+      if (newTableConditions.page > 1) {
+        params.set("page", String(newTableConditions.page));
       }
-    }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 検索クエリ
-    if (newListingsConditions.searchQuery) {
-      params.set("q", newListingsConditions.searchQuery);
-    }
+      // ソート - 複数選択可能になったため、最初のソート条件のみ使用
+      if (newTableConditions.sort) {
+        console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_listingsConditions.sort_start");
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+        // ソートする列
+        if (newTableConditions.sort.field) {
+          params.set("sort_field", newTableConditions.sort.field);
+          console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_firstSort.field", newTableConditions.sort.field);
+        }
 
-    // グループ参加状態
-    if (newListingsConditions.isJoined) {
-      params.set("is_joined", newListingsConditions.isJoined);
-    }
+        // ソート方向
+        if (newTableConditions.sort.direction) {
+          params.set("sort_direction", newTableConditions.sort.direction);
+          console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_firstSort.direction", newTableConditions.sort.direction);
+        }
+      }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // URLパラメータを作成
-    const newUrl = `/dashboard/grouplist${params.toString() ? `?${params.toString()}` : ""}`;
+      // 検索クエリ
+      if (newTableConditions.searchQuery) {
+        params.set("q", newTableConditions.searchQuery);
+      }
 
-    console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_newUrl", newUrl);
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // グループ参加状態
+      if (newTableConditions.isJoined) {
+        params.set("is_joined", newTableConditions.isJoined);
+      }
 
-    // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-    window.history.pushState({}, "", newUrl);
-  }, []);
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // URLパラメータを作成
+      const newUrl = `/dashboard/grouplist${params.toString() ? `?${params.toString()}` : ""}`;
+
+      console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_newUrl", newUrl);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
+      window.history.pushState({}, "", newUrl);
+    },
+    [tableConditions.sort, tableConditions.searchQuery, tableConditions.isJoined],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

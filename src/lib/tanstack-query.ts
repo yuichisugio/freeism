@@ -45,7 +45,7 @@ export const queryCacheKeys = {
   table: {
     _root: ["table"] as const,
     all: () => [...queryCacheKeys.table._root] as const,
-    groupAll: () => [...queryCacheKeys.table.all(), "group"] as const, // exact: falseでキャッシュを無効化するため、キャッシュキーには"group"を含める
+    groupAll: () => [...queryCacheKeys.table.all(), "allGroup"] as const, // exact: falseでキャッシュを無効化するため、キャッシュキーには"group"を含める
     groupAllConditions: (tableConditions: TableConditions) => [...queryCacheKeys.table.groupAll(), JSON.stringify(tableConditions)] as const,
   },
 } as const;
