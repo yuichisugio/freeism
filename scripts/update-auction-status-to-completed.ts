@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * オークションの完了処理を行うスクリプト
  * GitHub Actionsから実行するためのスクリプトです
@@ -10,9 +9,16 @@ import { AuctionEventType, AuctionStatus, BidStatus, NotificationSendMethod, Not
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// Prismaトランザクションの型定義
+/**
+ * Prismaトランザクションの型定義
+ */
 type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションの関連データを含む型
+ */
 type AuctionWithRelations = Prisma.AuctionGetPayload<{
   include: {
     task: true;
@@ -30,16 +36,22 @@ type AuctionWithRelations = Prisma.AuctionGetPayload<{
 /**
  * オークションの完了処理を行う
  * endTimeが現在日時以前かつstatusがACTIVEまたはPENDINGのオークションを処理する
- *
  * @returns 処理されたオークションの数
  */
 async function updateAuctionStatusToCompleted(): Promise<number> {
   try {
-    // 現在の日時を取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    /**
+     * 現在の日時を取得
+     */
     const now = new Date();
 
-    // 処理対象のオークションを取得
-    // endTimeが現在日時以前かつstatusがACTIVEまたはPENDINGのオークション
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 処理対象のオークションを取得
+     * endTimeが現在日時以前かつstatusがACTIVEまたはPENDINGのオークション
+     */
     const auctions = await prisma.auction.findMany({
       where: {
         endTime: {
@@ -107,18 +119,32 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
  * @param auction オークションオブジェクト
  */
 async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWithRelations): Promise<void> {
-  // オークションのステータスを更新
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithNoBids_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オークションのステータスを更新
+   */
   await tx.auction.update({
     where: { id: auction.id },
     data: { status: AuctionStatus.ENDED },
   });
 
-  // タスクのステータスは変更しない（報酬なしタスクの場合）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // オークション詳細ページのURL
+  /**
+   * オークション詳細ページのURL
+   */
   const actionUrl = `/auctions/${auction.id}`;
 
-  // 出品者への通知（オークション終了）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品者への通知（オークション終了）
+   */
   await sendNotification({
     auctionId: auction.id,
     auctionEventType: AuctionEventType.ENDED,
@@ -130,7 +156,11 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
     actionUrl: actionUrl,
   });
 
-  // 出品者への通知（落札者なし）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品者への通知（落札者なし）
+   */
   await sendNotification({
     auctionId: auction.id,
     auctionEventType: AuctionEventType.NO_WINNER,
@@ -151,21 +181,41 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
  * @param auction オークションオブジェクト
  */
 async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWithRelations): Promise<void> {
-  // 有効な入札（BIDDING状態）のみを抽出し、金額の降順で並べる
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithBids_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 有効な入札（BIDDING状態）のみを抽出し、金額の降順で並べる
+   */
   const validBids = auction.bidHistories.filter((bid) => bid.status === BidStatus.BIDDING).sort((a, b) => b.amount - a.amount);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 有効な入札がない場合は入札なしと同じ処理
+   */
   if (validBids.length === 0) {
-    // 有効な入札がない場合は入札なしと同じ処理
     await handleAuctionWithNoBids(tx, auction);
     return;
   }
 
-  // 最高額の入札者（落札候補者）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 最高額の入札者（落札候補者）
+   */
   const winnerBid = validBids[0];
   const winnerUser = winnerBid.user;
   let depositAmount: number;
 
-  // 落札金額の決定
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札金額の決定
+   */
   if (validBids.length === 1) {
     // 入札者が1人のみの場合は、depositPointが0
     depositAmount = 0;
@@ -174,7 +224,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     depositAmount = validBids[1].amount + 1;
   }
 
-  // 落札者のポイント残高を確認
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札者のポイント残高を確認
+   */
   const winnerGroupPoint = await tx.groupPoint.findUnique({
     where: {
       userId_groupId: {
@@ -184,9 +238,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     },
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ポイント残高が不足している場合、次の入札者を試す
+  /**
+   * ポイント残高が不足している場合、次の入札者を試す
+   */
   if (!winnerGroupPoint || winnerGroupPoint.balance < depositAmount) {
     // 現在の最高入札者のステータスをINSUFFICIENTに更新
     await tx.bidHistory.update({
@@ -194,7 +250,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
       data: { status: BidStatus.INSUFFICIENT },
     });
 
-    // 次の入札者で再試行
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 次の入札者で再試行
+     */
     const remainingBids = validBids.slice(1);
     if (remainingBids.length > 0) {
       // 更新されたオークションを再取得
@@ -211,6 +271,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
         },
       });
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 残りの入札で再処理
+       */
       if (updatedAuction) {
         // 残りの入札で再処理
         const auctionWithRemainingBids = {
@@ -221,13 +286,21 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
       }
       return;
     } else {
-      // 有効な入札者がいなくなった場合
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 有効な入札者がいなくなった場合
+       */
       await handleAuctionWithNoBids(tx, auction);
       return;
     }
   }
 
-  // ポイントを差し引く
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ポイントを差し引く
+   */
   await tx.groupPoint.update({
     where: {
       userId_groupId: {
@@ -242,7 +315,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     },
   });
 
-  // 落札した入札のdepositPointを更新
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札した入札のdepositPointを更新
+   */
   await tx.bidHistory.update({
     where: { id: winnerBid.id },
     data: {
@@ -251,7 +328,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     },
   });
 
-  // 他の入札ステータスをLOSTに更新（INSUFFICIENTを除く）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 他の入札ステータスをLOSTに更新（INSUFFICIENTを除く）
+   */
   await tx.bidHistory.updateMany({
     where: {
       auctionId: auction.id,
@@ -263,7 +344,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     },
   });
 
-  // オークションのステータスとウィナーを更新
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オークションのステータスとウィナーを更新
+   */
   await tx.auction.update({
     where: { id: auction.id },
     data: {
@@ -272,7 +357,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     },
   });
 
-  // タスクのステータスを更新
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスクのステータスを更新
+   */
   await tx.task.update({
     where: { id: auction.taskId },
     data: {
@@ -280,10 +369,18 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     },
   });
 
-  // オークション詳細ページのURL
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オークション詳細ページのURL
+   */
   const actionUrl = `/auctions/${auction.id}`;
 
-  // 出品者への通知（オークション終了）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品者への通知（オークション終了）
+   */
   await sendNotification({
     auctionId: auction.id,
     auctionEventType: AuctionEventType.ENDED,
@@ -295,7 +392,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     actionUrl: actionUrl,
   });
 
-  // 出品者への通知（商品落札）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品者への通知（商品落札）
+   */
   await sendNotification({
     auctionId: auction.id,
     auctionEventType: AuctionEventType.ITEM_SOLD,
@@ -307,7 +408,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     actionUrl: actionUrl,
   });
 
-  // 落札者への通知
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札者への通知
+   */
   await sendNotification({
     auctionId: auction.id,
     auctionEventType: AuctionEventType.AUCTION_WIN,
@@ -319,7 +424,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     actionUrl: actionUrl,
   });
 
-  // 落札できなかった入札者への通知
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札できなかった入札者への通知
+   */
   for (const bid of validBids) {
     if (bid.id !== winnerBid.id && bid.status !== BidStatus.INSUFFICIENT) {
       await sendNotification({

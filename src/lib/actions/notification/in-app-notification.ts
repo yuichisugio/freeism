@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/utils";
 import { NotificationSendTiming } from "@prisma/client";
@@ -16,8 +15,6 @@ import type { NotificationParams } from "./email-notification";
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
 export async function sendInAppNotification(notificationParams: NotificationParams): Promise<{ success: boolean; error?: string }> {
-  "use server"; // Server Actions としてマーク
-
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -81,12 +78,7 @@ export async function sendInAppNotification(notificationParams: NotificationPara
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 通知一覧ページを再検証してキャッシュ更新
-    revalidatePath("/dashboard/notifications");
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // revalidatePathでキャッシュ更新したので、trueを返す
+    // trueを返す
     return { success: true };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
