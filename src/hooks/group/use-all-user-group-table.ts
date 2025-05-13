@@ -62,7 +62,10 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     const currentQuery = searchParams.get("q");
 
     // グループ参加状態のURLパラメータ
-    const currentIsJoined = searchParams.get("is_joined") as "true" | "false" | null;
+    const currentIsJoined = searchParams.get("is_joined") as "true" | "false";
+
+    // 1ページあたりの表示件数
+    const currentItemPerPage = Number(searchParams.get("item_per_page") ?? TABLE_CONSTANTS.ITEMS_PER_PAGE);
 
     // データ取得のためのパラメータを返す
     return {
@@ -76,6 +79,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       page: currentPage,
       searchQuery: currentQuery,
       isJoined: currentIsJoined,
+      itemPerPage: currentItemPerPage,
     };
   }, [searchParams]);
 
@@ -165,6 +169,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      // 1ページあたりの表示件数
+      if (newTableConditions.itemPerPage) {
+        params.set("item_per_page", String(newTableConditions.itemPerPage));
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       // URLパラメータを作成
       const newUrl = `/dashboard/grouplist${params.toString() ? `?${params.toString()}` : ""}`;
 
@@ -197,6 +207,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
         sortDirection: tableConditions.sort?.direction ?? "desc",
         searchQuery: tableConditions.searchQuery ?? "",
         isJoined: tableConditions.isJoined,
+        itemPerPage: tableConditions.itemPerPage,
       }),
     placeholderData: keepPreviousData, // 前のデータを保持して、新しいデータが取得されるまで表示。Loading状態を表示しないことで、チラつきをなくす
     staleTime: 1000 * 60 * 60 * 1, // 1時間
@@ -231,6 +242,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
             sortDirection: tableConditions.sort?.direction ?? "desc",
             searchQuery: tableConditions.searchQuery ?? "",
             isJoined: tableConditions.isJoined,
+            itemPerPage: tableConditions.itemPerPage,
           }),
       });
       console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_nextPage", nextPage);

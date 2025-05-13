@@ -478,6 +478,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         currentPage: 1,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPageChange: () => {},
+        itemPerPage: 10,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onItemPerPageChange: () => {},
       },
       sort: {
         onSortChange: (field: keyof Task) => {
@@ -521,6 +524,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
         currentPage: 1,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPageChange: () => {},
+        itemPerPage: 10,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onItemPerPageChange: () => {},
       },
       sort: {
         sortField: "id",

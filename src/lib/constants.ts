@@ -4,7 +4,7 @@
  * テーブル関連の定数
  */
 export const TABLE_CONSTANTS = {
-  ITEMS_PER_PAGE: 5,
+  ITEMS_PER_PAGE: 50,
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

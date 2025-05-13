@@ -178,6 +178,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         totalRowCount: totalGroupCount,
         currentPage: tableConditions.page,
         onPageChange: (page: number) => changeTableConditions({ ...tableConditions, page }),
+        itemPerPage: tableConditions.itemPerPage,
+        onItemPerPageChange: (itemPerPage: number) => changeTableConditions({ ...tableConditions, itemPerPage }),
       },
       sort: {
         onSortChange: (field: keyof Group) =>

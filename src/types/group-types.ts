@@ -57,6 +57,8 @@ export type DataTableProps<T> = {
     totalRowCount: number;
     currentPage: number;
     onPageChange: (page: number) => void;
+    itemPerPage: number;
+    onItemPerPageChange: (itemPerPage: number) => void;
   };
   sort: {
     onSortChange: (field: keyof T) => void;
@@ -95,6 +97,7 @@ export type TableConditions = {
   page: number;
   searchQuery: string | null;
   isJoined: "true" | "false" | null;
+  itemPerPage: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

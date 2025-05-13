@@ -1,7 +1,6 @@
 "use server";
 
 import type { Prisma } from "@prisma/client";
-import { TABLE_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
@@ -16,6 +15,7 @@ type getAllUserGroupsAndCountProps = {
   sortDirection: string;
   searchQuery: string;
   isJoined: "true" | "false" | null;
+  itemPerPage: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -26,7 +26,14 @@ type getAllUserGroupsAndCountProps = {
  * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
  * @returns グループ一覧
  */
-export async function getAllUserGroupsAndCount({ page, sortField, sortDirection, searchQuery, isJoined }: getAllUserGroupsAndCountProps) {
+export async function getAllUserGroupsAndCount({
+  page,
+  sortField,
+  sortDirection,
+  searchQuery,
+  isJoined,
+  itemPerPage,
+}: getAllUserGroupsAndCountProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -40,7 +47,7 @@ export async function getAllUserGroupsAndCount({ page, sortField, sortDirection,
    * グループ一覧と総数を取得
    */
   const [AllUserGroupList, AllUserGroupTotalCount] = await Promise.all([
-    getAllUserGroups(page, sortField, sortDirection, searchQuery, isJoined, userId),
+    getAllUserGroups(page, sortField, sortDirection, searchQuery, isJoined, userId, itemPerPage),
     getAllUserGroupsCount(searchQuery, isJoined, userId),
   ]);
 
@@ -65,6 +72,7 @@ export async function getAllUserGroups(
   searchQuery: string,
   isJoined: "true" | "false" | null,
   userId: string,
+  itemPerPage: number,
 ) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -130,8 +138,8 @@ export async function getAllUserGroups(
    * グループ一覧を取得
    * */
   const prismaReturnGroups = await prisma.group.findMany({
-    skip: (page - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE,
-    take: TABLE_CONSTANTS.ITEMS_PER_PAGE,
+    skip: (page - 1) * itemPerPage,
+    take: itemPerPage,
     select: {
       id: true,
       name: true,

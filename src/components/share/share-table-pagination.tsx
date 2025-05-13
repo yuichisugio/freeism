@@ -1,7 +1,17 @@
 "use client";
 
 import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/table-dropdown-menu";
 import { usePagination } from "@/hooks/utils/use-pagination";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -16,6 +26,8 @@ export type ShareTablePaginationProps = {
   currentPage: number;
   onPageChange: (page: number) => void;
   totalRowCount: number;
+  itemPerPage: number;
+  onItemPerPageChange: (itemPerPage: number) => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -28,13 +40,13 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
   /**
    * ページネーションのprops
    */
-  const { currentPage, onPageChange, totalRowCount } = pagination;
+  const { currentPage, onPageChange, totalRowCount, itemPerPage, onItemPerPageChange } = pagination;
 
   /**
    * ページネーションの条件
    */
   // TotalPageを計算
-  const calculatedTotalPages = useMemo(() => Math.ceil((totalRowCount ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE), [totalRowCount]);
+  const calculatedTotalPages = useMemo(() => Math.ceil((totalRowCount ?? 0) / itemPerPage), [totalRowCount, itemPerPage]);
   // ページネーションの条件
   const { totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     totalPages: calculatedTotalPages,
@@ -43,8 +55,21 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
     totalCount: totalRowCount ?? 0,
   });
   // 表示アイテム範囲の計算
-  const startItem = totalRowCount > 0 ? (currentPage - 1) * TABLE_CONSTANTS.ITEMS_PER_PAGE + 1 : 0;
-  const endItem = Math.min(currentPage * TABLE_CONSTANTS.ITEMS_PER_PAGE, totalRowCount);
+  const startItem = totalRowCount > 0 ? (currentPage - 1) * itemPerPage + 1 : 0;
+  const endItem = Math.min(currentPage * itemPerPage, totalRowCount);
+
+  /**
+   * 表示件数のドロップダウンメニュー
+   */
+  const selectValue = [
+    Math.floor(TABLE_CONSTANTS.ITEMS_PER_PAGE / 5),
+    Math.floor(TABLE_CONSTANTS.ITEMS_PER_PAGE / 4),
+    Math.floor(TABLE_CONSTANTS.ITEMS_PER_PAGE / 3),
+    Math.floor(TABLE_CONSTANTS.ITEMS_PER_PAGE / 2),
+    TABLE_CONSTANTS.ITEMS_PER_PAGE,
+  ]
+    .filter((value) => value > 0)
+    .sort((a, b) => a - b);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -54,7 +79,38 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
   return (
     <div className="flex items-center justify-between border-t border-blue-100 px-4 py-3">
       {/* 件数を表示 */}
-      <div className="text-sm font-medium text-neutral-600">{totalRowCount > 0 ? `${startItem}-${endItem} / ${totalRowCount}件` : `0 / 0件`}</div>
+      <div className="flex items-center">
+        <div className="mr-4 text-sm font-medium text-neutral-600 focus:outline-none focus-visible:ring-0">
+          {totalRowCount > 0 ? `${totalRowCount}件中${startItem}〜${endItem}件` : `0件 / 0件`}
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="px-3 focus:outline-none focus-visible:ring-0">
+              表示件数 / {itemPerPage}件
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 focus:outline-none focus-visible:ring-0">
+            <DropdownMenuLabel>表示件数</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {/* DropdownMenuRadioGroupを使用して単一選択を実現 */}
+            <DropdownMenuRadioGroup
+              value={itemPerPage.toString()} // 現在のitemPerPageを文字列で設定
+              onValueChange={(value) => {
+                onItemPerPageChange(Number(value)); // 選択された値を数値に変換してコールバックを呼ぶ
+              }}
+            >
+              {selectValue.map((value) => (
+                <DropdownMenuRadioItem
+                  key={value}
+                  value={value.toString()} // valueも文字列で設定
+                >
+                  {value} 件
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       {/* ページネーションのボタン */}
       {totalPages > 0 && (
         <div className="flex items-center space-x-1">

@@ -152,6 +152,9 @@ export const MyGroupTable = memo(function MyGroupTable(): JSX.Element {
         currentPage: 1,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPageChange: () => {},
+        itemPerPage: 10,
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onItemPerPageChange: () => {},
       },
       sort: {
         onSortChange: (field: keyof MyGroupMembership) => {
