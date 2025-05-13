@@ -95,7 +95,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
             {/* DropdownMenuRadioGroupを使用して単一選択を実現 */}
             <DropdownMenuRadioGroup
               value={itemPerPage.toString()} // 現在のitemPerPageを文字列で設定
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 onItemPerPageChange(Number(value)); // 選択された値を数値に変換してコールバックを呼ぶ
               }}
             >

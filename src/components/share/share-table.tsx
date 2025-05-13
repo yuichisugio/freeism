@@ -1,7 +1,7 @@
 "use client";
 
 import type { DataTableComponentProps } from "@/types/group-types";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { ShareTableFilter } from "@/components/share/share-table-filter";
 import { ShareTablePagination } from "@/components/share/share-table-pagination";
 import {
@@ -20,7 +20,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { cn } from "@/lib/utils";
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Maximize, Minimize, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -45,52 +45,12 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   const [isFullScreen, setIsFullScreen] = useState(false);
   // テーブルのコンテナを参照
   const tableContainerRef = useRef<HTMLDivElement>(null);
-
-  // フルスクリーンモードを切り替えるための関数
-  const toggleFullScreen = useCallback(async () => {
-    const element = tableContainerRef.current;
-    if (!element) return;
-
-    if (!document.fullscreenElement) {
-      try {
-        await element.requestFullscreen({ navigationUI: "hide" });
-        setIsFullScreen(true);
-        document.body.classList.add("fullscreen-active"); // bodyにクラスを追加
-      } catch (err) {
-        console.error(`Error attempting to enable full-screen mode: ${(err as Error).message} (${(err as Error).name})`);
-        toast.error("フルスクリーンモードへの切り替えに失敗しました。");
-      }
-    } else {
-      if (document.exitFullscreen) {
-        try {
-          await document.exitFullscreen();
-          setIsFullScreen(false);
-          document.body.classList.remove("fullscreen-active"); // bodyからクラスを削除
-        } catch (err) {
-          console.error(`Error attempting to disable full-screen mode: ${(err as Error).message} (${(err as Error).name})`);
-        }
-      }
-    }
-  }, []);
-
-  // フルスクリーンモードの変更を監視
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-      if (!document.fullscreenElement) {
-        document.body.classList.remove("fullscreen-active");
-      } else {
-        document.body.classList.add("fullscreen-active");
-      }
-    };
-
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullScreenChange);
-      // コンポーネントアンマウント時にbodyからクラスを削除（念のため）
-      document.body.classList.remove("fullscreen-active");
-    };
-  }, []);
+  // フルスクリーンモードのpropsを返す
+  const fullScreenProps = {
+    isFullScreen,
+    setIsFullScreen,
+    tableContainerRef,
+  };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -118,14 +78,8 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   return (
     <>
       {/* テーブルのフィルター */}
-      {filter && <ShareTableFilter filtersArray={filter} />}
-
-      {/* 追加: フルスクリーンボタン (フィルターの上に配置、フルスクリーン時は表示位置調整の可能性あり) */}
-      <div className="mb-2 flex justify-end">
-        <Button onClick={toggleFullScreen} variant="outline" size="sm">
-          {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
-          {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
-        </Button>
+      <div className={cn(isFullScreen && "fixed top-0 right-0 left-0 z-[10000] border-b border-blue-100 bg-white p-4 shadow-md")}>
+        {(filter ?? isFullScreen) && <ShareTableFilter filtersArray={filter ?? []} fullScreenProps={fullScreenProps} />}
       </div>
 
       {/* テーブルの外側のdiv */}
@@ -134,13 +88,18 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         className={cn(
           "rounded-lg border border-blue-100 bg-white/80 backdrop-blur-sm",
           isFullScreen
-            ? "fixed inset-0 z-[9999] h-screen w-screen overflow-auto bg-white" // フルスクリーン時のスタイル
+            ? "fixed inset-0 z-[9999] h-screen w-screen overflow-auto bg-white pt-24" // pt-24 はフィルターの高さに応じて調整してください
             : "w-full", // 通常時のスタイル
         )}
       >
         {/* テーブルの内側のdiv */}
         <div
-          className={cn("relative w-full overflow-x-auto overflow-y-auto", isFullScreen ? "h-full max-h-full" : "h-auto max-h-[calc(100vh-22rem)]")}
+          className={cn(
+            "relative w-full overflow-x-auto",
+            isFullScreen
+              ? "h-auto" // ← ページネーションの高さぶん余白
+              : "h-auto max-h-[calc(100vh-22rem)] overflow-y-auto",
+          )}
         >
           <table>
             {/* テーブルのヘッダー */}
@@ -368,7 +327,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         {pagination && !isFullScreen && <ShareTablePagination pagination={pagination} />}
         {pagination &&
           isFullScreen && ( // フルスクリーン時のページネーション（必要であればスタイル調整）
-            <div className="sticky bottom-0 z-10 border-t border-blue-100 bg-white/80 p-2 backdrop-blur-sm">
+            <div className="sticky right-0 bottom-0 left-0 z-[10000] bg-white">
               <ShareTablePagination pagination={pagination} />
             </div>
           )}
