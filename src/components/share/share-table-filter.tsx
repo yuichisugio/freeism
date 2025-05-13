@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/table-radio-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { cn } from "@/lib/utils";
-import { Maximize, Minimize } from "lucide-react";
+import { HelpCircle, Maximize, Minimize } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -46,6 +48,25 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
    * フルスクリーンモードのprops
    */
   const { isFullScreen, toggleFullScreen } = fullScreenProps;
+
+  /**
+   * ショートカットキーの設定
+   * n+alt+ctrlで通知モーダーを開く
+   */
+  useShortcut([
+    {
+      code: "KeyF",
+      alt: true,
+      callback: () => toggleFullScreen(),
+      preventDefault: true,
+    },
+    {
+      code: "KeyF",
+      ctrlOrMeta: true,
+      callback: () => toggleFullScreen(),
+      preventDefault: true,
+    },
+  ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -93,8 +114,58 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
         <Button onClick={toggleFullScreen} variant="outline" size="sm" className="mr-3 mb-3 ml-auto items-center self-end">
           {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
           {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
+          <TableToolTips />
         </Button>
       </div>
     </>
+  );
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テーブルのフィルターのツールチップ
+ */
+export function TableToolTips() {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50"
+          aria-label="通知コマンドのヘルプ"
+        >
+          <HelpCircle className="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top" sideOffset={5}>
+        <div className="text-left text-xs">
+          <p className="mb-1 font-semibold">キーボードショートカット</p>
+          <ul className="list-inside list-disc">
+            <li>
+              <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                Option
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                F
+              </kbd>{" "}
+              : フルスクリーンモードにする
+            </li>
+            <li>
+              <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                Ctrl
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                F
+              </kbd>{" "}
+              : フルスクリーンモードにする
+            </li>
+          </ul>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
