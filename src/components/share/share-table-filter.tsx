@@ -111,11 +111,13 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
         </div>
 
         {/* フルスクリーンボタン */}
-        <Button onClick={toggleFullScreen} variant="outline" size="sm" className="mr-3 mb-3 ml-auto items-center self-end">
-          {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
-          {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
+        <div className="mb-3 flex items-center gap-2 self-end">
+          <Button onClick={toggleFullScreen} variant="outline" size="sm" className="ml-auto">
+            {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
+            {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
+          </Button>
           <TableToolTips />
-        </Button>
+        </div>
       </div>
     </>
   );
@@ -125,6 +127,7 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
 
 /**
  * テーブルのフィルターのツールチップ
+ * fullScreen時にToolTipが表示されないのは、FullScreen APIの仕様。回避できるが一旦は行わない
  */
 export function TableToolTips() {
   return (
@@ -133,13 +136,13 @@ export function TableToolTips() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50"
+          className="h-10 w-10 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50"
           aria-label="通知コマンドのヘルプ"
         >
           <HelpCircle className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="top" sideOffset={5}>
+      <TooltipContent>
         <div className="text-left text-xs">
           <p className="mb-1 font-semibold">キーボードショートカット</p>
           <ul className="list-inside list-disc">
