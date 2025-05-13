@@ -39,7 +39,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
   const { totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     totalPages: calculatedTotalPages,
     currentPage: currentPage ?? 1,
-    maxPageToShow: TABLE_CONSTANTS.ITEMS_PER_PAGE,
+    maxPageToShow: 6,
     totalCount: totalRowCount ?? 0,
   });
   // 表示アイテム範囲の計算
@@ -53,9 +53,18 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
    */
   return (
     <div className="flex items-center justify-between border-t border-blue-100 px-4 py-3">
+      {/* 件数を表示 */}
       <div className="text-sm font-medium text-neutral-600">{totalRowCount > 0 ? `${startItem}-${endItem} / ${totalRowCount}件` : `0 / 0件`}</div>
+      {/* ページネーションのボタン */}
       {totalPages > 0 && (
         <div className="flex items-center space-x-1">
+          {/* ページ番号を入力 */}
+          <input
+            type="number"
+            placeholder="page"
+            onChange={(e) => setTimeout(() => onPageChange(Number(e.target.value)), 1000)}
+            className="w-20 rounded-md border border-blue-200 bg-white px-3 py-2 text-sm shadow-sm transition-colors hover:bg-blue-50"
+          />
           {/* 最初のページボタン */}
           {!isFirstPage && (
             <button
