@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CardCountdown } from "@/components/auction/listing/auction-countdown";
@@ -13,7 +13,54 @@ import { cn } from "@/lib/utils";
 import { type AuctionCard as AuctionCardType } from "@/types/auction-types";
 import { Clock, Heart, Star, Tag, Users } from "lucide-react";
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品者の評価表示
+ * @param executorRating 出品者の評価
+ * @returns 評価表示
+ */
+const getExecutorRatingComponent = (executorRating: number | null): JSX.Element => {
+  // 評価がない場合
+  if (executorRating === null) {
+    return <span className="text-gray-400 dark:text-gray-500">未評価</span>;
+  }
+
+  // 5つ星評価の表示
+  const fullStars = Math.floor(executorRating);
+  // 半分の星の表示
+  const hasHalfStar = executorRating % 1 >= 0.5;
+  // 空の星の表示
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex items-center">
+      {/* フルスター */}
+      {Array.from({ length: fullStars }).map((_, i) => (
+        <Star key={`full-${i}`} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+      ))}
+
+      {/* ハーフスター */}
+      {hasHalfStar && (
+        <span className="relative">
+          <Star className="h-3 w-3 text-gray-300 dark:text-gray-600" />
+          <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
+            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+          </span>
+        </span>
+      )}
+
+      {/* 空スター */}
+      {Array.from({ length: emptyStars }).map((_, i) => (
+        <Star key={`empty-${i}`} className="h-3 w-3 text-gray-300 dark:text-gray-600" />
+      ))}
+
+      <span className="ml-1 text-xs text-gray-600 dark:text-gray-400">{executorRating?.toFixed(1)}</span>
+    </div>
+  );
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションカードコンポーネント
@@ -41,53 +88,6 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
    * タスクのタイトルにハイライトがあるかどうかを返す
    */
   const hasHighlight = useMemo(() => auction.task_highlighted ?? auction.detail_highlighted, [auction.task_highlighted, auction.detail_highlighted]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品者の評価表示
-   * @param executorRating 出品者の評価
-   * @returns 評価表示
-   */
-  const executorRating = useCallback((executorRating: number | null) => {
-    // 評価がない場合
-    if (executorRating === null) {
-      return <span className="text-gray-400 dark:text-gray-500">未評価</span>;
-    }
-
-    // 5つ星評価の表示
-    const fullStars = Math.floor(executorRating);
-    // 半分の星の表示
-    const hasHalfStar = executorRating % 1 >= 0.5;
-    // 空の星の表示
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-    return (
-      <div className="flex items-center">
-        {/* フルスター */}
-        {Array.from({ length: fullStars }).map((_, i) => (
-          <Star key={`full-${i}`} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-        ))}
-
-        {/* ハーフスター */}
-        {hasHalfStar && (
-          <span className="relative">
-            <Star className="h-3 w-3 text-gray-300 dark:text-gray-600" />
-            <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-            </span>
-          </span>
-        )}
-
-        {/* 空スター */}
-        {Array.from({ length: emptyStars }).map((_, i) => (
-          <Star key={`empty-${i}`} className="h-3 w-3 text-gray-300 dark:text-gray-600" />
-        ))}
-
-        <span className="ml-1 text-xs text-gray-600 dark:text-gray-400">{executorRating?.toFixed(1)}</span>
-      </div>
-    );
-  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -204,7 +204,7 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
                     <AvatarImage src={executor.userImage ?? ""} alt={executor.userSettingsUsername ?? "出品者"} />
                     <AvatarFallback>{executor.userSettingsUsername?.[0] ?? "U"}</AvatarFallback>
                   </Avatar>
-                  <div className="text-xs">{executorRating(executor.rating)}</div>
+                  <div className="text-xs">{getExecutorRatingComponent(executor.rating)}</div>
                   <span className="max-w-[120px] truncate text-xs text-gray-600 dark:text-gray-300">
                     {executor.userSettingsUsername ?? "Unknown"}
                   </span>

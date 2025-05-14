@@ -68,6 +68,7 @@ export function useNotificationButton(): NotificationButtonReturn {
 
   /**
    * 通知の内容をprefetchする
+   * useInfiniteQuery の prefetch と同じ型になるように、returnする
    */
   const queryClient = useQueryClient();
   useEffect(() => {

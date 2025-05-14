@@ -147,8 +147,13 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
           ref={tableContainerRef}
           className={cn("w-full border border-blue-100 bg-white", isFullScreen ? "flex-1" : "rounded-lg backdrop-blur-sm")}
         >
-          <div className={cn("w-full", !isFullScreen && "relative h-auto max-h-[calc(100vh-16rem)] overflow-x-auto overflow-y-auto")}>
-            <table className="w-full table-fixed">
+          <div
+            className={cn(
+              "relative h-auto w-full overflow-x-auto overflow-y-auto", // ← 常時スクロール
+              !isFullScreen && "max-h-[calc(100vh-16rem)]",
+            )}
+          >
+            <table className="w-full min-w-full table-auto">
               {/* テーブルのヘッダー */}
               <thead className={cn("border-b border-blue-100 bg-blue-50", isFullScreen && "sticky top-0 z-30")}>
                 <tr>
@@ -159,7 +164,6 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                         "sticky top-0 z-20 border-b border-blue-100 bg-blue-50 px-5 py-3 text-left text-sm font-medium shadow-md",
                         column.cellClassName, //大きい場面の場合に中央寄せするために必要
                       )}
-                      style={{ width: `${100 / columns.length}%` }} // 画面幅が大きいモニターの場合に列の幅を均等にするために必要
                     >
                       {column.sortable ? (
                         <button
