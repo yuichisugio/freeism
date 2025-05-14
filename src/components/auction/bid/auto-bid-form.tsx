@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,44 +34,19 @@ type AutoBidFormProps = {
 export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidderId }: AutoBidFormProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 最大入札額の入力値
-  const [maxBidAmount, setMaxBidAmount] = useState<number>(currentHighestBid + 1);
-
-  // 入札単位の入力値（デフォルト100ポイント）
-  const [bidIncrement, setBidIncrement] = useState<number>(100);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // 自動入札のカスタムフック
-  const { autoBidSettings, loading, error, isAutoBidding, setupAutoBid, cancelAutoBidding } = useAutoBid(
-    auctionId,
-    currentHighestBid,
-    currentHighestBidderId,
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 自動入札の設定を保存
-  const handleSetupAutoBid = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      if (maxBidAmount <= currentHighestBid) {
-        return; // バリデーションエラー
-      }
-
-      // 自動入札を設定
-      await setupAutoBid(maxBidAmount, bidIncrement);
-    },
-    [maxBidAmount, bidIncrement, setupAutoBid, currentHighestBid],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 自動入札のキャンセル
-  const handleCancelAutoBid = useCallback(async () => {
-    await cancelAutoBidding();
-  }, [cancelAutoBidding]);
+  const {
+    autoBidSettings,
+    loading,
+    error,
+    isAutoBidding,
+    maxBidAmount,
+    bidIncrement,
+    handleSetupAutoBid,
+    cancelAutoBidding,
+    setMaxBidAmount,
+    setBidIncrement,
+  } = useAutoBid(auctionId, currentHighestBid, currentHighestBidderId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -103,7 +78,7 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
             variant="outline"
             size="sm"
             className="text-secondary hover:bg-secondary/20 border-secondary/30"
-            onClick={handleCancelAutoBid}
+            onClick={cancelAutoBidding}
             disabled={loading}
           >
             自動入札を取り消す
