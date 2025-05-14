@@ -77,7 +77,7 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
    * カスタムフックからロジックを取得
    */
   // card
-  const { isStarted, isEnded, isNew, isEndingSoon, setIsEnded, getStartMessage } = useAuctionCard({ auction });
+  const { isStarted, isEnded, isNew, isEndingSoon, setIsEnded, getStartMessage, prefetchAuctionDetails } = useAuctionCard({ auction });
 
   // watchlist
   const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, auction.is_watched);
@@ -93,7 +93,10 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <div className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
+    <div
+      className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900"
+      onMouseEnter={() => void prefetchAuctionDetails()}
+    >
       {/* 新着バッジ（過去3日以内の出品） */}
       {isNew && <div className="absolute top-0 left-0 z-10 rounded-br-lg bg-blue-500 px-2 py-1 text-xs font-semibold text-white">NEW</div>}
 

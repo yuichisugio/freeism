@@ -1,10 +1,17 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { type AuctionMessage, type SellerInfo } from "@/hooks/auction/bid/use-auction-message";
+import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { getAutoBidByUserId } from "@/lib/auction/action/auto-bid";
+import { getAuctionMessagesAndSellerInfo } from "@/lib/auction/action/message";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type AuctionCard } from "@/types/auction-types";
 import { AuctionStatus } from "@prisma/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
+import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -18,17 +25,28 @@ type UseAuctionCardReturn = {
   isEndingSoon: boolean;
   setIsEnded: (isEnded: boolean) => void;
   getStartMessage: () => string;
+  prefetchAuctionDetails: () => Promise<void>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// 型定義: getAuctionMessagesAndSellerInfoの戻り値の型 (use-auction-message.ts から参照)
+type AuctionQueryData = {
+  messages: AuctionMessage[];
+  sellerId: string | null;
+  sellerInfo: SellerInfo | null;
+};
 
 /**
  * オークションカード用フック
  * @param {AuctionCardHookProps} props オークションカード用フックのプロップ
- * @returns {AuctionCardHookResult} オークションカードの状態とハンドラー
+ * @returns {UseAuctionCardHookResult} オークションカードの状態とハンドラー
  */
 export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctionCardReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const userId = useMemo(() => session?.user?.id, [session]);
 
   /**
    * 現在時刻とオークションの開始・終了時刻を比較
@@ -75,6 +93,48 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * オークション詳細関連データをプリフェッチする関数
+   */
+  const prefetchAuctionDetails = useCallback(async () => {
+    console.log("src/hooks/auction/listing/use-auction-card.ts_prefetchAuctionDetails_start");
+
+    // オークションIDがない場合はプリフェッチしない
+    if (!auction.id) return;
+
+    // 1. auction.messages のプリフェッチ
+    await queryClient.prefetchQuery<AuctionQueryData, Error>({
+      queryKey: queryCacheKeys.auction.messages(auction.id),
+      queryFn: async (): Promise<AuctionQueryData> => {
+        const result = await getAuctionMessagesAndSellerInfo(auction.id);
+        if (!result.success) {
+          return { messages: [], sellerId: null, sellerInfo: null };
+        }
+        return {
+          messages: result.messages ?? [],
+          sellerId: result.sellerInfo?.id ?? null,
+          sellerInfo: result.sellerInfo ?? null,
+        };
+      },
+    });
+
+    // 2. auction.detail のプリフェッチ
+    await queryClient.prefetchQuery({
+      queryKey: queryCacheKeys.auction.detail(auction.id),
+      queryFn: () => getAuctionByAuctionId(auction.id),
+    });
+
+    // 3. auction.autoBid のプリフェッチ
+    if (userId) {
+      await queryClient.prefetchQuery({
+        queryKey: queryCacheKeys.auction.autoBid(auction.id, userId, auction.current_highest_bid),
+        queryFn: () => getAutoBidByUserId(auction.id, auction.current_highest_bid),
+      });
+    }
+  }, [auction.id, auction.current_highest_bid, userId, queryClient]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
     // state
     isStarted,
@@ -85,5 +145,6 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
     // action
     setIsEnded,
     getStartMessage,
+    prefetchAuctionDetails,
   };
 }
