@@ -1,6 +1,6 @@
 "use server";
 
-import type { CreateGroupFormData } from "@/components/group/create-group-form";
+import type { CreateGroupFormData } from "@/components/form/create-group-form";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";

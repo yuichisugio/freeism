@@ -4,9 +4,9 @@ import type { GroupMemberWithUser } from "@/lib/actions/group";
 import type { Column, DataTableProps, Task } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { CsvUploadModal } from "@/components/group/csv-upload-modal";
-import { EditGroupForm } from "@/components/group/edit-group-form";
-import { ExportDataModal } from "@/components/group/export-data-modal";
+import { EditGroupForm } from "@/components/form/edit-group-form";
+import { CsvUploadModal } from "@/components/modal/csv-upload-modal";
+import { ExportDataModal } from "@/components/modal/export-data-modal";
 import { ShareTable } from "@/components/share/share-table";
 import {
   AlertDialog,

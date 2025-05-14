@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { CreateGroupForm } from "@/components/group/create-group-form";
+import { CreateGroupForm } from "@/components/form/create-group-form";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
