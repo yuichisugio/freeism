@@ -81,6 +81,7 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
 
   // watchlist
   const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, auction.is_watched);
+  console.log("src/components/auction/listing/auction-card.tsx_isWatchlisted", isWatchlisted);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -53,7 +53,7 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
   /**
    * ウォッチリストの状態を取得
    */
-  const { data: isWatchlisted, isPending: isLoading } = useQuery({
+  const { data: isWatchlistedQueryData, isPending: isLoading } = useQuery({
     queryKey: queryCacheKeys.watchlist.userAuction(userId, auctionId),
     queryFn: () => serverIsAuctionWatched(auctionId, userId),
     initialData: initialData,
@@ -71,38 +71,49 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
     mutationKey: queryCacheKeys.watchlist.update(userId),
     mutationFn: () => serverToggleWatchlist(auctionId, userId),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: queryCacheKeys.watchlist.userAuction(auctionId, userId) });
-      const previousWatchlist = queryClient.getQueryData<boolean>(queryCacheKeys.watchlist.userAuction(auctionId, userId));
-      queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(auctionId, userId), (old: boolean | undefined) =>
-        old === undefined ? undefined : !old,
-      );
+      console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_onMutate_start");
+      await queryClient.cancelQueries({ queryKey: queryCacheKeys.watchlist.userAuction(userId, auctionId) });
+      const previousWatchlist = queryClient.getQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId));
+      console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_onMutate_previousWatchlist:", previousWatchlist);
+      queryClient.setQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId), (old) => (old === true ? false : true));
+      const optimisticValue = queryClient.getQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId));
+      console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_onMutate_optimisticValue:", optimisticValue);
       return { previousWatchlist };
     },
-    onError: (error: Error, _variables: void, context: { previousWatchlist: boolean | undefined } | undefined) => {
-      toast.error("ウォッチリストの更新中にエラーが発生しました");
-      if (context !== undefined) {
-        queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(auctionId, userId), context.previousWatchlist);
-      }
-      console.error("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストAPI呼び出しエラー:", error);
-    },
-    onSettled: async (data) => {
+    onSuccess: (data) => {
+      console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_onSuccess_data:", data);
+      queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(userId, auctionId), data);
+
       if (data) {
-        console.log("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストに追加しました");
+        console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_ウォッチリストに追加しました", data);
         toast.success("ウォッチリストに追加しました");
       } else {
-        console.log("src/hooks/auction/bid/use-watchlist-actions.ts_toggleWatchlist_ウォッチリストから削除しました");
+        console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_ウォッチリストから削除しました", data);
         toast.success("ウォッチリストから削除しました");
       }
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.watchlist.userAuction(auctionId, userId) });
+    },
+    onError: (error: Error, _variables: void, context: { previousWatchlist: boolean | null | undefined } | undefined) => {
+      toast.error("ウォッチリストの更新中にエラーが発生しました");
+      if (context?.previousWatchlist !== undefined) {
+        queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(userId, auctionId), context.previousWatchlist);
+      }
+      console.error("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_ウォッチリストAPI呼び出しエラー:", error);
+    },
+    onSettled: async () => {
+      console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_onSettled_start");
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.watchlist.userAuction(userId, auctionId) });
+      console.log("src/hooks/auction/bid/use-watchlist.ts_toggleWatchlist_onSettled_finished");
     },
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const isWatchlisted = isWatchlistedQueryData ?? false;
+  console.log("src/hooks/auction/bid/use-watchlist.ts_isWatchlisted_derived", isWatchlisted);
 
   return {
     // state
     isLoading: isLoading || isPending,
-    isWatchlisted: isWatchlisted!,
+    isWatchlisted: isWatchlisted,
     // action
     toggleWatchlist,
   };
