@@ -1,6 +1,7 @@
 "use client";
 
 import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import type { QueryFnReturnType } from "@/types/notifications-types";
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import { getNotificationsAndUnreadCount, getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
@@ -70,29 +71,32 @@ export function useNotificationButton(): NotificationButtonReturn {
    */
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (hasUnreadNotifications) {
-      void queryClient.prefetchQuery({
-        queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
-        queryFn: async () => {
-          const result = await getNotificationsAndUnreadCount(userId, 1, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+    console.log(`[通知] useNotificationButton_useEffect_prefetchNotifications_start`);
+    void queryClient.prefetchQuery({
+      queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
+      queryFn: async () => {
+        const result = await getNotificationsAndUnreadCount(userId, 1, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
-          const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
-            ...notification,
-            sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
-            readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
-            expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
-          }));
+        const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
+          ...notification,
+          sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
+          readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
+          expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
+        }));
 
-          console.log(`[通知] Fetched page: ${1}: items received = ${processedNotifications.length}`);
-          return {
-            notifications: processedNotifications,
-            totalCount: result.totalCount,
-            unreadCount: result.unreadCount,
-            readCount: result.readCount,
-          };
-        },
-      });
-    }
+        console.log(`[通知] Fetched page: ${1}: items received = ${processedNotifications.length}`);
+        const pageData: QueryFnReturnType = {
+          notifications: processedNotifications,
+          totalCount: result.totalCount,
+          unreadCount: result.unreadCount,
+          readCount: result.readCount,
+        };
+        return {
+          pages: [pageData],
+          pageParams: [1],
+        };
+      },
+    });
   }, [hasUnreadNotifications, queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

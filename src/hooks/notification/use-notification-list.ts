@@ -1,6 +1,7 @@
 "use client";
 
 import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import type { QueryFnReturnType } from "@/types/notifications-types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { redirect } from "next/navigation";
@@ -40,16 +41,6 @@ export type NotificationManagerResult = {
   handleManualRefresh: () => Promise<void>;
   loadMoreNotifications: () => Promise<void>;
   handleToggleRead: (id: string, isRead: boolean) => void;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/** `queryFn` が返す各ページのデータ型 */
-type QueryFnReturnType = {
-  notifications: NotificationData[];
-  totalCount: number;
-  unreadCount: number; // このページ取得時の全体の未読数
-  readCount: number; // このページ取得時の全体の既読数
 };
 
 // ーーーーーーーーーーーー
