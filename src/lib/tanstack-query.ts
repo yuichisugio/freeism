@@ -33,11 +33,12 @@ export const queryCacheKeys = {
     update: (userId: string) => [...queryCacheKeys.watchlist.userAll(userId), "update"] as const,
   },
 
-  auctionListings: {
-    _root: ["auctionListings"] as const,
-    all: () => [...queryCacheKeys.auctionListings._root] as const,
-    userAllConditions: (userId: string, listingsConditions: AuctionListingsConditions) =>
-      [...queryCacheKeys.auctionListings.all(), JSON.stringify(listingsConditions), userId] as const,
+  auction: {
+    _root: ["auction"] as const,
+    allListings: () => [...queryCacheKeys.auction._root, "allListings"] as const,
+    userAllListings: (userId: string, listingsConditions: AuctionListingsConditions) =>
+      [...queryCacheKeys.auction.allListings(), JSON.stringify(listingsConditions), userId] as const,
+    messages: (auctionId: string) => [...queryCacheKeys.auction._root, "messages", auctionId] as const,
   },
 
   table: {

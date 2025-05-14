@@ -28,7 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * @returns オークション詳細ページ
  */
 export default async function AuctionDetailPage({ params }: { params: Promise<{ auctionId: string }> }) {
-  // オークションIDを取得
+  /**
+   * オークションIDを取得
+   * */
   const { auctionId } = await params;
   console.log("src/app/dashboard/auction/[auctionId]/page.tsx_auctionId", auctionId);
 

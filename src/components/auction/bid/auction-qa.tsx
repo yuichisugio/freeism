@@ -37,23 +37,36 @@ type MessageFormValues = z.infer<typeof messageFormSchema>;
 
 /**
  * オークションの質問と回答コンポーネント
+ * @param props コンポーネントのプロパティ
+ * @returns オークションの質問と回答コンポーネント
  */
 export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * オークションの質問と回答のカスタムフック
+   */
   const { messages, sellerId, loading, error, submitting, sendMessage, reloadMessages, currentUserId, isSeller } = useAuctionMessage(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * リロード状態
+   */
   const [reloading, setReloading] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * メッセージリストの最下部の参照
+   */
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォームの初期化
+  /**
+   * フォームの初期化
+   */
   const form = useForm<MessageFormValues>({
     resolver: zodResolver(messageFormSchema),
     defaultValues: {
@@ -63,11 +76,50 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // メッセージ送信処理
+  /**
+   * メッセージ送信処理
+   */
   const onSubmit = useCallback(
     async (data: MessageFormValues) => {
+      let recipient: string | null = null;
+
+      if (isSeller) {
+        // 出品者の場合、最新のメッセージの送信者（ただし自分以外）に返信する
+        const lastNonSellerMessage = [...messages].reverse().find((msg) => msg.senderId !== currentUserId);
+        if (lastNonSellerMessage) {
+          recipient = lastNonSellerMessage.senderId;
+        } else {
+          // 返信相手がいない場合（例：まだ誰も質問していない）
+          form.setError("message", {
+            type: "manual",
+            message: "返信先の質問がありません。",
+          });
+          return; // 送信しない
+        }
+      } else {
+        // 出品者でない場合、出品者に送信する
+        if (sellerId) {
+          recipient = sellerId;
+        } else {
+          form.setError("message", {
+            type: "manual",
+            message: "出品者情報が見つからないため、メッセージを送信できません。",
+          });
+          return; // 送信しない
+        }
+      }
+
+      if (!recipient) {
+        // 通常ここには到達しないはずだが、念のため
+        form.setError("message", {
+          type: "manual",
+          message: "メッセージの送信先を特定できませんでした。",
+        });
+        return;
+      }
+
       // 出品者へのメッセージを送信する
-      const success = await sendMessage(data.message, sellerId ?? "");
+      const success = await sendMessage({ messageText: data.message, recipientId: recipient });
       if (success) {
         // フォームをリセット
         form.reset();
@@ -77,12 +129,14 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
         }, 100);
       }
     },
-    [form, messagesEndRef, sendMessage, sellerId],
+    [form, sendMessage, messagesEndRef, sellerId, isSeller, messages, currentUserId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // Command+Enterでのメッセージ送信
+  /**
+   * Command+Enterでのメッセージ送信
+   */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
       // Command+Enterでフォーム送信
@@ -96,7 +150,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // メッセージリロード処理
+  /**
+   * メッセージリロード処理
+   */
   const handleReload = useCallback(async () => {
     setReloading(true);
     await reloadMessages();
@@ -105,7 +161,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // メッセージをグループ化する（自分/相手のメッセージ）
+  /**
+   * メッセージをグループ化する（自分/相手のメッセージ）
+   */
   const groupedMessages = useMemo(() => {
     return messages.reduce<Record<string, AuctionMessage[]>>((groups, message) => {
       // 自分のメッセージか相手のメッセージかでグループ化
@@ -120,7 +178,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
+  /**
+   * 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
+   */
   const sortedGroupKeys = useMemo(() => {
     return Object.keys(groupedMessages).sort((a, b) => {
       const timeA = new Date(groupedMessages[a][0].createdAt).getTime();
@@ -131,7 +191,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // メッセージがロード後に最下部にスクロール
+  /**
+   * メッセージがロード後に最下部にスクロール
+   */
   useEffect(() => {
     if (!loading && messages.length > 0) {
       setTimeout(() => {
@@ -142,7 +204,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ローディング表示
+  /**
+   * ローディング表示
+   */
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
@@ -154,7 +218,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // エラー表示
+  /**
+   * エラー表示
+   */
   if (error) {
     return (
       <div className="border-destructive text-destructive bg-destructive/5 rounded-xl border p-6 text-center shadow-sm">
@@ -168,6 +234,9 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * メッセージヘッダー
+   */
   return (
     <div className="flex h-full flex-col space-y-4 rounded-xl border border-slate-100 bg-gradient-to-b from-slate-50 to-white p-5 shadow-md">
       {/* メッセージヘッダー */}

@@ -57,6 +57,7 @@ type RawNotificationFromDB = {
   taskName: string | null;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 /**
  * 未読通知の数を取得する - JSONB最適化版
  * @returns 未読通知の数

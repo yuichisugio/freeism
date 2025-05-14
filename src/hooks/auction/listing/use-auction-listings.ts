@@ -335,7 +335,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     isPending,
     isPlaceholderData,
   } = useQuery({
-    queryKey: queryCacheKeys.auctionListings.userAllConditions(userId, listingsConditions),
+    queryKey: queryCacheKeys.auction.userAllListings(userId, listingsConditions),
     queryFn: async () => await getAuctionListingsAndCount({ listingsConditions, userId }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
@@ -359,7 +359,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
       // 次のページをprefetch
       void queryClient.prefetchQuery({
-        queryKey: queryCacheKeys.auctionListings.userAllConditions(userId, { ...listingsConditions, page: nextPage }),
+        queryKey: queryCacheKeys.auction.userAllListings(userId, { ...listingsConditions, page: nextPage }),
         queryFn: async () => await getAuctionListingsAndCount({ listingsConditions: { ...listingsConditions, page: nextPage }, userId }),
       });
       console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_nextPage", nextPage);

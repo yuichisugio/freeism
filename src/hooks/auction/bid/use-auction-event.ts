@@ -12,6 +12,8 @@ type SSEResponse = {
   data: AuctionWithDetails | null;
 } & AuctionWithDetails;
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークションSSEを購読するカスタムフック（拡張版）の型
  */

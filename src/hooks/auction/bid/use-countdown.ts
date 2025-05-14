@@ -56,7 +56,9 @@ export function useCountdown(targetDate: Date | string, onExpire: () => void | n
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // マウント時にも一度だけ即時更新しておく（useStateの初期化だけだと、ちょうど分替わり前後で表示が1分古くなる可能性があるため）
+  /**
+   * マウント時にも一度だけ即時更新しておく（useStateの初期化だけだと、ちょうど分替わり前後で表示が1分古くなる可能性があるため）
+   */
   useEffect(() => {
     setCountdownState(calculateTimeLeft());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,12 +66,16 @@ export function useCountdown(targetDate: Date | string, onExpire: () => void | n
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カウントダウンの状態を管理するuseState
+  /**
+   * カウントダウンの状態を管理するuseState
+   */
   const [countdownState, setCountdownState] = useState<CountdownState>(calculateTimeLeft());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 1分ごとの更新
+  /**
+   * 1分ごとの更新
+   */
   useEffect(() => {
     const id = setInterval(() => {
       setCountdownState(calculateTimeLeft());

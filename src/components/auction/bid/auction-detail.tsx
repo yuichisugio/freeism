@@ -93,15 +93,26 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // useAuctionEventフックを使用してSSEからリアルタイムデータを取得
+  /**
+   * useAuctionEventフックを使用してSSEからリアルタイムデータを取得
+   */
   const { auction = initialAuction, loading, error, lastMsg } = useAuctionEvent(initialAuction);
 
-  // カウントダウンの状態
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * カウントダウンの状態
+   */
   const { countdownState, formatCountdown } = useCountdown(new Date(auction.endTime || initialAuction.endTime), () => {
     console.log("カウントダウンが終了しました");
   });
 
-  // ウォッチリストアクション。watchはuserIdが必要で、userIdを入れるとキャッシュできないため、意図的に取得しない
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ウォッチリスト
+   * watchはuserIdが必要で、userIdを入れるとキャッシュできないため、意図的に取得しない
+   */
   const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
