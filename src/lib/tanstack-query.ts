@@ -39,6 +39,7 @@ export const queryCacheKeys = {
     userAllListings: (userId: string, listingsConditions: AuctionListingsConditions) =>
       [...queryCacheKeys.auction.allListings(), JSON.stringify(listingsConditions), userId] as const,
     messages: (auctionId: string) => [...queryCacheKeys.auction._root, "messages", auctionId] as const,
+    detail: (auctionId: string) => [...queryCacheKeys.auction._root, "detail", auctionId] as const,
   },
 
   table: {

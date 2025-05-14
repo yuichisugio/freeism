@@ -1,22 +1,11 @@
 "use client";
 
-import type { AuctionWithDetails } from "@/types/auction-types";
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 import dynamic from "next/dynamic";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * エラー表示コンポーネント
- */
-const ErrorDisplay = memo(() => (
-  <div className="rounded-lg bg-red-50 p-8 text-center">
-    <h2 className="mb-2 text-lg font-semibold text-red-600">エラーが発生しました</h2>
-    <p className="text-red-500">オークション情報の読み込みに失敗しました。</p>
-    <p className="mt-2 text-sm text-gray-500">しばらく経ってから再度お試しください。</p>
-  </div>
-));
-ErrorDisplay.displayName = "ErrorDisplay";
+import { NoResult } from "@/components/share/no-result";
+import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { useQuery } from "@tanstack/react-query";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,21 +41,44 @@ const AuctionDetailClient = dynamic(() => import("@/components/auction/bid/aucti
  * @returns オークション詳細ページ
  */
 // eslint-disable-next-line import/no-default-export
-export default function AuctionDetailWrapper({ initialAuction }: { initialAuction: AuctionWithDetails }) {
-  const [hasError, setHasError] = useState(false);
+export default function AuctionDetailWrapper({ auctionId }: { auctionId: string }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  useEffect(() => {
-    // 初期データが不正な場合はエラー状態にする
-    if (!initialAuction?.id || !initialAuction?.task) {
-      console.error("オークション詳細の初期データが不正です", initialAuction);
-      setHasError(true);
-    }
-  }, [initialAuction]);
+  /**
+   * オークションデータを取得
+   */
+  const { data: initialAuction, isPending } = useQuery({
+    queryKey: queryCacheKeys.auction.detail(auctionId),
+    queryFn: () => getAuctionByAuctionId(auctionId),
+    staleTime: 1000 * 60 * 60 * 1, // 1時間
+    gcTime: 1000 * 60 * 60 * 1, // 1時間
+    enabled: !!auctionId,
+  });
 
-  // エラーの場合はエラー表示
-  if (hasError) {
-    return <ErrorDisplay />;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ローディング中はローディングコンポーネントを表示
+   */
+  if (isPending) {
+    return <LoadingDisplay />;
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オークションデータが存在しない場合は404エラーを返す
+   */
+  if (!initialAuction) {
+    console.log("src/app/dashboard/auction/[auctionId]/page.tsx_stack", new Error().stack);
+    return <NoResult message="オークションが見つかりません" />;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("src/app/dashboard/auction/[auctionId]/page.tsx_getAuctionByAuctionId_auctionData_success");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return <AuctionDetailClient initialAuction={initialAuction} />;
 }
