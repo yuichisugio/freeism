@@ -2,6 +2,7 @@
 
 import type { DataTableComponentProps } from "@/types/group-types";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ShareTableFilter } from "@/components/share/share-table-filter";
 import { ShareTablePagination } from "@/components/share/share-table-pagination";
 import {
@@ -30,6 +31,7 @@ import { toast } from "sonner";
  */
 function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  console.log("src/components/share/share-table.tsx_start");
 
   /**
    * コンポーネントの引数
@@ -42,10 +44,24 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
    * テーブルをフルスクリーン（全画面表示）するための設定
    */
   // フルスクリーンモードの状態を管理
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  // テーブルのコンテナを参照
+  const [isFullScreen, setIsFullScreen] = useState<boolean>(() => {
+    // 初期マウント時にブラウザの状態を参照して決定
+    if (typeof document !== "undefined") {
+      return !!document.fullscreenElement;
+    }
+    return false;
+  });
+  /** テーブルのコンテナを参照 */
   const wrapperRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * フルスクリーンモードを復元するかどうかを管理
+   */
+  const FS_FLAG_KEY = "shareTable.restoreFS";
+  const shouldRestoreFS = useRef<boolean>(typeof window !== "undefined" && sessionStorage.getItem(FS_FLAG_KEY) === "true");
+
+  /** フルスクリーンモードの切り替え */
   const toggleFullScreen = useCallback(async () => {
     const el = wrapperRef.current;
     if (!el) return;
@@ -53,6 +69,8 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
     if (!document.fullscreenElement) {
       try {
         await el.requestFullscreen({ navigationUI: "hide" });
+        shouldRestoreFS.current = true;
+        sessionStorage.setItem(FS_FLAG_KEY, "true");
         setIsFullScreen(true);
         document.body.classList.add("fullscreen-active");
       } catch (error) {
@@ -62,6 +80,8 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
     } else {
       try {
         await document.exitFullscreen();
+        shouldRestoreFS.current = false;
+        sessionStorage.removeItem(FS_FLAG_KEY);
         setIsFullScreen(false);
         document.body.classList.remove("fullscreen-active");
       } catch (error) {
@@ -69,18 +89,20 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
       }
     }
   }, [setIsFullScreen, wrapperRef]);
-  // フルスクリーンモードのpropsを返す
+
+  /**
+   * フルスクリーンモードのpropsを返す
+   */
   const filterFullScreenProps = {
     isFullScreen,
     toggleFullScreen,
   };
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * フルスクリーンモードの変更を監視
    */
   useEffect(() => {
+    setIsFullScreen(!!document.fullscreenElement);
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
       if (!document.fullscreenElement) {
@@ -99,6 +121,16 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
     };
   }, [setIsFullScreen]);
 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (shouldRestoreFS.current && !document.fullscreenElement) {
+      wrapperRef.current?.requestFullscreen({ navigationUI: "hide" }).catch(() => {
+        /* ignore */
+      });
+    }
+  }, [pathname, searchParams]);
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

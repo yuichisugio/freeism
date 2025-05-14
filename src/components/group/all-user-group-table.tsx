@@ -218,10 +218,15 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   /**
    * ローディング中は、ローディング中の表示を返す
    * groups.length === 0より先に記載して、Loading中ならLoading中の表示を返す
+   * コンポーネントを直接表示せず、オーバーレイで上に表示する理由
+   * -コンポーネントにすると、ShareTableと置き換えるため、fullScreenの状態維持のrefが削除されて、sort/filterのたびに、fullScreenの状態が解除されてしまうため
+   * -オーバーレイで上に表示することで、ShareTableと置き換えずに済む
    */
-  if (isLoading) {
-    return <Loading />;
-  }
+  const loadingOverlay = isLoading ? (
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+      <Loading />
+    </div>
+  ) : null;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -237,5 +242,10 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   /**
    * DataTableコンポーネントを返す。
    */
-  return <ShareTable dataTableProps={dataTableProps} />;
+  return (
+    <>
+      {loadingOverlay}
+      <ShareTable dataTableProps={dataTableProps} />
+    </>
+  );
 });

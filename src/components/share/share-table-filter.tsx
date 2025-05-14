@@ -60,12 +60,6 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
       callback: () => toggleFullScreen(),
       preventDefault: true,
     },
-    {
-      code: "KeyF",
-      ctrlOrMeta: true,
-      callback: () => toggleFullScreen(),
-      preventDefault: true,
-    },
   ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -150,16 +144,6 @@ export function TableToolTips() {
             <li>
               <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                 Option
-              </kbd>{" "}
-              +{" "}
-              <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                F
-              </kbd>{" "}
-              : フルスクリーンモードにする
-            </li>
-            <li>
-              <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                Ctrl
               </kbd>{" "}
               +{" "}
               <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">

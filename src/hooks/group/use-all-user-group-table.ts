@@ -48,7 +48,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   const searchParams = useSearchParams();
 
-  const getListingsConditionsFromParams = useCallback((): TableConditions => {
+  const getTableConditionsFromParams = useCallback((): TableConditions => {
     // ページ数のURLパラメータ
     const currentPage = Number(searchParams.get("page") ?? 1);
 
@@ -88,7 +88,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
   /**
    * テーブルの条件を管理する
    */
-  const [tableConditions, setTableConditions] = useState<TableConditions>(getListingsConditionsFromParams());
+  const [tableConditions, setTableConditions] = useState<TableConditions>(getTableConditionsFromParams());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -97,8 +97,8 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * ブラウザの戻るボタンを押してURLが変わった場合に、データを反映させるために必要
    */
   useEffect(() => {
-    setTableConditions(getListingsConditionsFromParams());
-  }, [searchParams, getListingsConditionsFromParams]);
+    setTableConditions(getTableConditionsFromParams());
+  }, [searchParams, getTableConditionsFromParams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

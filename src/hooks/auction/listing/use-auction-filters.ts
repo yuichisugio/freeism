@@ -82,6 +82,9 @@ type UseAuctionFiltersReturn = {
 export function useAuctionFilters({ listingsConditions, setListingsConditionsAction }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * state
+   */
   // フィルターパネルの表示状態
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
@@ -108,6 +111,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * セッション情報
+   */
   const { data: session } = useSession();
   const userId = session?.user?.id;
   if (!userId) {
@@ -169,14 +175,18 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 一時的なフィルター状態を更新
+  /**
+   * 一時的なフィルター状態を更新
+   */
   useEffect(() => {
     setDraftConditions({ ...listingsConditions });
   }, [listingsConditions]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 時間範囲の表示
+  /**
+   * 時間範囲の表示
+   */
   const formatTimeDisplay = useCallback((hours: number) => {
     if (hours < 1) return "即時";
     if (hours < 24) return `${hours}時間`;
@@ -186,12 +196,16 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カテゴリリスト
+  /**
+   * カテゴリリスト
+   */
   const categoriesList = useMemo(() => AUCTION_CONSTANTS.AUCTION_CATEGORIES, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カテゴリが選択されているかチェック
+  /**
+   * カテゴリが選択されているかチェック
+   */
   const isCategorySelected = useCallback(
     (category: string) => {
       if (!draftConditions.categories || !Array.isArray(draftConditions.categories)) {
@@ -204,7 +218,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ステータスが選択されているかチェック
+  /**
+   * ステータスが選択されているかチェック
+   */
   const isStatusSelected = useCallback(
     (status: string) => {
       if (!draftConditions.status || !Array.isArray(draftConditions.status)) {
@@ -217,7 +233,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループが選択されているかチェック
+  /**
+   * グループが選択されているかチェック
+   */
   const isGroupSelected = useCallback(
     (groupId: string | null) => {
       if (groupId === null) {
@@ -230,7 +248,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ソート値を安全に取得する関数
+  /**
+   * ソート値を安全に取得する関数
+   */
   const getSortField = useCallback(() => {
     if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
       return draftConditions.sort[0].field;
@@ -240,7 +260,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ソート方向を安全に取得する関数
+  /**
+   * ソート方向を安全に取得する関数
+   */
   const getSortDirection = useCallback(() => {
     if (Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0) {
       return draftConditions.sort[0].direction;
@@ -250,7 +272,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // すべてのグループが選択されているかを確認
+  /**
+   * すべてのグループが選択されているかを確認
+   */
   const areAllGroupsSelected = useMemo(() => {
     // draftConditions.groupIdsがない場合はtrue
     if (!draftConditions.groupIds || draftConditions.groupIds.length === 0 || joinTypeinedGroupList.length === 0) {
@@ -270,7 +294,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 価格範囲をリセット
+  /**
+   * 価格範囲をリセット
+   */
   const resetPriceRange = useCallback(() => {
     setDraftConditions({
       ...draftConditions,
@@ -281,7 +307,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 残り時間範囲をリセット
+  /**
+   * 残り時間範囲をリセット
+   */
   const resetTimeRange = useCallback(() => {
     setDraftConditions({
       ...draftConditions,
@@ -292,7 +320,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループ情報を取得
+  /**
+   * グループ情報を取得
+   */
   useEffect(() => {
     async function fetchGroups() {
       try {
@@ -323,7 +353,9 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // アクティブなフィルターの数を計算
+  /**
+   * アクティブなフィルターの数を計算
+   */
   useEffect(() => {
     let count = 0;
     if (
@@ -392,7 +424,10 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カテゴリ選択時のハンドラ
+  /**
+   * カテゴリ選択時のハンドラ
+   * @param category 選択されたカテゴリ
+   */
   const handleCategorySelect = useCallback(
     (category: string) => {
       // カテゴリ型を明示的に宣言して型安全性を確保

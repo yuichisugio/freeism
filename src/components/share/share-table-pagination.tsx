@@ -118,7 +118,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
           <input
             type="number"
             placeholder="page"
-            onChange={(e) => setTimeout(() => onPageChange(Number(e.target.value)), 1000)}
+            onChange={(e) => setTimeout(() => onPageChange(Number(e.target.value)), 2000)}
             className="w-20 rounded-md border border-blue-200 bg-white px-3 py-2 text-sm shadow-sm transition-colors hover:bg-blue-50"
           />
           {/* 最初のページボタン */}
