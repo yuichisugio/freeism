@@ -116,12 +116,16 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
           sellerInfo: result.sellerInfo ?? null,
         };
       },
+      staleTime: 1000 * 60 * 30, // 30分
+      gcTime: 1000 * 60 * 60 * 1, // 1時間
     });
 
     // 2. auction.detail のプリフェッチ
     await queryClient.prefetchQuery({
       queryKey: queryCacheKeys.auction.detail(auction.id),
       queryFn: () => getAuctionByAuctionId(auction.id),
+      staleTime: 1000 * 60 * 30, // 30分
+      gcTime: 1000 * 60 * 60 * 1, // 1時間
     });
 
     // 3. auction.autoBid のプリフェッチ
@@ -129,6 +133,8 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
       await queryClient.prefetchQuery({
         queryKey: queryCacheKeys.auction.autoBid(auction.id, userId, auction.current_highest_bid),
         queryFn: () => getAutoBidByUserId(auction.id, auction.current_highest_bid),
+        staleTime: 1000 * 60 * 30, // 30分
+        gcTime: 1000 * 60 * 60 * 1, // 1時間
       });
     }
   }, [auction.id, auction.current_highest_bid, userId, queryClient]);
