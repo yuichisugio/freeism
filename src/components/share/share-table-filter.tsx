@@ -179,7 +179,7 @@ export function ShareTableFilter({ filter, fullScreenProps }: ShareTableFilterPr
                 filter.filterType === "radio" &&
                 filter.radioOptions && (
                   <RadioGroup
-                    defaultValue={filter.filterText}
+                    value={filter.filterText ?? ""}
                     onValueChange={(value: string) => filter.onFilterChange(value)}
                     className="flex items-center space-x-4"
                   >
@@ -194,20 +194,22 @@ export function ShareTableFilter({ filter, fullScreenProps }: ShareTableFilterPr
               )}
             </div>
           ))}
+          <div className="mb-4 flex items-center gap-2">
+            {onResetFilters && (
+              <Button onClick={onResetFilters} variant="outline" size="sm" className={cn(isFullScreen && "mr-1")}>
+                フィルターリセット
+              </Button>
+            )}
+            {onResetSort && (
+              <Button onClick={onResetSort} variant="outline" size="sm" className={cn(isFullScreen && "mr-1")}>
+                ソートリセット
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* フルスクリーンボタン */}
         <div className="mb-3 flex items-center gap-2 self-end">
-          {onResetFilters && (
-            <Button onClick={onResetFilters} variant="outline" size="sm" className={cn(isFullScreen && "mr-1")}>
-              フィルターリセット
-            </Button>
-          )}
-          {onResetSort && (
-            <Button onClick={onResetSort} variant="outline" size="sm" className={cn(isFullScreen && "mr-1")}>
-              ソートリセット
-            </Button>
-          )}
           <Button onClick={toggleFullScreen} variant="outline" size="sm" className={cn("ml-auto", isFullScreen && "mr-3")}>
             {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
             {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
