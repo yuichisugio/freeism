@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/table-radio-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { cn } from "@/lib/utils";
-import { HelpCircle, Maximize, Minimize } from "lucide-react";
+import { HelpCircle, Maximize, Minimize, X } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -118,6 +118,16 @@ export function ShareTableFilter({ filter, fullScreenProps }: ShareTableFilterPr
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * inputタイプフィルターの値をクリアして適応する
+   */
+  const handleClearAndApplyFilter = (index: number, onFilterChangeCallback: (value: string) => void) => {
+    setInputFilterValues((prev) => ({ ...prev, [index]: "" }));
+    onFilterChangeCallback("");
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * テーブルのフィルターのコンポーネント
    */
   return (
@@ -131,17 +141,35 @@ export function ShareTableFilter({ filter, fullScreenProps }: ShareTableFilterPr
               {/* inputタイプフィルター */}
               {filter.filterType === "input" ? (
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="text"
-                    value={inputFilterValues[index] ?? ""}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(index, e.target.value)}
-                    placeholder={filter.placeholder ?? "キーワードで絞り込み..."}
-                    className="focus:none w-full border-blue-200 bg-white/80 text-sm md:w-[300px]"
-                  />
+                  <div className="relative flex items-center">
+                    <Input
+                      type="text"
+                      value={inputFilterValues[index] ?? ""}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(index, e.target.value)}
+                      placeholder={filter.placeholder ?? "キーワードで絞り込み..."}
+                      // クリアボタンのスペースを確保するために右パディングを追加 (pr-8 や pr-10 など適宜調整)
+                      className="focus:none w-full border-blue-200 bg-white/80 pr-10 text-sm md:w-[300px]"
+                    />
+                    {/* クリアボタン: inputの値が空でない場合に表示 */}
+                    {(inputFilterValues[index] ?? "") !== "" && (
+                      <Button
+                        type="button" // フォームのsubmitを抑制
+                        variant="ghost" // スタイル調整: 背景やボーダーなし
+                        size="sm" // サイズ調整: 必要に応じて "icon" なども検討
+                        // ボタンをInputコンポーネントの右端中央に配置
+                        className="absolute top-1/2 right-0 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700"
+                        onClick={() => handleClearAndApplyFilter(index, filter.onFilterChange)}
+                        aria-label="入力をクリア"
+                      >
+                        <X className="h-4 w-4" /> {/* Xアイコン */}
+                      </Button>
+                    )}
+                  </div>
                   <Button
                     onClick={() => handleApplyFilter(index, filter.onFilterChange)}
                     size="sm"
-                    className="w-15 bg-blue-500 text-white hover:bg-blue-600"
+                    // shrink-0 を追加して、親要素が狭まった際にボタンが縮むのを防ぐ（任意）
+                    className="w-15 shrink-0 bg-blue-500 text-white hover:bg-blue-600"
                   >
                     適応
                   </Button>

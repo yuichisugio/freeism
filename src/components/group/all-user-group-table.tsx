@@ -4,7 +4,6 @@ import type { Column, DataTableProps, Group } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { Loading } from "@/components/share/loading";
-import { NoResult } from "@/components/share/no-result";
 import { ShareTable } from "@/components/share/share-table";
 import { useAllUserGroupTable } from "@/hooks/group/use-all-user-group-table";
 import { UserPlus } from "lucide-react";
@@ -234,15 +233,6 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
       <Loading />
     </div>
   ) : null;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループがない場合は、グループがない旨を表示
-   */
-  if (groups.length === 0) {
-    return <NoResult message="グループがありません" />;
-  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
