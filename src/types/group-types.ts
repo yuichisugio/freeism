@@ -65,14 +65,17 @@ export type DataTableProps<T> = {
     sortDirection: SortDirection;
     sortField: keyof T;
   } | null;
-  filter:
-    | {
-        filterType: "input" | "radio";
-        filterText: string;
-        onFilterChange: (value: string) => void;
-        placeholder: string;
-      }[]
-    | null;
+  filter: {
+    filterContents: {
+      filterType: "input" | "radio";
+      filterText: string;
+      onFilterChange: (value: string) => void;
+      placeholder: string;
+      radioOptions: { value: string; label: string }[] | null;
+    }[];
+    onResetFilters: () => void;
+    onResetSort: () => void;
+  } | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

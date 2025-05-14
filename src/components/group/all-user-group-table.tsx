@@ -30,6 +30,8 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
     // function
     changeTableConditions,
     handleJoin,
+    resetFilters,
+    resetSort,
   } = useAllUserGroupTable();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -188,29 +190,34 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
             sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
           }),
         sortDirection: tableConditions.sort?.direction ?? "desc",
-        sortField: tableConditions.sort?.field ?? "isJoined",
+        sortField: tableConditions.sort?.field ?? ("isJoined" as keyof Group),
       },
-      filter: [
-        {
-          filterType: "input",
-          filterText: tableConditions.searchQuery ?? "",
-          onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, searchQuery: value }),
-          placeholder: "グループ名で絞り込み...",
-        },
-        {
-          filterType: "radio",
-          filterText: tableConditions.isJoined ?? "",
-          onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "true" | "false" }),
-          placeholder: "グループ参加状態で絞り込み...",
-          radioOptions: [
-            { value: "true", label: "グループ参加中" },
-            { value: "false", label: "グループ未参加" },
-            { value: "", label: "全て" },
-          ],
-        },
-      ],
+      filter: {
+        filterContents: [
+          {
+            filterType: "input",
+            filterText: tableConditions.searchQuery ?? "",
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, searchQuery: value }),
+            placeholder: "グループ名で絞り込み...",
+            radioOptions: null,
+          },
+          {
+            filterType: "radio",
+            filterText: tableConditions.isJoined ?? "",
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "true" | "false" }),
+            placeholder: "グループ参加状態で絞り込み...",
+            radioOptions: [
+              { value: "true", label: "グループ参加中" },
+              { value: "false", label: "グループ未参加" },
+              { value: "", label: "全て" },
+            ],
+          },
+        ],
+        onResetFilters: resetFilters,
+        onResetSort: resetSort,
+      },
     }),
-    [groups, columns, totalGroupCount, tableConditions, changeTableConditions],
+    [groups, columns, totalGroupCount, tableConditions, changeTableConditions, resetFilters, resetSort],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -21,7 +21,7 @@ export type Filter = {
   filterText: string;
   onFilterChange: (value: string) => void;
   placeholder: string;
-  radioOptions?: { value: string; label: string }[];
+  radioOptions: { value: string; label: string }[] | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -30,7 +30,11 @@ export type Filter = {
  * テーブルのフィルターのprops
  */
 export type ShareTableFilterProps = {
-  filtersArray: Filter[] | null;
+  filter: {
+    filterContents: Filter[];
+    onResetFilters: () => void;
+    onResetSort: () => void;
+  };
   fullScreenProps: {
     isFullScreen: boolean;
     toggleFullScreen: () => void;
@@ -42,13 +46,20 @@ export type ShareTableFilterProps = {
 /**
  * テーブルのフィルターのコンポーネント
  */
-export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFilterProps) {
+export function ShareTableFilter({ filter, fullScreenProps }: ShareTableFilterProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * フルスクリーンモードのprops
    */
   const { isFullScreen, toggleFullScreen } = fullScreenProps;
+
+  /**
+   * フィルターのprops
+   */
+  const { filterContents, onResetFilters, onResetSort } = filter;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ショートカットキーの設定
@@ -73,16 +84,16 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
 
   // filtersArrayが変更された場合、または初回レンダリング時にinputFilterValuesを初期化
   useEffect(() => {
-    if (filtersArray) {
+    if (filterContents) {
       const initialInputValues: Record<number, string> = {};
-      filtersArray.forEach((filter, index) => {
+      filterContents.forEach((filter, index) => {
         if (filter.filterType === "input") {
           initialInputValues[index] = filter.filterText ?? "";
         }
       });
       setInputFilterValues(initialInputValues);
     }
-  }, [filtersArray]);
+  }, [filterContents]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -115,7 +126,7 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
       <div className={cn("flex items-start justify-between", !isFullScreen && "mb-2", isFullScreen && "mt-3 ml-3")}>
         {/* フィルター群 */}
         <div className="flex flex-col">
-          {filtersArray?.map((filter: Filter, index: number) => (
+          {filterContents?.map((filter: Filter, index: number) => (
             <div key={index} className="mb-4 flex items-start">
               {/* inputタイプフィルター */}
               {filter.filterType === "input" ? (
@@ -159,6 +170,16 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
 
         {/* フルスクリーンボタン */}
         <div className="mb-3 flex items-center gap-2 self-end">
+          {onResetFilters && (
+            <Button onClick={onResetFilters} variant="outline" size="sm" className={cn(isFullScreen && "mr-1")}>
+              フィルターリセット
+            </Button>
+          )}
+          {onResetSort && (
+            <Button onClick={onResetSort} variant="outline" size="sm" className={cn(isFullScreen && "mr-1")}>
+              ソートリセット
+            </Button>
+          )}
           <Button onClick={toggleFullScreen} variant="outline" size="sm" className={cn("ml-auto", isFullScreen && "mr-3")}>
             {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
             {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}

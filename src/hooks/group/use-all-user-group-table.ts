@@ -25,6 +25,8 @@ type UseAllUserGroupTableReturn = {
   // function
   changeTableConditions: (tableConditions: TableConditions) => void;
   handleJoin: (groupId: string) => void;
+  resetFilters: () => void;
+  resetSort: () => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -298,6 +300,31 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * フィルターをリセットする関数
+   */
+  const resetFilters = useCallback(() => {
+    changeTableConditions({
+      ...tableConditions,
+      searchQuery: null,
+      isJoined: null,
+    });
+  }, [changeTableConditions, tableConditions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ソートをリセットする関数
+   */
+  const resetSort = useCallback(() => {
+    changeTableConditions({
+      ...tableConditions,
+      sort: null,
+    });
+  }, [changeTableConditions, tableConditions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * グループ参加関連機能
    */
   return {
@@ -310,6 +337,8 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     // function
     changeTableConditions,
     handleJoin,
+    resetFilters,
+    resetSort,
   };
 }
 

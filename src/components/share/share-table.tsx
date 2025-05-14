@@ -137,7 +137,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         {/* ---------- フィルターバー ---------- */}
         {filter && (
           <div className={cn(isFullScreen && "bg-white")}>
-            <ShareTableFilter filtersArray={filter} fullScreenProps={filterFullScreenProps} />
+            <ShareTableFilter filter={filter} fullScreenProps={filterFullScreenProps} />
           </div>
         )}
 

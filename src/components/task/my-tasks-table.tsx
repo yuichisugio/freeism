@@ -237,15 +237,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       sortDirection: "desc",
       sortField: "id",
     },
-    filter: [
-      {
-        filterType: "input",
-        filterText: "",
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onFilterChange: () => {},
-        placeholder: "グループ名で絞り込み...",
-      },
-    ],
+    filter: null,
   };
 
   return <ShareTable dataTableProps={dataTableProps} />;
