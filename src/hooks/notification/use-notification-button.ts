@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
-import { getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
+import { getNotificationsAndUnreadCount, getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
+import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -60,6 +62,38 @@ export function useNotificationButton(): NotificationButtonReturn {
     refetchInterval: 30 * 60 * 1000,
     enabled: !!userId,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 通知の内容をprefetchする
+   */
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (hasUnreadNotifications) {
+      void queryClient.prefetchQuery({
+        queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
+        queryFn: async () => {
+          const result = await getNotificationsAndUnreadCount(userId, 1, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+
+          const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
+            ...notification,
+            sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
+            readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
+            expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
+          }));
+
+          console.log(`[通知] Fetched page: ${1}: items received = ${processedNotifications.length}`);
+          return {
+            notifications: processedNotifications,
+            totalCount: result.totalCount,
+            unreadCount: result.unreadCount,
+            readCount: result.readCount,
+          };
+        },
+      });
+    }
+  }, [hasUnreadNotifications, queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -1,6 +1,7 @@
 "use client";
 
-import type { AuctionFilterType, FilterType, NotificationData } from "@/hooks/notification/use-notification-list";
+import type { AuctionFilterType, FilterType } from "@/hooks/notification/use-notification-list";
+import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
 import { memo, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -652,7 +653,7 @@ export const NotificationList = memo(function NotificationList() {
                   <TooltipContent side="top" sideOffset={5}>
                     <div className="text-left text-xs">
                       <p className="mb-1 font-semibold">キーボードショートカット</p>
-                      <ul className="list-inside list-disc">
+                      <ul className="list-inside list-disc space-y-2">
                         <li>
                           <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                             Option
@@ -662,6 +663,12 @@ export const NotificationList = memo(function NotificationList() {
                             n
                           </kbd>{" "}
                           : 通知を開く
+                        </li>
+                        <li>
+                          <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            esc
+                          </kbd>{" "}
+                          : モーダーを閉じる
                         </li>
                         <li>
                           <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">

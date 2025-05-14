@@ -16,8 +16,6 @@ export const queryCacheKeys = {
     all: () => [...queryCacheKeys.Notification._root] as const,
     userAllNotifications: (userId: string) => [...queryCacheKeys.Notification.all(), userId] as const,
     hasUnreadNotifications: (userId: string) => [...queryCacheKeys.Notification.userAllNotifications(userId), "hasUnreadNotifications"] as const,
-    details: () => [...queryCacheKeys.Notification.all(), "detail"] as const,
-    detail: (id: number) => [...queryCacheKeys.Notification.details(), id] as const,
   },
 
   userSettings: {

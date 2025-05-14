@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuctionEventType, NotificationTargetType } from "@prisma/client";
+import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { redirect } from "next/navigation";
@@ -19,29 +19,6 @@ export type AuctionFilterType = "all" | "auction-only" | "exclude-auction";
 
 /** 通知フィルターの型 */
 export type FilterType = "all" | "unread" | "read";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/** 通知データの型 */
-export type NotificationData = {
-  id: string;
-  title: string;
-  message: string;
-  NotificationTargetType: NotificationTargetType;
-  isRead: boolean;
-  sentAt: Date | null;
-  readAt: Date | null;
-  actionUrl: string | null;
-  groupId: string | null;
-  taskId: string | null;
-  userName: string | null;
-  groupName: string | null;
-  taskName: string | null;
-  expiresAt?: Date | null;
-  senderUserId: string | null;
-  auctionEventType: AuctionEventType | null;
-  auctionId?: string | null;
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -161,22 +138,16 @@ export function useNotificationList(): NotificationManagerResult {
       }
       const result = await getNotificationsAndUnreadCount(userId, pageParam, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
-      const uniqueNotifications = Array.from(new Map(result.notifications.map((n) => [n.id, n])).values());
-
-      console.log(`[通知] Fetched page: ${pageParam}: items received = ${uniqueNotifications.length}`);
-      const processedNotifications: NotificationData[] = uniqueNotifications.map((notification) => ({
-        ...notification,
-        isRead: notification.isRead,
-        sentAt: notification.sentAt ? new Date(notification.sentAt) : null,
-        readAt: notification.readAt ? new Date(notification.readAt) : null,
-        expiresAt: notification.expiresAt ? new Date(notification.expiresAt) : null,
-        userName: notification.userName ?? null,
-        groupName: notification.groupName ?? null,
-        taskName: notification.taskName ?? null,
-        senderUserId: notification.senderUserId ?? null,
-        auctionEventType: notification.auctionEventType as AuctionEventType | null,
-        auctionId: notification.auctionId ?? null,
+      // 日付文字列をDateオブジェクトに変換する
+      const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
+        ...notification, // サーバーから来たnotificationは日付が文字列化されている
+        sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
+        readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
+        expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
+        // auctionEventTypeはサーバー側で型アサーション済み
       }));
+
+      console.log(`[通知] Fetched page: ${pageParam}: items received = ${processedNotifications.length}`);
       return {
         notifications: processedNotifications,
         totalCount: result.totalCount,
@@ -215,30 +186,24 @@ export function useNotificationList(): NotificationManagerResult {
     select: (fetchedData: InfiniteData<QueryFnReturnType, number>): SelectedResultType => {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 取得したデータをフラット化
+      // 取得したデータをフラット化 (この時点で日付は Date オブジェクトになっている)
       const allFetchedNotifications = fetchedData.pages.flatMap((p) => p.notifications);
 
-      const uniqueNotificationsMap = new Map<string, NotificationData>();
-
-      allFetchedNotifications.forEach((notification) => {
-        uniqueNotificationsMap.set(notification.id, notification);
-      });
-
-      const finalUniqueNotifications = Array.from(uniqueNotificationsMap.values());
-
-      finalUniqueNotifications.sort((a, b) => {
+      // 重複排除はサーバー側で実施済みのため、ここでは不要
+      // ソート処理
+      allFetchedNotifications.sort((a, b) => {
         if (!a.sentAt && !b.sentAt) return 0;
         if (!a.sentAt) return 1; // null or undefined sentAt should come after
         if (!b.sentAt) return -1; // null or undefined sentAt should come after
         return new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime();
       });
 
-      const currentOverallUnreadCount = finalUniqueNotifications.filter((n) => !n.isRead).length;
+      const currentOverallUnreadCount = allFetchedNotifications.filter((n) => !n.isRead).length;
 
       // readHasMore と unReadHasMore の計算
       let currentLoadedReadCount = 0;
       let currentLoadedUnreadCount = 0;
-      finalUniqueNotifications.forEach((notification) => {
+      allFetchedNotifications.forEach((notification) => {
         if (notification.isRead) {
           currentLoadedReadCount++;
         } else if (!notification.isRead) {
@@ -277,7 +242,7 @@ export function useNotificationList(): NotificationManagerResult {
           notifications: page.notifications,
         })),
         pageParams: fetchedData.pageParams,
-        flatNotifications: finalUniqueNotifications,
+        flatNotifications: allFetchedNotifications, // 日付が Date オブジェクトの通知リスト
         overallUnreadCount: currentOverallUnreadCount, // 現在クライアントにロードされている通知の中での未読数
         readHasMore,
         unReadHasMore,
@@ -373,7 +338,12 @@ export function useNotificationList(): NotificationManagerResult {
         .then(() => {
           console.log("[通知] アンマウント時のバッチ更新成功、キャッシュを直接更新します。", updatesToSync);
           queryClient.setQueriesData<InfiniteQueryData>({ queryKey: queryCacheKeys.Notification.userAllNotifications(userId) }, (oldData) => {
-            if (!oldData) return oldData;
+            if (!oldData?.pages) {
+              // oldDataまたはoldData.pagesが存在しない場合は、何も変更せずに現在のキャッシュデータを返すか、
+              // もしくは状況に応じて初期データ構造を返すなどの処理を行う。
+              // ここでは元のデータをそのまま返す。
+              return oldData;
+            }
 
             // updatesToSync を Map 形式に変換して効率的に参照できるようにする
             const updatesMap = new Map(updatesToSync.map((u) => [u.notificationId, u.isRead]));

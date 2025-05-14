@@ -1,9 +1,9 @@
 "use cache";
 
-import type { NotificationTargetType } from "@prisma/client";
+import type { AuctionEventType, NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
 import { unstable_cacheTag as cacheTag } from "next/cache";
-import { buildCommonNotificationWhereClause, formatDateToISOString } from "@/lib/actions/notification/notification-utilities";
+import { buildCommonNotificationWhereClause } from "@/lib/actions/notification/notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
@@ -18,9 +18,9 @@ export type NotificationData = {
   message: string;
   NotificationTargetType: NotificationTargetType;
   isRead: boolean;
-  sentAt: string | null;
-  readAt: string | null;
-  expiresAt: string | null;
+  sentAt: Date | null;
+  readAt: Date | null;
+  expiresAt: Date | null;
   actionUrl: string | null;
   senderUserId: string | null;
   groupId: string | null;
@@ -28,7 +28,7 @@ export type NotificationData = {
   userName: string | null;
   groupName: string | null;
   taskName: string | null;
-  auctionEventType: string | null;
+  auctionEventType: AuctionEventType | null;
   auctionId: string | null;
 };
 
@@ -183,31 +183,31 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 通知データを変換する
-      const notifications = Array.isArray(allRawNotificationsFromDb)
-        ? await Promise.all(
-            allRawNotificationsFromDb.map(
-              async (n: RawNotificationFromDB): Promise<NotificationData> => ({
-                id: n.id,
-                title: n.title ?? "",
-                message: n.message ?? "",
-                NotificationTargetType: n.NotificationTargetType,
-                isRead: n.isRead === true,
-                sentAt: (await formatDateToISOString(n.sentAt, true)) ?? "",
-                readAt: (await formatDateToISOString(n.readAt, false)) ?? "",
-                expiresAt: (await formatDateToISOString(n.expiresAt, false)) ?? "",
-                actionUrl: n.actionUrl ?? null,
-                senderUserId: n.senderUserId ?? null,
-                groupId: n.groupId ?? null,
-                taskId: n.taskId ?? null,
-                auctionEventType: n.auctionEventType ?? null,
-                auctionId: n.auctionId ?? null,
-                userName: n.userName ?? null,
-                groupName: n.groupName ?? null,
-                taskName: n.taskName ?? null,
-              }),
-            ),
-          )
+      const uniqueRawNotifications = Array.isArray(allRawNotificationsFromDb)
+        ? Array.from(new Map(allRawNotificationsFromDb.map((n) => [n.id, n])).values())
         : [];
+
+      const notifications: NotificationData[] = uniqueRawNotifications.map(
+        (n: RawNotificationFromDB): NotificationData => ({
+          id: n.id,
+          title: n.title ?? "",
+          message: n.message ?? "",
+          NotificationTargetType: n.NotificationTargetType,
+          isRead: n.isRead,
+          sentAt: n.sentAt ? new Date(n.sentAt) : null,
+          readAt: n.readAt ? new Date(n.readAt) : null,
+          expiresAt: n.expiresAt ? new Date(n.expiresAt) : null,
+          actionUrl: n.actionUrl ?? null,
+          senderUserId: n.senderUserId ?? null,
+          groupId: n.groupId ?? null,
+          taskId: n.taskId ?? null,
+          auctionEventType: n.auctionEventType as AuctionEventType | null,
+          auctionId: n.auctionId ?? null,
+          userName: n.userName ?? null,
+          groupName: n.groupName ?? null,
+          taskName: n.taskName ?? null,
+        }),
+      );
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
