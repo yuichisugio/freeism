@@ -112,11 +112,12 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
 
         {/* フルスクリーンボタン */}
         <div className="mb-3 flex items-center gap-2 self-end">
-          <Button onClick={toggleFullScreen} variant="outline" size="sm" className="ml-auto">
+          <Button onClick={toggleFullScreen} variant="outline" size="sm" className={cn("ml-auto", isFullScreen && "mr-3")}>
             {isFullScreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
             {isFullScreen ? "通常表示に戻す" : "フルスクリーン"}
           </Button>
-          <TableToolTips />
+          {/* フルスクリーンモードではツールチップが表示できないので表示しない */}
+          {!isFullScreen && <TableToolTips />}
         </div>
       </div>
     </>

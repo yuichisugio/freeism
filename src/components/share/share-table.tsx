@@ -125,7 +125,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   return (
     <>
       {/* ラッパー開始  */}
-      <div ref={wrapperRef} className={cn(isFullScreen && "flex h-screen w-screen flex-col")}>
+      <div ref={wrapperRef} className={cn(isFullScreen ? "flex h-screen w-screen flex-col overflow-auto" : "")}>
         {/* ---------- フィルターバー ---------- */}
         {filter && (
           <div className={cn(isFullScreen && "bg-white")}>
@@ -136,10 +136,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         {/* 既存の tableContainerRef → div をそのまま配置 */}
         <div
           ref={tableContainerRef}
-          className={cn(
-            "border border-blue-100",
-            isFullScreen ? "w-full flex-1 overflow-auto bg-white" : "w-full rounded-lg bg-white/80 backdrop-blur-sm",
-          )}
+          className={cn("border border-blue-100", isFullScreen ? "w-full flex-1 bg-white" : "w-full rounded-lg bg-white/80 backdrop-blur-sm")}
         >
           <div className={cn(!isFullScreen && "relative h-auto max-h-[calc(100vh-16rem)] w-full table-auto overflow-x-auto overflow-y-auto")}>
             <table>

@@ -77,7 +77,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
    * ページネーションのコンポーネント
    */
   return (
-    <div className="flex items-center justify-between border-t border-blue-100 px-4 py-3">
+    <div className="flex items-center justify-between px-4 py-3">
       {/* 件数を表示 */}
       <div className="flex items-center">
         <div className="mr-4 text-sm font-medium text-neutral-600 focus:outline-none focus-visible:ring-0">
