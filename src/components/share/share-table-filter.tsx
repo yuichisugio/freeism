@@ -1,6 +1,7 @@
 "use client";
 
 import type { ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,6 +66,47 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * inputタイプフィルターの値を一時的に保持するstate
+   */
+  // inputタイプフィルターの値を一時的に保持するstate
+  const [inputFilterValues, setInputFilterValues] = useState<Record<number, string>>({});
+
+  // filtersArrayが変更された場合、または初回レンダリング時にinputFilterValuesを初期化
+  useEffect(() => {
+    if (filtersArray) {
+      const initialInputValues: Record<number, string> = {};
+      filtersArray.forEach((filter, index) => {
+        if (filter.filterType === "input") {
+          initialInputValues[index] = filter.filterText ?? "";
+        }
+      });
+      setInputFilterValues(initialInputValues);
+    }
+  }, [filtersArray]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * inputタイプフィルターの値を変更する
+   */
+  const handleInputChange = (index: number, value: string) => {
+    setInputFilterValues((prev) => ({ ...prev, [index]: value }));
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * inputタイプフィルターの値を適応する
+   */
+  const handleApplyFilter = (index: number, onFilterChangeCallback: (value: string) => void) => {
+    if (inputFilterValues[index] !== undefined) {
+      onFilterChangeCallback(inputFilterValues[index]);
+    }
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * テーブルのフィルターのコンポーネント
    */
   return (
@@ -74,16 +116,27 @@ export function ShareTableFilter({ filtersArray, fullScreenProps }: ShareTableFi
         {/* フィルター群 */}
         <div className="flex flex-col">
           {filtersArray?.map((filter: Filter, index: number) => (
-            <div key={index} className="mb-4 flex items-center">
+            <div key={index} className="mb-4 flex items-start">
+              {/* inputタイプフィルター */}
               {filter.filterType === "input" ? (
-                <Input
-                  type="text"
-                  value={filter.filterText ?? ""}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => filter.onFilterChange(e.target.value)}
-                  placeholder={filter.placeholder ?? "キーワードで絞り込み..."}
-                  className="w-full border-blue-200 bg-white/80 text-sm focus:border-blue-400 focus:ring-blue-400 md:w-[300px]"
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    value={inputFilterValues[index] ?? ""}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(index, e.target.value)}
+                    placeholder={filter.placeholder ?? "キーワードで絞り込み..."}
+                    className="focus:none w-full border-blue-200 bg-white/80 text-sm md:w-[300px]"
+                  />
+                  <Button
+                    onClick={() => handleApplyFilter(index, filter.onFilterChange)}
+                    size="sm"
+                    className="w-15 bg-blue-500 text-white hover:bg-blue-600"
+                  >
+                    適応
+                  </Button>
+                </div>
               ) : (
+                // radioタイプフィルター
                 filter.filterType === "radio" &&
                 filter.radioOptions && (
                   <RadioGroup
