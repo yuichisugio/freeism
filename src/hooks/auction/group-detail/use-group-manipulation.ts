@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupMemberWithUser, Task } from "@/types/group-types";
+import type { GroupDetailTask, GroupMemberWithUser } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { deleteGroup, getGroupMembers, joinGroup, removeMember } from "@/lib/actions/group";
@@ -72,7 +72,7 @@ export function useGroupManipulation({
   isAppOwner,
   groupId,
 }: {
-  tasks: Task[];
+  tasks: GroupDetailTask[];
   isGroupOwner: boolean;
   isAppOwner: boolean;
   groupId: string;

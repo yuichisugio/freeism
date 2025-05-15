@@ -1,29 +1,25 @@
 "use client";
 
-import type { Column, DataTableProps, Task, TaskParticipant, User } from "@/types/group-types";
+import type { Column, DataTableProps, GroupDetailTask } from "@/types/group-types";
+import type { TaskStatus } from "@prisma/client";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Loading } from "@/components/share/loading";
 import { ShareTable } from "@/components/share/share-table";
 import { Button } from "@/components/ui/button";
+import { useGroupTasks } from "@/hooks/auction/group-detail/use-group-tasks";
+import { contributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループ詳細ページのコンポーネントのprops
- * @param tasks {Task[]} タスクデータ
+ * useGroupTasksフックから必要なものを渡すため、propsはシンプルに
  */
 type GroupDetailTableProps = {
-  nonRewardTasks: Task[];
-  rewardTasks: Task[];
-  users: User[];
-  getReporterNames: (reporters: TaskParticipant[]) => string;
-  getExecutorNames: (executors: TaskParticipant[]) => string;
-  canDeleteTask: (task: Task) => boolean;
-  handleDeleteTask: (taskId: string) => Promise<void>;
-  canEditTask: (task: Task) => boolean;
-  handleTaskEdited: () => void;
-  updateNonRewardTasks: (tasks: Task[]) => void;
-  updateRewardTasks: (tasks: Task[]) => void;
+  groupId: string;
+  isGroupOwner: boolean;
+  isAppOwner: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -33,37 +29,47 @@ type GroupDetailTableProps = {
  * @param tasks {Task[]} タスクデータ
  * @returns {JSX.Element} グループ詳細ページのコンポーネント
  */
-export const GroupDetailTable = memo(function GroupDetailTable({
-  nonRewardTasks,
-  rewardTasks,
-  users,
-  getReporterNames,
-  getExecutorNames,
-  canDeleteTask,
-  handleDeleteTask,
-  canEditTask,
-  handleTaskEdited,
-  updateNonRewardTasks,
-  updateRewardTasks,
-}: GroupDetailTableProps): JSX.Element {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGroupOwner, isAppOwner }: GroupDetailTableProps): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ルーター
    */
   const router = useRouter();
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 共通のテーブル列定義（contributionType列を含まない）
+   * タスクデータ
    */
-  const commonColumns: Column<Task>[] = useMemo(
+  const {
+    tasks,
+    users,
+    isLoading,
+    tableConditions,
+    totalTaskCount,
+    getReporterNames,
+    getExecutorNames,
+    canDeleteTask,
+    handleDeleteTask,
+    canEditTask,
+    handleTaskEdited,
+    changeTableConditions,
+    resetFilters,
+    resetSort,
+  } = useGroupTasks({ groupId, isGroupOwner, isAppOwner });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスクテーブルのカラム
+   */
+  const columns: Column<GroupDetailTask>[] = useMemo(
     () => [
       {
-        key: "task" as keyof Task,
+        key: "taskName" as keyof GroupDetailTask,
         header: "TASK",
-        cell: (row: Task) => row.task ?? "不明",
+        cell: (row: GroupDetailTask) => row.taskName ?? "不明",
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -74,9 +80,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         cellClassName: null,
       },
       {
-        key: "name" as keyof Task,
+        key: "taskCreator" as keyof GroupDetailTask,
         header: "作成者",
-        cell: (row: Task) => row.creator.name ?? "-",
+        cell: (row: GroupDetailTask) => row.taskCreator ?? "-",
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -87,14 +93,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         cellClassName: null,
       },
       {
-        key: "reporters" as keyof Task,
+        key: "reporters" as keyof GroupDetailTask,
         header: "報告者",
-        cell: (row: Task) => {
-          if (typeof getReporterNames === "function") {
-            return getReporterNames(row.reporters);
-          }
-          return "-";
-        },
+        cell: (row: GroupDetailTask) => getReporterNames(row.taskReporterUserNames),
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -105,191 +106,27 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         cellClassName: null,
       },
       {
-        key: "executors" as keyof Task,
+        key: "executors" as keyof GroupDetailTask,
         header: "実行者",
-        cell: (row: Task) => {
-          if (typeof getExecutorNames === "function") {
-            return getExecutorNames(row.executors);
+        cell: (row: GroupDetailTask) => getExecutorNames(row.taskExecutorUserNames),
+        sortable: false,
+        statusCombobox: false,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        editTask: false,
+        deleteTask: null,
+        cellClassName: null,
+      },
+      {
+        key: "taskFixedContributionPoint" as keyof GroupDetailTask,
+        header: "貢献P / 入札額",
+        cell: (row: GroupDetailTask) => {
+          if (row.taskContributionType === contributionType.REWARD) {
+            return `${row.taskFixedContributionPoint ?? 0}p (入札中)`;
           }
-          return "-";
+          return row.taskFixedContributionPoint ? `${row.taskFixedContributionPoint}p` : "評価待ち";
         },
-        sortable: false,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
-        key: "fixedEvaluator" as keyof Task,
-        header: "評価者",
-        cell: (row: Task) => row.fixedEvaluator ?? "-",
-        sortable: true,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
-        key: "fixedEvaluationLogic" as keyof Task,
-        header: "評価ロジック",
-        cell: (row: Task) => row.fixedEvaluationLogic ?? "-",
-        sortable: true,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
-        key: "status" as keyof Task,
-        header: "ステータス",
-        cell: () => null,
-        statusCombobox: true,
-        sortable: true,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
-        key: "action" as keyof Task,
-        header: "アクション",
-        cell: () => null,
-        sortable: false,
-        statusCombobox: false,
-        editTask: true,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
-        key: "detail" as keyof Task,
-        header: "詳細",
-        cell: (row: Task) => row.detail ?? "-",
-        sortable: false,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-    ],
-    [getReporterNames, getExecutorNames],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 非報酬タスク用のカラム
-   */
-  const nonRewardColumns: Column<Task>[] = useMemo(
-    () => [
-      ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
-      {
-        key: "contributionPoint" as keyof Task,
-        header: "貢献ポイント",
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        cell: (row: Task) => (row.fixedContributionPoint ? `${row.fixedContributionPoint}p` : "評価待ち"),
-        sortable: true,
-        statusCombobox: false,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
-      {
-        key: "action" as keyof Task,
-        cell: () => null,
-        header: "アクション",
-        sortable: false,
-        statusCombobox: false,
-        editTask: true,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
-        key: "delete" as keyof Task,
-        cell: () => null,
-        header: "削除",
-        sortable: false,
-        statusCombobox: false,
-        editTask: false,
-        deleteTask: {
-          canDelete: (row: Task) => canDeleteTask(row),
-          onDelete: async (rowId: string) => {
-            await handleDeleteTask(rowId);
-          },
-        },
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        cellClassName: null,
-      },
-      {
-        key: "detail" as keyof Task,
-        header: "詳細",
-        cell: (row: Task) => row.detail ?? "-",
-        sortable: false,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-    ],
-    [canDeleteTask, handleDeleteTask, commonColumns],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 報酬タスク用のカラム
-   */
-  const rewardColumns: Column<Task>[] = useMemo(
-    () => [
-      {
-        key: "auction" as keyof Task,
-        header: "オークション",
-        cell: (row: Task) => (
-          <Button onClick={() => router.push(`/dashboard/auction/${row.id}`)} className="button-default-custom" size="sm">
-            オークションに参加
-          </Button>
-        ),
-        sortable: false,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
-      {
-        key: "contributionPoint" as keyof Task,
-        header: "現在の入札額",
-        cell: (row: Task) => `${row.fixedContributionPoint ?? 0}p`,
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -299,29 +136,31 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         deleteTask: null,
         cellClassName: "text-center",
       },
-      ...commonColumns.slice(4, 7), // fixedEvaluator, fixedEvaluationLogic, status 列をコピー
       {
-        key: "action" as keyof Task,
-        header: "アクション",
-        cell: () => null,
-        sortable: false,
-        editTask: true,
-        statusCombobox: false,
+        key: "taskStatus" as keyof GroupDetailTask,
+        header: "ステータス",
+        cell: (row: GroupDetailTask) => row.taskStatus,
+        sortable: true,
+        statusCombobox: true,
         joinGroupModal: false,
         leaveGroupModal: false,
         modalList: null,
+        editTask: false,
         deleteTask: null,
         cellClassName: null,
       },
       {
-        key: "delete" as keyof Task,
-        header: "削除",
-        cell: () => null,
-        deleteTask: {
-          canDelete: (row: Task) => canDeleteTask(row),
-          onDelete: async (rowId: string) => {
-            await handleDeleteTask(rowId);
-          },
+        key: "auction" as keyof GroupDetailTask,
+        header: "オークション",
+        cell: (row: GroupDetailTask) => {
+          if (row.taskContributionType === contributionType.REWARD) {
+            return (
+              <Button onClick={() => router.push(`/dashboard/auction/${row.id}`)} className="button-default-custom" size="sm">
+                オークションに参加
+              </Button>
+            );
+          }
+          return "-";
         },
         sortable: false,
         statusCombobox: false,
@@ -329,12 +168,42 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         leaveGroupModal: false,
         modalList: null,
         editTask: false,
+        deleteTask: null,
+        cellClassName: "text-center",
+      },
+      {
+        key: "action" as keyof GroupDetailTask,
+        header: "編集",
+        cell: () => null,
+        sortable: false,
+        statusCombobox: false,
+        editTask: true,
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        deleteTask: null,
         cellClassName: null,
       },
       {
-        key: "detail" as keyof Task,
+        key: "delete" as keyof GroupDetailTask,
+        header: "削除",
+        cell: () => null,
+        sortable: false,
+        statusCombobox: false,
+        editTask: false,
+        deleteTask: {
+          canDelete: (row: GroupDetailTask) => canDeleteTask(row),
+          onDelete: async (rowId: string) => await handleDeleteTask(rowId),
+        },
+        joinGroupModal: false,
+        leaveGroupModal: false,
+        modalList: null,
+        cellClassName: null,
+      },
+      {
+        key: "detail" as keyof GroupDetailTask,
         header: "詳細",
-        cell: (row: Task) => row.detail ?? "-",
+        cell: (row: GroupDetailTask) => row.taskDetail ?? "-",
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -345,7 +214,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         cellClassName: null,
       },
     ],
-    [canDeleteTask, router, handleDeleteTask, commonColumns],
+    [getReporterNames, getExecutorNames, router, canDeleteTask, handleDeleteTask],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -353,107 +222,98 @@ export const GroupDetailTable = memo(function GroupDetailTable({
   /**
    * DataTableコンポーネントのpropsを設定
    */
-  const taskDataTableProps: DataTableProps<Task> = useMemo(
+  const taskDataTableProps: DataTableProps<GroupDetailTask> = useMemo(
     () => ({
-      initialData: nonRewardTasks,
-      columns: nonRewardColumns,
-      onDataChange: (data) => updateNonRewardTasks(data),
+      initialData: tasks,
+      columns: columns,
+      onDataChange: () => null,
       editTask: {
-        canEdit: (row) => canEditTask(row),
-        onEdit: () => handleTaskEdited(),
-        users: Array.isArray(users)
-          ? users.map((user) => ({
-              id: user.id,
-              name: user.name ?? "",
-            }))
-          : [],
+        canEdit: (row: GroupDetailTask) => canEditTask(row),
+        onEdit: (row: GroupDetailTask) => handleTaskEdited(row),
+        users: users.map((user) => ({ id: user.id, name: user.name ?? "" })),
       },
       pagination: {
-        totalRowCount: nonRewardTasks.length,
-        currentPage: 1,
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onPageChange: () => {},
-        itemPerPage: 10,
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onItemPerPageChange: () => {},
+        totalRowCount: totalTaskCount,
+        currentPage: tableConditions.page,
+        onPageChange: (page: number) => changeTableConditions({ ...tableConditions, page }),
+        itemPerPage: tableConditions.itemPerPage,
+        onItemPerPageChange: (itemPerPage: number) => changeTableConditions({ ...tableConditions, itemPerPage }),
       },
       sort: {
-        onSortChange: (field: keyof Task) => {
-          console.log(field);
-        },
-        sortField: "id",
-        sortDirection: "desc",
+        onSortChange: (field: keyof GroupDetailTask) =>
+          changeTableConditions({
+            ...tableConditions,
+            sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
+          }),
+        sortDirection: tableConditions.sort?.direction ?? "desc",
+        sortField: tableConditions.sort?.field ?? ("createdAt" as keyof GroupDetailTask),
       },
-      filter: null,
+      filter: {
+        filterContents: [
+          {
+            filterType: "input",
+            filterText: tableConditions.searchQuery ?? "",
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, searchQuery: value }),
+            placeholder: "タスク名で絞り込み...",
+            radioOptions: null,
+          },
+          {
+            filterType: "radio",
+            filterText: tableConditions.contributionType ?? "ALL",
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
+            placeholder: "タスクタイプで絞り込み...",
+            radioOptions: [
+              { value: "ALL", label: "全て" },
+              { value: contributionType.NON_REWARD, label: "通常タスク" },
+              { value: contributionType.REWARD, label: "報酬タスク" },
+            ],
+          },
+          {
+            filterType: "radio",
+            filterText: tableConditions.status ?? "ALL",
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, status: value as "ALL" | TaskStatus }),
+            placeholder: "ステータスで絞り込み...",
+            radioOptions: [
+              { value: "ALL", label: "全て" },
+              { value: "PENDING", label: "ペンディング" },
+              { value: "POINTS_DEPOSITED", label: "ポイントデポジット済" },
+              { value: "TASK_COMPLETED", label: "タスク完了" },
+              { value: "FIXED_EVALUATED", label: "評価確定" },
+              { value: "POINTS_AWARDED", label: "ポイント付与済" },
+              { value: "ARCHIVED", label: "アーカイブ済" },
+            ],
+          },
+        ],
+        onResetFilters: resetFilters,
+        onResetSort: resetSort,
+      },
     }),
-    [canEditTask, handleTaskEdited, updateNonRewardTasks, users, nonRewardColumns, nonRewardTasks],
+    [tasks, columns, users, totalTaskCount, tableConditions, changeTableConditions, resetFilters, resetSort, canEditTask, handleTaskEdited],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 報酬タスク用のDataTableコンポーネントのpropsを設定
+   * ローディング中は、ローディング中の表示を返す
    */
-  const rewardTaskDataTableProps: DataTableProps<Task> = useMemo(
-    () => ({
-      initialData: rewardTasks,
-      columns: rewardColumns,
-      onDataChange: (data) => updateRewardTasks(data),
-      editTask: {
-        canEdit: (row) => canEditTask(row),
-        onEdit: () => handleTaskEdited(),
-        users: Array.isArray(users)
-          ? users.map((user) => ({
-              id: user.id,
-              name: user.name ?? "",
-            }))
-          : [],
-      },
-      pagination: {
-        totalRowCount: rewardTasks.length,
-        currentPage: 1,
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onPageChange: () => {},
-        itemPerPage: 10,
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onItemPerPageChange: () => {},
-      },
-      sort: {
-        sortField: "id",
-        sortDirection: "desc",
-        onSortChange: (field: keyof Task) => {
-          console.log(field);
-        },
-      },
-      filter: null,
-    }),
-    [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],
-  );
+  const loadingOverlay = isLoading ? (
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+      <Loading />
+    </div>
+  ) : null;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループ詳細ページのコンポーネント
+   * タスクテーブルの表示
    */
   return (
     <>
-      {/* タスク一覧 */}
-      <div className="rounded-lg border bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center">
-          {/* <ClipboardList className="mr-2 h-5 w-5 text-gray-500" /> */}
-          <h2 className="text-xl font-semibold text-gray-900">タスク一覧</h2>
-        </div>
-        <ShareTable dataTableProps={taskDataTableProps} />
+      <div className="mb-4 flex items-center">
+        <h2 className="text-xl font-semibold text-gray-900">タスク一覧</h2>
       </div>
-
-      {/* 報酬一覧（REWARDタイプのタスクのみ表示） */}
-      <div className="mt-8 rounded-lg border bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center">
-          {/* <Award className="mr-2 h-5 w-5 text-gray-500" /> */}
-          <h2 className="text-xl font-semibold text-gray-900">報酬一覧</h2>
-        </div>
-        <ShareTable dataTableProps={rewardTaskDataTableProps} />
-      </div>
+      {loadingOverlay}
+      <ShareTable dataTableProps={taskDataTableProps} />
     </>
   );
 });

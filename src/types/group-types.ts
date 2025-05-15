@@ -106,6 +106,16 @@ export type TableConditions<T> = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * GroupDetailTableのテーブルの条件の型
+ */
+export type GroupDetailTableConditions = TableConditions<GroupDetailTask> & {
+  contributionType: "ALL" | contributionType;
+  status: "ALL" | (string & {});
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * グループのデータの型
  */
 export type AllUserGroupTable = {
@@ -224,4 +234,38 @@ export type Task = {
     depositPeriod?: number;
   };
   detail: string | null;
+  createdAt: Date;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * GroupDetailTableのタスクの型
+ */
+export type GroupDetailTask = {
+  id: string;
+  taskName: string;
+  taskDetail: string | null;
+  taskStatus: string;
+  taskContributionType: contributionType;
+  taskFixedContributionPoint: number | null;
+  taskFixedEvaluator: string | null;
+  taskFixedEvaluationLogic: string | null;
+  taskCreator: string | null;
+  taskReporterUserIds: string[] | null;
+  taskExecutorUserIds: string[] | null;
+  taskReporterUserNames: string[] | null;
+  taskExecutorUserNames: string[] | null;
+  createdAt: Date;
+  group: {
+    id: string;
+    name: string;
+    maxParticipants: number;
+    goal: string;
+    evaluationMethod: string;
+    members: {
+      userId: string;
+    }[];
+    depositPeriod?: number;
+  };
 };

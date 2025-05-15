@@ -22,9 +22,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useGroupManipulation } from "@/hooks/group/use-group-manipulation";
-import { useGroupPermission } from "@/hooks/group/use-group-permission";
-import { useGroupTasks } from "@/hooks/group/use-group-tasks";
+import { useGroupManipulation } from "@/hooks/auction/group-detail/use-group-manipulation";
+import { useGroupPermission } from "@/hooks/auction/group-detail/use-group-permission";
+import { useGroupTasks } from "@/hooks/auction/group-detail/use-group-tasks";
 import {
   Check,
   ChevronsUpDown,
@@ -97,26 +97,15 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
   const {
     // states
     tasks,
-    nonRewardTasks,
-    rewardTasks,
-    users,
     isUploadModalOpen,
     isExportModalOpen,
-    isLoading: isLoadingTasks, // isLoadingTasks として受け取る
+    isLoading: isLoadingTasks,
     // functions
     setIsUploadModalOpen,
     setIsExportModalOpen,
-    getReporterNames,
-    getExecutorNames,
-    handleDeleteTask,
-    canDeleteTask,
-    canEditTask,
-    handleTaskEdited,
-    updateNonRewardTasks, // 追加
-    updateRewardTasks, // 追加
   } = useGroupTasks({
     groupId: groupId,
-    isGroupOwner, // isGroupOwner, isAppOwner を渡す
+    isGroupOwner,
     isAppOwner,
   });
 
@@ -165,7 +154,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     handleOpenRemoveMemberDialog, // manip を削除
     handleRemoveMember, // manip を削除
   } = useGroupManipulation({
-    tasks: tasks, // tasks を渡す
+    tasks: tasks,
     isGroupOwner,
     isAppOwner,
     groupId: groupId,
@@ -487,19 +476,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
 
       {/* タスク・報酬セクション */}
       <div>
-        <GroupDetailTable
-          nonRewardTasks={nonRewardTasks}
-          rewardTasks={rewardTasks}
-          users={users}
-          getReporterNames={getReporterNames}
-          getExecutorNames={getExecutorNames}
-          canDeleteTask={canDeleteTask}
-          handleDeleteTask={handleDeleteTask}
-          canEditTask={canEditTask}
-          handleTaskEdited={handleTaskEdited}
-          updateNonRewardTasks={updateNonRewardTasks} // 追加
-          updateRewardTasks={updateRewardTasks} // 追加
-        />
+        <GroupDetailTable groupId={currentGroup.id} isGroupOwner={isGroupOwner} isAppOwner={isAppOwner} />
       </div>
 
       {/* データエクスポートモーダル */}
