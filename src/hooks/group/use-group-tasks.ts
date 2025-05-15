@@ -1,11 +1,13 @@
 "use client";
 
 import type { Task, TaskParticipant, User } from "@/types/group-types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { deleteTask, getTasksByGroupId } from "@/lib/actions/task/task";
 import { getAllUsers } from "@/lib/actions/user";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { contributionType } from "@prisma/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -44,8 +46,8 @@ type UseGroupTasksReturn = {
   canDeleteTask: (task: Task) => boolean;
   canEditTask: (task: Task) => boolean;
   handleTaskEdited: () => void;
-  updateNonRewardTasks: (data: Task[]) => void;
-  updateRewardTasks: (data: Task[]) => void;
+  updateNonRewardTasks: (tasks: Task[]) => void;
+  updateRewardTasks: (tasks: Task[]) => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -67,20 +69,22 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * クエリクライアント
+   */
+  const queryClient = useQueryClient();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * state
    */
-  // ローディング中かどうか
-  const [isLoading, setIsLoading] = useState(false);
-  // 非報酬タスク
-  const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>([]);
-  // 報酬タスク
-  const [rewardTasks, setRewardTasks] = useState<Task[]>([]);
-  // ユーザー一覧
-  const [users, setUsers] = useState<User[]>([]);
-  // アップロードモーダー
+  // モーダーの表示状態
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  // エクスポートモーダー
+  // データエクスポートモーダーの表示状態
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  // 内部管理用のタスクリスト
+  const [internalNonRewardTasks, setInternalNonRewardTasks] = useState<Task[]>([]);
+  const [internalRewardTasks, setInternalRewardTasks] = useState<Task[]>([]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -96,38 +100,77 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループの詳細を取得
+   * タスクデータの取得
    */
-  useEffect(() => {
-    async function fetchTasks() {
-      const tasks = await getTasksByGroupId(groupId);
-
-      if (tasks) {
-        setRewardTasks(tasks.filter((task) => task.contributionType === contributionType.REWARD));
-        setNonRewardTasks(tasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
-      }
-    }
-
-    void fetchTasks();
-  }, [groupId]);
+  const { data: tasksData, isLoading: isLoadingTasks } = useQuery({
+    queryKey: queryCacheKeys.tasks.byGroupId(groupId),
+    queryFn: async () => await getTasksByGroupId(groupId),
+    enabled: !!groupId,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ユーザー一覧を取得
+   * tasksData が変更された場合に内部ステートを更新
    */
   useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const allUsers = await getAllUsers();
-        setUsers(allUsers);
-      } catch (error) {
-        console.error("ユーザー一覧取得エラー:", error);
-      }
-    }
+    const allTasks = tasksData ?? [];
+    setInternalNonRewardTasks(allTasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
+    setInternalRewardTasks(allTasks.filter((task) => task.contributionType === contributionType.REWARD));
+  }, [tasksData]);
 
-    void fetchUsers();
-  }, []);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーデータの取得
+   */
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+    queryKey: queryCacheKeys.users.all(),
+    queryFn: getAllUsers,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーデータの取得
+   */
+  const users = useMemo(() => usersData ?? [], [usersData]);
+
+  const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: async () => {
+      toast.success("タスクを削除しました");
+      // キャッシュを無効化してタスクリストを再取得
+      await queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.tasks.byGroupId(groupId),
+      });
+      void router.refresh(); // 念のためUIを強制更新
+    },
+    onError: (error) => {
+      console.error("タスク削除エラー:", error);
+      toast.error("タスクの削除中にエラーが発生しました");
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク削除処理
+   * @param taskId {string} タスクID
+   */
+  const handleDeleteTask = useCallback(
+    async (taskId: string): Promise<void> => {
+      try {
+        await deleteTaskMutateAsync(taskId);
+      } catch (error) {
+        // エラー処理は mutation の onError で行われるため、ここでは再throwしないか、
+        // もしくは特定のUIフィードバックをここで行う。
+        // 今回は mutation 側の onError で toast 表示しているので、ここでは console.error のみ。
+        console.error("handleDeleteTask でエラーハンドリング:", error);
+      }
+    },
+    [deleteTaskMutateAsync],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -149,67 +192,6 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
    */
   const getExecutorNames = useCallback((executors: TaskParticipant[]): string => {
     return executors.map((executor: TaskParticipant) => executor.user?.name ?? executor.name ?? "不明").join(", ");
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク削除ハンドラー
-   * @param taskId {string} タスクID
-   */
-  const handleDeleteTask = useCallback(
-    async (taskId: string) => {
-      try {
-        setIsLoading(true);
-        const result = await deleteTask(taskId);
-
-        if (result.success) {
-          toast.success("タスクを削除しました");
-
-          // タスクデータを更新
-          const updatedTasks = await getTasksByGroupId(groupId);
-
-          // 表示用のタスクデータを更新
-          if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
-            const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
-            const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
-
-            setRewardTasks(newRewardTasks);
-            setNonRewardTasks(newNonRewardTasks);
-          }
-
-          router.refresh(); // UIを更新
-        } else if (result.error) {
-          toast.error(result.error);
-        }
-      } catch (error) {
-        console.error("タスク削除エラー:", error);
-        toast.error("タスクの削除中にエラーが発生しました");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [groupId, router],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 非報酬タスクを更新するメソッド
-   * @param data {Task[]} タスクデータ
-   */
-  const updateNonRewardTasks = useCallback((data: Task[]) => {
-    setNonRewardTasks(data);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 報酬タスクを更新するメソッド
-   * @param data {Task[]} タスクデータ
-   */
-  const updateRewardTasks = useCallback((data: Task[]) => {
-    setRewardTasks(data);
   }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -279,32 +261,28 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
    * タスク編集後の更新処理
    */
   const handleTaskEdited = useCallback(() => {
-    setIsLoading(true);
+    void queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
+    toast.success("タスクデータを更新しました");
+    void router.refresh();
+  }, [groupId, router, queryClient]);
 
-    // 非同期処理を即時実行関数として実行
-    void (async () => {
-      try {
-        // タスクデータを再取得
-        const updatedTasks = await getTasksByGroupId(groupId);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-        // 表示用のタスクデータを更新
-        if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
-          const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
-          const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
+  /**
+   * 非報酬タスクリストを更新する関数
+   * @param updatedTasks {Task[]} 更新された非報酬タスクリスト
+   */
+  const updateNonRewardTasks = useCallback((updatedTasks: Task[]) => {
+    setInternalNonRewardTasks(updatedTasks);
+  }, []);
 
-          setRewardTasks(newRewardTasks);
-          setNonRewardTasks(newNonRewardTasks);
-
-          toast.success("タスクデータを更新しました");
-        }
-      } catch (error) {
-        console.error("タスクデータ更新エラー:", error);
-      } finally {
-        router.refresh(); // バックアップとしてのrefresh
-        setIsLoading(false);
-      }
-    })();
-  }, [groupId, router]);
+  /**
+   * 報酬タスクリストを更新する関数
+   * @param updatedTasks {Task[]} 更新された報酬タスクリスト
+   */
+  const updateRewardTasks = useCallback((updatedTasks: Task[]) => {
+    setInternalRewardTasks(updatedTasks);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -313,10 +291,10 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
    */
   return {
     // state
-    tasks: nonRewardTasks.concat(rewardTasks),
-    isLoading,
-    nonRewardTasks,
-    rewardTasks,
+    isLoading: isLoadingTasks || isLoadingUsers || isDeletingTask,
+    tasks: tasksData ?? [],
+    nonRewardTasks: internalNonRewardTasks,
+    rewardTasks: internalRewardTasks,
     users,
     isUploadModalOpen,
     isExportModalOpen,

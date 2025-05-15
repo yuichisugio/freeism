@@ -102,6 +102,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     users,
     isUploadModalOpen,
     isExportModalOpen,
+    isLoading: isLoadingTasks, // isLoadingTasks として受け取る
     // functions
     setIsUploadModalOpen,
     setIsExportModalOpen,
@@ -111,8 +112,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     canDeleteTask,
     canEditTask,
     handleTaskEdited,
-    updateNonRewardTasks,
-    updateRewardTasks,
+    updateNonRewardTasks, // 追加
+    updateRewardTasks, // 追加
   } = useGroupTasks({
     groupId: groupId,
     isGroupOwner, // isGroupOwner, isAppOwner を渡す
@@ -122,42 +123,47 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * useGroupDetailからの戻り値
+   * useGroupDetailからの戻り値 (useGroupManipulation)
    */
   const {
     // states
-    isLoading,
     isMember,
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
-    // メンバー除名関連 (useGroupManipulation から取得)
-    groupMembers: manipGroupMembers,
-    removeMemberDialogOpen: manipRemoveMemberDialogOpen,
-    selectedMemberForRemoval: manipSelectedMemberForRemoval,
-    selectedMemberNameForRemoval: manipSelectedMemberNameForRemoval,
-    isRemovalComboboxOpen: manipIsRemovalComboboxOpen,
-    addToBlackList: manipAddToBlackList,
+    groupMembers: manipGroupMembers, // 別名
+    removeMemberDialogOpen,
+    selectedMemberForRemoval,
+    selectedMemberNameForRemoval,
+    isRemovalComboboxOpen,
+    addToBlackList,
+
+    // mutation states (具体的なローディング状態を使用)
+    isJoiningGroup,
+    isLeavingGroup,
+    isDeletingGroup,
+    isFetchingMembersForRemoval,
+    isRemovingMember,
 
     // actions
     setDeleteDialogOpen,
     setLeaveDialogOpen,
     setEditDialogOpen,
-    setRemoveMemberDialogOpen: setManipRemoveMemberDialogOpen,
-    setSelectedMemberForRemoval: setManipSelectedMemberForRemoval,
-    setSelectedMemberNameForRemoval: setManipSelectedMemberNameForRemoval,
-    setIsRemovalComboboxOpen: setManipIsRemovalComboboxOpen,
-    setAddToBlackList: setManipAddToBlackList,
+    setRemoveMemberDialogOpen,
+    setSelectedMemberForRemoval,
+    setSelectedMemberNameForRemoval,
+    setIsRemovalComboboxOpen,
+    setAddToBlackList,
 
-    // functions
-    handleJoin,
-    handleLeave,
-    executeLeave,
+    // functions (フックの戻り値に合わせる)
+    handleJoinGroup, // handleJoin -> handleJoinGroup
+    handleLeave, // 変更なし
+    executeLeaveGroup, // executeLeave -> executeLeaveGroup
     handleOpenEditDialog,
     handleOpenDeleteDialog,
     handleDeleteGroup,
-    handleOpenRemoveMemberDialog: handleOpenRemoveMemberDialogManip,
-    handleRemoveMember: handleRemoveMemberManip,
+    handleOpenRemoveMemberDialog, // manip を削除
+    handleRemoveMember, // manip を削除
   } = useGroupManipulation({
     tasks: tasks, // tasks を渡す
     isGroupOwner,
@@ -169,15 +175,17 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
 
   /**
    * グループ情報
+   * tasksが空の場合を考慮して、tasks[0]が存在する場合のみgroupを参照するように修正
    */
-  const currentGroup = useMemo(() => tasks[0].group, [tasks]);
+  const currentGroup = useMemo(() => (tasks && tasks.length > 0 ? tasks[0].group : null), [tasks]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * tasksがロードされるまでローディング表示
+   * currentGroupがnullの場合も考慮
    */
-  if (!tasks || tasks.length === 0 || !tasks[0]?.group) {
+  if (isLoadingTasks || !currentGroup) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
@@ -217,8 +225,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
       {/* 参加していないユーザー向けの参加ボタン */}
       {!isMember && (
         <div className="flex justify-center">
-          <Button onClick={() => handleJoin(currentGroup.id)} disabled={isLoading} className="bg-green-600 text-white hover:bg-green-700">
-            <UserPlus className="mr-2 h-4 w-4" />
+          <Button onClick={() => handleJoinGroup(currentGroup.id)} disabled={isJoiningGroup} className="bg-green-600 text-white hover:bg-green-700">
+            {isJoiningGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
             グループに参加する
           </Button>
         </div>
@@ -249,13 +257,18 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                 権限を付与
               </Button>
 
-              <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenRemoveMemberDialogManip}>
-                <UserMinus />
+              <Button
+                variant="outline"
+                className="bg-white hover:bg-gray-50"
+                onClick={handleOpenRemoveMemberDialog}
+                disabled={isFetchingMembersForRemoval}
+              >
+                {isFetchingMembersForRemoval ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserMinus />}
                 メンバーを除名
               </Button>
 
-              <Button variant="destructive" onClick={handleOpenDeleteDialog}>
-                <Trash2 />
+              <Button variant="destructive" onClick={handleOpenDeleteDialog} disabled={isDeletingGroup}>
+                {isDeletingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 />}
                 グループを削除
               </Button>
             </>
@@ -266,8 +279,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <Button
               variant="outline"
               className="ml-auto border-red-200 bg-white text-red-600 hover:bg-gray-50 hover:text-red-700"
-              onClick={() => handleLeave()}
-              disabled={isLoading}
+              onClick={() => handleLeave()} // handleLeave はダイアログを開くだけなので isLeavingGroup は不要
+              disabled={isLeavingGroup} // executeLeaveGroup の状態を見る
             >
               <LogOut className="mr-2 h-4 w-4" />
               グループを脱退
@@ -373,8 +386,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
             {(isGroupOwner || isAppOwner) && (
               <AlertDialogAction asChild>
-                <Button variant="destructive" onClick={() => handleDeleteGroup(currentGroup.id)}>
-                  削除する
+                <Button variant="destructive" onClick={() => handleDeleteGroup(currentGroup.id)} disabled={isDeletingGroup}>
+                  {isDeletingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "削除する"}
                 </Button>
               </AlertDialogAction>
             )}
@@ -383,7 +396,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
       </AlertDialog>
 
       {/* メンバー除名ダイアログ */}
-      <AlertDialog open={manipRemoveMemberDialogOpen} onOpenChange={setManipRemoveMemberDialogOpen}>
+      <AlertDialog open={removeMemberDialogOpen} onOpenChange={setRemoveMemberDialogOpen}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold">メンバー除名</AlertDialogTitle>
@@ -395,10 +408,10 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
           </AlertDialogHeader>
           {(isGroupOwner || isAppOwner) && (
             <div className="space-y-4 py-4">
-              <Popover open={manipIsRemovalComboboxOpen} onOpenChange={setManipIsRemovalComboboxOpen}>
+              <Popover open={isRemovalComboboxOpen} onOpenChange={setIsRemovalComboboxOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={manipIsRemovalComboboxOpen} className="w-full justify-between">
-                    {manipSelectedMemberNameForRemoval ?? "メンバーを選択"}
+                  <Button variant="outline" role="combobox" aria-expanded={isRemovalComboboxOpen} className="w-full justify-between">
+                    {selectedMemberNameForRemoval ?? "メンバーを選択"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -413,12 +426,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                             key={member.user.id}
                             value={member.user.name ?? ""}
                             onSelect={() => {
-                              setManipSelectedMemberForRemoval(member.user.id);
-                              setManipSelectedMemberNameForRemoval(member.user.name);
-                              setManipIsRemovalComboboxOpen(false);
+                              setSelectedMemberForRemoval(member.user.id);
+                              setSelectedMemberNameForRemoval(member.user.name);
+                              setIsRemovalComboboxOpen(false);
                             }}
                           >
-                            <Check className={`mr-2 h-4 w-4 ${manipSelectedMemberForRemoval === member.user.id ? "opacity-100" : "opacity-0"}`} />
+                            <Check className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.user.id ? "opacity-100" : "opacity-0"}`} />
                             {member.user.name ?? "No Name"}
                           </CommandItem>
                         ))}
@@ -428,7 +441,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                 </PopoverContent>
               </Popover>
               <div className="space-x-2">
-                <Checkbox id="blacklist" checked={manipAddToBlackList} onCheckedChange={(checked) => setManipAddToBlackList(checked === true)} />
+                <Checkbox id="blacklist" checked={addToBlackList} onCheckedChange={(checked) => setAddToBlackList(checked === true)} />
                 <Label htmlFor="blacklist">ブラックリストに追加する</Label>
               </div>
             </div>
@@ -437,8 +450,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
             {(isGroupOwner || isAppOwner) && (
               <AlertDialogAction asChild>
-                <Button variant="destructive" onClick={handleRemoveMemberManip} disabled={!manipSelectedMemberForRemoval}>
-                  除名する
+                <Button variant="destructive" onClick={handleRemoveMember} disabled={!selectedMemberForRemoval || isRemovingMember}>
+                  {isRemovingMember ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "除名する"}
                 </Button>
               </AlertDialogAction>
             )}
@@ -460,11 +473,11 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogAction asChild>
               <Button
                 variant="destructive"
-                onClick={() => executeLeave(currentGroup.id)}
-                disabled={isLoading}
+                onClick={() => executeLeaveGroup(currentGroup.id)}
+                disabled={isLeavingGroup} // isLeavingGroup を使用
                 className="bg-red-500 hover:bg-red-600"
               >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                {isLeavingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
                 脱退する
               </Button>
             </AlertDialogAction>
@@ -484,8 +497,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
           handleDeleteTask={handleDeleteTask}
           canEditTask={canEditTask}
           handleTaskEdited={handleTaskEdited}
-          updateNonRewardTasks={updateNonRewardTasks}
-          updateRewardTasks={updateRewardTasks}
+          updateNonRewardTasks={updateNonRewardTasks} // 追加
+          updateRewardTasks={updateRewardTasks} // 追加
         />
       </div>
 

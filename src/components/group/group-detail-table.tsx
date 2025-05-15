@@ -235,7 +235,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         editTask: false,
         deleteTask: {
           canDelete: (row: Task) => canDeleteTask(row),
-          onDelete: (rowId: string) => handleDeleteTask(rowId),
+          onDelete: async (rowId: string) => {
+            await handleDeleteTask(rowId);
+          },
         },
         joinGroupModal: false,
         leaveGroupModal: false,
@@ -317,7 +319,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         cell: () => null,
         deleteTask: {
           canDelete: (row: Task) => canDeleteTask(row),
-          onDelete: (rowId: string) => handleDeleteTask(rowId),
+          onDelete: async (rowId: string) => {
+            await handleDeleteTask(rowId);
+          },
         },
         sortable: false,
         statusCombobox: false,

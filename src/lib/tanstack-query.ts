@@ -54,6 +54,25 @@ export const queryCacheKeys = {
     myGroupConditions: (tableConditions: TableConditions<MyGroupTable>) =>
       [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions)] as const,
   },
+
+  tasks: {
+    _root: ["tasks"] as const,
+    all: () => [...queryCacheKeys.tasks._root] as const,
+    byGroupId: (groupId: string) => [...queryCacheKeys.tasks.all(), groupId] as const,
+  },
+
+  users: {
+    _root: ["users"] as const,
+    all: () => [...queryCacheKeys.users._root] as const,
+  },
+
+  permission: {
+    _root: ["permission"] as const,
+    appOwner: (userId: string) => [...queryCacheKeys.permission._root, "appOwnerPermission", userId] as const,
+    groupPermission: (groupId: string) => [...queryCacheKeys.permission._root, "groupOwnerPermission", groupId] as const,
+    groupOwner: (groupId: string, userId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "owner", userId] as const,
+    members: (groupId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "members"] as const,
+  },
 } as const;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { deleteGroup, getGroupMembers, joinGroup, removeMember } from "@/lib/actions/group";
 import { leaveGroup } from "@/lib/actions/group/my-group";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -15,7 +17,6 @@ import { toast } from "sonner";
  */
 type UseGroupDetailReturn = {
   // state
-  isLoading: boolean;
   isMember: boolean;
   deleteDialogOpen: boolean;
   leaveDialogOpen: boolean;
@@ -27,11 +28,17 @@ type UseGroupDetailReturn = {
   isRemovalComboboxOpen: boolean;
   addToBlackList: boolean;
 
-  // action
+  // mutation states
+  isJoiningGroup: boolean;
+  isLeavingGroup: boolean;
+  isDeletingGroup: boolean;
+  isFetchingMembersForRemoval: boolean;
+  isRemovingMember: boolean;
+
+  // action dialog setters
   setDeleteDialogOpen: (open: boolean) => void;
   setLeaveDialogOpen: (open: boolean) => void;
   setEditDialogOpen: (open: boolean) => void;
-  setGroupMembers: (members: GroupMemberWithUser[]) => void;
   setRemoveMemberDialogOpen: (open: boolean) => void;
   setSelectedMemberForRemoval: (id: string | null) => void;
   setSelectedMemberNameForRemoval: (name: string | null) => void;
@@ -39,14 +46,14 @@ type UseGroupDetailReturn = {
   setAddToBlackList: (add: boolean) => void;
 
   // functions
-  handleJoin: (groupId: string) => Promise<void>;
-  handleLeave: () => Promise<void>;
-  executeLeave: (groupId: string) => Promise<void>;
+  handleJoinGroup: (groupId: string) => void;
+  handleLeave: () => void;
+  executeLeaveGroup: (groupId: string) => void;
   handleOpenEditDialog: () => void;
   handleOpenDeleteDialog: () => void;
-  handleDeleteGroup: (groupId: string) => Promise<void>;
+  handleDeleteGroup: (groupId: string) => void;
   handleOpenRemoveMemberDialog: () => Promise<void>;
-  handleRemoveMember: () => Promise<void>;
+  handleRemoveMember: () => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -73,6 +80,11 @@ export function useGroupManipulation({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * クエリクライアント
+   */
+  const queryClient = useQueryClient();
+
+  /**
    * ルーター
    */
   const router = useRouter();
@@ -82,8 +94,6 @@ export function useGroupManipulation({
   /**
    * ステート
    */
-  // ローディング
-  const [isLoading, setIsLoading] = useState(false);
   // メンバー
   const [isMember, setIsMember] = useState(false);
   // 削除ダイアログ
@@ -92,7 +102,7 @@ export function useGroupManipulation({
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   // 編集ダイアログ
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  // グループメンバー一覧
+  // グループメンバー一覧（除名ダイアログ用）
   const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
   // メンバー除名ダイアログ
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
@@ -104,6 +114,8 @@ export function useGroupManipulation({
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
   // メンバー除名ダイアログで選択されたユーザーをブラックリストに追加するかどうか
   const [addToBlackList, setAddToBlackList] = useState(false);
+  // メンバー情報取得中（除名用）
+  const [isFetchingMembersForRemoval, setIsFetchingMembersForRemoval] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -124,12 +136,16 @@ export function useGroupManipulation({
   useEffect(() => {
     async function checkPermissions() {
       if (!userId) {
-        redirect("/auth/signin");
+        // redirect("/auth/signin"); // ここでリダイレクトするとセッション取得前にエラーになる可能性
+        return;
       }
 
       // ユーザーがグループのメンバーかどうかチェック
-      const memberIds = tasks[0].group.members.map((member: { userId: string }) => member.userId);
-      setIsMember(memberIds.includes(userId));
+      // tasksが初期状態で空またはgroupが存在しない場合を考慮
+      if (tasks && tasks.length > 0 && tasks[0]?.group?.members) {
+        const memberIds = tasks[0].group.members.map((member: { userId: string }) => member.userId);
+        setIsMember(memberIds.includes(userId));
+      }
     }
 
     void checkPermissions();
@@ -141,47 +157,41 @@ export function useGroupManipulation({
    * グループ参加処理
    * @param groupId {string} グループID
    */
-  const handleJoin = useCallback(
-    async (groupId: string) => {
-      try {
-        setIsLoading(true);
-        const result = await joinGroup(groupId);
-
-        if (result.success) {
-          toast.success("グループに参加しました");
-          setIsMember(true);
-          router.refresh();
-        } else if (result.error) {
-          toast.error(result.error);
-        }
-      } catch (error) {
-        toast.error("エラーが発生しました");
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
+  const { mutate: joinGroupMutation, isPending: isJoiningGroup } = useMutation({
+    mutationFn: async (currentGroupId: string) => await joinGroup(currentGroupId),
+    onSuccess: async () => {
+      toast.success("グループに参加しました");
+      setIsMember(true);
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
+      router.refresh();
     },
-    [router],
+    onError: (error) => {
+      toast.error(error.message || "グループへの参加に失敗しました。");
+      console.error(error);
+    },
+  });
+
+  const handleJoinGroup = useCallback(
+    (currentGroupId: string) => {
+      joinGroupMutation(currentGroupId);
+    },
+    [joinGroupMutation],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループ脱退処理
+   * グループ脱退処理（ダイアログ表示）
    */
-  const handleLeave = useCallback(async () => {
-    try {
-      if (isGroupOwner) {
-        toast.error("グループオーナーは脱退できません。オーナー権限を他のメンバーに譲渡するか、グループを削除してください。");
-        return;
-      }
-
-      setLeaveDialogOpen(true);
-    } catch (error) {
-      toast.error("エラーが発生しました");
-      console.error(error);
+  const handleLeave = useCallback(() => {
+    if (isGroupOwner) {
+      toast.error("グループオーナーは脱退できません。オーナー権限を他のメンバーに譲渡するか、グループを削除してください。");
+      return;
     }
-  }, [isGroupOwner]);
+    setLeaveDialogOpen(true);
+  }, [isGroupOwner, setLeaveDialogOpen]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -189,28 +199,29 @@ export function useGroupManipulation({
    * 実際のグループ脱退処理を実行
    * @param groupId {string} グループID
    */
-  const executeLeave = useCallback(
-    async (groupId: string) => {
-      try {
-        setIsLoading(true);
-        const result = await leaveGroup(groupId);
-
-        if (result.success) {
-          toast.success("グループから脱退しました");
-          setIsMember(false);
-          router.refresh();
-        } else if (result.error) {
-          toast.error(result.error);
-        }
-      } catch (error) {
-        toast.error("エラーが発生しました");
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-        setLeaveDialogOpen(false);
-      }
+  const { mutate: leaveGroupMutation, isPending: isLeavingGroup } = useMutation({
+    mutationFn: async (currentGroupId: string) => await leaveGroup(currentGroupId),
+    onSuccess: async () => {
+      toast.success("グループから脱退しました");
+      setIsMember(false);
+      setLeaveDialogOpen(false);
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
+      router.refresh();
     },
-    [router],
+    onError: (error) => {
+      toast.error(error.message || "グループからの脱退に失敗しました。");
+      console.error(error);
+      setLeaveDialogOpen(false); // エラー時もダイアログを閉じる
+    },
+  });
+
+  const executeLeaveGroup = useCallback(
+    (currentGroupId: string) => {
+      leaveGroupMutation(currentGroupId);
+    },
+    [leaveGroupMutation],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -247,30 +258,33 @@ export function useGroupManipulation({
 
   /**
    * グループ削除処理
-   * @param groupId {string} グループID
    */
-  const handleDeleteGroup = useCallback(
-    async (groupId: string) => {
-      try {
-        // 保存された権限情報を使用
-        if (!isGroupOwner && !isAppOwner) {
-          toast.error("権限がありません");
-          return;
-        }
-
-        const result = await deleteGroup(groupId);
-        if (result.success) {
-          toast.success("グループを削除しました");
-          router.push("/groups");
-        } else if (result.error) {
-          toast.error(result.error);
-        }
-      } catch (error) {
-        toast.error("エラーが発生しました");
-        console.error(error);
-      }
+  const { mutate: deleteGroupMutation, isPending: isDeletingGroup } = useMutation({
+    mutationFn: async (currentGroupId: string) => await deleteGroup(currentGroupId),
+    onSuccess: async () => {
+      toast.success("グループを削除しました");
+      setDeleteDialogOpen(false); // ダイアログを閉じる
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) }); // groupId は Hook の引数
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
+      router.push("/dashboard/grouplist");
     },
-    [router, isGroupOwner, isAppOwner],
+    onError: (error) => {
+      toast.error(error.message || "グループの削除に失敗しました。");
+      console.error(error);
+      setDeleteDialogOpen(false); // エラー時もダイアログを閉じる
+    },
+  });
+
+  const handleDeleteGroup = useCallback(
+    (currentGroupId: string) => {
+      if (!isGroupOwner && !isAppOwner) {
+        toast.error("権限がありません");
+        return;
+      }
+      deleteGroupMutation(currentGroupId);
+    },
+    [isGroupOwner, isAppOwner, deleteGroupMutation],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -284,6 +298,7 @@ export function useGroupManipulation({
       return;
     }
 
+    setIsFetchingMembersForRemoval(true);
     try {
       const members = await getGroupMembers(groupId);
       // グループメンバー一覧を設定（オーナー以外のメンバーのみ）
@@ -292,6 +307,8 @@ export function useGroupManipulation({
     } catch (error) {
       console.error(error);
       toast.error("メンバー情報の取得に失敗しました");
+    } finally {
+      setIsFetchingMembersForRemoval(false);
     }
   }, [groupId, isGroupOwner, isAppOwner]);
 
@@ -300,33 +317,43 @@ export function useGroupManipulation({
   /**
    * メンバー除名処理
    */
-  const handleRemoveMember = useCallback(async () => {
-    try {
-      if (!isGroupOwner && !isAppOwner) {
-        toast.error("権限がありません");
-        return;
-      }
-
+  const { mutate: removeMemberMutation, isPending: isRemovingMember } = useMutation({
+    mutationFn: async () => {
       if (!selectedMemberForRemoval) {
-        toast.error("メンバーを選択してください");
-        return;
+        // このケースはUI側で制御されるべきだが、念のため
+        throw new Error("除名するメンバーが選択されていません。");
       }
-
-      const result = await removeMember(groupId, selectedMemberForRemoval, addToBlackList);
-      if (result.success) {
-        toast.success("メンバーを削除しました");
-        setRemoveMemberDialogOpen(false);
-        setSelectedMemberForRemoval(null);
-        setAddToBlackList(false);
-        router.refresh();
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error("エラーが発生しました");
+      return await removeMember(groupId, selectedMemberForRemoval, addToBlackList);
+    },
+    onSuccess: async () => {
+      toast.success("メンバーを削除しました");
+      setRemoveMemberDialogOpen(false);
+      setSelectedMemberForRemoval(null);
+      setSelectedMemberNameForRemoval(null);
+      setAddToBlackList(false);
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.permission.members(groupId) });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(error.message || "メンバーの削除に失敗しました。");
       console.error(error);
+      // ダイアログは開いたままにするか、エラー内容によって閉じるか検討。今回は開いたまま。
+    },
+  });
+
+  const handleRemoveMember = useCallback(() => {
+    if (!isGroupOwner && !isAppOwner) {
+      toast.error("権限がありません");
+      return;
     }
-  }, [groupId, isGroupOwner, isAppOwner, selectedMemberForRemoval, addToBlackList, router]);
+
+    if (!selectedMemberForRemoval) {
+      toast.error("メンバーを選択してください");
+      return;
+    }
+    removeMemberMutation();
+  }, [isGroupOwner, isAppOwner, selectedMemberForRemoval, removeMemberMutation]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -335,7 +362,6 @@ export function useGroupManipulation({
    */
   return {
     // state
-    isLoading,
     isMember,
     deleteDialogOpen,
     leaveDialogOpen,
@@ -347,21 +373,28 @@ export function useGroupManipulation({
     isRemovalComboboxOpen,
     addToBlackList,
 
-    // action
+    // mutation states
+    isJoiningGroup,
+    isLeavingGroup,
+    isDeletingGroup,
+    isFetchingMembersForRemoval,
+    isRemovingMember,
+
+    // action dialog setters
     setDeleteDialogOpen,
     setLeaveDialogOpen,
     setEditDialogOpen,
-    setGroupMembers,
     setRemoveMemberDialogOpen,
+    // action state setters for remove member dialog
     setSelectedMemberForRemoval,
     setSelectedMemberNameForRemoval,
     setIsRemovalComboboxOpen,
     setAddToBlackList,
 
     // functions
-    handleJoin,
+    handleJoinGroup,
     handleLeave,
-    executeLeave,
+    executeLeaveGroup,
     handleOpenEditDialog,
     handleOpenDeleteDialog,
     handleDeleteGroup,
