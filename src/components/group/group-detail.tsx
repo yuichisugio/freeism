@@ -1,7 +1,6 @@
 "use client";
 
-import type { GroupMemberWithUser } from "@/lib/actions/group";
-import type { Column, DataTableProps, Task } from "@/types/group-types";
+import type { Column, DataTableProps, GroupMemberWithUser, Task } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { EditGroupForm } from "@/components/form/edit-group-form";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Column, DataTableProps, Group } from "@/types/group-types";
+import type { AllUserGroupTable, Column, DataTableProps } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
 import { Loading } from "@/components/share/loading";
@@ -13,7 +13,7 @@ import { UserPlus } from "lucide-react";
 /**
  * グループのデータの型
  */
-export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element {
+export const AllUserGroupTableComponent = memo(function AllUserGroupTableComponent(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -38,10 +38,10 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   /**
    * グループリストのテーブルの列を定義
    */
-  const columns: Column<Group>[] = useMemo(
+  const columns: Column<AllUserGroupTable>[] = useMemo(
     () => [
       {
-        key: "isJoined" as keyof Group,
+        key: "isJoined" as keyof AllUserGroupTable,
         header: "参加Flag",
         sortable: false,
         joinGroupModal: true,
@@ -66,7 +66,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         cellClassName: null,
       },
       {
-        key: "name" as keyof Group,
+        key: "name" as keyof AllUserGroupTable,
         header: "グループ名",
         statusCombobox: false,
         sortable: false,
@@ -75,7 +75,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => (
+        cell: (row: AllUserGroupTable) => (
           <Link href={`/dashboard/group/${row.id}`} className="text-app hover:underline">
             {row.name}
           </Link>
@@ -83,7 +83,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         cellClassName: null,
       },
       {
-        key: "currentParticipants" as keyof Group,
+        key: "currentParticipants" as keyof AllUserGroupTable,
         header: "参加人数",
         statusCombobox: false,
         sortable: true,
@@ -92,11 +92,11 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => `${row.joinMembersCount}人`,
+        cell: (row: AllUserGroupTable) => `${row.joinMembersCount}人`,
         cellClassName: "text-center",
       },
       {
-        key: "maxParticipants" as keyof Group,
+        key: "maxParticipants" as keyof AllUserGroupTable,
         header: "参加可能上限数",
         statusCombobox: false,
         sortable: true,
@@ -105,11 +105,11 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => `${row.maxParticipants}人`,
+        cell: (row: AllUserGroupTable) => `${row.maxParticipants}人`,
         cellClassName: "text-center",
       },
       {
-        key: "evaluationMethod" as keyof Group,
+        key: "evaluationMethod" as keyof AllUserGroupTable,
         header: "評価方法",
         statusCombobox: false,
         sortable: false,
@@ -118,11 +118,11 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => row.evaluationMethod,
+        cell: (row: AllUserGroupTable) => row.evaluationMethod,
         cellClassName: null,
       },
       {
-        key: "goal" as keyof Group,
+        key: "goal" as keyof AllUserGroupTable,
         header: "グループ目標",
         statusCombobox: false,
         sortable: false,
@@ -131,11 +131,11 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => row.goal,
+        cell: (row: AllUserGroupTable) => row.goal,
         cellClassName: null,
       },
       {
-        key: "depositPeriod" as keyof Group,
+        key: "depositPeriod" as keyof AllUserGroupTable,
         header: "デポジット期間",
         statusCombobox: false,
         sortable: true,
@@ -144,11 +144,11 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => `${row.depositPeriod}日`,
+        cell: (row: AllUserGroupTable) => `${row.depositPeriod}日`,
         cellClassName: "text-center",
       },
       {
-        key: "createdBy" as keyof Group,
+        key: "createdBy" as keyof AllUserGroupTable,
         header: "作成者",
         statusCombobox: false,
         sortable: false,
@@ -157,7 +157,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         editTask: false,
         deleteTask: null,
         modalList: null,
-        cell: (row: Group) => row.createdBy,
+        cell: (row: AllUserGroupTable) => row.createdBy,
         cellClassName: null,
       },
     ],
@@ -169,7 +169,7 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
   /**
    * グループリストのテーブルのプロップスを定義
    */
-  const dataTableProps: DataTableProps<Group> = useMemo(
+  const dataTableProps: DataTableProps<AllUserGroupTable> = useMemo(
     () => ({
       initialData: groups,
       columns: columns,
@@ -183,13 +183,13 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
         onItemPerPageChange: (itemPerPage: number) => changeTableConditions({ ...tableConditions, itemPerPage }),
       },
       sort: {
-        onSortChange: (field: keyof Group) =>
+        onSortChange: (field: keyof AllUserGroupTable) =>
           changeTableConditions({
             ...tableConditions,
             sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
           }),
         sortDirection: tableConditions.sort?.direction ?? "desc",
-        sortField: tableConditions.sort?.field ?? ("isJoined" as keyof Group),
+        sortField: tableConditions.sort?.field ?? ("isJoined" as keyof AllUserGroupTable),
       },
       filter: {
         filterContents: [
@@ -202,13 +202,13 @@ export const AllUserGroupTable = memo(function AllUserGroupTable(): JSX.Element 
           },
           {
             filterType: "radio",
-            filterText: tableConditions.isJoined ?? "",
-            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "true" | "false" }),
+            filterText: tableConditions.isJoined,
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "isJoined" | "notJoined" | "all" }),
             placeholder: "グループ参加状態で絞り込み...",
             radioOptions: [
-              { value: "true", label: "グループ参加中" },
-              { value: "false", label: "グループ未参加" },
-              { value: "", label: "全て" },
+              { value: "isJoined", label: "グループ参加中" },
+              { value: "notJoined", label: "グループ未参加" },
+              { value: "all", label: "全て" },
             ],
           },
         ],

@@ -92,14 +92,14 @@ export type DataTableComponentProps<T extends { id: string; isJoined?: boolean }
 /**
  * AllUserGroupTableのテーブルの条件の型
  */
-export type TableConditions = {
+export type TableConditions<T> = {
   sort: {
-    field: keyof Group;
+    field: keyof T;
     direction: SortDirection;
   } | null;
   page: number;
   searchQuery: string | null;
-  isJoined: "true" | "false" | null;
+  isJoined: "isJoined" | "notJoined" | "all";
   itemPerPage: number;
 };
 
@@ -108,7 +108,7 @@ export type TableConditions = {
 /**
  * グループのデータの型
  */
-export type Group = {
+export type AllUserGroupTable = {
   id: string;
   name: string;
   goal: string;
@@ -118,6 +118,48 @@ export type Group = {
   depositPeriod: number;
   isJoined: boolean;
   createdBy: string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループメンバーシップの型定義
+ */
+export type MyGroupTable = {
+  id: string;
+  groupName: string;
+  groupGoal: string;
+  groupEvaluationMethod: string;
+  groupDepositPeriod: number;
+  groupPointBalance: number;
+  groupPointFixedTotalPoints: number;
+  isGroupOwner: boolean;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループメンバーシップの型定義
+ */
+export type GroupMembership = {
+  id: string;
+  userId: string;
+  groupId: string;
+  isGroupOwner: boolean;
+  joinedAt: Date;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループメンバーの型定義（ユーザー情報を含む）
+ */
+export type GroupMemberWithUser = GroupMembership & {
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

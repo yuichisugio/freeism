@@ -14,7 +14,7 @@ type getAllUserGroupsAndCountProps = {
   sortField: string;
   sortDirection: string;
   searchQuery: string;
-  isJoined: "true" | "false" | null;
+  isJoined: "isJoined" | "notJoined" | "all";
   itemPerPage: number;
 };
 
@@ -70,7 +70,7 @@ export async function getAllUserGroups(
   sortField: string,
   sortDirection: string,
   searchQuery: string,
-  isJoined: "true" | "false" | null,
+  isJoined: "isJoined" | "notJoined" | "all",
   userId: string,
   itemPerPage: number,
 ) {
@@ -86,10 +86,6 @@ export async function getAllUserGroups(
         _count: sortDirection as Prisma.SortOrder,
       },
     };
-  } else if (sortField === "isJoined") {
-    orderBy = {
-      createdAt: "desc",
-    };
   } else {
     orderBy = {
       [sortField]: sortDirection as Prisma.SortOrder,
@@ -103,7 +99,7 @@ export async function getAllUserGroups(
    */
   let where: Prisma.GroupWhereInput = {};
   // 参加しているグループの場合
-  if (isJoined === "true") {
+  if (isJoined === "isJoined") {
     where = {
       members: {
         some: {
@@ -111,7 +107,7 @@ export async function getAllUserGroups(
         },
       },
     };
-  } else if (isJoined === "false") {
+  } else if (isJoined === "notJoined") {
     // 参加していないグループの場合
     where = {
       members: {
@@ -215,7 +211,7 @@ export async function getAllUserGroups(
  * ユーザーの参加しているグループ一覧の総数を取得する関数
  * @returns ユーザーの参加しているグループ一覧の総数
  */
-export async function getAllUserGroupsCount(searchQuery: string, isJoined: "true" | "false" | null, userId: string) {
+export async function getAllUserGroupsCount(searchQuery: string, isJoined: "isJoined" | "notJoined" | "all", userId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -223,7 +219,7 @@ export async function getAllUserGroupsCount(searchQuery: string, isJoined: "true
    */
   let where: Prisma.GroupWhereInput = {};
   // 参加しているグループの場合
-  if (isJoined === "true") {
+  if (isJoined === "isJoined") {
     where = {
       members: {
         some: {
@@ -231,7 +227,7 @@ export async function getAllUserGroupsCount(searchQuery: string, isJoined: "true
         },
       },
     };
-  } else if (isJoined === "false") {
+  } else if (isJoined === "notJoined") {
     // 参加していないグループの場合
     where = {
       members: {
@@ -255,7 +251,7 @@ export async function getAllUserGroupsCount(searchQuery: string, isJoined: "true
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return prisma.group.count({
-    where: where, // 修正：isJoinedに応じたwhere条件を使用
+    where: where,
   });
 }
 

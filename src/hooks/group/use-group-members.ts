@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupMemberWithUser } from "@/lib/actions/group";
+import type { GroupMemberWithUser } from "@/types/group-types";
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getGroupMembers, grantOwnerPermission, removeMember } from "@/lib/actions/group";

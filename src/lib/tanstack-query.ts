@@ -1,5 +1,5 @@
 import type { AuctionListingsConditions } from "@/types/auction-types";
-import type { TableConditions } from "@/types/group-types";
+import type { AllUserGroupTable, MyGroupTable, TableConditions } from "@/types/group-types";
 import { QueryClient } from "@tanstack/react-query";
 import { type PersistedClient, type Persister } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
@@ -47,8 +47,12 @@ export const queryCacheKeys = {
   table: {
     _root: ["table"] as const,
     all: () => [...queryCacheKeys.table._root] as const,
-    groupAll: () => [...queryCacheKeys.table.all(), "allGroup"] as const, // exact: falseでキャッシュを無効化するため、キャッシュキーには"group"を含める
-    groupAllConditions: (tableConditions: TableConditions) => [...queryCacheKeys.table.groupAll(), JSON.stringify(tableConditions)] as const,
+    allGroup: () => [...queryCacheKeys.table.all(), "allGroup"] as const, // exact: falseでキャッシュを無効化するため、キャッシュキーには"group"を含める
+    allGroupConditions: (tableConditions: TableConditions<AllUserGroupTable>) =>
+      [...queryCacheKeys.table.allGroup(), JSON.stringify(tableConditions)] as const,
+    myGroup: () => [...queryCacheKeys.table.all(), "myGroup"] as const,
+    myGroupConditions: (tableConditions: TableConditions<MyGroupTable>) =>
+      [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions)] as const,
   },
 } as const;
 

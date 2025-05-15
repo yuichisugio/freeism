@@ -1,6 +1,7 @@
 "use server";
 
 import type { CreateGroupFormData } from "@/components/form/create-group-form";
+import type { GroupMemberWithUser } from "@/types/group-types";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -151,40 +152,6 @@ export async function joinGroup(groupId: string) {
     return { success: true };
   } catch (error) {
     console.error("[JOIN_GROUP]", error);
-    return { error: "エラーが発生しました" };
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループから脱退する関数
- * @param groupId - 脱退するグループのID
- * @returns 処理結果を含むオブジェクト
- */
-export async function leaveGroup(groupId: string) {
-  try {
-    // 認証処理
-    const userId = await getAuthenticatedSessionUserId();
-
-    // メンバーシップの存在確認
-    const membership = await checkGroupMembership(userId, groupId);
-    if (!membership) {
-      return { error: "グループに参加していません" };
-    }
-
-    // グループから脱退
-    await prisma.groupMembership.delete({
-      where: {
-        id: membership.id,
-      },
-    });
-
-    revalidatePath("/dashboard/grouplist");
-    revalidatePath("/dashboard/my-groups");
-    return { success: true };
-  } catch (error) {
-    console.error("[LEAVE_GROUP]", error);
     return { error: "エラーが発生しました" };
   }
 }
@@ -459,32 +426,6 @@ export async function grantOwnerPermission(groupId: string, userId: string) {
     return { error: "グループオーナー権限の付与中にエラーが発生しました" };
   }
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループメンバーシップの型定義
- */
-export type GroupMembership = {
-  id: string;
-  userId: string;
-  groupId: string;
-  isGroupOwner: boolean;
-  joinedAt: Date;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループメンバーの型定義（ユーザー情報を含む）
- */
-export type GroupMemberWithUser = GroupMembership & {
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

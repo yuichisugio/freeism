@@ -1,6 +1,6 @@
 "use client";
 
-import type { Group, TableConditions } from "@/types/group-types";
+import type { AllUserGroupTable, TableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { joinGroup } from "@/lib/actions/group";
@@ -18,12 +18,12 @@ import { toast } from "sonner";
  */
 type UseAllUserGroupTableReturn = {
   // state
-  groups: Group[];
+  groups: AllUserGroupTable[];
   isLoading: boolean;
-  tableConditions: TableConditions;
+  tableConditions: TableConditions<AllUserGroupTable>;
   totalGroupCount: number;
   // function
-  changeTableConditions: (tableConditions: TableConditions) => void;
+  changeTableConditions: (tableConditions: TableConditions<AllUserGroupTable>) => void;
   handleJoin: (groupId: string) => void;
   resetFilters: () => void;
   resetSort: () => void;
@@ -50,12 +50,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   const searchParams = useSearchParams();
 
-  const getTableConditionsFromParams = useCallback((): TableConditions => {
+  const getTableConditionsFromParams = useCallback((): TableConditions<AllUserGroupTable> => {
     // ページ数のURLパラメータ
     const currentPage = Number(searchParams.get("page") ?? 1);
 
     // ソートのURLパラメータ
-    const currentSortField = searchParams.get("sort_field") as keyof Group | null;
+    const currentSortField = searchParams.get("sort_field") as keyof AllUserGroupTable | null;
 
     // ソートの降順/昇順の方向のURLパラメータ
     const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
@@ -64,7 +64,11 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     const currentQuery = searchParams.get("q");
 
     // グループ参加状態のURLパラメータ
-    const currentIsJoined = searchParams.get("is_joined") as "true" | "false";
+    const currentIsJoinedParam = searchParams.get("is_joined");
+    const currentIsJoined =
+      currentIsJoinedParam === null || currentIsJoinedParam === "all" || currentIsJoinedParam === ""
+        ? "all"
+        : (currentIsJoinedParam as "isJoined" | "notJoined");
 
     // 1ページあたりの表示件数
     const currentItemPerPage = Number(searchParams.get("item_per_page") ?? TABLE_CONSTANTS.ITEMS_PER_PAGE);
@@ -90,7 +94,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
   /**
    * テーブルの条件を管理する
    */
-  const [tableConditions, setTableConditions] = useState<TableConditions>(getTableConditionsFromParams());
+  const [tableConditions, setTableConditions] = useState<TableConditions<AllUserGroupTable>>(getTableConditionsFromParams());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -109,7 +113,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * 必要なパラメータのみURLに含める（デフォルト値は含めない）
    */
   const updateUrlParams = useCallback(
-    (newTableConditions: TableConditions) => {
+    (newTableConditions: TableConditions<AllUserGroupTable>) => {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_start", newTableConditions);
@@ -165,8 +169,12 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // グループ参加状態
-      if (newTableConditions.isJoined) {
-        params.set("is_joined", newTableConditions.isJoined);
+      if (newTableConditions.isJoined === "isJoined") {
+        params.set("is_joined", "isJoined");
+      } else if (newTableConditions.isJoined === "notJoined") {
+        params.set("is_joined", "notJoined");
+      } else if (newTableConditions.isJoined === "all") {
+        params.set("is_joined", "all");
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -201,7 +209,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     isPending: isGroupsPending,
     isPlaceholderData, // Loading中に代わりに前回の値を表示しているかのフラグ。つまりLoadingフラグと同じ
   } = useQuery({
-    queryKey: queryCacheKeys.table.groupAllConditions(tableConditions),
+    queryKey: queryCacheKeys.table.allGroupConditions(tableConditions),
     queryFn: async () =>
       await getAllUserGroupsAndCount({
         page: tableConditions.page,
@@ -236,7 +244,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
       // 次のページをprefetch
       void queryClient.prefetchQuery({
-        queryKey: queryCacheKeys.table.groupAllConditions({ ...tableConditions, page: nextPage }),
+        queryKey: queryCacheKeys.table.allGroupConditions({ ...tableConditions, page: nextPage }),
         queryFn: async () =>
           await getAllUserGroupsAndCount({
             page: nextPage,
@@ -277,7 +285,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       toast.error("エラーが発生しました");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.groupAll(), exact: false }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroupConditions(tableConditions) }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
     },
   });
 
@@ -287,7 +295,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * テーブルの条件を変更する関数
    */
   const changeTableConditions = useCallback(
-    (newTableConditions: TableConditions) => {
+    (newTableConditions: TableConditions<AllUserGroupTable>) => {
       // URLパラメータを更新&ブラウザに履歴を登録
       updateUrlParams(newTableConditions);
 
@@ -306,7 +314,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     changeTableConditions({
       ...tableConditions,
       searchQuery: null,
-      isJoined: null,
+      isJoined: "all",
     });
   }, [changeTableConditions, tableConditions]);
 

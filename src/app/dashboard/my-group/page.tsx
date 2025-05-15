@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { MyGroupTable } from "@/components/group/my-group-table";
+import { MyGroupTableComponent } from "@/components/group/my-group-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -11,7 +11,7 @@ import { MainTemplate } from "@/components/layout/maintemplate";
  * メタデータ
  */
 export const metadata: Metadata = {
-  title: "参加Group一覧 - Freeism App",
+  title: "参加Group一覧 | Freeism App",
   description: "参加しているグループ一覧を表示します",
 };
 
@@ -32,7 +32,7 @@ export default async function MyGroupsPage() {
 
   return (
     <MainTemplate title="参加Group一覧" description="参加しているグループ一覧を表示します">
-      <MyGroupTable />
+      <MyGroupTableComponent />
     </MainTemplate>
   );
 }
