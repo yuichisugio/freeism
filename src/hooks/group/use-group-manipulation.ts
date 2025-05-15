@@ -20,11 +20,25 @@ type UseGroupDetailReturn = {
   deleteDialogOpen: boolean;
   leaveDialogOpen: boolean;
   editDialogOpen: boolean;
+  groupMembers: GroupMemberWithUser[];
+  removeMemberDialogOpen: boolean;
+  selectedMemberForRemoval: string | null;
+  selectedMemberNameForRemoval: string | null;
+  isRemovalComboboxOpen: boolean;
+  addToBlackList: boolean;
 
   // action
   setDeleteDialogOpen: (open: boolean) => void;
   setLeaveDialogOpen: (open: boolean) => void;
   setEditDialogOpen: (open: boolean) => void;
+  setGroupMembers: (members: GroupMemberWithUser[]) => void;
+  setRemoveMemberDialogOpen: (open: boolean) => void;
+  setSelectedMemberForRemoval: (id: string | null) => void;
+  setSelectedMemberNameForRemoval: (name: string | null) => void;
+  setIsRemovalComboboxOpen: (open: boolean) => void;
+  setAddToBlackList: (add: boolean) => void;
+
+  // functions
   handleJoin: (groupId: string) => Promise<void>;
   handleLeave: () => Promise<void>;
   executeLeave: (groupId: string) => Promise<void>;
@@ -80,14 +94,6 @@ export function useGroupManipulation({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   // グループメンバー一覧
   const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
-  // 権限付与ダイアログ
-  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
-  // 権限付与ダイアログで選択されたユーザーID
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  // 権限付与ダイアログで選択されたユーザー名
-  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
-  // 権限付与ダイアログのコンボボックスが開いているかどうか
-  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
   // メンバー除名ダイアログ
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
   // メンバー除名ダイアログで選択されたユーザーID
@@ -269,8 +275,6 @@ export function useGroupManipulation({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * メンバー除名ダイアログを開く処理
    */
@@ -336,11 +340,25 @@ export function useGroupManipulation({
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
+    groupMembers,
+    removeMemberDialogOpen,
+    selectedMemberForRemoval,
+    selectedMemberNameForRemoval,
+    isRemovalComboboxOpen,
+    addToBlackList,
 
     // action
     setDeleteDialogOpen,
     setLeaveDialogOpen,
     setEditDialogOpen,
+    setGroupMembers,
+    setRemoveMemberDialogOpen,
+    setSelectedMemberForRemoval,
+    setSelectedMemberNameForRemoval,
+    setIsRemovalComboboxOpen,
+    setAddToBlackList,
+
+    // functions
     handleJoin,
     handleLeave,
     executeLeave,
