@@ -1,7 +1,7 @@
 "use client";
 
 import type { GroupMemberWithUser } from "@/types/group-types";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { EditGroupForm } from "@/components/form/edit-group-form";
 import { GroupDetailTable } from "@/components/group/group-detail-table";
 import { CsvUploadModal } from "@/components/modal/csv-upload-modal";
@@ -167,7 +167,16 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // tasksがロードされるまでローディング表示
+  /**
+   * グループ情報
+   */
+  const currentGroup = useMemo(() => tasks[0].group, [tasks]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * tasksがロードされるまでローディング表示
+   */
   if (!tasks || tasks.length === 0 || !tasks[0]?.group) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -176,8 +185,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
       </div>
     );
   }
-  const currentGroup = tasks[0].group;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ情報を表示
+   */
   return (
     <div className="space-y-8">
       {/* グループ情報 */}

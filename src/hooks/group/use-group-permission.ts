@@ -193,6 +193,9 @@ export function useGroupPermission({ groupId }: UseGroupMembersProps): UseGroupM
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループメンバーのフックの戻り値
+   */
   return {
     // state
     isAppOwner,

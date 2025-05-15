@@ -46,7 +46,14 @@ export const GroupDetailTable = memo(function GroupDetailTable({
   updateNonRewardTasks,
   updateRewardTasks,
 }: GroupDetailTableProps): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ルーター
+   */
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 共通のテーブル列定義（contributionType列を含まない）
@@ -254,7 +261,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 報酬タスク用のカラム
+  /**
+   * 報酬タスク用のカラム
+   */
   const rewardColumns: Column<Task>[] = useMemo(
     () => [
       {
@@ -337,7 +346,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // DataTableコンポーネントのpropsを設定
+  /**
+   * DataTableコンポーネントのpropsを設定
+   */
   const taskDataTableProps: DataTableProps<Task> = useMemo(
     () => ({
       initialData: nonRewardTasks,
@@ -376,6 +387,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 報酬タスク用のDataTableコンポーネントのpropsを設定
+   */
   const rewardTaskDataTableProps: DataTableProps<Task> = useMemo(
     () => ({
       initialData: rewardTasks,
@@ -412,6 +426,11 @@ export const GroupDetailTable = memo(function GroupDetailTable({
     [canEditTask, handleTaskEdited, updateRewardTasks, users, rewardColumns, rewardTasks],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ詳細ページのコンポーネント
+   */
   return (
     <>
       {/* タスク一覧 */}

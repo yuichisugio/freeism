@@ -93,6 +93,8 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
     redirect("/auth/signin");
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * グループの詳細を取得
    */
@@ -306,6 +308,9 @@ export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTas
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループタスク用のカスタムフックの戻り値
+   */
   return {
     // state
     tasks: nonRewardTasks.concat(rewardTasks),
