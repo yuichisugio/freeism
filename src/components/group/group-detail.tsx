@@ -23,9 +23,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useGroupDetail } from "@/hooks/group/use-group-detail";
-import { useGroupMembers } from "@/hooks/group/use-group-members";
-import { useGroupTasks } from "@/hooks/group/use-group-tasks";
+import { useGroupManipulation } from "@/hooks/group/use-group-manipulation";
+import { useGroupPermission } from "@/hooks/group/use-group-permission";
+import { useGroupDetailTask } from "@/hooks/group/use-group-tasks";
 import {
   Award,
   Check,
@@ -73,40 +73,12 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * useGroupDetailからの戻り値
-   */
-  const {
-    // states
-    isLoading,
-    isMember,
-    isAppOwner,
-    isGroupOwner,
-    userId,
-    deleteDialogOpen,
-    leaveDialogOpen,
-    editDialogOpen,
-
-    // actions
-    setDeleteDialogOpen,
-    setLeaveDialogOpen,
-    setEditDialogOpen,
-
-    // functions
-    handleJoin,
-    handleLeave,
-    executeLeave,
-    handleOpenEditDialog,
-    handleOpenDeleteDialog,
-    handleDeleteGroup,
-  } = useGroupDetail({ tasks });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * useGroupMembersフックからの戻り値
    */
   const {
     // states
+    isGroupOwner,
+    isAppOwner,
     groupMembers,
     showPermissionDialog,
     selectedUserId,
@@ -132,18 +104,44 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     // functions
     handleOpenPermissionDialog,
     handleGrantPermission,
+  } = useGroupPermission({
+    groupId: tasks.length > 0 ? tasks[0].group.id : "",
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * useGroupDetailからの戻り値
+   */
+  const {
+    // states
+    isLoading,
+    isMember,
+    deleteDialogOpen,
+    leaveDialogOpen,
+    editDialogOpen,
+
+    // actions
+    setDeleteDialogOpen,
+    setLeaveDialogOpen,
+    setEditDialogOpen,
+
+    // functions
+    handleJoin,
+    handleLeave,
+    executeLeave,
+    handleOpenEditDialog,
+    handleOpenDeleteDialog,
+    handleDeleteGroup,
     handleOpenRemoveMemberDialog,
     handleRemoveMember,
-  } = useGroupMembers({
-    groupId: tasks.length > 0 ? tasks[0].group.id : "",
-    isGroupOwner,
-    isAppOwner,
-  });
+  } = useGroupManipulation({ tasks, isGroupOwner, isAppOwner, groupId: tasks.length > 0 ? tasks[0].group.id : "" });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * useGroupTasksフックからの戻り値
+   * テーブルのためのタスクのデータ取得
    */
   const {
     // states
@@ -163,9 +161,8 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     handleTaskEdited,
     updateNonRewardTasks,
     updateRewardTasks,
-  } = useGroupTasks({
+  } = useGroupDetailTask({
     initialTasks: tasks,
-    userId,
     isGroupOwner,
     isAppOwner,
   });
@@ -575,7 +572,7 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
       </div>
 
       {/* 参加していないユーザー向けの参加ボタン */}
-      {userId && !isMember && (
+      {!isMember && (
         <div className="flex justify-center">
           <Button onClick={() => handleJoin(tasks[0].group.id)} disabled={isLoading} className="bg-green-600 text-white hover:bg-green-700">
             <UserPlus className="mr-2 h-4 w-4" />

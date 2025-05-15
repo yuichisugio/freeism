@@ -2,10 +2,11 @@
 
 import type { Task, TaskParticipant, User } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { deleteTask, getTasksByGroupId } from "@/lib/actions/task/task";
 import { getAllUsers } from "@/lib/actions/user";
 import { contributionType } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,7 +16,6 @@ import { toast } from "sonner";
  */
 type UseGroupTasksProps = {
   initialTasks: Task[];
-  userId: string | null;
   isGroupOwner: boolean;
   isAppOwner: boolean;
 };
@@ -56,7 +56,7 @@ type UseGroupTasksReturn = {
  * @param isGroupOwner {boolean} グループオーナーかどうか
  * @param isAppOwner {boolean} アプリオーナーかどうか
  */
-export function useGroupTasks({ initialTasks, userId, isGroupOwner, isAppOwner }: UseGroupTasksProps): UseGroupTasksReturn {
+export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: UseGroupTasksProps): UseGroupTasksReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -81,6 +81,17 @@ export function useGroupTasks({ initialTasks, userId, isGroupOwner, isAppOwner }
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   // エクスポートモーダー
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションのuserIdを取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("/auth/signin");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

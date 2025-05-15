@@ -1,11 +1,11 @@
 "use client";
 
-import type { Task } from "@/types/group-types";
+import type { GroupMemberWithUser, Task } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { checkAppOwner, checkGroupOwner, deleteGroup, joinGroup } from "@/lib/actions/group";
+import { redirect, useRouter } from "next/navigation";
+import { deleteGroup, getGroupMembers, joinGroup, removeMember } from "@/lib/actions/group";
 import { leaveGroup } from "@/lib/actions/group/my-group";
-import { fetchAuthenticatedUserId } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,9 +17,6 @@ type UseGroupDetailReturn = {
   // state
   isLoading: boolean;
   isMember: boolean;
-  isAppOwner: boolean;
-  isGroupOwner: boolean;
-  userId: string | null;
   deleteDialogOpen: boolean;
   leaveDialogOpen: boolean;
   editDialogOpen: boolean;
@@ -34,6 +31,8 @@ type UseGroupDetailReturn = {
   handleOpenEditDialog: () => void;
   handleOpenDeleteDialog: () => void;
   handleDeleteGroup: (groupId: string) => Promise<void>;
+  handleOpenRemoveMemberDialog: () => Promise<void>;
+  handleRemoveMember: () => Promise<void>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -41,9 +40,22 @@ type UseGroupDetailReturn = {
 /**
  * グループ詳細ページのフック
  * @param tasks {Task[]} タスクデータ
+ * @param isGroupOwner {boolean} グループオーナーかどうか
+ * @param isAppOwner {boolean} アプリオーナーかどうか
+ * @param groupId {string} グループID
  * @returns {UseGroupDetailReturn} グループ詳細ページのフックの戻り値
  */
-export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailReturn {
+export function useGroupManipulation({
+  tasks,
+  isGroupOwner,
+  isAppOwner,
+  groupId,
+}: {
+  tasks: Task[];
+  isGroupOwner: boolean;
+  isAppOwner: boolean;
+  groupId: string;
+}): UseGroupDetailReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -60,18 +72,43 @@ export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailRetu
   const [isLoading, setIsLoading] = useState(false);
   // メンバー
   const [isMember, setIsMember] = useState(false);
-  // アプリオーナー
-  const [isAppOwner, setIsAppOwner] = useState(false);
-  // グループオーナー
-  const [isGroupOwner, setIsGroupOwner] = useState(false);
-  // ユーザーID
-  const [userId, setUserId] = useState<string | null>(null);
   // 削除ダイアログ
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   // 脱退ダイアログ
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   // 編集ダイアログ
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  // グループメンバー一覧
+  const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
+  // 権限付与ダイアログ
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  // 権限付与ダイアログで選択されたユーザーID
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  // 権限付与ダイアログで選択されたユーザー名
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
+  // 権限付与ダイアログのコンボボックスが開いているかどうか
+  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
+  // メンバー除名ダイアログ
+  const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
+  // メンバー除名ダイアログで選択されたユーザーID
+  const [selectedMemberForRemoval, setSelectedMemberForRemoval] = useState<string | null>(null);
+  // メンバー除名ダイアログで選択されたユーザー名
+  const [selectedMemberNameForRemoval, setSelectedMemberNameForRemoval] = useState<string | null>(null);
+  // メンバー除名ダイアログのコンボボックスが開いているかどうか
+  const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
+  // メンバー除名ダイアログで選択されたユーザーをブラックリストに追加するかどうか
+  const [addToBlackList, setAddToBlackList] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションのuserIdを取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("/auth/signin");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -80,35 +117,17 @@ export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailRetu
    */
   useEffect(() => {
     async function checkPermissions() {
-      try {
-        if (tasks.length === 0) return;
-
-        const groupId = tasks[0].group.id;
-        const userId = await fetchAuthenticatedUserId();
-
-        if (userId) {
-          setUserId(userId);
-
-          // アプリオーナー権限のチェック
-          const isOwner = await checkAppOwner(userId);
-          setIsAppOwner(isOwner);
-
-          // グループオーナー権限のチェック
-          const isGroupOwnerResult = await checkGroupOwner(userId, groupId);
-          setIsGroupOwner(isGroupOwnerResult);
-
-          // ユーザーがグループのメンバーかどうかチェック
-          const memberIds = tasks[0].group.members.map((member: { userId: string }) => member.userId);
-          setIsMember(memberIds.includes(userId));
-        }
-      } catch (error) {
-        console.error("権限チェックエラー:", error);
-        toast.error("権限情報の取得に失敗しました");
+      if (!userId) {
+        redirect("/auth/signin");
       }
+
+      // ユーザーがグループのメンバーかどうかチェック
+      const memberIds = tasks[0].group.members.map((member: { userId: string }) => member.userId);
+      setIsMember(memberIds.includes(userId));
     }
 
     void checkPermissions();
-  }, [tasks]);
+  }, [tasks, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -250,6 +269,63 @@ export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailRetu
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メンバー除名ダイアログを開く処理
+   */
+  const handleOpenRemoveMemberDialog = useCallback(async () => {
+    if (!isGroupOwner && !isAppOwner) {
+      toast.error("権限がありません");
+      return;
+    }
+
+    try {
+      const members = await getGroupMembers(groupId);
+      // グループメンバー一覧を設定（オーナー以外のメンバーのみ）
+      setGroupMembers(members.filter((member) => !member.isGroupOwner));
+      setRemoveMemberDialogOpen(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("メンバー情報の取得に失敗しました");
+    }
+  }, [groupId, isGroupOwner, isAppOwner]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メンバー除名処理
+   */
+  const handleRemoveMember = useCallback(async () => {
+    try {
+      if (!isGroupOwner && !isAppOwner) {
+        toast.error("権限がありません");
+        return;
+      }
+
+      if (!selectedMemberForRemoval) {
+        toast.error("メンバーを選択してください");
+        return;
+      }
+
+      const result = await removeMember(groupId, selectedMemberForRemoval, addToBlackList);
+      if (result.success) {
+        toast.success("メンバーを削除しました");
+        setRemoveMemberDialogOpen(false);
+        setSelectedMemberForRemoval(null);
+        setAddToBlackList(false);
+        router.refresh();
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("エラーが発生しました");
+      console.error(error);
+    }
+  }, [groupId, isGroupOwner, isAppOwner, selectedMemberForRemoval, addToBlackList, router]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * 戻り値
    */
@@ -257,9 +333,6 @@ export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailRetu
     // state
     isLoading,
     isMember,
-    isAppOwner,
-    isGroupOwner,
-    userId,
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
@@ -274,5 +347,7 @@ export function useGroupDetail({ tasks }: { tasks: Task[] }): UseGroupDetailRetu
     handleOpenEditDialog,
     handleOpenDeleteDialog,
     handleDeleteGroup,
+    handleOpenRemoveMemberDialog,
+    handleRemoveMember,
   };
 }

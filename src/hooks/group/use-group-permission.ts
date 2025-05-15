@@ -1,9 +1,10 @@
 "use client";
 
 import type { GroupMemberWithUser } from "@/types/group-types";
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getGroupMembers, grantOwnerPermission, removeMember } from "@/lib/actions/group";
+import { useCallback, useEffect, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
+import { checkAppOwner, checkGroupOwner, getGroupMembers, grantOwnerPermission } from "@/lib/actions/group";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -13,8 +14,6 @@ import { toast } from "sonner";
  */
 type UseGroupMembersProps = {
   groupId: string;
-  isGroupOwner: boolean;
-  isAppOwner: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -24,6 +23,8 @@ type UseGroupMembersProps = {
  */
 type UseGroupMembersReturn = {
   // state
+  isAppOwner: boolean;
+  isGroupOwner: boolean;
   groupMembers: GroupMemberWithUser[];
   showPermissionDialog: boolean;
   addToBlackList: boolean;
@@ -47,9 +48,9 @@ type UseGroupMembersReturn = {
   setAddToBlackList: (addToBlackList: boolean) => void;
   handleOpenPermissionDialog: () => Promise<void>;
   handleGrantPermission: () => Promise<void>;
-  handleOpenRemoveMemberDialog: () => Promise<void>;
-  handleRemoveMember: () => Promise<void>;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * グループメンバーのフック
@@ -57,7 +58,7 @@ type UseGroupMembersReturn = {
  * @param isGroupOwner {boolean} グループオーナーかどうか
  * @param isAppOwner {boolean} アプリオーナーかどうか
  */
-export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupMembersProps): UseGroupMembersReturn {
+export function useGroupPermission({ groupId }: UseGroupMembersProps): UseGroupMembersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -90,6 +91,49 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
   // メンバー除名ダイアログで選択されたユーザーをブラックリストに追加するかどうか
   const [addToBlackList, setAddToBlackList] = useState(false);
+  // アプリオーナー
+  const [isAppOwner, setIsAppOwner] = useState(false);
+  // グループオーナー
+  const [isGroupOwner, setIsGroupOwner] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションのuserIdを取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("/auth/signin");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * コンポーネントマウント時に権限チェックを一度だけ実行
+   */
+  useEffect(() => {
+    async function checkPermissions() {
+      try {
+        if (!userId) {
+          redirect("/auth/signin");
+        }
+
+        // アプリオーナー権限のチェック
+        const isOwner = await checkAppOwner(userId);
+        setIsAppOwner(isOwner);
+
+        // グループオーナー権限のチェック
+        const isGroupOwnerResult = await checkGroupOwner(userId, groupId);
+        setIsGroupOwner(isGroupOwnerResult);
+      } catch (error) {
+        console.error("権限チェックエラー:", error);
+        toast.error("権限情報の取得に失敗しました");
+      }
+    }
+
+    void checkPermissions();
+  }, [groupId, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -149,63 +193,10 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * メンバー除名ダイアログを開く処理
-   */
-  const handleOpenRemoveMemberDialog = useCallback(async () => {
-    if (!isGroupOwner && !isAppOwner) {
-      toast.error("権限がありません");
-      return;
-    }
-
-    try {
-      const members = await getGroupMembers(groupId);
-      // グループメンバー一覧を設定（オーナー以外のメンバーのみ）
-      setGroupMembers(members.filter((member) => !member.isGroupOwner));
-      setRemoveMemberDialogOpen(true);
-    } catch (error) {
-      console.error(error);
-      toast.error("メンバー情報の取得に失敗しました");
-    }
-  }, [groupId, isGroupOwner, isAppOwner]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メンバー除名処理
-   */
-  const handleRemoveMember = useCallback(async () => {
-    try {
-      if (!isGroupOwner && !isAppOwner) {
-        toast.error("権限がありません");
-        return;
-      }
-
-      if (!selectedMemberForRemoval) {
-        toast.error("メンバーを選択してください");
-        return;
-      }
-
-      const result = await removeMember(groupId, selectedMemberForRemoval, addToBlackList);
-      if (result.success) {
-        toast.success("メンバーを削除しました");
-        setRemoveMemberDialogOpen(false);
-        setSelectedMemberForRemoval(null);
-        setAddToBlackList(false);
-        router.refresh();
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error("エラーが発生しました");
-      console.error(error);
-    }
-  }, [groupId, isGroupOwner, isAppOwner, selectedMemberForRemoval, addToBlackList, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return {
     // state
+    isAppOwner,
+    isGroupOwner,
     groupMembers,
     showPermissionDialog,
     selectedUserId,
@@ -229,7 +220,5 @@ export function useGroupMembers({ groupId, isGroupOwner, isAppOwner }: UseGroupM
     setAddToBlackList,
     handleOpenPermissionDialog,
     handleGrantPermission,
-    handleOpenRemoveMemberDialog,
-    handleRemoveMember,
   };
 }
