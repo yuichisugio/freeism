@@ -73,7 +73,7 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
       },
       {
         key: "groupName" as keyof MyGroupTable,
-        header: "GROUP NAME",
+        header: "グループ名",
         statusCombobox: false,
         sortable: false,
         joinGroupModal: false,
@@ -98,7 +98,7 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
         modalList: null,
         editTask: false,
         deleteTask: null,
-        cell: (row: MyGroupTable) => row.groupDepositPeriod,
+        cell: (row: MyGroupTable) => `${row.groupDepositPeriod}日`,
         cellClassName: "text-center",
       },
       {
@@ -129,7 +129,7 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
       },
       {
         key: "groupPointBalance" as keyof MyGroupTable,
-        header: "残高",
+        header: "ポイント残高",
         sortable: true,
         statusCombobox: false,
         joinGroupModal: false,
@@ -142,7 +142,7 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
       },
       {
         key: "groupGoal" as keyof MyGroupTable,
-        header: "GOAL",
+        header: "グループ目標",
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,

@@ -152,7 +152,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
               "relative h-auto w-full",
               isFullScreen
                 ? "" // フルスクリーン時は overflow を持たず、ページスクロールに依存
-                : "max-h-[calc(100vh-16rem)] overflow-x-auto overflow-y-auto", // 非フルスクリーン時は従来のスクロール設定
+                : "max-h-[calc(100vh-15rem)] overflow-x-auto overflow-y-auto", // 非フルスクリーン時は従来のスクロール設定
             )}
           >
             <table className="w-full min-w-full table-auto">
