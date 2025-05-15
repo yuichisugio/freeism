@@ -217,13 +217,6 @@ export function useGroupManipulation({
     },
   });
 
-  const executeLeaveGroup = useCallback(
-    (currentGroupId: string) => {
-      leaveGroupMutation(currentGroupId);
-    },
-    [leaveGroupMutation],
-  );
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -394,7 +387,7 @@ export function useGroupManipulation({
     // functions
     handleJoinGroup,
     handleLeave,
-    executeLeaveGroup,
+    executeLeaveGroup: leaveGroupMutation,
     handleOpenEditDialog,
     handleOpenDeleteDialog,
     handleDeleteGroup,
