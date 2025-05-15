@@ -64,12 +64,19 @@ type GroupDetailProps = {
  */
 export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックを使用
+  /**
+   * useGroupDetailからの戻り値
+   */
   const {
+    // states
     isLoading,
     isMember,
     isAppOwner,
@@ -78,9 +85,13 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
+
+    // actions
     setDeleteDialogOpen,
     setLeaveDialogOpen,
     setEditDialogOpen,
+
+    // functions
     handleJoin,
     handleLeave,
     executeLeave,
@@ -91,60 +102,58 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const groupMembersResult = useGroupMembers({
+  /**
+   * useGroupMembersフックからの戻り値
+   */
+  const {
+    // states
+    groupMembers,
+    showPermissionDialog,
+    selectedUserId,
+    selectedUserName,
+    isComboboxOpen,
+    selectedMemberForRemoval,
+    selectedMemberNameForRemoval,
+    isRemovalComboboxOpen,
+    addToBlackList,
+    removeMemberDialogOpen,
+
+    // actions
+    setShowPermissionDialog,
+    setSelectedUserId,
+    setSelectedUserName,
+    setIsComboboxOpen,
+    setRemoveMemberDialogOpen,
+    setSelectedMemberForRemoval,
+    setSelectedMemberNameForRemoval,
+    setIsRemovalComboboxOpen,
+    setAddToBlackList,
+
+    // functions
+    handleOpenPermissionDialog,
+    handleGrantPermission,
+    handleOpenRemoveMemberDialog,
+    handleRemoveMember,
+  } = useGroupMembers({
     groupId: tasks.length > 0 ? tasks[0].group.id : "",
     isGroupOwner,
     isAppOwner,
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // useGroupMembersフックからの戻り値
-  const {
-    groupMembers,
-    showPermissionDialog,
-    setShowPermissionDialog,
-    selectedUserId,
-    setSelectedUserId,
-    selectedUserName,
-    setSelectedUserName,
-    isComboboxOpen,
-    setIsComboboxOpen,
-    removeMemberDialogOpen,
-    setRemoveMemberDialogOpen,
-    selectedMemberForRemoval,
-    setSelectedMemberForRemoval,
-    selectedMemberNameForRemoval,
-    setSelectedMemberNameForRemoval,
-    isRemovalComboboxOpen,
-    setIsRemovalComboboxOpen,
-    addToBlackList,
-    setAddToBlackList,
-    handleOpenPermissionDialog,
-    handleGrantPermission,
-    handleOpenRemoveMemberDialog,
-    handleRemoveMember,
-  } = groupMembersResult;
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const groupTasksResult = useGroupTasks({
-    initialTasks: tasks,
-    userId,
-    isGroupOwner,
-    isAppOwner,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // useGroupTasksフックからの戻り値
+  /**
+   * useGroupTasksフックからの戻り値
+   */
   const {
+    // states
     nonRewardTasks,
     rewardTasks,
     users,
     isUploadModalOpen,
-    setIsUploadModalOpen,
     isExportModalOpen,
+    // functions
+    setIsUploadModalOpen,
     setIsExportModalOpen,
     getReporterNames,
     getExecutorNames,
@@ -154,11 +163,18 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     handleTaskEdited,
     updateNonRewardTasks,
     updateRewardTasks,
-  } = groupTasksResult;
+  } = useGroupTasks({
+    initialTasks: tasks,
+    userId,
+    isGroupOwner,
+    isAppOwner,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 共通のテーブル列定義（contributionType列を含まない）
+  /**
+   * 共通のテーブル列定義（contributionType列を含まない）
+   */
   const commonColumns: Column<Task>[] = useMemo(
     () => [
       {
@@ -296,7 +312,9 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 非報酬タスク用のカラム
+  /**
+   * 非報酬タスク用のカラム
+   */
   const nonRewardColumns: Column<Task>[] = useMemo(
     () => [
       ...commonColumns.slice(0, 4), // task, name, reporters, executors 列をコピー
