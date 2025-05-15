@@ -71,7 +71,7 @@ const sidebarItems = [
     items: [
       {
         title: "参加Group一覧",
-        href: "/dashboard/my-groups",
+        href: "/dashboard/my-group",
         icon: UserCircle,
       },
       {

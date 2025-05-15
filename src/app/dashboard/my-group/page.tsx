@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { MyGroupTable } from "@/components/group/my-groups-table";
+import { MyGroupTable } from "@/components/group/my-group-table";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
