@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useGroupManipulation } from "@/hooks/group/use-group-manipulation";
 import { useGroupPermission } from "@/hooks/group/use-group-permission";
-import { useGroupDetailTask } from "@/hooks/group/use-group-tasks";
+import { useGroupTasks } from "@/hooks/group/use-group-tasks";
 import {
   Award,
   Check,
@@ -49,10 +49,10 @@ import {
 
 /**
  * グループ詳細ページのコンポーネントのprops
- * @param tasks {Task[]} タスクデータ
+ * @param groupId {string} グループID
  */
 type GroupDetailProps = {
-  tasks: Task[];
+  groupId: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -62,7 +62,7 @@ type GroupDetailProps = {
  * @param tasks {Task[]} タスクデータ
  * @returns {JSX.Element} グループ詳細ページのコンポーネント
  */
-export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps): JSX.Element {
+export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -105,7 +105,38 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     handleOpenPermissionDialog,
     handleGrantPermission,
   } = useGroupPermission({
-    groupId: tasks.length > 0 ? tasks[0].group.id : "",
+    groupId: groupId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * useGroupTasksフックからの戻り値
+   * テーブルのためのタスクのデータ取得
+   */
+  const {
+    // states
+    tasks,
+    nonRewardTasks,
+    rewardTasks,
+    users,
+    isUploadModalOpen,
+    isExportModalOpen,
+    // functions
+    setIsUploadModalOpen,
+    setIsExportModalOpen,
+    getReporterNames,
+    getExecutorNames,
+    handleDeleteTask,
+    canDeleteTask,
+    canEditTask,
+    handleTaskEdited,
+    updateNonRewardTasks,
+    updateRewardTasks,
+  } = useGroupTasks({
+    groupId: groupId,
+    isGroupOwner,
+    isAppOwner,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -135,36 +166,11 @@ export const GroupDetail = memo(function GroupDetail({ tasks }: GroupDetailProps
     handleDeleteGroup,
     handleOpenRemoveMemberDialog,
     handleRemoveMember,
-  } = useGroupManipulation({ tasks, isGroupOwner, isAppOwner, groupId: tasks.length > 0 ? tasks[0].group.id : "" });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * useGroupTasksフックからの戻り値
-   * テーブルのためのタスクのデータ取得
-   */
-  const {
-    // states
-    nonRewardTasks,
-    rewardTasks,
-    users,
-    isUploadModalOpen,
-    isExportModalOpen,
-    // functions
-    setIsUploadModalOpen,
-    setIsExportModalOpen,
-    getReporterNames,
-    getExecutorNames,
-    handleDeleteTask,
-    canDeleteTask,
-    canEditTask,
-    handleTaskEdited,
-    updateNonRewardTasks,
-    updateRewardTasks,
-  } = useGroupDetailTask({
-    initialTasks: tasks,
+  } = useGroupManipulation({
+    tasks: tasks,
     isGroupOwner,
     isAppOwner,
+    groupId: groupId,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

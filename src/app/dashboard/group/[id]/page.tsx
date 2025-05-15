@@ -3,11 +3,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { notFound } from "next/navigation";
 import { GroupDetail } from "@/components/group/group-detail";
 import { GroupDetailSkeleton } from "@/components/group/group-detail-skeleton";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { getTasksByGroupId } from "@/lib/actions/task/task";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -43,28 +41,12 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループの詳細を取得
-   */
-  const tasks = await getTasksByGroupId(id);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループが見つからない場合は404エラーを返す
-   */
-  if (!tasks) {
-    notFound();
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * グループ詳細ページを返す
    */
   return (
     <MainTemplate title={false} description={false}>
       <Suspense fallback={<GroupDetailSkeleton />}>
-        <GroupDetail tasks={tasks} />
+        <GroupDetail groupId={id} />
       </Suspense>
     </MainTemplate>
   );

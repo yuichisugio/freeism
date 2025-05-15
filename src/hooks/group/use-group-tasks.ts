@@ -15,7 +15,7 @@ import { toast } from "sonner";
  * グループタスク用のカスタムフックの引数の型
  */
 type UseGroupTasksProps = {
-  initialTasks: Task[];
+  groupId: string;
   isGroupOwner: boolean;
   isAppOwner: boolean;
 };
@@ -28,6 +28,7 @@ type UseGroupTasksProps = {
 type UseGroupTasksReturn = {
   // state
   isLoading: boolean;
+  tasks: Task[];
   nonRewardTasks: Task[];
   rewardTasks: Task[];
   users: User[];
@@ -51,12 +52,11 @@ type UseGroupTasksReturn = {
 
 /**
  * グループタスク用のカスタムフック
- * @param initialTasks {Task[]} 初期タスクデータ
- * @param userId {string | null} ユーザーID
+ * @param groupId {string} グループID
  * @param isGroupOwner {boolean} グループオーナーかどうか
  * @param isAppOwner {boolean} アプリオーナーかどうか
  */
-export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: UseGroupTasksProps): UseGroupTasksReturn {
+export function useGroupTasks({ groupId, isGroupOwner, isAppOwner }: UseGroupTasksProps): UseGroupTasksReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -72,9 +72,9 @@ export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: U
   // ローディング中かどうか
   const [isLoading, setIsLoading] = useState(false);
   // 非報酬タスク
-  const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>(initialTasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
+  const [nonRewardTasks, setNonRewardTasks] = useState<Task[]>([]);
   // 報酬タスク
-  const [rewardTasks, setRewardTasks] = useState<Task[]>(initialTasks.filter((task) => task.contributionType === contributionType.REWARD));
+  const [rewardTasks, setRewardTasks] = useState<Task[]>([]);
   // ユーザー一覧
   const [users, setUsers] = useState<User[]>([]);
   // アップロードモーダー
@@ -92,6 +92,22 @@ export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: U
   if (!userId) {
     redirect("/auth/signin");
   }
+
+  /**
+   * グループの詳細を取得
+   */
+  useEffect(() => {
+    async function fetchTasks() {
+      const tasks = await getTasksByGroupId(groupId);
+
+      if (tasks) {
+        setRewardTasks(tasks.filter((task) => task.contributionType === contributionType.REWARD));
+        setNonRewardTasks(tasks.filter((task) => task.contributionType === contributionType.NON_REWARD));
+      }
+    }
+
+    void fetchTasks();
+  }, [groupId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -149,18 +165,15 @@ export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: U
           toast.success("タスクを削除しました");
 
           // タスクデータを更新
-          if (initialTasks.length > 0) {
-            const groupId = initialTasks[0].group.id;
-            const updatedTasks = await getTasksByGroupId(groupId);
+          const updatedTasks = await getTasksByGroupId(groupId);
 
-            // 表示用のタスクデータを更新
-            if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
-              const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
-              const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
+          // 表示用のタスクデータを更新
+          if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
+            const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
+            const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
 
-              setRewardTasks(newRewardTasks);
-              setNonRewardTasks(newNonRewardTasks);
-            }
+            setRewardTasks(newRewardTasks);
+            setNonRewardTasks(newNonRewardTasks);
           }
 
           router.refresh(); // UIを更新
@@ -174,7 +187,7 @@ export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: U
         setIsLoading(false);
       }
     },
-    [initialTasks, router],
+    [groupId, router],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -270,20 +283,17 @@ export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: U
     void (async () => {
       try {
         // タスクデータを再取得
-        if (initialTasks.length > 0) {
-          const groupId = initialTasks[0].group.id;
-          const updatedTasks = await getTasksByGroupId(groupId);
+        const updatedTasks = await getTasksByGroupId(groupId);
 
-          // 表示用のタスクデータを更新
-          if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
-            const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
-            const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
+        // 表示用のタスクデータを更新
+        if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
+          const newRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.REWARD);
+          const newNonRewardTasks = updatedTasks.filter((task: Task) => task.contributionType === contributionType.NON_REWARD);
 
-            setRewardTasks(newRewardTasks);
-            setNonRewardTasks(newNonRewardTasks);
+          setRewardTasks(newRewardTasks);
+          setNonRewardTasks(newNonRewardTasks);
 
-            toast.success("タスクデータを更新しました");
-          }
+          toast.success("タスクデータを更新しました");
         }
       } catch (error) {
         console.error("タスクデータ更新エラー:", error);
@@ -292,12 +302,13 @@ export function useGroupDetailTask({ initialTasks, isGroupOwner, isAppOwner }: U
         setIsLoading(false);
       }
     })();
-  }, [initialTasks, router]);
+  }, [groupId, router]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     // state
+    tasks: nonRewardTasks.concat(rewardTasks),
     isLoading,
     nonRewardTasks,
     rewardTasks,
