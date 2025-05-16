@@ -1,5 +1,6 @@
 "use client";
 
+import type { BasicUser, MyTaskTable } from "@/types/group-types";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkAppOwner } from "@/lib/actions/group";
@@ -11,32 +12,11 @@ import { toast } from "react-hot-toast";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * ユーザーの型
- */
-type BasicUser = {
-  id: string;
-  name: string | null;
-  email: string;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 簡易ユーザーの型
- */
-type SimpleUser = {
-  id: string;
-  name: string;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * マイタスク管理のためのカスタムフック
  * @param initialTasks - 初期タスクデータ
  * @returns タスク管理に必要な状態と関数
  */
-export function useMyTaskTable<T extends Record<string, unknown>>() {
+export function useMyTaskTable() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -50,7 +30,7 @@ export function useMyTaskTable<T extends Record<string, unknown>>() {
    * state
    */
   // タスクデータ
-  const [tasks, setTasks] = useState<T[]>([]);
+  const [tasks, setTasks] = useState<MyTaskTable[]>([]);
 
   // ユーザーデータ
   const [users, setUsers] = useState<BasicUser[]>([]);
@@ -69,7 +49,7 @@ export function useMyTaskTable<T extends Record<string, unknown>>() {
   useEffect(() => {
     async function fetchTasks() {
       const tasks = await getMyTaskData();
-      setTasks(tasks as unknown as T[]);
+      setTasks(tasks as unknown as MyTaskTable[]);
     }
     void fetchTasks();
   }, []);
@@ -117,31 +97,11 @@ export function useMyTaskTable<T extends Record<string, unknown>>() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 報告者名を連結する関数
-   */
-  const getReporterNames = (reporters: { user?: { name: string | null } | null; name?: string | null }[]): string => {
-    if (!reporters || reporters.length === 0) return "-";
-    return reporters.map((r) => (r.user ? r.user.name : r.name) ?? "不明").join(", ");
-  };
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 実行者名を連結する関数
-   */
-  const getExecutorNames = (executors: { user?: { name: string | null } | null; name?: string | null }[]): string => {
-    if (!executors || executors.length === 0) return "-";
-    return executors.map((e) => (e.user ? e.user.name : e.name) ?? "不明").join(", ");
-  };
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * タスク編集可能かどうかの判定
    */
-  const canEditTask = (task: T): boolean => {
+  const canEditTask = (task: MyTaskTable): boolean => {
     // タスクのステータスを取得
-    const status = task.status as string;
+    const status = task.status;
 
     // 変更不可のステータスチェック
     const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
@@ -178,7 +138,7 @@ export function useMyTaskTable<T extends Record<string, unknown>>() {
         // 表示用のタスクデータを更新
         if (updatedTasks && Array.isArray(updatedTasks) && updatedTasks.length > 0) {
           // 型互換性エラーを避けるために明示的な型変換を行う
-          setTasks(updatedTasks as unknown as T[]);
+          setTasks(updatedTasks as unknown as MyTaskTable[]);
           toast.success("タスクデータを更新しました");
         }
       } catch (error) {
@@ -187,18 +147,6 @@ export function useMyTaskTable<T extends Record<string, unknown>>() {
         router.refresh(); // バックアップとしてのrefresh
       }
     })();
-  };
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 編集用のユーザー一覧を整形
-   */
-  const getSimpleUsers = (): SimpleUser[] => {
-    return users.map((user) => ({
-      id: user.id,
-      name: user.name ?? "",
-    }));
   };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -212,10 +160,7 @@ export function useMyTaskTable<T extends Record<string, unknown>>() {
 
     // function
     setTasks,
-    getReporterNames,
-    getExecutorNames,
     canEditTask,
     handleTaskEdited,
-    getSimpleUsers,
   };
 }

@@ -301,3 +301,39 @@ export type Group = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * MyTasksTableの型
+ */
+export type MyTaskTable = {
+  id: string;
+  action: string;
+  task: string;
+  detail: string | null;
+  reference: string | null;
+  status: string;
+  fixedContributionPoint: number | null;
+  fixedEvaluator: string | null;
+  fixedEvaluationLogic: string | null;
+  contributionType: contributionType;
+  creator: {
+    id: string;
+    name: string | null;
+  };
+  reporters: TaskParticipant[];
+  executors: TaskParticipant[];
+  group: {
+    id: string;
+    name: string;
+  };
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザーの型
+ */
+export type BasicUser = {
+  id: string;
+  name: string;
+};

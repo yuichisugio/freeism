@@ -5,49 +5,7 @@ import { memo, useMemo } from "react";
 import Link from "next/link";
 import { ShareTable } from "@/components/share/share-table";
 import { useMyTaskTable } from "@/hooks/task/use-my-task-table";
-import { type contributionType } from "@prisma/client";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 報告者と実行者の型
- */
-type TaskParticipant = {
-  id: string;
-  name: string | null;
-  userId: string | null;
-  user: {
-    name: string | null;
-  } | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * MyTasksTable用のタスク型
- */
-export type MyTask = {
-  id: string;
-  action: string;
-  task: string;
-  detail: string | null;
-  reference: string | null;
-  status: string;
-  fixedContributionPoint: number | null;
-  fixedEvaluator: string | null;
-  fixedEvaluationLogic: string | null;
-  contributionType: contributionType;
-  creator: {
-    id: string;
-    name: string | null;
-  };
-  reporters: TaskParticipant[];
-  executors: TaskParticipant[];
-  group: {
-    id: string;
-    name: string;
-  };
-};
+import { type MyTaskTable } from "@/types/group-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -56,15 +14,20 @@ export type MyTask = {
  * @param tasks タスク
  * @returns タスクテーブル
  */
-export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
+export const MyTaskTableComponent = memo(function MyTaskTable(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックを使用してタスク管理機能を実装
-  const { tasks, setTasks, getReporterNames, getExecutorNames, canEditTask, handleTaskEdited, getSimpleUsers } = useMyTaskTable<MyTask>();
+  /**
+   * カスタムフックを使用してタスク管理機能を実装
+   */
+  const { tasks, setTasks, canEditTask, handleTaskEdited, users } = useMyTaskTable();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const columns = useMemo<Column<MyTask>[]>(
+  /**
+   * タスクテーブルのカラム
+   */
+  const columns = useMemo<Column<MyTaskTable>[]>(
     () => [
       {
         key: "group",
@@ -116,7 +79,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         key: "reporters",
         header: "報告者",
         sortable: false,
-        cell: (row) => getReporterNames(row.reporters),
+        cell: (row) => row.reporters.map((r) => r.name).join(", "),
         statusCombobox: false,
         joinGroupModal: false,
         leaveGroupModal: false,
@@ -129,7 +92,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         key: "executors",
         header: "実行者",
         sortable: false,
-        cell: (row) => getExecutorNames(row.executors),
+        cell: (row) => row.executors.map((e) => e.name).join(", "),
         statusCombobox: false,
         joinGroupModal: false,
         leaveGroupModal: false,
@@ -207,19 +170,22 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
         cellClassName: null,
       },
     ],
-    [getReporterNames, getExecutorNames],
+    [],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const dataTableProps: DataTableProps<MyTask> = {
+  /**
+   * テーブルのプロパティ
+   */
+  const dataTableProps: DataTableProps<MyTaskTable> = {
     initialData: tasks,
     columns: columns,
     onDataChange: (changedData) => setTasks(changedData),
     editTask: {
       canEdit: (row) => canEditTask(row),
       onEdit: () => handleTaskEdited(),
-      users: getSimpleUsers(),
+      users: users,
       editingTaskId: null,
       isTaskEditModalOpen: false,
       // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -237,7 +203,7 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       onItemPerPageChange: () => {},
     },
     sort: {
-      onSortChange: (field: keyof MyTask) => {
+      onSortChange: (field: keyof MyTaskTable) => {
         console.log(field);
       },
       sortDirection: "desc",
@@ -246,5 +212,10 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
     filter: null,
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスクテーブルを表示
+   */
   return <ShareTable dataTableProps={dataTableProps} />;
 });

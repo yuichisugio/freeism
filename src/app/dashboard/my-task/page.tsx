@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { MyTaskTable } from "@/components/task/my-tasks-table";
+import { MyTaskTableComponent } from "@/components/task/my-tasks-table";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 
@@ -49,7 +49,7 @@ export default async function MyTasksPage() {
         </Button>
       }
     >
-      <MyTaskTable />
+      <MyTaskTableComponent />
     </MainTemplate>
   );
 }
