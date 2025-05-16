@@ -2,7 +2,7 @@
 
 import type { TaskFormValues } from "@/hooks/modal/use-task-edit-modal";
 import type { Control } from "react-hook-form";
-import { memo } from "react";
+import { memo, useRef } from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -40,6 +40,8 @@ export const TaskEditModal = memo(function TaskEditModal({
   container,
 }: TaskEditModalProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const dialogContentRef = useRef<HTMLDivElement>(null);
 
   /**
    * useTaskEditModal フックからの返り値を適切に型付けする
@@ -100,7 +102,7 @@ export const TaskEditModal = memo(function TaskEditModal({
    */
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent container={container} className="z-[10000] max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent ref={dialogContentRef} container={container} className="z-[10000] max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>
@@ -144,7 +146,6 @@ export const TaskEditModal = memo(function TaskEditModal({
             {/* カテゴリ選択を追加 */}
             <CustomFormField
               fieldType="combobox"
-              container={container}
               control={typedControl}
               name="category"
               label="カテゴリ"
@@ -156,6 +157,7 @@ export const TaskEditModal = memo(function TaskEditModal({
                 name: category,
               }))}
               placeholder="カテゴリを選択してください"
+              container={dialogContentRef.current}
             />
 
             <CustomFormField
