@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePushNotification } from "@/hooks/notification/use-push-notification";
-import { updateUserSettings } from "@/lib/actions/user-settings";
+import { updateUserSettingToggle } from "@/lib/actions/user-settings";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
@@ -103,7 +103,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
           throw new Error("プッシュ通知の購読に失敗しました。通知が許可されていないか、ブラウザが対応していません。");
         }
         // 購読成功、DBを更新
-        const result = await updateUserSettings(userId, true, "isPushEnabled");
+        const result = await updateUserSettingToggle(userId, true, "isPushEnabled");
         if (!result.success) {
           throw new Error(result.error ?? "サーバーでの設定更新に失敗しました。");
         }
@@ -115,7 +115,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
           await unsubscribe();
         }
         // 購読解除後 (または元々未購読)、DBを更新
-        const result = await updateUserSettings(userId, false, "isPushEnabled");
+        const result = await updateUserSettingToggle(userId, false, "isPushEnabled");
         if (!result.success) {
           throw new Error(result.error ?? "サーバーでの設定更新に失敗しました。");
         }

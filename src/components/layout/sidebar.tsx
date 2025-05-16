@@ -26,7 +26,7 @@ const sidebarItems = [
     items: [
       {
         title: "Group一覧",
-        href: "/dashboard/grouplist",
+        href: "/dashboard/group-list",
         icon: Home,
       },
       {
@@ -41,7 +41,7 @@ const sidebarItems = [
       },
       {
         title: "Task作成",
-        href: "/dashboard/new-task",
+        href: "/dashboard/create-task",
         icon: PlusCircle,
       },
       {
@@ -76,7 +76,7 @@ const sidebarItems = [
       },
       {
         title: "Task一覧",
-        href: "/dashboard/my-tasks",
+        href: "/dashboard/my-task",
         icon: PlusCircle,
       },
     ],

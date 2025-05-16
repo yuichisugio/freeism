@@ -4,7 +4,7 @@ import type { SortDirection } from "@/types/auction-types";
 import type { GroupDetailTableConditions, GroupDetailTask, User } from "@/types/group-types";
 import type { TaskStatus } from "@prisma/client";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { getGroupTaskAndCount } from "@/lib/actions/task/group-detail-table";
 import { deleteTask } from "@/lib/actions/task/task";
@@ -39,6 +39,8 @@ type UseGroupDetailTableReturn = {
   users: User[];
   tableConditions: GroupDetailTableConditions;
   totalTaskCount: number;
+  editingTaskId: string | null;
+  isTaskEditModalOpen: boolean;
 
   // functions
   getReporterNames: (reporterNames: string[] | null) => string;
@@ -46,7 +48,9 @@ type UseGroupDetailTableReturn = {
   handleDeleteTask: (taskId: string) => Promise<void>;
   canDeleteTask: (task: GroupDetailTask) => boolean;
   canEditTask: (task: GroupDetailTask) => boolean;
-  handleTaskEdited: (task: GroupDetailTask) => void;
+  handleTaskEdited: () => void;
+  openTaskEditModal: (task: GroupDetailTask) => void;
+  closeTaskEditModal: () => void;
   changeTableConditions: (newTableConditions: GroupDetailTableConditions) => void;
   resetFilters: () => void;
   resetSort: () => void;
@@ -263,13 +267,6 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ユーザーデータの取得
-   */
-  const users = useMemo(() => usersData ?? [], [usersData]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * タスク削除処理
    */
   const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
@@ -389,6 +386,33 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * タスク編集モーダルのための状態
+   */
+  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク編集モーダルを開く関数
+   * @param task {GroupDetailTask} 編集対象のタスク
+   */
+  const openTaskEditModal = useCallback((task: GroupDetailTask) => {
+    setEditingTaskId(task.id);
+    setIsTaskEditModalOpen(true);
+  }, []);
+
+  /**
+   * タスク編集モーダルを閉じる関数
+   */
+  const closeTaskEditModal = useCallback(() => {
+    setIsTaskEditModalOpen(false);
+    setEditingTaskId(null);
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * タスク編集後の更新処理
    */
   const handleTaskEdited = useCallback(() => {
@@ -396,7 +420,8 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     void queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false });
     toast.success("タスクデータを更新しました");
     router.refresh();
-  }, [groupId, router, queryClient]);
+    closeTaskEditModal();
+  }, [groupId, router, queryClient, closeTaskEditModal]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -435,9 +460,11 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     // state
     isLoading: isLoadingTasks || isLoadingUsers || isDeletingTask || isPlaceholderData,
     tasks: tasksResult?.returnTasks ?? [],
-    users,
+    users: usersData ?? [],
     tableConditions,
     totalTaskCount: tasksResult?.totalTaskCount ?? 0,
+    editingTaskId,
+    isTaskEditModalOpen,
 
     // functions
     getReporterNames,
@@ -446,6 +473,8 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     canDeleteTask,
     canEditTask,
     handleTaskEdited,
+    openTaskEditModal,
+    closeTaskEditModal,
     changeTableConditions,
     resetFilters,
     resetSort,

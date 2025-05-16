@@ -252,7 +252,7 @@ export async function leaveGroup(groupId: string) {
       },
     });
 
-    revalidatePath("/dashboard/grouplist");
+    revalidatePath("/dashboard/group-list");
     revalidatePath("/dashboard/my-groups");
     return { success: true };
   } catch (error) {

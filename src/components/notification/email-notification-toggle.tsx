@@ -4,7 +4,7 @@ import { memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { updateUserSettings } from "@/lib/actions/user-settings";
+import { updateUserSettingToggle } from "@/lib/actions/user-settings";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
    */
   const queryClient = useQueryClient();
   const { mutate, variables, isPending } = useMutation({
-    mutationFn: async (isEmailEnabled: boolean) => await updateUserSettings(userId, isEmailEnabled, "isEmailEnabled"),
+    mutationFn: async (isEmailEnabled: boolean) => await updateUserSettingToggle(userId, isEmailEnabled, "isEmailEnabled"),
     onSuccess: () => {
       toast.success("メール通知設定を更新しました。");
     },

@@ -10,7 +10,7 @@ import { WebPushNotificationToggle } from "@/components/notification/push-notifi
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { updateUserSetup } from "@/lib/actions";
+import { updateUserSetup } from "@/lib/actions/user-settings";
 import { getUserSettings } from "@/lib/auction/action/user";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { setupSchema } from "@/lib/zod-schema";

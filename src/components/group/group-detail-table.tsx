@@ -6,6 +6,7 @@ import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Loading } from "@/components/share/loading";
 import { ShareTable } from "@/components/share/share-table";
+import { TaskEditModal } from "@/components/task/task-edit-modal";
 import { Button } from "@/components/ui/button";
 import { useGroupDetailTable } from "@/hooks/group/group-detail/use-group-detail-table";
 import { contributionType } from "@prisma/client";
@@ -45,10 +46,12 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
   const {
     // state
     tasks,
-    users,
     isLoading,
     tableConditions,
     totalTaskCount,
+    editingTaskId,
+    isTaskEditModalOpen,
+
     // functions
     getReporterNames,
     getExecutorNames,
@@ -56,6 +59,8 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     handleDeleteTask,
     canEditTask,
     handleTaskEdited,
+    openTaskEditModal,
+    closeTaskEditModal,
     changeTableConditions,
     resetFilters,
     resetSort,
@@ -219,7 +224,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     [getReporterNames, getExecutorNames, router, canDeleteTask, handleDeleteTask],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * DataTableコンポーネントのpropsを設定
@@ -231,8 +236,8 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       onDataChange: () => null,
       editTask: {
         canEdit: (row: GroupDetailTask) => canEditTask(row),
-        onEdit: (row: GroupDetailTask) => handleTaskEdited(row),
-        users: users.map((user) => ({ id: user.id, name: user.name ?? "" })),
+        onEdit: (row: GroupDetailTask) => openTaskEditModal(row),
+        users: null,
       },
       pagination: {
         totalRowCount: totalTaskCount,
@@ -290,10 +295,8 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         onResetSort: resetSort,
       },
     }),
-    [tasks, columns, users, totalTaskCount, tableConditions, changeTableConditions, resetFilters, resetSort, canEditTask, handleTaskEdited],
+    [tasks, columns, totalTaskCount, tableConditions, changeTableConditions, resetFilters, resetSort, canEditTask, openTaskEditModal],
   );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ローディング中は、ローディング中の表示を返す
@@ -316,6 +319,18 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       </div>
       {loadingOverlay}
       <ShareTable dataTableProps={taskDataTableProps} />
+      {editingTaskId && (
+        <TaskEditModal
+          taskId={editingTaskId}
+          open={isTaskEditModalOpen}
+          onOpenChangeAction={(isOpen) => {
+            if (!isOpen) {
+              closeTaskEditModal();
+            }
+          }}
+          onTaskUpdated={handleTaskEdited}
+        />
+      )}
     </>
   );
 });

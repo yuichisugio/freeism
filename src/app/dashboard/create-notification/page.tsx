@@ -57,7 +57,7 @@ export default async function CreateNotificationPage() {
     return (
       <MainTemplate title="オーナー権限がありません" description="通知作成には権限が必要です">
         <div className="container max-w-4xl py-10">
-          <Link href="/dashboard/grouplist" className="mb-6 flex items-center text-blue-600 hover:underline">
+          <Link href="/dashboard/group-list" className="mb-6 flex items-center text-blue-600 hover:underline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             ダッシュボードに戻る
           </Link>

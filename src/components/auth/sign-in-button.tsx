@@ -38,7 +38,7 @@ export const SignInButton = memo(function SignInButton({ children, ...props }: S
   const handleClick = useCallback(async () => {
     try {
       setIsLoading(true);
-      await signIn("google", { callbackUrl: "/dashboard/grouplist" });
+      await signIn("google", { callbackUrl: "/dashboard/group-list" });
     } catch (error) {
       console.error("サインインに失敗しました:", error);
     }

@@ -186,7 +186,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       // URLパラメータを作成
-      const newUrl = `/dashboard/grouplist${params.toString() ? `?${params.toString()}` : ""}`;
+      const newUrl = `/dashboard/group-list${params.toString() ? `?${params.toString()}` : ""}`;
 
       console.log("src/hooks/group/use-all-user-group-table.ts_updateUrlParams_newUrl", newUrl);
 

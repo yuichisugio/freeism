@@ -72,7 +72,7 @@ export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
 
         if (result.success) {
           toast.success("グループを作成しました");
-          router.push("/dashboard/grouplist");
+          router.push("/dashboard/group-list");
         } else if (result.error) {
           // 重複エラーの場合はフォームにエラーを表示
           if (result.error === "このグループ名は既に使用されています") {

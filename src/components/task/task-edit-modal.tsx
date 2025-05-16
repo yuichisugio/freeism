@@ -1,7 +1,6 @@
 "use client";
 
-import type { TaskFormValues, User } from "@/hooks/modal/use-task-edit-modal";
-import type { Task } from "@/types/group-types";
+import type { TaskFormValues } from "@/hooks/modal/use-task-edit-modal";
 import type { Control } from "react-hook-form";
 import { memo } from "react";
 import { CustomFormField } from "@/components/share/form-field";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
+import { Spinner } from "@/components/ui/spinner";
 import { useTaskEditModal } from "@/hooks/modal/use-task-edit-modal";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
@@ -19,10 +19,9 @@ import { contributionType } from "@prisma/client";
  * タスク編集モーダルの型
  */
 type TaskEditModalProps = {
+  taskId: string;
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
-  task: Task | null;
-  users?: User[];
   onTaskUpdated?: () => void;
 };
 
@@ -31,33 +30,30 @@ type TaskEditModalProps = {
 /**
  * タスク編集モーダル
  * @param open モーダルの表示状態
- * @param onOpenChangeAction モーダルの表示状態を変更するアクション
- * @param task タスク
- * @param users ユーザー
- * @param onTaskUpdated タスク更新時のコールバック
- * @returns タスク編集モーダル
  */
-export const TaskEditModal = memo(function TaskEditModal({
-  open,
-  onOpenChangeAction,
-  task,
-  users = [],
-  onTaskUpdated,
-}: TaskEditModalProps): JSX.Element {
+export const TaskEditModal = memo(function TaskEditModal({ taskId, open, onTaskUpdated, onOpenChangeAction }: TaskEditModalProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // useTaskEditModal フックからの返り値を適切に型付けする
+  /**
+   * useTaskEditModal フックからの返り値を適切に型付けする
+   */
   const {
+    // state
     form,
     isSubmitting,
     isRewardType,
     categoryOpen,
-    setCategoryOpen,
     executors,
     nonRegisteredExecutor,
-    setNonRegisteredExecutor,
     reporters,
     nonRegisteredReporter,
+    users,
+    isLoadingUsers,
+    isLoadingTask,
+
+    // function
+    setCategoryOpen,
+    setNonRegisteredExecutor,
     setNonRegisteredReporter,
     handleOpenChange,
     addExecutor,
@@ -67,13 +63,31 @@ export const TaskEditModal = memo(function TaskEditModal({
     handleImageUploaded,
     handleImageRemoved,
     handleUpdate,
-  } = useTaskEditModal({ open, onOpenChangeAction, task, users, onTaskUpdated });
+  } = useTaskEditModal({ taskId, onTaskUpdated, onOpenChangeAction });
 
-  // 型キャストをtypeスクリプトに合わせて修正
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 型キャストをtypeスクリプトに合わせて修正
+   */
   const typedControl = form.control as Control<TaskFormValues>;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  if (isLoadingTask) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="flex items-center justify-center p-10">
+          <Spinner size="large" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  /**
+   * タスク編集モーダル
+   * @returns タスク編集モーダル
+   */
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
@@ -166,7 +180,9 @@ export const TaskEditModal = memo(function TaskEditModal({
               <p className="text-sm text-gray-500">このタスクを実行した人を選択または入力してください</p>
 
               {/* 登録済みユーザー選択 */}
-              {users.length > 0 && (
+              {isLoadingUsers ? (
+                <Spinner />
+              ) : users.length > 0 ? (
                 <div className="flex gap-2">
                   <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addExecutor(e.target.value)} value="">
                     <option value="">登録済みユーザーから選択...</option>
@@ -177,6 +193,8 @@ export const TaskEditModal = memo(function TaskEditModal({
                     ))}
                   </select>
                 </div>
+              ) : (
+                <p className="text-sm text-gray-500">登録済みのユーザーがいません。</p>
               )}
 
               {/* 未登録ユーザー入力 */}
@@ -227,7 +245,9 @@ export const TaskEditModal = memo(function TaskEditModal({
               <p className="text-sm text-gray-500">このタスクを報告した人を選択または入力してください</p>
 
               {/* 登録済みユーザー選択 */}
-              {users.length > 0 && (
+              {isLoadingUsers ? (
+                <Spinner />
+              ) : users.length > 0 ? (
                 <div className="flex gap-2">
                   <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addReporter(e.target.value)} value="">
                     <option value="">登録済みユーザーから選択...</option>
@@ -238,6 +258,8 @@ export const TaskEditModal = memo(function TaskEditModal({
                     ))}
                   </select>
                 </div>
+              ) : (
+                <p className="text-sm text-gray-500">登録済みのユーザーがいません。</p>
               )}
 
               {/* 未登録ユーザー入力 */}

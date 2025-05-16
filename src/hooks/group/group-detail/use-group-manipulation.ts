@@ -278,7 +278,7 @@ export function useGroupManipulation({
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false }); // groupId は Hook の引数
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
-      router.push("/dashboard/grouplist");
+      router.push("/dashboard/group-list");
     },
     onError: (error) => {
       toast.error(error.message || "グループの削除に失敗しました。");

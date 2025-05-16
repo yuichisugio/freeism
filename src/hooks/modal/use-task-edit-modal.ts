@@ -1,13 +1,15 @@
 "use client";
 
-import type { Task, TaskParticipant } from "@/types/group-types";
+import type { TaskParticipant } from "@/types/group-types";
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateTask } from "@/lib/actions/task/task";
+import { getTaskById, updateTaskAction } from "@/lib/actions/task/edit-task-modal";
+import { getAllUsers } from "@/lib/actions/user";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -25,7 +27,7 @@ import { z } from "zod";
  */
 export type User = {
   id: string;
-  name: string;
+  name: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -65,10 +67,8 @@ export type TaskFormValues = z.infer<typeof formSchema>;
  * UseTaskEditModalProps型
  */
 export type UseTaskEditModalProps = {
-  open: boolean;
+  taskId: string;
   onOpenChangeAction: (open: boolean) => void;
-  task: Task | null;
-  users?: User[];
   onTaskUpdated?: () => void;
 };
 
@@ -78,16 +78,22 @@ export type UseTaskEditModalProps = {
  * useTaskEditModal関数の戻り値
  */
 export type UseTaskEditModalReturn = {
+  // state
   form: UseFormReturn<TaskFormValues>;
   isSubmitting: boolean;
   isRewardType: boolean;
   categoryOpen: boolean;
-  setCategoryOpen: (open: boolean) => void;
   executors: TaskParticipant[];
   nonRegisteredExecutor: string;
-  setNonRegisteredExecutor: (value: string) => void;
   reporters: TaskParticipant[];
   nonRegisteredReporter: string;
+  users: User[];
+  isLoadingUsers: boolean;
+  isLoadingTask: boolean;
+
+  // function
+  setCategoryOpen: (open: boolean) => void;
+  setNonRegisteredExecutor: (value: string) => void;
   setNonRegisteredReporter: (value: string) => void;
   handleOpenChange: (isOpen: boolean) => void;
   addExecutor: (userId?: string, name?: string) => void;
@@ -104,26 +110,66 @@ export type UseTaskEditModalReturn = {
 /**
  * useTaskEditModal関数
  */
-export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskUpdated }: UseTaskEditModalProps): UseTaskEditModalReturn {
+export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: UseTaskEditModalProps): UseTaskEditModalReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ルーター
+   */
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  /**
+   * state
+   */
+  // カテゴリオープンフラグ
   const [categoryOpen, setCategoryOpen] = useState(false);
+  // 実行者
   const [executors, setExecutors] = useState<TaskParticipant[]>([]);
+  // 未登録実行者
   const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
+  // 報告者
   const [reporters, setReporters] = useState<TaskParticipant[]>([]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+  // 未登録報告者
   const [nonRegisteredReporter, setNonRegisteredReporter] = useState("");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォーム初期化
+  /**
+   * データ取得
+   */
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: getAllUsers,
+    select: (data) => data ?? [],
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスクデータ取得
+   */
+  const { data: task, isLoading: isLoadingTask } = useQuery({
+    queryKey: ["task", taskId],
+    queryFn: async () => {
+      if (!taskId) return null;
+      const result = await getTaskById(taskId);
+      if (result.error) {
+        toast.error(result.error);
+        return null;
+      }
+      return result.success ? result.task : null;
+    },
+    enabled: !!taskId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * フォーム初期化
+   */
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -141,13 +187,17 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 現在選択されている貢献タイプを監視
+  /**
+   * 現在選択されている貢献タイプを監視
+   */
   const selectedContributionType = useMemo(() => form.watch("contributionType"), [form]);
   const isRewardType = useMemo(() => selectedContributionType === contributionType.REWARD, [selectedContributionType]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // タスクデータが変更されたときにフォームをリセット
+  /**
+   * タスクデータが変更されたときにフォームをリセット
+   */
   useEffect(() => {
     if (task) {
       const taskName = typeof task.task === "string" ? task.task : "";
@@ -203,7 +253,7 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users.find((u) => u.id === userId);
+        const user = users?.find((u) => u.id === userId);
         if (user && !executors.some((e) => e.userId === userId)) {
           const newExecutor: TaskParticipant = {
             id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -242,7 +292,7 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users.find((u) => u.id === userId);
+        const user = users?.find((u) => u.id === userId);
         if (user && !reporters.some((r) => r.userId === userId)) {
           const newReporter: TaskParticipant = {
             id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -323,85 +373,101 @@ export function useTaskEditModal({ onOpenChangeAction, task, users = [], onTaskU
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 更新ミューテーション
+   */
+  const { mutate, isPending } = useMutation({
+    mutationFn: (
+      data: Omit<TaskFormValues, "groupId"> & {
+        executors: Array<{ userId?: string; name?: string }>;
+        reporters: Array<{ userId?: string; name?: string }>;
+      },
+    ) => {
+      if (!taskId) {
+        throw new Error("Task ID is not defined");
+      }
+      return updateTaskAction(taskId, data);
+    },
+    onSuccess: async () => {
+      toast.success("タスクが更新されました");
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      await queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      onOpenChangeAction(false);
+      if (onTaskUpdated) {
+        onTaskUpdated();
+      }
+      router.refresh();
+    },
+    onError: (error) => {
+      console.error("タスク更新エラー:", error);
+      toast.error("タスクの更新に失敗しました");
+    },
+  });
+
+  /**
    * 更新を実行する関数
    */
   const handleUpdate = useCallback(async () => {
-    setIsSubmitting(true);
+    // フォームから直接データを取得
+    const formData = form.getValues();
 
-    try {
-      // フォームから直接データを取得
-      const formData = form.getValues();
+    // executorsとreportersを適切な形式に変換
+    const formattedExecutors = executors.map((executor) => {
+      return {
+        userId: executor.userId ?? undefined,
+        name: executor.name ?? undefined,
+      };
+    });
 
-      // executorsとreportersを適切な形式に変換
-      const formattedExecutors = executors.map((executor) => {
-        return {
-          userId: executor.userId ?? undefined,
-          name: executor.name ?? undefined,
-        };
-      });
+    const formattedReporters = reporters.map((reporter) => {
+      return {
+        userId: reporter.userId ?? undefined,
+        name: reporter.name ?? undefined,
+      };
+    });
 
-      const formattedReporters = reporters.map((reporter) => {
-        return {
-          userId: reporter.userId ?? undefined,
-          name: reporter.name ?? undefined,
-        };
-      });
-
-      // タスク更新APIを呼び出し
-      if (task) {
-        await updateTask(task.id, {
-          ...formData,
-          executors: formattedExecutors,
-          reporters: formattedReporters,
-        });
-
-        // 成功メッセージを表示
-        toast.success("タスクが更新されました");
-
-        // モーダルを閉じる
-        onOpenChangeAction(false);
-
-        // タスク更新後のコールバックがあれば実行
-        if (onTaskUpdated) {
-          onTaskUpdated();
-        }
-
-        // ルーターをリフレッシュ
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("タスク更新エラー:", error);
-      toast.error("タスクの更新に失敗しました");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [executors, reporters, form, task, onOpenChangeAction, onTaskUpdated, router]);
+    mutate({
+      ...formData,
+      executors: formattedExecutors,
+      reporters: formattedReporters,
+    });
+  }, [executors, reporters, form, mutate]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // モーダルの開閉ハンドラー
+  /**
+   * モーダルの開閉ハンドラー
+   */
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {
-      if (!isSubmitting) {
+      if (!isPending) {
         onOpenChangeAction(isOpen);
       }
     },
-    [isSubmitting, onOpenChangeAction],
+    [isPending, onOpenChangeAction],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 戻り値
+   */
   return {
+    // state
     form,
-    isSubmitting,
+    isSubmitting: isPending,
     isRewardType,
     categoryOpen,
-    setCategoryOpen,
     executors,
     nonRegisteredExecutor,
-    setNonRegisteredExecutor,
     reporters,
     nonRegisteredReporter,
+    users: users ?? [],
+    isLoadingUsers,
+    isLoadingTask,
+
+    // function
+    setCategoryOpen,
+    setNonRegisteredExecutor,
     setNonRegisteredReporter,
     handleOpenChange,
     addExecutor,
