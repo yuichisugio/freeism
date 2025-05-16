@@ -77,7 +77,10 @@ export const TaskEditModal = memo(function TaskEditModal({ taskId, open, onTaskU
   if (isLoadingTask) {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex items-center justify-center p-10">
+        <DialogContent className="flex flex-col items-center justify-center p-10">
+          <DialogHeader>
+            <DialogTitle>読み込み中...</DialogTitle>
+          </DialogHeader>
           <Spinner size="large" />
         </DialogContent>
       </Dialog>
