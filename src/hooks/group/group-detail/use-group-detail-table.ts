@@ -37,14 +37,10 @@ type UseGroupDetailTableReturn = {
   isLoading: boolean;
   tasks: GroupDetailTask[];
   users: User[];
-  isUploadModalOpen: boolean;
-  isExportModalOpen: boolean;
   tableConditions: GroupDetailTableConditions;
   totalTaskCount: number;
 
-  // action
-  setIsUploadModalOpen: (open: boolean) => void;
-  setIsExportModalOpen: (open: boolean) => void;
+  // functions
   getReporterNames: (reporterNames: string[] | null) => string;
   getExecutorNames: (executorNames: string[] | null) => string;
   handleDeleteTask: (taskId: string) => Promise<void>;
@@ -85,16 +81,6 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
    * クエリパラメータ
    */
   const searchParams = useSearchParams();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * state
-   */
-  // モーダーの表示状態
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  // データエクスポートモーダーの表示状態
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -206,7 +192,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
 
   const {
     data: tasksResult,
-    isLoading: isLoadingTasks,
+    isPending: isLoadingTasks,
     isPlaceholderData,
   }: UseQueryResult<TasksQueryResult, Error> = useQuery({
     queryKey: queryCacheKeys.tasks.byGroupIdWithConditions<GroupDetailTask>(groupId, tableConditions),
@@ -269,7 +255,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
   /**
    * ユーザーデータの取得
    */
-  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+  const { data: usersData, isPending: isLoadingUsers } = useQuery({
     queryKey: queryCacheKeys.users.all(),
     queryFn: getAllUsers,
   });
@@ -450,14 +436,10 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     isLoading: isLoadingTasks || isLoadingUsers || isDeletingTask || isPlaceholderData,
     tasks: tasksResult?.returnTasks ?? [],
     users,
-    isUploadModalOpen,
-    isExportModalOpen,
     tableConditions,
     totalTaskCount: tasksResult?.totalTaskCount ?? 0,
 
-    // action
-    setIsUploadModalOpen,
-    setIsExportModalOpen,
+    // functions
     getReporterNames,
     getExecutorNames,
     handleDeleteTask,

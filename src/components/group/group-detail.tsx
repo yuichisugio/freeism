@@ -1,7 +1,7 @@
 "use client";
 
 import type { GroupMemberWithUser } from "@/types/group-types";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { EditGroupForm } from "@/components/form/edit-group-form";
 import { GroupDetailTable } from "@/components/group/group-detail-table";
 import { CsvUploadModal } from "@/components/modal/csv-upload-modal";
@@ -22,9 +22,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useGroupDetailModal } from "@/hooks/group/group-detail/use-group-detail-modal";
 import { useGroupManipulation } from "@/hooks/group/group-detail/use-group-manipulation";
 import { useGroupPermission } from "@/hooks/group/group-detail/use-group-permission";
-import { useGroupDetailModal } from "@/hooks/group/group-detail/use-group-tasks";
 import {
   Check,
   ChevronsUpDown,
@@ -60,6 +60,16 @@ type GroupDetailProps = {
  * @returns {JSX.Element} グループ詳細ページのコンポーネント
  */
 export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailProps): JSX.Element {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydration mismatch 対策: クライアントマウント状態
+   */
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -160,20 +170,10 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
   /**
    * ローディング中は、ローディング中の表示を返す
    */
-  const loadingOverlay = isLoadingGroup ? (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-      <Loader2 className="text-primary h-8 w-8 animate-spin" />
-      <p className="ml-2">グループ情報を読み込んでいます...</p>
-    </div>
-  ) : null;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループが見つからない場合の処理
-   */
-  if (!group) {
-    if (isLoadingGroup) {
+  if (!hasMounted || isLoadingGroup) {
+    // マウント前、またはマウント後でもローディング中の場合
+    // groupが存在しない場合もローディングとみなす（初期ロード時）
+    if (!hasMounted || !group || isLoadingGroup) {
       return (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
           <Loader2 className="text-primary h-8 w-8 animate-spin" />
@@ -181,6 +181,14 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
         </div>
       );
     }
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループが見つからない場合の処理
+   */
+  if (!group) {
     return <div>グループが見つかりません</div>;
   }
 
@@ -191,7 +199,6 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
    */
   return (
     <>
-      {loadingOverlay}
       <div className="space-y-8">
         {/* グループ情報 */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">

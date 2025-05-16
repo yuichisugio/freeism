@@ -43,11 +43,13 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
    * タスクデータ
    */
   const {
+    // state
     tasks,
     users,
     isLoading,
     tableConditions,
     totalTaskCount,
+    // functions
     getReporterNames,
     getExecutorNames,
     canDeleteTask,
