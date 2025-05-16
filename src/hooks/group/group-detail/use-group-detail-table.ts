@@ -43,8 +43,6 @@ type UseGroupDetailTableReturn = {
   isTaskEditModalOpen: boolean;
 
   // functions
-  getReporterNames: (reporterNames: string[] | null) => string;
-  getExecutorNames: (executorNames: string[] | null) => string;
   handleDeleteTask: (taskId: string) => Promise<void>;
   canDeleteTask: (task: GroupDetailTask) => boolean;
   canEditTask: (task: GroupDetailTask) => boolean;
@@ -303,28 +301,6 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 報告者名を連結する関数
-   * @param reporters {TaskParticipant[]} 報告者データ
-   * @returns {string} 報告者名
-   */
-  const getReporterNames = useCallback((reporterNames: string[] | null): string => {
-    return reporterNames?.join(", ") ?? "不明";
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 実行者名を連結する関数
-   * @param executors {TaskParticipant[]} 実行者データ
-   * @returns {string} 実行者名
-   */
-  const getExecutorNames = useCallback((executorNames: string[] | null): string => {
-    return executorNames?.join(", ") ?? "不明";
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * タスク削除可能かどうかの判定
    * @param task {Task} タスクデータ
    * @returns {boolean} 削除可能かどうか
@@ -467,8 +443,6 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     isTaskEditModalOpen,
 
     // functions
-    getReporterNames,
-    getExecutorNames,
     handleDeleteTask,
     canDeleteTask,
     canEditTask,

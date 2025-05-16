@@ -95,6 +95,11 @@ export async function getGroupTaskAndCount({
       skip: (page - 1) * itemPerPage,
       take: itemPerPage,
       include: {
+        auction: {
+          select: {
+            id: true,
+          },
+        },
         creator: {
           select: {
             settings: {
@@ -174,6 +179,7 @@ export async function getGroupTaskAndCount({
 
       return {
         id: task.id,
+        auctionId: task.auction?.id ?? null,
         taskName: task.task,
         taskDetail: task.detail,
         taskStatus: task.status,

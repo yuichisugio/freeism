@@ -244,6 +244,7 @@ export type Task = {
  */
 export type GroupDetailTask = {
   id: string;
+  auctionId: string | null;
   taskName: string;
   taskDetail: string | null;
   taskStatus: string;

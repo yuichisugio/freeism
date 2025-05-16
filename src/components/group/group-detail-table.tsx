@@ -53,8 +53,6 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     isTaskEditModalOpen,
 
     // functions
-    getReporterNames,
-    getExecutorNames,
     canDeleteTask,
     handleDeleteTask,
     canEditTask,
@@ -75,7 +73,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     () => [
       {
         key: "taskName" as keyof GroupDetailTask,
-        header: "TASK",
+        header: "タスク名",
         cell: (row: GroupDetailTask) => row.taskName ?? "不明",
         sortable: false,
         statusCombobox: false,
@@ -102,7 +100,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       {
         key: "reporters" as keyof GroupDetailTask,
         header: "報告者",
-        cell: (row: GroupDetailTask) => getReporterNames(row.taskReporterUserNames),
+        cell: (row: GroupDetailTask) => row.taskReporterUserNames,
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -115,7 +113,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       {
         key: "executors" as keyof GroupDetailTask,
         header: "実行者",
-        cell: (row: GroupDetailTask) => getExecutorNames(row.taskExecutorUserNames),
+        cell: (row: GroupDetailTask) => row.taskExecutorUserNames,
         sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
@@ -160,9 +158,9 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         key: "auction" as keyof GroupDetailTask,
         header: "オークション",
         cell: (row: GroupDetailTask) => {
-          if (row.taskContributionType === contributionType.REWARD) {
+          if (row.auctionId) {
             return (
-              <Button onClick={() => router.push(`/dashboard/auction/${row.id}`)} className="button-default-custom" size="sm">
+              <Button onClick={() => router.push(`/dashboard/auction/${row.auctionId}`)} className="button-default-custom" size="sm">
                 オークションに参加
               </Button>
             );
@@ -221,7 +219,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         cellClassName: null,
       },
     ],
-    [getReporterNames, getExecutorNames, router, canDeleteTask, handleDeleteTask],
+    [router, canDeleteTask, handleDeleteTask],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
