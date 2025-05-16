@@ -11,8 +11,8 @@ import { Button } from "../ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
 import { FormControl, FormDescription, FormItem, FormLabel, FormMessage, FormField as RHFFormField } from "../ui/form";
 import { Input } from "../ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/share-table-popover";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import { DateField } from "./date-field";
@@ -92,6 +92,7 @@ export type ComboBoxFieldProps<TFieldValues extends FieldValues, TName extends P
   options: ComboBoxOption[];
   open: boolean;
   setOpen: (open: boolean) => void;
+  container?: HTMLElement | null;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
@@ -194,7 +195,7 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                 min={formProps.min}
                 max={formProps.max}
                 {...field}
-                className="w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:ring-0 focus:outline-none"
               />
             </FieldLayout>
           );
@@ -206,7 +207,7 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                 id={field.name.toString()}
                 placeholder={formProps.placeholder ?? ""}
                 {...field}
-                className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-blue-500"
+                className="min-h-[120px] w-full rounded-md border-gray-300 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-0 focus:ring-blue-500 focus:outline-none"
               />
             </FieldLayout>
           );
@@ -316,7 +317,7 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
+                <PopoverContent className="w-full p-0" align="start" container={formProps.container}>
                   <Command className="rounded-lg border shadow-md">
                     <CommandInput placeholder={searchPlaceholder} className="border-b-0" />
                     <CommandList>

@@ -144,6 +144,7 @@ export const TaskEditModal = memo(function TaskEditModal({
             {/* カテゴリ選択を追加 */}
             <CustomFormField
               fieldType="combobox"
+              container={container}
               control={typedControl}
               name="category"
               label="カテゴリ"
