@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useGroupManipulation } from "@/hooks/group/group-detail/use-group-manipulation";
 import { useGroupPermission } from "@/hooks/group/group-detail/use-group-permission";
-import { useGroupTasks } from "@/hooks/group/group-detail/use-group-tasks";
+import { useGroupDetailModal } from "@/hooks/group/group-detail/use-group-tasks";
 import {
   Check,
   ChevronsUpDown,
@@ -96,18 +96,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
    */
   const {
     // states
-    tasks,
     isUploadModalOpen,
     isExportModalOpen,
-    isLoading: isLoadingTasks,
     // functions
     setIsUploadModalOpen,
     setIsExportModalOpen,
-  } = useGroupTasks({
-    groupId: groupId,
-    isGroupOwner,
-    isAppOwner,
-  });
+  } = useGroupDetailModal();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -156,7 +150,6 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     handleOpenRemoveMemberDialog, // manip を削除
     handleRemoveMember, // manip を削除
   } = useGroupManipulation({
-    tasks: tasks,
     isGroupOwner,
     isAppOwner,
     groupId: groupId,
@@ -167,15 +160,27 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
   /**
    * ローディング中は、ローディング中の表示を返す
    */
-  const loadingOverlay =
-    isLoadingTasks || isLoadingGroup ? (
-      <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
-        <p className="ml-2">グループ情報を読み込んでいます...</p>
-      </div>
-    ) : null;
+  const loadingOverlay = isLoadingGroup ? (
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+      <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      <p className="ml-2">グループ情報を読み込んでいます...</p>
+    </div>
+  ) : null;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループが見つからない場合の処理
+   */
   if (!group) {
+    if (isLoadingGroup) {
+      return (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
+          <p className="ml-2">グループ情報を読み込んでいます...</p>
+        </div>
+      );
+    }
     return <div>グループが見つかりません</div>;
   }
 

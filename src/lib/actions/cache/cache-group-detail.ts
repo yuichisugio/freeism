@@ -38,6 +38,9 @@ export async function getCachedGroupById(groupId: string): Promise<Group> {
     joinMemberCount: group.members.length,
     maxParticipants: group.maxParticipants,
     depositPeriod: group.depositPeriod,
+    members: group.members.map((member) => ({
+      userId: member.userId,
+    })),
   };
 
   return returnGroup;

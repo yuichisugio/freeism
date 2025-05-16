@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loading } from "@/components/share/loading";
 import { ShareTable } from "@/components/share/share-table";
 import { Button } from "@/components/ui/button";
-import { useGroupTasks } from "@/hooks/group/group-detail/use-group-tasks";
+import { useGroupDetailTable } from "@/hooks/group/group-detail/use-group-detail-table";
 import { contributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -57,7 +57,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     changeTableConditions,
     resetFilters,
     resetSort,
-  } = useGroupTasks({ groupId, isGroupOwner, isAppOwner });
+  } = useGroupDetailTable({ groupId, isGroupOwner, isAppOwner });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -283,6 +283,9 @@ export type Group = {
   joinMemberCount: number;
   maxParticipants: number;
   depositPeriod: number;
+  members: {
+    userId: string;
+  }[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

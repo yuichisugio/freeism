@@ -1,6 +1,6 @@
 "use client";
 
-import type { Group, GroupDetailTask, GroupMemberWithUser } from "@/types/group-types";
+import type { Group, GroupMemberWithUser } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { deleteGroup, getGroupMembers, joinGroup, removeMember } from "@/lib/actions/group";
@@ -69,12 +69,10 @@ type UseGroupDetailReturn = {
  * @returns {UseGroupDetailReturn} グループ詳細ページのフックの戻り値
  */
 export function useGroupManipulation({
-  tasks,
   isGroupOwner,
   isAppOwner,
   groupId,
 }: {
-  tasks: GroupDetailTask[];
   isGroupOwner: boolean;
   isAppOwner: boolean;
   groupId: string;
@@ -133,29 +131,6 @@ export function useGroupManipulation({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * コンポーネントマウント時に権限チェックを一度だけ実行
-   */
-  useEffect(() => {
-    async function checkPermissions() {
-      if (!userId) {
-        // redirect("/auth/signin"); // ここでリダイレクトするとセッション取得前にエラーになる可能性
-        return;
-      }
-
-      // ユーザーがグループのメンバーかどうかチェック
-      // tasksが初期状態で空またはgroupが存在しない場合を考慮
-      if (tasks && tasks.length > 0 && tasks[0]?.group?.members) {
-        const memberIds = tasks[0].group.members.map((member: { userId: string }) => member.userId);
-        setIsMember(memberIds.includes(userId));
-      }
-    }
-
-    void checkPermissions();
-  }, [tasks, userId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * グループ情報を取得
    */
   const { data: group, isPending: isLoadingGroup } = useQuery({
@@ -169,6 +144,29 @@ export function useGroupManipulation({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * コンポーネントマウント時に権限チェックを一度だけ実行
+   */
+  useEffect(() => {
+    async function checkPermissions() {
+      if (!userId) {
+        // redirect("/auth/signin"); // ここでリダイレクトするとセッション取得前にエラーになる可能性
+        return;
+      }
+
+      // ユーザーがグループのメンバーかどうかチェック
+      // tasksが初期状態で空またはgroupが存在しない場合を考慮
+      if (group?.members) {
+        const memberIds = group.members.map((member: { userId: string }) => member.userId);
+        setIsMember(memberIds.includes(userId));
+      }
+    }
+
+    void checkPermissions();
+  }, [groupId, userId, group?.members]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * グループ参加処理
    * @param groupId {string} グループID
    */
@@ -177,7 +175,7 @@ export function useGroupManipulation({
     onSuccess: async () => {
       toast.success("グループに参加しました");
       setIsMember(true);
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
       router.refresh();
@@ -277,7 +275,7 @@ export function useGroupManipulation({
     onSuccess: async () => {
       toast.success("グループを削除しました");
       setDeleteDialogOpen(false); // ダイアログを閉じる
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) }); // groupId は Hook の引数
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false }); // groupId は Hook の引数
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
       router.push("/dashboard/grouplist");
