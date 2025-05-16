@@ -234,9 +234,7 @@ export async function getTaskById(taskId: string) {
     if (!task) {
       return { error: "タスクが見つかりません" };
     }
-    // 型エラーを回避するために、必要なプロパティを明示的にマッピングまたはアサーションする
-    // ここでは Prisma の型が Task 型と互換性があると仮定します。
-    // 必要に応じて、ここで Task型 に変換する処理を追加してください。
+
     return { success: true, task };
   } catch (error) {
     console.error("[GET_TASK_BY_ID]", error);

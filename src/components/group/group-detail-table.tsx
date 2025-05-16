@@ -127,7 +127,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         header: "貢献P / 入札額",
         cell: (row: GroupDetailTask) => {
           if (row.taskContributionType === contributionType.REWARD) {
-            return `${row.taskFixedContributionPoint ?? 0}p (入札中)`;
+            return `${row.taskFixedContributionPoint ?? 0}p`;
           }
           return row.taskFixedContributionPoint ? `${row.taskFixedContributionPoint}p` : "評価待ち";
         },
@@ -234,7 +234,6 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       editTask: {
         canEdit: canEditTask,
         onEdit: openTaskEditModal,
-        users: null,
         editingTaskId: editingTaskId,
         isTaskEditModalOpen: isTaskEditModalOpen,
         onCloseTaskEditModal: closeTaskEditModal,
@@ -313,6 +312,8 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     ],
   );
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * ローディング中は、ローディング中の表示を返す
    */
@@ -322,7 +323,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     </div>
   ) : null;
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * タスクテーブルの表示

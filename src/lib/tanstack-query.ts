@@ -1,5 +1,5 @@
 import type { AuctionListingsConditions } from "@/types/auction-types";
-import type { AllUserGroupTable, MyGroupTable, TableConditions } from "@/types/group-types";
+import type { AllUserGroupTable, MyGroupTable, MyTaskTableConditions, TableConditions } from "@/types/group-types";
 import { QueryClient } from "@tanstack/react-query";
 import { type PersistedClient, type Persister } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
@@ -53,6 +53,8 @@ export const queryCacheKeys = {
     myGroup: () => [...queryCacheKeys.table.all(), "myGroup"] as const,
     myGroupConditions: (tableConditions: TableConditions<MyGroupTable>) =>
       [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions)] as const,
+    myTask: () => [...queryCacheKeys.table.all(), "myTask"] as const,
+    myTaskConditions: (tableConditions: MyTaskTableConditions) => [...queryCacheKeys.table.myTask(), JSON.stringify(tableConditions)] as const,
   },
 
   tasks: {

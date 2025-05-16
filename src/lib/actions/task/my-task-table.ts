@@ -1,102 +1,219 @@
 "use server";
 
+import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { type Prisma } from "@prisma/client";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+type GetMyTaskDataReturn = {
+  tasks: MyTaskTable[];
+  totalTaskCount: number;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ユーザーのタスクを取得
- * @returns ユーザーのタスク
+ * @param tableConditions テーブルの表示条件（ソート、フィルター、ページネーション）
+ * @returns ユーザーのタスクと総件数
  */
-export async function getMyTaskData() {
+export async function getMyTaskData(tableConditions: MyTaskTableConditions): Promise<GetMyTaskDataReturn> {
   try {
-    // ログインしているユーザーの情報を取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ログインしているユーザーの情報を取得
+     */
     const userId = await getAuthenticatedSessionUserId();
 
-    // ユーザーのタスクを取得（作成者、報告者、実行者のいずれかが自分のタスク）
-    const tasks = await prisma.task.findMany({
-      where: {
-        OR: [
-          // 自分が作成者のタスク
-          { creatorId: userId },
-          // 自分が報告者として含まれるタスク
-          {
-            reporters: {
-              some: {
-                userId: userId,
-              },
-            },
-          },
-          // 自分が実行者として含まれるタスク
-          {
-            executors: {
-              some: {
-                userId: userId,
-              },
-            },
-          },
-        ],
-      },
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * テーブルの表示条件を取得
+     */
+    const { page, sort, searchQuery, taskStatus, contributionType, itemPerPage } = tableConditions;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * フィルター条件の構築
+     */
+    const whereConditions: Prisma.TaskWhereInput = {
+      OR: [{ creatorId: userId }, { reporters: { some: { userId: userId } } }, { executors: { some: { userId: userId } } }],
+    };
+
+    // 検索条件
+    if (searchQuery) {
+      whereConditions.task = {
+        contains: searchQuery,
+        mode: "insensitive",
+      };
+    }
+
+    // タスクステータス条件
+    if (taskStatus && taskStatus !== "ALL") {
+      whereConditions.status = taskStatus;
+    }
+
+    // タスク貢献タイプ条件
+    if (contributionType && contributionType !== "ALL") {
+      whereConditions.contributionType = contributionType;
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ソート条件の構築
+     */
+    // デフォルトソート
+    let orderBy: Prisma.TaskOrderByWithRelationInput = { createdAt: "desc" };
+
+    // ソート条件
+    if (sort) {
+      const { field, direction } = sort;
+      if (field === "taskName") {
+        orderBy = { task: direction };
+      } else if (field === "groupName") {
+        orderBy = { group: { name: direction } };
+      } else if (field === "taskStatus") {
+        orderBy = { status: direction };
+      } else if (field === "taskFixedContributionPoint") {
+        orderBy = { fixedContributionPoint: direction };
+      } else if (field === "taskFixedEvaluator") {
+        orderBy = { fixedEvaluator: direction };
+      } else if (field === "taskFixedEvaluationLogic") {
+        orderBy = { fixedEvaluationLogic: direction };
+      } else if (field === "id") {
+        orderBy = { id: direction };
+      } else if (field === "taskCreatorName") {
+        // taskCreatorName (MyTaskTable) -> creator.settings.username (Prisma)
+        orderBy = { creator: { settings: { username: direction } } };
+      } else if (field === "auctionId") {
+        // auctionId (MyTaskTable) -> auction.id (Prisma)
+        orderBy = { createdAt: direction };
+      }
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーのタスクを取得（作成者、報告者、実行者のいずれかが自分のタスク）
+     */
+    const tasksData = await prisma.task.findMany({
+      where: whereConditions,
       select: {
         id: true,
         task: true,
         detail: true,
-        reference: true,
-        info: true,
-        imageUrl: true,
-        contributionType: true,
-        category: true,
-        deliveryMethod: true,
         status: true,
-        createdAt: true,
-        updatedAt: true,
+        contributionType: true,
         fixedContributionPoint: true,
         fixedEvaluator: true,
         fixedEvaluationLogic: true,
         creator: {
           select: {
-            name: true,
-            id: true,
+            settings: {
+              select: {
+                username: true,
+              },
+            },
           },
         },
         reporters: {
           select: {
-            id: true,
-            name: true,
             userId: true,
             user: {
               select: {
-                name: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
               },
             },
           },
         },
         executors: {
           select: {
-            id: true,
-            name: true,
             userId: true,
             user: {
               select: {
-                name: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
               },
             },
           },
         },
         group: {
           select: {
+            id: true,
             name: true,
+          },
+        },
+        auction: {
+          select: {
             id: true,
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: orderBy,
+      skip: (page - 1) * itemPerPage,
+      take: itemPerPage,
     });
 
-    return tasks;
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * MyTaskTable型にマッピング
+     */
+    const formattedTasks: MyTaskTable[] = tasksData.map((task) => ({
+      id: task.id,
+      taskName: task.task,
+      taskDetail: task.detail,
+      taskStatus: task.status,
+      taskContributionType: task.contributionType,
+      taskFixedContributionPoint: task.fixedContributionPoint,
+      taskFixedEvaluator: task.fixedEvaluator,
+      taskFixedEvaluationLogic: task.fixedEvaluationLogic,
+      taskCreatorName: task.creator?.settings?.username ?? "未設定",
+      taskReporterUserIds: task.reporters.map((r) => r.userId).filter((id): id is string => id != null),
+      taskExecutorUserIds: task.executors.map((e) => e.userId).filter((id): id is string => id != null),
+      taskReporterUserNames: task.reporters
+        .map((r) => r.user?.settings?.username)
+        .filter((name): name is string => name != null && name !== "未設定"),
+      taskExecutorUserNames: task.executors
+        .map((e) => e.user?.settings?.username)
+        .filter((name): name is string => name != null && name !== "未設定"),
+      reporters: task.reporters.map((r) => ({ appUserName: r.user?.settings?.username ?? null, appUserId: r.userId ?? null })),
+      executors: task.executors.map((e) => ({ appUserName: e.user?.settings?.username ?? null, appUserId: e.userId ?? null })),
+      groupId: task.group.id,
+      groupName: task.group.name,
+      auctionId: task.auction?.id ?? null,
+      group: { id: task.group.id, name: task.group.name },
+    }));
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 総件数を取得
+     */
+    const totalTaskCount = await prisma.task.count({
+      where: whereConditions,
+    });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * データを返す
+     */
+    return { tasks: formattedTasks, totalTaskCount };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[GET_MY_TASK_DATA]", error);
     throw new Error("タスク情報の取得中にエラーが発生しました");

@@ -1,6 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import type { TaskParticipant } from "@/types/group-types";
+import { getCachedAllUsers } from "@/lib/actions/cache/cache-user";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -8,24 +9,9 @@ import { prisma } from "@/lib/prisma";
  * 全ユーザーの一覧を取得する関数
  * @returns ユーザー一覧
  */
-export async function getAllUsers() {
-  try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-
-    return users;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
+export async function getAllUsers(): Promise<TaskParticipant[]> {
+  const users = await getCachedAllUsers();
+  return users;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

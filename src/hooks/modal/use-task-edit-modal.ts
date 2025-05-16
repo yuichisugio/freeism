@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getTaskById, updateTaskAction } from "@/lib/actions/task/edit-task-modal";
 import { getAllUsers } from "@/lib/actions/user";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
@@ -80,6 +81,7 @@ export type UseTaskEditModalProps = {
 export type UseTaskEditModalReturn = {
   // state
   form: UseFormReturn<TaskFormValues>;
+  users: TaskParticipant[];
   isSubmitting: boolean;
   isRewardType: boolean;
   categoryOpen: boolean;
@@ -87,9 +89,7 @@ export type UseTaskEditModalReturn = {
   nonRegisteredExecutor: string;
   reporters: TaskParticipant[];
   nonRegisteredReporter: string;
-  users: User[];
-  isLoadingUsers: boolean;
-  isLoadingTask: boolean;
+  isLoading: boolean;
 
   // function
   setCategoryOpen: (open: boolean) => void;
@@ -141,7 +141,7 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
    * データ取得
    */
   const { data: users, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["users"],
+    queryKey: queryCacheKeys.users.all(),
     queryFn: getAllUsers,
     select: (data) => data ?? [],
   });
@@ -221,21 +221,17 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
       // 実行者と報告者をセット
       if (Array.isArray(task.executors)) {
         setExecutors(
-          task.executors.map((executor: Partial<TaskParticipant>) => ({
-            id: typeof executor?.id === "string" ? executor.id : `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            userId: typeof executor?.userId === "string" ? executor.userId : null,
-            name: typeof executor?.name === "string" ? executor.name : null,
-            user: executor?.user ?? null,
+          task.executors.map((executor) => ({
+            appUserName: executor.user?.name ?? null,
+            appUserId: executor.user?.id ?? null,
           })),
         );
       }
       if (Array.isArray(task.reporters)) {
         setReporters(
-          task.reporters.map((reporter: Partial<TaskParticipant>) => ({
-            id: typeof reporter?.id === "string" ? reporter.id : `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            userId: typeof reporter?.userId === "string" ? reporter.userId : null,
-            name: typeof reporter?.name === "string" ? reporter.name : null,
-            user: reporter?.user ?? null,
+          task.reporters.map((reporter) => ({
+            appUserName: reporter.user?.name ?? null,
+            appUserId: reporter.user?.id ?? null,
           })),
         );
       }
@@ -253,26 +249,19 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users?.find((u) => u.id === userId);
-        if (user && !executors.some((e) => e.userId === userId)) {
+        const user = users?.find((u) => u.appUserId === userId);
+        if (user && !executors.some((e) => e.appUserId === userId)) {
           const newExecutor: TaskParticipant = {
-            id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            userId,
-            name: user.name,
-            user: {
-              id: userId,
-              name: user.name,
-            },
+            appUserId: userId,
+            appUserName: user.appUserName,
           };
           setExecutors((prev) => [...prev, newExecutor]);
         }
       } else if (name && name.trim() !== "") {
         // 未登録ユーザーの場合
         const newExecutor: TaskParticipant = {
-          id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          userId: null,
-          name,
-          user: null,
+          appUserId: null,
+          appUserName: null,
         };
         setExecutors((prev) => [...prev, newExecutor]);
         setNonRegisteredExecutor("");
@@ -292,26 +281,19 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users?.find((u) => u.id === userId);
-        if (user && !reporters.some((r) => r.userId === userId)) {
+        const user = users?.find((u) => u.appUserId === userId);
+        if (user && !reporters.some((r) => r.appUserId === userId)) {
           const newReporter: TaskParticipant = {
-            id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            userId,
-            name: user.name,
-            user: {
-              id: userId,
-              name: user.name,
-            },
+            appUserId: userId,
+            appUserName: user.appUserName,
           };
           setReporters((prev) => [...prev, newReporter]);
         }
       } else if (name && name.trim() !== "") {
         // 未登録ユーザーの場合
         const newReporter: TaskParticipant = {
-          id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          userId: null,
-          name,
-          user: null,
+          appUserId: null,
+          appUserName: null,
         };
         setReporters((prev) => [...prev, newReporter]);
         setNonRegisteredReporter("");
@@ -413,15 +395,15 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
     // executorsとreportersを適切な形式に変換
     const formattedExecutors = executors.map((executor) => {
       return {
-        userId: executor.userId ?? undefined,
-        name: executor.name ?? undefined,
+        userId: executor.appUserId ?? undefined,
+        name: executor.appUserName ?? undefined,
       };
     });
 
     const formattedReporters = reporters.map((reporter) => {
       return {
-        userId: reporter.userId ?? undefined,
-        name: reporter.name ?? undefined,
+        userId: reporter.appUserId ?? undefined,
+        name: reporter.appUserName ?? undefined,
       };
     });
 
@@ -454,6 +436,7 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
   return {
     // state
     form,
+    users: users ?? [],
     isSubmitting: isPending,
     isRewardType,
     categoryOpen,
@@ -461,9 +444,7 @@ export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: 
     nonRegisteredExecutor,
     reporters,
     nonRegisteredReporter,
-    users: users ?? [],
-    isLoadingUsers,
-    isLoadingTask,
+    isLoading: isLoadingUsers || isLoadingTask,
 
     // function
     setCategoryOpen,

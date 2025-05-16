@@ -1,10 +1,17 @@
-import { type SortDirection } from "@/types/auction-types";
-import { type contributionType } from "@prisma/client";
+import { type SortDirection as AuctionSortDirection } from "@/types/auction-types";
+import { type contributionType, type TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * ModalList型
+ * ソート方向の型
+ */
+export type SortDirection = AuctionSortDirection;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * モーダルリストの型
  */
 export type ModalListType = {
   title: string;
@@ -22,7 +29,7 @@ export type ModalListType = {
  * 列の型定義
  */
 export type Column<T> = {
-  key: keyof T;
+  key: Extract<keyof T, string>;
   header: string;
   cell: (row: T) => React.ReactNode | null;
   cellClassName: string | null;
@@ -32,7 +39,7 @@ export type Column<T> = {
   leaveGroupModal: boolean;
   modalList: ModalListType[] | null;
   editTask: boolean;
-  deleteTask: {
+  deleteTask?: {
     canDelete: (row: T) => boolean;
     onDelete: (rowId: string) => Promise<void>;
   } | null;
@@ -46,7 +53,6 @@ export type Column<T> = {
 export type EditTaskProps<T> = {
   canEdit: (row: T) => boolean;
   onEdit: (row: T) => void;
-  users: { id: string; name: string }[] | null;
   editingTaskId: string | null;
   isTaskEditModalOpen: boolean;
   onCloseTaskEditModal: () => void;
@@ -72,9 +78,9 @@ export type DataTableProps<T> = {
     onItemPerPageChange: (itemPerPage: number) => void;
   };
   sort: {
-    onSortChange: (field: keyof T) => void;
+    onSortChange: (field: Extract<keyof T, string>) => void;
     sortDirection: SortDirection;
-    sortField: keyof T;
+    sortField: Extract<keyof T, string>;
   } | null;
   filter: {
     filterContents: {
@@ -189,13 +195,8 @@ export type GroupMemberWithUser = GroupMembership & {
  * タスク参加者の型
  */
 export type TaskParticipant = {
-  id: string;
-  name: string | null;
-  userId: string | null;
-  user: {
-    id: string;
-    name: string | null;
-  } | null;
+  appUserName: string | null;
+  appUserId: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -206,46 +207,6 @@ export type TaskParticipant = {
 export type User = {
   id: string;
   name: string | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスクの型
- */
-export type Task = {
-  id: string;
-  task: string;
-  reference: string | null;
-  status: string;
-  fixedContributionPoint: number | null;
-  fixedEvaluator: string | null;
-  fixedEvaluationLogic: string | null;
-  contributionType: contributionType;
-  // 情報・画像URL・カテゴリを追加
-  info: string | null;
-  imageUrl: string | null;
-  category: string | null;
-  // 作成者情報
-  creator: {
-    name: string | null;
-  };
-  // 報告者・実行者情報
-  reporters: TaskParticipant[];
-  executors: TaskParticipant[];
-  group: {
-    id: string;
-    name: string;
-    maxParticipants: number;
-    goal: string;
-    evaluationMethod: string;
-    members: {
-      userId: string;
-    }[];
-    depositPeriod?: number;
-  };
-  detail: string | null;
-  createdAt: Date;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -307,25 +268,30 @@ export type Group = {
  */
 export type MyTaskTable = {
   id: string;
-  action: string;
-  task: string;
-  detail: string | null;
-  reference: string | null;
-  status: string;
-  fixedContributionPoint: number | null;
-  fixedEvaluator: string | null;
-  fixedEvaluationLogic: string | null;
-  contributionType: contributionType;
-  creator: {
-    id: string;
-    name: string | null;
-  };
-  reporters: TaskParticipant[];
-  executors: TaskParticipant[];
-  group: {
-    id: string;
-    name: string;
-  };
+  taskName: string;
+  taskDetail: string | null;
+  taskStatus: TaskStatus;
+  taskContributionType: contributionType;
+  taskFixedContributionPoint: number | null;
+  taskFixedEvaluator: string | null;
+  taskFixedEvaluationLogic: string | null;
+  taskCreatorName: string | null;
+  taskReporterUserIds: string[] | null;
+  taskExecutorUserIds: string[] | null;
+  taskReporterUserNames: string[] | null;
+  taskExecutorUserNames: string[] | null;
+  reporters: {
+    appUserName: string | null;
+    appUserId: string | null;
+  }[];
+  executors: {
+    appUserName: string | null;
+    appUserId: string | null;
+  }[];
+  groupId: string;
+  groupName: string;
+  auctionId: string | null;
+  group: { id: string; name: string };
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -336,4 +302,14 @@ export type MyTaskTable = {
 export type BasicUser = {
   id: string;
   name: string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * MyTaskTableのテーブルの条件の型
+ */
+export type MyTaskTableConditions = Omit<TableConditions<MyTaskTable>, "isJoined"> & {
+  taskStatus: "ALL" | TaskStatus;
+  contributionType: "ALL" | contributionType;
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import type { TaskFormValues } from "@/hooks/modal/use-task-edit-modal";
+import type { TaskParticipant } from "@/types/group-types";
 import type { Control } from "react-hook-form";
 import { memo, useRef } from "react";
 import { CustomFormField } from "@/components/share/form-field";
@@ -57,8 +58,7 @@ export const TaskEditModal = memo(function TaskEditModal({
     reporters,
     nonRegisteredReporter,
     users,
-    isLoadingUsers,
-    isLoadingTask,
+    isLoading,
 
     // function
     setCategoryOpen,
@@ -83,7 +83,10 @@ export const TaskEditModal = memo(function TaskEditModal({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  if (isLoadingTask) {
+  /**
+   * タスクデータが読み込まれるまでのローディング画面
+   */
+  if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="flex flex-col items-center justify-center p-10">
@@ -95,6 +98,8 @@ export const TaskEditModal = memo(function TaskEditModal({
       </Dialog>
     );
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * タスク編集モーダル
@@ -193,15 +198,15 @@ export const TaskEditModal = memo(function TaskEditModal({
               <p className="text-sm text-gray-500">このタスクを実行した人を選択または入力してください</p>
 
               {/* 登録済みユーザー選択 */}
-              {isLoadingUsers ? (
+              {isLoading ? (
                 <Spinner />
               ) : users.length > 0 ? (
                 <div className="flex gap-2">
                   <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addExecutor(e.target.value)} value="">
                     <option value="">登録済みユーザーから選択...</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
+                    {users.map((user: TaskParticipant) => (
+                      <option key={user.appUserId ?? ""} value={user.appUserId ?? ""}>
+                        {user.appUserName}
                       </option>
                     ))}
                   </select>
@@ -240,7 +245,7 @@ export const TaskEditModal = memo(function TaskEditModal({
                     {executors.map((executor, index) => (
                       <li key={`executor-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
-                          {executor.name ?? "名前なし"} {executor.userId ? "(登録済み)" : "(未登録)"}
+                          {executor.appUserName ?? "名前なし"} {executor.appUserId ? "(登録済み)" : "(未登録)"}
                         </span>
                         <Button type="button" variant="ghost" className="h-auto p-1 text-red-500" onClick={() => removeExecutor(index)}>
                           削除
@@ -258,15 +263,15 @@ export const TaskEditModal = memo(function TaskEditModal({
               <p className="text-sm text-gray-500">このタスクを報告した人を選択または入力してください</p>
 
               {/* 登録済みユーザー選択 */}
-              {isLoadingUsers ? (
+              {isLoading ? (
                 <Spinner />
               ) : users.length > 0 ? (
                 <div className="flex gap-2">
                   <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addReporter(e.target.value)} value="">
                     <option value="">登録済みユーザーから選択...</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
+                    {users.map((user: TaskParticipant) => (
+                      <option key={user.appUserId ?? ""} value={user.appUserId ?? ""}>
+                        {user.appUserName}
                       </option>
                     ))}
                   </select>
@@ -305,7 +310,7 @@ export const TaskEditModal = memo(function TaskEditModal({
                     {reporters.map((reporter, index) => (
                       <li key={`reporter-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
                         <span>
-                          {reporter.name ?? "名前なし"} {reporter.userId ? "(登録済み)" : "(未登録)"}
+                          {reporter.appUserName ?? "名前なし"} {reporter.appUserId ? "(登録済み)" : "(未登録)"}
                         </span>
                         <Button type="button" variant="ghost" className="h-auto p-1 text-red-500" onClick={() => removeReporter(index)}>
                           削除

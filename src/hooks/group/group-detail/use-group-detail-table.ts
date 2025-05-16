@@ -1,7 +1,7 @@
 "use client";
 
 import type { SortDirection } from "@/types/auction-types";
-import type { GroupDetailTableConditions, GroupDetailTask, User } from "@/types/group-types";
+import type { GroupDetailTableConditions, GroupDetailTask, TaskParticipant } from "@/types/group-types";
 import type { TaskStatus } from "@prisma/client";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
@@ -36,7 +36,7 @@ type UseGroupDetailTableReturn = {
   // state
   isLoading: boolean;
   tasks: GroupDetailTask[];
-  users: User[];
+  users: TaskParticipant[];
   tableConditions: GroupDetailTableConditions;
   totalTaskCount: number;
   editingTaskId: string | null;
