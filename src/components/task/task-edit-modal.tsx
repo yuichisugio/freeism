@@ -5,9 +5,9 @@ import type { Control } from "react-hook-form";
 import { memo } from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/share-table-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useTaskEditModal } from "@/hooks/modal/use-task-edit-modal";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
@@ -23,6 +23,7 @@ type TaskEditModalProps = {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
   onTaskUpdated?: () => void;
+  container?: HTMLElement | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -31,7 +32,13 @@ type TaskEditModalProps = {
  * タスク編集モーダル
  * @param open モーダルの表示状態
  */
-export const TaskEditModal = memo(function TaskEditModal({ taskId, open, onTaskUpdated, onOpenChangeAction }: TaskEditModalProps): JSX.Element {
+export const TaskEditModal = memo(function TaskEditModal({
+  taskId,
+  open,
+  onTaskUpdated,
+  onOpenChangeAction,
+  container,
+}: TaskEditModalProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -93,7 +100,7 @@ export const TaskEditModal = memo(function TaskEditModal({ taskId, open, onTaskU
    */
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent container={container} className="z-[10000] max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>

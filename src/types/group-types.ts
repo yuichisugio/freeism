@@ -41,6 +41,19 @@ export type Column<T> = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * EditTaskのためのProps型定義
+ */
+export type EditTaskProps<T> = {
+  canEdit: (row: T) => boolean;
+  onEdit: (row: T) => void;
+  users: { id: string; name: string }[] | null;
+  editingTaskId: string | null;
+  isTaskEditModalOpen: boolean;
+  onCloseTaskEditModal: () => void;
+  onTaskEdited: () => void;
+};
+
+/**
  * テーブル全体の型定義
  * extends { id: string }を記載して、Tがidを持つことを保証
  */
@@ -48,11 +61,7 @@ export type DataTableProps<T> = {
   initialData: T[];
   columns: Column<T>[];
   onDataChange: (data: T[]) => void | null;
-  editTask: {
-    canEdit: (row: T) => boolean;
-    onEdit: (row: T) => void;
-    users: { id: string; name: string }[] | null;
-  } | null;
+  editTask: EditTaskProps<T> | null;
   pagination: {
     totalRowCount: number;
     currentPage: number;

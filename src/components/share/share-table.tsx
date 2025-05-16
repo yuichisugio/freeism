@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { NoResult } from "@/components/share/no-result";
 import { ShareTableFilter } from "@/components/share/share-table-filter";
 import { ShareTablePagination } from "@/components/share/share-table-pagination";
+import { TaskEditModal } from "@/components/task/task-edit-modal";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
@@ -378,10 +379,25 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
           </div>
         </div>
 
+        {/* TaskEditModal のレンダリング */}
+        {editTask?.editingTaskId && (
+          <TaskEditModal
+            container={wrapperRef.current}
+            taskId={editTask.editingTaskId}
+            open={editTask.isTaskEditModalOpen}
+            onOpenChangeAction={(isOpen) => {
+              if (!isOpen) {
+                editTask.onCloseTaskEditModal();
+              }
+            }}
+            onTaskUpdated={editTask.onTaskEdited}
+          />
+        )}
+
         {/* ページネーション */}
         {pagination && !isFullScreen && <ShareTablePagination pagination={pagination} />}
         {pagination && isFullScreen && (
-          <div className="sticky right-0 bottom-0 left-0 z-[10000] bg-white">
+          <div className="sticky right-0 bottom-0 left-0 z-[500] bg-white">
             <ShareTablePagination pagination={pagination} />
           </div>
         )}

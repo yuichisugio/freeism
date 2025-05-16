@@ -6,7 +6,6 @@ import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Loading } from "@/components/share/loading";
 import { ShareTable } from "@/components/share/share-table";
-import { TaskEditModal } from "@/components/task/task-edit-modal";
 import { Button } from "@/components/ui/button";
 import { useGroupDetailTable } from "@/hooks/group/group-detail/use-group-detail-table";
 import { contributionType } from "@prisma/client";
@@ -233,9 +232,13 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       columns: columns,
       onDataChange: () => null,
       editTask: {
-        canEdit: (row: GroupDetailTask) => canEditTask(row),
-        onEdit: (row: GroupDetailTask) => openTaskEditModal(row),
+        canEdit: canEditTask,
+        onEdit: openTaskEditModal,
         users: null,
+        editingTaskId: editingTaskId,
+        isTaskEditModalOpen: isTaskEditModalOpen,
+        onCloseTaskEditModal: closeTaskEditModal,
+        onTaskEdited: handleTaskEdited,
       },
       pagination: {
         totalRowCount: totalTaskCount,
@@ -293,7 +296,21 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         onResetSort: resetSort,
       },
     }),
-    [tasks, columns, totalTaskCount, tableConditions, changeTableConditions, resetFilters, resetSort, canEditTask, openTaskEditModal],
+    [
+      tasks,
+      columns,
+      totalTaskCount,
+      tableConditions,
+      changeTableConditions,
+      resetFilters,
+      resetSort,
+      canEditTask,
+      openTaskEditModal,
+      editingTaskId,
+      isTaskEditModalOpen,
+      closeTaskEditModal,
+      handleTaskEdited,
+    ],
   );
 
   /**
@@ -317,18 +334,6 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
       </div>
       {loadingOverlay}
       <ShareTable dataTableProps={taskDataTableProps} />
-      {editingTaskId && (
-        <TaskEditModal
-          taskId={editingTaskId}
-          open={isTaskEditModalOpen}
-          onOpenChangeAction={(isOpen) => {
-            if (!isOpen) {
-              closeTaskEditModal();
-            }
-          }}
-          onTaskUpdated={handleTaskEdited}
-        />
-      )}
     </>
   );
 });
