@@ -1,12 +1,13 @@
 "use client";
 
-import type { GroupDetailTask, GroupMemberWithUser } from "@/types/group-types";
+import type { Group, GroupDetailTask, GroupMemberWithUser } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { deleteGroup, getGroupMembers, joinGroup, removeMember } from "@/lib/actions/group";
+import { getGroupById } from "@/lib/actions/group/grop-detail";
 import { leaveGroup } from "@/lib/actions/group/my-group";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ import { toast } from "sonner";
  */
 type UseGroupDetailReturn = {
   // state
+  group: Group | null;
   isMember: boolean;
   deleteDialogOpen: boolean;
   leaveDialogOpen: boolean;
@@ -27,7 +29,7 @@ type UseGroupDetailReturn = {
   selectedMemberNameForRemoval: string | null;
   isRemovalComboboxOpen: boolean;
   addToBlackList: boolean;
-
+  isLoadingGroup: boolean;
   // mutation states
   isJoiningGroup: boolean;
   isLeavingGroup: boolean;
@@ -154,6 +156,19 @@ export function useGroupManipulation({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * グループ情報を取得
+   */
+  const { data: group, isPending: isLoadingGroup } = useQuery({
+    queryKey: queryCacheKeys.tasks.byGroupId(groupId),
+    queryFn: async () => await getGroupById(groupId),
+    staleTime: 1000 * 60 * 60 * 24, // 24時間
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
+    enabled: !!groupId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * グループ参加処理
    * @param groupId {string} グループID
    */
@@ -173,6 +188,11 @@ export function useGroupManipulation({
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ参加処理
+   */
   const handleJoinGroup = useCallback(
     (currentGroupId: string) => {
       joinGroupMutation(currentGroupId);
@@ -269,6 +289,11 @@ export function useGroupManipulation({
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ削除処理
+   */
   const handleDeleteGroup = useCallback(
     (currentGroupId: string) => {
       if (!isGroupOwner && !isAppOwner) {
@@ -335,6 +360,11 @@ export function useGroupManipulation({
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メンバー除名処理
+   */
   const handleRemoveMember = useCallback(() => {
     if (!isGroupOwner && !isAppOwner) {
       toast.error("権限がありません");
@@ -355,6 +385,8 @@ export function useGroupManipulation({
    */
   return {
     // state
+    group: group ?? null,
+    isLoadingGroup,
     isMember,
     deleteDialogOpen,
     leaveDialogOpen,

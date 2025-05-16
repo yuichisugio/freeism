@@ -44,13 +44,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
    * テーブルをフルスクリーン（全画面表示）するための設定
    */
   // フルスクリーンモードの状態を管理
-  const [isFullScreen, setIsFullScreen] = useState<boolean>(() => {
-    // 初期マウント時にブラウザの状態を参照して決定
-    if (typeof document !== "undefined") {
-      return !!document.fullscreenElement;
-    }
-    return false;
-  });
+  const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
 
   // テーブルのコンテナを参照
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -145,7 +139,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         {/* 既存の tableContainerRef → div をそのまま配置 */}
         <div
           ref={tableContainerRef}
-          className={cn("w-full border border-blue-100 bg-white", isFullScreen ? "flex-1" : "rounded-lg backdrop-blur-sm")}
+          className={cn("w-full bg-white", isFullScreen ? "flex-1" : "rounded-lg border border-blue-100 backdrop-blur-sm")}
         >
           <div
             className={cn(
@@ -155,7 +149,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                 : "max-h-[calc(100vh-15rem)] overflow-x-auto overflow-y-auto", // 非フルスクリーン時は従来のスクロール設定
             )}
           >
-            <table className="w-full min-w-full table-auto">
+            <table className={cn("w-full min-w-full table-auto", isFullScreen ? "border border-blue-100" : "")}>
               {/* テーブルのヘッダー */}
               <thead className={cn("border-b border-blue-100 bg-blue-50", isFullScreen && "sticky top-0 z-30")}>
                 <tr>

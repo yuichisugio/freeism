@@ -269,3 +269,20 @@ export type GroupDetailTask = {
     depositPeriod?: number;
   };
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * グループの型
+ */
+export type Group = {
+  id: string;
+  name: string;
+  goal: string;
+  evaluationMethod: string;
+  joinMemberCount: number;
+  maxParticipants: number;
+  depositPeriod: number;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
