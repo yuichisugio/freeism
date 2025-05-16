@@ -22,9 +22,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useGroupManipulation } from "@/hooks/auction/group-detail/use-group-manipulation";
-import { useGroupPermission } from "@/hooks/auction/group-detail/use-group-permission";
-import { useGroupTasks } from "@/hooks/auction/group-detail/use-group-tasks";
+import { useGroupManipulation } from "@/hooks/group/group-detail/use-group-manipulation";
+import { useGroupPermission } from "@/hooks/group/group-detail/use-group-permission";
+import { useGroupTasks } from "@/hooks/group/group-detail/use-group-tasks";
 import {
   Check,
   ChevronsUpDown,

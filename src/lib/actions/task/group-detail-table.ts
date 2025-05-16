@@ -75,9 +75,12 @@ export async function getGroupTaskAndCount({
     /**
      * ソート条件
      */
-    const orderBy: Prisma.TaskOrderByWithRelationInput = {
-      [sortField]: sortDirection as Prisma.SortOrder,
-    };
+    let orderBy: Prisma.TaskOrderByWithRelationInput = {};
+    if (sortField == "taskFixedContributionPoint") {
+      orderBy = { fixedContributionPoint: sortDirection as Prisma.SortOrder };
+    } else {
+      orderBy = { [sortField]: sortDirection as Prisma.SortOrder };
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

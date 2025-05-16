@@ -134,7 +134,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   return (
     <>
       {/* ラッパー開始  */}
-      <div ref={wrapperRef} className={cn(isFullScreen ? "flex h-screen w-screen flex-col overflow-auto" : "")}>
+      <div ref={wrapperRef} className={cn(isFullScreen ? "flex h-screen w-screen flex-col overflow-auto bg-white" : "")}>
         {/* ---------- フィルターバー ---------- */}
         {filter && (
           <div className={cn(isFullScreen && "bg-white")}>

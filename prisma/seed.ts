@@ -20,10 +20,10 @@ const PRESERVED_USER_IDS = ["cma39q7g20000mctm2wljtjan", "cm9mipm72000wmcaj9wk3z
 const SEED_CONFIG = {
   // 基本設定
   USERS_COUNT: 10, // 生成するユーザー数
-  GROUPS_COUNT: 50, // 生成するグループ数
+  GROUPS_COUNT: 5, // 生成するグループ数
   MIN_MEMBERS_PER_GROUP: 3, // グループごとの最小メンバー数
   MAX_MEMBERS_PER_GROUP: 4, // グループごとの最大メンバー数
-  TASKS_COUNT: 50, // 生成するタスク総数
+  TASKS_COUNT: 150, // 生成するタスク総数
   TASK_CATEGORIES: ["食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"],
 
   // タスク関連設定

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loading } from "@/components/share/loading";
 import { ShareTable } from "@/components/share/share-table";
 import { Button } from "@/components/ui/button";
-import { useGroupTasks } from "@/hooks/auction/group-detail/use-group-tasks";
+import { useGroupTasks } from "@/hooks/group/group-detail/use-group-tasks";
 import { contributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -70,7 +70,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         key: "taskName" as keyof GroupDetailTask,
         header: "TASK",
         cell: (row: GroupDetailTask) => row.taskName ?? "不明",
-        sortable: true,
+        sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
         leaveGroupModal: false,
@@ -83,7 +83,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         key: "taskCreator" as keyof GroupDetailTask,
         header: "作成者",
         cell: (row: GroupDetailTask) => row.taskCreator ?? "-",
-        sortable: true,
+        sortable: false,
         statusCombobox: false,
         joinGroupModal: false,
         leaveGroupModal: false,
@@ -140,7 +140,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
         key: "taskStatus" as keyof GroupDetailTask,
         header: "ステータス",
         cell: (row: GroupDetailTask) => row.taskStatus,
-        sortable: true,
+        sortable: false,
         statusCombobox: true,
         joinGroupModal: false,
         leaveGroupModal: false,
