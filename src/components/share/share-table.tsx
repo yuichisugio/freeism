@@ -5,6 +5,8 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { NoResult } from "@/components/share/no-result";
 import { ShareTableFilter } from "@/components/share/share-table-filter";
 import { ShareTablePagination } from "@/components/share/share-table-pagination";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,10 +17,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+} from "@/components/ui/share-table-alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/share-table-popover";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { cn } from "@/lib/utils";
 import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";
@@ -215,7 +215,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                         <ChevronsUpDown />
                                       </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-0">
+                                    <PopoverContent container={tableContainerRef.current} className="w-[200px] p-0">
                                       <Command>
                                         <CommandInput placeholder="ステータスを検索..." />
                                         <CommandList>
@@ -290,7 +290,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                             削除
                                           </Button>
                                         </AlertDialogTrigger>
-                                        <AlertDialogContent>
+                                        <AlertDialogContent container={tableContainerRef.current}>
                                           <AlertDialogHeader>
                                             <AlertDialogTitle>{"タスクを削除"}</AlertDialogTitle>
                                             <AlertDialogDescription>
@@ -346,7 +346,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                               {modal?.triggerIcon}
                                             </Button>
                                           </AlertDialogTrigger>
-                                          <AlertDialogContent>
+                                          <AlertDialogContent container={tableContainerRef.current}>
                                             <AlertDialogHeader>
                                               <AlertDialogTitle>{modal.title}</AlertDialogTitle>
                                               <AlertDialogDescription>{modal.description}</AlertDialogDescription>
