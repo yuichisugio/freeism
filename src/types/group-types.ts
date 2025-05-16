@@ -53,6 +53,8 @@ export type EditTaskProps<T> = {
   onTaskEdited: () => void;
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * テーブル全体の型定義
  * extends { id: string }を記載して、Tがidを持つことを保証

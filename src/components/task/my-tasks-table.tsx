@@ -220,6 +220,12 @@ export const MyTaskTable = memo(function MyTaskTable(): JSX.Element {
       canEdit: (row) => canEditTask(row),
       onEdit: () => handleTaskEdited(),
       users: getSimpleUsers(),
+      editingTaskId: null,
+      isTaskEditModalOpen: false,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onCloseTaskEditModal: () => {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onTaskEdited: () => {},
     },
     pagination: {
       totalRowCount: tasks.length,
