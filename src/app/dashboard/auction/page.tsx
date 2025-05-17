@@ -23,8 +23,6 @@ export const metadata: Metadata = {
 export default async function AuctionPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/app/dashboard/auction/page.tsx_AuctionPage_start");
-
   /**
    * キャッシュの有効期間を設定
    */

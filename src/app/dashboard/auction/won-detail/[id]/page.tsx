@@ -7,12 +7,18 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 落札商品詳細ページのProps
+ */
 type WonAuctionPageProps = {
   params: Promise<{ id: string }>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 落札商品詳細ページのメタデータ
+ */
 export const metadata: Metadata = {
   title: "落札商品詳細 | Freeism",
   description: "落札した商品の詳細や評価、配送状況を確認できます",
@@ -26,8 +32,22 @@ export const metadata: Metadata = {
  * @returns 落札商品詳細ページ
  */
 export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ログ
+   */
+  console.log("src/app/dashboard/auction/won-detail/[id]/page.tsx_WonAuctionPage_start");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメーター
+   */
   const { id } = await params;
   const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 落札したオークションの詳細を取得
   const auction = await prisma.auction.findUnique({

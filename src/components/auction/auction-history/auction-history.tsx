@@ -58,6 +58,9 @@ const HistoryCard = memo(function HistoryCard({
 }: HistoryCardProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 履歴カード
+   */
   return (
     <Card key={id} className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => onClick(id)}>
       <CardHeader className="pb-2">
@@ -91,18 +94,6 @@ const HistoryCard = memo(function HistoryCard({
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-/**
- * 空の履歴メッセージコンポーネント
- * @param {Object} props - 空の履歴メッセージのプロパティ
- * @param {string} props.message - 表示するメッセージ
- * @returns {React.ReactNode} 空の履歴メッセージのReactノード
- */
-const EmptyHistoryMessage = memo(function EmptyHistoryMessage({ message }: { message: string }) {
-  return <div className="py-10 text-center text-gray-500">{message}</div>;
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 // 共通の履歴グリッドコンポーネント
 type HistoryGridProps<T> = {
   items: T[];
@@ -119,37 +110,67 @@ type HistoryGridProps<T> = {
  * @returns {React.ReactNode} 履歴グリッドのReactノード
  */
 const HistoryGrid = memo(function HistoryGrid<T>({ items, renderItem, emptyMessage, loading }: HistoryGridProps<T>) {
-  if (loading) return null;
-  if (items.length === 0) return <EmptyHistoryMessage message={emptyMessage} />;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ローディング中の場合
+   */
+  if (loading) return null;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 履歴がない場合
+   */
+  if (items.length === 0) return <div className="py-10 text-center text-gray-500">{emptyMessage}</div>;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 履歴グリッド
+   */
   return <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{items.map(renderItem)}</div>;
 }) as <T>(props: HistoryGridProps<T>) => React.ReactNode;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * 入札・落札履歴コンポーネント
  * @returns 入札・落札履歴コンポーネント
  */
 export const AuctionHistory = memo(function AuctionHistory() {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ルーター
+   */
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * state
+   */
   const [bidHistory, setBidHistory] = useState<BidHistoryItem[]>([]);
   const [wonAuctions, setWonAuctions] = useState<WonAuctionItem[]>([]);
   const [createdAuctions, setCreatedAuctions] = useState<CreatedAuctionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentTab, setCurrentTab] = useState<string>("bids");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // タブ切り替え時のロジック
+  /**
+   * タブ切り替え時のロジック
+   */
   const handleTabChange = useCallback((value: string) => {
     setCurrentTab(value);
   }, []);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 初期データの取得（全データを一度に取得）
+  /**
+   * 初期データの取得（全データを一度に取得）
+   */
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -171,9 +192,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
     void fetchAllData();
   }, []);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 商品詳細画面に遷移
+  /**
+   * 商品詳細画面に遷移
+   */
   const handleItemClick = useCallback(
     (id: string) => {
       router.push(`/dashboard/auction/${id}`);
@@ -181,9 +204,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [router],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 落札商品詳細画面に遷移
+  /**
+   * 落札商品詳細画面に遷移
+   */
   const handleWonItemClick = useCallback(
     (id: string) => {
       router.push(`/dashboard/auction/won/${id}`);
@@ -191,9 +216,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [router],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 出品商品詳細画面に遷移
+  /**
+   * 出品商品詳細画面に遷移
+   */
   const handleCreatedItemClick = useCallback(
     (id: string) => {
       router.push(`/dashboard/auction/created/${id}`);
@@ -201,9 +228,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [router],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札履歴アイテムのレンダリング
+  /**
+   * 入札履歴アイテムのレンダリング
+   */
   const renderBidItem = useCallback(
     (bid: BidHistoryItem) => (
       <HistoryCard
@@ -229,9 +258,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [handleItemClick],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 落札履歴アイテムのレンダリング
+  /**
+   * 落札履歴アイテムのレンダリング
+   */
   const renderWonItem = useCallback(
     (auction: WonAuctionItem) => (
       <HistoryCard
@@ -255,9 +286,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [handleWonItemClick],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 出品履歴アイテムのレンダリング
+  /**
+   * 出品履歴アイテムのレンダリング
+   */
   const renderCreatedItem = useCallback(
     (auction: CreatedAuctionItem) => (
       <HistoryCard
@@ -278,7 +311,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [handleCreatedItemClick],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <div className="container mx-auto py-6">
