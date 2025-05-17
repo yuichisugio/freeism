@@ -2,13 +2,15 @@
 
 import type { Locale } from "date-fns";
 import type { Control, FieldValues, Path } from "react-hook-form";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, parseISO, startOfDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { ja } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { useController } from "react-hook-form";
-
-import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "../ui/form";
 
 export type DateFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = {
   control: Control<TFieldValues>;
@@ -16,10 +18,11 @@ export type DateFieldProps<TFieldValues extends FieldValues, TName extends Path<
   label: string;
   description?: string;
   placeholder?: string;
-  buttonText?: string;
   locale?: Locale;
   dateFormat?: string;
   disablePastDates?: boolean;
+  disabledDates?: (date: Date) => boolean; // Specific disabled dates function
+  showTimeInput?: boolean; // Option to show time input
 };
 
 export function DateField<TFieldValues extends FieldValues, TName extends Path<TFieldValues>>(props: DateFieldProps<TFieldValues, TName>) {
@@ -29,45 +32,65 @@ export function DateField<TFieldValues extends FieldValues, TName extends Path<T
     label,
     description,
     placeholder = "日付を選択",
-    buttonText = placeholder,
     locale = ja,
     dateFormat = "yyyy年MM月dd日",
     disablePastDates = true,
+    disabledDates,
   } = props;
 
   const {
-    field: { value, onChange },
+    field: { value, onChange, ref },
   } = useController({ control, name });
-
-  const [manualDate, setManualDate] = useState<string>(value ? format(new Date(value), "yyyy-MM-dd") : "");
 
   // 今日 (00:00:00)
   const today = startOfDay(new Date());
+
+  const defaultDisabledMatcher = (date: Date) => {
+    if (disablePastDates && date < today) {
+      return true;
+    }
+    return false;
+  };
+
+  const combinedDisabledMatcher = (date: Date) => {
+    return defaultDisabledMatcher(date) || (disabledDates ? disabledDates(date) : false);
+  };
 
   return (
     <FormItem className="space-y-2">
       <FormLabel className="text-sm font-medium">{label}</FormLabel>
       {description && <FormDescription className="text-xs text-gray-500">{description}</FormDescription>}
-      <FormControl>
-        <div className="px-4 pt-1 pb-2">
-          <input
-            type="date"
-            value={manualDate}
-            min={disablePastDates ? format(today, "yyyy-MM-dd") : undefined}
-            onChange={(e) => {
-              setManualDate(e.target.value);
-              const parsed = parseISO(e.target.value);
-              if (!isNaN(parsed.getTime())) {
-                onChange(parsed);
+      <Popover>
+        <PopoverTrigger asChild>
+          <FormControl>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start pl-3 text-left font-normal shadow-sm transition-all hover:bg-gray-50",
+                !value && "text-muted-foreground",
+              )}
+              ref={ref} // Pass ref to the button
+            >
+              {value ? format(new Date(value), dateFormat, { locale }) : <span>{placeholder}</span>}
+              <CalendarIcon className="ml-auto size-4 opacity-50" />
+            </Button>
+          </FormControl>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={value ? new Date(value) : undefined}
+            onSelect={(selectedDate) => {
+              if (selectedDate) {
+                onChange(selectedDate);
               }
             }}
-            className={cn(
-              "w-full justify-start border border-gray-200 bg-white px-4 py-2.5 text-left font-normal shadow-sm transition-all hover:bg-gray-50",
-              "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none",
-            )}
+            disabled={combinedDisabledMatcher}
+            initialFocus
+            locale={locale}
           />
-        </div>
-      </FormControl>
+        </PopoverContent>
+      </Popover>
       <FormMessage className="mt-1 text-xs text-red-500" />
     </FormItem>
   );
