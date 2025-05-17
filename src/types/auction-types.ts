@@ -1,5 +1,5 @@
 import type { AUCTION_CONSTANTS } from "@/lib/constants";
-import type { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
+import type { Auction, AuctionReview, AuctionStatus, BidStatus, ReviewPosition, TaskStatus, User } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -8,25 +8,15 @@ import type { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
  * オークション履歴で使用
  */
 export type BidHistoryItem = {
-  id: string;
   auctionId: string;
-  amount: number;
-  isAutoBid: boolean;
   status: BidStatus;
   createdAt: Date;
-  auction: {
-    id: string;
-    task: {
-      id: string;
-      task: string;
-      detail: string | null;
-      imageUrl: string | null;
-      status: TaskStatus;
-    };
-    currentHighestBid: number;
-    endTime: Date;
-    status: AuctionStatus;
-  };
+  taskId: string;
+  taskName: string;
+  taskStatus: TaskStatus;
+  auctionStatus: AuctionStatus;
+  currentHighestBid: number;
+  auctionEndTime: Date;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -35,31 +25,16 @@ export type BidHistoryItem = {
  * オークション履歴で使用
  */
 export type WonAuctionItem = {
-  id: string;
+  auctionId: string;
   taskId: string;
   currentHighestBid: number;
-  endTime: Date;
-  status: AuctionStatus;
-  createdAt: Date;
-  task: {
-    id: string;
-    task: string;
-    detail: string | null;
-    imageUrl: string | null;
-    status: TaskStatus;
-    creator: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-    deliveryMethod: string | null;
-  };
-  reviews: {
-    id: string;
-    rating: number;
-    comment: string | null;
-    isSellerReview: boolean;
-  }[];
+  auctionEndTime: Date;
+  auctionStatus: AuctionStatus;
+  auctionCreatedAt: Date;
+  taskName: string;
+  taskStatus: TaskStatus;
+  deliveryMethod: string | null;
+  rating: number | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -68,31 +43,17 @@ export type WonAuctionItem = {
  * オークション履歴で使用
  */
 export type CreatedAuctionItem = {
-  id: string;
-  taskId: string;
+  auctionId: string;
   currentHighestBid: number;
-  endTime: Date;
-  status: AuctionStatus;
-  createdAt: Date;
-  task: {
-    id: string;
-    task: string;
-    detail: string | null;
-    imageUrl: string | null;
-    status: TaskStatus;
-    deliveryMethod: string | null;
-  };
-  winner: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  } | null;
-  reviews: {
-    id: string;
-    rating: number;
-    comment: string | null;
-    isSellerReview: boolean;
-  }[];
+  auctionEndTime: Date;
+  auctionStatus: AuctionStatus;
+  auctionCreatedAt: Date;
+  taskId: string;
+  taskName: string;
+  taskStatus: TaskStatus;
+  deliveryMethod: string | null;
+  winnerId: string | null;
+  winnerName: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -299,5 +260,17 @@ export type CountdownState = {
   isUrgent: boolean;
   isCritical: boolean;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+export type AuctionReviewType = {
+  createdAt: string;
+  updatedAt: string;
+  auction: Auction;
+  reviewee: User;
+  reviewer: User;
+  // isSellerReview: boolean;
+  reviewPosition: ReviewPosition;
+} & Omit<AuctionReview, "createdAt" | "updatedAt" | "auction" | "reviewee" | "reviewer">;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

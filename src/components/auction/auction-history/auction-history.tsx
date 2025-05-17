@@ -1,16 +1,18 @@
 "use client";
 
-import { memo, useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { memo, useCallback } from "react";
 import { Rating } from "@/components/auction/common/rating";
 import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getUserCreatedAuctions, getUserLatestBids, getUserWonAuctions } from "@/lib/auction/action/history";
+import { useAuctionHistory } from "@/hooks/auction/history/use-auction-history";
+import { AUCTION_CONSTANTS, AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Award, Clock, Loader2, Tag } from "lucide-react";
+import { Award, Clock, Tag } from "lucide-react";
+
+import { AuctionHistoryPagination } from "./auction-history-pagination";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -48,7 +50,6 @@ const HistoryCard = memo(function HistoryCard({
   timestampText,
   amount,
   amountLabel,
-  avatarSrc,
   avatarName,
   deliveryMethod,
   leftBadge,
@@ -76,7 +77,7 @@ const HistoryCard = memo(function HistoryCard({
           <div className="text-lg font-semibold">{amount.toLocaleString()} ポイント</div>
         </div>
         {extraContent}
-        {avatarSrc !== undefined && avatarName !== undefined && <span className="text-sm">{avatarName}</span>}
+        {avatarName && <span className="text-sm">{avatarName}</span>}
         {deliveryMethod && (
           <div className="mt-2 text-sm text-gray-600">
             <span className="font-medium">提供方法: </span>
@@ -94,7 +95,9 @@ const HistoryCard = memo(function HistoryCard({
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 共通の履歴グリッドコンポーネント
+/**
+ * 共通の履歴グリッドコンポーネント
+ */
 type HistoryGridProps<T> = {
   items: T[];
   renderItem: (item: T) => React.ReactNode;
@@ -142,115 +145,48 @@ export const AuctionHistory = memo(function AuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ルーター
+   * 履歴グリッドのフック
    */
-  const router = useRouter();
+  const {
+    // state
+    activeTab,
+    currentPage,
+    currentData,
+    currentDataCount,
+    isLoadingCurrentTab,
+
+    // function
+    handleTabChange,
+    handlePageChange,
+    handleItemClick,
+    handleWonItemClick,
+    handleCreatedItemClick,
+    setItemPerPage,
+  } = useAuctionHistory();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * state
-   */
-  const [bidHistory, setBidHistory] = useState<BidHistoryItem[]>([]);
-  const [wonAuctions, setWonAuctions] = useState<WonAuctionItem[]>([]);
-  const [createdAuctions, setCreatedAuctions] = useState<CreatedAuctionItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [currentTab, setCurrentTab] = useState<string>("bids");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タブ切り替え時のロジック
-   */
-  const handleTabChange = useCallback((value: string) => {
-    setCurrentTab(value);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 初期データの取得（全データを一度に取得）
-   */
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setLoading(true);
-      try {
-        // 3つのデータを並列で取得
-        const [bids, won, created] = await Promise.all([getUserLatestBids(), getUserWonAuctions(), getUserCreatedAuctions()]);
-        // 取得したデータを各ステートにセット
-        setBidHistory(bids);
-        setWonAuctions(won);
-        setCreatedAuctions(created);
-      } catch (error) {
-        console.error("データの取得に失敗しました", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // void演算子を使用してPromiseを適切に処理
-    void fetchAllData();
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 商品詳細画面に遷移
-   */
-  const handleItemClick = useCallback(
-    (id: string) => {
-      router.push(`/dashboard/auction/${id}`);
-    },
-    [router],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 落札商品詳細画面に遷移
-   */
-  const handleWonItemClick = useCallback(
-    (id: string) => {
-      router.push(`/dashboard/auction/won/${id}`);
-    },
-    [router],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品商品詳細画面に遷移
-   */
-  const handleCreatedItemClick = useCallback(
-    (id: string) => {
-      router.push(`/dashboard/auction/created/${id}`);
-    },
-    [router],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 入札履歴アイテムのレンダリング
+   * 入札履歴
    */
   const renderBidItem = useCallback(
     (bid: BidHistoryItem) => (
       <HistoryCard
-        key={bid.id}
-        id={bid.auction.task.id}
-        title={bid.auction.task.task}
+        key={bid.taskId}
+        id={bid.taskId}
+        title={bid.taskName}
         timestamp={new Date(bid.createdAt)}
         timestampIcon={<Clock size={14} />}
         timestampText={`${formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true, locale: ja })}に入札`}
-        amount={bid.amount}
+        amount={bid.currentHighestBid}
         amountLabel="入札額"
         leftBadge={<BidStatusBadge status={bid.status} />}
-        rightBadge={<AuctionStatusBadge status={bid.auction.status} />}
+        rightBadge={<AuctionStatusBadge status={bid.auctionStatus} />}
         onClick={handleItemClick}
         extraContent={
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm text-gray-500">現在の最高額</div>
-            <div className="font-medium">{bid.auction.currentHighestBid.toLocaleString()} ポイント</div>
+            <div className="font-medium">{bid.currentHighestBid.toLocaleString()} ポイント</div>
           </div>
         }
       />
@@ -261,24 +197,24 @@ export const AuctionHistory = memo(function AuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 落札履歴アイテムのレンダリング
+   * 落札履歴をレンダリング
    */
   const renderWonItem = useCallback(
     (auction: WonAuctionItem) => (
       <HistoryCard
-        key={auction.id}
-        id={auction.id}
-        title={auction.task.task}
-        timestamp={new Date(auction.endTime)}
+        key={auction.auctionId}
+        id={auction.auctionId}
+        title={auction.taskName}
+        timestamp={new Date(auction.auctionEndTime)}
         timestampIcon={<Award size={14} />}
-        timestampText={`${formatDistanceToNow(new Date(auction.endTime), { addSuffix: true, locale: ja })}に落札`}
+        timestampText={`${formatDistanceToNow(new Date(auction.auctionEndTime), { addSuffix: true, locale: ja })}に落札`}
         amount={auction.currentHighestBid}
         amountLabel="落札額"
-        avatarName={auction.task.creator.name ?? "出品者"}
-        deliveryMethod={auction.task.deliveryMethod}
-        leftBadge={<TaskStatusBadge status={auction.task.status} />}
+        avatarName={auction.taskName}
+        deliveryMethod={auction.deliveryMethod}
+        leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
         rightBadge={
-          auction.reviews.length > 0 ? <Rating rating={auction.reviews[0].rating} size={16} /> : <span className="text-xs text-gray-500">未評価</span>
+          auction.rating && auction.rating > 0 ? <Rating rating={auction.rating} size={16} /> : <span className="text-xs text-gray-500">未評価</span>
         }
         onClick={handleWonItemClick}
       />
@@ -289,34 +225,36 @@ export const AuctionHistory = memo(function AuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 出品履歴アイテムのレンダリング
+   * 出品履歴
    */
   const renderCreatedItem = useCallback(
     (auction: CreatedAuctionItem) => (
       <HistoryCard
-        key={auction.id}
-        id={auction.id}
-        title={auction.task.task}
-        timestamp={new Date(auction.createdAt)}
+        key={auction.auctionId}
+        id={auction.auctionId}
+        title={auction.taskName}
+        timestamp={new Date(auction.auctionCreatedAt)}
         timestampIcon={<Tag size={14} />}
-        timestampText={`${formatDistanceToNow(new Date(auction.createdAt), { addSuffix: true, locale: ja })}に出品`}
+        timestampText={`${formatDistanceToNow(new Date(auction.auctionCreatedAt), { addSuffix: true, locale: ja })}に出品`}
         amount={auction.currentHighestBid}
-        amountLabel="落札額"
-        avatarName={auction.winner?.name ?? "落札者"}
-        leftBadge={<TaskStatusBadge status={auction.task.status} />}
-        rightBadge={<AuctionStatusBadge status={auction.status} />}
+        amountLabel={auction.auctionStatus === "ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
+        avatarName={auction.winnerName ?? (auction.auctionStatus === "ENDED" ? "落札者なし" : "落札者未定")}
+        leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
+        rightBadge={<AuctionStatusBadge status={auction.auctionStatus} />}
         onClick={handleCreatedItemClick}
       />
     ),
     [handleCreatedItemClick],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // --------------------------------------------------------------------------------
 
+  /**
+   * 履歴コンポーネント
+   */
   return (
     <div className="container mx-auto py-6">
-      {/* タブ */}
-      <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="mb-8 flex items-center justify-between">
           <TabsList className="grid w-full max-w-[500px] grid-cols-3">
             <TabsTrigger value="bids">入札履歴</TabsTrigger>
@@ -325,28 +263,67 @@ export const AuctionHistory = memo(function AuctionHistory() {
           </TabsList>
         </div>
 
-        {/* ローディング */}
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          </div>
-        )}
-
-        {/* 入札履歴 */}
-        <TabsContent value="bids">
-          <HistoryGrid items={bidHistory} renderItem={renderBidItem} emptyMessage="入札履歴はありません" loading={loading} />
+        <TabsContent value="bids" forceMount={activeTab === "bids" ? undefined : true} hidden={activeTab !== "bids"}>
+          <HistoryGrid
+            items={currentData as BidHistoryItem[]}
+            renderItem={renderBidItem}
+            emptyMessage="入札履歴はありません"
+            loading={isLoadingCurrentTab}
+          />
         </TabsContent>
 
-        {/* 落札履歴 */}
-        <TabsContent value="won">
-          <HistoryGrid items={wonAuctions} renderItem={renderWonItem} emptyMessage="落札履歴はありません" loading={loading} />
+        <TabsContent value="won" forceMount={activeTab === "won" ? undefined : true} hidden={activeTab !== "won"}>
+          <HistoryGrid
+            items={currentData as WonAuctionItem[]}
+            renderItem={renderWonItem}
+            emptyMessage="落札履歴はありません"
+            loading={isLoadingCurrentTab}
+          />
         </TabsContent>
 
-        {/* 出品履歴 */}
-        <TabsContent value="created">
-          <HistoryGrid items={createdAuctions} renderItem={renderCreatedItem} emptyMessage="出品履歴はありません" loading={loading} />
+        <TabsContent value="created" forceMount={activeTab === "created" ? undefined : true} hidden={activeTab !== "created"}>
+          <HistoryGrid
+            items={currentData as CreatedAuctionItem[]}
+            renderItem={renderCreatedItem}
+            emptyMessage="出品履歴はありません"
+            loading={isLoadingCurrentTab}
+          />
         </TabsContent>
       </Tabs>
+
+      {/* ページネーション部分は一時的にコメントアウトしてLinterエラーを回避 */}
+      {!isLoadingCurrentTab && currentDataCount > 0 && (
+        <AuctionHistoryPagination
+          pagination={{
+            currentPage: currentPage,
+            onPageChange: handlePageChange,
+            totalRowCount: currentDataCount,
+            itemPerPage: AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE,
+            onItemPerPageChange: (rowCount) => setItemPerPage(rowCount),
+          }}
+        />
+      )}
+      {!isLoadingCurrentTab && currentDataCount > AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="mr-2 rounded border p-2 disabled:opacity-50"
+          >
+            前のページ
+          </button>
+          <span className="p-2">
+            {currentPage} / {Math.ceil(currentDataCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)}
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === Math.ceil(currentDataCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)}
+            className="ml-2 rounded border p-2 disabled:opacity-50"
+          >
+            次のページ
+          </button>
+        </div>
+      )}
     </div>
   );
 });

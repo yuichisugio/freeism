@@ -1,5 +1,6 @@
 "use client";
 
+import type { Auction, AuctionReview, AuctionStatus, TaskStatus } from "@prisma/client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -23,7 +24,7 @@ import { useDeliveryMethod } from "@/hooks/auction/history/use-delivery-method";
 import { useAuctionMessages } from "@/hooks/auction/history/use-messages";
 import { useAuctionReview } from "@/hooks/auction/history/use-review";
 import { useTaskCompletion } from "@/hooks/auction/history/use-task-completion";
-import { type Auction, type AuctionReview, type AuctionStatus, type TaskStatus } from "@prisma/client";
+import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ArrowLeft, Edit, History, MessageSquare, Send } from "lucide-react";
@@ -267,7 +268,13 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                     <div className="py-4 text-center">
                       <p className="mb-2 text-gray-500">評価済みです</p>
                       <div className="flex justify-center">
-                        <Rating rating={auction.reviews.find((r) => r.isSellerReview)?.rating ?? 0} size={24} />
+                        <Rating
+                          rating={
+                            auction.reviews.reduce((acc, r) => (r.reviewPosition === ReviewPosition.SELLER_TO_BUYER ? acc + r.rating : acc), 0) /
+                            auction.reviews.length
+                          }
+                          size={24}
+                        />
                       </div>
                     </div>
                   ) : (

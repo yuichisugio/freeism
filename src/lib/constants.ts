@@ -18,6 +18,12 @@ export const NOTIFICATION_CONSTANTS = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+export const AUCTION_HISTORY_CONSTANTS = {
+  ITEMS_PER_PAGE: 20,
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
  * オークション表示関連の定数
  */
@@ -29,6 +35,8 @@ export const AUCTION_DISPLAY = {
   // 表示件数
   PAGE_SIZE: 20,
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークション情報を更新するためのselect
@@ -65,6 +73,11 @@ export function getAuctionUpdateSelect(take: number) {
   };
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション関連の定数
+ */
 export const AUCTION_CONSTANTS = {
   // 表示関連
   DISPLAY: AUCTION_DISPLAY,

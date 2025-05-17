@@ -2,160 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
-import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
-import { AuctionStatus } from "@prisma/client";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ユーザーの各オークションに対する最新の入札情報のみを取得
- * @returns 重複のないオークションごとの最新入札履歴の配列
- */
-export async function getUserLatestBids(): Promise<BidHistoryItem[]> {
-  console.log("getUserLatestBids_start");
-
-  // 認証
-  const userId = await getAuthenticatedSessionUserId();
-
-  // ユーザーの全入札履歴を取得
-  const allBids = await prisma.bidHistory.findMany({
-    where: {
-      userId: userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      auction: {
-        include: {
-          task: {
-            select: {
-              id: true,
-              task: true,
-              detail: true,
-              imageUrl: true,
-              status: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  // オークションIDごとに最新の入札のみをフィルタリング
-  const latestBidsByAuctionId = new Map<string, BidHistoryItem>();
-
-  // オークションIDごとに最新の入札のみをフィルタリング
-  for (const bid of allBids) {
-    if (!latestBidsByAuctionId.has(bid.auctionId)) {
-      latestBidsByAuctionId.set(bid.auctionId, bid);
-    }
-  }
-
-  // Mapの値を配列に変換して返却
-  return Array.from(latestBidsByAuctionId.values());
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ユーザーの落札したオークション履歴を取得
- * @returns 落札したオークション履歴の配列
- */
-export async function getUserWonAuctions(): Promise<WonAuctionItem[]> {
-  console.log("getUserWonAuctions_start");
-  const userId = await getAuthenticatedSessionUserId();
-
-  const wonAuctions = await prisma.auction.findMany({
-    where: {
-      winnerId: userId,
-      status: AuctionStatus.ENDED,
-    },
-    orderBy: {
-      endTime: "desc",
-    },
-    include: {
-      task: {
-        include: {
-          creator: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-        },
-      },
-      reviews: {
-        where: {
-          reviewerId: userId,
-        },
-        select: {
-          id: true,
-          rating: true,
-          comment: true,
-          isSellerReview: true,
-        },
-      },
-    },
-  });
-
-  return wonAuctions;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ユーザーの出品したオークション履歴を取得
- * @returns 出品したオークション履歴の配列
- */
-export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
-  console.log("getUserCreatedAuctions_start");
-  const userId = await getAuthenticatedSessionUserId();
-
-  const createdAuctions = await prisma.auction.findMany({
-    where: {
-      task: {
-        creatorId: userId,
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      task: {
-        select: {
-          id: true,
-          task: true,
-          detail: true,
-          imageUrl: true,
-          status: true,
-          deliveryMethod: true,
-        },
-      },
-      winner: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-      reviews: {
-        where: {
-          reviewerId: userId,
-        },
-        select: {
-          id: true,
-          rating: true,
-          comment: true,
-          isSellerReview: true,
-        },
-      },
-    },
-  });
-
-  return createdAuctions;
-}
+import { type ReviewPosition } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -165,9 +12,15 @@ export async function getUserCreatedAuctions(): Promise<CreatedAuctionItem[]> {
  * @param revieweeId レビュー対象者ID
  * @param rating 評価
  * @param comment コメント
- * @param isSellerReview セラーレビューかどうか
+ * @param reviewPosition レビューポジション (SELLER_TO_BUYER または BUYER_TO_SELLER)
  */
-export async function createAuctionReview(auctionId: string, revieweeId: string, rating: number, comment: string | null, isSellerReview: boolean) {
+export async function createAuctionReview(
+  auctionId: string,
+  revieweeId: string,
+  rating: number,
+  comment: string | null,
+  reviewPosition: ReviewPosition,
+) {
   const userId = await getAuthenticatedSessionUserId();
 
   const review = await prisma.auctionReview.create({
@@ -177,7 +30,7 @@ export async function createAuctionReview(auctionId: string, revieweeId: string,
       revieweeId,
       rating,
       comment,
-      isSellerReview,
+      reviewPosition,
     },
   });
 

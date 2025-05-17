@@ -1,7 +1,7 @@
 import type { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Prisma, PrismaClient, TaskStatus } from "@prisma/client";
+import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Prisma, PrismaClient, ReviewPosition, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -15,7 +15,7 @@ import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Pri
  * 設定変更時は相互依存関係に注意してください。
  */
 // 保持する固定ユーザーID (外部からアクセス可能にする)
-const PRESERVED_USER_IDS = ["cma39q7g20000mctm2wljtjan", "cmarmneqq0000g5dyo5md5f84"];
+const PRESERVED_USER_IDS = ["cmas8p75j0000g5qe2bee95b6", "cmarmneqq0000g5dyo5md5f84"];
 
 const SEED_CONFIG = {
   // 基本設定
@@ -1906,7 +1906,8 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
           rating: faker.number.int({ min: SEED_CONFIG.AUCTION_SELLER_REVIEW_RATING_MIN, max: SEED_CONFIG.AUCTION_SELLER_REVIEW_RATING_MAX }), // 売り手からは比較的高評価
           comment: faker.helpers.arrayElement(sellerReviewComments),
           completionProofUrl,
-          isSellerReview: true,
+          // isSellerReview: true, // isSellerReview: true から変更
+          reviewPosition: ReviewPosition.SELLER_TO_BUYER,
           createdAt: new Date(auction.endTime.getTime() + faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000),
         },
       });
@@ -1944,7 +1945,8 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
             rating: faker.number.int({ min: SEED_CONFIG.AUCTION_BUYER_REVIEW_RATING_MIN, max: SEED_CONFIG.AUCTION_BUYER_REVIEW_RATING_MAX }), // 買い手からの評価は若干ばらつきがある
             comment: faker.helpers.arrayElement(buyerReviewComments),
             completionProofUrl,
-            isSellerReview: false,
+            // isSellerReview: false, // isSellerReview: false から変更
+            reviewPosition: ReviewPosition.BUYER_TO_SELLER,
             createdAt: new Date(auction.endTime.getTime() + faker.number.int({ min: 1, max: 7 * 24 }) * 60 * 60 * 1000),
           },
         });

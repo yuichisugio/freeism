@@ -28,7 +28,7 @@ LoadingDisplay.displayName = "LoadingDisplay";
 /**
  * 動的インポートされたコンポーネント
  */
-const AuctionDetailClient = dynamic(() => import("@/components/auction/bid/auction-detail").then((mod) => ({ default: mod.AuctionDetail })), {
+const AuctionDetailClient = dynamic(() => import("@/components/auction/bid/auction-bid-detail").then((mod) => ({ default: mod.AuctionDetail })), {
   ssr: false,
   loading: () => <LoadingDisplay />,
 });

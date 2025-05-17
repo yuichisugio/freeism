@@ -411,27 +411,33 @@ model AutoBid {
   @@index([auctionId, userId, isActive, maxBidAmount], map: "idx_autoBid_auction_user_active_maxbid")
 }
 
+// 相互にレビューする。isSellerReviewでレビューの種類を区別する。isSellerReviewがtrueの場合は出品者の時に落札者に対して行う
 model AuctionReview {
-  id                 String   @id @default(cuid())
-  auctionId          String   @map("auction_id")
-  reviewerId         String   @map("reviewer_id")
-  revieweeId         String   @map("reviewee_id")
+  id                 String         @id @default(cuid())
+  auctionId          String         @map("auction_id")
+  reviewerId         String         @map("reviewer_id")
+  revieweeId         String         @map("reviewee_id")
   rating             Int
   comment            String?
-  completionProofUrl String?  @map("completion_proof_url")
-  isSellerReview     Boolean  @map("is_seller_review")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-  auction            Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  reviewee           User     @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
-  reviewer           User     @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
+  completionProofUrl String?        @map("completion_proof_url")
+  reviewPosition     ReviewPosition @map("review_position")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  auction            Auction        @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  reviewee           User           @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewer           User           @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, reviewerId, revieweeId])
   @@index([auctionId, reviewerId]) // 特定オークションに対する特定のレビュアーのレビュー検索
   @@index([revieweeId]) // 特定ユーザーが受け取ったレビュー一覧
   @@index([reviewerId]) // 特定ユーザーが行ったレビュー一覧
   @@index([rating])
-  @@index([isSellerReview])
+  @@index([reviewPosition])
+}
+
+enum ReviewPosition {
+  SELLER_TO_BUYER
+  BUYER_TO_SELLER
 }
 
 model AuctionMessage {

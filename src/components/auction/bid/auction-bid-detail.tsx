@@ -17,10 +17,10 @@ import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-import { AuctionQA } from "./auction-qa";
+import { CountdownDisplay } from "./auction-bid-countdown";
+import { AuctionQA } from "./auction-bid-qa";
 import { BidForm } from "./bid-form";
 import { BidHistory } from "./bid-history";
-import { CountdownDisplay } from "./countdown-display";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

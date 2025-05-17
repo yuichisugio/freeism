@@ -51,6 +51,16 @@ export const queryCacheKeys = {
     detail: (auctionId: string) => [...queryCacheKeys.auction._root, "detail", auctionId] as const,
     autoBid: (auctionId: string, userId: string, currentHighestBid: number) =>
       [...queryCacheKeys.auction._root, "autoBid", auctionId, userId, currentHighestBid] as const,
+    history: () => [...queryCacheKeys.auction._root, "history"] as const,
+    historyBids: (userId: string, page: number, itemPerPage: number) =>
+      [...queryCacheKeys.auction.history(), "bids", userId, page, itemPerPage] as const,
+    historyBidsCount: (userId: string) => [...queryCacheKeys.auction.history(), "bidsCount", userId] as const,
+    historyWon: (userId: string, page: number, itemPerPage: number) =>
+      [...queryCacheKeys.auction.history(), "won", userId, page, itemPerPage] as const,
+    historyWonCount: (userId: string) => [...queryCacheKeys.auction.history(), "wonCount", userId] as const,
+    historyCreated: (userId: string, page: number, itemPerPage: number) =>
+      [...queryCacheKeys.auction.history(), "created", userId, page, itemPerPage] as const,
+    historyCreatedCount: (userId: string) => [...queryCacheKeys.auction.history(), "createdCount", userId] as const,
   },
 
   table: {

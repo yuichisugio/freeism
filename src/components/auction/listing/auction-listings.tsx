@@ -1,9 +1,9 @@
 "use client";
 
 import React, { memo, useCallback } from "react";
-import { AuctionCard } from "@/components/auction/listing/auction-card";
-import { AuctionFilters } from "@/components/auction/listing/auction-filters";
-import { AuctionPagination } from "@/components/auction/listing/auction-pagination";
+import { AuctionCard } from "@/components/auction/listing/auction-listing-card";
+import { AuctionFilters } from "@/components/auction/listing/auction-listing-filters";
+import { AuctionPagination } from "@/components/auction/listing/auction-listing-pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings";
 

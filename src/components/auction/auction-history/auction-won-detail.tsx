@@ -1,5 +1,6 @@
 "use client";
 
+import type { Auction, AuctionReview, TaskStatus } from "@prisma/client";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -18,7 +19,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { completeTaskDelivery, createAuctionReview } from "@/lib/auction/action/history";
-import { type Auction, type AuctionReview, type TaskStatus } from "@prisma/client";
+import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ArrowLeft, Award, Calendar, Clock, MessageSquare, ShoppingBag } from "lucide-react";
@@ -95,13 +96,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
 
     setIsSubmitting(true);
     try {
-      await createAuctionReview(
-        auction.id,
-        auction.task.creatorId,
-        rating,
-        comment,
-        false, // 落札者からの評価なのでfalse
-      );
+      await createAuctionReview(auction.id, auction.task.creatorId, rating, comment, ReviewPosition.BUYER_TO_SELLER);
       toast.success("評価を送信しました");
       router.refresh();
     } catch (error) {

@@ -1,9 +1,10 @@
 "use client";
 
+import type { AuctionReview } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createAuctionReview } from "@/lib/auction/action/history";
-import { type AuctionReview } from "@prisma/client";
+import { ReviewPosition } from "@prisma/client";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -43,7 +44,10 @@ export function useAuctionReview({ auctionId, winnerId, creatorId, reviews }: Us
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // ユーザーがすでに評価を送信したかどうか
-  const hasReviewed = useMemo(() => reviews.some((review) => review.reviewerId === creatorId && review.isSellerReview), [reviews, creatorId]);
+  const hasReviewed = useMemo(
+    () => reviews.some((review) => review.reviewerId === creatorId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER),
+    [reviews, creatorId],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -66,7 +70,7 @@ export function useAuctionReview({ auctionId, winnerId, creatorId, reviews }: Us
         winnerId,
         rating,
         comment,
-        true, // 出品者からの評価なのでtrue
+        ReviewPosition.SELLER_TO_BUYER, // 出品者からの評価なのでtrue
       );
       toast.success("評価を送信しました");
       router.refresh();

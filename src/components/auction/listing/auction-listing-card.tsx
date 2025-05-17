@@ -3,7 +3,7 @@
 import { memo, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { CardCountdown } from "@/components/auction/listing/auction-countdown";
+import { CardCountdown } from "@/components/auction/listing/auction-listing-countdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
