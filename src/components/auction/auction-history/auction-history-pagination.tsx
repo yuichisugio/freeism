@@ -42,6 +42,8 @@ export function AuctionHistoryPagination({ pagination }: { pagination: ShareTabl
    */
   const { currentPage, onPageChange, totalRowCount, itemPerPage, onItemPerPageChange } = pagination;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * ページネーションの条件
    */
@@ -57,6 +59,8 @@ export function AuctionHistoryPagination({ pagination }: { pagination: ShareTabl
   // 表示アイテム範囲の計算
   const startItem = totalRowCount > 0 ? (currentPage - 1) * itemPerPage + 1 : 0;
   const endItem = Math.min(currentPage * itemPerPage, totalRowCount);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 表示件数のドロップダウンメニュー

@@ -6,7 +6,7 @@ import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/component
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionHistory } from "@/hooks/auction/history/use-auction-history";
-import { AUCTION_CONSTANTS, AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
+import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -303,7 +303,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
           }}
         />
       )}
-      {!isLoadingCurrentTab && currentDataCount > AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE && (
+      {!isLoadingCurrentTab && currentDataCount > AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE && (
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
@@ -313,11 +313,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
             前のページ
           </button>
           <span className="p-2">
-            {currentPage} / {Math.ceil(currentDataCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)}
+            {currentPage} / {Math.ceil(currentDataCount / AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE)}
           </span>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === Math.ceil(currentDataCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE)}
+            disabled={currentPage === Math.ceil(currentDataCount / AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE)}
             className="ml-2 rounded border p-2 disabled:opacity-50"
           >
             次のページ

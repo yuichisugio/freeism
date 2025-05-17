@@ -49,7 +49,7 @@ type BidHistory = {
   };
 };
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 出品商品詳細画面コンポーネントのprops
@@ -90,19 +90,28 @@ type AuctionCreatedDetailProps = {
  * @param winnerReviews 落札者の評価履歴
  */
 export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: AuctionCreatedDetailProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // カスタムフックの使用
+  /**
+   * メッセージ
+   */
   const { messages, newMessage, setNewMessage, isLoadingMessages, isSendingMessage, messagesEndRef, handleSendMessage } = useAuctionMessages(
     auction.id,
     auction.winner?.id,
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 評価
+   */
   const { rating, setRating, comment, setComment, isSubmitting, hasReviewed, handleReviewSubmit } = useAuctionReview({
     auctionId: auction.id,
     winnerId: auction.winner?.id,
@@ -110,17 +119,26 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
     reviews: auction.reviews,
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 提供方法
+   */
   const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } =
     useDeliveryMethod(auction.task.id, auction.task.deliveryMethod ?? "");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 完了
+   */
   const { isCompleting, handleComplete } = useTaskCompletion(auction.task.id);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 商品情報と落札者情報と評価
+   */
   return (
     <div className="container mx-auto py-6">
       {/* 履歴一覧に戻るボタン */}

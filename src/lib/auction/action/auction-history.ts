@@ -1,6 +1,5 @@
 "use server";
 
-import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
 import { AuctionStatus, ReviewPosition } from "@prisma/client";

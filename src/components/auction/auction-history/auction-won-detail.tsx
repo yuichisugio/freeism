@@ -30,7 +30,9 @@ import { TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 落札商品詳細画面コンポーネントのprops
+/**
+ * 落札商品詳細画面コンポーネントのprops
+ */
 type AuctionWonDetailProps = {
   auction: Auction & {
     task: {
@@ -66,12 +68,16 @@ type AuctionWonDetailProps = {
 export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, sellerRating, sellerReviews }: AuctionWonDetailProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ルーター
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 評価
+  /**
+   * state
+   */
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,7 +85,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーがすでに評価を送信したかどうか
+  /**
+   * ユーザーがすでに評価を送信したかどうか
+   */
   const hasReviewed = useMemo(
     () => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.winnerId),
     [auction.reviews, auction.winnerId],
@@ -87,7 +95,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 評価を送信する
+  /**
+   * 評価を送信する
+   */
   const handleReviewSubmit = useCallback(async () => {
     if (rating === 0) {
       toast.error("評価を選択してください");
@@ -109,7 +119,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 商品の受け取りを完了する
+  /**
+   * 商品の受け取りを完了する
+   */
   const handleComplete = useCallback(async () => {
     setIsCompleting(true);
     try {
@@ -126,7 +138,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 落札商品詳細画面コンポーネント
+  /**
+   * 落札商品詳細画面コンポーネント
+   */
   return (
     <div className="container mx-auto py-6">
       {/* 履歴一覧に戻るボタン */}

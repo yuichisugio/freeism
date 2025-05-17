@@ -29,21 +29,26 @@ type UseAuctionReviewProps = {
 export function useAuctionReview({ auctionId, winnerId, creatorId, reviews }: UseAuctionReviewProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ルーター
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
+  /**
+   * state
+   */
   // 評価
   const [rating, setRating] = useState(0);
-
   // コメント
   const [comment, setComment] = useState("");
-
   // 評価送信ローディング
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーがすでに評価を送信したかどうか
+  /**
+   * ユーザーがすでに評価を送信したかどうか
+   */
   const hasReviewed = useMemo(
     () => reviews.some((review) => review.reviewerId === creatorId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER),
     [reviews, creatorId],
@@ -51,7 +56,9 @@ export function useAuctionReview({ auctionId, winnerId, creatorId, reviews }: Us
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 評価を送信する
+  /**
+   * 評価を送信する
+   */
   const handleReviewSubmit = useCallback(async () => {
     if (!winnerId) {
       toast.error("落札者がいないため評価できません");
@@ -85,12 +92,14 @@ export function useAuctionReview({ auctionId, winnerId, creatorId, reviews }: Us
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
     rating,
-    setRating,
     comment,
-    setComment,
     isSubmitting,
     hasReviewed,
+    // function
     handleReviewSubmit,
+    setRating,
+    setComment,
   };
 }
