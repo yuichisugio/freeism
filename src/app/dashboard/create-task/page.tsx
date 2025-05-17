@@ -1,9 +1,9 @@
+"use cache";
+
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { MainTemplate } from "@/components/layout/maintemplate";
-import { TaskInputForm } from "@/components/task/task-input-form";
-import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { CreateTaskForm } from "@/components/task/create-task-form";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -19,113 +19,34 @@ export const metadata: Metadata = {
 
 /**
  * 新規Task作成ページ
+ * @param searchParams グループID
+ * @returns 新規Task作成ページ
  */
-export default async function NewTaskPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
-  // グループ選択のComboBoxが必要かのフラグ
-  let groupComboBoxFlag = false;
+export default async function CreateTaskPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // searchParamsはPromiseを返すためawaitする
+  /**
+   * キャッシュの有効期間を設定
+   */
+  cacheLife("max");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループID
+   */
   const params = await searchParams;
   const groupId = params.groupId;
 
-  const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  let groups: { id: string; name: string }[] = [];
-
-  if (!groupId) {
-    // グループ選択のComboBoxが必要な場合
-    groupComboBoxFlag = true;
-    // ユーザーが参加しているグループを取得
-    const memberships = await prisma.groupMembership.findMany({
-      where: {
-        userId: userId,
-      },
-      include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    groups = memberships.map((membership) => ({
-      id: membership.group.id,
-      name: membership.group.name,
-    }));
-  } else {
-    groupComboBoxFlag = false;
-    groups = [
-      {
-        id: groupId,
-        name: "",
-      },
-    ];
-  }
-
-  // グループに所属するユーザー一覧を取得
-  let users: { id: string; name: string }[] = [];
-
-  if (groupId) {
-    // 特定のグループのメンバーを取得
-    const groupMembers = await prisma.groupMembership.findMany({
-      where: {
-        groupId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    users = groupMembers.map((member) => ({
-      id: member.user.id,
-      name: member.user.name ?? "不明なユーザー",
-    }));
-  } else {
-    // ユーザーが所属するすべてのグループのメンバーを取得
-    const allGroupIds = groups.map((group) => group.id);
-
-    if (allGroupIds.length > 0) {
-      const groupMembers = await prisma.groupMembership.findMany({
-        where: {
-          groupId: {
-            in: allGroupIds,
-          },
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
-
-      // 重複ユーザーを削除
-      const uniqueUsers = new Map<string, { id: string; name: string }>();
-      groupMembers.forEach((member) => {
-        uniqueUsers.set(member.user.id, {
-          id: member.user.id,
-          name: member.user.name ?? "不明なユーザー",
-        });
-      });
-
-      users = Array.from(uniqueUsers.values());
-    }
-  }
-
+  /**
+   * 新規Task作成ページ
+   * @returns 新規Task作成ページ
+   */
   return (
     <MainTemplate title="新規Task作成" description="新規タスクを作成します">
-      <Suspense fallback={<div>Loading...</div>}>
-        <TaskInputForm groups={groups} groupComboBoxFlag={groupComboBoxFlag} users={users} />
-      </Suspense>
+      <CreateTaskForm groupId={groupId ?? null} />
     </MainTemplate>
   );
 }

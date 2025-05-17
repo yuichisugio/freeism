@@ -1,25 +1,14 @@
 "use client";
 
-import type { Group, User } from "@/hooks/form/use-task-input-form";
 import type { Control, FieldValues, UseFormReturn } from "react-hook-form";
 import { memo } from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
+import { Loading } from "@/components/share/loading";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
-import { useTaskInputForm } from "@/hooks/form/use-task-input-form";
+import { useTaskInputForm } from "@/hooks/form/use-create-task-form";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスク入力フォームのprops
- */
-type TaskInputFormProps = {
-  groups: Group[];
-  groupComboBoxFlag: boolean;
-  users?: User[];
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -30,27 +19,32 @@ type TaskInputFormProps = {
  * @param users ユーザー
  * @returns タスク入力フォーム
  */
-export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBoxFlag, users = [] }: TaskInputFormProps): JSX.Element {
+export const CreateTaskForm = memo(function CreateTaskForm({ groupId }: { groupId: string | null }): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/components/task/task-input-form.tsx_TaskInputForm_start");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // カスタムフックからロジックを取得
+  /**
+   * カスタムフックからロジックを取得
+   */
   const {
+    // state
+    groupComboBoxFlag,
+    groups,
+    users,
     form,
     open,
-    setOpen,
     categoryOpen,
-    setCategoryOpen,
     executors,
     nonRegisteredExecutor,
-    setNonRegisteredExecutor,
     reporters,
     nonRegisteredReporter,
-    setNonRegisteredReporter,
     isRewardType,
+    isLoading,
+
+    // function
+    setCategoryOpen,
+    setNonRegisteredExecutor,
+    setOpen,
+    setNonRegisteredReporter,
     addExecutor,
     removeExecutor,
     addReporter,
@@ -58,21 +52,40 @@ export const TaskInputForm = memo(function TaskInputForm({ groups, groupComboBox
     handleImageUploaded,
     handleImageRemoved,
     onSubmit,
-  } = useTaskInputForm({ users });
+  } = useTaskInputForm(groupId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 型安全性のため form の型を明示的に指定
+  /**
+   * 型安全性のため form の型を明示的に指定
+   */
   const typedControl = form.control as unknown as Control<FieldValues>;
   const typedExecutors = executors;
   const typedReporters = reporters;
   const typedGetValues = form.getValues;
-  // FormLayoutに渡すための型変換
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * FormLayoutに渡すための型変換
+   */
   const typedForm = form as unknown as UseFormReturn<FieldValues>;
   const typedOnSubmit = onSubmit as (data: FieldValues) => Promise<void>;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ローディング中の場合の処理を追加
+   */
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク入力フォーム
+   */
   return (
     <FormLayout form={typedForm} onSubmit={typedOnSubmit} submitLabel="保存" submittingLabel="保存中...">
       {/* グループ選択が必要な場合 */}

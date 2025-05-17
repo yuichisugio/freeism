@@ -119,7 +119,7 @@ export function useNotificationList(): NotificationManagerResult {
     fetchNextPage,
     hasNextPage,
     refetch,
-  } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string | undefined], number>({
+  } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string, string, string], number>({
     queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
     queryFn: async ({ pageParam }) => {
       console.log(`src/hooks/notification/use-notification-list.ts_useInfiniteQuery_queryFn (page: ${pageParam})`);

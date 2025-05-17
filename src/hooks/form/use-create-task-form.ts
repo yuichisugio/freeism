@@ -3,10 +3,13 @@
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { prepareCreateTaskForm } from "@/lib/actions/task/create-task-form";
 import { createTask } from "@/lib/actions/task/task";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -102,30 +105,28 @@ export type TaskFormValuesAndGroupId = TaskFormValues & {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * カスタムフックの引数の型定義
- */
-type UseTaskInputFormProps = {
-  users?: User[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * カスタムフックの戻り値の型定義
  */
 type UseTaskInputFormReturn = {
+  // state
+  groups: { id: string; name: string }[];
+  users: { id: string; name: string }[];
+  groupComboBoxFlag: boolean;
   form: UseFormReturn<TaskFormValues>;
   open: boolean;
-  setOpen: (open: boolean) => void;
   categoryOpen: boolean;
-  setCategoryOpen: (open: boolean) => void;
   executors: TaskParticipant[];
   nonRegisteredExecutor: string;
-  setNonRegisteredExecutor: (value: string) => void;
   reporters: TaskParticipant[];
   nonRegisteredReporter: string;
-  setNonRegisteredReporter: (value: string) => void;
   isRewardType: boolean;
+  isLoading: boolean;
+
+  // function
+  setOpen: (open: boolean) => void;
+  setCategoryOpen: (open: boolean) => void;
+  setNonRegisteredExecutor: (value: string) => void;
+  setNonRegisteredReporter: (value: string) => void;
   addExecutor: (userId?: string, name?: string) => void;
   removeExecutor: (index: number) => void;
   addReporter: (userId?: string, name?: string) => void;
@@ -140,15 +141,19 @@ type UseTaskInputFormReturn = {
 /**
  * カスタムフック
  */
-export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTaskInputFormReturn {
+export function useTaskInputForm(groupId: string | null): UseTaskInputFormReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ルーター
+  /**
+   * ルーター
+   */
   const router = useRouter();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 状態管理
+  /**
+   * state管理
+   */
   const [open, setOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [executors, setExecutors] = useState<TaskParticipant[]>([]);
@@ -158,7 +163,25 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // フォーム
+  /**
+   * タスク作成フォームのデータを取得
+   */
+  const { data: formData, isLoading: isLoadingFormData } = useQuery({
+    queryKey: queryCacheKeys.tasks.prepareCreateTaskForm(groupId),
+    queryFn: () => prepareCreateTaskForm(groupId),
+    enabled: true,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+  });
+
+  // useQueryから取得したデータがない場合のデフォルト値
+  const { groups = [], users = [], groupComboBoxFlag = false } = formData ?? {};
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * フォーム
+   */
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -179,7 +202,9 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 現在選択されている貢献タイプ
+  /**
+   * 現在選択されている貢献タイプ
+   */
   const selectedContributionType = form.watch("contributionType");
   const isRewardType = useMemo(() => selectedContributionType === contributionType.REWARD, [selectedContributionType]);
 
@@ -194,7 +219,7 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users.find((u) => u.id === userId);
+        const user = users.find((u: User) => u.id === userId);
         if (user && !executors.some((e) => e.userId === userId)) {
           const newExecutors = [...executors, { userId, name: user.name }];
           setExecutors(newExecutors);
@@ -222,7 +247,7 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users.find((u) => u.id === userId);
+        const user = users.find((u: User) => u.id === userId);
         if (user && !reporters.some((r) => r.userId === userId)) {
           const newReporters = [...reporters, { userId, name: user.name }];
           setReporters(newReporters);
@@ -344,6 +369,10 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
+    groups,
+    users,
+    groupComboBoxFlag,
     form,
     open,
     setOpen,
@@ -356,6 +385,9 @@ export function useTaskInputForm({ users = [] }: UseTaskInputFormProps): UseTask
     nonRegisteredReporter,
     setNonRegisteredReporter,
     isRewardType,
+    isLoading: isLoadingFormData,
+
+    // function
     addExecutor,
     removeExecutor,
     addReporter,

@@ -1,6 +1,6 @@
 "use server";
 
-import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use-task-input-form";
+import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use-create-task-form";
 import { revalidatePath } from "next/cache";
 import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
 import { prisma } from "@/lib/prisma";
