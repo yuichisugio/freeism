@@ -107,7 +107,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
   /**
    * アプリケーションオーナー権限の取得
    */
-  const { data: isAppOwner = false, isLoading: isLoadingAppOwner } = useQuery({
+  const { data: isAppOwner = false, isPending: isLoadingAppOwner } = useQuery({
     queryKey: queryCacheKeys.permission.appOwner(userId),
     queryFn: async () => await checkAppOwner(userId),
     enabled: !!userId,
@@ -120,7 +120,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
   /**
    * グループオーナー権限の取得
    */
-  const { data: isGroupOwner = false, isLoading: isLoadingGroupOwner } = useQuery({
+  const { data: isGroupOwner = false, isPending: isLoadingGroupOwner } = useQuery({
     queryKey: queryCacheKeys.permission.oneGroupOwner(userId),
     queryFn: async () => await checkOneGroupOwner(userId),
     enabled: !!userId,
@@ -133,7 +133,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
   /**
    * ユーザー一覧の取得
    */
-  const { data: { users, groups, tasks } = { users: [], groups: [], tasks: [] }, isLoading: isLoadingUserTaskGroup } = useQuery({
+  const { data: { users, groups, tasks } = { users: [], groups: [], tasks: [] }, isPending: isLoadingUserTaskGroup } = useQuery({
     queryKey: queryCacheKeys.Notification.prepareCreateNotificationForm(userId, isAppOwner, isGroupOwner),
     queryFn: async () => await prepareCreateNotificationForm(isAppOwner, isGroupOwner, userId),
     enabled: !!userId && !!isAppOwner && !!isGroupOwner,
