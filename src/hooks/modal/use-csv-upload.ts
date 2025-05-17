@@ -138,7 +138,7 @@ type ContributionEvaluationData = {
 type FixedContributionData = {
   id: string;
   fixedContributionPoint: string | number;
-  fixedEvaluator: string;
+  fixedEvaluatorId: string;
   fixedEvaluationLogic: string;
   fixedEvaluationDate?: string | Date;
   [key: string]: unknown;
@@ -171,7 +171,7 @@ export const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
 const REQUIRED_COLUMNS: Record<UploadType, string[]> = {
   TASK_REPORT: ["task", "contributionType"],
   CONTRIBUTION_EVALUATION: ["taskId", "contributionPoint", "evaluationLogic"],
-  FIXED_CONTRIBUTION: ["id", "fixedContributionPoint", "fixedEvaluator", "fixedEvaluationLogic"],
+  FIXED_CONTRIBUTION: ["id", "fixedContributionPoint", "fixedEvaluatorId", "fixedEvaluationLogic"],
   TASK_STATUS: ["taskId", "status"],
 };
 
@@ -201,7 +201,7 @@ export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   FIXED_CONTRIBUTION: {
     title: "FIXした分析結果",
     description: "分析結果を一括で登録します。",
-    requiredFields: "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluator（評価者ID）, fixedEvaluationLogic（評価ロジック）",
+    requiredFields: "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluatorId（評価者ID）, fixedEvaluationLogic（評価ロジック）",
     optionalFields: "fixedEvaluationDate（評価日, YYYY-MM-DD形式）",
     note: "ステータスが「タスク完了(TASK_COMPLETED)」のタスクのみが対象です",
     example: "clrqz3kp20000n4og9xq9d6mt,100,clrq0001,ロジックの説明,2023-04-01",
@@ -639,14 +639,14 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
     return data.map((row) => {
       const id = typeof row.id === "string" ? row.id : "";
       const fixedContributionPoint = row.fixedContributionPoint || "0";
-      const fixedEvaluator = typeof row.fixedEvaluator === "string" ? row.fixedEvaluator : "";
+      const fixedEvaluatorId = typeof row.fixedEvaluatorId === "string" ? row.fixedEvaluatorId : "";
       const fixedEvaluationLogic = typeof row.fixedEvaluationLogic === "string" ? row.fixedEvaluationLogic : "";
       const fixedEvaluationDate = row.fixedEvaluationDate;
 
       return {
         id,
         fixedContributionPoint,
-        fixedEvaluator,
+        fixedEvaluatorId,
         fixedEvaluationLogic,
         fixedEvaluationDate,
       } as FixedContributionData;

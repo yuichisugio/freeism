@@ -88,19 +88,6 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskDetail" as keyof MyTaskTable,
-        header: "タスク詳細",
-        sortable: false,
-        cell: (row) => row.taskDetail ?? "-",
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        editTask: false,
-        deleteTask: null,
-        cellClassName: null,
-      },
-      {
         key: "taskReporterUserNames" as keyof MyTaskTable,
         header: "報告者",
         sortable: false,
@@ -179,25 +166,13 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "id" as keyof MyTaskTable,
-        header: "アクション",
-        cell: () => null,
-        sortable: false,
-        editTask: true,
-        statusCombobox: false,
-        joinGroupModal: false,
-        leaveGroupModal: false,
-        modalList: null,
-        cellClassName: null,
-      },
-      {
         key: "auctionId" as keyof MyTaskTable,
         header: "オークション",
         cell: (row: MyTaskTable) => {
           if (row.auctionId) {
             return (
               <Button onClick={() => router.push(`/dashboard/auction/${row.auctionId}`)} className="button-default-custom" size="sm">
-                {row.auctionId}
+                オークションに参加
               </Button>
             );
           }

@@ -204,8 +204,8 @@ export const TaskEditModal = memo(function TaskEditModal({
                 <div className="flex gap-2">
                   <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addExecutor(e.target.value)} value="">
                     <option value="">登録済みユーザーから選択...</option>
-                    {users.map((user: TaskParticipant) => (
-                      <option key={user.appUserId ?? ""} value={user.appUserId ?? ""}>
+                    {users.map((user: TaskParticipant, index: number) => (
+                      <option key={`user-${index}`} value={user.appUserId ?? ""}>
                         {user.appUserName}
                       </option>
                     ))}
@@ -269,8 +269,8 @@ export const TaskEditModal = memo(function TaskEditModal({
                 <div className="flex gap-2">
                   <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addReporter(e.target.value)} value="">
                     <option value="">登録済みユーザーから選択...</option>
-                    {users.map((user: TaskParticipant) => (
-                      <option key={user.appUserId ?? ""} value={user.appUserId ?? ""}>
+                    {users.map((user: TaskParticipant, index: number) => (
+                      <option key={`user-${index}`} value={user.appUserId ?? ""}>
                         {user.appUserName}
                       </option>
                     ))}

@@ -192,7 +192,7 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       contributionType: string;
       info: string | null;
       fixedContributionPoint: number | null;
-      fixedEvaluator: string | null;
+      fixedEvaluatorId: string | null;
       createdAt: Date;
       updatedAt: Date;
       creator: {
@@ -269,7 +269,7 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
         証拠情報: task.info ?? "",
         ステータス: task.status,
         貢献ポイント: task.fixedContributionPoint ?? 0,
-        評価者: task.fixedEvaluator ?? "",
+        評価者: task.fixedEvaluatorId ?? "",
         貢献タイプ: task.contributionType,
         作成者: task.creator?.name ?? "不明",
         報告者: reporterNames,
@@ -297,7 +297,7 @@ type TaskWithRelations = {
   contributionType: string;
   info: string | null;
   fixedContributionPoint: number | null;
-  fixedEvaluator: string | null;
+  fixedEvaluatorId: string | null;
   fixedEvaluationLogic: string | null;
   fixedEvaluationDate: Date | null;
   userFixedSubmitterId: string | null;
@@ -383,7 +383,7 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
         contributionType: true,
         info: true,
         fixedContributionPoint: true,
-        fixedEvaluator: true,
+        fixedEvaluatorId: true,
         fixedEvaluationLogic: true,
         fixedEvaluationDate: true,
         userFixedSubmitterId: true,
@@ -424,8 +424,8 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
 
     // 固定評価者と固定提出者のIDを追加（nullでないものだけ）
     tasks.forEach((task) => {
-      if (task.fixedEvaluator) {
-        userIds.push(task.fixedEvaluator);
+      if (task.fixedEvaluatorId) {
+        userIds.push(task.fixedEvaluatorId);
       }
 
       if (task.userFixedSubmitterId) {
@@ -460,7 +460,7 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
         contributionType: task.contributionType,
         info: task.info,
         fixedContributionPoint: task.fixedContributionPoint,
-        fixedEvaluator: task.fixedEvaluator,
+        fixedEvaluatorId: task.fixedEvaluatorId,
         fixedEvaluationLogic: task.fixedEvaluationLogic,
         fixedEvaluationDate: task.fixedEvaluationDate,
         userFixedSubmitterId: task.userFixedSubmitterId,
@@ -530,7 +530,7 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
 
     analytics.forEach((item) => {
       const task = tasksMap[item.id];
-      const evaluatorId = task.fixedEvaluator;
+      const evaluatorId = task.fixedEvaluatorId;
 
       // nullの安全な処理
       const evaluator = evaluatorId && typeof evaluatorId === "string" && usersMap[evaluatorId] ? usersMap[evaluatorId] : undefined;
@@ -556,7 +556,7 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
         タスクID: task.id,
         貢献ポイント: task.fixedContributionPoint ?? 0,
         評価ロジック: task.fixedEvaluationLogic ?? "",
-        評価者ID: task.fixedEvaluator ?? "",
+        評価者ID: task.fixedEvaluatorId ?? "",
         評価者名: evaluatorName ?? "",
         タスク内容: taskContent,
         参照情報: referenceContent,
@@ -969,7 +969,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
 type FixedEvaluationData = {
   id: string;
   fixedContributionPoint: string | number;
-  fixedEvaluator: string;
+  fixedEvaluatorId: string;
   fixedEvaluationLogic: string;
   fixedEvaluationDate?: string | Date;
   失敗理由?: string;
@@ -1053,7 +1053,7 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
           }
 
           // 評価者と評価ロジックのチェック
-          if (!row.fixedEvaluator) {
+          if (!row.fixedEvaluatorId) {
             failedData.push({ ...row, 失敗理由: "固定評価者が指定されていません" });
             continue;
           }
@@ -1083,7 +1083,7 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
             where: { id: row.id },
             data: {
               fixedContributionPoint: contributionPoint,
-              fixedEvaluator: row.fixedEvaluator,
+              fixedEvaluatorId: row.fixedEvaluatorId,
               fixedEvaluationLogic: row.fixedEvaluationLogic,
               fixedEvaluationDate: evaluationDate,
               userFixedSubmitterId: userId,
@@ -1245,7 +1245,7 @@ export async function bulkUpdateTaskStatuses(
       contributionType: string;
       info: string | null;
       fixedContributionPoint: number | null;
-      fixedEvaluator: string | null;
+      fixedEvaluatorId: string | null;
       fixedEvaluationLogic: string | null;
       fixedEvaluationDate: Date | null;
       createdAt: Date;

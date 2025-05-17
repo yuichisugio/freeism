@@ -82,7 +82,7 @@ export async function getMyTaskData(tableConditions: MyTaskTableConditions): Pro
       } else if (field === "taskFixedContributionPoint") {
         orderBy = { fixedContributionPoint: direction };
       } else if (field === "taskFixedEvaluator") {
-        orderBy = { fixedEvaluator: direction };
+        orderBy = { fixedEvaluator: { settings: { username: direction } } };
       } else if (field === "taskFixedEvaluationLogic") {
         orderBy = { fixedEvaluationLogic: direction };
       } else if (field === "id") {
@@ -110,7 +110,15 @@ export async function getMyTaskData(tableConditions: MyTaskTableConditions): Pro
         status: true,
         contributionType: true,
         fixedContributionPoint: true,
-        fixedEvaluator: true,
+        fixedEvaluator: {
+          select: {
+            settings: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
         fixedEvaluationLogic: true,
         creator: {
           select: {
@@ -178,17 +186,19 @@ export async function getMyTaskData(tableConditions: MyTaskTableConditions): Pro
       taskStatus: task.status,
       taskContributionType: task.contributionType,
       taskFixedContributionPoint: task.fixedContributionPoint,
-      taskFixedEvaluator: task.fixedEvaluator,
+      taskFixedEvaluator: task.fixedEvaluator?.settings?.username ?? "未設定",
       taskFixedEvaluationLogic: task.fixedEvaluationLogic,
       taskCreatorName: task.creator?.settings?.username ?? "未設定",
       taskReporterUserIds: task.reporters.map((r) => r.userId).filter((id): id is string => id != null),
       taskExecutorUserIds: task.executors.map((e) => e.userId).filter((id): id is string => id != null),
       taskReporterUserNames: task.reporters
         .map((r) => r.user?.settings?.username)
-        .filter((name): name is string => name != null && name !== "未設定"),
+        .filter((name): name is string => name != null && name !== "未設定")
+        .join(", "),
       taskExecutorUserNames: task.executors
         .map((e) => e.user?.settings?.username)
-        .filter((name): name is string => name != null && name !== "未設定"),
+        .filter((name): name is string => name != null && name !== "未設定")
+        .join(", "),
       reporters: task.reporters.map((r) => ({ appUserName: r.user?.settings?.username ?? null, appUserId: r.userId ?? null })),
       executors: task.executors.map((e) => ({ appUserName: e.user?.settings?.username ?? null, appUserId: e.userId ?? null })),
       groupId: task.group.id,

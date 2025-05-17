@@ -100,6 +100,16 @@ export async function getGroupTaskAndCount({
             id: true,
           },
         },
+        fixedEvaluator: {
+          select: {
+            settings: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
         creator: {
           select: {
             settings: {
@@ -185,7 +195,7 @@ export async function getGroupTaskAndCount({
         taskStatus: task.status,
         taskContributionType: task.contributionType,
         taskFixedContributionPoint: task.fixedContributionPoint,
-        taskFixedEvaluator: task.fixedEvaluator,
+        taskFixedEvaluator: task.fixedEvaluator?.settings?.username ?? "未設定",
         taskFixedEvaluationLogic: task.fixedEvaluationLogic,
         taskCreator: task.creator.settings?.username ?? "未設定",
         taskReporterUserIds: reporterIds.length > 0 ? reporterIds : null,

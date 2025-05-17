@@ -15,7 +15,7 @@ import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Pri
  * 設定変更時は相互依存関係に注意してください。
  */
 // 保持する固定ユーザーID (外部からアクセス可能にする)
-const PRESERVED_USER_IDS = ["cma39q7g20000mctm2wljtjan", "cm9mipm72000wmcaj9wk3zfu2"];
+const PRESERVED_USER_IDS = ["cma39q7g20000mctm2wljtjan", "cmarmneqq0000g5dyo5md5f84"];
 
 const SEED_CONFIG = {
   // 基本設定
@@ -263,7 +263,7 @@ type SeedTask = {
   category?: string | null;
   status: string;
   fixedContributionPoint?: number | null;
-  fixedEvaluator?: string | null;
+  fixedEvaluatorId?: string | null;
   fixedEvaluationLogic?: string | null;
   fixedEvaluationDate?: Date | null;
   userFixedSubmitterId?: string | null;
@@ -677,7 +677,7 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
         evaluatorUser = faker.helpers.arrayElement(otherUsers.length > 0 ? otherUsers : users); // 他のユーザーがいなければ全体から
       }
     }
-    const fixedEvaluator = evaluatorUser?.id ?? null;
+    const fixedEvaluatorId = evaluatorUser?.id ?? null;
     const fixedEvaluationLogic = hasEvaluator ? faker.lorem.paragraph(1) : null;
 
     // 固定貢献ポイント (1-100)
@@ -821,7 +821,7 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
         category,
         status: taskStatus,
         fixedContributionPoint: fixedPoints,
-        fixedEvaluator,
+        fixedEvaluatorId: fixedEvaluatorId,
         fixedEvaluationLogic,
         fixedEvaluationDate: hasEvaluator ? faker.date.recent() : null,
         info,

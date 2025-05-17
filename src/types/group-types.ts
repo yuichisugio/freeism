@@ -278,8 +278,8 @@ export type MyTaskTable = {
   taskCreatorName: string | null;
   taskReporterUserIds: string[] | null;
   taskExecutorUserIds: string[] | null;
-  taskReporterUserNames: string[] | null;
-  taskExecutorUserNames: string[] | null;
+  taskReporterUserNames: string | null;
+  taskExecutorUserNames: string | null;
   reporters: {
     appUserName: string | null;
     appUserId: string | null;

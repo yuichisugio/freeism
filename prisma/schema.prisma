@@ -41,6 +41,7 @@ model User {
   taskReporter       TaskReporter[]
   watchLists         TaskWatchList[]
   settings           UserSettings?
+  fixedEvaluator     Task[]             @relation("FixedEvaluator")
 
   @@index([image])
   @@index([isAppOwner])
@@ -164,7 +165,7 @@ model Task {
   fixedContributionPoint Int?             @map("fixed_contribution_point")
   fixedEvaluationDate    DateTime?        @map("fixed_evaluation_date")
   fixedEvaluationLogic   String?          @map("fixed_evaluation_logic")
-  fixedEvaluator         String?          @map("fixed_evaluator")
+  fixedEvaluatorId       String?          @map("fixed_evaluator_id")
   imageUrl               String?          @map("image_url")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   userFixedSubmitterId   String?          @map("user_fixed_submitter_id")
@@ -178,6 +179,7 @@ model Task {
   userFixedSubmitter     User?            @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
   executors              TaskExecutor[]
   reporters              TaskReporter[]
+  fixedEvaluator         User?            @relation("FixedEvaluator", fields: [fixedEvaluatorId], references: [id], onDelete: Cascade)
 
   @@index([contributionType])
   @@index([category])
