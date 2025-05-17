@@ -3,9 +3,15 @@
 import type { GeneralNotificationParams } from "@/lib/actions/notification/general-notification";
 import type { CreateNotificationFormData } from "@/lib/zod-schema";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { redirect } from "next/navigation";
+import { checkAppOwner } from "@/lib/actions/group";
+import { checkOneGroupOwner, prepareCreateNotificationForm } from "@/lib/actions/notification/create-notification-form";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { createNotificationSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NotificationSendMethod } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -60,31 +66,27 @@ export type Task = {
 /**
  * 通知作成フォーム用の型
  */
-export type UseCreateNotificationProps = {
-  isAppOwner: boolean;
-  isGroupOwner: boolean;
-  users: User[];
-  groups: Group[];
-  tasks: Task[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 通知作成フォーム用の型
- */
-export type UseCreateNotificationResult = {
+export type UseCreateNotificationReturn = {
+  // state
+  hasPermission: boolean;
   form: ReturnType<typeof useForm<CreateNotificationFormData>>;
   targetType: string;
   sendTiming: string;
   userComboOpen: boolean;
-  setUserComboOpen: (open: boolean) => void;
+  isLoading: boolean;
+  isAppOwner: boolean;
   groupComboOpen: boolean;
-  setGroupComboOpen: (open: boolean) => void;
   taskComboOpen: boolean;
-  setTaskComboOpen: (open: boolean) => void;
   sendTimingOptions: RadioOption[];
   targetTypeOptions: RadioOption[];
+  users: User[];
+  groups: Group[];
+  tasks: Task[];
+
+  // function
+  setUserComboOpen: (open: boolean) => void;
+  setGroupComboOpen: (open: boolean) => void;
+  setTaskComboOpen: (open: boolean) => void;
   handleSubmit: (data: CreateNotificationFormData) => Promise<void>;
 };
 
@@ -92,11 +94,60 @@ export type UseCreateNotificationResult = {
 
 /**
  * 通知作成フォーム用のカスタムフック
- * @param {UseCreateNotificationProps} props 通知作成フォーム用のプロップス
- * @returns {UseCreateNotificationResult} 通知作成フォーム用の結果
+ * @returns {UseCreateNotificationReturn} 通知作成フォーム用の結果
  */
-export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNotificationProps): UseCreateNotificationResult {
+export function useCreateNotification(): UseCreateNotificationReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッションの取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect("/auth/signin");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * アプリケーションオーナー権限の取得
+   */
+  const { data: isAppOwner = false, isLoading: isLoadingAppOwner } = useQuery({
+    queryKey: queryCacheKeys.permission.appOwner(userId),
+    queryFn: async () => await checkAppOwner(userId),
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 60 * 24, // 24時間
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループオーナー権限の取得
+   */
+  const { data: isGroupOwner = false, isLoading: isLoadingGroupOwner } = useQuery({
+    queryKey: queryCacheKeys.permission.oneGroupOwner(userId),
+    queryFn: async () => await checkOneGroupOwner(userId),
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 60 * 24, // 24時間
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザー一覧の取得
+   */
+  const { data: { users, groups, tasks } = { users: [], groups: [], tasks: [] }, isLoading: isLoadingUserTaskGroup } = useQuery({
+    queryKey: queryCacheKeys.Notification.prepareCreateNotificationForm(userId, isAppOwner, isGroupOwner),
+    queryFn: async () => await prepareCreateNotificationForm(isAppOwner, isGroupOwner, userId),
+    enabled: !!userId && !!isAppOwner && !!isGroupOwner,
+    staleTime: 1000 * 60 * 60 * 24, // 24時間
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * フォームの作成
@@ -309,6 +360,12 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
    */
   return {
     // state
+    hasPermission: isAppOwner || isGroupOwner,
+    isLoading: isLoadingAppOwner || isLoadingGroupOwner || isLoadingUserTaskGroup,
+    isAppOwner,
+    users,
+    groups,
+    tasks,
     form,
     targetType,
     sendTiming,
@@ -317,7 +374,7 @@ export function useCreateNotification({ isAppOwner, isGroupOwner }: UseCreateNot
     taskComboOpen,
     sendTimingOptions,
     targetTypeOptions,
-    // action
+    // functions
     handleSubmit,
     setUserComboOpen,
     setGroupComboOpen,

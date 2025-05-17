@@ -5,7 +5,7 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
-import { checkGroupNameExists, checkGroupOwner, updateGroup } from "@/lib/actions/group";
+import { checkGroupExistByName, checkGroupOwner, updateGroup } from "@/lib/actions/group";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
@@ -101,7 +101,7 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
 
         // 名前が変更されている場合のみ重複チェックを行う
         if (data.name !== group.name) {
-          const existingGroup = await checkGroupNameExists(data.name);
+          const existingGroup = await checkGroupExistByName(data.name);
           if (existingGroup) {
             form.setError("name", {
               message: "このグループ名は既に使用されています",

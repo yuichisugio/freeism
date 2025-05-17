@@ -5,9 +5,10 @@ import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
-import { checkGroupNameExists, createGroup } from "@/lib/actions/group";
+import { createGroup } from "@/lib/actions/group";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Prisma } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
@@ -58,16 +59,6 @@ export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
   const onSubmit = useCallback(
     async (data: CreateGroupFormData) => {
       try {
-        // グループ名の重複チェック
-        const existingGroup = await checkGroupNameExists(data.name); // actionsに実装する必要があります
-
-        if (existingGroup) {
-          form.setError("name", {
-            message: "このグループ名は既に使用されています",
-          });
-          return;
-        }
-
         const result = await createGroup(data);
 
         if (result.success) {
@@ -86,19 +77,29 @@ export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
           }
         }
       } catch (error) {
-        console.log(error);
-        toast.error("エラーが発生しました");
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          toast.error("このグループ名は既に使用されています");
+        } else {
+          toast.error("エラーが発生しました");
+        }
       }
     },
     [form, router],
   );
 
-  // 型安全性のため form の型を明示的に指定
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 型安全性のため form の型を明示的に指定
+   */
   const typedForm = form as unknown as UseFormReturn<FieldValues>;
   const typedOnSubmit = onSubmit as (data: FieldValues) => Promise<void>;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループ作成フォームを返す
+   */
   return (
     <FormLayout form={typedForm} onSubmit={typedOnSubmit} submitLabel="グループを作成" submittingLabel="作成中...">
       <CustomFormField

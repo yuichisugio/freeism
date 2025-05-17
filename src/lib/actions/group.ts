@@ -16,12 +16,28 @@ import { z } from "zod";
  * @returns 処理結果を含むオブジェクト
  */
 export async function createGroup(data: CreateGroupFormData) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   try {
-    // 認証処理
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 認証処理
+     */
     const userId = await getAuthenticatedSessionUserId();
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * バリデーション処理
+     */
     const validatedData = createGroupSchema.parse(data);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループを作成する
+     */
     await prisma.group.create({
       data: {
         ...validatedData,
@@ -36,13 +52,35 @@ export async function createGroup(data: CreateGroupFormData) {
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループ作成後のリフレッシュ
+     */
     revalidatePath("/dashboard/group-list");
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 成功を返す
+     */
     return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
+    /**
+     * エラー処理
+     */
     if (error instanceof z.ZodError) {
       console.error("Zod validation error:", error.errors);
       return { error: "入力内容に誤りがあります" };
     }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラーを返す
+     */
     console.error("createGroup unexpected error:", error);
     return { error: "エラーが発生しました" };
   }
@@ -144,11 +182,12 @@ export async function deleteGroup(groupId: string) {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * グループ名の重複をチェックする関数。Groupテーブル名の重複チェックはユニーク制約があるので、↓は不要。
+ * グループ名の重複をチェックする関数。
+ * Groupテーブル名の重複チェックはユニーク制約があるので、↓は不要。
  * @param name - チェックするグループ名
  * @returns 重複している場合はtrue、していない場合はfalse
  */
-export async function checkGroupNameExists(name: string) {
+export async function checkGroupExistByName(name: string) {
   try {
     const group = await prisma.group.findFirst({
       where: { name },
@@ -231,7 +270,7 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
  * @param userId - チェックするユーザーのID
  * @returns アプリオーナー権限があればtrue、なければfalse
  */
-export async function checkAppOwner(userId: string) {
+export async function checkAppOwner(userId: string): Promise<boolean> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },

@@ -16,6 +16,8 @@ export const queryCacheKeys = {
     all: () => [...queryCacheKeys.Notification._root] as const,
     userAllNotifications: (userId: string) => [...queryCacheKeys.Notification.all(), userId] as const,
     hasUnreadNotifications: (userId: string) => [...queryCacheKeys.Notification.userAllNotifications(userId), "hasUnreadNotifications"] as const,
+    prepareCreateNotificationForm: (userId: string, isAppOwner: boolean, isGroupOwner: boolean) =>
+      [...queryCacheKeys.Notification.userAllNotifications(userId), isAppOwner, isGroupOwner] as const,
   },
 
   userSettings: {
@@ -75,6 +77,7 @@ export const queryCacheKeys = {
     appOwner: (userId: string) => [...queryCacheKeys.permission._root, "appOwnerPermission", userId] as const,
     groupPermission: (groupId: string) => [...queryCacheKeys.permission._root, "groupOwnerPermission", groupId] as const,
     groupOwner: (groupId: string, userId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "owner", userId] as const,
+    oneGroupOwner: (userId: string) => [...queryCacheKeys.permission._root, "oneGroupOwner", userId] as const,
     members: (groupId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "members"] as const,
   },
 } as const;

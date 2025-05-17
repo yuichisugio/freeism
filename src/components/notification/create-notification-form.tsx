@@ -1,44 +1,22 @@
 "use client";
 
-import type { Group, Task, User } from "@/hooks/notification/use-create-notification";
 import { memo, useMemo } from "react";
+import Link from "next/link";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
+import { Loading } from "@/components/share/loading";
 import { useCreateNotification } from "@/hooks/notification/use-create-notification";
+import { ArrowLeft } from "lucide-react";
 import { type Control, type FieldValues, type UseFormReturn } from "react-hook-form";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知作成フォームのprops
- */
-type CreateNotificationFormProps = {
-  isAppOwner: boolean;
-  isGroupOwner: boolean;
-  users: User[];
-  groups: Group[];
-  tasks: Task[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 通知作成フォーム
- * @param isAppOwner アプリオーナー権限
- * @param isGroupOwner グループオーナー権限
- * @param users ユーザーリスト
- * @param groups グループリスト
- * @param tasks タスクリスト
  * @returns {JSX.Element} 通知作成フォーム
  */
-export const CreateNotificationForm = memo(function CreateNotificationForm({
-  isAppOwner,
-  isGroupOwner,
-  users,
-  groups,
-  tasks,
-}: CreateNotificationFormProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const CreateNotificationForm = memo(function CreateNotificationForm() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 通知作成フォームのフォームオブジェクト
@@ -53,18 +31,21 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({
     taskComboOpen,
     sendTimingOptions,
     targetTypeOptions,
+    isLoading,
+    hasPermission,
+    users,
+    groups,
+    tasks,
+    isAppOwner,
+
     // action
     setGroupComboOpen,
     setTaskComboOpen,
     setUserComboOpen,
     handleSubmit,
-  } = useCreateNotification({
-    isAppOwner,
-    isGroupOwner,
-    users,
-    groups,
-    tasks,
-  });
+  } = useCreateNotification();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 型の互換性のために型キャスト
@@ -72,6 +53,35 @@ export const CreateNotificationForm = memo(function CreateNotificationForm({
   const typedForm = useMemo(() => form as unknown as UseFormReturn<FieldValues>, [form]);
   const typedControl = useMemo(() => form.control as unknown as Control<FieldValues>, [form]);
   const typedHandleSubmit = useMemo(() => handleSubmit as (data: FieldValues) => Promise<void>, [handleSubmit]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ローディング中の場合
+   */
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 権限がない場合
+   */
+  if (!hasPermission) {
+    return (
+      <div className="container max-w-4xl py-10">
+        <Link href="/dashboard/group-list" className="mb-6 flex items-center text-blue-600 hover:underline">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          ダッシュボードに戻る
+        </Link>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <h1 className="mb-4 text-2xl font-bold text-red-700">オーナー権限がありません</h1>
+          <p className="text-red-600">通知作成には、アプリオーナー権限またはいずれかのグループでグループオーナー権限が必要です。</p>
+        </div>
+      </div>
+    );
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
