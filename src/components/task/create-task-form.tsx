@@ -5,6 +5,7 @@ import { memo } from "react";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { Loading } from "@/components/share/loading";
+import { UserCombobox } from "@/components/share/user-combobox";
 import { ImageUploadArea } from "@/components/ui/image-upload-area";
 import { useTaskInputForm } from "@/hooks/form/use-create-task-form";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
@@ -34,6 +35,10 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
     nonRegisteredReporter,
     isRewardType,
     isLoading,
+    reporterComboboxOpen,
+    selectedReporterId,
+    executorsComboboxOpen,
+    selectedExecutorId,
 
     // function
     setCategoryOpen,
@@ -47,6 +52,10 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
     handleImageUploaded,
     handleImageRemoved,
     onSubmit,
+    setReporterComboboxOpen,
+    handleReporterSelect,
+    setExecutorsComboboxOpen,
+    handleExecutorSelect,
   } = useTaskInputForm();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -214,16 +223,18 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
 
         {/* 登録済みユーザー選択 */}
         {users.length > 0 && (
-          <div className="flex gap-2">
-            <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addExecutor(e.target.value)} value="">
-              <option value="">登録済みユーザーから選択...</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <UserCombobox
+            open={executorsComboboxOpen}
+            setOpenAction={setExecutorsComboboxOpen}
+            value={selectedExecutorId}
+            onValueChangeAction={(userId) => {
+              handleExecutorSelect(userId);
+            }}
+            options={users.map((user) => ({ value: user.id, label: user.name ?? "名前なし" }))}
+            placeholder="登録済みユーザーから選択..."
+            searchPlaceholder="ユーザーを検索..."
+            emptyMessage="ユーザーが見つかりません。"
+          />
         )}
 
         {/* 未登録ユーザー入力 */}
@@ -265,18 +276,20 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
         <h3 className="text-lg font-medium">タスク報告者</h3>
         <p className="text-sm text-gray-500">このタスクを報告した人を選択または入力してください</p>
 
-        {/* 登録済みユーザー選択 */}
+        {/* 登録済みユーザー選択を Combobox に置き換え */}
         {users.length > 0 && (
-          <div className="flex gap-2">
-            <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addReporter(e.target.value)} value="">
-              <option value="">登録済みユーザーから選択...</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <UserCombobox
+            open={reporterComboboxOpen}
+            setOpenAction={setReporterComboboxOpen}
+            value={selectedReporterId}
+            onValueChangeAction={(userId) => {
+              handleReporterSelect(userId);
+            }}
+            options={users.map((user) => ({ value: user.id, label: user.name ?? "名前なし" }))}
+            placeholder="登録済みユーザーから選択..."
+            searchPlaceholder="ユーザーを検索..."
+            emptyMessage="ユーザーが見つかりません。"
+          />
         )}
 
         {/* 未登録ユーザー入力 */}
@@ -288,7 +301,12 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
             value={nonRegisteredReporter}
             onChange={(e) => setNonRegisteredReporter(e.target.value)}
           />
-          <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addReporter(undefined, nonRegisteredReporter)}>
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 text-white"
+            onClick={() => addReporter(undefined, nonRegisteredReporter)}
+            disabled={!nonRegisteredReporter.trim()}
+          >
             追加
           </button>
         </div>

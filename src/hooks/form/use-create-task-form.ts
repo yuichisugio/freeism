@@ -120,6 +120,10 @@ type UseTaskInputFormReturn = {
   nonRegisteredReporter: string;
   isRewardType: boolean;
   isLoading: boolean;
+  reporterComboboxOpen: boolean;
+  selectedReporterId: string | undefined;
+  executorsComboboxOpen: boolean;
+  selectedExecutorId: string | undefined;
 
   // function
   setOpen: (open: boolean) => void;
@@ -133,6 +137,10 @@ type UseTaskInputFormReturn = {
   handleImageUploaded: (imageUrl: string) => void;
   handleImageRemoved: () => void;
   onSubmit: (data: TaskFormValues) => Promise<void>;
+  setReporterComboboxOpen: (open: boolean) => void;
+  handleReporterSelect: (userId: string) => void;
+  setExecutorsComboboxOpen: (open: boolean) => void;
+  handleExecutorSelect: (userId: string) => void;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -159,6 +167,10 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
   const [nonRegisteredExecutor, setNonRegisteredExecutor] = useState("");
   const [reporters, setReporters] = useState<TaskParticipant[]>([]);
   const [nonRegisteredReporter, setNonRegisteredReporter] = useState("");
+  const [executorsComboboxOpen, setExecutorsComboboxOpen] = useState(false);
+  const [selectedExecutorId, setSelectedExecutorId] = useState<string | undefined>(undefined);
+  const [reporterComboboxOpen, setReporterComboboxOpen] = useState(false);
+  const [selectedReporterId, setSelectedReporterId] = useState<string | undefined>(undefined);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -243,20 +255,25 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
    */
   const addReporter = useCallback(
     (userId?: string, name?: string) => {
-      if (userId) {
-        // 登録済みユーザーの場合
+      let newReportersList = [...reporters];
+      let newParticipant: TaskParticipant | null = null;
+
+      if (name && name.trim() !== "") {
+        if (!reporters.some((r) => r.name === name.trim() && !r.userId)) {
+          newParticipant = { name: name.trim() };
+          setNonRegisteredReporter("");
+        }
+      } else if (userId) {
         const user = users.find((u: User) => u.id === userId);
         if (user && !reporters.some((r) => r.userId === userId)) {
-          const newReporters = [...reporters, { userId, name: user.name }];
-          setReporters(newReporters);
-          form.setValue("reporters", newReporters);
+          newParticipant = { userId, name: user.name };
         }
-      } else if (name && name.trim() !== "") {
-        // 未登録ユーザーの場合
-        const newReporters = [...reporters, { name }];
-        setReporters(newReporters);
-        form.setValue("reporters", newReporters);
-        setNonRegisteredReporter("");
+      }
+
+      if (newParticipant) {
+        newReportersList = [...newReportersList, newParticipant];
+        setReporters(newReportersList);
+        form.setValue("reporters", newReportersList);
       }
     },
     [reporters, form, users, setNonRegisteredReporter],
@@ -366,25 +383,104 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 報告者Comboboxでユーザーが選択されたときのハンドラ
+   * @param userId 選択されたユーザーのID (空文字の場合は選択解除)
+   */
+  const handleReporterSelect = useCallback(
+    (userId: string) => {
+      if (!userId) {
+        if (selectedReporterId) {
+          const userExistsInReporters = reporters.find((r) => r.userId === selectedReporterId);
+          if (userExistsInReporters) {
+            const updatedReporters = reporters.filter((r) => r.userId !== selectedReporterId);
+            setReporters(updatedReporters);
+            form.setValue("reporters", updatedReporters);
+          }
+        }
+        setSelectedReporterId(undefined);
+        setReporterComboboxOpen(false);
+        return;
+      }
+
+      const user = users.find((u: User) => u.id === userId);
+      if (user) {
+        const isAlreadyAdded = reporters.some((r) => r.userId === userId);
+        if (!isAlreadyAdded) {
+          const newParticipant: TaskParticipant = { userId, name: user.name };
+          const newReportersList = [...reporters, newParticipant];
+          setReporters(newReportersList);
+          form.setValue("reporters", newReportersList);
+        }
+        setSelectedReporterId(userId);
+        setReporterComboboxOpen(false);
+      }
+    },
+    [users, reporters, form, selectedReporterId, setSelectedReporterId, setReporterComboboxOpen],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 実行者Comboboxでユーザーが選択されたときのハンドラ
+   * @param userId 選択されたユーザーのID (空文字の場合は選択解除)
+   */
+  const handleExecutorSelect = useCallback(
+    (userId: string) => {
+      if (!userId) {
+        if (selectedExecutorId) {
+          const userExistsInExecutors = executors.find((r) => r.userId === selectedExecutorId);
+          if (userExistsInExecutors) {
+            const updatedExecutors = executors.filter((r) => r.userId !== selectedExecutorId);
+            setExecutors(updatedExecutors);
+            form.setValue("executors", updatedExecutors);
+          }
+        }
+        setSelectedExecutorId(undefined);
+        setExecutorsComboboxOpen(false);
+        return;
+      }
+
+      const user = users.find((u: User) => u.id === userId);
+      if (user) {
+        const isAlreadyAdded = executors.some((r) => r.userId === userId);
+        if (!isAlreadyAdded) {
+          const newParticipant: TaskParticipant = { userId, name: user.name };
+          const newExecutorsList = [...executors, newParticipant];
+          setExecutors(newExecutorsList);
+          form.setValue("executors", newExecutorsList);
+        }
+        setSelectedExecutorId(userId);
+        setExecutorsComboboxOpen(false);
+      }
+    },
+    [users, executors, form, selectedExecutorId, setSelectedExecutorId, setExecutorsComboboxOpen],
+  );
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
     // state
     groups,
     users,
     form,
     open,
-    setOpen,
     categoryOpen,
-    setCategoryOpen,
     executors,
     nonRegisteredExecutor,
-    setNonRegisteredExecutor,
     reporters,
     nonRegisteredReporter,
-    setNonRegisteredReporter,
     isRewardType,
     isLoading: isLoadingFormData,
+    reporterComboboxOpen,
+    selectedReporterId,
+    executorsComboboxOpen,
+    selectedExecutorId,
 
     // function
+    setOpen,
+    setNonRegisteredReporter,
+    setNonRegisteredExecutor,
+    setCategoryOpen,
     addExecutor,
     removeExecutor,
     addReporter,
@@ -392,5 +488,9 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
     handleImageUploaded,
     handleImageRemoved,
     onSubmit,
+    setReporterComboboxOpen,
+    handleReporterSelect,
+    handleExecutorSelect,
+    setExecutorsComboboxOpen,
   };
 }
