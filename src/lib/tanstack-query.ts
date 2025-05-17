@@ -14,10 +14,17 @@ export const queryCacheKeys = {
   Notification: {
     _root: ["notification"] as const,
     all: () => [...queryCacheKeys.Notification._root] as const,
-    userAllNotifications: (userId: string) => [...queryCacheKeys.Notification.all(), userId] as const,
+    userAllNotifications: (userId: string) => [...queryCacheKeys.Notification.all(), "userAllNotifications", "userId:", userId] as const,
     hasUnreadNotifications: (userId: string) => [...queryCacheKeys.Notification.userAllNotifications(userId), "hasUnreadNotifications"] as const,
     prepareCreateNotificationForm: (userId: string, isAppOwner: boolean, isGroupOwner: boolean) =>
-      [...queryCacheKeys.Notification.userAllNotifications(userId), isAppOwner, isGroupOwner] as const,
+      [
+        ...queryCacheKeys.Notification.userAllNotifications(userId),
+        "prepareCreateNotificationForm",
+        "isAppOwner:",
+        isAppOwner,
+        "isGroupOwner:",
+        isGroupOwner,
+      ] as const,
   },
 
   userSettings: {

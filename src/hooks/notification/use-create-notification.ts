@@ -136,7 +136,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
   const { data: { users, groups, tasks } = { users: [], groups: [], tasks: [] }, isPending: isLoadingUserTaskGroup } = useQuery({
     queryKey: queryCacheKeys.Notification.prepareCreateNotificationForm(userId, isAppOwner, isGroupOwner),
     queryFn: async () => await prepareCreateNotificationForm(isAppOwner, isGroupOwner, userId),
-    enabled: !!userId && !!isAppOwner && !!isGroupOwner,
+    enabled: !!userId && !isLoadingAppOwner && !isLoadingGroupOwner,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
     gcTime: 1000 * 60 * 60 * 24, // 24時間
   });
