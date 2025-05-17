@@ -14,12 +14,8 @@ import { contributionType } from "@prisma/client";
 
 /**
  * タスク入力フォーム
- * @param groups グループ
- * @param groupComboBoxFlag グループ選択フラグ
- * @param users ユーザー
- * @returns タスク入力フォーム
  */
-export const CreateTaskForm = memo(function CreateTaskForm({ groupId }: { groupId: string | null }): JSX.Element {
+export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -27,7 +23,6 @@ export const CreateTaskForm = memo(function CreateTaskForm({ groupId }: { groupI
    */
   const {
     // state
-    groupComboBoxFlag,
     groups,
     users,
     form,
@@ -52,7 +47,7 @@ export const CreateTaskForm = memo(function CreateTaskForm({ groupId }: { groupI
     handleImageUploaded,
     handleImageRemoved,
     onSubmit,
-  } = useTaskInputForm(groupId);
+  } = useTaskInputForm();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -89,21 +84,19 @@ export const CreateTaskForm = memo(function CreateTaskForm({ groupId }: { groupI
   return (
     <FormLayout form={typedForm} onSubmit={typedOnSubmit} submitLabel="保存" submittingLabel="保存中...">
       {/* グループ選択が必要な場合 */}
-      {groupComboBoxFlag && (
-        <CustomFormField
-          open={open}
-          setOpen={setOpen}
-          fieldType="combobox"
-          control={typedControl}
-          name="groupId"
-          label="グループ選択"
-          description="タスクを登録するグループを選択してください"
-          options={groups}
-          placeholder="グループを選択してください"
-          searchPlaceholder="グループを検索..."
-          emptyMessage="グループに参加して下さい。"
-        />
-      )}
+      <CustomFormField
+        open={open}
+        setOpen={setOpen}
+        fieldType="combobox"
+        control={typedControl}
+        name="groupId"
+        label="グループ選択"
+        description="タスクを登録するグループを選択してください"
+        options={groups}
+        placeholder="グループを選択してください"
+        searchPlaceholder="グループを検索..."
+        emptyMessage="グループに参加して下さい。"
+      />
 
       <CustomFormField
         fieldType="radio"

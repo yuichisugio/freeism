@@ -42,7 +42,7 @@ export default async function MyTasksPage() {
       description="自分のタスク一覧を表示します"
       component={
         <Button asChild className="button-default-custom w-auto self-start text-white sm:self-center">
-          <Link href="/dashboard/new-task" className="flex items-center">
+          <Link href="/dashboard/create-task" className="flex items-center">
             <PlusCircle className="mr-2 h-4 w-4" />
             新規Task作成
           </Link>

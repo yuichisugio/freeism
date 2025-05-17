@@ -111,7 +111,6 @@ type UseTaskInputFormReturn = {
   // state
   groups: { id: string; name: string }[];
   users: { id: string; name: string }[];
-  groupComboBoxFlag: boolean;
   form: UseFormReturn<TaskFormValues>;
   open: boolean;
   categoryOpen: boolean;
@@ -141,7 +140,7 @@ type UseTaskInputFormReturn = {
 /**
  * カスタムフック
  */
-export function useTaskInputForm(groupId: string | null): UseTaskInputFormReturn {
+export function useTaskInputForm(): UseTaskInputFormReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -167,15 +166,14 @@ export function useTaskInputForm(groupId: string | null): UseTaskInputFormReturn
    * タスク作成フォームのデータを取得
    */
   const { data: formData, isLoading: isLoadingFormData } = useQuery({
-    queryKey: queryCacheKeys.tasks.prepareCreateTaskForm(groupId),
-    queryFn: () => prepareCreateTaskForm(groupId),
-    enabled: true,
+    queryKey: queryCacheKeys.tasks.prepareCreateTaskForm(),
+    queryFn: () => prepareCreateTaskForm(),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
   });
 
   // useQueryから取得したデータがない場合のデフォルト値
-  const { groups = [], users = [], groupComboBoxFlag = false } = formData ?? {};
+  const { groups = [], users = [] } = formData ?? {};
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -372,7 +370,6 @@ export function useTaskInputForm(groupId: string | null): UseTaskInputFormReturn
     // state
     groups,
     users,
-    groupComboBoxFlag,
     form,
     open,
     setOpen,

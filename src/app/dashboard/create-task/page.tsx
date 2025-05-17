@@ -22,7 +22,7 @@ export const metadata: Metadata = {
  * @param searchParams グループID
  * @returns 新規Task作成ページ
  */
-export default async function CreateTaskPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+export default async function CreateTaskPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -33,20 +33,12 @@ export default async function CreateTaskPage({ searchParams }: { searchParams: P
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * グループID
-   */
-  const params = await searchParams;
-  const groupId = params.groupId;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 新規Task作成ページ
    * @returns 新規Task作成ページ
    */
   return (
     <MainTemplate title="新規Task作成" description="新規タスクを作成します">
-      <CreateTaskForm groupId={groupId ?? null} />
+      <CreateTaskForm />
     </MainTemplate>
   );
 }
