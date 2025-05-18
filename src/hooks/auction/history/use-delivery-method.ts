@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateDeliveryMethod } from "@/lib/auction/action/history";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,7 +16,7 @@ type UseDeliveryMethodResult = {
   setDeliveryMethod: (deliveryMethod: string) => void;
   isEditingDelivery: boolean;
   isUpdatingDelivery: boolean;
-  handleUpdateDeliveryMethod: () => Promise<void>;
+  handleUpdateDeliveryMethod: () => void;
   cancelEditing: () => void;
   startEditing: () => void;
 };
@@ -33,42 +34,36 @@ export function useDeliveryMethod(taskId: string, initialDeliveryMethod: string)
 
   // ルーター
   const router = useRouter();
-
-  // 提供方法
+  const queryClient = useQueryClient();
   const [deliveryMethod, setDeliveryMethod] = useState(initialDeliveryMethod);
-
-  // 編集モード
   const [isEditingDelivery, setIsEditingDelivery] = useState(false);
-
-  // 更新モード
-  const [isUpdatingDelivery, setIsUpdatingDelivery] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 提供方法を更新する
-  const handleUpdateDeliveryMethod = useCallback(async () => {
+  const { mutate: updateDeliveryMethodMutation, isPending: isUpdatingDelivery } = useMutation({
+    mutationFn: (newDeliveryMethod: string) => updateDeliveryMethod(taskId, newDeliveryMethod),
+    onSuccess: (_, _newDeliveryMethod) => {
+      toast.success("提供方法を更新しました");
+      setIsEditingDelivery(false);
+      void queryClient.invalidateQueries({ queryKey: ["tasks", taskId] });
+      router.refresh();
+    },
+    onError: (error) => {
+      console.error("提供方法の更新に失敗しました", error);
+      toast.error("提供方法の更新に失敗しました");
+    },
+  });
+
+  const handleUpdateDeliveryMethod = useCallback(() => {
     if (!deliveryMethod.trim()) {
       toast.error("提供方法を入力してください");
       return;
     }
-
-    setIsUpdatingDelivery(true);
-    try {
-      await updateDeliveryMethod(taskId, deliveryMethod);
-      toast.success("提供方法を更新しました");
-      setIsEditingDelivery(false);
-      router.refresh();
-    } catch (error) {
-      console.error("提供方法の更新に失敗しました", error);
-      toast.error("提供方法の更新に失敗しました");
-    } finally {
-      setIsUpdatingDelivery(false);
-    }
-  }, [taskId, deliveryMethod, router]);
+    updateDeliveryMethodMutation(deliveryMethod);
+  }, [deliveryMethod, updateDeliveryMethodMutation]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 編集をキャンセルする
   const cancelEditing = useCallback(() => {
     setIsEditingDelivery(false);
     setDeliveryMethod(initialDeliveryMethod);
@@ -76,7 +71,6 @@ export function useDeliveryMethod(taskId: string, initialDeliveryMethod: string)
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 編集モードを開始する
   const startEditing = useCallback(() => {
     setIsEditingDelivery(true);
   }, []);

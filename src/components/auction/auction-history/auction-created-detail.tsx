@@ -1,8 +1,8 @@
 "use client";
 
-import type { Auction, AuctionReview, AuctionStatus, TaskStatus } from "@prisma/client";
+import { useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuctionHistoryCreatedDetailInit } from "@/hooks/auction/history/use-auction-history-created-detail-init";
 import { useDeliveryMethod } from "@/hooks/auction/history/use-delivery-method";
 import { useAuctionMessages } from "@/hooks/auction/history/use-messages";
 import { useAuctionReview } from "@/hooks/auction/history/use-review";
@@ -28,6 +29,7 @@ import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ArrowLeft, Edit, History, MessageSquare, Send } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import { Rating } from "../common/rating";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
@@ -35,61 +37,10 @@ import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 入札履歴の型
- */
-type BidHistory = {
-  id: string;
-  amount: number;
-  createdAt: Date | string;
-  isAutoBid?: boolean;
-  user: {
-    id: string;
-    name?: string | null;
-    image?: string | null;
-  };
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 出品商品詳細画面コンポーネントのprops
- */
-type AuctionCreatedDetailProps = {
-  auction: Auction & {
-    task: {
-      id: string;
-      task: string;
-      detail?: string | null;
-      status: TaskStatus;
-      imageUrl?: string | null;
-      creatorId: string;
-      deliveryMethod?: string | null;
-    };
-    winner?: {
-      id: string;
-      name?: string | null;
-      image?: string | null;
-    } | null;
-    reviews: AuctionReview[];
-    bidHistories: BidHistory[];
-    currentHighestBid: number;
-    status: AuctionStatus;
-    startTime: Date;
-    endTime: Date;
-  };
-  winnerRating: number;
-  winnerReviews: AuctionReview[];
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 出品商品詳細画面コンポーネント
- * @param auction 出品商品の詳細情報
- * @param winnerRating 落札者の評価
- * @param winnerReviews 落札者の評価履歴
+ * @param auctionId 出品商品のID
  */
-export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: AuctionCreatedDetailProps) {
+export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -97,48 +48,55 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
    */
   const router = useRouter();
 
+  /**
+   * ユーザーID
+   */
+  const { data: session } = useSession();
+  const userId = useMemo(() => {
+    return session?.user?.id;
+  }, [session?.user?.id]);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * メッセージ
+   * 出品商品詳細の初期情報を取得
    */
-  const { messages, newMessage, setNewMessage, isLoadingMessages, isSendingMessage, messagesEndRef, handleSendMessage } = useAuctionMessages(
-    auction.id,
-    auction.winner?.id,
-  );
+  const { auction, winnerRating, winnerReviewCount, isLoading } = useAuctionHistoryCreatedDetailInit(auctionId, userId ?? "");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const {
+    messages,
+    newMessage,
+    setNewMessage,
+    isLoadingMessages,
+    isSendingMessage,
+    messagesEndRef,
+    handleSendMessage,
+    refetchMessages: _refetchMessages,
+  } = useAuctionMessages(auction?.id, auction?.winner?.id);
 
-  /**
-   * 評価
-   */
   const { rating, setRating, comment, setComment, isSubmitting, hasReviewed, handleReviewSubmit } = useAuctionReview({
-    auctionId: auction.id,
-    winnerId: auction.winner?.id,
-    creatorId: auction.task.creatorId,
-    reviews: auction.reviews,
+    auctionId: auction?.id,
+    winnerId: auction?.winner?.id,
+    creatorId: auction?.task?.creatorId,
+    reviews: auction?.reviews,
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 提供方法
-   */
   const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } =
-    useDeliveryMethod(auction.task.id, auction.task.deliveryMethod ?? "");
+    useDeliveryMethod(auction?.task?.id ?? "", auction?.task?.deliveryMethod ?? "");
+
+  const { isCompleting, handleComplete } = useTaskCompletion(auction?.task?.id ?? "");
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 完了
-   */
-  const { isCompleting, handleComplete } = useTaskCompletion(auction.task.id);
+  if (!auction) {
+    notFound();
+    return null;
+  }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 商品情報と落札者情報と評価
-   */
   return (
     <div className="container mx-auto py-6">
       {/* 履歴一覧に戻るボタン */}
@@ -198,8 +156,8 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                 <div>
                   <div className="mb-2 flex items-center justify-between">
                     <h3 className="text-lg font-medium">提供方法</h3>
-                    {!isEditingDelivery && (
-                      <Button variant="outline" size="sm" onClick={startEditing}>
+                    {!isEditingDelivery && auction.task.status !== "TASK_COMPLETED" && (
+                      <Button variant="outline" size="sm" onClick={startEditing} disabled={!auction.task.id}>
                         <Edit className="mr-1 h-4 w-4" /> 編集
                       </Button>
                     )}
@@ -217,23 +175,23 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                         <Button variant="outline" size="sm" onClick={cancelEditing}>
                           キャンセル
                         </Button>
-                        <Button size="sm" onClick={() => void handleUpdateDeliveryMethod()} disabled={isUpdatingDelivery}>
+                        <Button size="sm" onClick={() => void handleUpdateDeliveryMethod()} disabled={isUpdatingDelivery || !deliveryMethod.trim()}>
                           {isUpdatingDelivery ? "更新中..." : "更新する"}
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-gray-700">{auction.task.deliveryMethod ?? "未設定"}</p>
+                    <p className="whitespace-pre-wrap text-gray-700">{auction.task.deliveryMethod ?? "未設定"}</p>
                   )}
                 </div>
               </div>
             </CardContent>
-            {auction.winner && (
+            {auction.winner && auction.task.status !== "TASK_COMPLETED" && (
               <CardFooter>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button className="w-full" disabled={auction.task.status === "TASK_COMPLETED" || isCompleting}>
-                      {isCompleting ? <>処理中...</> : auction.task.status === "TASK_COMPLETED" ? <>完了済み</> : <>商品提供を完了する</>}
+                    <Button className="w-full" disabled={isCompleting || !auction.task.id}>
+                      {isCompleting ? <>処理中...</> : <>商品提供を完了する</>}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -249,10 +207,16 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                 </AlertDialog>
               </CardFooter>
             )}
+            {auction.winner && auction.task.status === "TASK_COMPLETED" && (
+              <CardFooter>
+                <Button className="w-full" disabled={true}>
+                  完了済み
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         </div>
 
-        {/* 右側: 落札者情報と評価 */}
         <div>
           {auction.winner ? (
             <>
@@ -270,7 +234,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                       <p className="font-medium">{auction.winner.name ?? "落札者"}</p>
                       <div className="flex items-center gap-2">
                         <Rating rating={winnerRating} size={16} />
-                        <span className="text-sm text-gray-500">({winnerReviews.length})</span>
+                        <span className="text-sm text-gray-500">({winnerReviewCount})</span>
                       </div>
                     </div>
                   </div>
@@ -288,8 +252,8 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                       <div className="flex justify-center">
                         <Rating
                           rating={
-                            auction.reviews.reduce((acc, r) => (r.reviewPosition === ReviewPosition.SELLER_TO_BUYER ? acc + r.rating : acc), 0) /
-                            auction.reviews.length
+                            (auction.reviews?.reduce((acc, r) => (r.reviewPosition === ReviewPosition.SELLER_TO_BUYER ? acc + r.rating : acc), 0) ??
+                              0) / (auction.reviews?.length || 1)
                           }
                           size={24}
                         />
@@ -306,7 +270,11 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
 
                       <Textarea placeholder="コメントを入力（任意）" value={comment} onChange={(e) => setComment(e.target.value)} className="h-24" />
 
-                      <Button className="w-full" onClick={() => void handleReviewSubmit()} disabled={rating === 0 || isSubmitting}>
+                      <Button
+                        className="w-full"
+                        onClick={() => void handleReviewSubmit()}
+                        disabled={rating === 0 || isSubmitting || !auction.winnerId || !auction.task?.creatorId}
+                      >
                         {isSubmitting ? "送信中..." : "評価を送信"}
                       </Button>
                     </div>
@@ -331,19 +299,17 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
         </div>
       </div>
 
-      {/* タブ付きセクション */}
       <div className="mt-8">
         <Tabs defaultValue="bids">
           <TabsList className="mb-6 grid w-full grid-cols-2">
             <TabsTrigger value="bids">
               <History className="mr-2 h-4 w-4" /> 入札履歴
             </TabsTrigger>
-            <TabsTrigger value="chat">
+            <TabsTrigger value="chat" disabled={!auction.winner}>
               <MessageSquare className="mr-2 h-4 w-4" /> メッセージ
             </TabsTrigger>
           </TabsList>
 
-          {/* 入札履歴 */}
           <TabsContent value="bids">
             <Card>
               <CardHeader>
@@ -390,7 +356,6 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
             </Card>
           </TabsContent>
 
-          {/* メッセージ */}
           <TabsContent value="chat">
             <Card>
               <CardHeader>
@@ -413,9 +378,9 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                         </div>
                       ) : (
                         messages.map((msg) => (
-                          <div key={msg.id} className={`flex ${msg.senderId === auction.task.creatorId ? "justify-end" : "justify-start"}`}>
+                          <div key={msg.id} className={`flex ${msg.senderId === auction.task?.creatorId ? "justify-end" : "justify-start"}`}>
                             <div
-                              className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.senderId === auction.task.creatorId ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+                              className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.senderId === auction.task?.creatorId ? "bg-primary text-primary-foreground" : "bg-muted"}`}
                             >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-6 w-6">
@@ -440,6 +405,7 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
                           className="min-h-[80px]"
+                          disabled={!auction.winner}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && e.ctrlKey) {
                               e.preventDefault();
@@ -447,7 +413,11 @@ export function AuctionCreatedDetail({ auction, winnerRating, winnerReviews }: A
                             }
                           }}
                         />
-                        <Button className="h-auto" onClick={() => void handleSendMessage()} disabled={isSendingMessage || !newMessage.trim()}>
+                        <Button
+                          className="h-auto"
+                          onClick={() => void handleSendMessage()}
+                          disabled={isSendingMessage || !newMessage.trim() || !auction.winner}
+                        >
                           {isSendingMessage ? (
                             "送信中..."
                           ) : (

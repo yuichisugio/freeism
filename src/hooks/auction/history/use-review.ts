@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createAuctionReview } from "@/lib/auction/action/history";
 import { ReviewPosition } from "@prisma/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -13,10 +14,10 @@ import { toast } from "sonner";
  * オークションレビューのカスタムフックの型
  */
 type UseAuctionReviewProps = {
-  auctionId: string;
+  auctionId: string | undefined; // undefined を許容
   winnerId?: string | null;
-  creatorId: string;
-  reviews: AuctionReview[];
+  creatorId: string | undefined; // undefined を許容
+  reviews: AuctionReview[] | undefined; // undefined を許容
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -33,71 +34,58 @@ export function useAuctionReview({ auctionId, winnerId, creatorId, reviews }: Us
    * ルーター
    */
   const router = useRouter();
-
-  /**
-   * state
-   */
-  // 評価
+  const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
-  // コメント
   const [comment, setComment] = useState("");
-  // 評価送信ローディング
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // isSubmitting は useMutation の isPending を使用するため削除
+  // const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーがすでに評価を送信したかどうか
-   */
   const hasReviewed = useMemo(
-    () => reviews.some((review) => review.reviewerId === creatorId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER),
+    () => reviews?.some((review) => review.reviewerId === creatorId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER) ?? false,
     [reviews, creatorId],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const { mutate: createAuctionReviewMutation, isPending: isSubmitting } = useMutation({
+    mutationFn: async (params: { rating: number; comment: string }) => {
+      if (!auctionId || !winnerId) {
+        throw new Error("オークションIDまたは落札者IDが無効です。");
+      }
+      return createAuctionReview(auctionId, winnerId, params.rating, params.comment, ReviewPosition.SELLER_TO_BUYER);
+    },
+    onSuccess: () => {
+      toast.success("評価を送信しました");
+      // オークション詳細やレビューリストなどの関連クエリを無効化
+      void queryClient.invalidateQueries({ queryKey: ["auctionDetail", auctionId] }); // 仮のクエリキー
+      void queryClient.invalidateQueries({ queryKey: ["auctionReviews", auctionId] }); // 仮のクエリキー
+      router.refresh();
+    },
+    onError: (error) => {
+      console.error("評価の送信に失敗しました", error);
+      toast.error("評価の送信に失敗しました: " + error.message);
+    },
+  });
 
-  /**
-   * 評価を送信する
-   */
   const handleReviewSubmit = useCallback(async () => {
     if (!winnerId) {
       toast.error("落札者がいないため評価できません");
       return;
     }
-
     if (rating === 0) {
       toast.error("評価を選択してください");
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      await createAuctionReview(
-        auctionId,
-        winnerId,
-        rating,
-        comment,
-        ReviewPosition.SELLER_TO_BUYER, // 出品者からの評価なのでtrue
-      );
-      toast.success("評価を送信しました");
-      router.refresh();
-    } catch (error) {
-      console.error("評価の送信に失敗しました", error);
-      toast.error("評価の送信に失敗しました");
-    } finally {
-      setIsSubmitting(false);
+    if (!auctionId || !creatorId) {
+      toast.error("オークション情報または作成者情報が不足しています。");
+      return;
     }
-  }, [auctionId, winnerId, comment, rating, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    createAuctionReviewMutation({ rating, comment });
+  }, [auctionId, winnerId, creatorId, comment, rating, createAuctionReviewMutation]);
 
   return {
-    // state
     rating,
     comment,
     isSubmitting,
     hasReviewed,
-    // function
     handleReviewSubmit,
     setRating,
     setComment,

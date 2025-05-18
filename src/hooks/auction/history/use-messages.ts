@@ -1,8 +1,10 @@
 "use client";
 
 import type { AuctionMessage } from "@/lib/auction/action/history";
+import type { QueryObserverResult } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuctionMessages, sendAuctionMessage } from "@/lib/auction/action/history";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,8 +19,8 @@ type UseAuctionMessagesResult = {
   isLoadingMessages: boolean;
   isSendingMessage: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement>;
-  handleSendMessage: () => Promise<void>;
-  fetchMessages: () => Promise<void>;
+  handleSendMessage: () => void;
+  refetchMessages: () => Promise<QueryObserverResult<AuctionMessage[], Error>>;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,86 +31,57 @@ type UseAuctionMessagesResult = {
  * @param winnerId 落札者ID（存在する場合）
  * @returns メッセージ関連の状態と関数
  */
-export function useAuctionMessages(auctionId: string, winnerId: string | undefined): UseAuctionMessagesResult {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // メッセージ
-  const [messages, setMessages] = useState<AuctionMessage[]>([]);
-
-  // 新しいメッセージ
+export function useAuctionMessages(auctionId: string | undefined, winnerId: string | undefined): UseAuctionMessagesResult {
+  const queryClient = useQueryClient();
   const [newMessage, setNewMessage] = useState("");
-
-  // メッセージの読み込みローディング
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-
-  // メッセージの送信ローディング
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-
-  // メッセージの読み込みローディング
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const query = useQuery<AuctionMessage[], Error>({
+    queryKey: ["auctionMessages", auctionId],
+    queryFn: async () => {
+      if (!auctionId) return [];
+      return getAuctionMessages(auctionId);
+    },
+    enabled: !!auctionId && !!winnerId,
+  });
 
-  // メッセージを取得する
-  const fetchMessages = useCallback(async () => {
-    if (!winnerId) return;
-
-    setIsLoadingMessages(true);
-    try {
-      const fetchedMessages = await getAuctionMessages(auctionId);
-      setMessages(fetchedMessages);
-    } catch (error) {
-      console.error("メッセージの取得に失敗しました", error);
-      toast.error("メッセージの取得に失敗しました");
-    } finally {
-      setIsLoadingMessages(false);
-    }
-  }, [auctionId, winnerId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // メッセージ履歴を読み込む
-  useEffect(() => {
-    void fetchMessages();
-  }, [fetchMessages]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 新しいメッセージが追加されたら自動スクロール
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // メッセージを送信する
-  const handleSendMessage = useCallback(async () => {
-    if (!winnerId || !newMessage.trim()) return;
-
-    setIsSendingMessage(true);
-    try {
-      const sentMessage = await sendAuctionMessage(auctionId, winnerId, newMessage);
-      setMessages((prev) => [...prev, sentMessage]);
+  const { mutate: sendMessageMutation, isPending: isSendingMessage } = useMutation<AuctionMessage, Error, string>({
+    mutationFn: async (messageContent: string) => {
+      if (!auctionId || !winnerId) {
+        throw new Error("オークションIDまたは落札者IDが無効です");
+      }
+      return sendAuctionMessage(auctionId, winnerId, messageContent);
+    },
+    onSuccess: (sentMessage) => {
+      queryClient.setQueryData<AuctionMessage[]>(["auctionMessages", auctionId], (oldMessages) =>
+        oldMessages ? [...oldMessages, sentMessage] : [sentMessage],
+      );
       setNewMessage("");
       toast.success("メッセージを送信しました");
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("メッセージの送信に失敗しました", error);
-      toast.error("メッセージの送信に失敗しました");
-    } finally {
-      setIsSendingMessage(false);
-    }
-  }, [auctionId, winnerId, newMessage]);
+      toast.error("メッセージの送信に失敗しました: " + error.message);
+    },
+  });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [query.data]);
+
+  const handleSendMessage = useCallback(() => {
+    if (!newMessage.trim()) return;
+    sendMessageMutation(newMessage);
+  }, [newMessage, sendMessageMutation]);
 
   return {
-    messages,
+    messages: query.data ?? [],
     newMessage,
     setNewMessage,
-    isLoadingMessages,
+    isLoadingMessages: query.isLoading,
     isSendingMessage,
     messagesEndRef,
     handleSendMessage,
-    fetchMessages,
+    refetchMessages: query.refetch,
   };
 }
