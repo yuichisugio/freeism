@@ -24,6 +24,7 @@
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:seed": "prisma db seed",
+    "db:seed:with-actions": "pnpm db:seed && pnpm actions:update-auction-status-to-active && pnpm actions:update-auction-status-to-completed && pnpm actions:return-auction-deposit-points && pnpm actions:send-scheduled-notifications",
     "actions:update-auction-status-to-active": "tsx scripts/update-auction-status-to-active.ts",
     "actions:update-auction-status-to-completed": "tsx scripts/update-auction-status-to-completed.ts",
     "actions:return-auction-deposit-points": "tsx scripts/return-auction-deposit-points.ts",

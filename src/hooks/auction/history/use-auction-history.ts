@@ -25,9 +25,17 @@ import { useSession } from "next-auth/react";
 export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * タブの定義
+   */
   const VALID_TABS = useMemo(() => ["bids", "won", "created"] as const, []);
   type ValidTab = (typeof VALID_TABS)[number];
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タブが有効かどうかをチェックする関数
+   */
   const isValidTab = useCallback(
     (tab: string | null): tab is ValidTab => {
       if (!tab) return false;
@@ -35,6 +43,8 @@ export function useAuctionHistory() {
     },
     [VALID_TABS],
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ルーター
@@ -358,8 +368,11 @@ export function useAuctionHistory() {
    */
   const navigateToDetail = useCallback((path: string) => router.push(path), [router]);
   const handleItemClick = useCallback((auctionId: string) => navigateToDetail(`/dashboard/auction/${auctionId}`), [navigateToDetail]);
-  const handleWonItemClick = useCallback((auctionId: string) => navigateToDetail(`/dashboard/auction/won/${auctionId}`), [navigateToDetail]);
-  const handleCreatedItemClick = useCallback((auctionId: string) => navigateToDetail(`/dashboard/auction/created/${auctionId}`), [navigateToDetail]);
+  const handleWonItemClick = useCallback((auctionId: string) => navigateToDetail(`/dashboard/auction/won-detail/${auctionId}`), [navigateToDetail]);
+  const handleCreatedItemClick = useCallback(
+    (auctionId: string) => navigateToDetail(`/dashboard/auction/created-detail/${auctionId}`),
+    [navigateToDetail],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

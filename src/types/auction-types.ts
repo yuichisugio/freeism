@@ -10,7 +10,7 @@ import type { Auction, AuctionReview, AuctionStatus, BidStatus, ReviewPosition, 
 export type BidHistoryItem = {
   auctionId: string;
   status: BidStatus;
-  createdAt: Date;
+  lastBidAt: Date;
   taskId: string;
   taskName: string;
   taskStatus: TaskStatus;

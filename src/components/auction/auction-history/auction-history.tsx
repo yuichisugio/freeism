@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionHistory } from "@/hooks/auction/history/use-auction-history";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isValid } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Award, Clock, Tag } from "lucide-react";
 
@@ -172,27 +172,31 @@ export const AuctionHistory = memo(function AuctionHistory() {
    * 入札履歴
    */
   const renderBidItem = useCallback(
-    (bid: BidHistoryItem) => (
-      <HistoryCard
-        key={bid.taskId}
-        id={bid.taskId}
-        title={bid.taskName}
-        timestamp={new Date(bid.createdAt)}
-        timestampIcon={<Clock size={14} />}
-        timestampText={`${formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true, locale: ja })}に入札`}
-        amount={bid.currentHighestBid}
-        amountLabel="入札額"
-        leftBadge={<BidStatusBadge status={bid.status} />}
-        rightBadge={<AuctionStatusBadge status={bid.auctionStatus} />}
-        onClick={handleItemClick}
-        extraContent={
-          <div className="mb-2 flex items-center justify-between">
-            <div className="text-sm text-gray-500">現在の最高額</div>
-            <div className="font-medium">{bid.currentHighestBid.toLocaleString()} ポイント</div>
-          </div>
-        }
-      />
-    ),
+    (bid: BidHistoryItem) => {
+      return (
+        <HistoryCard
+          key={bid.taskId}
+          id={bid.taskId}
+          title={bid.taskName}
+          timestamp={new Date(bid.lastBidAt)}
+          timestampIcon={<Clock size={14} />}
+          timestampText={
+            isValid(new Date(bid.lastBidAt)) ? `${formatDistanceToNow(new Date(bid.lastBidAt), { addSuffix: true, locale: ja })}に入札` : "日付不明"
+          }
+          amount={bid.currentHighestBid}
+          amountLabel="入札額"
+          leftBadge={<BidStatusBadge status={bid.status} />}
+          rightBadge={<AuctionStatusBadge status={bid.auctionStatus} />}
+          onClick={handleItemClick}
+          extraContent={
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-sm text-gray-500">現在の最高額</div>
+              <div className="font-medium">{bid.currentHighestBid.toLocaleString()} ポイント</div>
+            </div>
+          }
+        />
+      );
+    },
     [handleItemClick],
   );
 
@@ -202,25 +206,34 @@ export const AuctionHistory = memo(function AuctionHistory() {
    * 落札履歴をレンダリング
    */
   const renderWonItem = useCallback(
-    (auction: WonAuctionItem) => (
-      <HistoryCard
-        key={auction.auctionId}
-        id={auction.auctionId}
-        title={auction.taskName}
-        timestamp={new Date(auction.auctionEndTime)}
-        timestampIcon={<Award size={14} />}
-        timestampText={`${formatDistanceToNow(new Date(auction.auctionEndTime), { addSuffix: true, locale: ja })}に落札`}
-        amount={auction.currentHighestBid}
-        amountLabel="落札額"
-        avatarName={auction.taskName}
-        deliveryMethod={auction.deliveryMethod}
-        leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
-        rightBadge={
-          auction.rating && auction.rating > 0 ? <Rating rating={auction.rating} size={16} /> : <span className="text-xs text-gray-500">未評価</span>
-        }
-        onClick={handleWonItemClick}
-      />
-    ),
+    (auction: WonAuctionItem) => {
+      return (
+        <HistoryCard
+          key={auction.auctionId}
+          id={auction.auctionId}
+          title={auction.taskName}
+          timestamp={new Date(auction.auctionEndTime)}
+          timestampIcon={<Award size={14} />}
+          timestampText={
+            isValid(new Date(auction.auctionEndTime))
+              ? `${formatDistanceToNow(new Date(auction.auctionEndTime), { addSuffix: true, locale: ja })}に落札`
+              : "日付不明"
+          }
+          amount={auction.currentHighestBid}
+          amountLabel="落札額"
+          deliveryMethod={auction.deliveryMethod}
+          leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
+          rightBadge={
+            auction.rating && auction.rating > 0 ? (
+              <Rating rating={auction.rating} size={16} />
+            ) : (
+              <span className="text-xs text-gray-500">未評価</span>
+            )
+          }
+          onClick={handleWonItemClick}
+        />
+      );
+    },
     [handleWonItemClick],
   );
 
@@ -230,22 +243,28 @@ export const AuctionHistory = memo(function AuctionHistory() {
    * 出品履歴
    */
   const renderCreatedItem = useCallback(
-    (auction: CreatedAuctionItem) => (
-      <HistoryCard
-        key={auction.auctionId}
-        id={auction.auctionId}
-        title={auction.taskName}
-        timestamp={new Date(auction.auctionCreatedAt)}
-        timestampIcon={<Tag size={14} />}
-        timestampText={`${formatDistanceToNow(new Date(auction.auctionCreatedAt), { addSuffix: true, locale: ja })}に出品`}
-        amount={auction.currentHighestBid}
-        amountLabel={auction.auctionStatus === "ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
-        avatarName={auction.winnerName ?? (auction.auctionStatus === "ENDED" ? "落札者なし" : "落札者未定")}
-        leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
-        rightBadge={<AuctionStatusBadge status={auction.auctionStatus} />}
-        onClick={handleCreatedItemClick}
-      />
-    ),
+    (auction: CreatedAuctionItem) => {
+      return (
+        <HistoryCard
+          key={auction.auctionId}
+          id={auction.auctionId}
+          title={auction.taskName}
+          timestamp={new Date(auction.auctionCreatedAt)}
+          timestampIcon={<Tag size={14} />}
+          timestampText={
+            isValid(new Date(auction.auctionCreatedAt))
+              ? `${formatDistanceToNow(new Date(auction.auctionCreatedAt), { addSuffix: true, locale: ja })}に出品`
+              : "日付不明"
+          }
+          amount={auction.currentHighestBid}
+          amountLabel={auction.auctionStatus === "ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
+          avatarName={auction.winnerName ?? (auction.auctionStatus === "ENDED" ? "落札者なし" : "落札者未定")}
+          leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
+          rightBadge={<AuctionStatusBadge status={auction.auctionStatus} />}
+          onClick={handleCreatedItemClick}
+        />
+      );
+    },
     [handleCreatedItemClick],
   );
 

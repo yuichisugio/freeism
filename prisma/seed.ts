@@ -23,7 +23,7 @@ const SEED_CONFIG = {
   GROUPS_COUNT: 5, // 生成するグループ数
   MIN_MEMBERS_PER_GROUP: 3, // グループごとの最小メンバー数
   MAX_MEMBERS_PER_GROUP: 4, // グループごとの最大メンバー数
-  TASKS_COUNT: 150, // 生成するタスク総数
+  TASKS_COUNT: 51, // 生成するタスク総数
   TASK_CATEGORIES: ["食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"],
 
   // タスク関連設定
@@ -37,7 +37,7 @@ const SEED_CONFIG = {
   TASK_REFERENCE_PROBABILITY: 0.3, // タスクに参照URLが付与される確率
   TASK_EVALUATOR_PROBABILITY: 0.5, // タスクに評価者が設定される確率
   TASK_FIXED_SUBMITTER_PROBABILITY: 0.3, // タスクに固定提出者が設定される確率
-  TASK_REWARD_PROBABILITY: 0.6, // タスクが報酬タイプになる確率
+  TASK_REWARD_PROBABILITY: 0.8, // タスクが報酬タイプになる確率
   TASK_COMPLETED_PROBABILITY: 0.3, // タスクが完了ステータスになる確率
 
   // 分析関連設定

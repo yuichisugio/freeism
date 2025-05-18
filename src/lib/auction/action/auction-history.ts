@@ -59,7 +59,7 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
   const returnBidedAuctionPerPage: BidHistoryItem[] = allBids.map((bid) => ({
     auctionId: bid.auctionId,
     status: bid.status,
-    createdAt: bid.auction.createdAt,
+    lastBidAt: bid.auction.createdAt,
     taskId: bid.auction.task.id,
     taskName: bid.auction.task.task,
     taskStatus: bid.auction.task.status,
