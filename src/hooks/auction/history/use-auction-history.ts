@@ -13,7 +13,7 @@ import {
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -36,12 +36,17 @@ export function useAuctionHistory() {
     [VALID_TABS],
   );
 
-  const DEFAULT_HISTORY_DATA = useMemo(() => ({ items: [], nextPage: null, totalCount: 0 }), []);
-
   /**
    * ルーター
    */
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * クエリクライアント
+   */
+  const queryClient = useQueryClient();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -82,6 +87,17 @@ export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * ページあたりのアイテム数をURLから取得する関数
+   */
+  const getItemPerPageFromUrl = useCallback(() => {
+    const items = searchParams.get("itemPerPage");
+    const itemsNumber = parseInt(items ?? AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE.toString(), 10);
+    return isNaN(itemsNumber) || itemsNumber < 1 ? AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE : itemsNumber;
+  }, [searchParams]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * タブを取得
    */
   const [activeTab, setActiveTab] = useState<ValidTab>(getTabFromUrl());
@@ -98,7 +114,7 @@ export function useAuctionHistory() {
   /**
    * ページあたりのアイテム数を取得
    */
-  const [itemPerPage, setItemPerPage] = useState<number>(AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE);
+  const [itemPerPage, setItemPerPage] = useState<number>(getItemPerPageFromUrl());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -109,7 +125,8 @@ export function useAuctionHistory() {
   useEffect(() => {
     setActiveTab(getTabFromUrl());
     setCurrentPage(getPageFromUrl());
-  }, [getPageFromUrl, getTabFromUrl, searchParams]);
+    setItemPerPage(getItemPerPageFromUrl());
+  }, [getPageFromUrl, getTabFromUrl, getItemPerPageFromUrl, searchParams]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -143,9 +160,25 @@ export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 表示件数を変更
+   */
+  const handleItemPerPageChange = useCallback(
+    (newItemPerPage: number) => {
+      if (newItemPerPage > 0) {
+        setItemPerPage(newItemPerPage);
+        setCurrentPage(1);
+        router.push(`?tab=${activeTab}&page=1&itemPerPage=${newItemPerPage}`);
+      }
+    },
+    [router, activeTab],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 入札履歴を取得
    */
-  const { data: bidHistoryData, isLoading: isLoadingBids } = useQuery<BidHistoryItem[]>({
+  const { data: bidHistoryData, isPending: isLoadingBids } = useQuery<BidHistoryItem[]>({
     queryKey: queryCacheKeys.auction.historyBids(userId!, currentPage, itemPerPage),
     queryFn: () => getUserBidHistories(currentPage, userId!, itemPerPage),
     enabled: !!userId && activeTab === "bids",
@@ -159,7 +192,7 @@ export function useAuctionHistory() {
    * 入札履歴の件数を取得
    * 入札履歴のページを変えるたびに件数をアクセスしないように、件数取得の関数は別で用意する
    */
-  const { data: bidHistoryCount, isLoading: isLoadingBidHistoryCount } = useQuery<number>({
+  const { data: bidHistoryCount, isPending: isLoadingBidHistoryCount } = useQuery<number>({
     queryKey: queryCacheKeys.auction.historyBidsCount(userId!),
     queryFn: () => getUserBidHistoryCount(userId!),
     enabled: !!userId && activeTab === "bids",
@@ -172,7 +205,7 @@ export function useAuctionHistory() {
   /**
    * 落札履歴を取得
    */
-  const { data: wonAuctionsData, isLoading: isLoadingWon } = useQuery<WonAuctionItem[]>({
+  const { data: wonHistoryData, isPending: isLoadingWon } = useQuery<WonAuctionItem[]>({
     queryKey: queryCacheKeys.auction.historyWon(userId!, currentPage, itemPerPage),
     queryFn: () => getUserWonAuctions(currentPage, userId!, itemPerPage),
     enabled: !!userId && activeTab === "won",
@@ -185,7 +218,7 @@ export function useAuctionHistory() {
   /**
    * 落札履歴の件数を取得
    */
-  const { data: wonAuctionsCount, isLoading: isLoadingWonCount } = useQuery<number>({
+  const { data: wonAuctionsCount, isPending: isLoadingWonCount } = useQuery<number>({
     queryKey: queryCacheKeys.auction.historyWonCount(userId!),
     queryFn: () => getUserWonAuctionsCount(userId!),
     enabled: !!userId && activeTab === "won",
@@ -198,7 +231,7 @@ export function useAuctionHistory() {
   /**
    * 出品履歴を取得
    */
-  const { data: createdAuctionsData, isLoading: isLoadingCreated } = useQuery<CreatedAuctionItem[]>({
+  const { data: createdHistoryData, isPending: isLoadingCreated } = useQuery<CreatedAuctionItem[]>({
     queryKey: queryCacheKeys.auction.historyCreated(userId!, currentPage, itemPerPage),
     queryFn: () => getUserCreatedAuctions(currentPage, userId!, itemPerPage),
     enabled: !!userId && activeTab === "created",
@@ -210,7 +243,7 @@ export function useAuctionHistory() {
   /**
    * 出品履歴の件数を取得
    */
-  const { data: createdAuctionsCount, isLoading: isLoadingCreatedCount } = useQuery<number>({
+  const { data: createdAuctionsCount, isPending: isLoadingCreatedCount } = useQuery<number>({
     queryKey: queryCacheKeys.auction.historyCreatedCount(userId!),
     queryFn: () => getUserCreatedAuctionsCount(userId!),
     enabled: !!userId && activeTab === "created",
@@ -221,20 +254,65 @@ export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 現在のデータを取得
+   * 次のページのデータを prefetch する
    */
-  const currentData = useMemo(() => {
+  useEffect(() => {
+    if (!userId) return;
+
+    const prefetchNextPage = async (
+      fetchFn: (page: number, userId: string, itemsPerPage: number) => Promise<unknown>,
+      queryKeyFn: (userId: string, page: number, itemsPerPage: number) => readonly unknown[],
+      count: number | undefined,
+      dataExists: boolean,
+    ) => {
+      if (dataExists && count !== undefined) {
+        const totalPages = Math.ceil(count / itemPerPage);
+        if (currentPage < totalPages) {
+          const nextPage = currentPage + 1;
+          await queryClient.prefetchQuery({
+            queryKey: queryKeyFn(userId, nextPage, itemPerPage),
+            queryFn: () => fetchFn(nextPage, userId, itemPerPage),
+          });
+        }
+      }
+    };
+
     switch (activeTab) {
       case "bids":
-        return bidHistoryData ?? DEFAULT_HISTORY_DATA;
+        void prefetchNextPage(
+          getUserBidHistories,
+          queryCacheKeys.auction.historyBids,
+          bidHistoryCount,
+          !!bidHistoryData && bidHistoryData.length > 0,
+        );
+        break;
       case "won":
-        return wonAuctionsData ?? DEFAULT_HISTORY_DATA;
+        void prefetchNextPage(getUserWonAuctions, queryCacheKeys.auction.historyWon, wonAuctionsCount, !!wonHistoryData && wonHistoryData.length > 0);
+        break;
       case "created":
-        return createdAuctionsData ?? DEFAULT_HISTORY_DATA;
+        void prefetchNextPage(
+          getUserCreatedAuctions,
+          queryCacheKeys.auction.historyCreated,
+          createdAuctionsCount,
+          !!createdHistoryData && createdHistoryData.length > 0,
+        );
+        break;
       default:
-        return DEFAULT_HISTORY_DATA;
+        break;
     }
-  }, [activeTab, bidHistoryData, wonAuctionsData, createdAuctionsData, DEFAULT_HISTORY_DATA]);
+  }, [
+    activeTab,
+    currentPage,
+    itemPerPage,
+    userId,
+    queryClient,
+    bidHistoryData,
+    bidHistoryCount,
+    wonHistoryData,
+    wonAuctionsCount,
+    createdHistoryData,
+    createdAuctionsCount,
+  ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -292,7 +370,10 @@ export function useAuctionHistory() {
     // state
     activeTab,
     currentPage,
-    currentData,
+    itemPerPage,
+    bidHistoryData: bidHistoryData ?? [],
+    wonHistoryData: wonHistoryData ?? [],
+    createdHistoryData: createdHistoryData ?? [],
     currentDataCount,
     isLoadingCurrentTab,
     userId,
@@ -303,6 +384,6 @@ export function useAuctionHistory() {
     handleCreatedItemClick,
     handleTabChange,
     handlePageChange,
-    setItemPerPage,
+    handleItemPerPageChange,
   };
 }

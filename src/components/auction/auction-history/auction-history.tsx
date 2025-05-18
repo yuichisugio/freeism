@@ -6,7 +6,6 @@ import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/component
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionHistory } from "@/hooks/auction/history/use-auction-history";
-import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -151,7 +150,10 @@ export const AuctionHistory = memo(function AuctionHistory() {
     // state
     activeTab,
     currentPage,
-    currentData,
+    itemPerPage,
+    bidHistoryData,
+    wonHistoryData,
+    createdHistoryData,
     currentDataCount,
     isLoadingCurrentTab,
 
@@ -161,7 +163,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
     handleItemClick,
     handleWonItemClick,
     handleCreatedItemClick,
-    setItemPerPage,
+    handleItemPerPageChange,
   } = useAuctionHistory();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -264,30 +266,15 @@ export const AuctionHistory = memo(function AuctionHistory() {
         </div>
 
         <TabsContent value="bids" forceMount={activeTab === "bids" ? undefined : true} hidden={activeTab !== "bids"}>
-          <HistoryGrid
-            items={currentData as BidHistoryItem[]}
-            renderItem={renderBidItem}
-            emptyMessage="入札履歴はありません"
-            loading={isLoadingCurrentTab}
-          />
+          <HistoryGrid items={bidHistoryData} renderItem={renderBidItem} emptyMessage="入札履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
 
         <TabsContent value="won" forceMount={activeTab === "won" ? undefined : true} hidden={activeTab !== "won"}>
-          <HistoryGrid
-            items={currentData as WonAuctionItem[]}
-            renderItem={renderWonItem}
-            emptyMessage="落札履歴はありません"
-            loading={isLoadingCurrentTab}
-          />
+          <HistoryGrid items={wonHistoryData} renderItem={renderWonItem} emptyMessage="落札履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
 
         <TabsContent value="created" forceMount={activeTab === "created" ? undefined : true} hidden={activeTab !== "created"}>
-          <HistoryGrid
-            items={currentData as CreatedAuctionItem[]}
-            renderItem={renderCreatedItem}
-            emptyMessage="出品履歴はありません"
-            loading={isLoadingCurrentTab}
-          />
+          <HistoryGrid items={createdHistoryData} renderItem={renderCreatedItem} emptyMessage="出品履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
       </Tabs>
 
@@ -298,31 +285,10 @@ export const AuctionHistory = memo(function AuctionHistory() {
             currentPage: currentPage,
             onPageChange: handlePageChange,
             totalRowCount: currentDataCount,
-            itemPerPage: AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE,
-            onItemPerPageChange: (rowCount) => setItemPerPage(rowCount),
+            itemPerPage: itemPerPage,
+            onItemPerPageChange: handleItemPerPageChange,
           }}
         />
-      )}
-      {!isLoadingCurrentTab && currentDataCount > AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE && (
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="mr-2 rounded border p-2 disabled:opacity-50"
-          >
-            前のページ
-          </button>
-          <span className="p-2">
-            {currentPage} / {Math.ceil(currentDataCount / AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE)}
-          </span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === Math.ceil(currentDataCount / AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE)}
-            className="ml-2 rounded border p-2 disabled:opacity-50"
-          >
-            次のページ
-          </button>
-        </div>
       )}
     </div>
   );

@@ -18,8 +18,11 @@ export const NOTIFICATION_CONSTANTS = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * オークション履歴表示関連の定数
+ */
 export const AUCTION_HISTORY_CONSTANTS = {
-  ITEMS_PER_PAGE: 20,
+  ITEMS_PER_PAGE: 21,
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

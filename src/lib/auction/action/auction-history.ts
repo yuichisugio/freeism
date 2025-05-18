@@ -84,10 +84,16 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
  * @returns 入札履歴の件数
  */
 export async function getUserBidHistoryCount(userId: string): Promise<number> {
-  const count = await prisma.bidHistory.count({
-    where: { userId: userId },
+  const distinctBids = await prisma.bidHistory.findMany({
+    where: {
+      userId: userId,
+    },
+    distinct: ["auctionId"],
+    select: {
+      auctionId: true,
+    },
   });
-  return count;
+  return distinctBids.length;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
