@@ -192,15 +192,15 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
         <div>
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg">出品者情報</CardTitle>
+              <CardTitle className="text-lg">出品者の情報</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <div>
-                  <p className="font-medium">{auction.taskCreatorName ?? "出品者"}</p>
-                  <div className="flex items-center gap-2">
+                  <p className="font-medium">ユーザー名：{auction.taskCreatorName ?? "未設定"}</p>
+                  <div className="mt-5 flex items-center gap-2">
                     <Rating rating={sellerRating} size={16} />
-                    <span className="text-sm text-gray-500">({sellerReviewCount})</span>
+                    <span className="text-sm text-gray-500">{sellerReviewCount} 件の評価</span>
                   </div>
                 </div>
               </div>
@@ -209,7 +209,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">出品者の評価</CardTitle>
+              <CardTitle className="text-lg">出品者への評価</CardTitle>
             </CardHeader>
             <CardContent>
               {hasReviewed ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Star } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -13,6 +14,7 @@ type RatingDisplayProps = {
   size?: number;
   readonly?: boolean;
   onChange?: (rating: number) => void;
+  className?: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -24,7 +26,7 @@ type RatingDisplayProps = {
  * @param readonly 読み取り専用
  * @param onChange 評価変更時のコールバック
  */
-export const Rating = memo(function Rating({ rating, size = 20, readonly = true, onChange }: RatingDisplayProps) {
+export const Rating = memo(function Rating({ rating, size = 20, readonly = true, onChange, className }: RatingDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const [hoverRating, setHoverRating] = useState(0);
@@ -64,7 +66,11 @@ export const Rating = memo(function Rating({ rating, size = 20, readonly = true,
         <Star
           key={index}
           size={size}
-          className={`cursor-${readonly ? "default" : "pointer"} ${index <= (hoverRating || rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+          className={cn(
+            `cursor-${readonly ? "default" : "pointer"}`,
+            index <= (hoverRating || rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300",
+            className,
+          )}
           onClick={() => handleClick(index)}
           onMouseEnter={() => handleMouseEnter(index)}
           onMouseLeave={handleMouseLeave}
