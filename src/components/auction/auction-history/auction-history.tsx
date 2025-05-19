@@ -347,8 +347,8 @@ export const AuctionHistory = memo(function AuctionHistory() {
         </TabsContent>
 
         <TabsContent value="created" forceMount={activeTab === "created" ? undefined : true} hidden={activeTab !== "created"}>
-          <div className="mb-6 flex items-center justify-between border-b pb-4">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+          <div className="mb-4 flex-col items-center border-b pb-4">
+            <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-4">
               <p className="text-base font-semibold text-gray-700">フィルター</p>
               {filterOptions.map((option) => (
                 <div key={option.id} className="flex items-center space-x-2">
@@ -366,12 +366,12 @@ export const AuctionHistory = memo(function AuctionHistory() {
                 </div>
               ))}
             </div>
-            <div className="flex flex-shrink-0 items-center gap-x-4">
-              <Button variant="outline" size="sm" onClick={handleClearFilters} disabled={filter.length === 0}>
+            <div className="mt-3 flex items-center gap-x-4">
+              <Button variant="outline" size="sm" className="min-w-[72px]" onClick={handleClearFilters} disabled={filter.length === 0}>
                 クリア
               </Button>
               <div className="flex items-center space-x-2">
-                <Label htmlFor="filter-condition-switch" className="text-sm whitespace-nowrap">
+                <Label htmlFor="filter-condition-switch" className="inline-block w-[72px] text-center text-sm whitespace-nowrap">
                   {filterCondition === "and" ? "AND検索" : "OR検索"}
                 </Label>
                 <Switch

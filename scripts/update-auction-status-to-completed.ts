@@ -41,6 +41,7 @@ type AuctionWithRelations = Prisma.AuctionGetPayload<{
 async function updateAuctionStatusToCompleted(): Promise<number> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     /**
      * 現在の日時を取得
      */
