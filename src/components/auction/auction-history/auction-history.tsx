@@ -1,12 +1,17 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Rating } from "@/components/auction/common/rating";
 import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
+import { Loading } from "@/components/share/loading";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionHistory } from "@/hooks/auction/history/use-auction-history";
-import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
+import { type AuctionCreatedTabFilter, type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
 import { formatDistanceToNow, isValid } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Award, Clock, Tag } from "lucide-react";
@@ -117,7 +122,7 @@ const HistoryGrid = memo(function HistoryGrid<T>({ items, renderItem, emptyMessa
   /**
    * ローディング中の場合
    */
-  if (loading) return null;
+  if (loading) return <Loading />;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -156,6 +161,9 @@ export const AuctionHistory = memo(function AuctionHistory() {
     createdHistoryData,
     currentDataCount,
     isLoadingCurrentTab,
+    filter,
+    VALID_UI_FILTERS,
+    filterCondition,
 
     // function
     handleTabChange,
@@ -164,7 +172,53 @@ export const AuctionHistory = memo(function AuctionHistory() {
     handleWonItemClick,
     handleCreatedItemClick,
     handleItemPerPageChange,
+    handleFilterChange,
+    handleClearFilters,
+    handleFilterConditionChange,
   } = useAuctionHistory();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * フィルターの選択肢とラベルのマッピング
+   */
+  const filterOptions: { id: AuctionCreatedTabFilter; label: string }[] = useMemo(
+    () =>
+      VALID_UI_FILTERS.map((f) => {
+        switch (f) {
+          case "creator":
+            return { id: f, label: "あなたが作成" };
+          case "executor":
+            return { id: f, label: "あなたが提供" };
+          case "reporter":
+            return { id: f, label: "あなたが報告" };
+          case "active":
+            return { id: f, label: "開催中" };
+          case "ended":
+            return { id: f, label: "終了" };
+          case "pending":
+            return { id: f, label: "開始前" };
+          default: {
+            const exhaustiveCheck: never = f;
+            return { id: exhaustiveCheck as AuctionCreatedTabFilter, label: String(exhaustiveCheck) };
+          }
+        }
+      }),
+    [VALID_UI_FILTERS],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * フィルターのチェックボックスの変更
+   */
+  const onFilterCheckboxChange = useCallback(
+    (filterId: AuctionCreatedTabFilter, checked: boolean) => {
+      const newFilter = checked ? [...filter, filterId] : filter.filter((f) => f !== filterId);
+      handleFilterChange(newFilter);
+    },
+    [filter, handleFilterChange],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -175,8 +229,8 @@ export const AuctionHistory = memo(function AuctionHistory() {
     (bid: BidHistoryItem) => {
       return (
         <HistoryCard
-          key={bid.taskId}
-          id={bid.taskId}
+          key={bid.auctionId}
+          id={bid.auctionId}
           title={bid.taskName}
           timestamp={new Date(bid.lastBidAt)}
           timestampIcon={<Clock size={14} />}
@@ -268,7 +322,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
     [handleCreatedItemClick],
   );
 
-  // --------------------------------------------------------------------------------
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 履歴コンポーネント
@@ -293,6 +347,43 @@ export const AuctionHistory = memo(function AuctionHistory() {
         </TabsContent>
 
         <TabsContent value="created" forceMount={activeTab === "created" ? undefined : true} hidden={activeTab !== "created"}>
+          <div className="mb-6 flex items-center justify-between border-b pb-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <p className="text-base font-semibold text-gray-700">フィルター</p>
+              {filterOptions.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`filter-${option.id}`}
+                    checked={filter.includes(option.id)}
+                    onCheckedChange={(checked) => {
+                      onFilterCheckboxChange(option.id, !!checked);
+                    }}
+                    aria-label={option.label}
+                  />
+                  <Label htmlFor={`filter-${option.id}`} className="cursor-pointer text-sm font-normal">
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-shrink-0 items-center gap-x-4">
+              <Button variant="outline" size="sm" onClick={handleClearFilters} disabled={filter.length === 0}>
+                クリア
+              </Button>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="filter-condition-switch" className="text-sm whitespace-nowrap">
+                  {filterCondition === "and" ? "AND検索" : "OR検索"}
+                </Label>
+                <Switch
+                  id="filter-condition-switch"
+                  checked={filterCondition === "and"}
+                  onCheckedChange={(checked) => handleFilterConditionChange(checked ? "and" : "or")}
+                  aria-label="フィルター条件をANDとORで切り替え"
+                  disabled={filter.length < 2}
+                />
+              </div>
+            </div>
+          </div>
           <HistoryGrid items={createdHistoryData} renderItem={renderCreatedItem} emptyMessage="出品履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
       </Tabs>

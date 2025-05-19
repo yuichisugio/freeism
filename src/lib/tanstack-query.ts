@@ -1,4 +1,4 @@
-import type { AuctionListingsConditions } from "@/types/auction-types";
+import type { AuctionCreatedTabFilter, AuctionListingsConditions, FilterCondition } from "@/types/auction-types";
 import type { AllUserGroupTable, MyGroupTable, MyTaskTableConditions, TableConditions } from "@/types/group-types";
 import { QueryClient } from "@tanstack/react-query";
 import { type PersistedClient, type Persister } from "@tanstack/react-query-persist-client";
@@ -58,9 +58,10 @@ export const queryCacheKeys = {
     historyWon: (userId: string, page: number, itemPerPage: number) =>
       [...queryCacheKeys.auction.history(), "won", userId, page, itemPerPage] as const,
     historyWonCount: (userId: string) => [...queryCacheKeys.auction.history(), "wonCount", userId] as const,
-    historyCreated: (userId: string, page: number, itemPerPage: number) =>
-      [...queryCacheKeys.auction.history(), "created", userId, page, itemPerPage] as const,
-    historyCreatedCount: (userId: string) => [...queryCacheKeys.auction.history(), "createdCount", userId] as const,
+    historyCreated: (userId: string, page: number, itemPerPage: number, filter: AuctionCreatedTabFilter[], filterCondition: FilterCondition) =>
+      [...queryCacheKeys.auction.history(), "created", userId, page, itemPerPage, ...[...filter].sort(), filterCondition] as const,
+    historyCreatedCount: (userId: string, filter: AuctionCreatedTabFilter[], filterCondition: FilterCondition) =>
+      [...queryCacheKeys.auction.history(), "createdCount", userId, ...[...filter].sort(), filterCondition] as const,
     historyCreatedDetail: (userId: string, auctionId: string) => [...queryCacheKeys.auction.history(), "createdDetail", userId, auctionId] as const,
     winningRating: (winnerId: string) => [...queryCacheKeys.auction._root, "winningRating", winnerId] as const,
   },

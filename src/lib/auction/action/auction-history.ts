@@ -1,7 +1,14 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
+import {
+  type AuctionCreatedTabFilter,
+  type BidHistoryItem,
+  type CreatedAuctionItem,
+  type FilterCondition,
+  type WonAuctionItem,
+} from "@/types/auction-types";
 import { AuctionStatus, ReviewPosition } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -11,7 +18,7 @@ import { AuctionStatus, ReviewPosition } from "@prisma/client";
  * @param page ページ番号
  * @returns 重複のないオークションごとの最新入札履歴の配列、次のページ番号、総件数
  */
-export async function getUserBidHistories(page = 1, userId: string, itemPerPage: number): Promise<BidHistoryItem[]> {
+export async function getUserBidHistories(page = 1, userId: string, itemPerPage: number, _condition?: FilterCondition): Promise<BidHistoryItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -103,7 +110,7 @@ export async function getUserBidHistoryCount(userId: string): Promise<number> {
  * @param page ページ番号
  * @returns 落札したオークション履歴の配列、次のページ番号、総件数
  */
-export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: number): Promise<WonAuctionItem[]> {
+export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: number, _condition?: FilterCondition): Promise<WonAuctionItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -198,17 +205,104 @@ export async function getUserWonAuctionsCount(userId: string): Promise<number> {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 出品したオークション履歴の条件を設定
+ */
+export async function getUserCreatedAuctionsWhereCondition(
+  userId: string,
+  filter: AuctionCreatedTabFilter[],
+  filterCondition: FilterCondition,
+): Promise<Prisma.AuctionWhereInput> {
+  const whereCondition: Prisma.AuctionWhereInput = {};
+  const taskRoleConditions: Prisma.TaskWhereInput[] = [];
+
+  // ロールフィルターの処理
+  const hasCreatorFilter = filter.includes("creator");
+  const hasExecutorFilter = filter.includes("executor");
+  const hasReporterFilter = filter.includes("reporter");
+
+  if (hasCreatorFilter) {
+    taskRoleConditions.push({ creatorId: userId });
+  }
+  if (hasExecutorFilter) {
+    taskRoleConditions.push({ executors: { some: { userId: userId } } });
+  }
+  if (hasReporterFilter) {
+    taskRoleConditions.push({ reporters: { some: { userId: userId } } });
+  }
+
+  if (taskRoleConditions.length > 0) {
+    if (filterCondition === "and") {
+      whereCondition.task = { AND: taskRoleConditions };
+    } else {
+      whereCondition.task = { OR: taskRoleConditions };
+    }
+  } else {
+    // ロールフィルターが何も選択されていない場合は、ユーザーが関与する全てのロールを対象 (これはOR条件が自然)
+    whereCondition.task = {
+      OR: [{ creatorId: userId }, { executors: { some: { userId: userId } } }, { reporters: { some: { userId: userId } } }],
+    };
+  }
+
+  // ステータスフィルターの処理
+  const statusFilters: AuctionStatus[] = [];
+  if (filter.includes("active")) {
+    statusFilters.push(AuctionStatus.ACTIVE);
+  }
+  if (filter.includes("ended")) {
+    statusFilters.push(AuctionStatus.ENDED);
+  }
+  if (filter.includes("pending")) {
+    statusFilters.push(AuctionStatus.PENDING);
+  }
+
+  if (statusFilters.length > 0) {
+    // ステータスフィルターとロールフィルターの関係性をどうするか？
+    // ここでは、ロール条件とステータス条件はANDで結ぶのが一般的か。
+    // filterCondition が AND の場合: (RoleA AND RoleB) AND (StatusA OR StatusB)
+    // filterCondition が OR の場合: (RoleA OR RoleB) AND (StatusA OR StatusB) -> これは実質ロールフィルターのORに影響しない
+    // filterCondition は主にロール間の条件に使われると想定。
+    // ステータスは常にORで選択されたものを満たす、かつ、ロール条件を満たす。
+    if (whereCondition.task) {
+      whereCondition.AND = [
+        { task: whereCondition.task }, // 既存のロール条件
+        { status: { in: statusFilters } }, // ステータス条件
+      ];
+      delete whereCondition.task; // AND句に移動したので元のtaskは削除
+    } else {
+      whereCondition.status = { in: statusFilters };
+    }
+  }
+
+  return whereCondition;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * ユーザーの出品したオークション履歴を取得
  * @param page ページ番号
  * @returns 出品したオークション履歴の配列、次のページ番号、総件数
  */
-export async function getUserCreatedAuctions(page = 1, userId: string, itemPerPage: number): Promise<CreatedAuctionItem[]> {
+export async function getUserCreatedAuctions(
+  page = 1,
+  userId: string,
+  itemPerPage: number,
+  filter: AuctionCreatedTabFilter[],
+  filterCondition: FilterCondition,
+): Promise<CreatedAuctionItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ログ
    */
-  console.log("getUserCreatedAuctions_start_page:", page);
+  console.log("getUserCreatedAuctions_start_page:", page, "filter:", filter, "condition:", filterCondition);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 条件を設定
+   */
+  const whereCondition = await getUserCreatedAuctionsWhereCondition(userId, filter, filterCondition);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -216,11 +310,7 @@ export async function getUserCreatedAuctions(page = 1, userId: string, itemPerPa
    * 出品したオークション履歴を取得
    */
   const createdAuctionsData = await prisma.auction.findMany({
-    where: {
-      task: {
-        creatorId: userId,
-      },
-    },
+    where: whereCondition,
     orderBy: {
       createdAt: "desc",
     },
@@ -238,6 +328,21 @@ export async function getUserCreatedAuctions(page = 1, userId: string, itemPerPa
           task: true,
           status: true,
           deliveryMethod: true,
+          creator: {
+            select: {
+              id: true,
+            },
+          },
+          executors: {
+            select: {
+              userId: true,
+            },
+          },
+          reporters: {
+            select: {
+              userId: true,
+            },
+          },
         },
       },
       winner: {
@@ -266,6 +371,9 @@ export async function getUserCreatedAuctions(page = 1, userId: string, itemPerPa
     deliveryMethod: auction.task.deliveryMethod,
     winnerId: auction.winner?.id ?? null,
     winnerName: auction.winner?.name ?? null,
+    isCreator: auction.task.creator.id === userId,
+    isExecutor: auction.task.executors.some((executor) => executor.userId === userId),
+    isReporter: auction.task.reporters.some((reporter) => reporter.userId === userId),
   }));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -281,16 +389,35 @@ export async function getUserCreatedAuctions(page = 1, userId: string, itemPerPa
 /**
  * 出品履歴の件数を取得
  * @param userId ユーザーID
+ * @param filter フィルター
  * @returns 出品履歴の件数
  */
-export async function getUserCreatedAuctionsCount(userId: string): Promise<number> {
+export async function getUserCreatedAuctionsCount(
+  userId: string,
+  filter: AuctionCreatedTabFilter[],
+  filterCondition: FilterCondition,
+): Promise<number> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 条件を設定
+   */
+  const whereCondition = await getUserCreatedAuctionsWhereCondition(userId, filter, filterCondition);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品履歴の件数を取得
+   */
   const count = await prisma.auction.count({
-    where: {
-      task: {
-        creatorId: userId,
-      },
-    },
+    where: whereCondition,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 件数を返却
+   */
   return count;
 }
 

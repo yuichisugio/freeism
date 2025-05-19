@@ -131,7 +131,7 @@ const FilterTabs = memo(function FilterTabs({
         {unreadCount > 0 && (
           <span
             className={cn(
-              "ml-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 px-1.5 text-xs font-semibold text-white dark:bg-gray-900 dark:text-white",
+              "ml-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 pr-2.5 pl-3 text-xs font-semibold text-white dark:bg-gray-900 dark:text-white",
               activeFilter === "unread" && "bg-gray-700 text-white dark:bg-white dark:text-gray-900",
             )}
           >

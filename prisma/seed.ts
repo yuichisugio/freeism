@@ -657,13 +657,24 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
 
     // タスクの詳細を生成
     const taskTitle = faker.company.catchPhrase();
-    let taskStatus: TaskStatus = TaskStatus.PENDING;
-    if (faker.datatype.boolean(SEED_CONFIG.TASK_COMPLETED_PROBABILITY)) {
-      taskStatus = faker.helpers.arrayElement(completedStatuses);
-    }
 
-    // ランダムにカテゴリを選択
+    // contributionTypeとcategoryを先に決定
+    const isReward = faker.datatype.boolean(SEED_CONFIG.TASK_REWARD_PROBABILITY);
+    const contributionType = isReward ? "REWARD" : "NON_REWARD";
     const category = faker.helpers.arrayElement(SEED_CONFIG.TASK_CATEGORIES);
+
+    let taskStatus: TaskStatus;
+    if (contributionType === "REWARD") {
+      // オークション対象となる可能性のあるタスクは、初期ステータスをPENDINGに固定
+      // オークションの状況に応じて後で POINTS_DEPOSITED などに変わる
+      taskStatus = TaskStatus.PENDING;
+    } else {
+      // 報酬なしタスクは既存のロジックでステータス決定
+      taskStatus = TaskStatus.PENDING; // デフォルトはPENDING
+      if (faker.datatype.boolean(SEED_CONFIG.TASK_COMPLETED_PROBABILITY)) {
+        taskStatus = faker.helpers.arrayElement(completedStatuses);
+      }
+    }
 
     // 評価者と評価ロジック (SEED_CONFIGの確率で設定)
     const hasEvaluator = faker.datatype.boolean(SEED_CONFIG.TASK_EVALUATOR_PROBABILITY);
@@ -790,12 +801,9 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
     const executors = getParticipants(executorsCount, SEED_CONFIG.PRESERVED_USER_AS_TASK_EXECUTOR_PROBABILITY);
 
     // 出品タイプの場合は提供方法を設定
-    const isReward = faker.datatype.boolean(SEED_CONFIG.TASK_REWARD_PROBABILITY);
-    const contributionType = isReward ? "REWARD" : "NON_REWARD";
-
     let deliveryMethod = null;
-    if (isReward) {
-      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS;
+    if (contributionType === "REWARD") {
+      const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS; // category はループの先頭で決定済み
       deliveryMethod = faker.helpers.arrayElement(categoryMethods);
     }
 
@@ -818,14 +826,14 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
         detail: faker.lorem.paragraph(),
         reference: faker.datatype.boolean(SEED_CONFIG.TASK_REFERENCE_PROBABILITY) ? faker.internet.url() : null,
         imageUrl: faker.datatype.boolean(SEED_CONFIG.TASK_IMAGE_URL_PROBABILITY) ? faker.image.urlPicsumPhotos() : null,
-        category,
+        category, // ループの先頭で決定した category を使用
         status: taskStatus,
         fixedContributionPoint: fixedPoints,
         fixedEvaluatorId: fixedEvaluatorId,
         fixedEvaluationLogic,
         fixedEvaluationDate: hasEvaluator ? faker.date.recent() : null,
         info,
-        contributionType,
+        contributionType, // ループの先頭で決定した contributionType を使用
         deliveryMethod,
         creatorId: creator.id,
         userFixedSubmitterId, // 修正: 選択した固定提出者を設定
@@ -1264,7 +1272,16 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
     });
     if (!task) continue;
 
-    const potentialBidders = users.filter((user) => user.id !== task.creatorId);
+    // オークションのグループメンバーシップを取得
+    const groupMembers = await prisma.groupMembership.findMany({
+      where: { groupId: auction.groupId },
+      select: { userId: true },
+    });
+    const groupMemberIds = new Set(groupMembers.map((gm) => gm.userId));
+
+    // 潜在的な入札者をグループメンバーかつタスク作成者でないユーザーに限定
+    const potentialBidders = users.filter((user) => user.id !== task.creatorId && groupMemberIds.has(user.id));
+
     const preservedBidders = potentialBidders.filter((user) => preservedUserIds.has(user.id));
     const otherBidders = potentialBidders.filter((user) => !preservedUserIds.has(user.id));
 
@@ -2426,7 +2443,7 @@ async function simulatePointReturn(auctions: SeedAuction[]) {
                 sendMethods: ["IN_APP"],
                 senderUserId: null,
                 auctionId: auction.id,
-                isRead: {} as Prisma.JsonObject, // 型アサーションを追加
+                isRead: { [auction.winnerId]: { isRead: false, readAt: null } }, // 修正: winnerId を使用して既読状態を設定
               },
             });
 

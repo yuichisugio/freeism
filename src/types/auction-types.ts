@@ -4,6 +4,13 @@ import type { Auction, AuctionReview, AuctionStatus, BidStatus, ReviewPosition, 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * フィルターの型
+ */
+export type AuctionCreatedTabFilter = "creator" | "executor" | "reporter" | "ended" | "active" | "pending" | "all";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 入札履歴の型
  * オークション履歴で使用
  */
@@ -54,6 +61,9 @@ export type CreatedAuctionItem = {
   deliveryMethod: string | null;
   winnerId: string | null;
   winnerName: string | null;
+  isCreator: boolean;
+  isExecutor: boolean;
+  isReporter: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -263,14 +273,30 @@ export type CountdownState = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * オークションのレビューの型
+ */
 export type AuctionReviewType = {
   createdAt: string;
   updatedAt: string;
   auction: Auction;
   reviewee: User;
   reviewer: User;
-  // isSellerReview: boolean;
   reviewPosition: ReviewPosition;
 } & Omit<AuctionReview, "createdAt" | "updatedAt" | "auction" | "reviewee" | "reviewer">;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションの有効なタブ
+ */
+export type AuctionValidTab = "bids" | "won" | "created";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * フィルター条件の型定義 (AND/OR)
+ */
+export type FilterCondition = "and" | "or";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
