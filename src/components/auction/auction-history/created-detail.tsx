@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import Image from "next/image";
-import { notFound, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Loading } from "@/components/share/loading";
 import {
   AlertDialog,
@@ -26,7 +25,6 @@ import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ArrowLeft, Edit, History, MessageSquare, Send } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { Rating } from "../common/rating";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
@@ -38,23 +36,6 @@ import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
  * @param auctionId 出品商品のID
  */
 export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ルーター
-   */
-  const router = useRouter();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーID
-   */
-  const { data: session } = useSession();
-  const userId = useMemo(() => {
-    return session?.user?.id;
-  }, [session?.user?.id]);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -79,6 +60,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     isSubmittingReview,
     hasReviewed,
     isCompleting,
+    router,
 
     // functions
     setNewMessage,
@@ -91,7 +73,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     setComment,
     handleReviewSubmit,
     handleSendMessage,
-  } = useCreatedDetail(auctionId, userId ?? "");
+  } = useCreatedDetail(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

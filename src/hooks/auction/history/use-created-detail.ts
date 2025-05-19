@@ -15,6 +15,7 @@ import {
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -22,13 +23,29 @@ import { toast } from "sonner";
 /**
  * 出品商品詳細を取得
  */
-export function useCreatedDetail(auctionId: string, userId: string) {
+export function useCreatedDetail(auctionId: string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ルーター
+   */
+  const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーID
+   */
+  const { data: session } = useSession();
+  const userId = useMemo(() => {
+    return session?.user?.id ?? "";
+  }, [session?.user?.id]);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 初期化
    */
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -212,12 +229,12 @@ export function useCreatedDetail(auctionId: string, userId: string) {
     isLoading: isLoadingMessages,
     refetch: refetchMessages,
   } = useQuery<AuctionMessage[], Error>({
-    queryKey: queryCacheKeys.auction.messages(auctionId), // auctionId が undefined の場合は queryFn が実行されないようにする
+    queryKey: queryCacheKeys.auction.messages(auctionId),
     queryFn: async () => {
       if (!auctionId) return [];
       return getAuctionMessages(auctionId);
     },
-    enabled: !!auctionId && !!auction?.winner?.id, // オークションIDと落札者IDが存在する場合のみ有効
+    enabled: !!auctionId && !!auction?.winner?.id,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -281,6 +298,7 @@ export function useCreatedDetail(auctionId: string, userId: string) {
     newMessage,
     isSubmittingReview,
     hasReviewed,
+    router,
 
     // functions
     handleComplete,
