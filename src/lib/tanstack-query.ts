@@ -61,6 +61,8 @@ export const queryCacheKeys = {
     historyCreated: (userId: string, page: number, itemPerPage: number) =>
       [...queryCacheKeys.auction.history(), "created", userId, page, itemPerPage] as const,
     historyCreatedCount: (userId: string) => [...queryCacheKeys.auction.history(), "createdCount", userId] as const,
+    historyCreatedDetail: (userId: string, auctionId: string) => [...queryCacheKeys.auction.history(), "createdDetail", userId, auctionId] as const,
+    winningRating: (winnerId: string) => [...queryCacheKeys.auction._root, "winningRating", winnerId] as const,
   },
 
   table: {

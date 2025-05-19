@@ -47,6 +47,10 @@ export async function createAuctionReview(
 export async function updateDeliveryMethod(taskId: string, deliveryMethod: string) {
   const userId = await getAuthenticatedSessionUserId();
 
+  if (deliveryMethod.trim()) {
+    return;
+  }
+
   // 自分が作成したタスクかチェック
   const task = await prisma.task.findFirst({
     where: {

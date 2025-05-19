@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { notFound, useRouter } from "next/navigation";
+import { Loading } from "@/components/share/loading";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,11 +21,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuctionHistoryCreatedDetailInit } from "@/hooks/auction/history/use-auction-history-created-detail-init";
-import { useDeliveryMethod } from "@/hooks/auction/history/use-delivery-method";
-import { useAuctionMessages } from "@/hooks/auction/history/use-messages";
-import { useAuctionReview } from "@/hooks/auction/history/use-review";
-import { useTaskCompletion } from "@/hooks/auction/history/use-task-completion";
+import { useCreatedDetail } from "@/hooks/auction/history/use-created-detail";
 import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -48,6 +45,8 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
    */
   const router = useRouter();
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * ユーザーID
    */
@@ -61,42 +60,62 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
   /**
    * 出品商品詳細の初期情報を取得
    */
-  const { auction, winnerRating, winnerReviewCount, isLoading } = useAuctionHistoryCreatedDetailInit(auctionId, userId ?? "");
-
   const {
+    // state
+    auction,
+    winnerRating,
+    winnerReviewCount,
+    isLoading,
     messages,
     newMessage,
-    setNewMessage,
     isLoadingMessages,
     isSendingMessage,
     messagesEndRef,
+    deliveryMethod,
+    isEditingDelivery,
+    isUpdatingDelivery,
+    rating,
+    comment,
+    isSubmittingReview,
+    hasReviewed,
+    isCompleting,
+
+    // functions
+    setNewMessage,
+    handleComplete,
+    setDeliveryMethod,
+    handleUpdateDeliveryMethod,
+    cancelEditingDelivery,
+    startEditingDelivery,
+    setRating,
+    setComment,
+    handleReviewSubmit,
     handleSendMessage,
-    refetchMessages: _refetchMessages,
-  } = useAuctionMessages(auction?.id, auction?.winner?.id);
+  } = useCreatedDetail(auctionId, userId ?? "");
 
-  const { rating, setRating, comment, setComment, isSubmitting, hasReviewed, handleReviewSubmit } = useAuctionReview({
-    auctionId: auction?.id,
-    winnerId: auction?.winner?.id,
-    creatorId: auction?.task?.creatorId,
-    reviews: auction?.reviews,
-  });
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const { deliveryMethod, setDeliveryMethod, isEditingDelivery, isUpdatingDelivery, handleUpdateDeliveryMethod, cancelEditing, startEditing } =
-    useDeliveryMethod(auction?.task?.id ?? "", auction?.task?.deliveryMethod ?? "");
-
-  const { isCompleting, handleComplete } = useTaskCompletion(auction?.task?.id ?? "");
-
+  /**
+   * ローディング中
+   */
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 出品商品が見つからない
+   */
   if (!auction) {
     notFound();
-    return null;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品商品詳細画面
+   */
   return (
     <div className="container mx-auto py-6">
       {/* 履歴一覧に戻るボタン */}
@@ -157,7 +176,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                   <div className="mb-2 flex items-center justify-between">
                     <h3 className="text-lg font-medium">提供方法</h3>
                     {!isEditingDelivery && auction.task.status !== "TASK_COMPLETED" && (
-                      <Button variant="outline" size="sm" onClick={startEditing} disabled={!auction.task.id}>
+                      <Button variant="outline" size="sm" onClick={startEditingDelivery} disabled={!auction.task.id}>
                         <Edit className="mr-1 h-4 w-4" /> 編集
                       </Button>
                     )}
@@ -172,10 +191,14 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                         className="h-24"
                       />
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={cancelEditing}>
+                        <Button variant="outline" size="sm" onClick={cancelEditingDelivery}>
                           キャンセル
                         </Button>
-                        <Button size="sm" onClick={() => void handleUpdateDeliveryMethod()} disabled={isUpdatingDelivery || !deliveryMethod.trim()}>
+                        <Button
+                          size="sm"
+                          onClick={() => void handleUpdateDeliveryMethod(deliveryMethod)}
+                          disabled={isUpdatingDelivery || !deliveryMethod.trim()}
+                        >
                           {isUpdatingDelivery ? "更新中..." : "更新する"}
                         </Button>
                       </div>
@@ -273,9 +296,9 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                       <Button
                         className="w-full"
                         onClick={() => void handleReviewSubmit()}
-                        disabled={rating === 0 || isSubmitting || !auction.winnerId || !auction.task?.creatorId}
+                        disabled={rating === 0 || isSubmittingReview || !auction.winnerId || !auction.task?.creatorId}
                       >
-                        {isSubmitting ? "送信中..." : "評価を送信"}
+                        {isSubmittingReview ? "送信中..." : "評価を送信"}
                       </Button>
                     </div>
                   )}
@@ -409,13 +432,13 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && e.ctrlKey) {
                               e.preventDefault();
-                              void handleSendMessage();
+                              void handleSendMessage(newMessage);
                             }
                           }}
                         />
                         <Button
                           className="h-auto"
-                          onClick={() => void handleSendMessage()}
+                          onClick={() => void handleSendMessage(newMessage)}
                           disabled={isSendingMessage || !newMessage.trim() || !auction.winner}
                         >
                           {isSendingMessage ? (
