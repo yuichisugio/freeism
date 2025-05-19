@@ -1,4 +1,4 @@
-import type { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
+import type { BidHistory, NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
 import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Prisma, PrismaClient, ReviewPosition, TaskStatus } from "@prisma/client";
@@ -1288,7 +1288,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
     if (potentialBidders.length === 0) continue;
 
     const bidCount = faker.number.int({ min: SEED_CONFIG.BIDS_PER_AUCTION_MIN, max: SEED_CONFIG.BIDS_PER_AUCTION_MAX });
-    if (bidCount === 0) continue;
+    // if (bidCount === 0) continue; // この行を削除
 
     // Fetch the initial price directly from the created auction record
     // We need the actual initial price, not the potentially updated currentHighestBid from the SeedAuction object if bids were already placed in createAuctions
@@ -1314,7 +1314,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       .map(() => new Date(dbAuction.startTime.getTime() + faker.number.float() * bidTimeRange))
       .sort((a, b) => a.getTime() - b.getTime());
 
-    const bidRecords = [];
+    const bidRecords: BidHistory[] = []; // 型指定を修正
 
     for (let i = 0; i < bidCount; i++) {
       // const PRESERVED_BIDDER_PROBABILITY = 0.4; // SEED_CONFIGから取得するように変更
@@ -1355,67 +1355,98 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
     }
 
     // --- Auction status update logic after bids (Transaction part) ---
-    if (auction.status === AuctionStatus.ENDED && bidRecords.length > 0) {
-      const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount); // Create a new sorted array
-
+    if (auction.status === AuctionStatus.ENDED) {
       await prisma.$transaction(async (tx) => {
         let winnerFound = false;
-        let winner: { id: string; userId: string; amount: number; status: BidStatus; depositPoint: number | null } | null = null; // Explicit type for winner
+        // Linter fix: winner の型を明示的に指定
+        let winner: { id: string; userId: string; amount: number; status: BidStatus; depositPoint: number | null } | null = null;
         let depositAmount = 0;
 
-        for (let i = 0; i < sortedBids.length; i++) {
-          const currentBid = sortedBids[i];
-          // Fetch the latest status of the bid before potentially updating it
-          const latestBidStatus = await tx.bidHistory.findUnique({ where: { id: currentBid.id }, select: { status: true } });
-          if (latestBidStatus?.status !== BidStatus.BIDDING) continue; // Skip if already processed (e.g., INSUFFICIENT from previous iteration)
+        if (bidRecords.length > 0) {
+          // 入札がある場合のみ落札者決定ロジックを実行
+          const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount); // Create a new sorted array
 
-          const nextBid = i < sortedBids.length - 1 ? sortedBids[i + 1] : null;
-          depositAmount = nextBid ? nextBid.amount + 1 : currentBid.amount;
+          for (let i = 0; i < sortedBids.length; i++) {
+            const currentBid = sortedBids[i];
+            // Fetch the latest status of the bid before potentially updating it
+            const latestBidStatus = await tx.bidHistory.findUnique({ where: { id: currentBid.id }, select: { status: true } });
+            if (latestBidStatus?.status !== BidStatus.BIDDING) continue; // Skip if already processed (e.g., INSUFFICIENT from previous iteration)
 
-          const groupPoint = await tx.groupPoint.findFirst({
-            where: { userId: currentBid.userId, groupId: auction.groupId },
-          });
+            const nextBid = i < sortedBids.length - 1 ? sortedBids[i + 1] : null;
+            depositAmount = nextBid ? nextBid.amount + 1 : currentBid.amount;
 
-          if (groupPoint && groupPoint.balance >= depositAmount) {
-            winner = { ...currentBid, depositPoint: depositAmount }; // Assign winner data
-            winnerFound = true;
-
-            await tx.bidHistory.update({
-              where: { id: currentBid.id },
-              // Linter Fix: Use explicit key-value pair
-              data: { status: BidStatus.WON, depositPoint: depositAmount },
+            const groupPoint = await tx.groupPoint.findFirst({
+              where: { userId: currentBid.userId, groupId: auction.groupId },
             });
 
-            await tx.groupPoint.update({
-              where: { id: groupPoint.id },
-              data: { balance: { decrement: depositAmount } },
-            });
+            if (groupPoint && groupPoint.balance >= depositAmount) {
+              // Linter Fix: winner の型に合わせるために必要なフィールドだけを選択する
+              const bidForWinner = await tx.bidHistory.findUnique({
+                where: { id: currentBid.id },
+                select: { id: true, userId: true, amount: true, status: true, depositPoint: true },
+              });
+              if (bidForWinner) {
+                winner = { ...bidForWinner, depositPoint: depositAmount };
+              }
+              winnerFound = true;
 
-            await tx.auction.update({
-              where: { id: auction.id },
-              data: { winnerId: currentBid.userId }, // Update winnerId on Auction
-            });
-            break;
-          } else {
-            await tx.bidHistory.update({
-              where: { id: currentBid.id },
-              data: { status: BidStatus.INSUFFICIENT },
-            });
+              await tx.bidHistory.update({
+                where: { id: currentBid.id },
+                // Linter Fix: Use explicit key-value pair
+                data: { status: BidStatus.WON, depositPoint: depositAmount },
+              });
+
+              await tx.groupPoint.update({
+                where: { id: groupPoint.id },
+                data: { balance: { decrement: depositAmount } },
+              });
+
+              await tx.auction.update({
+                where: { id: auction.id },
+                data: { winnerId: currentBid.userId }, // Update winnerId on Auction
+              });
+              break;
+            } else {
+              await tx.bidHistory.update({
+                where: { id: currentBid.id },
+                data: { status: BidStatus.INSUFFICIENT },
+              });
+            }
           }
-        }
 
-        // Update remaining bidding bids to LOST
-        for (const bid of sortedBids) {
-          // Fetch the latest status again before potentially updating to LOST
-          const latestBid = await tx.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
-          if (latestBid?.status === BidStatus.BIDDING) {
-            // Only update if it's still BIDDING
-            await tx.bidHistory.update({
-              where: { id: bid.id },
-              data: { status: BidStatus.LOST },
-            });
+          // Update remaining bidding bids to LOST
+          for (const bid of sortedBids) {
+            // Fetch the latest status again before potentially updating to LOST
+            const latestBid = await tx.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
+            if (latestBid?.status === BidStatus.BIDDING) {
+              // Only update if it's still BIDDING
+              await tx.bidHistory.update({
+                where: { id: bid.id },
+                data: { status: BidStatus.LOST },
+              });
+            }
           }
-        }
+          // Notifications for losers - CORRECT PLACEMENT IS HERE
+          for (const bid of sortedBids) {
+            const latestBid = await tx.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
+            if (latestBid?.status === BidStatus.LOST) {
+              const loserReadStatus = { [bid.userId]: { isRead: false, readAt: null } };
+              await tx.notification.create({
+                data: {
+                  title: generateNotificationTitle("AUCTION_LOST"),
+                  message: generateNotificationMessage("AUCTION_LOST", auction),
+                  targetType: "AUCTION_BIDDER",
+                  auctionEventType: "AUCTION_LOST",
+                  sendTimingType: "NOW",
+                  sendMethods: ["IN_APP"],
+                  auctionId: auction.id,
+                  isRead: loserReadStatus,
+                  senderUserId: null,
+                },
+              });
+            }
+          }
+        } // End of if (bidRecords.length > 0)
 
         // Update task status if winner found
         if (winnerFound) {
@@ -1423,6 +1454,19 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
             where: { id: auction.taskId },
             data: { status: TaskStatus.POINTS_DEPOSITED },
           });
+        } else {
+          // オークションが終了し、落札者がいなかった場合 (入札が0件の場合も含む)
+          const currentTask = await tx.task.findUnique({
+            where: { id: auction.taskId },
+            select: { status: true },
+          });
+          // PENDING の場合のみ ARCHIVED に更新する
+          if (currentTask && currentTask.status === TaskStatus.PENDING) {
+            await tx.task.update({
+              where: { id: auction.taskId },
+              data: { status: TaskStatus.ARCHIVED },
+            });
+          }
         }
 
         // --- Notification creation ---
@@ -1497,31 +1541,15 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
             },
           });
 
-          // Notifications for losers
-          for (const bid of sortedBids) {
-            const latestBid = await tx.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
-            if (latestBid?.status === BidStatus.LOST) {
-              const loserReadStatus = { [bid.userId]: { isRead: false, readAt: null } };
-              await tx.notification.create({
-                data: {
-                  title: generateNotificationTitle("AUCTION_LOST"),
-                  message: generateNotificationMessage("AUCTION_LOST", auction),
-                  targetType: "AUCTION_BIDDER",
-                  auctionEventType: "AUCTION_LOST",
-                  sendTimingType: "NOW",
-                  sendMethods: ["IN_APP"],
-                  auctionId: auction.id,
-                  isRead: loserReadStatus,
-                  senderUserId: null,
-                },
-              });
-            }
-          }
+          // The "Notifications for losers" loop has been moved inside the "if (bidRecords.length > 0)" block.
+          // Any remaining comments or old logic for loser notifications here should be removed.
         }
       });
-    } else if (bidRecords.length > 0) {
+    } else if (auction.status === AuctionStatus.ACTIVE && bidRecords.length > 0) {
+      // アクティブなオークションの処理 (変更なし)
       // Update current highest bid for ACTIVE auctions
-      const highestBid = [...bidRecords].sort((a, b) => b.amount - a.amount)[0]; // Sort a copy
+      const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount); // Add this line to define sortedBids
+      const highestBid = sortedBids[0]; // Use sortedBids here
       if (highestBid) {
         try {
           // Only update if the new bid is higher than the current one in the DB
@@ -1540,6 +1568,29 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
           }
         } catch (error) {
           console.error(`オークション最高入札額更新エラー: AuctionID=${auction.id}`, error);
+        }
+      }
+
+      // Notifications for losers - ここに移動
+      for (const bid of sortedBids) {
+        // sortedBids はこのスコープで見える
+        const latestBid = await prisma.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
+        if (latestBid?.status === BidStatus.LOST) {
+          // LOST になった入札に対して通知
+          const loserReadStatus = { [bid.userId]: { isRead: false, readAt: null } };
+          await prisma.notification.create({
+            data: {
+              title: generateNotificationTitle("AUCTION_LOST"),
+              message: generateNotificationMessage("AUCTION_LOST", auction),
+              targetType: "AUCTION_BIDDER",
+              auctionEventType: "AUCTION_LOST",
+              sendTimingType: "NOW",
+              sendMethods: ["IN_APP"],
+              auctionId: auction.id,
+              isRead: loserReadStatus,
+              senderUserId: null,
+            },
+          });
         }
       }
     }

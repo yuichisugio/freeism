@@ -4,7 +4,7 @@ import type { AuctionMessage } from "@/lib/auction/action/history";
 import type { AuctionReview } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuctionHistoryCreatedDetail, getWinnerRating } from "@/lib/auction/action/created-detail";
+import { getAuctionHistoryCreatedDetail, getUserRating } from "@/lib/auction/action/created-detail";
 import {
   completeTaskDelivery,
   createAuctionReview,
@@ -60,6 +60,11 @@ export function useCreatedDetail(auctionId: string, userId: string) {
     }
   }, [auction]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札者の評価を取得
+   */
   const hasReviewed = useMemo(
     () =>
       auction?.reviews?.some((review: AuctionReview) => review.reviewerId === userId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER) ??
@@ -74,7 +79,8 @@ export function useCreatedDetail(auctionId: string, userId: string) {
    */
   const { data: winnerInfo, isPending: isWinnerRatingLoading } = useQuery({
     queryKey: queryCacheKeys.auction.winningRating(auction?.winner?.id ?? ""),
-    queryFn: () => getWinnerRating(auction?.winner?.id ?? ""),
+    queryFn: () => getUserRating(auction?.winner?.id ?? ""),
+    enabled: !!auction?.winner?.id,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -214,6 +220,11 @@ export function useCreatedDetail(auctionId: string, userId: string) {
     enabled: !!auctionId && !!auction?.winner?.id, // オークションIDと落札者IDが存在する場合のみ有効
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージをスクロールする
+   */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -255,8 +266,8 @@ export function useCreatedDetail(auctionId: string, userId: string) {
     // state
     isCompleting,
     auction: auction ?? null,
-    winnerRating: winnerInfo?.winnerRating ?? 0,
-    winnerReviewCount: winnerInfo?.winnerReviewCount ?? 0,
+    winnerRating: winnerInfo?.rating ?? 0,
+    winnerReviewCount: winnerInfo?.reviewCount ?? 0,
     isLoading: isAuctionLoading || isWinnerRatingLoading,
     deliveryMethod,
     isEditingDelivery,

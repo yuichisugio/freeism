@@ -131,7 +131,14 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
    */
   await tx.auction.update({
     where: { id: auction.id },
-    data: { status: AuctionStatus.ENDED },
+    data: {
+      status: AuctionStatus.ENDED,
+      task: {
+        update: {
+          status: TaskStatus.ARCHIVED,
+        },
+      },
+    },
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -2,7 +2,7 @@
 
 import { type Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { AuctionHistoryCreatedDetail } from "@/components/auction/auction-history/auction-created-detail";
+import { AuctionHistoryCreatedDetail } from "@/components/auction/auction-history/created-detail";
 import { MainTemplate } from "@/components/layout/maintemplate";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

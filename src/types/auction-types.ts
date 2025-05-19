@@ -300,3 +300,24 @@ export type AuctionValidTab = "bids" | "won" | "created";
 export type FilterCondition = "and" | "or";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 落札詳細画面に必要な情報
+ */
+export type AuctionWonDetail = {
+  auctionId: string;
+  auctionEndTime: Date;
+  auctionStartTime: Date;
+  currentHighestBid: number;
+  winnerId: string;
+  reviews: Pick<AuctionReview, "id" | "reviewerId" | "rating" | "comment">[];
+  taskId: string;
+  taskName: string;
+  taskDetail: string | null;
+  taskStatus: TaskStatus;
+  taskCreatorId: string;
+  taskDeliveryMethod: string | null;
+  taskCreatorName: string | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

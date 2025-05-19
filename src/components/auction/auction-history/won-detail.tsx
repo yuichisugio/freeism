@@ -1,8 +1,7 @@
 "use client";
 
-import type { Auction, AuctionReview, TaskStatus } from "@prisma/client";
-import { memo, useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import type { AuctionReview } from "@prisma/client";
+import { memo } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,44 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { completeTaskDelivery, createAuctionReview } from "@/lib/auction/action/history";
-import { ReviewPosition } from "@prisma/client";
+import { useWonDetail } from "@/hooks/auction/history/use-won-detail";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ArrowLeft, Award, Calendar, Clock, MessageSquare, ShoppingBag } from "lucide-react";
-import { toast } from "sonner";
+import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
 
 import { Rating } from "../common/rating";
 import { TaskStatusBadge } from "../common/status-badge";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 落札商品詳細画面コンポーネントのprops
- */
-type AuctionWonDetailProps = {
-  auction: Auction & {
-    task: {
-      id: string;
-      task: string;
-      detail?: string | null;
-      status: TaskStatus;
-      creatorId: string;
-      deliveryMethod?: string | null;
-      creator: {
-        id: string;
-        name?: string | null;
-      };
-    };
-    winnerId: string;
-    reviews: AuctionReview[];
-    currentHighestBid: number;
-    endTime: Date;
-    startTime: Date;
-  };
-  sellerRating: number;
-  sellerReviews: AuctionReview[];
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -65,81 +33,69 @@ type AuctionWonDetailProps = {
  * @param sellerRating 出品者の評価
  * @param sellerReviews 出品者の評価履歴
  */
-export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, sellerRating, sellerReviews }: AuctionWonDetailProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { auctionId: string }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ルーター
+   * 落札商品の詳細情報を取得
    */
-  const router = useRouter();
+  const {
+    // state
+    auction,
+    sellerRating,
+    sellerReviewCount,
+    isLoading,
+    error,
+    hasReviewed,
+    rating,
+    comment,
+    isSubmitting,
+    isCompleting,
+    router,
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // function
+    setComment,
+    setRating,
+    handleReviewSubmit,
+    handleComplete,
+  } = useWonDetail(auctionId);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * state
+   * 落札商品の詳細情報を取得中
    */
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCompleting, setIsCompleting] = useState(false);
+  if (isLoading) {
+    return (
+      <div className="container mx-auto flex min-h-[calc(100vh-10rem)] items-center justify-center py-6">
+        <Loader2 className="text-primary h-16 w-16 animate-spin" />
+      </div>
+    );
+  }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ユーザーがすでに評価を送信したかどうか
+   * 落札商品の詳細情報を取得中にエラーが発生した場合
    */
-  const hasReviewed = useMemo(
-    () => auction.reviews.some((review: AuctionReview) => review.reviewerId === auction.winnerId),
-    [auction.reviews, auction.winnerId],
-  );
+  if (error || !auction) {
+    return (
+      <div className="container mx-auto flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center py-6">
+        <AlertTriangle className="text-destructive h-16 w-16" />
+        <p className="text-destructive mt-4 text-lg">
+          {error ? `エラーが発生しました: ${error.message}` : "オークション情報を取得できませんでした。"}
+        </p>
+        <Button variant="outline" className="mt-6" onClick={() => router.push("/dashboard/auction/history")}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> 履歴一覧に戻る
+        </Button>
+      </div>
+    );
+  }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 評価を送信する
-   */
-  const handleReviewSubmit = useCallback(async () => {
-    if (rating === 0) {
-      toast.error("評価を選択してください");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await createAuctionReview(auction.id, auction.task.creatorId, rating, comment, ReviewPosition.BUYER_TO_SELLER);
-      toast.success("評価を送信しました");
-      router.refresh();
-    } catch (error) {
-      console.error("評価の送信に失敗しました", error);
-      toast.error("評価の送信に失敗しました");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [auction.id, auction.task.creatorId, comment, rating, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 商品の受け取りを完了する
-   */
-  const handleComplete = useCallback(async () => {
-    setIsCompleting(true);
-    try {
-      await completeTaskDelivery(auction.task.id);
-      toast.success("商品の受け取りを完了しました");
-      router.refresh();
-    } catch (error) {
-      console.error("完了処理に失敗しました", error);
-      toast.error("完了処理に失敗しました");
-    } finally {
-      setIsCompleting(false);
-    }
-  }, [auction.task.id, router]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 落札商品詳細画面コンポーネント
+   * 落札商品の詳細情報を表示
    */
   return (
     <div className="container mx-auto py-6">
@@ -154,17 +110,17 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
         <div className="md:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{auction.task.task}</CardTitle>
+              <CardTitle className="text-2xl">{auction.taskName}</CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <TaskStatusBadge status={auction.task.status} />
-                <span className="text-sm">落札日: {format(new Date(auction.endTime), "yyyy年MM月dd日", { locale: ja })}</span>
+                <TaskStatusBadge status={auction.taskStatus} />
+                <span className="text-sm">落札日: {format(new Date(auction.auctionEndTime), "yyyy年MM月dd日", { locale: ja })}</span>
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
                   <h3 className="mb-2 text-lg font-medium">商品説明</h3>
-                  <p className="whitespace-pre-wrap text-gray-700">{auction.task.detail ?? "商品詳細はありません"}</p>
+                  <p className="whitespace-pre-wrap text-gray-700">{auction.taskDetail ?? "商品詳細はありません"}</p>
                 </div>
 
                 <div>
@@ -181,18 +137,22 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                     <div>
                       <p className="text-sm text-gray-500">ポイント返還日</p>
                       <p className="font-medium">
-                        {format(new Date(new Date(auction.endTime).setMonth(new Date(auction.endTime).getMonth() + 2)), "yyyy年MM月dd日", {
-                          locale: ja,
-                        })}
+                        {format(
+                          new Date(new Date(auction.auctionEndTime).setMonth(new Date(auction.auctionEndTime).getMonth() + 2)),
+                          "yyyy年MM月dd日",
+                          {
+                            locale: ja,
+                          },
+                        )}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {auction.task.deliveryMethod && (
+                {auction.taskDeliveryMethod && (
                   <div>
                     <h3 className="mb-2 text-lg font-medium">提供方法</h3>
-                    <p className="text-gray-700">{auction.task.deliveryMethod}</p>
+                    <p className="text-gray-700">{auction.taskDeliveryMethod}</p>
                   </div>
                 )}
               </div>
@@ -200,8 +160,17 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
             <CardFooter>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button className="w-full" disabled={auction.task.status === "TASK_COMPLETED" || isCompleting}>
-                    {isCompleting ? <>処理中...</> : auction.task.status === "TASK_COMPLETED" ? <>完了済み</> : <>商品受け取りを完了する</>}
+                  <Button className="w-full" disabled={auction.taskStatus === "TASK_COMPLETED" || isCompleting}>
+                    {isCompleting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        処理中...
+                      </>
+                    ) : auction.taskStatus === "TASK_COMPLETED" ? (
+                      <>完了済み</>
+                    ) : (
+                      <>商品受け取りを完了する</>
+                    )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -228,10 +197,10 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
             <CardContent>
               <div className="mb-4 flex items-center gap-4">
                 <div>
-                  <p className="font-medium">{auction.task.creator.name ?? "出品者"}</p>
+                  <p className="font-medium">{auction.taskCreatorName ?? "出品者"}</p>
                   <div className="flex items-center gap-2">
                     <Rating rating={sellerRating} size={16} />
-                    <span className="text-sm text-gray-500">({sellerReviews.length})</span>
+                    <span className="text-sm text-gray-500">({sellerReviewCount})</span>
                   </div>
                 </div>
               </div>
@@ -247,7 +216,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                 <div>
                   <div className="mb-4">
                     {auction.reviews.map(
-                      (review: AuctionReview) =>
+                      (review: Pick<AuctionReview, "id" | "reviewerId" | "rating" | "comment">) =>
                         review.reviewerId === auction.winnerId && (
                           <div key={review.id} className="space-y-2">
                             <Rating rating={review.rating} size={20} />
@@ -275,7 +244,14 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                   </div>
                   <div className="text-right">
                     <Button onClick={handleReviewSubmit} disabled={isSubmitting || rating === 0}>
-                      {isSubmitting ? "送信中..." : "評価を送信する"}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          送信中...
+                        </>
+                      ) : (
+                        "評価を送信する"
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -312,11 +288,11 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                     <div className="mt-2 grid grid-cols-2 gap-4 md:grid-cols-4">
                       <div>
                         <p className="text-sm text-gray-500">開始日時</p>
-                        <p>{format(new Date(auction.startTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
+                        <p>{format(new Date(auction.auctionStartTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">終了日時</p>
-                        <p>{format(new Date(auction.endTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
+                        <p>{format(new Date(auction.auctionEndTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">落札額</p>
@@ -325,7 +301,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                       <div>
                         <p className="text-sm text-gray-500">ステータス</p>
                         <p>
-                          <TaskStatusBadge status={auction.task.status} />
+                          <TaskStatusBadge status={auction.taskStatus} />
                         </p>
                       </div>
                     </div>
@@ -352,7 +328,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                     </div>
                     <div>
                       <p className="font-medium">オークション終了・落札</p>
-                      <p className="text-sm text-gray-500">{format(new Date(auction.endTime), "yyyy年MM月dd日 HH:mm", { locale: ja })}</p>
+                      <p className="text-sm text-gray-500">{format(new Date(auction.auctionEndTime), "yyyy年MM月dd日 HH:mm", { locale: ja })}</p>
                     </div>
                   </div>
 
@@ -365,9 +341,13 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auction, seller
                     <div>
                       <p className="font-medium">ポイント返還予定日</p>
                       <p className="text-sm text-gray-500">
-                        {format(new Date(new Date(auction.endTime).setMonth(new Date(auction.endTime).getMonth() + 2)), "yyyy年MM月dd日", {
-                          locale: ja,
-                        })}
+                        {format(
+                          new Date(new Date(auction.auctionEndTime).setMonth(new Date(auction.auctionEndTime).getMonth() + 2)),
+                          "yyyy年MM月dd日",
+                          {
+                            locale: ja,
+                          },
+                        )}
                       </p>
                     </div>
                   </div>

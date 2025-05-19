@@ -2,18 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { getCachedWinnerRating } from "./cache/cache-auction-history";
+import { getCachedUserRating } from "./cache/cache-auction-history";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 落札者の評価を取得
- * @param winnerId 落札者のID
+ * @param userId 落札者のID
  * @returns 落札者の評価
  */
-export async function getWinnerRating(winnerId: string) {
-  const winnerRating = await getCachedWinnerRating(winnerId);
-  return winnerRating;
+export async function getUserRating(userId: string) {
+  const userRating = await getCachedUserRating(userId);
+  return userRating;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
