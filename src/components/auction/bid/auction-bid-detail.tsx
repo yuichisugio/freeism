@@ -389,7 +389,12 @@ export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { i
           {activeTab === "qa" && (
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
               <TabsContent value="qa" className="mt-0">
-                {<AuctionQA auctionId={auction.id} />}
+                <AuctionQA
+                  auctionId={auction.id}
+                  isDisplayAfterEnd={false}
+                  isEnd={auction.status === AuctionStatus.ENDED}
+                  auctionEndDate={auction.endTime}
+                />
               </TabsContent>
             </motion.div>
           )}

@@ -306,6 +306,7 @@ export type FilterCondition = "and" | "or";
  */
 export type AuctionWonDetail = {
   auctionId: string;
+  auctionStatus: AuctionStatus;
   auctionEndTime: Date;
   auctionStartTime: Date;
   currentHighestBid: number;
@@ -318,6 +319,53 @@ export type AuctionWonDetail = {
   taskCreatorId: string;
   taskDeliveryMethod: string | null;
   taskCreatorName: string | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 出品詳細画面用: 必要なプロパティのみ
+ */
+export type AuctionHistoryCreatedDetail = {
+  id: string;
+  status: AuctionStatus;
+  currentHighestBid: number;
+  startTime: Date;
+  endTime: Date;
+  task: {
+    id: string;
+    task: string;
+    detail: string | null;
+    imageUrl: string | null;
+    status: TaskStatus;
+    deliveryMethod: string | null;
+    creatorId: string;
+  };
+  winner: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  } | null;
+  winnerId: string | null;
+  reviews: {
+    id: string;
+    reviewerId: string;
+    revieweeId: string;
+    rating: number;
+    comment: string | null;
+    reviewPosition: ReviewPosition;
+  }[];
+  bidHistories: {
+    id: string;
+    amount: number;
+    isAutoBid: boolean;
+    createdAt: Date;
+    user: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  }[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

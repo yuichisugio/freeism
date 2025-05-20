@@ -1,7 +1,9 @@
 "use client";
 
+import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { AuctionQA } from "@/components/auction/bid/auction-qa";
 import { Loading } from "@/components/share/loading";
 import {
   AlertDialog,
@@ -24,7 +26,7 @@ import { useCreatedDetail } from "@/hooks/auction/history/use-created-detail";
 import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Edit, History, MessageSquare, Send } from "lucide-react";
+import { Edit, History, MessageSquare } from "lucide-react";
 
 import { Rating } from "../common/rating";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
@@ -47,11 +49,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     winnerRating,
     winnerReviewCount,
     isLoading,
-    messages,
-    newMessage,
-    isLoadingMessages,
-    isSendingMessage,
-    messagesEndRef,
     deliveryMethod,
     isEditingDelivery,
     isUpdatingDelivery,
@@ -62,7 +59,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     isCompleting,
 
     // functions
-    setNewMessage,
     handleComplete,
     setDeliveryMethod,
     handleUpdateDeliveryMethod,
@@ -71,7 +67,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     setRating,
     setComment,
     handleReviewSubmit,
-    handleSendMessage,
   } = useCreatedDetail(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -274,7 +269,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                       <Button
                         className="w-full"
                         onClick={() => void handleReviewSubmit()}
-                        disabled={rating === 0 || isSubmittingReview || !auction.winnerId || !auction.task?.creatorId}
+                        disabled={rating === 0 || isSubmittingReview || !auction.winner?.id || !auction.task?.creatorId}
                       >
                         {isSubmittingReview ? "送信中..." : "評価を送信"}
                       </Button>
@@ -306,8 +301,11 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
             <TabsTrigger value="bids">
               <History className="mr-2 h-4 w-4" /> 入札履歴
             </TabsTrigger>
-            <TabsTrigger value="chat" disabled={!auction.winner}>
-              <MessageSquare className="mr-2 h-4 w-4" /> メッセージ
+            <TabsTrigger value="chat-before-end" disabled={!auction.winner}>
+              <MessageSquare className="mr-2 h-4 w-4" /> メッセージ(出品中)
+            </TabsTrigger>
+            <TabsTrigger value="chat-after-end" disabled={!auction.winner}>
+              <MessageSquare className="mr-2 h-4 w-4" /> メッセージ(落札後)
             </TabsTrigger>
           </TabsList>
 
@@ -340,7 +338,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                                 <AvatarFallback>{bid.user.name?.[0] ?? "入"}</AvatarFallback>
                               </Avatar>
                               <span>{bid.user.name ?? "入札者"}</span>
-                              {auction.winnerId === bid.user.id && (
+                              {auction.winner?.id === bid.user.id && (
                                 <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">落札者</span>
                               )}
                             </div>
@@ -357,84 +355,12 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
             </Card>
           </TabsContent>
 
-          <TabsContent value="chat">
-            <Card>
-              <CardHeader>
-                <CardTitle>メッセージ</CardTitle>
-                <CardDescription>落札者とのメッセージのやり取り</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!auction.winner ? (
-                  <div className="py-8 text-center text-gray-500">落札者がいないためメッセージ機能は利用できません</div>
-                ) : (
-                  <div className="flex h-[400px] flex-col">
-                    <div className="flex-1 space-y-4 overflow-y-auto p-4">
-                      {isLoadingMessages ? (
-                        <div className="flex h-full items-center justify-center">
-                          <p className="text-gray-500">メッセージを読み込み中...</p>
-                        </div>
-                      ) : messages.length === 0 ? (
-                        <div className="flex h-full items-center justify-center">
-                          <p className="text-gray-500">まだメッセージはありません</p>
-                        </div>
-                      ) : (
-                        messages.map((msg) => (
-                          <div key={msg.id} className={`flex ${msg.senderId === auction.task?.creatorId ? "justify-end" : "justify-start"}`}>
-                            <div
-                              className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.senderId === auction.task?.creatorId ? "bg-primary text-primary-foreground" : "bg-muted"}`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={msg.sender.image ?? ""} alt={msg.sender.name ?? "ユーザー"} />
-                                  <AvatarFallback>{msg.sender.name?.[0] ?? "U"}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs">{msg.sender.name ?? "ユーザー"}</span>
-                              </div>
-                              <p className="mt-1 break-words whitespace-pre-wrap">{msg.message}</p>
-                              <p className="mt-1 text-right text-xs opacity-70">{format(new Date(msg.createdAt), "MM/dd HH:mm", { locale: ja })}</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                      <div ref={messagesEndRef} />
-                    </div>
+          <TabsContent value="chat-before-end">
+            <AuctionQA auctionId={auction.id} isEnd={auction.status === "ENDED"} isDisplayAfterEnd={false} auctionEndDate={auction.endTime} />
+          </TabsContent>
 
-                    <div className="border-t p-4">
-                      <div className="flex gap-2">
-                        <Textarea
-                          placeholder="メッセージを入力..."
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          className="min-h-[80px]"
-                          disabled={!auction.winner}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && e.ctrlKey) {
-                              e.preventDefault();
-                              void handleSendMessage(newMessage);
-                            }
-                          }}
-                        />
-                        <Button
-                          className="h-auto"
-                          onClick={() => void handleSendMessage(newMessage)}
-                          disabled={isSendingMessage || !newMessage.trim() || !auction.winner}
-                        >
-                          {isSendingMessage ? (
-                            "送信中..."
-                          ) : (
-                            <>
-                              <Send className="mr-2 h-4 w-4" />
-                              送信
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <p className="mt-2 text-xs text-gray-500">Ctrl + Enterで送信できます</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="chat-after-end">
+            <AuctionQA auctionId={auction.id} isEnd={auction.status === "ENDED"} isDisplayAfterEnd={true} auctionEndDate={auction.endTime} />
           </TabsContent>
         </Tabs>
       </div>

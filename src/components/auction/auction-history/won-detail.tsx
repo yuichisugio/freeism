@@ -18,10 +18,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useWonDetail } from "@/hooks/auction/history/use-won-detail";
+import { AuctionStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
 
+import { AuctionQA } from "../bid/auction-qa";
 import { Rating } from "../common/rating";
 import { TaskStatusBadge } from "../common/status-badge";
 
@@ -364,7 +366,12 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                 <CardDescription>出品者とのメッセージのやり取り</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="py-8 text-center text-gray-500">この機能は現在準備中です</div>
+                <AuctionQA
+                  auctionId={auctionId}
+                  isDisplayAfterEnd={true}
+                  isEnd={auction.auctionStatus === AuctionStatus.ENDED}
+                  auctionEndDate={auction.auctionEndTime}
+                />
               </CardContent>
             </Card>
           </TabsContent>

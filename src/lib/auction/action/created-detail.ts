@@ -1,5 +1,6 @@
 "use server";
 
+import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
@@ -24,7 +25,7 @@ export async function getUserRating(userId: string) {
  * @param auctionId 出品商品のID
  * @returns 出品商品の詳細
  */
-export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: string) {
+export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: string): Promise<AuctionHistoryCreatedDetail | null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -39,8 +40,23 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: 
         { task: { reporters: { some: { userId: userId } } } },
       ],
     },
-    include: {
-      task: true,
+    select: {
+      id: true,
+      status: true,
+      currentHighestBid: true,
+      startTime: true,
+      endTime: true,
+      task: {
+        select: {
+          id: true,
+          task: true,
+          detail: true,
+          imageUrl: true,
+          status: true,
+          deliveryMethod: true,
+          creatorId: true,
+        },
+      },
       winner: {
         select: {
           id: true,
@@ -48,9 +64,18 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: 
           image: true,
         },
       },
+      winnerId: true,
       reviews: {
         where: {
           OR: [{ reviewerId: userId }, { revieweeId: userId }],
+        },
+        select: {
+          id: true,
+          reviewerId: true,
+          revieweeId: true,
+          rating: true,
+          comment: true,
+          reviewPosition: true,
         },
       },
       bidHistories: {
@@ -58,7 +83,11 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: 
           amount: "desc",
         },
         take: 10,
-        include: {
+        select: {
+          id: true,
+          amount: true,
+          isAutoBid: true,
+          createdAt: true,
           user: {
             select: {
               id: true,
@@ -77,7 +106,7 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: 
   /**
    * 出品商品の詳細を返却
    */
-  return auction;
+  return auction as AuctionHistoryCreatedDetail | null;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

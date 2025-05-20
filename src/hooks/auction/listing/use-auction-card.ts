@@ -29,12 +29,17 @@ type UseAuctionCardReturn = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-// 型定義: getAuctionMessagesAndSellerInfoの戻り値の型 (use-auction-message.ts から参照)
+
+/**
+ * オークション詳細関連データの型
+ */
 type AuctionQueryData = {
   messages: AuctionMessage[];
   sellerId: string | null;
   sellerInfo: AuctionPersonInfo | null;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * オークションカード用フック
@@ -104,9 +109,9 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
 
     // 1. auction.messages のプリフェッチ
     await queryClient.prefetchQuery<AuctionQueryData, Error>({
-      queryKey: queryCacheKeys.auction.messages(auction.id),
+      queryKey: queryCacheKeys.auction.messages(auction.id, false, auction.end_time),
       queryFn: async (): Promise<AuctionQueryData> => {
-        const result = await getAuctionMessagesAndSellerInfo(auction.id);
+        const result = await getAuctionMessagesAndSellerInfo(auction.id, false, auction.end_time);
         if (!result.success) {
           return { messages: [], sellerId: null, sellerInfo: null };
         }
@@ -137,7 +142,7 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
         gcTime: 1000 * 60 * 60 * 1, // 1時間
       });
     }
-  }, [auction.id, auction.current_highest_bid, userId, queryClient]);
+  }, [auction.id, auction.current_highest_bid, userId, queryClient, auction.end_time]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

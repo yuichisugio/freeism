@@ -20,7 +20,17 @@ import { Loader2, MessageSquare, RefreshCw, SendHorizonal } from "lucide-react";
  * @param props コンポーネントのプロパティ
  * @returns オークションの質問と回答コンポーネント
  */
-export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: string }) {
+export const AuctionQA = memo(function AuctionQA({
+  auctionId,
+  isEnd,
+  isDisplayAfterEnd,
+  auctionEndDate,
+}: {
+  auctionId: string;
+  isEnd: boolean;
+  isDisplayAfterEnd: boolean;
+  auctionEndDate: Date;
+}) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -41,7 +51,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
     handleSubmit,
     currentUserId,
     getSenderInfo,
-  } = useAuctionQA(auctionId);
+  } = useAuctionQA(auctionId, isEnd, isDisplayAfterEnd, auctionEndDate);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -245,15 +255,19 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                 <p className="text-xs font-medium text-slate-600">⌘+Enter</p>
                 <p className="ml-1 text-xs text-slate-500">で送信</p>
               </div>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={submitting}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
-              >
-                {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <SendHorizonal className="mr-1 h-4 w-4" />}
-                送信
-              </Button>
+              {!isDisplayAfterEnd && isEnd ? (
+                <p className="text-xs text-slate-500">質問は締め切りました</p>
+              ) : (
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={submitting}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
+                >
+                  {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <SendHorizonal className="mr-1 h-4 w-4" />}
+                  送信
+                </Button>
+              )}
             </div>
           </form>
         </Form>

@@ -3,6 +3,7 @@
 import type { AuctionMessage, AuctionPersonInfo } from "@/hooks/auction/bid/use-auction-qa";
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { type Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -11,7 +12,11 @@ import { prisma } from "@/lib/prisma";
  * @param auctionId オークションID
  * @returns メッセージリスト
  */
-export async function getCachedAuctionMessageContents(auctionId: string): Promise<{ success: boolean; error: string; messages: AuctionMessage[] }> {
+export async function getCachedAuctionMessageContents(
+  auctionId: string,
+  isDisplayAfterEnd: boolean,
+  auctionEndDate: Date,
+): Promise<{ success: boolean; error: string; messages: AuctionMessage[] }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -22,11 +27,26 @@ export async function getCachedAuctionMessageContents(auctionId: string): Promis
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * メッセージの取得条件
+   */
+  const whereCondition: Prisma.AuctionMessageWhereInput = {
+    auctionId,
+  };
+  if (isDisplayAfterEnd) {
+    whereCondition.createdAt = { gte: new Date(auctionEndDate) };
+  } else {
+    whereCondition.createdAt = { lte: new Date(auctionEndDate) };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージを取得
+   */
   try {
     const messages = await prisma.auctionMessage.findMany({
-      where: {
-        auctionId,
-      },
+      where: whereCondition,
       select: {
         id: true,
         message: true,

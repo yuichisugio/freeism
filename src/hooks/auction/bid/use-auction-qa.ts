@@ -114,7 +114,7 @@ type AuctionMessagesAndSellerInfoResult = {
  * @param {string} auctionId オークションID
  * @returns {UseAuctionMessageReturn} オークションメッセージの管理
  */
-export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
+export function useAuctionQA(auctionId: string, isEnd: boolean, isDisplayAfterEnd: boolean, auctionEndDate: Date): UseAuctionMessageReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -159,8 +159,8 @@ export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: queryCacheKeys.auction.messages(auctionId),
-    queryFn: async () => await getAuctionMessagesAndSellerInfo(auctionId),
+    queryKey: queryCacheKeys.auction.messages(auctionId, isDisplayAfterEnd, auctionEndDate),
+    queryFn: async () => await getAuctionMessagesAndSellerInfo(auctionId, isDisplayAfterEnd, auctionEndDate),
     staleTime: 1000 * 60 * 30, // 30分
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!auctionId,
@@ -215,7 +215,7 @@ export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
             },
           },
         };
-        queryClient.setQueryData<AuctionMessagesAndSellerInfoResult>(queryCacheKeys.auction.messages(auctionId), (old) => {
+        queryClient.setQueryData<AuctionMessagesAndSellerInfoResult>(queryCacheKeys.auction.messages(auctionId, isEnd, auctionEndDate), (old) => {
           if (!old) return old;
           return {
             ...old,
@@ -225,7 +225,7 @@ export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
       }
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.messages(auctionId) });
+      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.messages(auctionId, isEnd, auctionEndDate) });
       form.reset();
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

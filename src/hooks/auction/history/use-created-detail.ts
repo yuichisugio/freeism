@@ -1,11 +1,10 @@
 "use client";
 
-import type { AuctionMessage } from "@/lib/auction/action/history";
-import type { AuctionReview } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuctionHistoryCreatedDetail, getUserRating, updateDeliveryMethod } from "@/lib/auction/action/created-detail";
-import { completeTaskDelivery, createAuctionReview, getAuctionMessages, sendAuctionMessage } from "@/lib/auction/action/history";
+import { completeTaskDelivery, createAuctionReview } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,8 +50,6 @@ export function useCreatedDetail(auctionId: string) {
   const [isEditingDelivery, setIsEditingDelivery] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -72,7 +69,13 @@ export function useCreatedDetail(auctionId: string) {
     });
     return enabled;
   }, [sessionStatus, userId, auctionId]);
-  const { data: auction, isPending: isAuctionQueryPending } = useQuery({
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品商品詳細を取得
+   */
+  const { data: auction, isPending: isAuctionQueryPending } = useQuery<AuctionHistoryCreatedDetail | null>({
     queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
     queryFn: async () => {
       // queryFnが実行される直前にもログを追加
@@ -84,7 +87,7 @@ export function useCreatedDetail(auctionId: string) {
 
   // auction データが変更されたら deliveryMethod を更新
   useEffect(() => {
-    if (auction && auction.task && typeof auction.task.deliveryMethod === "string") {
+    if (auction?.task && typeof auction.task.deliveryMethod === "string") {
       setDeliveryMethod(auction.task.deliveryMethod);
     }
   }, [auction]);
@@ -95,9 +98,7 @@ export function useCreatedDetail(auctionId: string) {
    * 落札者の評価を取得
    */
   const hasReviewed = useMemo(
-    () =>
-      auction?.reviews?.some((review: AuctionReview) => review.reviewerId === userId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER) ??
-      false,
+    () => auction?.reviews?.some((review) => review.reviewerId === userId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER) ?? false,
     [auction?.reviews, userId],
   );
 
@@ -119,10 +120,10 @@ export function useCreatedDetail(auctionId: string) {
    */
   const { mutate: handleComplete, isPending: isCompleting } = useMutation({
     mutationFn: () => {
-      if (!auction?.taskId) {
+      if (!auction?.task.id) {
         throw new Error("タスクIDが指定されていません。");
       }
-      return completeTaskDelivery(auction.taskId);
+      return completeTaskDelivery(auction.task.id);
     },
     onSuccess: () => {
       toast.success("商品の提供を完了しました");
@@ -143,13 +144,13 @@ export function useCreatedDetail(auctionId: string) {
   const { mutate: handleUpdateDeliveryMethod, isPending: isUpdatingDelivery } = useMutation({
     mutationFn: (newDeliveryMethod: string) => {
       console.log("[useCreatedDetail] handleUpdateDeliveryMethod", newDeliveryMethod);
-      if (!auction?.taskId) {
+      if (!auction?.task.id) {
         throw new Error("タスクIDが指定されていません。");
       }
       if (!deliveryMethod.trim()) {
         toast.error("提供方法を入力してください");
       }
-      return updateDeliveryMethod(auction.taskId, newDeliveryMethod);
+      return updateDeliveryMethod(auction.task.id, newDeliveryMethod);
     },
     onSuccess: (_, newDeliveryMethod) => {
       toast.success("提供方法を更新しました");
@@ -172,7 +173,7 @@ export function useCreatedDetail(auctionId: string) {
    */
   const cancelEditingDelivery = useCallback(() => {
     setIsEditingDelivery(false);
-    if (auction && auction.task && typeof auction.task.deliveryMethod === "string") {
+    if (auction?.task && typeof auction.task.deliveryMethod === "string") {
       setDeliveryMethod(auction.task.deliveryMethod);
     }
   }, [auction]);
@@ -235,61 +236,6 @@ export function useCreatedDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークションメッセージを取得
-   */
-  const {
-    data: messages,
-    isLoading: isLoadingMessages,
-    refetch: refetchMessages,
-  } = useQuery<AuctionMessage[], Error>({
-    queryKey: queryCacheKeys.auction.messages(auctionId),
-    queryFn: async () => {
-      if (!auctionId) return [];
-      return getAuctionMessages(auctionId);
-    },
-    enabled: !!auctionId && !!auction?.winner?.id,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージをスクロールする
-   */
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージを送信する
-   */
-  const { mutate: handleSendMessage, isPending: isSendingMessage } = useMutation<AuctionMessage, Error, string>({
-    mutationFn: async (messageContent: string) => {
-      if (!auctionId || !auction?.winner?.id) {
-        throw new Error("オークションIDまたは落札者IDが無効です");
-      }
-      if (!messageContent.trim()) {
-        toast.error("メッセージを入力してください");
-      }
-      return sendAuctionMessage(auctionId, auction.winner.id, messageContent);
-    },
-    onSuccess: (sentMessage) => {
-      queryClient.setQueryData<AuctionMessage[]>(queryCacheKeys.auction.messages(auctionId), (oldMessages) =>
-        oldMessages ? [...oldMessages, sentMessage] : [sentMessage],
-      );
-      setNewMessage("");
-      toast.success("メッセージを送信しました");
-    },
-    onError: (error: Error) => {
-      console.error("メッセージの送信に失敗しました", error);
-      toast.error("メッセージの送信に失敗しました: " + error.message);
-    },
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 全体のローディング状態を管理
    */
   const isLoadingOverall = useMemo(() => {
@@ -323,11 +269,6 @@ export function useCreatedDetail(auctionId: string) {
     isUpdatingDelivery,
     rating,
     comment,
-    messages: messages ?? [],
-    isLoadingMessages,
-    isSendingMessage,
-    messagesEndRef,
-    newMessage,
     isSubmittingReview,
     hasReviewed,
     router,
@@ -341,8 +282,5 @@ export function useCreatedDetail(auctionId: string) {
     setRating,
     setComment,
     handleReviewSubmit,
-    setNewMessage,
-    handleSendMessage,
-    refetchMessages,
   };
 }

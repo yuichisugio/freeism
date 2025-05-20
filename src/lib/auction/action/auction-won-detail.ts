@@ -35,6 +35,7 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
       startTime: true,
       currentHighestBid: true,
       winnerId: true,
+      status: true,
       reviews: {
         where: {
           OR: [{ reviewerId: userId }, { revieweeId: userId }],
@@ -85,6 +86,7 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
    */
   const returnAuctionWonData: AuctionWonDetail = {
     auctionId: auction.id,
+    auctionStatus: auction.status,
     auctionEndTime: auction.endTime,
     auctionStartTime: auction.startTime,
     currentHighestBid: auction.currentHighestBid,

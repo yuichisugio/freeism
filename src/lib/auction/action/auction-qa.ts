@@ -15,14 +15,17 @@ import { getCachedAuctionMessageContents, getCachedAuctionSellerInfo } from "./c
  * @param auctionId オークションID
  * @returns メッセージリスト
  */
-export async function getAuctionMessagesAndSellerInfo(auctionId: string) {
+export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDisplayAfterEnd: boolean, auctionEndDate: Date) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
     /**
      * キャッシュからメッセージを取得
      */
-    const [messages, sellerInfo] = await Promise.all([getCachedAuctionMessageContents(auctionId), getCachedAuctionSellerInfo(auctionId)]);
+    const [messages, sellerInfo] = await Promise.all([
+      getCachedAuctionMessageContents(auctionId, isDisplayAfterEnd, auctionEndDate),
+      getCachedAuctionSellerInfo(auctionId),
+    ]);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
