@@ -219,7 +219,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
       </div>
 
       {/* メッセージ入力フォーム */}
-      <Card className="rounded-xl border border-slate-100 bg-white p-4 shadow-md">
+      <Card className="rounded-xl p-4 shadow-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
             <FormField
