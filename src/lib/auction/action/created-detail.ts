@@ -26,15 +26,20 @@ export async function getUserRating(userId: string) {
 export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("src/lib/auction/action/created-detail.ts_auctionId", auctionId);
+  console.log("src/lib/auction/action/created-detail.ts_userId", userId);
+
   /**
-   * 自分が出品したオークションの詳細を取得
+   * 自分が出品or実行or報告したオークションの詳細を取得
    */
   const auction = await prisma.auction.findUnique({
     where: {
       id: auctionId,
-      task: {
-        creatorId: userId,
-      },
+      OR: [
+        { task: { creatorId: userId } },
+        { task: { executors: { some: { userId: userId } } } },
+        { task: { reporters: { some: { userId: userId } } } },
+      ],
     },
     include: {
       task: true,
@@ -69,6 +74,7 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string, userId: 
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  console.log("src/lib/auction/action/created-detail.ts_auction", auction);
 
   /**
    * 出品商品の詳細を返却

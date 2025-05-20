@@ -50,6 +50,7 @@ export default async function AuctionHistoryCreatedDetailPage({ params }: Auctio
    * パラメーター
    */
   const { auctionId } = await params;
+  console.log("src/app/dashboard/auction/created-detail/[auctionId]/page.tsx_auctionId", auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

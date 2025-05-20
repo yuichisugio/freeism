@@ -36,7 +36,7 @@ export function useCreatedDetail(auctionId: string) {
   /**
    * ユーザーID
    */
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const userId = useMemo(() => {
     return session?.user?.id ?? "";
   }, [session?.user?.id]);
@@ -65,9 +65,27 @@ export function useCreatedDetail(auctionId: string) {
   /**
    * 出品商品詳細を取得
    */
-  const { data: auction, isPending: isAuctionLoading } = useQuery({
+  const auctionQueryEnabled = useMemo(() => {
+    const enabled = sessionStatus === "authenticated" && !!userId && !!auctionId;
+    // デバッグログを追加して、各値と最終的なenabled状態を確認
+    console.log("[useCreatedDetail] auctionQueryEnabled check:", {
+      sessionStatus,
+      userId,
+      hasUserId: !!userId, // userIdが空文字列でないか
+      auctionId,
+      hasAuctionId: !!auctionId, // auctionIdが空文字列でないか
+      enabled, // 最終的な有効状態
+    });
+    return enabled;
+  }, [sessionStatus, userId, auctionId]);
+  const { data: auction, isPending: isAuctionQueryPending } = useQuery({
     queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
-    queryFn: () => getAuctionHistoryCreatedDetail(auctionId, userId),
+    queryFn: async () => {
+      // queryFnが実行される直前にもログを追加
+      console.log("[useCreatedDetail] queryFn executing with:", { auctionId, userId });
+      return await getAuctionHistoryCreatedDetail(auctionId, userId);
+    },
+    enabled: auctionQueryEnabled,
   });
 
   // auction データが変更されたら deliveryMethod を更新
@@ -94,7 +112,7 @@ export function useCreatedDetail(auctionId: string) {
   /**
    * 落札者の評価を取得
    */
-  const { data: winnerInfo, isPending: isWinnerRatingLoading } = useQuery({
+  const { data: winnerInfo, isPending: isWinnerRatingQueryPending } = useQuery({
     queryKey: queryCacheKeys.auction.winningRating(auction?.winner?.id ?? ""),
     queryFn: () => getUserRating(auction?.winner?.id ?? ""),
     enabled: !!auction?.winner?.id,
@@ -277,6 +295,25 @@ export function useCreatedDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 全体のローディング状態を管理
+   */
+  const isLoadingOverall = useMemo(() => {
+    if (sessionStatus === "loading") {
+      return true; // セッション情報ロード中
+    }
+    if (auctionQueryEnabled && isAuctionQueryPending) {
+      return true; // オークション詳細クエリが有効でロード中
+    }
+    // オークション詳細取得後、落札者情報があればその評価クエリが有効でロード中
+    if (auction && !!auction.winner?.id && isWinnerRatingQueryPending) {
+      return true;
+    }
+    return false; // 上記以外はロード完了または非表示状態
+  }, [sessionStatus, auctionQueryEnabled, isAuctionQueryPending, auction, isWinnerRatingQueryPending]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 出品商品詳細を返却
    */
   return {
@@ -285,7 +322,7 @@ export function useCreatedDetail(auctionId: string) {
     auction: auction ?? null,
     winnerRating: winnerInfo?.rating ?? 0,
     winnerReviewCount: winnerInfo?.reviewCount ?? 0,
-    isLoading: isAuctionLoading || isWinnerRatingLoading,
+    isLoading: isLoadingOverall,
     deliveryMethod,
     isEditingDelivery,
     isUpdatingDelivery,

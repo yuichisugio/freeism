@@ -24,7 +24,7 @@ import { useCreatedDetail } from "@/hooks/auction/history/use-created-detail";
 import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ArrowLeft, Edit, History, MessageSquare, Send } from "lucide-react";
+import { Edit, History, MessageSquare, Send } from "lucide-react";
 
 import { Rating } from "../common/rating";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
@@ -60,7 +60,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     isSubmittingReview,
     hasReviewed,
     isCompleting,
-    router,
 
     // functions
     setNewMessage,
@@ -81,6 +80,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
    * ローディング中
    */
   if (isLoading) {
+    console.log("src/components/auction/auction-history/created-detail.tsx_isLoading", isLoading);
     return <Loading />;
   }
 
@@ -90,6 +90,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
    * 出品商品が見つからない
    */
   if (!auction) {
+    console.log("src/components/auction/auction-history/created-detail.tsx_auction", auction);
     notFound();
   }
 
@@ -99,12 +100,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
    * 出品商品詳細画面
    */
   return (
-    <div className="container mx-auto py-6">
-      {/* 履歴一覧に戻るボタン */}
-      <Button variant="outline" className="mb-6" onClick={() => router.push("/dashboard/auction/history")}>
-        <ArrowLeft className="mr-2 h-4 w-4" /> 履歴一覧に戻る
-      </Button>
-
+    <div className="container mx-auto">
       {/* 商品情報と落札者情報と評価 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* 左側: 商品情報 */}
