@@ -18,7 +18,7 @@ import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, Truck
 import { useSession } from "next-auth/react";
 
 import { CountdownDisplay } from "./auction-bid-countdown";
-import { AuctionQA } from "./auction-bid-qa";
+import { AuctionQA } from "./auction-qa";
 import { BidForm } from "./bid-form";
 import { BidHistory } from "./bid-history";
 

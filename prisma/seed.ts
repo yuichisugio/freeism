@@ -2278,7 +2278,6 @@ async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[])
             message: faker.helpers.arrayElement(bidderQuestionList),
             auctionId: auction.id,
             senderId: partner.id,
-            recipientId: sellerId,
             createdAt: q1Time,
           },
         });
@@ -2290,7 +2289,6 @@ async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[])
             message: faker.helpers.arrayElement(sellerAnswerList),
             auctionId: auction.id,
             senderId: sellerId,
-            recipientId: partner.id,
             createdAt: a1Time,
           },
         });
@@ -2304,7 +2302,6 @@ async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[])
               message: faker.helpers.arrayElement(bidderQuestionList.filter((m) => m !== bidderQuestion1.message)),
               auctionId: auction.id,
               senderId: partner.id,
-              recipientId: sellerId,
               createdAt: q2Time,
             },
           });
@@ -2316,7 +2313,6 @@ async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[])
               message: faker.helpers.arrayElement(sellerAnswerList.filter((m) => m !== sellerAnswer1.message)),
               auctionId: auction.id,
               senderId: sellerId,
-              recipientId: partner.id,
               createdAt: a2Time,
             },
           });

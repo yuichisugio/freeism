@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { type AuctionMessage, type SellerInfo } from "@/hooks/auction/bid/use-auction-message";
+import { type AuctionMessage, type AuctionPersonInfo } from "@/hooks/auction/bid/use-auction-qa";
+import { getAuctionMessagesAndSellerInfo } from "@/lib/auction/action/auction-qa";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { getAutoBidByUserId } from "@/lib/auction/action/auto-bid";
-import { getAuctionMessagesAndSellerInfo } from "@/lib/auction/action/message";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type AuctionCard } from "@/types/auction-types";
 import { AuctionStatus } from "@prisma/client";
@@ -33,7 +33,7 @@ type UseAuctionCardReturn = {
 type AuctionQueryData = {
   messages: AuctionMessage[];
   sellerId: string | null;
-  sellerInfo: SellerInfo | null;
+  sellerInfo: AuctionPersonInfo | null;
 };
 
 /**
@@ -112,7 +112,7 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
         }
         return {
           messages: result.messages ?? [],
-          sellerId: result.sellerInfo?.id ?? null,
+          sellerId: result.sellerInfo?.creator.id ?? null,
           sellerInfo: result.sellerInfo ?? null,
         };
       },

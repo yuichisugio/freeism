@@ -23,7 +23,6 @@ model User {
   analytics          Analytics[]
   highestBids        Auction[]          @relation("HighestBidder")
   wonAuctions        Auction[]          @relation("AuctionWinner")
-  receivedMessages   AuctionMessage[]   @relation("MessageRecipient")
   sentMessages       AuctionMessage[]   @relation("MessageSender")
   reviewsReceived    AuctionReview[]    @relation("RevieweeUser")
   reviewsGiven       AuctionReview[]    @relation("ReviewerUser")
@@ -253,7 +252,7 @@ model Notification {
 
 model TaskReporter {
   id   String  @id @default(cuid())
-  name String?
+  name String? //アプリ未登録者のためにoptional必要。未登録者はUserテーブルがないため、ここに名前を登録する
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -262,7 +261,7 @@ model TaskReporter {
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   userId String? @map("user_id")
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade) //アプリ未登録者のためにoptional必要
 
   @@index([userId])
   @@index([taskId, userId])
@@ -270,7 +269,7 @@ model TaskReporter {
 
 model TaskExecutor {
   id   String  @id @default(cuid())
-  name String?
+  name String? //アプリ未登録者のためにoptional必要。未登録者はUserテーブルがないため、ここに名前を登録する
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -279,7 +278,7 @@ model TaskExecutor {
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   userId String? @map("user_id")
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade) //アプリ未登録者のためにoptional必要
 
   @@index([userId])
   @@index([taskId, userId])
@@ -441,23 +440,19 @@ enum ReviewPosition {
 }
 
 model AuctionMessage {
-  id          String   @id @default(cuid())
-  auctionId   String   @map("auction_id")
-  senderId    String   @map("sender_id")
-  recipientId String   @map("recipient_id")
-  message     String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  auctionId String   @map("auction_id")
+  senderId  String   @map("sender_id")
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  sender    User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([auctionId])
   @@index([senderId])
-  @@index([recipientId])
   @@index([auctionId, createdAt])
   @@index([auctionId, senderId, createdAt(sort: Asc)])
-  @@index([auctionId, recipientId, createdAt(sort: Asc)])
 }
 
 model PushSubscription {

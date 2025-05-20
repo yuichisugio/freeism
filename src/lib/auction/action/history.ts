@@ -87,7 +87,6 @@ export type AuctionMessage = {
   id: string;
   auctionId: string;
   senderId: string;
-  recipientId: string;
   message: string;
   createdAt: Date;
   sender: {
@@ -136,7 +135,7 @@ export async function getAuctionMessages(auctionId: string): Promise<AuctionMess
   const messages = await prisma.auctionMessage.findMany({
     where: {
       auctionId,
-      OR: [{ senderId: userId }, { recipientId: userId }],
+      senderId: userId,
     },
     orderBy: {
       createdAt: "asc",
@@ -152,7 +151,11 @@ export async function getAuctionMessages(auctionId: string): Promise<AuctionMess
     },
   });
 
-  return messages as AuctionMessage[];
+  /**
+   * データを整形
+   */
+
+  return messages;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -210,7 +213,6 @@ export async function sendAuctionMessage(auctionId: string, recipientId: string,
     data: {
       auctionId,
       senderId: userId,
-      recipientId,
       message,
     },
     include: {

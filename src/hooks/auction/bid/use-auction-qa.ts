@@ -1,0 +1,336 @@
+"use client";
+
+import type { KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { getAuctionMessagesAndSellerInfo, sendAuctionMessage } from "@/lib/auction/action/auction-qa";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションメッセージの型定義
+ */
+export type AuctionMessage = {
+  messageId: string;
+  messageContent: string;
+  createdAt: Date;
+  person: {
+    sender: {
+      id: string;
+      appUserName: string;
+      image: string | null;
+    };
+  } | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションの出品者情報の型
+ */
+export type AuctionPersonInfo = {
+  creator: {
+    id: string;
+  };
+  reporters: {
+    id: string | null;
+  }[];
+  executors: {
+    id: string | null;
+  }[];
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションメッセージを管理するカスタムフックの型
+ */
+export type UseAuctionMessageReturn = {
+  messages: AuctionMessage[];
+  auctionPersonInfo: AuctionPersonInfo | null;
+  loading: boolean;
+  error: string | null;
+  submitting: boolean;
+  isSeller: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  groupedMessages: Record<string, AuctionMessage[]>;
+  sortedGroupKeys: string[];
+  form: ReturnType<typeof useForm<MessageFormValues>>;
+  isRefetching: boolean;
+  handleReload: () => void;
+  handleKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
+  handleSubmit: (data: MessageFormValues) => void;
+  currentUserId: string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メッセージフォームのバリデーションスキーマ
+ */
+const messageFormSchema = z.object({
+  message: z.string().min(1, "メッセージを入力してください"),
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * メッセージフォームの値の型
+ */
+type MessageFormValues = z.infer<typeof messageFormSchema>;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * getAuctionMessagesAndSellerInfoの返り値型
+ */
+type AuctionMessagesAndSellerInfoResult = {
+  success: boolean;
+  messages: AuctionMessage[];
+  sellerInfo: AuctionPersonInfo | null;
+  error?: string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションメッセージを管理するカスタムフック
+ * @param {string} auctionId オークションID
+ * @returns {UseAuctionMessageReturn} オークションメッセージの管理
+ */
+export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッション
+   */
+  const { data: session } = useSession();
+  const currentUserId = useMemo(() => session?.user?.id ?? "", [session]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * queryClient
+   */
+  const queryClient = useQueryClient();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージリストの最下部の参照
+   */
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * フォームの初期化
+   */
+  const form = useForm<MessageFormValues>({
+    resolver: zodResolver(messageFormSchema),
+    defaultValues: { message: "" },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージと出品者情報を取得する
+   */
+  const {
+    data: queryData,
+    isPending: loading,
+    error: queryError,
+    refetch,
+    isRefetching,
+  } = useQuery({
+    queryKey: queryCacheKeys.auction.messages(auctionId),
+    queryFn: async () => await getAuctionMessagesAndSellerInfo(auctionId),
+    staleTime: 1000 * 60 * 30, // 30分
+    gcTime: 1000 * 60 * 60 * 1, // 1時間
+    enabled: !!auctionId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 受信者ID
+   */
+  const recipientIds = useMemo((): string[] => {
+    if (!queryData?.sellerInfo?.creator.id) return [];
+    const isNonNullString = (id: string | null): id is string => id !== null;
+    const recipientIds = [
+      queryData.sellerInfo.creator.id,
+      ...queryData.sellerInfo.reporters.map((r) => r.id).filter(isNonNullString),
+      ...queryData.sellerInfo.executors.map((e) => e.id).filter(isNonNullString),
+    ];
+    return Array.from(new Set(recipientIds));
+  }, [queryData?.sellerInfo]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージを送信する
+   */
+  const { mutateAsync: sendMessageMutation, isPending: submitting } = useMutation({
+    mutationFn: async (messageText: string) => {
+      if (!messageText.trim() || !auctionId || !currentUserId || recipientIds.length === 0) {
+        toast.error("メッセージ本文、オークションID、ユーザーID、または受信者IDが無効です。");
+        return { success: false, message: null };
+      }
+      const result = await sendAuctionMessage(auctionId, messageText, recipientIds);
+      if (!result.success || !result.message) {
+        toast.error(result.error ?? "メッセージの送信に失敗しました");
+        return { success: false, message: null };
+      }
+      return { success: true, message: result.message };
+    },
+    onSuccess: (data) => {
+      if (data?.success && data.message) {
+        // AuctionMessage型に整形
+        const formattedMessage: AuctionMessage = {
+          messageId: data.message.id,
+          messageContent: data.message.message,
+          createdAt: data.message.createdAt,
+          person: {
+            sender: {
+              id: currentUserId,
+              appUserName: session?.user?.name ?? "未設定",
+              image: session?.user?.image ?? null,
+            },
+          },
+        };
+        queryClient.setQueryData<AuctionMessagesAndSellerInfoResult>(queryCacheKeys.auction.messages(auctionId), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            messages: [...(old.messages ?? []), formattedMessage],
+          };
+        });
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.messages(auctionId) });
+      form.reset();
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージ送信ハンドラ
+   */
+  const handleSubmit = useCallback(
+    (data: MessageFormValues) => {
+      void sendMessageMutation(data.message);
+    },
+    [sendMessageMutation],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Command+Enterでのメッセージ送信
+   */
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && e.metaKey) {
+        e.preventDefault();
+        const messageText = form.getValues("message");
+        if (messageText.trim()) {
+          void form.handleSubmit(handleSubmit)();
+        }
+      }
+    },
+    [form, handleSubmit],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージをグループ化する（自分/相手のメッセージ）
+   */
+  const groupedMessages = useMemo(() => {
+    if (!queryData?.messages) return {};
+    return queryData.messages.reduce<Record<string, AuctionMessage[]>>((groups, message) => {
+      const key = message.person?.sender?.id ?? "unknown";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(message);
+      return groups;
+    }, {});
+  }, [queryData?.messages]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
+   */
+  const sortedGroupKeys = useMemo(() => {
+    return Object.keys(groupedMessages).sort((a, b) => {
+      const timeA = new Date(groupedMessages[a][0].createdAt).getTime();
+      const timeB = new Date(groupedMessages[b][0].createdAt).getTime();
+      return timeA - timeB;
+    });
+  }, [groupedMessages]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージがロード後に最下部にスクロール
+   */
+  useEffect(() => {
+    if (!loading && !submitting && !isRefetching && queryData?.messages && queryData.messages.length > 0) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [loading, submitting, isRefetching, queryData?.messages?.length, queryData]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 自分が出品者かどうか
+   */
+  const sellerId = queryData?.sellerInfo?.creator.id ?? null;
+  const isSeller = !!currentUserId && !!sellerId && currentUserId === sellerId;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 再読み込み
+   */
+  const handleReload = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 返り値
+   */
+  return {
+    messages: queryData?.messages ?? [],
+    auctionPersonInfo: queryData?.sellerInfo ?? null,
+    loading,
+    error: queryError?.message ?? null,
+    submitting,
+    isSeller,
+    messagesEndRef,
+    groupedMessages,
+    sortedGroupKeys,
+    form,
+    currentUserId,
+    isRefetching,
+    handleReload,
+    handleKeyDown,
+    handleSubmit,
+  };
+}

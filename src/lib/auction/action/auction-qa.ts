@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { AuctionEventType, NotificationSendMethod } from "@prisma/client";
 
-import { getCachedAuctionMessages, getCachedAuctionSellerInfo } from "./cache/cache-auction-message";
+import { getCachedAuctionMessageContents, getCachedAuctionSellerInfo } from "./cache/cache-auction-qa";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -16,20 +16,32 @@ import { getCachedAuctionMessages, getCachedAuctionSellerInfo } from "./cache/ca
  * @returns メッセージリスト
  */
 export async function getAuctionMessagesAndSellerInfo(auctionId: string) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
-    // キャッシュからメッセージを取得
-    const [messages, sellerInfo] = await Promise.all([getCachedAuctionMessages(auctionId), getCachedAuctionSellerInfo(auctionId)]);
+    /**
+     * キャッシュからメッセージを取得
+     */
+    const [messages, sellerInfo] = await Promise.all([getCachedAuctionMessageContents(auctionId), getCachedAuctionSellerInfo(auctionId)]);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * キャッシュからメッセージを取得できなかった場合
+     */
     if (!messages.success || !sellerInfo.success) {
-      return { success: false, error: "メッセージの取得に失敗しました" };
+      return { success: false, error: messages.error || sellerInfo.error };
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 成功
+     */
     return {
       success: true,
       messages: messages.messages,
-      sellerInfo: sellerInfo.sellerInfo,
+      sellerInfo: sellerInfo.auctionPersonInfo,
     };
   } catch (error) {
     console.error("メッセージ取得エラー:", error);
@@ -43,16 +55,23 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string) {
  * オークションに関連するメッセージを送信する
  * @param auctionId オークションID
  * @param message メッセージ内容
- * @param recipientId 受信者ID（出品者または「全体」）
+ * @param recipientIds 受信者ID（出品者または「全体」）
  * @returns 作成されたメッセージ
  */
-export async function sendAuctionMessage(auctionId: string, message: string, recipientId: string) {
+export async function sendAuctionMessage(auctionId: string, message: string, recipientIds: string[]) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージのキャッシュの更新に必要。
+   */
   revalidateTag(`auction-messages-${auctionId}`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   try {
     /**
      * セッション中のuserIdを取得
      */
-    const userId = await getAuthenticatedSessionUserId();
+    const senderUserId = await getAuthenticatedSessionUserId();
 
     /**
      * メッセージの作成
@@ -61,44 +80,25 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
       data: {
         message,
         auctionId,
-        senderId: userId,
-        recipientId, // 特定のユーザーまたは出品者
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
+        senderId: senderUserId,
       },
     });
 
-    /**
-     * オークション情報を取得（通知に必要なタイトルを取得するため）
-     */
-    const auction = await prisma.auction.findUnique({
-      where: { id: auctionId },
-      include: {
-        task: true,
-      },
-    });
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 出品者IDがrecipientIdと一致する場合（出品者に対するメッセージの場合）のみ通知を送る
+     * 送信者以外の出品者（作成者・報告者・実行者）に通知を送る
      */
-    if (auction?.task?.creatorId === recipientId && userId !== recipientId) {
+    for (const recipientId of recipientIds) {
+      /**
+       * 送信者は通知を受け取らない
+       */
+      if (recipientId === senderUserId) {
+        continue;
+      }
       await sendAuctionNotification({
         text: {
-          first: auction.task.task || "出品商品",
+          first: "出品者からメッセージが届きました",
           second: message.length > 50 ? message.substring(0, 50) + "..." : message,
         },
         auctionEventType: AuctionEventType.QUESTION_RECEIVED,
@@ -112,13 +112,14 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
       });
     }
 
-    /**
-     * メッセージのキャッシュの更新に必要。
-     * SSEがリロードされるがしょうがない。
-     */
-    revalidateTag(`auction-messages-${auctionId}`);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 成功
+     */
     return { success: true, message: newMessage };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("メッセージ送信エラー:", error);
     return { success: false, error: "メッセージの送信に失敗しました" };

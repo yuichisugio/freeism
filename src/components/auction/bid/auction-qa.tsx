@@ -1,37 +1,16 @@
 "use client";
 
-import type { AuctionMessage } from "@/hooks/auction/bid/use-auction-message";
-import type { KeyboardEvent } from "react";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuctionMessage } from "@/hooks/auction/bid/use-auction-message";
+import { useAuctionQA } from "@/hooks/auction/bid/use-auction-qa";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, MessageSquare, RefreshCw, SendHorizonal } from "lucide-react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-
-// --------------------------------------------------
-
-/**
- * メッセージフォームのバリデーションスキーマ
- */
-const messageFormSchema = z.object({
-  message: z.string().min(1, "メッセージを入力してください"),
-});
-
-// --------------------------------------------------
-
-/**
- * メッセージフォームの値の型
- */
-type MessageFormValues = z.infer<typeof messageFormSchema>;
 
 // --------------------------------------------------
 
@@ -46,161 +25,23 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
   /**
    * オークションの質問と回答のカスタムフック
    */
-  const { messages, sellerId, loading, error, submitting, sendMessage, reloadMessages, currentUserId, isSeller } = useAuctionMessage(auctionId);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * リロード状態
-   */
-  const [reloading, setReloading] = useState(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージリストの最下部の参照
-   */
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フォームの初期化
-   */
-  const form = useForm<MessageFormValues>({
-    resolver: zodResolver(messageFormSchema),
-    defaultValues: {
-      message: "",
-    },
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージ送信処理
-   */
-  const onSubmit = useCallback(
-    async (data: MessageFormValues) => {
-      let recipient: string | null = null;
-
-      if (isSeller) {
-        // 出品者の場合、最新のメッセージの送信者（ただし自分以外）に返信する
-        const lastNonSellerMessage = [...messages].reverse().find((msg) => msg.senderId !== currentUserId);
-        if (lastNonSellerMessage) {
-          recipient = lastNonSellerMessage.senderId;
-        } else {
-          // 返信相手がいない場合（例：まだ誰も質問していない）
-          form.setError("message", {
-            type: "manual",
-            message: "返信先の質問がありません。",
-          });
-          return; // 送信しない
-        }
-      } else {
-        // 出品者でない場合、出品者に送信する
-        if (sellerId) {
-          recipient = sellerId;
-        } else {
-          form.setError("message", {
-            type: "manual",
-            message: "出品者情報が見つからないため、メッセージを送信できません。",
-          });
-          return; // 送信しない
-        }
-      }
-
-      if (!recipient) {
-        // 通常ここには到達しないはずだが、念のため
-        form.setError("message", {
-          type: "manual",
-          message: "メッセージの送信先を特定できませんでした。",
-        });
-        return;
-      }
-
-      // 出品者へのメッセージを送信する
-      const success = await sendMessage({ messageText: data.message, recipientId: recipient });
-      if (success) {
-        // フォームをリセット
-        form.reset();
-        // 最新のメッセージにスクロール
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
-      }
-    },
-    [form, sendMessage, messagesEndRef, sellerId, isSeller, messages, currentUserId],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * Command+Enterでのメッセージ送信
-   */
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      // Command+Enterでフォーム送信
-      if (e.key === "Enter" && e.metaKey) {
-        e.preventDefault();
-        void form.handleSubmit(onSubmit)();
-      }
-    },
-    [form, onSubmit],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージリロード処理
-   */
-  const handleReload = useCallback(async () => {
-    setReloading(true);
-    await reloadMessages();
-    setReloading(false);
-  }, [reloadMessages]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージをグループ化する（自分/相手のメッセージ）
-   */
-  const groupedMessages = useMemo(() => {
-    return messages.reduce<Record<string, AuctionMessage[]>>((groups, message) => {
-      // 自分のメッセージか相手のメッセージかでグループ化
-      const key = message.senderId === currentUserId ? "self" : message.senderId;
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(message);
-      return groups;
-    }, {});
-  }, [messages, currentUserId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
-   */
-  const sortedGroupKeys = useMemo(() => {
-    return Object.keys(groupedMessages).sort((a, b) => {
-      const timeA = new Date(groupedMessages[a][0].createdAt).getTime();
-      const timeB = new Date(groupedMessages[b][0].createdAt).getTime();
-      return timeA - timeB;
-    });
-  }, [groupedMessages]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージがロード後に最下部にスクロール
-   */
-  useEffect(() => {
-    if (!loading && messages.length > 0) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    }
-  }, [loading, messages.length]);
+  const {
+    messages,
+    auctionPersonInfo,
+    loading,
+    error,
+    submitting,
+    isSeller,
+    messagesEndRef,
+    groupedMessages,
+    sortedGroupKeys,
+    form,
+    isRefetching,
+    handleReload,
+    handleKeyDown,
+    handleSubmit,
+    currentUserId,
+  } = useAuctionQA(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -259,10 +100,10 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
           variant="ghost"
           size="sm"
           onClick={handleReload}
-          disabled={reloading}
+          disabled={loading || isRefetching}
           className="h-8 w-8 rounded-full p-0 hover:bg-indigo-100 hover:text-indigo-700"
         >
-          <RefreshCw className={cn("h-4 w-4", reloading && "animate-spin")} />
+          <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
           <span className="sr-only">更新</span>
         </Button>
       </div>
@@ -290,19 +131,26 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
           <AnimatePresence>
             {sortedGroupKeys.map((groupKey) => {
               const groupMessages = groupedMessages[groupKey];
-              const isOwnMessage = groupKey === "self";
-
-              // 送信者情報を取得（最初のメッセージから）
+              // 出品者種別判定
+              let sellerType: "creator" | "reporter" | "executor" | null = null;
+              if (auctionPersonInfo) {
+                if (groupKey === auctionPersonInfo.creator.id) sellerType = "creator";
+                else if (auctionPersonInfo.reporters.some((r) => r.id === groupKey)) sellerType = "reporter";
+                else if (auctionPersonInfo.executors.some((e) => e.id === groupKey)) sellerType = "executor";
+              }
+              const isOwnMessage = groupKey === currentUserId;
               const senderInfo = isOwnMessage
                 ? { name: "あなた", image: null }
-                : {
-                    name: groupMessages[0].sender.name ?? "不明なユーザー",
-                    image: groupMessages[0].sender.image,
-                  };
-
-              // 出品者かどうか
-              const isSellerMessage = groupMessages[0].senderId === sellerId;
-
+                : sellerType
+                  ? {
+                      name: sellerType === "creator" ? "出品者（作成者）" : sellerType === "reporter" ? "出品者（報告者）" : "出品者（実行者）",
+                      image: null,
+                    }
+                  : {
+                      name: groupMessages[0]?.person?.sender?.appUserName ?? "不明なユーザー",
+                      image: groupMessages[0]?.person?.sender?.image ?? null,
+                    };
+              const isSellerMessage = !!sellerType;
               return (
                 <motion.div
                   key={groupKey}
@@ -353,7 +201,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                   <div className="w-full max-w-[90%] space-y-2">
                     {groupMessages.map((msg) => (
                       <div
-                        key={msg.id}
+                        key={msg.messageId}
                         className={cn(
                           "relative mb-1 rounded-2xl px-4 py-3 shadow-sm",
                           isOwnMessage
@@ -364,7 +212,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                         )}
                       >
                         {/* メッセージ内容 */}
-                        <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.message}</p>
+                        <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.messageContent}</p>
                         {/* メッセージの作成日時 */}
                         <p className={cn("mt-1 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
                           {formatRelativeTime(new Date(msg.createdAt))}
@@ -383,7 +231,7 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
       {/* メッセージ入力フォーム */}
       <Card className="rounded-xl border border-slate-100 bg-white p-4 shadow-md">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
             <FormField
               control={form.control}
               name="message"
