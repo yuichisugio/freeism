@@ -1,5 +1,6 @@
 "use client";
 
+import type { AuctionMessage } from "@/hooks/auction/bid/use-auction-qa";
 import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -33,14 +34,13 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
     submitting,
     isSeller,
     messagesEndRef,
-    groupedMessages,
-    sortedGroupKeys,
     form,
     isRefetching,
     handleReload,
     handleKeyDown,
     handleSubmit,
     currentUserId,
+    getSenderInfo,
   } = useAuctionQA(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -129,31 +129,12 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
         ) : (
           // メッセージがある場合
           <AnimatePresence>
-            {sortedGroupKeys.map((groupKey) => {
-              const groupMessages = groupedMessages[groupKey];
-              // 出品者種別判定
-              let sellerType: "creator" | "reporter" | "executor" | null = null;
-              if (auctionPersonInfo) {
-                if (groupKey === auctionPersonInfo.creator.id) sellerType = "creator";
-                else if (auctionPersonInfo.reporters.some((r) => r.id === groupKey)) sellerType = "reporter";
-                else if (auctionPersonInfo.executors.some((e) => e.id === groupKey)) sellerType = "executor";
-              }
-              const isOwnMessage = groupKey === currentUserId;
-              const senderInfo = isOwnMessage
-                ? { name: "あなた", image: null }
-                : sellerType
-                  ? {
-                      name: sellerType === "creator" ? "出品者（作成者）" : sellerType === "reporter" ? "出品者（報告者）" : "出品者（実行者）",
-                      image: null,
-                    }
-                  : {
-                      name: groupMessages[0]?.person?.sender?.appUserName ?? "不明なユーザー",
-                      image: groupMessages[0]?.person?.sender?.image ?? null,
-                    };
-              const isSellerMessage = !!sellerType;
+            {messages.map((msg: AuctionMessage) => {
+              const senderId = msg.person?.sender?.id ?? "unknown";
+              const { name, image, sellerType, isOwnMessage, isSellerMessage } = getSenderInfo(senderId, auctionPersonInfo, msg, currentUserId);
               return (
                 <motion.div
-                  key={groupKey}
+                  key={msg.messageId}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
@@ -161,16 +142,14 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                   className={cn("mb-6 flex w-full flex-col rounded-lg p-3", isOwnMessage ? "items-end" : "items-start")}
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    {!isOwnMessage && (
-                      <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                        <AvatarImage src={senderInfo.image ?? ""} />
-                        <AvatarFallback
-                          className={cn("text-xs font-bold", isSellerMessage ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600")}
-                        >
-                          {senderInfo.name?.charAt(0) ?? "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
+                    <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                      <AvatarImage src={image ?? ""} />
+                      <AvatarFallback
+                        className={cn("text-xs font-bold", isSellerMessage ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600")}
+                      >
+                        {name?.charAt(0) ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex flex-col">
                       {/* 送信者名 */}
                       <span
@@ -179,12 +158,26 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                           isOwnMessage ? "text-indigo-700" : isSellerMessage ? "text-emerald-700" : "text-slate-700",
                         )}
                       >
-                        {senderInfo.name}
+                        {name}
                       </span>
                       {/* 出品者かどうか */}
                       {isSellerMessage ? (
                         <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-xs text-emerald-700">
-                          出品者
+                          {isOwnMessage
+                            ? sellerType === "creator"
+                              ? "出品者（作成者）"
+                              : sellerType === "reporter"
+                                ? "出品者（報告者）"
+                                : sellerType === "executor"
+                                  ? "出品者（実行者）"
+                                  : "出品者"
+                            : sellerType === "creator"
+                              ? "出品者（作成者）"
+                              : sellerType === "reporter"
+                                ? "出品者（報告者）"
+                                : sellerType === "executor"
+                                  ? "出品者（実行者）"
+                                  : "出品者"}
                         </Badge>
                       ) : isOwnMessage ? (
                         <Badge variant="outline" className="border-indigo-200 bg-indigo-50 text-xs text-indigo-700">
@@ -199,26 +192,23 @@ export const AuctionQA = memo(function AuctionQA({ auctionId }: { auctionId: str
                   </div>
 
                   <div className="w-full max-w-[90%] space-y-2">
-                    {groupMessages.map((msg) => (
-                      <div
-                        key={msg.messageId}
-                        className={cn(
-                          "relative mb-1 rounded-2xl px-4 py-3 shadow-sm",
-                          isOwnMessage
-                            ? "ml-auto rounded-tr-none bg-indigo-500 text-white"
-                            : isSellerMessage
-                              ? "mr-auto rounded-tl-none border border-emerald-100 bg-emerald-50 text-slate-800"
-                              : "mr-auto rounded-tl-none border border-slate-100 bg-white text-slate-800",
-                        )}
-                      >
-                        {/* メッセージ内容 */}
-                        <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.messageContent}</p>
-                        {/* メッセージの作成日時 */}
-                        <p className={cn("mt-1 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
-                          {formatRelativeTime(new Date(msg.createdAt))}
-                        </p>
-                      </div>
-                    ))}
+                    <div
+                      className={cn(
+                        "relative mb-1 rounded-2xl px-4 py-3 shadow-sm",
+                        isOwnMessage
+                          ? "ml-auto rounded-tr-none bg-indigo-500 text-white"
+                          : isSellerMessage
+                            ? "mr-auto rounded-tl-none border border-emerald-100 bg-emerald-50 text-slate-800"
+                            : "mr-auto rounded-tl-none border border-slate-100 bg-white text-slate-800",
+                      )}
+                    >
+                      {/* メッセージ内容 */}
+                      <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.messageContent}</p>
+                      {/* メッセージの作成日時 */}
+                      <p className={cn("mt-1 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
+                        {formatRelativeTime(new Date(msg.createdAt))}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               );

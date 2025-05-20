@@ -59,14 +59,24 @@ export type UseAuctionMessageReturn = {
   submitting: boolean;
   isSeller: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement>;
-  groupedMessages: Record<string, AuctionMessage[]>;
-  sortedGroupKeys: string[];
   form: ReturnType<typeof useForm<MessageFormValues>>;
   isRefetching: boolean;
   handleReload: () => void;
   handleKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSubmit: (data: MessageFormValues) => void;
   currentUserId: string;
+  getSenderInfo: (
+    senderId: string,
+    auctionPersonInfo: AuctionPersonInfo | null,
+    message: AuctionMessage,
+    currentUserId: string,
+  ) => {
+    name: string;
+    image: string | null;
+    sellerType: "creator" | "reporter" | "executor" | null;
+    isOwnMessage: boolean;
+    isSellerMessage: boolean;
+  };
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -256,30 +266,12 @@ export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * メッセージをグループ化する（自分/相手のメッセージ）
+   * 送信順（createdAt昇順）でソートされたメッセージ配列
    */
-  const groupedMessages = useMemo(() => {
-    if (!queryData?.messages) return {};
-    return queryData.messages.reduce<Record<string, AuctionMessage[]>>((groups, message) => {
-      const key = message.person?.sender?.id ?? "unknown";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(message);
-      return groups;
-    }, {});
+  const sortedMessages = useMemo(() => {
+    if (!queryData?.messages) return [];
+    return [...queryData.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [queryData?.messages]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 表示用にタイムスタンプでソートされたメッセージグループの配列を作成
-   */
-  const sortedGroupKeys = useMemo(() => {
-    return Object.keys(groupedMessages).sort((a, b) => {
-      const timeA = new Date(groupedMessages[a][0].createdAt).getTime();
-      const timeB = new Date(groupedMessages[b][0].createdAt).getTime();
-      return timeA - timeB;
-    });
-  }, [groupedMessages]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -314,23 +306,65 @@ export function useAuctionQA(auctionId: string): UseAuctionMessageReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 送信者情報を取得するヘルパー
+   */
+  const getSenderInfo = useCallback(
+    (
+      senderId: string,
+      auctionPersonInfo: AuctionPersonInfo | null,
+      message: AuctionMessage,
+      currentUserId: string,
+    ): {
+      name: string;
+      image: string | null;
+      sellerType: "creator" | "reporter" | "executor" | null;
+      isOwnMessage: boolean;
+      isSellerMessage: boolean;
+    } => {
+      let sellerType: "creator" | "reporter" | "executor" | null = null;
+      if (auctionPersonInfo) {
+        if (senderId === auctionPersonInfo.creator.id) sellerType = "creator";
+        else if (auctionPersonInfo.reporters.some((r) => r.id === senderId)) sellerType = "reporter";
+        else if (auctionPersonInfo.executors.some((e) => e.id === senderId)) sellerType = "executor";
+      }
+      const isOwnMessage = senderId === currentUserId;
+      const senderInfo = isOwnMessage
+        ? { name: "あなた", image: message.person?.sender?.image ?? null }
+        : {
+            name: message.person?.sender?.appUserName ?? "エラー",
+            image: message.person?.sender?.image ?? null,
+          };
+      const isSellerMessage = !!sellerType;
+      return {
+        name: senderInfo.name,
+        image: senderInfo.image,
+        sellerType,
+        isOwnMessage,
+        isSellerMessage,
+      };
+    },
+    [],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 返り値
    */
   return {
-    messages: queryData?.messages ?? [],
+    messages: sortedMessages,
     auctionPersonInfo: queryData?.sellerInfo ?? null,
     loading,
     error: queryError?.message ?? null,
     submitting,
     isSeller,
     messagesEndRef,
-    groupedMessages,
-    sortedGroupKeys,
     form,
     currentUserId,
     isRefetching,
     handleReload,
     handleKeyDown,
     handleSubmit,
+    getSenderInfo,
   };
 }
