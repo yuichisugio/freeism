@@ -40,44 +40,6 @@ export async function createAuctionReview(
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 出品者が提供方法を更新するアクション
- * @param taskId タスクID
- * @param deliveryMethod 提供方法
- */
-export async function updateDeliveryMethod(taskId: string, deliveryMethod: string) {
-  const userId = await getAuthenticatedSessionUserId();
-
-  if (deliveryMethod.trim()) {
-    return;
-  }
-
-  // 自分が作成したタスクかチェック
-  const task = await prisma.task.findFirst({
-    where: {
-      id: taskId,
-      creatorId: userId,
-    },
-  });
-
-  if (!task) {
-    throw new Error("このタスクを編集する権限がありません");
-  }
-
-  const updatedTask = await prisma.task.update({
-    where: {
-      id: taskId,
-    },
-    data: {
-      deliveryMethod,
-    },
-  });
-
-  return updatedTask;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * タスク完了処理アクション
  * @param taskId タスクID
  */

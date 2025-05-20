@@ -4,14 +4,8 @@ import type { AuctionMessage } from "@/lib/auction/action/history";
 import type { AuctionReview } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuctionHistoryCreatedDetail, getUserRating } from "@/lib/auction/action/created-detail";
-import {
-  completeTaskDelivery,
-  createAuctionReview,
-  getAuctionMessages,
-  sendAuctionMessage,
-  updateDeliveryMethod,
-} from "@/lib/auction/action/history";
+import { getAuctionHistoryCreatedDetail, getUserRating, updateDeliveryMethod } from "@/lib/auction/action/created-detail";
+import { completeTaskDelivery, createAuctionReview, getAuctionMessages, sendAuctionMessage } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -148,6 +142,7 @@ export function useCreatedDetail(auctionId: string) {
    */
   const { mutate: handleUpdateDeliveryMethod, isPending: isUpdatingDelivery } = useMutation({
     mutationFn: (newDeliveryMethod: string) => {
+      console.log("[useCreatedDetail] handleUpdateDeliveryMethod", newDeliveryMethod);
       if (!auction?.taskId) {
         throw new Error("タスクIDが指定されていません。");
       }
