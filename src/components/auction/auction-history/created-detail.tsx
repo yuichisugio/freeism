@@ -3,7 +3,7 @@
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { AuctionQA } from "@/components/auction/bid/auction-qa";
+import { AuctionQA } from "@/components/auction/common/auction-qa";
 import { Loading } from "@/components/share/loading";
 import {
   AlertDialog,
@@ -28,7 +28,8 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Edit, History, Info, MessageSquare } from "lucide-react";
 
-import { Rating } from "../common/rating";
+import { QARating } from "../common/auction-rating";
+import { RatingStar } from "../common/rating-star";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -52,10 +53,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     deliveryMethod,
     isEditingDelivery,
     isUpdatingDelivery,
-    rating,
-    comment,
-    isSubmittingReview,
-    hasReviewed,
     isCompleting,
 
     // functions
@@ -64,9 +61,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
     handleUpdateDeliveryMethod,
     cancelEditingDelivery,
     startEditingDelivery,
-    setRating,
-    setComment,
-    handleReviewSubmit,
   } = useCreatedDetail(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -239,7 +233,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                           <div>
                             <p className="font-medium">{auction.winner.name ?? "落札者"}</p>
                             <div className="flex items-center gap-2">
-                              <Rating rating={winnerRating} size={16} />
+                              <RatingStar rating={winnerRating} size={16} />
                               <span className="text-sm text-gray-500">({winnerReviewCount})</span>
                             </div>
                           </div>
@@ -252,46 +246,12 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                         <CardTitle className="text-lg">落札者の評価</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {hasReviewed ? (
-                          <div className="py-4 text-center">
-                            <p className="mb-2 text-gray-500">評価済みです</p>
-                            <div className="flex justify-center">
-                              <Rating
-                                rating={
-                                  (auction.reviews?.reduce(
-                                    (acc, r) => (r.reviewPosition === ReviewPosition.SELLER_TO_BUYER ? acc + r.rating : acc),
-                                    0,
-                                  ) ?? 0) / (auction.reviews?.length || 1)
-                                }
-                                size={24}
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="text-center">
-                              <p className="mb-2 text-sm text-gray-500">評価を選択してください</p>
-                              <div className="flex justify-center">
-                                <Rating rating={rating} size={28} readonly={false} onChange={setRating} />
-                              </div>
-                            </div>
-
-                            <Textarea
-                              placeholder="コメントを入力（任意）"
-                              value={comment}
-                              onChange={(e) => setComment(e.target.value)}
-                              className="h-24"
-                            />
-
-                            <Button
-                              className="w-full"
-                              onClick={() => void handleReviewSubmit()}
-                              disabled={rating === 0 || isSubmittingReview || !auction.winner?.id || !auction.task?.creatorId}
-                            >
-                              {isSubmittingReview ? "送信中..." : "評価を送信"}
-                            </Button>
-                          </div>
-                        )}
+                        <QARating
+                          auctionId={auctionId}
+                          displayUserInfo={auction.winner}
+                          displayReviewPosition={ReviewPosition.SELLER_TO_BUYER}
+                          text="出品者"
+                        />
                       </CardContent>
                     </Card>
                   </>

@@ -26,13 +26,19 @@ type RatingDisplayProps = {
  * @param readonly 読み取り専用
  * @param onChange 評価変更時のコールバック
  */
-export const Rating = memo(function Rating({ rating, size = 20, readonly = true, onChange, className }: RatingDisplayProps) {
+export const RatingStar = memo(function RatingStar({ rating, size = 20, readonly = true, onChange, className }: RatingDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * ホバー評価
+   */
   const [hoverRating, setHoverRating] = useState(0);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 評価クリック時のコールバック
+   */
   const handleClick = useCallback(
     (index: number) => {
       if (readonly) return;
@@ -43,6 +49,9 @@ export const Rating = memo(function Rating({ rating, size = 20, readonly = true,
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 評価マウスオーバー時のコールバック
+   */
   const handleMouseEnter = useCallback(
     (index: number) => {
       if (readonly) return;
@@ -53,6 +62,9 @@ export const Rating = memo(function Rating({ rating, size = 20, readonly = true,
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 評価マウスアウト時のコールバック
+   */
   const handleMouseLeave = useCallback(() => {
     if (readonly) return;
     setHoverRating(0);
@@ -60,6 +72,9 @@ export const Rating = memo(function Rating({ rating, size = 20, readonly = true,
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 評価表示コンポーネント
+   */
   return (
     <div className="flex">
       {[1, 2, 3, 4, 5].map((index) => (

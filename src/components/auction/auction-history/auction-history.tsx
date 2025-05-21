@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useMemo } from "react";
-import { Rating } from "@/components/auction/common/rating";
+import { RatingStar } from "@/components/auction/common/rating-star";
 import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Loading } from "@/components/share/loading";
 import { Button } from "@/components/ui/button";
@@ -279,7 +279,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
           leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
           rightBadge={
             auction.rating && auction.rating > 0 ? (
-              <Rating rating={auction.rating} size={16} />
+              <RatingStar rating={auction.rating} size={16} />
             ) : (
               <span className="text-xs text-gray-500">未評価</span>
             )

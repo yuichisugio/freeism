@@ -23,8 +23,8 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
 
-import { AuctionQA } from "../bid/auction-qa";
-import { Rating } from "../common/rating";
+import { AuctionQA } from "../common/auction-qa";
+import { RatingStar } from "../common/rating-star";
 import { TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -201,7 +201,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                 <div>
                   <p className="font-medium">ユーザー名：{auction.taskCreatorName ?? "未設定"}</p>
                   <div className="mt-5 flex items-center gap-2">
-                    <Rating rating={sellerRating} size={16} />
+                    <RatingStar rating={sellerRating} size={16} />
                     <span className="text-sm text-gray-500">{sellerReviewCount} 件の評価</span>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                       (review: Pick<AuctionReview, "id" | "reviewerId" | "rating" | "comment">) =>
                         review.reviewerId === auction.winnerId && (
                           <div key={review.id} className="space-y-2">
-                            <Rating rating={review.rating} size={20} />
+                            <RatingStar rating={review.rating} size={20} />
                             <p className="text-gray-700">{review.comment ?? "コメントなし"}</p>
                           </div>
                         ),
@@ -233,7 +233,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                 <div className="space-y-4">
                   <div>
                     <div className="mb-1 text-sm text-gray-500">評価を選択</div>
-                    <Rating rating={rating} onChange={setRating} size={24} readonly={false} />
+                    <RatingStar rating={rating} onChange={setRating} size={24} readonly={false} />
                   </div>
                   <div>
                     <div className="mb-1 text-sm text-gray-500">コメント (任意)</div>

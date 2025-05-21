@@ -347,14 +347,6 @@ export type AuctionHistoryCreatedDetail = {
     image: string | null;
   } | null;
   winnerId: string | null;
-  reviews: {
-    id: string;
-    reviewerId: string;
-    revieweeId: string;
-    rating: number;
-    comment: string | null;
-    reviewPosition: ReviewPosition;
-  }[];
   bidHistories: {
     id: string;
     amount: number;

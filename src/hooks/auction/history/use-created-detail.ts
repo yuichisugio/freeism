@@ -4,9 +4,8 @@ import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuctionHistoryCreatedDetail, getUserRating, updateDeliveryMethod } from "@/lib/auction/action/created-detail";
-import { completeTaskDelivery, createAuctionReview } from "@/lib/auction/action/history";
+import { completeTaskDelivery } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -48,8 +47,6 @@ export function useCreatedDetail(auctionId: string) {
    */
   const [deliveryMethod, setDeliveryMethod] = useState("");
   const [isEditingDelivery, setIsEditingDelivery] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -80,7 +77,7 @@ export function useCreatedDetail(auctionId: string) {
     queryFn: async () => {
       // queryFnが実行される直前にもログを追加
       console.log("[useCreatedDetail] queryFn executing with:", { auctionId, userId });
-      return await getAuctionHistoryCreatedDetail(auctionId, userId);
+      return await getAuctionHistoryCreatedDetail(auctionId);
     },
     enabled: auctionQueryEnabled,
   });
@@ -91,16 +88,6 @@ export function useCreatedDetail(auctionId: string) {
       setDeliveryMethod(auction.task.deliveryMethod);
     }
   }, [auction]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 落札者の評価を取得
-   */
-  const hasReviewed = useMemo(
-    () => auction?.reviews?.some((review) => review.reviewerId === userId && review.reviewPosition === ReviewPosition.SELLER_TO_BUYER) ?? false,
-    [auction?.reviews, userId],
-  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -190,52 +177,6 @@ export function useCreatedDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * レビューを送信する
-   */
-  const { mutate: createAuctionReviewMutation, isPending: isSubmittingReview } = useMutation({
-    mutationFn: async (params: { rating: number; comment: string }) => {
-      if (!auctionId || !auction?.winner?.id) {
-        throw new Error("オークションIDまたは落札者IDが無効です。");
-      }
-      return createAuctionReview(auctionId, auction.winner.id, params.rating, params.comment, ReviewPosition.SELLER_TO_BUYER);
-    },
-    onSuccess: () => {
-      toast.success("評価を送信しました");
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId) });
-      setRating(0);
-      setComment("");
-    },
-    onError: (error: Error) => {
-      console.error("評価の送信に失敗しました", error);
-      toast.error("評価の送信に失敗しました: " + error.message);
-    },
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * レビューを送信する
-   */
-  const handleReviewSubmit = useCallback(async () => {
-    if (!auction?.winner?.id) {
-      toast.error("落札者がいないため評価できません");
-      return;
-    }
-    if (rating === 0) {
-      toast.error("評価を選択してください");
-      return;
-    }
-    if (!auctionId || !userId) {
-      // userId は creatorId に相当
-      toast.error("オークション情報または作成者情報が不足しています。");
-      return;
-    }
-    createAuctionReviewMutation({ rating, comment });
-  }, [auctionId, auction?.winner?.id, userId, comment, rating, createAuctionReviewMutation]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 全体のローディング状態を管理
    */
   const isLoadingOverall = useMemo(() => {
@@ -267,10 +208,6 @@ export function useCreatedDetail(auctionId: string) {
     deliveryMethod,
     isEditingDelivery,
     isUpdatingDelivery,
-    rating,
-    comment,
-    isSubmittingReview,
-    hasReviewed,
     router,
 
     // functions
@@ -279,8 +216,5 @@ export function useCreatedDetail(auctionId: string) {
     handleUpdateDeliveryMethod,
     cancelEditingDelivery,
     startEditingDelivery,
-    setRating,
-    setComment,
-    handleReviewSubmit,
   };
 }
