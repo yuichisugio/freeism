@@ -66,10 +66,10 @@ export const ErrorIndicator = memo(function ErrorIndicator({ error }: { error: s
  * @param initialAuction オークション情報
  * @returns オークション詳細ページ
  */
-export const AuctionDetail = memo(function AuctionDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
+export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/components/auction/bid/auction-detail.tsx_AuctionDetail_render");
+  console.log("src/components/auction/bid/auction-bid-detail.tsx_AuctionBidDetail_render");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

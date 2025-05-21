@@ -3,7 +3,6 @@
 import { type Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import { AuctionHistoryCreatedDetail } from "@/components/auction/auction-history/created-detail";
-import { MainTemplate } from "@/components/layout/maintemplate";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -57,9 +56,5 @@ export default async function AuctionHistoryCreatedDetailPage({ params }: Auctio
   /**
    * 出品商品詳細ページを表示
    */
-  return (
-    <MainTemplate title="出品商品詳細" description="出品した商品の詳細情報です">
-      <AuctionHistoryCreatedDetail auctionId={auctionId} />
-    </MainTemplate>
-  );
+  return <AuctionHistoryCreatedDetail auctionId={auctionId} />;
 }

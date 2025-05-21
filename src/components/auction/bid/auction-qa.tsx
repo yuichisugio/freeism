@@ -89,34 +89,18 @@ export const AuctionQA = memo(function AuctionQA({
    * メッセージヘッダー
    */
   return (
-    <div className="flex h-full flex-col space-y-4 rounded-xl border border-slate-100 bg-gradient-to-b from-slate-50 to-white p-5 shadow-md">
-      {/* メッセージヘッダー */}
-      <div className="flex items-center justify-between rounded-lg border-b border-slate-100 bg-white p-3 shadow-sm">
-        {/* メッセージヘッダーの左側 */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center rounded-full bg-indigo-100 p-2">
-            <MessageSquare className="h-5 w-5 text-indigo-600" />
-          </div>
-          <h3 className="text-lg font-medium text-slate-800">質問と回答</h3>
-          {isSeller && (
-            <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
-              出品者
-            </Badge>
-          )}
-        </div>
-
-        {/* メッセージヘッダーの右側。リロードボタン */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleReload}
-          disabled={loading || isRefetching}
-          className="h-8 w-8 rounded-full p-0 hover:bg-indigo-100 hover:text-indigo-700"
-        >
-          <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
-          <span className="sr-only">更新</span>
-        </Button>
-      </div>
+    <div className="flex h-full flex-col space-y-4 rounded-xl border border-slate-100 bg-white p-5 shadow-md">
+      {/* メッセージヘッダーの右側。リロードボタン */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleReload}
+        disabled={loading || isRefetching}
+        className="absolute right-8 h-8 w-8 rounded-full p-0 hover:bg-indigo-100 hover:text-indigo-700"
+      >
+        <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
+        <span className="sr-only">更新</span>
+      </Button>
 
       {/* メッセージリスト */}
       <div
@@ -229,35 +213,35 @@ export const AuctionQA = memo(function AuctionQA({
       </div>
 
       {/* メッセージ入力フォーム */}
-      <Card className="rounded-xl p-4 shadow-md">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Textarea
-                      placeholder={isSeller ? "質問への回答を入力してください..." : "質問を入力してください..."}
-                      {...field}
-                      disabled={submitting}
-                      className="min-h-[100px] resize-none rounded-lg p-3 text-slate-700 shadow-inner focus-visible:border-indigo-400 focus-visible:ring-indigo-400"
-                      onKeyDown={handleKeyDown}
-                    />
-                  </FormControl>
-                  <FormMessage className="mt-1 text-xs text-red-500" />
-                </FormItem>
-              )}
-            />
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center rounded-md bg-slate-100 px-2 py-1">
-                <p className="text-xs font-medium text-slate-600">⌘+Enter</p>
-                <p className="ml-1 text-xs text-slate-500">で送信</p>
-              </div>
-              {!isDisplayAfterEnd && isEnd ? (
-                <p className="text-xs text-slate-500">質問は締め切りました</p>
-              ) : (
+      {!isDisplayAfterEnd && isEnd ? (
+        <p className="text-center text-xs text-slate-500">チャットは締め切りました</p>
+      ) : (
+        <Card className="rounded-xl p-4 shadow-md">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
+              <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <Textarea
+                        placeholder={isSeller ? "質問への回答を入力してください..." : "質問を入力してください..."}
+                        {...field}
+                        disabled={submitting}
+                        className="min-h-[100px] rounded-lg p-3 text-slate-700 shadow-inner focus-visible:border-indigo-400 focus-visible:ring-indigo-400"
+                        onKeyDown={handleKeyDown}
+                      />
+                    </FormControl>
+                    <FormMessage className="mt-1 text-xs text-red-500" />
+                  </FormItem>
+                )}
+              />
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center rounded-md bg-slate-100 px-2 py-1">
+                  <p className="text-xs font-medium text-slate-600">⌘+Enter</p>
+                  <p className="ml-1 text-xs text-slate-500">で送信</p>
+                </div>
                 <Button
                   type="submit"
                   size="sm"
@@ -267,11 +251,11 @@ export const AuctionQA = memo(function AuctionQA({
                   {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <SendHorizonal className="mr-1 h-4 w-4" />}
                   送信
                 </Button>
-              )}
-            </div>
-          </form>
-        </Form>
-      </Card>
+              </div>
+            </form>
+          </Form>
+        </Card>
+      )}
     </div>
   );
 });
