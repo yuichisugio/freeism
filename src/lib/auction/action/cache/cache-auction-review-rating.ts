@@ -12,7 +12,7 @@ export async function getCachedAuctionReview(
   auctionId: string,
   displayUserId: string,
   reviewPosition: ReviewPosition,
-): Promise<{ rating: number } | null> {
+): Promise<{ rating: number; reviewCount: number } | null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -37,6 +37,7 @@ export async function getCachedAuctionReview(
   if (review.length === 0) {
     return {
       rating: 0,
+      reviewCount: 0,
     };
   }
 
@@ -47,6 +48,7 @@ export async function getCachedAuctionReview(
    */
   const formattedReview = {
     rating: review.reduce((acc, curr) => acc + curr.rating, 0) / review.length,
+    reviewCount: review.length,
   };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

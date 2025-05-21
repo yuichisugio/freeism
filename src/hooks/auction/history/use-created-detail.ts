@@ -3,7 +3,7 @@
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuctionHistoryCreatedDetail, getUserRating, updateDeliveryMethod } from "@/lib/auction/action/created-detail";
+import { getAuctionHistoryCreatedDetail, updateDeliveryMethod } from "@/lib/auction/action/created-detail";
 import { completeTaskDelivery } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -92,17 +92,6 @@ export function useCreatedDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 落札者の評価を取得
-   */
-  const { data: winnerInfo, isPending: isWinnerRatingQueryPending } = useQuery({
-    queryKey: queryCacheKeys.auction.winningRating(auction?.winner?.id ?? ""),
-    queryFn: () => getUserRating(auction?.winner?.id ?? ""),
-    enabled: !!auction?.winner?.id,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 商品の提供を完了する
    */
   const { mutate: handleComplete, isPending: isCompleting } = useMutation({
@@ -186,12 +175,9 @@ export function useCreatedDetail(auctionId: string) {
     if (auctionQueryEnabled && isAuctionQueryPending) {
       return true; // オークション詳細クエリが有効でロード中
     }
-    // オークション詳細取得後、落札者情報があればその評価クエリが有効でロード中
-    if (auction && !!auction.winner?.id && isWinnerRatingQueryPending) {
-      return true;
-    }
+    // 不要なローディング判定を削除
     return false; // 上記以外はロード完了または非表示状態
-  }, [sessionStatus, auctionQueryEnabled, isAuctionQueryPending, auction, isWinnerRatingQueryPending]);
+  }, [sessionStatus, auctionQueryEnabled, isAuctionQueryPending]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -202,8 +188,6 @@ export function useCreatedDetail(auctionId: string) {
     // state
     isCompleting,
     auction: auction ?? null,
-    winnerRating: winnerInfo?.rating ?? 0,
-    winnerReviewCount: winnerInfo?.reviewCount ?? 0,
     isLoading: isLoadingOverall,
     deliveryMethod,
     isEditingDelivery,

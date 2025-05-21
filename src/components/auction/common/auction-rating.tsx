@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReviewPosition } from "@prisma/client";
 import { memo, useCallback, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { getAuctionReview } from "@/lib/auction/action/auction-review-rating";
 import { createAuctionReview } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -131,7 +131,7 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
           <CardTitle className="text-lg">{text}情報</CardTitle>
         </CardHeader>
         <CardContent>
-          {isAuctionReviewPending || !auctionReview ? (
+          {isAuctionReviewPending ? (
             <div>表示対象者はまだ存在しません</div>
           ) : (
             <div className="mb-4 flex items-center gap-4">
@@ -143,7 +143,7 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
                 <p className="font-medium">{displayUserInfo?.name ?? text}</p>
                 <div className="flex items-center gap-2">
                   <RatingStar rating={auctionReview?.rating ?? 0} size={16} />
-                  <span className="text-sm text-gray-500">({displayReviewPosition === ReviewPosition.SELLER_TO_BUYER ? 1 : 0})</span>
+                  <span className="text-sm text-gray-500">({auctionReview?.reviewCount ?? 0})</span>
                 </div>
               </div>
             </div>

@@ -319,6 +319,7 @@ export type AuctionWonDetail = {
   taskCreatorId: string;
   taskDeliveryMethod: string | null;
   taskCreatorName: string | null;
+  taskCreatorImage: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

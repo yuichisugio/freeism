@@ -1,6 +1,5 @@
 "use client";
 
-import type { AuctionReview } from "@prisma/client";
 import { memo } from "react";
 import {
   AlertDialog,
@@ -16,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useWonDetail } from "@/hooks/auction/history/use-won-detail";
 import { AuctionStatus } from "@prisma/client";
 import { format } from "date-fns";
@@ -24,7 +22,7 @@ import { ja } from "date-fns/locale";
 import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
 
 import { AuctionQA } from "../common/auction-qa";
-import { RatingStar } from "../common/rating-star";
+import { QARating } from "../common/auction-rating";
 import { TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -44,21 +42,12 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
   const {
     // state
     auction,
-    sellerRating,
-    sellerReviewCount,
     isLoading,
     error,
-    hasReviewed,
-    rating,
-    comment,
-    isSubmitting,
     isCompleting,
     router,
 
     // function
-    setComment,
-    setRating,
-    handleReviewSubmit,
     handleComplete,
   } = useWonDetail(auctionId);
 
@@ -192,74 +181,17 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
 
         {/* 右側: 出品者情報と評価 */}
         <div>
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">出品者の情報</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="font-medium">ユーザー名：{auction.taskCreatorName ?? "未設定"}</p>
-                  <div className="mt-5 flex items-center gap-2">
-                    <RatingStar rating={sellerRating} size={16} />
-                    <span className="text-sm text-gray-500">{sellerReviewCount} 件の評価</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">出品者への評価</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hasReviewed ? (
-                <div>
-                  <div className="mb-4">
-                    {auction.reviews.map(
-                      (review: Pick<AuctionReview, "id" | "reviewerId" | "rating" | "comment">) =>
-                        review.reviewerId === auction.winnerId && (
-                          <div key={review.id} className="space-y-2">
-                            <RatingStar rating={review.rating} size={20} />
-                            <p className="text-gray-700">{review.comment ?? "コメントなし"}</p>
-                          </div>
-                        ),
-                    )}
-                  </div>
-                  <div className="text-center text-green-600">評価を送信済みです</div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <div className="mb-1 text-sm text-gray-500">評価を選択</div>
-                    <RatingStar rating={rating} onChange={setRating} size={24} readonly={false} />
-                  </div>
-                  <div>
-                    <div className="mb-1 text-sm text-gray-500">コメント (任意)</div>
-                    <Textarea
-                      placeholder="評価コメントを入力してください"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      className="h-24"
-                    />
-                  </div>
-                  <div className="text-right">
-                    <Button onClick={handleReviewSubmit} disabled={isSubmitting || rating === 0}>
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          送信中...
-                        </>
-                      ) : (
-                        "評価を送信する"
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* QARatingで出品者情報・評価・送信をまとめて表示 */}
+          <QARating
+            auctionId={auctionId}
+            displayUserInfo={{
+              id: auction.taskCreatorId,
+              name: auction.taskCreatorName,
+              image: auction.taskCreatorImage,
+            }}
+            displayReviewPosition={"BUYER_TO_SELLER"}
+            text="出品者"
+          />
         </div>
       </div>
 

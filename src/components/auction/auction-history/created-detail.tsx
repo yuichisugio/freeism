@@ -29,7 +29,6 @@ import { ja } from "date-fns/locale";
 import { Edit, History, Info, MessageSquare } from "lucide-react";
 
 import { QARating } from "../common/auction-rating";
-import { RatingStar } from "../common/rating-star";
 import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -47,8 +46,6 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
   const {
     // state
     auction,
-    winnerRating,
-    winnerReviewCount,
     isLoading,
     deliveryMethod,
     isEditingDelivery,
@@ -220,40 +217,12 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
               <div>
                 {auction.winner ? (
                   <>
-                    <Card className="mb-6">
-                      <CardHeader>
-                        <CardTitle className="text-lg">落札者情報</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="mb-4 flex items-center gap-4">
-                          <Avatar className="h-16 w-16">
-                            <AvatarImage src={auction.winner.image ?? ""} alt={auction.winner.name ?? "落札者"} />
-                            <AvatarFallback>{auction.winner.name?.[0] ?? "落"}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{auction.winner.name ?? "落札者"}</p>
-                            <div className="flex items-center gap-2">
-                              <RatingStar rating={winnerRating} size={16} />
-                              <span className="text-sm text-gray-500">({winnerReviewCount})</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">落札者の評価</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <QARating
-                          auctionId={auctionId}
-                          displayUserInfo={auction.winner}
-                          displayReviewPosition={ReviewPosition.SELLER_TO_BUYER}
-                          text="出品者"
-                        />
-                      </CardContent>
-                    </Card>
+                    <QARating
+                      auctionId={auctionId}
+                      displayUserInfo={auction.winner}
+                      displayReviewPosition={ReviewPosition.SELLER_TO_BUYER}
+                      text="出品者"
+                    />
                   </>
                 ) : (
                   <Card>

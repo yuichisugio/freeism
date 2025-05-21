@@ -58,6 +58,7 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
           creator: {
             select: {
               id: true,
+              image: true,
               settings: {
                 select: {
                   username: true,
@@ -99,6 +100,7 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
     taskCreatorId: auction.task.creatorId,
     taskCreatorName: auction.task.creator?.settings?.username ?? "未設定",
     taskDeliveryMethod: auction.task.deliveryMethod,
+    taskCreatorImage: auction.task.creator?.image ?? null,
   };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
