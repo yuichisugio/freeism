@@ -4,7 +4,7 @@ import { memo, useCallback, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Textarea } from "@/components/ui/textarea";
 import { createAuctionReview, getDisplayUserInfo } from "@/lib/auction/action/auction-rating";
 import { queryCacheKeys } from "@/lib/tanstack-query";
@@ -263,14 +263,24 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
             </CarouselContent>
             {displayUserInfo.length > 1 && (
               <>
-                <CarouselPrevious
+                <button
+                  type="button"
                   onClick={() => setCurrentIndex((prev) => (prev - 1 + displayUserInfo.length) % displayUserInfo.length)}
-                  className="absolute top-1/2 left-2 z-10 -translate-y-1/2"
-                />
-                <CarouselNext
+                  className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full border bg-white p-2 shadow"
+                  aria-label="前へ"
+                >
+                  {/* ← */}
+                  <span className="text-lg">&#8592;</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setCurrentIndex((prev) => (prev + 1) % displayUserInfo.length)}
-                  className="absolute top-1/2 right-2 z-10 -translate-y-1/2"
-                />
+                  className="absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full border bg-white p-2 shadow"
+                  aria-label="次へ"
+                >
+                  {/* → */}
+                  <span className="text-lg">&#8594;</span>
+                </button>
               </>
             )}
           </Carousel>

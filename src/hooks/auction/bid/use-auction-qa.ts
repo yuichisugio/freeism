@@ -77,6 +77,10 @@ export type UseAuctionMessageReturn = {
     isOwnMessage: boolean;
     isSellerMessage: boolean;
   };
+  messagesContainerProps: {
+    style?: React.CSSProperties;
+    className?: string;
+  };
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -366,5 +370,9 @@ export function useAuctionQA(auctionId: string, isEnd: boolean, isDisplayAfterEn
     handleKeyDown,
     handleSubmit,
     getSenderInfo,
+    messagesContainerProps: {
+      style: {},
+      className: "",
+    },
   };
 }

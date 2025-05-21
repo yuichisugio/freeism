@@ -5,7 +5,6 @@ import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuctionQA } from "@/hooks/auction/bid/use-auction-qa";
@@ -89,31 +88,32 @@ export const AuctionQA = memo(function AuctionQA({
    * メッセージヘッダー
    */
   return (
-    <div className="flex h-full flex-col space-y-4 rounded-xl border border-slate-100 bg-white p-5 shadow-md">
+    <div className="flex h-full flex-col rounded-xl border border-slate-100 bg-white p-5 shadow-md">
       {/* メッセージヘッダーの右側。リロードボタン */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleReload}
-        disabled={loading || isRefetching}
-        className="absolute right-8 h-8 w-8 rounded-full p-0 hover:bg-indigo-100 hover:text-indigo-700"
-      >
-        <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
-        <span className="sr-only">更新</span>
-      </Button>
+      <div className="flex w-full justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleReload}
+          disabled={loading || isRefetching}
+          className="h-8 w-8 rounded-full p-0 hover:bg-indigo-100 hover:text-indigo-700"
+        >
+          <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
+          <span className="sr-only">更新</span>
+        </Button>
+      </div>
 
       {/* メッセージリスト */}
       <div
-        className="flex-1 space-y-4 overflow-y-auto rounded-lg bg-gradient-to-br from-white to-slate-50 p-4"
+        className="max-h-[600px] min-h-[120px] flex-1 resize-y space-y-0.5 overflow-y-auto rounded-lg bg-gradient-to-br from-white to-slate-50 p-4"
         style={{
-          maxHeight: "450px",
           backgroundImage: "radial-gradient(circle at 1px 1px, rgba(226, 232, 240, 0.4) 1px, transparent 0)",
           backgroundSize: "24px 24px",
         }}
       >
         {/* メッセージがない場合 */}
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center rounded-xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+          <div className="flex h-full flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-sm">
             <div className="mb-4 rounded-full bg-indigo-50 p-4">
               <MessageSquare className="h-8 w-8 text-indigo-400" />
             </div>
@@ -133,9 +133,9 @@ export const AuctionQA = memo(function AuctionQA({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={cn("mb-6 flex w-full flex-col rounded-lg p-3", isOwnMessage ? "items-end" : "items-start")}
+                  className={cn("flex w-full flex-col rounded-lg px-3 py-1", isOwnMessage ? "items-end" : "items-start")}
                 >
-                  <div className="mb-2 flex items-center gap-2">
+                  <div className="mb-1 flex items-center gap-2">
                     <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
                       <AvatarImage src={image ?? ""} />
                       <AvatarFallback
@@ -185,10 +185,10 @@ export const AuctionQA = memo(function AuctionQA({
                     </div>
                   </div>
 
-                  <div className="w-full max-w-[90%] space-y-2">
+                  <div className="w-full max-w-1/2">
                     <div
                       className={cn(
-                        "relative mb-1 rounded-2xl px-4 py-3 shadow-sm",
+                        "relative mb-0.5 rounded-2xl px-4 py-2 break-words shadow-sm",
                         isOwnMessage
                           ? "ml-auto rounded-tr-none bg-indigo-500 text-white"
                           : isSellerMessage
@@ -199,7 +199,7 @@ export const AuctionQA = memo(function AuctionQA({
                       {/* メッセージ内容 */}
                       <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.messageContent}</p>
                       {/* メッセージの作成日時 */}
-                      <p className={cn("mt-1 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
+                      <p className={cn("mt-0.5 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
                         {formatRelativeTime(new Date(msg.createdAt))}
                       </p>
                     </div>
@@ -216,9 +216,9 @@ export const AuctionQA = memo(function AuctionQA({
       {!isDisplayAfterEnd && isEnd ? (
         <p className="text-center text-xs text-slate-500">チャットは締め切りました</p>
       ) : (
-        <Card className="rounded-xl p-4 shadow-md">
+        <div className="mt-2">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
               <FormField
                 control={form.control}
                 name="message"
@@ -229,7 +229,7 @@ export const AuctionQA = memo(function AuctionQA({
                         placeholder={isSeller ? "質問への回答を入力してください..." : "質問を入力してください..."}
                         {...field}
                         disabled={submitting}
-                        className="min-h-[100px] rounded-lg p-3 text-slate-700 shadow-inner focus-visible:border-indigo-400 focus-visible:ring-indigo-400"
+                        className="max-h-[200px] min-h-[60px] resize-y rounded-lg p-3 text-slate-700 shadow-inner focus-visible:border-indigo-400 focus-visible:ring-indigo-400"
                         onKeyDown={handleKeyDown}
                       />
                     </FormControl>
@@ -254,7 +254,7 @@ export const AuctionQA = memo(function AuctionQA({
               </div>
             </form>
           </Form>
-        </Card>
+        </div>
       )}
     </div>
   );
