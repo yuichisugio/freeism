@@ -245,6 +245,7 @@ export async function getUserCreatedAuctionsWhereCondition(
 
   // ステータスフィルターの処理
   const statusFilters: AuctionStatus[] = [];
+  let supplierDoneFilter = false;
   if (filter.includes("active")) {
     statusFilters.push(AuctionStatus.ACTIVE);
   }
@@ -254,22 +255,30 @@ export async function getUserCreatedAuctionsWhereCondition(
   if (filter.includes("pending")) {
     statusFilters.push(AuctionStatus.PENDING);
   }
+  if (filter.includes("supplier_done")) {
+    supplierDoneFilter = true;
+  }
 
-  if (statusFilters.length > 0) {
+  if (statusFilters.length > 0 || supplierDoneFilter) {
     // ステータスフィルターとロールフィルターの関係性をどうするか？
     // ここでは、ロール条件とステータス条件はANDで結ぶのが一般的か。
     // filterCondition が AND の場合: (RoleA AND RoleB) AND (StatusA OR StatusB)
     // filterCondition が OR の場合: (RoleA OR RoleB) AND (StatusA OR StatusB) -> これは実質ロールフィルターのORに影響しない
     // filterCondition は主にロール間の条件に使われると想定。
     // ステータスは常にORで選択されたものを満たす、かつ、ロール条件を満たす。
+    const andConditions: Prisma.AuctionWhereInput[] = [];
     if (whereCondition.task) {
-      whereCondition.AND = [
-        { task: whereCondition.task }, // 既存のロール条件
-        { status: { in: statusFilters } }, // ステータス条件
-      ];
-      delete whereCondition.task; // AND句に移動したので元のtaskは削除
-    } else {
-      whereCondition.status = { in: statusFilters };
+      andConditions.push({ task: whereCondition.task });
+      delete whereCondition.task;
+    }
+    if (statusFilters.length > 0) {
+      andConditions.push({ status: { in: statusFilters } });
+    }
+    if (supplierDoneFilter) {
+      andConditions.push({ task: { status: "SUPPLIER_DONE" } });
+    }
+    if (andConditions.length > 0) {
+      whereCondition.AND = andConditions;
     }
   }
 

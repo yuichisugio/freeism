@@ -195,9 +195,11 @@ export const AuctionHistory = memo(function AuctionHistory() {
           case "active":
             return { id: f, label: "開催中" };
           case "ended":
-            return { id: f, label: "終了" };
+            return { id: f, label: "オークション終了" };
           case "pending":
             return { id: f, label: "開始前" };
+          case "supplier_done":
+            return { id: f, label: "提供の完了" };
           default: {
             const exhaustiveCheck: never = f;
             return { id: exhaustiveCheck as AuctionCreatedTabFilter, label: String(exhaustiveCheck) };

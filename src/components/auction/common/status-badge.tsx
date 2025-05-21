@@ -102,6 +102,10 @@ const taskStatusConfig = {
     label: "アーカイブ",
     variant: "outline" as const,
   },
+  [TaskStatus.SUPPLIER_DONE]: {
+    label: "提供の完了",
+    variant: "success" as const,
+  },
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -116,6 +120,11 @@ export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   const config = taskStatusConfig[status];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  if (!config) {
+    // 万が一未定義のステータスが来た場合のフォールバック
+    return <Badge variant="outline">不明</Badge>;
+  }
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }

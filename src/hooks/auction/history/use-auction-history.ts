@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getUserBidHistories,
@@ -21,30 +21,7 @@ import {
 } from "@/types/auction-types";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// AuctionCreatedTabFilter の有効な値を定義
-const auctionCreatedTabFilterValues: ReadonlyArray<AuctionCreatedTabFilter> = [
-  "all",
-  "active",
-  "ended",
-  "pending",
-  "creator",
-  "executor",
-  "reporter",
-];
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 文字列が AuctionCreatedTabFilter の有効な値かどうかをチェックする関数
- * @param value チェックする文字列
- * @returns 有効な場合は true、そうでない場合は false
- */
-function isValidAuctionCreatedTabFilter(value: string): value is AuctionCreatedTabFilter {
-  return auctionCreatedTabFilterValues.includes(value as AuctionCreatedTabFilter);
-}
+import { useQueryState } from "nuqs";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -56,30 +33,32 @@ export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * タブの定義
-   */
-  const VALID_TABS = useMemo(() => ["bids", "won", "created"] as const, []);
-  type ValidTab = (typeof VALID_TABS)[number];
-
-  /**
    * UIで表示するフィルターの定義 ("all" を除く)
    */
-  const VALID_UI_FILTERS = useMemo(() => ["active", "ended", "pending", "creator", "executor", "reporter"] as const, []);
+  const VALID_UI_FILTERS = ["active", "ended", "pending", "creator", "executor", "reporter", "supplier_done"] as const;
+
+  // nuqsでクエリパラメータを管理
+  const [activeTab = "bids", setActiveTab] = useQueryState("tab", { defaultValue: "bids", history: "push" });
+  const [currentPage = 1, setCurrentPage] = useQueryState("page", { defaultValue: 1, history: "push", parse: Number, serialize: String });
+  const [itemPerPage = AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE, setItemPerPage] = useQueryState("itemPerPage", {
+    defaultValue: AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE,
+    history: "push",
+    parse: Number,
+    serialize: String,
+  });
+  const [filterRaw = [], setFilterRaw] = useQueryState("filter", {
+    defaultValue: [],
+    history: "push",
+    parse: (v) => (v ? v.split(",") : []),
+    serialize: (v) => v.join(","),
+  });
+  const [filterConditionRaw = "or", setFilterConditionRaw] = useQueryState("condition", { defaultValue: "or", history: "push" });
+  const filter = filterRaw as AuctionCreatedTabFilter[];
+  const setFilter = setFilterRaw as (v: AuctionCreatedTabFilter[]) => void;
+  const filterCondition = filterConditionRaw as FilterCondition;
+  const setFilterCondition = setFilterConditionRaw as (v: FilterCondition) => void;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タブが有効かどうかをチェックする関数
-   */
-  const isValidTab = useCallback(
-    (tab: string | null): tab is ValidTab => {
-      if (!tab) return false;
-      return VALID_TABS.some((validTab) => validTab === tab);
-    },
-    [VALID_TABS],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ルーター
@@ -111,209 +90,6 @@ export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * タブを取得
-   */
-  const getTabFromUrl = useCallback(() => {
-    const tab = searchParams.get("tab");
-    return isValidTab(tab) ? tab : "bids";
-  }, [searchParams, isValidTab]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページを取得
-   */
-  const getPageFromUrl = useCallback(() => {
-    const page = searchParams.get("page");
-    const pageNumber = parseInt(page ?? "1", 10);
-    return (isNaN(pageNumber) ?? pageNumber < 1) ? 1 : pageNumber;
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページあたりのアイテム数をURLから取得する関数
-   */
-  const getItemPerPageFromUrl = useCallback(() => {
-    const items = searchParams.get("itemPerPage");
-    const itemsNumber = parseInt(items ?? AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE.toString(), 10);
-    return isNaN(itemsNumber) || itemsNumber < 1 ? AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE : itemsNumber;
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * URLからフィルターを取得する関数
-   */
-  const getFiltersFromUrl = useCallback((): AuctionCreatedTabFilter[] => {
-    const filterParam = searchParams.get("filter");
-    if (filterParam) {
-      const filters = filterParam.split(",").filter((f) => f.length > 0);
-      return filters.filter(isValidAuctionCreatedTabFilter);
-    }
-    return []; // デフォルトは空配列（＝全て）
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * URLからフィルター条件(AND/OR)を取得する関数
-   */
-  const getFilterConditionFromUrl = useCallback((): FilterCondition => {
-    const condition = searchParams.get("condition");
-    return condition === "and" || condition === "or" ? condition : "or"; // デフォルトは OR
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルター条件(AND/OR)を取得
-   */
-  const [filterCondition, setFilterCondition] = useState<FilterCondition>(getFilterConditionFromUrl());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タブを取得
-   */
-  const [activeTab, setActiveTab] = useState<ValidTab>(getTabFromUrl());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページを取得
-   */
-  const [currentPage, setCurrentPage] = useState<number>(getPageFromUrl());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページあたりのアイテム数を取得
-   */
-  const [itemPerPage, setItemPerPage] = useState<number>(getItemPerPageFromUrl());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルターを取得
-   */
-  const [filter, setFilter] = useState<AuctionCreatedTabFilter[]>(getFiltersFromUrl());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * urlが変わったらタブとページとフィルターとフィルター条件を取得
-   * ページに戻ってきた時に実行
-   */
-  useEffect(() => {
-    setActiveTab(getTabFromUrl());
-    setCurrentPage(getPageFromUrl());
-    setItemPerPage(getItemPerPageFromUrl());
-    setFilter(getFiltersFromUrl());
-    setFilterCondition(getFilterConditionFromUrl());
-  }, [getPageFromUrl, getTabFromUrl, getItemPerPageFromUrl, getFiltersFromUrl, getFilterConditionFromUrl, searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タブを変更
-   */
-  const handleTabChange = useCallback(
-    (value: string) => {
-      if (isValidTab(value)) {
-        setActiveTab(value);
-        setCurrentPage(1);
-        // フィルターはタブ変更時にリセットしない（URLから再取得されるため）
-        const currentFilterParam = filter.length > 0 ? `&filter=${filter.join(",")}` : "";
-        const currentConditionParam = activeTab === "created" && filter.length > 0 ? `&condition=${filterCondition}` : "";
-        router.push(`?tab=${value}&page=1&itemPerPage=${itemPerPage}${currentFilterParam}${currentConditionParam}`);
-      }
-    },
-    [router, isValidTab, filter, itemPerPage, filterCondition, activeTab],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページを変更
-   */
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      setCurrentPage(newPage);
-      const filterParam = filter.length > 0 ? `&filter=${filter.join(",")}` : "";
-      const conditionParam = activeTab === "created" && filter.length > 0 ? `&condition=${filterCondition}` : "";
-      router.push(`?tab=${activeTab}&page=${newPage}&itemPerPage=${itemPerPage}${filterParam}${conditionParam}`);
-    },
-    [router, activeTab, itemPerPage, filter, filterCondition],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 表示件数を変更
-   */
-  const handleItemPerPageChange = useCallback(
-    (newItemPerPage: number) => {
-      if (newItemPerPage > 0) {
-        setItemPerPage(newItemPerPage);
-        setCurrentPage(1);
-        const filterParam = filter.length > 0 ? `&filter=${filter.join(",")}` : "";
-        const conditionParam = activeTab === "created" && filter.length > 0 ? `&condition=${filterCondition}` : "";
-        router.push(`?tab=${activeTab}&page=1&itemPerPage=${newItemPerPage}${filterParam}${conditionParam}`);
-      }
-    },
-    [router, activeTab, filter, filterCondition],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルターを変更
-   */
-  const handleFilterChange = useCallback(
-    (newFilter: AuctionCreatedTabFilter[]) => {
-      setFilter(newFilter);
-      setCurrentPage(1); // フィルター変更時は1ページ目に戻す
-      const filterParam = newFilter.length > 0 ? `&filter=${newFilter.join(",")}` : "";
-      const conditionParam = activeTab === "created" && newFilter.length > 0 ? `&condition=${filterCondition}` : "";
-      router.push(`?tab=${activeTab}&page=1&itemPerPage=${itemPerPage}${filterParam}${conditionParam}`);
-    },
-    [router, activeTab, itemPerPage, filterCondition],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルター条件(AND/OR)を変更
-   */
-  const handleFilterConditionChange = useCallback(
-    (newCondition: FilterCondition) => {
-      setFilterCondition(newCondition);
-      setCurrentPage(1); // 条件変更時も1ページ目に戻す
-      const filterParam = filter.length > 0 ? `&filter=${filter.join(",")}` : "";
-      // フィルターが空の場合は condition を URL に含めない
-      const conditionParam = filter.length > 0 ? `&condition=${newCondition}` : "";
-      router.push(`?tab=${activeTab}&page=1&itemPerPage=${itemPerPage}${filterParam}${conditionParam}`);
-    },
-    [router, activeTab, itemPerPage, filter],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルターをクリア
-   */
-  const handleClearFilters = useCallback(() => {
-    setFilter([]);
-    setCurrentPage(1); // フィルタークリア時も1ページ目に戻す
-    // filterCondition はクリアせず、現在の値を維持する（ユーザーが意図的に変更するまで）
-    // ただし、フィルターが空になるので、URLからは condition パラメータは消える
-    router.push(`?tab=${activeTab}&page=1&itemPerPage=${itemPerPage}`);
-  }, [router, activeTab, itemPerPage]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 入札履歴を取得
    */
   const { data: bidHistoryData, isPending: isLoadingBids } = useQuery<BidHistoryItem[]>({
@@ -328,7 +104,6 @@ export function useAuctionHistory() {
 
   /**
    * 入札履歴の件数を取得
-   * 入札履歴のページを変えるたびに件数をアクセスしないように、件数取得の関数は別で用意する
    */
   const { data: bidHistoryCount, isPending: isLoadingBidHistoryCount } = useQuery<number>({
     queryKey: queryCacheKeys.auction.historyBidsCount(userId!),
@@ -519,6 +294,46 @@ export function useAuctionHistory() {
     (auctionId: string) => navigateToDetail(`/dashboard/auction/created-detail/${auctionId}`),
     [navigateToDetail],
   );
+
+  // ハンドラ関数
+  const handleTabChange = useCallback(
+    (value: string) => {
+      void setActiveTab(value);
+      void setCurrentPage(1);
+    },
+    [setActiveTab, setCurrentPage],
+  );
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      void setCurrentPage(newPage);
+    },
+    [setCurrentPage],
+  );
+  const handleItemPerPageChange = useCallback(
+    (newItemPerPage: number) => {
+      void setItemPerPage(newItemPerPage);
+      void setCurrentPage(1);
+    },
+    [setItemPerPage, setCurrentPage],
+  );
+  const handleFilterChange = useCallback(
+    (newFilter: AuctionCreatedTabFilter[]) => {
+      void setFilter(newFilter);
+      void setCurrentPage(1);
+    },
+    [setFilter, setCurrentPage],
+  );
+  const handleFilterConditionChange = useCallback(
+    (newCondition: FilterCondition) => {
+      void setFilterCondition(newCondition);
+      void setCurrentPage(1);
+    },
+    [setFilterCondition, setCurrentPage],
+  );
+  const handleClearFilters = useCallback(() => {
+    void setFilter([]);
+    void setCurrentPage(1);
+  }, [setFilter, setCurrentPage]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
