@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWonDetail } from "@/hooks/auction/history/use-won-detail";
-import { AuctionStatus, ReviewPosition } from "@prisma/client";
+import { AuctionStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
@@ -182,16 +182,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
         {/* 右側: 出品者情報と評価 */}
         <div>
           {/* QARatingで出品者情報・評価・送信をまとめて表示 */}
-          <QARating
-            auctionId={auctionId}
-            displayUserInfo={{
-              id: auction.taskCreatorId,
-              name: auction.taskCreatorName,
-              image: auction.taskCreatorImage,
-            }}
-            displayReviewPosition={ReviewPosition.BUYER_TO_SELLER}
-            text="出品者"
-          />
+          <QARating auctionId={auctionId} text="落札画面" />
         </div>
       </div>
 

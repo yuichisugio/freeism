@@ -22,7 +22,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatedDetail } from "@/hooks/auction/history/use-created-detail";
-import { ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Edit, History, Info, MessageSquare } from "lucide-react";
@@ -216,12 +215,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
               <div>
                 {auction.winner ? (
                   <>
-                    <QARating
-                      auctionId={auctionId}
-                      displayUserInfo={auction.winner}
-                      displayReviewPosition={ReviewPosition.SELLER_TO_BUYER}
-                      text="落札者"
-                    />
+                    <QARating auctionId={auctionId} text="出品画面" />
                   </>
                 ) : (
                   <Card>

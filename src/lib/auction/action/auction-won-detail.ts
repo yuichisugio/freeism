@@ -66,6 +66,36 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
               },
             },
           },
+          reporters: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  image: true,
+                  settings: {
+                    select: {
+                      username: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          executors: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  image: true,
+                  settings: {
+                    select: {
+                      username: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -97,10 +127,22 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
     taskName: auction.task.task,
     taskDetail: auction.task.detail,
     taskStatus: auction.task.status,
-    taskCreatorId: auction.task.creatorId,
-    taskCreatorName: auction.task.creator?.settings?.username ?? "未設定",
     taskDeliveryMethod: auction.task.deliveryMethod,
-    taskCreatorImage: auction.task.creator?.image ?? null,
+    creator: {
+      creatorUserId: auction.task.creatorId,
+      creatorAppUserName: auction.task.creator?.settings?.username ?? "未設定",
+      creatorUserImage: auction.task.creator?.image ?? null,
+    },
+    reporters: auction.task.reporters.map((reporter) => ({
+      reporterUserId: reporter.user?.id ?? "未設定",
+      reporterAppUserName: reporter.user?.settings?.username ?? "未設定",
+      reporterUserImage: reporter.user?.image ?? null,
+    })),
+    executors: auction.task.executors.map((executor) => ({
+      executorUserId: executor.user?.id ?? "未設定",
+      executorAppUserName: executor.user?.settings?.username ?? "未設定",
+      executorUserImage: executor.user?.image ?? null,
+    })),
   };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

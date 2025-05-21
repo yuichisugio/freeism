@@ -316,10 +316,22 @@ export type AuctionWonDetail = {
   taskName: string;
   taskDetail: string | null;
   taskStatus: TaskStatus;
-  taskCreatorId: string;
   taskDeliveryMethod: string | null;
-  taskCreatorName: string | null;
-  taskCreatorImage: string | null;
+  creator: {
+    creatorUserId: string;
+    creatorAppUserName: string | null;
+    creatorUserImage: string | null;
+  };
+  reporters: {
+    reporterUserId: string;
+    reporterAppUserName: string | null;
+    reporterUserImage: string | null;
+  }[];
+  executors: {
+    executorUserId: string;
+    executorAppUserName: string | null;
+    executorUserImage: string | null;
+  }[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
