@@ -125,7 +125,7 @@ export const AuctionQA = memo(function AuctionQA({
           <AnimatePresence>
             {messages.map((msg: AuctionMessage) => {
               const senderId = msg.person?.sender?.id ?? "unknown";
-              const { name, image, sellerType, isOwnMessage, isSellerMessage } = getSenderInfo(senderId, auctionPersonInfo, msg, currentUserId);
+              const { name, image, sellerTypes, isOwnMessage, isSellerMessage } = getSenderInfo(senderId, auctionPersonInfo, msg, currentUserId);
               return (
                 <motion.div
                   key={msg.messageId}
@@ -157,21 +157,13 @@ export const AuctionQA = memo(function AuctionQA({
                       {/* 出品者かどうか */}
                       {isSellerMessage ? (
                         <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-xs text-emerald-700">
-                          {isOwnMessage
-                            ? sellerType === "creator"
-                              ? "出品者（作成者）"
-                              : sellerType === "reporter"
-                                ? "出品者（報告者）"
-                                : sellerType === "executor"
-                                  ? "出品者（実行者）"
-                                  : "出品者"
-                            : sellerType === "creator"
-                              ? "出品者（作成者）"
-                              : sellerType === "reporter"
-                                ? "出品者（報告者）"
-                                : sellerType === "executor"
-                                  ? "出品者（実行者）"
-                                  : "出品者"}
+                          {(() => {
+                            if (sellerTypes.length === 0) return "出品者";
+                            const typeLabels = sellerTypes
+                              .map((type) => (type === "creator" ? "作成者" : type === "reporter" ? "報告者" : "実行者"))
+                              .join("・");
+                            return `出品者（${typeLabels}）`;
+                          })()}
                         </Badge>
                       ) : isOwnMessage ? (
                         <Badge variant="outline" className="border-indigo-200 bg-indigo-50 text-xs text-indigo-700">

@@ -73,7 +73,7 @@ export type UseAuctionMessageReturn = {
   ) => {
     name: string;
     image: string | null;
-    sellerType: "creator" | "reporter" | "executor" | null;
+    sellerTypes: ("creator" | "reporter" | "executor")[];
     isOwnMessage: boolean;
     isSellerMessage: boolean;
   };
@@ -321,15 +321,15 @@ export function useAuctionQA(auctionId: string, isEnd: boolean, isDisplayAfterEn
     ): {
       name: string;
       image: string | null;
-      sellerType: "creator" | "reporter" | "executor" | null;
+      sellerTypes: ("creator" | "reporter" | "executor")[];
       isOwnMessage: boolean;
       isSellerMessage: boolean;
     } => {
-      let sellerType: "creator" | "reporter" | "executor" | null = null;
+      const sellerTypes: ("creator" | "reporter" | "executor")[] = [];
       if (auctionPersonInfo) {
-        if (senderId === auctionPersonInfo.creator.id) sellerType = "creator";
-        else if (auctionPersonInfo.reporters.some((r) => r.id === senderId)) sellerType = "reporter";
-        else if (auctionPersonInfo.executors.some((e) => e.id === senderId)) sellerType = "executor";
+        if (senderId === auctionPersonInfo.creator.id) sellerTypes.push("creator");
+        if (auctionPersonInfo.reporters.some((r) => r.id === senderId)) sellerTypes.push("reporter");
+        if (auctionPersonInfo.executors.some((e) => e.id === senderId)) sellerTypes.push("executor");
       }
       const isOwnMessage = senderId === currentUserId;
       const senderInfo = isOwnMessage
@@ -338,11 +338,11 @@ export function useAuctionQA(auctionId: string, isEnd: boolean, isDisplayAfterEn
             name: message.person?.sender?.appUserName ?? "エラー",
             image: message.person?.sender?.image ?? null,
           };
-      const isSellerMessage = !!sellerType;
+      const isSellerMessage = sellerTypes.length > 0;
       return {
         name: senderInfo.name,
         image: senderInfo.image,
-        sellerType,
+        sellerTypes,
         isOwnMessage,
         isSellerMessage,
       };
