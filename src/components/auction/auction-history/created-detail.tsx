@@ -49,6 +49,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
     isEditingDelivery,
     isUpdatingDelivery,
     isCompleting,
+    tab,
 
     // functions
     handleComplete,
@@ -56,6 +57,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
     handleUpdateDeliveryMethod,
     cancelEditingDelivery,
     startEditingDelivery,
+    setTab,
   } = useCreatedDetail(auctionId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -86,7 +88,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
   return (
     <>
       <h1 className="mb-6 text-2xl font-bold">＜出品履歴＞ {auction.task.task}</h1>
-      <Tabs defaultValue="info">
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-4 grid w-full grid-cols-4">
           <TabsTrigger value="info">
             <Info className="mr-2 h-4 w-4" /> 出品情報

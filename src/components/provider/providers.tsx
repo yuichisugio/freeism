@@ -4,6 +4,7 @@ import { memo } from "react";
 import { persistOptions, queryClient } from "@/lib/tanstack-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ThemeProvider } from "next-themes";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { PushNotificationProvider } from "./push-notification-provider";
 
@@ -18,7 +19,9 @@ export const Providers = memo(function Providers({ children }: { children: React
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
-        <PushNotificationProvider>{children}</PushNotificationProvider>
+        <PushNotificationProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </PushNotificationProvider>
       </PersistQueryClientProvider>
     </ThemeProvider>
   );

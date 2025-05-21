@@ -8,6 +8,7 @@ import { completeTaskDelivery } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -22,6 +23,14 @@ export function useCreatedDetail(auctionId: string) {
    * ルーター
    */
   const router = useRouter();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // タブの状態をURLパラメータで管理
+  const [tab, setTab] = useQueryState("tab", {
+    defaultValue: "info",
+    history: "push",
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -193,6 +202,7 @@ export function useCreatedDetail(auctionId: string) {
     isEditingDelivery,
     isUpdatingDelivery,
     router,
+    tab,
 
     // functions
     handleComplete,
@@ -200,5 +210,6 @@ export function useCreatedDetail(auctionId: string) {
     handleUpdateDeliveryMethod,
     cancelEditingDelivery,
     startEditingDelivery,
+    setTab,
   };
 }
