@@ -1,5 +1,6 @@
 import type { AuctionCreatedTabFilter, AuctionListingsConditions, FilterCondition } from "@/types/auction-types";
 import type { AllUserGroupTable, MyGroupTable, MyTaskTableConditions, TableConditions } from "@/types/group-types";
+import type { ReviewPosition } from "@prisma/client";
 import { QueryClient } from "@tanstack/react-query";
 import { type PersistedClient, type Persister } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
@@ -66,7 +67,8 @@ export const queryCacheKeys = {
     historyCreatedDetail: (userId: string, auctionId: string) => [...queryCacheKeys.auction.history(), "createdDetail", userId, auctionId] as const,
     winningRating: (winnerId: string) => [...queryCacheKeys.auction._root, "winningRating", winnerId] as const,
     wonDetail: (auctionId: string) => [...queryCacheKeys.auction._root, "wonDetail", auctionId] as const,
-    sellerRating: (sellerId: string) => [...queryCacheKeys.auction._root, "sellerRating", sellerId] as const,
+    displayUserInfo: (auctionId: string, reviewPosition: ReviewPosition) =>
+      [...queryCacheKeys.auction._root, "displayUserInfo", auctionId, reviewPosition] as const,
   },
 
   table: {
@@ -116,9 +118,9 @@ export const queryClient = new QueryClient({
     queries: {
       gcTime: Infinity,
       staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
       refetchInterval: false,
       refetchIntervalInBackground: false,
     },

@@ -11,7 +11,7 @@ import { createAuctionReview } from "@/lib/auction/action/history";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { RatingStar } from "./rating-star";
@@ -32,6 +32,11 @@ type QARatingProps = {
  * 各ユーザーの評価カード
  */
 function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; reviewPosition: ReviewPosition }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * state
+   */
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [hasReviewed, setHasReviewed] = useState(user.hasReviewed);
@@ -43,6 +48,11 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
    */
   const queryClient = useQueryClient();
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 評価送信
+   */
   const { mutate: createAuctionReviewMutation, isPending: isSubmittingReview } = useMutation({
     mutationFn: async (params: { rating: number; comment: string }) => {
       if (!user.auctionId || !user.userId) {
@@ -84,6 +94,11 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
     createAuctionReviewMutation({ rating, comment });
   }, [user.auctionId, user.userId, comment, rating, createAuctionReviewMutation]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * カード
+   */
   return (
     <div className="mb-4 flex flex-col items-center gap-4">
       <Avatar className="h-16 w-16">
@@ -94,6 +109,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
         <p className="text-center font-medium">{user.appUserName}</p>
         <div className="flex items-center justify-center gap-2">
           <RatingStar rating={user.rating ?? 0} size={16} />
+          <span className="text-sm text-gray-500">({user.ratingCount})</span>
         </div>
       </div>
       {hasReviewed ? (
@@ -138,6 +154,7 @@ export type DisplayUserInfo = {
   reporterId: string | null;
   executorId: string | null;
   rating: number;
+  ratingCount: number;
   hasReviewed: boolean;
   auctionId: string;
 };
@@ -158,14 +175,6 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * セッション
-   */
-  const { data: session } = useSession();
-  const userId = session?.user?.id ?? "";
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * レビューの向き
    */
   const reviewPosition: ReviewPosition = text === "出品画面" ? ReviewPosition.SELLER_TO_BUYER : ReviewPosition.BUYER_TO_SELLER;
@@ -181,8 +190,8 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
   /**
    * ユーザー情報
    */
-  const { data: displayUserInfo = [] } = useQuery({
-    queryKey: ["auction", auctionId, userId, reviewPosition],
+  const { data: displayUserInfo = [], isPending: isLoadingDisplayUserInfo } = useQuery({
+    queryKey: queryCacheKeys.auction.displayUserInfo(auctionId, reviewPosition),
     queryFn: () => getDisplayUserInfo(auctionId, reviewPosition),
   });
 
@@ -199,7 +208,13 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
       <CardContent>
         <Carousel className="mx-auto w-full max-w-xl">
           <CarouselContent>
-            {displayUserInfo.length === 0 ? (
+            {isLoadingDisplayUserInfo ? (
+              <CarouselItem>
+                <div className="flex h-full items-center justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              </CarouselItem>
+            ) : displayUserInfo.length === 0 ? (
               <CarouselItem>
                 <div className="p-1">表示対象者はまだ存在しません</div>
               </CarouselItem>

@@ -210,6 +210,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
       reporterId: roles.has("reporter") ? user.id : null,
       executorId: roles.has("executor") ? user.id : null,
       rating: ratingMap.get(uid) ?? 0,
+      ratingCount: reviews.filter((r) => r.revieweeId === uid).length,
       hasReviewed: reviewedSet.has(uid),
       auctionId,
     };
