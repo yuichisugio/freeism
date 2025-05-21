@@ -63,6 +63,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
     onSuccess: () => {
       toast.success("評価を送信しました");
       void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId) });
+      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition) });
       setRating(0);
       setComment("");
       setHasReviewed(true);
