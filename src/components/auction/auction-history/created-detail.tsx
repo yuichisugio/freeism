@@ -1,6 +1,5 @@
 "use client";
 
-import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AuctionQA } from "@/components/auction/common/auction-qa";
@@ -37,7 +36,7 @@ import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
  * 出品商品詳細画面コンポーネント
  * @param auctionId 出品商品のID
  */
-export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }) {
+export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -221,7 +220,7 @@ export function AuctionHistoryCreatedDetail({ auctionId }: { auctionId: string }
                       auctionId={auctionId}
                       displayUserInfo={auction.winner}
                       displayReviewPosition={ReviewPosition.SELLER_TO_BUYER}
-                      text="出品者"
+                      text="落札者"
                     />
                   </>
                 ) : (

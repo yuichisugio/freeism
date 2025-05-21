@@ -1,8 +1,9 @@
-"use server";
+"use cache";
 
+import type { Metadata } from "next";
+import { unstable_cacheLife as cacheLife } from "next/cache";
 import { notFound } from "next/navigation";
 import { AuctionWonDetail } from "@/components/auction/auction-history/won-detail";
-import { MainTemplate } from "@/components/layout/maintemplate";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -16,26 +17,36 @@ type WonAuctionPageProps = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 落札商品詳細ページのパラメータ
+ */
+export const metadata: Metadata = {
+  title: "落札商品詳細 | Freeism",
+  description: "落札した商品の詳細情報です",
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 落札商品詳細ページ
  * @param params パラメータ
  * @returns 落札商品詳細ページ
  */
-export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export default async function AuctionWonDetailPage({ params }: WonAuctionPageProps) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ログ
+   * キャッシュライフを最大に設定
    */
-  console.log("src/app/dashboard/auction/won-detail/[id]/page.tsx_WonAuctionPage_start");
+  cacheLife("max");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * パラメーター
    */
   const { auctionId } = await params;
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 落札IDがない場合
@@ -44,14 +55,10 @@ export default async function WonAuctionPage({ params }: WonAuctionPageProps) {
     return notFound();
   }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 落札商品詳細ページ
    */
-  return (
-    <MainTemplate title="落札商品詳細" description="落札した商品の詳細情報です">
-      <AuctionWonDetail auctionId={auctionId} />
-    </MainTemplate>
-  );
+  return <AuctionWonDetail auctionId={auctionId} />;
 }

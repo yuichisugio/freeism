@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWonDetail } from "@/hooks/auction/history/use-won-detail";
-import { AuctionStatus } from "@prisma/client";
+import { AuctionStatus, ReviewPosition } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
@@ -189,7 +189,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
               name: auction.taskCreatorName,
               image: auction.taskCreatorImage,
             }}
-            displayReviewPosition={"BUYER_TO_SELLER"}
+            displayReviewPosition={ReviewPosition.BUYER_TO_SELLER}
             text="出品者"
           />
         </div>

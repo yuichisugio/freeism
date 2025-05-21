@@ -2,7 +2,8 @@
 
 import { type Metadata } from "next";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { AuctionHistoryCreatedDetail } from "@/components/auction/auction-history/created-detail";
+import { notFound } from "next/navigation";
+import { AuctionCreatedDetail } from "@/components/auction/auction-history/created-detail";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -27,8 +28,10 @@ export const metadata: Metadata = {
 
 /**
  * 出品商品詳細ページのメタデータ
+ * @param params パラメーター
+ * @returns 詳細ページ
  */
-export default async function AuctionHistoryCreatedDetailPage({ params }: AuctionHistoryCreatedDetailPageProps) {
+export default async function AuctionCreatedDetailPage({ params }: AuctionHistoryCreatedDetailPageProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -36,25 +39,26 @@ export default async function AuctionHistoryCreatedDetailPage({ params }: Auctio
    */
   cacheLife("max");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ログ
-   */
-  console.log("src/app/dashboard/auction/created/[id]/page.tsx_start");
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * パラメーター
    */
   const { auctionId } = await params;
-  console.log("src/app/dashboard/auction/created-detail/[auctionId]/page.tsx_auctionId", auctionId);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札IDがない場合
+   */
+  if (!auctionId) {
+    return notFound();
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 出品商品詳細ページを表示
    */
-  return <AuctionHistoryCreatedDetail auctionId={auctionId} />;
+  return <AuctionCreatedDetail auctionId={auctionId} />;
 }
