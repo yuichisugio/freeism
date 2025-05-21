@@ -1,6 +1,9 @@
 "use server";
 
 import type { ReviewPosition } from "@prisma/client";
+import { revalidateTag } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
 import { getCachedDisplayUserInfo } from "./cache/cache-auction-rating";
 
@@ -15,3 +18,55 @@ import { getCachedDisplayUserInfo } from "./cache/cache-auction-rating";
 export async function getDisplayUserInfo(auctionId: string, reviewPosition: ReviewPosition) {
   return await getCachedDisplayUserInfo(auctionId, reviewPosition);
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークションレビューを追加するアクション
+ * @param auctionId オークションID
+ * @param revieweeId レビュー対象者ID
+ * @param rating 評価
+ * @param comment コメント
+ * @param reviewPosition レビューポジション (SELLER_TO_BUYER または BUYER_TO_SELLER)
+ */
+export async function createAuctionReview(
+  auctionId: string,
+  revieweeId: string,
+  rating: number,
+  comment: string | null,
+  reviewPosition: ReviewPosition,
+) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * userIdを取得する
+   */
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * レビューを作成する
+   */
+  const review = await prisma.auctionReview.create({
+    data: {
+      auctionId,
+      reviewerId: userId,
+      revieweeId,
+      rating,
+      comment,
+      reviewPosition,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュを更新する
+   */
+  revalidateTag(`DisplayUserInfo:${auctionId}:${reviewPosition}`);
+
+  return review;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

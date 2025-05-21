@@ -64,7 +64,7 @@ type RawNotificationFromDB = {
  * 未読の有無のみ知りたいので、1件のみ取得
  */
 export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
-  cacheTag("notification");
+  cacheTag(`Notification:${userId}`);
   console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -119,7 +119,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     unreadCount: number;
     readCount: number;
   }> => {
-    cacheTag("notification");
+    cacheTag(`Notification:${userId}`);
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

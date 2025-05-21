@@ -2,6 +2,7 @@
 
 import type { DisplayUserInfo } from "@/components/auction/common/auction-rating";
 import type { Prisma } from "@prisma/client";
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { ReviewPosition } from "@prisma/client";
 
@@ -32,6 +33,14 @@ type UserRole = { role: Role; user: UserWithSettings };
  * auctionIdに紐づくTaskのCreator, Reporter, ExecutorごとにDisplayUserInfoを返す
  */
 export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition: ReviewPosition): Promise<DisplayUserInfo[]> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュタグを設定
+   */
+  cacheTag(`DisplayUserInfo:${auctionId}:${reviewPosition}`);
+  cacheLife("hours");
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -178,10 +187,15 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
    */
   const reviewsForThisAuction = await prisma.auctionReview.findMany({
     where: { auctionId, revieweeId: { in: userIds }, reviewPosition },
-    select: { revieweeId: true },
+    select: { revieweeId: true, comment: true },
   });
   // BUYER_TO_SELLER の場合は Creator, Reporter, Executorを取得して、作成者と報告者と実行者で重複している場合があるため
   const reviewedSet = new Set(reviewsForThisAuction.map((r) => r.revieweeId));
+  // 各ユーザーのコメントをMapで管理
+  const reviewCommentMap = new Map<string, string | null>();
+  reviewsForThisAuction.forEach((r) => {
+    reviewCommentMap.set(r.revieweeId, r.comment ?? null);
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -213,6 +227,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
       ratingCount: reviews.filter((r) => r.revieweeId === uid).length,
       hasReviewed: reviewedSet.has(uid),
       auctionId,
+      reviewComment: reviewCommentMap.get(uid) ?? null,
     };
   });
 

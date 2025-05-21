@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Textarea } from "@/components/ui/textarea";
-import { getDisplayUserInfo } from "@/lib/auction/action/auction-rating";
-import { createAuctionReview } from "@/lib/auction/action/history";
+import { createAuctionReview, getDisplayUserInfo } from "@/lib/auction/action/auction-rating";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { RatingStar } from "./rating-star";
@@ -64,6 +63,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       toast.success("評価を送信しました");
       void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId) });
       void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition) });
+      void queryClient.refetchQueries({ queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition) });
       setRating(0);
       setComment("");
       setHasReviewed(true);
@@ -119,6 +119,11 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
           <div className="flex justify-center">
             <RatingStar rating={user.rating ?? 0} size={24} />
           </div>
+          {user.reviewComment && (
+            <div className="bg-muted mt-2 rounded p-2 text-left text-sm text-gray-700">
+              <span className="font-bold">コメント：</span> {user.reviewComment}
+            </div>
+          )}
         </div>
       ) : (
         <div className="w-full space-y-4">
@@ -158,6 +163,7 @@ export type DisplayUserInfo = {
   ratingCount: number;
   hasReviewed: boolean;
   auctionId: string;
+  reviewComment: string | null;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -198,6 +204,11 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // カルーセルの現在ページ管理
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * カード
    */
@@ -207,31 +218,63 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
         <CardTitle className="text-lg">{displayText}情報</CardTitle>
       </CardHeader>
       <CardContent>
-        <Carousel className="mx-auto w-full max-w-xl">
-          <CarouselContent>
-            {isLoadingDisplayUserInfo ? (
-              <CarouselItem>
-                <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+        {/* ページインジケータ */}
+        {displayUserInfo.length > 0 && (
+          <div className="mb-4 flex justify-center gap-2">
+            {displayUserInfo.map((user, idx) => (
+              <div key={user.userId} className="flex flex-col items-center">
+                <button
+                  type="button"
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold transition-colors ${currentIndex === idx ? "bg-primary bg-blue-100" : "bg-muted text-muted-foreground"}`}
+                  onClick={() => setCurrentIndex(idx)}
+                  aria-label={`ページ${idx + 1}`}
+                >
+                  {idx + 1}
+                </button>
+                <div className="flex h-5 items-center justify-center">
+                  {user.hasReviewed && <CheckCircle className="mt-1 h-4 w-4 rounded-full bg-green-100 text-green-500" />}
                 </div>
-              </CarouselItem>
-            ) : displayUserInfo.length === 0 ? (
-              <CarouselItem>
-                <div className="p-1">表示対象者はまだ存在しません</div>
-              </CarouselItem>
-            ) : (
-              displayUserInfo.map((user) => (
-                <CarouselItem key={user.userId}>
-                  <div className="p-1">
-                    <UserRatingCard user={user} reviewPosition={reviewPosition} />
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="relative mx-auto w-full max-w-xl">
+          <Carousel>
+            <CarouselContent style={{ transform: `translateX(-${currentIndex * 100}%)`, transition: "transform 0.3s" }}>
+              {isLoadingDisplayUserInfo ? (
+                <CarouselItem>
+                  <div className="flex h-full items-center justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 </CarouselItem>
-              ))
+              ) : displayUserInfo.length === 0 ? (
+                <CarouselItem>
+                  <div className="p-1">表示対象者はまだ存在しません</div>
+                </CarouselItem>
+              ) : (
+                displayUserInfo.map((user) => (
+                  <CarouselItem key={user.userId}>
+                    <div className="p-1">
+                      <UserRatingCard user={user} reviewPosition={reviewPosition} />
+                    </div>
+                  </CarouselItem>
+                ))
+              )}
+            </CarouselContent>
+            {displayUserInfo.length > 1 && (
+              <>
+                <CarouselPrevious
+                  onClick={() => setCurrentIndex((prev) => (prev - 1 + displayUserInfo.length) % displayUserInfo.length)}
+                  className="absolute top-1/2 left-2 z-10 -translate-y-1/2"
+                />
+                <CarouselNext
+                  onClick={() => setCurrentIndex((prev) => (prev + 1) % displayUserInfo.length)}
+                  className="absolute top-1/2 right-2 z-10 -translate-y-1/2"
+                />
+              </>
             )}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
+          </Carousel>
+        </div>
       </CardContent>
     </Card>
   );

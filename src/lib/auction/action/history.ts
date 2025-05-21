@@ -2,40 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
-import { type ReviewPosition } from "@prisma/client";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションレビューを追加するアクション
- * @param auctionId オークションID
- * @param revieweeId レビュー対象者ID
- * @param rating 評価
- * @param comment コメント
- * @param reviewPosition レビューポジション (SELLER_TO_BUYER または BUYER_TO_SELLER)
- */
-export async function createAuctionReview(
-  auctionId: string,
-  revieweeId: string,
-  rating: number,
-  comment: string | null,
-  reviewPosition: ReviewPosition,
-) {
-  const userId = await getAuthenticatedSessionUserId();
-
-  const review = await prisma.auctionReview.create({
-    data: {
-      auctionId,
-      reviewerId: userId,
-      revieweeId,
-      rating,
-      comment,
-      reviewPosition,
-    },
-  });
-
-  return review;
-}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
