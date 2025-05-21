@@ -26,7 +26,9 @@ export function useCreatedDetail(auctionId: string) {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // タブの状態をURLパラメータで管理
+  /**
+   * タブの状態をURLパラメータで管理
+   */
   const [tab, setTab] = useQueryState("tab", {
     defaultValue: "info",
     history: "push",
@@ -110,10 +112,14 @@ export function useCreatedDetail(auctionId: string) {
       }
       return completeTaskDelivery(auction.task.id);
     },
-    onSuccess: () => {
-      toast.success("商品の提供を完了しました");
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId) });
-      router.refresh();
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success("商品の提供を完了しました");
+        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId) });
+        router.refresh();
+      } else {
+        toast.error(result.error ?? "商品の提供を完了に失敗しました");
+      }
     },
     onError: (error: Error) => {
       console.error("完了処理に失敗しました", error);

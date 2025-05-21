@@ -22,6 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatedDetail } from "@/hooks/auction/history/use-created-detail";
+import { TaskStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Edit, History, Info, MessageSquare } from "lucide-react";
@@ -149,7 +150,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                       <div>
                         <div className="mb-2 flex items-center justify-between">
                           <h3 className="text-lg font-medium">提供方法</h3>
-                          {!isEditingDelivery && auction.task.status !== "TASK_COMPLETED" && (
+                          {!isEditingDelivery && auction.task.status !== TaskStatus.SUPPLIER_DONE && (
                             <Button variant="outline" size="sm" onClick={startEditingDelivery} disabled={!auction.task.id}>
                               <Edit className="mr-1 h-4 w-4" /> 編集
                             </Button>
@@ -183,7 +184,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                       </div>
                     </div>
                   </CardContent>
-                  {auction.winner && auction.task.status !== "TASK_COMPLETED" && (
+                  {auction.winner && auction.task.status !== TaskStatus.SUPPLIER_DONE && (
                     <CardFooter>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -204,7 +205,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                       </AlertDialog>
                     </CardFooter>
                   )}
-                  {auction.winner && auction.task.status === "TASK_COMPLETED" && (
+                  {auction.winner && auction.task.status === TaskStatus.SUPPLIER_DONE && (
                     <CardFooter>
                       <Button className="w-full" disabled={true}>
                         完了済み
