@@ -193,6 +193,7 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
           changeTableConditions({
             ...tableConditions,
             sort: { field: field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
+            page: 1,
           }),
         sortDirection: tableConditions.sort?.direction ?? "desc",
         sortField: tableConditions.sort?.field ?? "groupName",

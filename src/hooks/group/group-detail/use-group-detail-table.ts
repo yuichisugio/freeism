@@ -4,16 +4,17 @@ import type { SortDirection } from "@/types/auction-types";
 import type { GroupDetailTableConditions, GroupDetailTask, TaskParticipant } from "@/types/group-types";
 import type { TaskStatus } from "@prisma/client";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
 import { getGroupTaskAndCount } from "@/lib/actions/task/group-detail-table";
 import { deleteTask } from "@/lib/actions/task/task";
 import { getAllUsers } from "@/lib/actions/user";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { contributionType } from "@prisma/client";
+import { type contributionType } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -80,75 +81,37 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * クエリパラメータ
+   * nuqsでURLパラメータを管理
    */
-  const searchParams = useSearchParams();
+  const [page, setPage] = useQueryState("page", { history: "push", defaultValue: 1, parse: Number, serialize: String });
+  const [sortField, setSortField] = useQueryState("sort_field", { history: "push", defaultValue: "createdAt" });
+  const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
+  const [searchQuery, setSearchQuery] = useQueryState("q", { history: "push", clearOnDefault: true, defaultValue: "" });
+  const [contributionType, setContributionType] = useQueryState("contribution_type", { history: "push", defaultValue: "ALL" });
+  const [status, setStatus] = useQueryState("status", { history: "push", defaultValue: "ALL" });
+  const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", {
+    history: "push",
+    defaultValue: TABLE_CONSTANTS.ITEMS_PER_PAGE,
+    parse: Number,
+    serialize: String,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * テーブル条件の取得
+   * テーブル条件の生成
    */
-  const getTableConditionsFromParams = useCallback((): GroupDetailTableConditions => {
-    const currentPage = Number(searchParams.get("page") ?? 1);
-    const currentSortField = searchParams.get("sort_field") as keyof GroupDetailTask | null;
-    const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
-    const currentQuery = searchParams.get("q");
-    const currentContributionType = (searchParams.get("contribution_type") ?? "ALL") as "ALL" | contributionType;
-    const currentStatus = (searchParams.get("status") ?? "ALL") as TaskStatus | "ALL";
-    const currentItemPerPage = Number(searchParams.get("item_per_page") ?? TABLE_CONSTANTS.ITEMS_PER_PAGE);
-
-    return {
-      sort: currentSortField && currentSortDirection ? { field: currentSortField, direction: currentSortDirection } : null,
-      page: currentPage,
-      isJoined: "all",
-      searchQuery: currentQuery,
-      contributionType: currentContributionType,
-      status: currentStatus,
-      itemPerPage: currentItemPerPage,
-    };
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * テーブル条件の状態
-   */
-  const [tableConditions, setTableConditions] = useState<GroupDetailTableConditions>(getTableConditionsFromParams());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * テーブル条件の状態の更新
-   */
-  useEffect(() => {
-    setTableConditions(getTableConditionsFromParams());
-  }, [searchParams, getTableConditionsFromParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * テーブル条件の状態の更新
-   */
-  const updateUrlParams = useCallback(
-    (newTableConditions: GroupDetailTableConditions) => {
-      const params = new URLSearchParams();
-
-      if (newTableConditions.page > 1) params.set("page", String(newTableConditions.page));
-      if (newTableConditions.sort?.field && newTableConditions.sort?.field !== "createdAt")
-        params.set("sort_field", newTableConditions.sort.field as string);
-      if (newTableConditions.sort?.direction && newTableConditions.sort?.direction !== "desc")
-        params.set("sort_direction", newTableConditions.sort.direction);
-      if (newTableConditions.searchQuery) params.set("q", newTableConditions.searchQuery);
-      if (newTableConditions.contributionType && newTableConditions.contributionType !== "ALL")
-        params.set("contribution_type", newTableConditions.contributionType);
-      if (newTableConditions.status && newTableConditions.status !== "ALL") params.set("status", newTableConditions.status);
-      if (newTableConditions.itemPerPage && newTableConditions.itemPerPage !== TABLE_CONSTANTS.ITEMS_PER_PAGE)
-        params.set("item_per_page", String(newTableConditions.itemPerPage));
-      const newUrl = `/dashboard/group/${groupId}${params.toString() ? `?${params.toString()}` : ""}`;
-      window.history.pushState({}, "", newUrl);
-    },
-    [groupId],
+  const tableConditions = useMemo(
+    () => ({
+      sort: sortField && sortDirection ? { field: sortField as keyof GroupDetailTask, direction: sortDirection as SortDirection } : null,
+      page,
+      isJoined: "all" as const,
+      searchQuery,
+      contributionType: contributionType as "ALL" | contributionType,
+      status: status as TaskStatus | "ALL",
+      itemPerPage,
+    }),
+    [page, sortField, sortDirection, searchQuery, contributionType, status, itemPerPage],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -158,20 +121,15 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
    */
   const changeTableConditions = useCallback(
     (newTableConditions: GroupDetailTableConditions) => {
-      if (
-        tableConditions.sort?.field !== newTableConditions.sort?.field ||
-        tableConditions.sort?.direction !== newTableConditions.sort?.direction ||
-        tableConditions.searchQuery !== newTableConditions.searchQuery ||
-        tableConditions.contributionType !== newTableConditions.contributionType ||
-        tableConditions.status !== newTableConditions.status ||
-        tableConditions.itemPerPage !== newTableConditions.itemPerPage
-      ) {
-        newTableConditions.page = 1;
-      }
-      updateUrlParams(newTableConditions);
-      setTableConditions(newTableConditions);
+      void setPage(newTableConditions.page);
+      void setSortField(newTableConditions.sort?.field ?? null);
+      void setSortDirection(newTableConditions.sort?.direction ?? "desc");
+      void setSearchQuery(newTableConditions.searchQuery ?? null);
+      void setContributionType(newTableConditions.contributionType ?? "ALL");
+      void setStatus(newTableConditions.status ?? "ALL");
+      void setItemPerPage(newTableConditions.itemPerPage ?? 16);
     },
-    [updateUrlParams, tableConditions],
+    [setPage, setSortField, setSortDirection, setSearchQuery, setContributionType, setStatus, setItemPerPage],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -197,7 +155,11 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     isPending: isLoadingTasks,
     isPlaceholderData,
   }: UseQueryResult<TasksQueryResult, Error> = useQuery({
-    queryKey: queryCacheKeys.tasks.byGroupIdWithConditions<GroupDetailTask>(groupId, tableConditions),
+    queryKey: queryCacheKeys.tasks.byGroupIdWithConditions<GroupDetailTask>(groupId, {
+      ...tableConditions,
+      searchQuery,
+      itemPerPage,
+    }),
     queryFn: async (): Promise<TasksQueryResult> => {
       const { page, sort, searchQuery, contributionType: contributionTypeFilter, status: statusFilter, itemPerPage } = tableConditions;
       return await getGroupTaskAndCount({
@@ -207,7 +169,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
         sortDirection: sort?.direction ?? "desc",
         searchQuery: searchQuery ?? "",
         contributionTypeFilter: contributionTypeFilter ?? "ALL",
-        statusFilter: (statusFilter ?? "ALL") as TaskStatus | "ALL",
+        statusFilter: statusFilter ?? "ALL",
         itemPerPage,
       });
     },
@@ -235,7 +197,12 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
           TasksQueryResult,
           ReturnType<typeof queryCacheKeys.tasks.byGroupIdWithConditions<GroupDetailTask>>
         >({
-          queryKey: queryCacheKeys.tasks.byGroupIdWithConditions<GroupDetailTask>(groupId, { ...tableConditions, page: nextPage }),
+          queryKey: queryCacheKeys.tasks.byGroupIdWithConditions<GroupDetailTask>(groupId, {
+            ...tableConditions,
+            page: nextPage,
+            searchQuery,
+            itemPerPage,
+          }),
           queryFn: async () =>
             await getGroupTaskAndCount({
               groupId,
@@ -244,7 +211,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
               sortDirection: sort?.direction ?? "desc",
               searchQuery: searchQuery ?? "",
               contributionTypeFilter: contributionTypeFilter ?? "ALL",
-              statusFilter: (statusFilter ?? "ALL") as TaskStatus | "ALL",
+              statusFilter: statusFilter ?? "ALL",
               itemPerPage,
             }),
         });
@@ -317,7 +284,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
       const isExecutor = task.taskExecutorUserIds?.some((id: string) => id === userId) ?? false;
 
       // ステータスチェック
-      if (task.taskContributionType === contributionType.REWARD) {
+      if (task.taskContributionType === "REWARD") {
         // 報酬タスクは、AuctionがPENDINGの場合のみ削除可能
         // 注: ここではAuction情報を持っていないため、ステータスでPENDINGかどうかを判断
         return (isGroupOwner || isReporter || isExecutor) && task.taskStatus === "PENDING";
@@ -410,6 +377,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
       searchQuery: null,
       contributionType: "ALL",
       status: "ALL",
+      isJoined: "all" as const,
       page: 1,
     });
   }, [changeTableConditions, tableConditions]);
@@ -423,6 +391,7 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
     changeTableConditions({
       ...tableConditions,
       sort: { field: "createdAt" as keyof GroupDetailTask, direction: "desc" },
+      isJoined: "all" as const,
       page: 1,
     });
   }, [changeTableConditions, tableConditions]);

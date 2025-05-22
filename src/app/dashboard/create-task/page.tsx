@@ -19,7 +19,6 @@ export const metadata: Metadata = {
 
 /**
  * 新規Task作成ページ
- * @param searchParams グループID
  * @returns 新規Task作成ページ
  */
 export default async function CreateTaskPage() {

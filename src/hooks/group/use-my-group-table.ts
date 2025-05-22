@@ -2,12 +2,12 @@
 
 import type { SortDirection } from "@/types/auction-types";
 import type { MyGroupTable, TableConditions } from "@/types/group-types";
-import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo } from "react";
 import { getUserJoinGroupAndCount, leaveGroup } from "@/lib/actions/group/my-group";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -40,127 +40,40 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
    */
   const queryClient = useQueryClient();
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // nuqsでURLパラメータを管理
+  const [page, setPage] = useQueryState("page", { history: "push", defaultValue: 1, parse: Number, serialize: String });
+  const [sortField, setSortField] = useQueryState("sort_field", { history: "push", defaultValue: "createdAt" });
+  const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
+  const [searchQuery, setSearchQuery] = useQueryState("q", { history: "push" });
+  const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", {
+    history: "push",
+    defaultValue: TABLE_CONSTANTS.ITEMS_PER_PAGE,
+    parse: Number,
+    serialize: String,
+  });
 
-  /**
-   * URLからパラメータを取得
-   */
-  const searchParams = useSearchParams();
+  // tableConditionsをuseMemoで生成
+  const tableConditions = useMemo(
+    () => ({
+      sort: sortField && sortDirection ? { field: sortField as keyof MyGroupTable, direction: sortDirection as SortDirection } : null,
+      page,
+      searchQuery,
+      itemPerPage,
+      isJoined: "all" as const,
+    }),
+    [page, sortField, sortDirection, searchQuery, itemPerPage],
+  );
 
-  const getTableConditionsFromParams = useCallback((): TableConditions<MyGroupTable> => {
-    // ページ数のURLパラメータ
-    const currentPage = Number(searchParams.get("page") ?? 1);
-
-    // ソートのURLパラメータ
-    const currentSortField = searchParams.get("sort_field") as keyof MyGroupTable | null;
-
-    // ソートの降順/昇順の方向のURLパラメータ
-    const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
-
-    // 検索クエリのURLパラメータ
-    const currentQuery = searchParams.get("q");
-
-    // 1ページあたりの表示件数
-    const currentItemPerPage = Number(searchParams.get("item_per_page") ?? TABLE_CONSTANTS.ITEMS_PER_PAGE);
-
-    // データ取得のためのパラメータを返す
-    return {
-      sort:
-        currentSortField && currentSortDirection
-          ? {
-              field: currentSortField,
-              direction: currentSortDirection,
-            }
-          : null,
-      page: currentPage,
-      searchQuery: currentQuery,
-      itemPerPage: currentItemPerPage,
-      isJoined: "all",
-    };
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * テーブルの状態を管理
-   */
-  const [tableConditions, setTableConditions] = useState<TableConditions<MyGroupTable>>(getTableConditionsFromParams());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * URLパラメータが変更された際に、listingsConditionsを更新
-   * ブラウザの戻るボタンを押してURLが変わった場合に、データを反映させるために必要
-   */
-  useEffect(() => {
-    setTableConditions(getTableConditionsFromParams());
-  }, [searchParams, getTableConditionsFromParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * URLパラメータを更新する関数
-   */
-  const updateUrlParams = useCallback(
+  // changeTableConditionsでset関数を呼ぶ
+  const changeTableConditions = useCallback(
     (newTableConditions: TableConditions<MyGroupTable>) => {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      console.log("src/hooks/group/use-my-group-table.ts_updateUrlParams_start", newTableConditions);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      const mutableTableConditions = { ...newTableConditions };
-
-      // ページ以外の条件が変更された場合は、ページを1に戻す
-      if (
-        tableConditions.sort?.field !== mutableTableConditions.sort?.field ||
-        tableConditions.sort?.direction !== mutableTableConditions.sort?.direction ||
-        tableConditions.searchQuery !== mutableTableConditions.searchQuery
-      ) {
-        mutableTableConditions.page = 1;
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // URLパラメータを作成
-      const params = new URLSearchParams();
-
-      // ページ数
-      if (mutableTableConditions.page > 1) {
-        params.set("page", String(mutableTableConditions.page));
-      }
-
-      // ソート
-      if (mutableTableConditions.sort) {
-        if (mutableTableConditions.sort.field) {
-          params.set("sort_field", mutableTableConditions.sort.field);
-        }
-        if (mutableTableConditions.sort.direction) {
-          params.set("sort_direction", mutableTableConditions.sort.direction);
-        }
-      }
-
-      // 検索クエリ
-      if (mutableTableConditions.searchQuery) {
-        params.set("q", mutableTableConditions.searchQuery);
-      }
-
-      // 1ページあたりの表示件数
-      if (mutableTableConditions.itemPerPage !== TABLE_CONSTANTS.ITEMS_PER_PAGE) {
-        params.set("item_per_page", String(mutableTableConditions.itemPerPage));
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // URLを更新
-      const newUrl = `/dashboard/my-group${params.toString() ? `?${params.toString()}` : ""}`;
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-      window.history.pushState({}, "", newUrl);
+      void setPage(newTableConditions.page);
+      void setSortField(newTableConditions.sort?.field ?? null);
+      void setSortDirection(newTableConditions.sort?.direction ?? "desc");
+      void setSearchQuery(newTableConditions.searchQuery ?? null);
+      void setItemPerPage(newTableConditions.itemPerPage ?? 10);
     },
-    [tableConditions],
+    [setPage, setSortField, setSortDirection, setSearchQuery, setItemPerPage],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -233,25 +146,14 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * テーブルの条件を変更する関数
-   */
-  const changeTableConditions = useCallback(
-    (newTableConditions: TableConditions<MyGroupTable>) => {
-      updateUrlParams(newTableConditions);
-      setTableConditions(newTableConditions);
-    },
-    [updateUrlParams],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * フィルターをリセットする関数
    */
   const resetFilters = useCallback(() => {
     changeTableConditions({
       ...tableConditions,
       searchQuery: null,
+      page: 1,
+      isJoined: "all" as const,
     });
   }, [changeTableConditions, tableConditions]);
 
@@ -264,6 +166,8 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     changeTableConditions({
       ...tableConditions,
       sort: null,
+      page: 1,
+      isJoined: "all" as const,
     });
   }, [changeTableConditions, tableConditions]);
 

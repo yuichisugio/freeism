@@ -6,6 +6,7 @@ import { redirect, useRouter } from "next/navigation";
 import { checkAppOwner } from "@/lib/actions/group";
 import { getMyTaskData } from "@/lib/actions/task/my-task-table";
 import { deleteTask as deleteTaskAction } from "@/lib/actions/task/task";
+import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type contributionType, type TaskStatus } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -69,7 +70,12 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   const [searchQuery, setSearchQuery] = useQueryState("q", { history: "push" });
   const [taskStatus, setTaskStatus] = useQueryState("task_status", { history: "push", defaultValue: "ALL" });
   const [contributionType, setContributionType] = useQueryState("contribution_type", { history: "push", defaultValue: "ALL" });
-  const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", { history: "push", defaultValue: 16, parse: Number, serialize: String });
+  const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", {
+    history: "push",
+    defaultValue: TABLE_CONSTANTS.ITEMS_PER_PAGE,
+    parse: Number,
+    serialize: String,
+  });
 
   // tableConditionsをuseMemoで生成
   const tableConditions = useMemo(
