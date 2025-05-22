@@ -1,16 +1,16 @@
 "use client";
 
 import type { MyTaskTable, MyTaskTableConditions, SortDirection } from "@/types/group-types";
-import { useCallback, useEffect, useState } from "react";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
 import { checkAppOwner } from "@/lib/actions/group";
 import { getMyTaskData } from "@/lib/actions/task/my-task-table";
 import { deleteTask as deleteTaskAction } from "@/lib/actions/task/task";
-import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type contributionType, type TaskStatus } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useQueryState } from "nuqs";
 import { toast } from "react-hot-toast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -28,6 +28,7 @@ type UseMyTaskTableReturn = {
   totalTaskCount: number;
   editingTaskId: string | null;
   isTaskEditModalOpen: boolean;
+  router: ReturnType<typeof useRouter>;
 
   // functions
   canEditTask: (task: MyTaskTable) => boolean;
@@ -55,113 +56,46 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    */
   const router = useRouter();
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
   if (!currentUserId) {
     redirect("/auth/signin");
   }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // nuqsでURLパラメータを管理
+  const [page, setPage] = useQueryState("page", { history: "push", defaultValue: 1, parse: Number, serialize: String });
+  const [sortField, setSortField] = useQueryState("sort_field", { history: "push", defaultValue: "id" });
+  const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
+  const [searchQuery, setSearchQuery] = useQueryState("q", { history: "push" });
+  const [taskStatus, setTaskStatus] = useQueryState("task_status", { history: "push", defaultValue: "ALL" });
+  const [contributionType, setContributionType] = useQueryState("contribution_type", { history: "push", defaultValue: "ALL" });
+  const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", { history: "push", defaultValue: 16, parse: Number, serialize: String });
 
-  /**
-   * state
-   */
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
+  // tableConditionsをuseMemoで生成
+  const tableConditions = useMemo(
+    () => ({
+      sort: sortField && sortDirection ? { field: sortField as keyof MyTaskTable, direction: sortDirection as SortDirection } : null,
+      page,
+      searchQuery,
+      taskStatus: taskStatus as "ALL" | TaskStatus,
+      contributionType: contributionType as "ALL" | contributionType,
+      itemPerPage,
+    }),
+    [page, sortField, sortDirection, searchQuery, taskStatus, contributionType, itemPerPage],
+  );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * テーブル条件の取得と更新
-   */
-  const getTableConditionsFromParams = useCallback((): MyTaskTableConditions => {
-    const currentPage = Number(searchParams.get("page") ?? 1);
-    const currentSortField = searchParams.get("sort_field") as keyof MyTaskTable | null;
-    const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
-    const currentQuery = searchParams.get("q");
-    const currentTaskStatus = (searchParams.get("task_status") ?? "ALL") as "ALL" | TaskStatus;
-    const currentContributionType = (searchParams.get("contribution_type") ?? "ALL") as "ALL" | contributionType;
-    const currentItemPerPage = Number(searchParams.get("item_per_page") ?? TABLE_CONSTANTS.ITEMS_PER_PAGE);
-
-    return {
-      sort: currentSortField && currentSortDirection ? { field: currentSortField, direction: currentSortDirection } : null,
-      page: currentPage,
-      searchQuery: currentQuery,
-      taskStatus: currentTaskStatus,
-      contributionType: currentContributionType,
-      itemPerPage: currentItemPerPage,
-    };
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  /**
-   * 条件を保持
-   */
-  const [tableConditions, setTableConditions] = useState<MyTaskTableConditions>(getTableConditionsFromParams());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページから戻った場合に、条件を更新
-   */
-  useEffect(() => {
-    setTableConditions(getTableConditionsFromParams());
-  }, [searchParams, getTableConditionsFromParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 条件をURLに反映
-   */
-  const updateUrlParams = useCallback((newTableConditions: MyTaskTableConditions) => {
-    // パラメータを更新
-    const params = new URLSearchParams();
-    // ページ数
-    if (newTableConditions.page > 1) params.set("page", String(newTableConditions.page));
-    // ソート
-    if (newTableConditions.sort?.field && newTableConditions.sort?.field !== "id") params.set("sort_field", newTableConditions.sort.field as string);
-    // ソート方向
-    if (newTableConditions.sort?.direction && newTableConditions.sort?.direction !== "desc")
-      params.set("sort_direction", newTableConditions.sort.direction);
-    // 検索
-    if (newTableConditions.searchQuery) params.set("q", newTableConditions.searchQuery);
-    // タスクステータス
-    if (newTableConditions.taskStatus && newTableConditions.taskStatus !== "ALL") params.set("task_status", newTableConditions.taskStatus);
-    // 貢献タイプ
-    if (newTableConditions.contributionType && newTableConditions.contributionType !== "ALL")
-      params.set("contribution_type", newTableConditions.contributionType);
-    // ページあたりの表示件数
-    if (newTableConditions.itemPerPage && newTableConditions.itemPerPage !== TABLE_CONSTANTS.ITEMS_PER_PAGE)
-      params.set("item_per_page", String(newTableConditions.itemPerPage));
-
-    // URLを更新
-    const newUrl = `/dashboard/my-task${params.toString() ? `?${params.toString()}` : ""}`; // パスは適宜修正
-    window.history.pushState({}, "", newUrl);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 条件を更新
-   */
+  // changeTableConditionsでset関数を呼ぶ
   const changeTableConditions = useCallback(
     (newTableConditions: MyTaskTableConditions) => {
-      // 条件変更時は、1pageに戻す
-      if (
-        tableConditions.sort?.field !== newTableConditions.sort?.field ||
-        tableConditions.sort?.direction !== newTableConditions.sort?.direction ||
-        tableConditions.searchQuery !== newTableConditions.searchQuery ||
-        tableConditions.taskStatus !== newTableConditions.taskStatus ||
-        tableConditions.contributionType !== newTableConditions.contributionType ||
-        tableConditions.itemPerPage !== newTableConditions.itemPerPage
-      ) {
-        newTableConditions.page = 1;
-      }
-      updateUrlParams(newTableConditions);
-      setTableConditions(newTableConditions);
+      void setPage(newTableConditions.page);
+      void setSortField(newTableConditions.sort?.field ?? null);
+      void setSortDirection(newTableConditions.sort?.direction ?? "desc");
+      void setSearchQuery(newTableConditions.searchQuery ?? null);
+      void setTaskStatus(newTableConditions.taskStatus ?? "ALL");
+      void setContributionType(newTableConditions.contributionType ?? "ALL");
+      void setItemPerPage(newTableConditions.itemPerPage ?? 10);
     },
-    [updateUrlParams, tableConditions],
+    [setPage, setSortField, setSortDirection, setSearchQuery, setTaskStatus, setContributionType, setItemPerPage],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -221,20 +155,8 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   /**
    * タスク編集モーダル開閉
    */
-  const closeTaskEditModal = useCallback(() => {
-    setIsTaskEditModalOpen(false);
-    setEditingTaskId(null);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク編集モーダル開閉
-   */
-  const openTaskEditModal = useCallback((task: MyTaskTable) => {
-    setEditingTaskId(task.id); // task.taskId から task.id に修正
-    setIsTaskEditModalOpen(true);
-  }, []);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -315,8 +237,9 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     toast.success("タスクデータを更新しました");
     void queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myTask(), exact: false });
     router.refresh();
-    closeTaskEditModal();
-  }, [queryClient, router, closeTaskEditModal]);
+    setIsTaskEditModalOpen(false);
+    setEditingTaskId(null);
+  }, [queryClient, router, setIsTaskEditModalOpen, setEditingTaskId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -341,7 +264,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   const resetSort = useCallback(() => {
     changeTableConditions({
       ...tableConditions,
-      sort: { field: "id", direction: "desc" }, // "taskId" から "id" に修正
+      sort: { field: "id", direction: "desc" },
       page: 1,
     });
   }, [changeTableConditions, tableConditions]);
@@ -369,12 +292,20 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     totalTaskCount: tasksResult?.totalTaskCount ?? 0,
     editingTaskId,
     isTaskEditModalOpen,
+    router,
+
     canEditTask,
     handleTaskEdited,
     canDeleteTask,
     handleDeleteTask,
-    openTaskEditModal,
-    closeTaskEditModal,
+    openTaskEditModal: (task: MyTaskTable) => {
+      setEditingTaskId(task.id);
+      setIsTaskEditModalOpen(true);
+    },
+    closeTaskEditModal: () => {
+      setIsTaskEditModalOpen(false);
+      setEditingTaskId(null);
+    },
     changeTableConditions,
     resetFilters,
     resetSort,
