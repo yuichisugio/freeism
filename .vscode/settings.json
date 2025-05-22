@@ -87,7 +87,7 @@
     "*.mts": "${capture}.typegen.ts",
     "*.ts": "${capture}.js, ${capture}.typegen.ts",
     "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
-    "package.json": ".env.production,SECURITY.md,tsconfig.tsbuildinfo,commitlint.config.js,.nvmrc,.env.local,eslint.config.js, .cursorrules,components.json ,.cz-config.cjs,commitlint.config.cjs , LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs"
+    "package.json": "knip.json,.env.production,SECURITY.md,tsconfig.tsbuildinfo,commitlint.config.js,.nvmrc,.env.local,eslint.config.js, .cursorrules,components.json ,.cz-config.cjs,commitlint.config.cjs , LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs"
   },
   "prettier.ignorePath": ".gitignore",
   "redhat.telemetry.enabled": false,
