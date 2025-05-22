@@ -9,7 +9,7 @@ import {
   type FilterCondition,
   type WonAuctionItem,
 } from "@/types/auction-types";
-import { AuctionStatus, ReviewPosition } from "@prisma/client";
+import { ReviewPosition, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -42,7 +42,6 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
       status: true,
       auction: {
         select: {
-          status: true,
           currentHighestBid: true,
           createdAt: true,
           endTime: true,
@@ -70,7 +69,7 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
     taskId: bid.auction.task.id,
     taskName: bid.auction.task.task,
     taskStatus: bid.auction.task.status,
-    auctionStatus: bid.auction.status,
+    auctionStatus: bid.auction.task.status,
     currentHighestBid: bid.auction.currentHighestBid,
     auctionEndTime: bid.auction.endTime,
   }));
@@ -126,7 +125,7 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
   const wonAuctionsData = await prisma.auction.findMany({
     where: {
       winnerId: userId,
-      status: AuctionStatus.ENDED,
+      task: { status: TaskStatus.AUCTION_ENDED },
     },
     orderBy: {
       endTime: "desc",
@@ -137,7 +136,6 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
       id: true,
       endTime: true,
       currentHighestBid: true,
-      status: true,
       createdAt: true,
       task: {
         select: {
@@ -168,7 +166,7 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
     auctionId: auction.id,
     currentHighestBid: auction.currentHighestBid,
     auctionEndTime: auction.endTime,
-    auctionStatus: auction.status,
+    auctionStatus: auction.task.status,
     auctionCreatedAt: auction.createdAt,
     taskId: auction.task.id,
     taskName: auction.task.task,
@@ -196,7 +194,7 @@ export async function getUserWonAuctionsCount(userId: string): Promise<number> {
   const count = await prisma.auction.count({
     where: {
       winnerId: userId,
-      status: AuctionStatus.ENDED,
+      task: { status: TaskStatus.AUCTION_ENDED },
     },
   });
   return count;
@@ -247,16 +245,16 @@ export async function getUserCreatedAuctionsWhereCondition(
   }
 
   // ステータスフィルターの処理
-  const statusFilters: AuctionStatus[] = [];
+  const statusFilters: TaskStatus[] = [];
   let supplierDoneFilter = false;
   if (filter.includes("active")) {
-    statusFilters.push(AuctionStatus.ACTIVE);
+    statusFilters.push(TaskStatus.AUCTION_ACTIVE);
   }
   if (filter.includes("ended")) {
-    statusFilters.push(AuctionStatus.ENDED);
+    statusFilters.push(TaskStatus.AUCTION_ENDED);
   }
   if (filter.includes("pending")) {
-    statusFilters.push(AuctionStatus.PENDING);
+    statusFilters.push(TaskStatus.PENDING);
   }
   if (filter.includes("supplier_done")) {
     supplierDoneFilter = true;
@@ -274,13 +272,17 @@ export async function getUserCreatedAuctionsWhereCondition(
       delete whereCondition.task;
     }
     if (statusFilters.length > 0) {
-      andConditions.push({ status: { in: statusFilters } });
+      andConditions.push({ task: { status: { in: statusFilters } } });
     }
     if (supplierDoneFilter) {
-      andConditions.push({ task: { status: { in: ["SUPPLIER_DONE", "TASK_COMPLETED"] } } });
+      andConditions.push({ task: { status: { in: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED] } } });
     }
     if (andConditions.length > 0) {
-      whereCondition.AND = andConditions;
+      if (filterCondition === "and") {
+        whereCondition.AND = andConditions;
+      } else {
+        whereCondition.OR = andConditions;
+      }
     }
   }
 
@@ -333,7 +335,6 @@ export async function getUserCreatedAuctions(
       id: true,
       createdAt: true,
       currentHighestBid: true,
-      status: true,
       endTime: true,
       task: {
         select: {
@@ -376,7 +377,7 @@ export async function getUserCreatedAuctions(
     auctionId: auction.id,
     currentHighestBid: auction.currentHighestBid,
     auctionEndTime: auction.endTime,
-    auctionStatus: auction.status,
+    auctionStatus: auction.task.status,
     auctionCreatedAt: auction.createdAt,
     taskId: auction.task.id,
     taskName: auction.task.task,

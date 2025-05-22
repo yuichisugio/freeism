@@ -7,7 +7,7 @@ import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { getAutoBidByUserId } from "@/lib/auction/action/auto-bid";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type AuctionCard } from "@/types/auction-types";
-import { AuctionStatus } from "@prisma/client";
+import { TaskStatus } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow, isWithinInterval, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -58,7 +58,7 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
    */
   const now = useMemo(() => new Date(), []);
   const [isStarted] = useState(new Date(auction.start_time) <= now);
-  const [isEnded, setIsEnded] = useState(new Date(auction.end_time) <= now || auction.status === AuctionStatus.ENDED);
+  const [isEnded, setIsEnded] = useState(new Date(auction.end_time) <= now || auction.status === TaskStatus.AUCTION_ENDED);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

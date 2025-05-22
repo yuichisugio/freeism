@@ -1,5 +1,6 @@
 "use server";
 
+import type { TaskStatus } from "@prisma/client";
 import type { Session } from "next-auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { getAuctionUpdateSelect } from "@/lib/constants";
@@ -40,7 +41,7 @@ export type ValidateAuctionResult = {
  * バリデーション用のオークションデータ型
  */
 export type AuctionValidationData = {
-  status: string;
+  status: TaskStatus;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
   endTime: Date;
@@ -51,6 +52,7 @@ export type AuctionValidationData = {
     };
     task: string;
     detail: string | null;
+    status: TaskStatus;
   };
   bidHistories: Array<{
     user: {
@@ -111,7 +113,6 @@ export async function validateAuction(
         where: { id: auctionId },
         select: {
           endTime: true,
-          status: true,
           currentHighestBid: true,
           currentHighestBidderId: true,
           task: {
@@ -122,6 +123,8 @@ export async function validateAuction(
                   id: true,
                 },
               },
+              status: true,
+              detail: true,
             },
           },
         },
@@ -130,13 +133,15 @@ export async function validateAuction(
       // 型を合わせるために不足しているプロパティを追加
       if (result) {
         auctionData = {
-          ...result,
-          taskId: result.task.creator.id, // 仮のtaskId
+          status: result.task.status,
+          currentHighestBid: result.currentHighestBid,
+          currentHighestBidderId: result.currentHighestBidderId,
+          endTime: result.endTime,
+          taskId: result.task.creator.id,
           bidHistories: null,
           version: null,
           task: {
             ...result.task,
-            detail: null, // 不足しているdetailプロパティを追加
           },
         };
       }
@@ -145,7 +150,6 @@ export async function validateAuction(
       const result = await prisma.auction.findUnique({
         where: { id: auctionId },
         select: {
-          status: true,
           currentHighestBid: true,
           currentHighestBidderId: true,
           endTime: true,
@@ -160,6 +164,8 @@ export async function validateAuction(
                 },
               },
               task: true,
+              status: true,
+              detail: true,
             },
           },
         },
@@ -168,12 +174,15 @@ export async function validateAuction(
       // 型を合わせるために不足しているプロパティを追加
       if (result) {
         auctionData = {
-          ...result,
+          status: result.task.status,
+          currentHighestBid: result.currentHighestBid,
+          currentHighestBidderId: result.currentHighestBidderId,
+          endTime: result.endTime,
+          taskId: result.taskId,
           bidHistories: null,
           version: null,
           task: {
             ...result.task,
-            detail: null, // 不足しているdetailプロパティを追加
           },
         };
       }
@@ -220,7 +229,7 @@ export async function validateAuction(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // アクティブ状態のチェック
-    if ((options.requireActive || options.executeBid) && auctionData.status !== "ACTIVE") {
+    if ((options.requireActive || options.executeBid) && auctionData.task?.status !== "AUCTION_ACTIVE") {
       return {
         success: false,
         message: "このオークションはアクティブではありません",
@@ -374,14 +383,44 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 更新後の最新情報を取得
-      const updatedAuction: UpdateAuctionWithDetails | null = await tx.auction.findUnique({
+      const updatedAuctionRaw = await tx.auction.findUnique({
         where: { id: auctionId },
         select: getAuctionUpdateSelect(1),
       });
 
-      if (!updatedAuction) {
+      if (!updatedAuctionRaw) {
         throw new Error("更新されたオークション情報を取得できませんでした");
       }
+
+      // UpdateAuctionWithDetails型に変換（statusはtask.statusをセット）
+      type BidHistorySelect = {
+        id: string;
+        amount: number;
+        createdAt: Date | string;
+        isAutoBid: boolean;
+        user: {
+          settings: {
+            username: string;
+          } | null;
+        } | null;
+      };
+      const updatedAuction: UpdateAuctionWithDetails = {
+        id: updatedAuctionRaw.id,
+        currentHighestBid: updatedAuctionRaw.currentHighestBid,
+        currentHighestBidderId: updatedAuctionRaw.currentHighestBidderId,
+        status: updatedAuctionRaw.task.status,
+        extensionTotalCount: updatedAuctionRaw.extensionTotalCount,
+        extensionLimitCount: updatedAuctionRaw.extensionLimitCount,
+        extensionTotalTime: updatedAuctionRaw.extensionTotalTime,
+        extensionLimitTime: updatedAuctionRaw.extensionLimitTime,
+        bidHistories: (updatedAuctionRaw.bidHistories as unknown as BidHistorySelect[]).map((history) => ({
+          id: history.id,
+          amount: history.amount,
+          createdAt: history.createdAt,
+          isAutoBid: history.isAutoBid,
+          user: history.user?.settings?.username ? { settings: { username: history.user.settings.username } } : { settings: null },
+        })),
+      };
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

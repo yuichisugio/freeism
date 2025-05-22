@@ -317,16 +317,15 @@ model GroupPoint {
 }
 
 model Auction {
-  id                  String        @id @default(cuid())
-  startTime           DateTime      @map("start_time")
-  endTime             DateTime      @map("end_time")
-  currentHighestBid   Int           @default(0) @map("current_highest_bid")
-  status              AuctionStatus @default(PENDING)
-  version             Int           @default(1)
-  extensionTotalCount Int           @default(0) @map("extension_total_count")
-  extensionLimitCount Int           @default(3) @map("extension_limit_count")
-  extensionTotalTime  Int           @default(0) @map("extension_total_time")
-  extensionLimitTime  Int           @default(10) @map("extension_limit_time")
+  id                  String   @id @default(cuid())
+  startTime           DateTime @map("start_time")
+  endTime             DateTime @map("end_time")
+  currentHighestBid   Int      @default(0) @map("current_highest_bid")
+  version             Int      @default(1)
+  extensionTotalCount Int      @default(0) @map("extension_total_count")
+  extensionLimitCount Int      @default(3) @map("extension_limit_count")
+  extensionTotalTime  Int      @default(0) @map("extension_total_time")
+  extensionLimitTime  Int      @default(10) @map("extension_limit_time")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -354,14 +353,13 @@ model Auction {
   @@index([winnerId])
   @@index([groupId])
   @@index([version])
-  @@index([status])
   @@index([startTime])
   @@index([endTime])
-  @@index([groupId, status, endTime(sort: Asc)], map: "idx_auction_group_status_end")
-  @@index([groupId, status, startTime(sort: Desc)], map: "idx_auction_group_status_start_desc")
+  @@index([groupId, endTime(sort: Asc)], map: "idx_auction_group_end")
+  @@index([groupId, startTime(sort: Desc)], map: "idx_auction_group_start_desc")
   @@index([groupId, currentHighestBid(sort: Desc)], map: "idx_auction_group_highestBid_desc")
   @@index([id, version])
-  @@index([winnerId, status, endTime(sort: Desc)])
+  @@index([winnerId, endTime(sort: Desc)])
   @@index([taskId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
 }
@@ -477,6 +475,8 @@ enum contributionType {
 
 enum TaskStatus {
   PENDING
+  AUCTION_ACTIVE
+  AUCTION_ENDED
   POINTS_DEPOSITED
   SUPPLIER_DONE
   TASK_COMPLETED
@@ -518,13 +518,6 @@ enum AuctionEventType {
   AUCTION_LOST
   POINT_RETURNED
   AUCTION_CANCELED
-}
-
-enum AuctionStatus {
-  PENDING
-  ACTIVE
-  ENDED
-  CANCELED
 }
 
 enum BidStatus {

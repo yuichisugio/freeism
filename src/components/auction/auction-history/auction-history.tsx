@@ -242,7 +242,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
           amount={bid.currentHighestBid}
           amountLabel="入札額"
           leftBadge={<BidStatusBadge status={bid.status} />}
-          rightBadge={<AuctionStatusBadge status={bid.auctionStatus} />}
+          rightBadge={<AuctionStatusBadge status={bid.taskStatus} />}
           onClick={handleItemClick}
           extraContent={
             <div className="mb-2 flex items-center justify-between">
@@ -313,10 +313,10 @@ export const AuctionHistory = memo(function AuctionHistory() {
               : "日付不明"
           }
           amount={auction.currentHighestBid}
-          amountLabel={auction.auctionStatus === "ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
-          avatarName={auction.winnerName ?? (auction.auctionStatus === "ENDED" ? "落札者なし" : "落札者未定")}
+          amountLabel={auction.taskStatus === "AUCTION_ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
+          avatarName={auction.winnerName ?? (auction.taskStatus === "AUCTION_ENDED" ? "落札者なし" : "落札者未定")}
           leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
-          rightBadge={<AuctionStatusBadge status={auction.auctionStatus} />}
+          rightBadge={<TaskStatusBadge status={auction.taskStatus} />}
           onClick={handleCreatedItemClick}
         />
       );

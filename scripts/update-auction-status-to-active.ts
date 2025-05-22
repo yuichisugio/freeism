@@ -4,7 +4,7 @@
  * GitHub Actionsから実行するためのスクリプトです
  */
 import { prisma } from "@/lib/prisma";
-import { AuctionStatus } from "@prisma/client";
+import { TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -20,15 +20,17 @@ async function updateAuctionStatusToActive(): Promise<number> {
     const now = new Date();
 
     // startTimeが現在時刻以前かつstatusがPENDINGのオークションを検索して更新
-    const result = await prisma.auction.updateMany({
+    const result = await prisma.task.updateMany({
       where: {
-        startTime: {
-          lte: now, // less than or equal to now
+        status: TaskStatus.PENDING,
+        auction: {
+          startTime: {
+            lte: now, // less than or equal to now
+          },
         },
-        status: AuctionStatus.PENDING,
       },
       data: {
-        status: AuctionStatus.ACTIVE,
+        status: TaskStatus.AUCTION_ACTIVE,
       },
     });
 

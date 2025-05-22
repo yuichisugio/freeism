@@ -1,12 +1,10 @@
 import type { AUCTION_CONSTANTS } from "@/lib/constants";
-import type { Auction, AuctionReview, AuctionStatus, BidStatus, ReviewPosition, TaskStatus, User } from "@prisma/client";
+import type { Auction, AuctionReview, BidStatus, ReviewPosition, TaskStatus, User } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * フィルターの型
- * - "ended": オークション終了 (AuctionStatus.ENDED)
- * - "supplier_done": 提供の完了 (TaskStatus.SUPPLIER_DONE or TaskStatus.TASK_COMPLETED)
  */
 export type AuctionCreatedTabFilter = "creator" | "executor" | "reporter" | "ended" | "active" | "pending" | "all" | "supplier_done";
 
@@ -23,7 +21,6 @@ export type BidHistoryItem = {
   taskId: string;
   taskName: string;
   taskStatus: TaskStatus;
-  auctionStatus: AuctionStatus;
   currentHighestBid: number;
   auctionEndTime: Date;
 };
@@ -38,10 +35,9 @@ export type WonAuctionItem = {
   taskId: string;
   currentHighestBid: number;
   auctionEndTime: Date;
-  auctionStatus: AuctionStatus;
+  taskStatus: TaskStatus;
   auctionCreatedAt: Date;
   taskName: string;
-  taskStatus: TaskStatus;
   deliveryMethod: string | null;
   rating: number | null;
 };
@@ -55,11 +51,10 @@ export type CreatedAuctionItem = {
   auctionId: string;
   currentHighestBid: number;
   auctionEndTime: Date;
-  auctionStatus: AuctionStatus;
+  taskStatus: TaskStatus;
   auctionCreatedAt: Date;
   taskId: string;
   taskName: string;
-  taskStatus: TaskStatus;
   deliveryMethod: string | null;
   winnerId: string | null;
   winnerName: string | null;
@@ -150,7 +145,7 @@ export type AuctionCard = {
   current_highest_bid: number; // 最高額
   end_time: Date; // オークションの終了時刻
   start_time: Date; // オークションの開始時刻
-  status: AuctionStatus; // オークションのステータス
+  status: TaskStatus;
   task: string; // タスクのタイトル
   detail: string | null; // タスクの詳細
   image_url: string | null; // taskの画像
@@ -200,7 +195,7 @@ export type UpdateAuctionWithDetails = {
   id: string;
   currentHighestBid: number;
   currentHighestBidderId: string | null;
-  status: AuctionStatus;
+  status: TaskStatus;
   extensionTotalCount: number;
   extensionLimitCount: number;
   extensionTotalTime: number;
@@ -308,7 +303,7 @@ export type FilterCondition = "and" | "or";
  */
 export type AuctionWonDetail = {
   auctionId: string;
-  auctionStatus: AuctionStatus;
+  auctionStatus: TaskStatus;
   auctionEndTime: Date;
   auctionStartTime: Date;
   currentHighestBid: number;
@@ -343,7 +338,6 @@ export type AuctionWonDetail = {
  */
 export type AuctionHistoryCreatedDetail = {
   id: string;
-  status: AuctionStatus;
   currentHighestBid: number;
   startTime: Date;
   endTime: Date;

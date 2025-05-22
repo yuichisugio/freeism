@@ -1,7 +1,7 @@
 import type { BidHistory, NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { AuctionEventType, AuctionStatus, BidStatus, NotificationTargetType, Prisma, PrismaClient, ReviewPosition, TaskStatus } from "@prisma/client";
+import { AuctionEventType, BidStatus, NotificationTargetType, Prisma, PrismaClient, ReviewPosition, TaskStatus } from "@prisma/client";
 
 /**
  * データ生成設定
@@ -288,7 +288,7 @@ type SeedAuction = {
   currentHighestBid: number;
   currentHighestBidderId?: string | null;
   winnerId?: string | null;
-  status: string;
+  status: TaskStatus; // AuctionStatusからTaskStatusへ
   extensionTotalCount: number;
   extensionLimitCount: number;
   extensionTotalTime: number;
@@ -1162,19 +1162,19 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
 
     const initialPrice = faker.number.int({ min: SEED_CONFIG.AUCTION_INITIAL_PRICE_MIN, max: SEED_CONFIG.AUCTION_INITIAL_PRICE_MAX });
 
-    let status: AuctionStatus;
+    let status: TaskStatus;
     if (startTime > now) {
-      status = AuctionStatus.PENDING;
+      status = TaskStatus.PENDING;
     } else if (endTime > now) {
-      status = AuctionStatus.ACTIVE;
+      status = TaskStatus.AUCTION_ACTIVE;
     } else {
-      status = AuctionStatus.ENDED;
+      status = TaskStatus.AUCTION_ENDED;
     }
 
     let currentHighestBid = initialPrice;
     let currentHighestBidderId = null;
 
-    if (status === AuctionStatus.ACTIVE || status === AuctionStatus.ENDED) {
+    if (status === TaskStatus.AUCTION_ACTIVE || status === TaskStatus.AUCTION_ENDED) {
       const potentialBidders = users.filter((user) => user.id !== task.creatorId);
       const preservedBidders = potentialBidders.filter((user) => preservedUserIds.has(user.id));
       const otherBidders = potentialBidders.filter((user) => !preservedUserIds.has(user.id));
@@ -1182,7 +1182,6 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       if (potentialBidders.length > 0) {
         const hasBids = faker.datatype.boolean(SEED_CONFIG.AUCTION_HAS_BIDS_PROBABILITY);
         if (hasBids) {
-          // const PRESERVED_HIGHEST_BIDDER_PROBABILITY = 0.5; // SEED_CONFIGから取得するように変更
           let highestBidder = null;
           if (preservedBidders.length > 0 && faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_AUCTION_HIGHEST_BIDDER_PROBABILITY)) {
             highestBidder = faker.helpers.arrayElement(preservedBidders);
@@ -1201,7 +1200,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
     }
 
     let winnerId = null;
-    if (status === AuctionStatus.ENDED && currentHighestBidderId) {
+    if (status === TaskStatus.AUCTION_ENDED && currentHighestBidderId) {
       winnerId = currentHighestBidderId;
     }
 
@@ -1216,14 +1215,13 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       });
     }
 
-    // Use a type that matches prisma create data structure
+    // AuctionCreateInputからstatusを削除
     const auctionDataForCreation: Prisma.AuctionCreateInput = {
       task: { connect: { id: task.id } },
       group: { connect: { id: task.groupId } },
       currentHighestBid,
       startTime,
       endTime,
-      status,
       currentHighestBidder: currentHighestBidderId ? { connect: { id: currentHighestBidderId } } : undefined,
       winner: winnerId ? { connect: { id: winnerId } } : undefined,
     };
@@ -1232,22 +1230,22 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       data: auctionDataForCreation,
     });
 
-    // Push a SeedAuction compatible object
+    // statusはローカル変数で保持
     auctions.push({
-      id: auction.id, // Add id
+      id: auction.id,
       taskId: task.id,
-      startTime: auction.startTime, // Use generated startTime
-      endTime: auction.endTime, // Use generated endTime
-      currentHighestBid: auction.currentHighestBid, // Use generated bid
-      currentHighestBidderId: auction.currentHighestBidderId, // Use generated bidderId
-      winnerId: auction.winnerId, // Use generated winnerId
-      status: auction.status, // Use generated status
-      extensionTotalCount: auction.extensionTotalCount, // Default from prisma
-      extensionLimitCount: auction.extensionLimitCount, // Default from prisma
-      extensionTotalTime: auction.extensionTotalTime, // Default from prisma
-      extensionLimitTime: auction.extensionLimitTime, // Default from prisma
-      createdAt: auction.createdAt, // Default from prisma
-      updatedAt: auction.updatedAt, // Default from prisma
+      startTime: auction.startTime,
+      endTime: auction.endTime,
+      currentHighestBid: auction.currentHighestBid,
+      currentHighestBidderId: auction.currentHighestBidderId,
+      winnerId: auction.winnerId,
+      status, // TaskStatus型で保持
+      extensionTotalCount: auction.extensionTotalCount,
+      extensionLimitCount: auction.extensionLimitCount,
+      extensionTotalTime: auction.extensionTotalTime,
+      extensionLimitTime: auction.extensionLimitTime,
+      createdAt: auction.createdAt,
+      updatedAt: auction.updatedAt,
       groupId: task.groupId,
     });
   }
@@ -1264,7 +1262,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
   const preservedUserIds = new Set(PRESERVED_USER_IDS);
 
   for (const auction of auctions) {
-    if (auction.status === AuctionStatus.PENDING) continue;
+    if (auction.status === TaskStatus.PENDING) continue;
 
     const task = await prisma.task.findUnique({
       where: { id: auction.taskId },
@@ -1355,7 +1353,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
     }
 
     // --- Auction status update logic after bids (Transaction part) ---
-    if (auction.status === AuctionStatus.ENDED) {
+    if (auction.status === TaskStatus.AUCTION_ENDED) {
       await prisma.$transaction(async (tx) => {
         let winnerFound = false;
         // Linter fix: winner の型を明示的に指定
@@ -1545,7 +1543,7 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
           // Any remaining comments or old logic for loser notifications here should be removed.
         }
       });
-    } else if (auction.status === AuctionStatus.ACTIVE && bidRecords.length > 0) {
+    } else if (auction.status === TaskStatus.AUCTION_ACTIVE && bidRecords.length > 0) {
       // アクティブなオークションの処理 (変更なし)
       // Update current highest bid for ACTIVE auctions
       const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount); // Add this line to define sortedBids
@@ -1607,7 +1605,7 @@ async function createAutoBids(auctions: SeedAuction[], users: SeedUser[]) {
   const autoBids = [];
 
   // アクティブなオークションのみを対象
-  const activeAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ACTIVE);
+  const activeAuctions = auctions.filter((auction) => auction.status === TaskStatus.AUCTION_ACTIVE);
 
   for (const auction of activeAuctions) {
     // 関連するタスクを取得
@@ -1694,28 +1692,41 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
         ],
       },
       include: {
-        task: { select: { creatorId: true, task: true, deliveryMethod: true } },
+        task: { select: { creatorId: true, task: true, deliveryMethod: true, status: true } },
         bidHistories: { where: { userId: recipientUser.id }, select: { status: true } },
       }, // 関連情報も取得
     });
 
     // 関連オークションがない場合でも、保持ユーザーなら他のオークション通知を受け取る可能性
     const isPreservedUser = preservedUserIds.has(recipientUser.id);
+    // statusを補完してSeedAuction型に合わせる
     const auctionsToNotify: (SeedAuction & {
-      task?: { creatorId: string; task?: string; deliveryMethod?: string | null };
+      task?: { creatorId: string; task?: string; deliveryMethod?: string | null; status?: TaskStatus };
       bidHistories?: { status: BidStatus }[];
-    })[] = relatedAuctions;
+    })[] = relatedAuctions.map((a) => ({
+      ...a,
+      status: a.task?.status ?? TaskStatus.PENDING, // task.statusをSeedAuction.statusに流用
+      task: a.task,
+      bidHistories: a.bidHistories,
+    }));
     if (isPreservedUser && relatedAuctions.length < 2 && auctions.length >= 2) {
       const otherAuctionIds = auctions.filter((a) => !relatedAuctions.some((ra) => ra.id === a.id)).map((a) => a.id);
       if (otherAuctionIds.length > 0) {
         const otherAuctionsData = await prisma.auction.findMany({
           where: { id: { in: faker.helpers.arrayElements(otherAuctionIds, 2 - relatedAuctions.length) } },
           include: {
-            task: { select: { creatorId: true, task: true, deliveryMethod: true } },
+            task: { select: { creatorId: true, task: true, deliveryMethod: true, status: true } },
             bidHistories: { where: { userId: recipientUser.id }, select: { status: true } },
           },
         });
-        auctionsToNotify.push(...otherAuctionsData);
+        auctionsToNotify.push(
+          ...otherAuctionsData.map((a) => ({
+            ...a,
+            status: a.task?.status ?? TaskStatus.PENDING,
+            task: a.task,
+            bidHistories: a.bidHistories,
+          })),
+        );
       }
     }
 
@@ -1783,7 +1794,7 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
         const taskInfo = auction.task ? { task: auction.task.task, deliveryMethod: auction.task.deliveryMethod, groupId: auction.groupId } : null;
 
         let pointReturnDate = null;
-        if (notificationType === AuctionEventType.POINT_RETURNED && auction.status === AuctionStatus.ENDED) {
+        if (notificationType === AuctionEventType.POINT_RETURNED && auction.status === TaskStatus.AUCTION_ENDED) {
           // AuctionEventTypeを使用
           const group = await prisma.group.findUnique({ where: { id: auction.groupId }, select: { depositPeriod: true } });
           if (group) {
@@ -1926,7 +1937,7 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
   const reviews = [];
 
   // 終了したオークションのみを対象
-  const endedAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ENDED && auction.winnerId !== null);
+  const endedAuctions = auctions.filter((auction) => auction.status === TaskStatus.AUCTION_ENDED && auction.winnerId !== null);
 
   // 完了証明URLのパターン
   const proofUrlPatterns = [
@@ -2148,7 +2159,7 @@ async function createGroupPoints(users: SeedUser[], auctions: SeedAuction[]) {
       const fixedTotalPoints = balance;
 
       // ユーザーが落札者であるオークションを取得
-      const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === AuctionStatus.ENDED);
+      const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === TaskStatus.AUCTION_ENDED);
 
       // オークションの落札情報からポイント残高を調整
       for (const auction of wonAuctions) {
@@ -2197,7 +2208,7 @@ async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[])
   const messages = [];
   const preservedUserIds = new Set(PRESERVED_USER_IDS); // 追加
 
-  const targetAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ACTIVE || auction.status === AuctionStatus.ENDED);
+  const targetAuctions = auctions.filter((auction) => auction.status === TaskStatus.AUCTION_ACTIVE || auction.status === TaskStatus.AUCTION_ENDED);
 
   for (const auction of targetAuctions) {
     const task = await prisma.task.findUnique({
@@ -2419,7 +2430,7 @@ async function simulatePointReturn(auctions: SeedAuction[]) {
   const now = new Date();
 
   // 終了済みのオークションのみを対象に
-  const endedAuctions = auctions.filter((auction) => auction.status === AuctionStatus.ENDED && auction.winnerId);
+  const endedAuctions = auctions.filter((auction) => auction.status === TaskStatus.AUCTION_ENDED && auction.winnerId);
 
   for (const auction of endedAuctions) {
     try {

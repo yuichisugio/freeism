@@ -122,7 +122,6 @@ export async function createTask(data: TaskFormValuesAndGroupId) {
           taskId: newTask.id,
           startTime,
           endTime,
-          status: "PENDING",
           currentHighestBid: 0,
           extensionTotalCount: 0,
           extensionLimitCount: 3,
@@ -699,7 +698,6 @@ export async function bulkCreateTasks(
                 taskId: task.id,
                 startTime,
                 endTime,
-                status: "PENDING",
                 currentHighestBid: 0,
                 extensionTotalCount: 0,
                 extensionLimitCount: 3,
@@ -788,7 +786,7 @@ export async function deleteTask(taskId: string) {
     // タスク状態のチェック
     if (task.contributionType === contributionType.REWARD) {
       // 報酬タスクの場合、オークションがPENDINGの場合のみ削除可能
-      if (!task.auction || task.auction.status !== "PENDING") {
+      if (!task.auction || task.status !== "PENDING") {
         return { success: false, error: "オークションが開始されているタスクは削除できません" };
       }
     } else {

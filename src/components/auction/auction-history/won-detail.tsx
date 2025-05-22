@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWonDetail } from "@/hooks/auction/history/use-won-detail";
-import { AuctionStatus } from "@prisma/client";
+import { TaskStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { AlertTriangle, ArrowLeft, Award, Calendar, Clock, Loader2, MessageSquare, ShoppingBag } from "lucide-react";
@@ -292,7 +292,7 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                 <AuctionQA
                   auctionId={auctionId}
                   isDisplayAfterEnd={true}
-                  isEnd={auction.auctionStatus === AuctionStatus.ENDED}
+                  isEnd={auction.auctionStatus === TaskStatus.AUCTION_ENDED}
                   auctionEndDate={auction.auctionEndTime}
                 />
               </CardContent>

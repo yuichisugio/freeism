@@ -134,7 +134,6 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
             taskId: taskId,
             startTime: new Date(),
             endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // デフォルト1週間後
-            status: "PENDING",
             currentHighestBid: 0,
             extensionTotalCount: 0,
             extensionLimitCount: 3,

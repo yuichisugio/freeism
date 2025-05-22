@@ -25,7 +25,9 @@ async function returnAuctionDepositPoints(): Promise<number> {
     // 対象となるオークションを取得
     const targetAuctions = await prisma.auction.findMany({
       where: {
-        status: "ENDED",
+        task: {
+          status: "AUCTION_ENDED",
+        },
       },
       include: {
         group: {
@@ -43,6 +45,13 @@ async function returnAuctionDepositPoints(): Promise<number> {
             depositPoint: true,
           },
         },
+        task: {
+          select: {
+            id: true,
+            task: true,
+            status: true,
+          },
+        },
       },
     });
 
@@ -50,7 +59,7 @@ async function returnAuctionDepositPoints(): Promise<number> {
     const auctionsToProcess = targetAuctions.filter((auction) => {
       const depositEndDate = new Date(auction.endTime);
       depositEndDate.setDate(depositEndDate.getDate() + auction.group.depositPeriod);
-      return depositEndDate <= now;
+      return depositEndDate <= now && auction.task.status === "AUCTION_ENDED";
     });
 
     console.log(`ポイント返還対象のオークション数: ${auctionsToProcess.length}件`);

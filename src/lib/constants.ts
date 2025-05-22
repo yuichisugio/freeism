@@ -1,3 +1,5 @@
+import { type Prisma } from "@prisma/client";
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -44,16 +46,21 @@ export const AUCTION_DISPLAY = {
 /**
  * オークション情報を更新するためのselect
  */
-export function getAuctionUpdateSelect(take: number) {
+export function getAuctionUpdateSelect(take: number): Prisma.AuctionSelect {
   return {
     id: true,
     currentHighestBid: true,
     currentHighestBidderId: true,
-    status: true,
     extensionTotalCount: true,
     extensionLimitCount: true,
     extensionTotalTime: true,
     extensionLimitTime: true,
+    // Auctionに紐づくTaskのstatusを取得
+    task: {
+      select: {
+        status: true,
+      },
+    },
     bidHistories: {
       orderBy: { createdAt: "desc" as const },
       take: take,

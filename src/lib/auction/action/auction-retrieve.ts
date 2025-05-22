@@ -22,11 +22,31 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    const updatedAuction: UpdateAuctionWithDetails | null = await prisma.auction.findUnique({
+    const updatedAuctionRaw = await prisma.auction.findUnique({
       where: { id: auctionId },
       select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
     });
-
+    if (!updatedAuctionRaw) return null;
+    // statusはauction.task.statusをセットし、taskは除外
+    const updatedAuction: UpdateAuctionWithDetails = {
+      id: updatedAuctionRaw.id,
+      currentHighestBid: updatedAuctionRaw.currentHighestBid,
+      currentHighestBidderId: updatedAuctionRaw.currentHighestBidderId,
+      status: updatedAuctionRaw.task.status, // TaskStatusで統一
+      extensionTotalCount: updatedAuctionRaw.extensionTotalCount,
+      extensionLimitCount: updatedAuctionRaw.extensionLimitCount,
+      extensionTotalTime: updatedAuctionRaw.extensionTotalTime,
+      extensionLimitTime: updatedAuctionRaw.extensionLimitTime,
+      bidHistories: updatedAuctionRaw.bidHistories.map((bid) => {
+        return bid as unknown as {
+          id: string;
+          amount: number;
+          createdAt: Date | string;
+          isAutoBid: boolean;
+          user: { settings: { username: string } | null };
+        };
+      }),
+    };
     return updatedAuction;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

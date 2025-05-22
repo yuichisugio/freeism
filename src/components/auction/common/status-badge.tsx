@@ -1,40 +1,43 @@
 import { Badge } from "@/components/ui/badge";
-import { AuctionStatus, BidStatus, TaskStatus } from "@prisma/client";
+import { BidStatus, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-const auctionStatusConfig = {
-  [AuctionStatus.PENDING]: {
+// TaskStatusをオークション用バッジとして利用
+const auctionTaskStatusConfig: Record<string, { label: string; variant: "secondary" | "default" | "outline" }> = {
+  [TaskStatus.PENDING]: {
     label: "開始前",
-    variant: "secondary" as const,
+    variant: "secondary",
   },
-  [AuctionStatus.ACTIVE]: {
+  [TaskStatus.AUCTION_ACTIVE]: {
     label: "開催中",
-    variant: "default" as const,
+    variant: "default",
   },
-  [AuctionStatus.ENDED]: {
+  [TaskStatus.AUCTION_ENDED]: {
     label: "終了",
-    variant: "outline" as const,
+    variant: "outline",
   },
-  [AuctionStatus.CANCELED]: {
-    label: "キャンセル",
-    variant: "destructive" as const,
-  },
+  [TaskStatus.POINTS_DEPOSITED]: { label: "ポイント預け済み", variant: "outline" },
+  [TaskStatus.SUPPLIER_DONE]: { label: "提供の完了", variant: "outline" },
+  [TaskStatus.TASK_COMPLETED]: { label: "タスク完了", variant: "outline" },
+  [TaskStatus.FIXED_EVALUATED]: { label: "評価済み", variant: "outline" },
+  [TaskStatus.POINTS_AWARDED]: { label: "ポイント付与済み", variant: "outline" },
+  [TaskStatus.ARCHIVED]: { label: "アーカイブ", variant: "outline" },
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークションステータスバッジ
- * @param status オークションステータス
+ * オークション用タスクステータスバッジ
+ * @param status タスク（オークション）ステータス
  */
-export function AuctionStatusBadge({ status }: { status: AuctionStatus }) {
+export function AuctionStatusBadge({ status }: { status: TaskStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  const config = auctionStatusConfig[status];
-
+  const config = auctionTaskStatusConfig[status as string];
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+  if (!config) {
+    return <Badge variant="outline">不明</Badge>;
+  }
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
@@ -67,11 +70,8 @@ const bidStatusConfig = {
  */
 export function BidStatusBadge({ status }: { status: BidStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   const config = bidStatusConfig[status];
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
@@ -81,6 +81,14 @@ const taskStatusConfig = {
   [TaskStatus.PENDING]: {
     label: "進行中",
     variant: "default" as const,
+  },
+  [TaskStatus.AUCTION_ACTIVE]: {
+    label: "開催中",
+    variant: "default" as const,
+  },
+  [TaskStatus.AUCTION_ENDED]: {
+    label: "終了",
+    variant: "outline" as const,
   },
   [TaskStatus.POINTS_DEPOSITED]: {
     label: "ポイント預け済み",
@@ -111,25 +119,20 @@ const taskStatusConfig = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * タスクステータスバッジ
+ * タスクステータスバッジ（オークション以外も含む）
  * @param status タスクステータス
  */
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // SUPPLIER_DONEまたはTASK_COMPLETEDなら「タスク完了」バッジ
   if (status === TaskStatus.SUPPLIER_DONE || status === TaskStatus.TASK_COMPLETED) {
     return <Badge variant="success">タスク完了</Badge>;
   }
-
   const config = taskStatusConfig[status];
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   if (!config) {
     // 万が一未定義のステータスが来た場合のフォールバック
     return <Badge variant="outline">不明</Badge>;
   }
-
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }

@@ -12,7 +12,7 @@ import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import { type AuctionWithDetails } from "@/types/auction-types";
-import { AuctionStatus } from "@prisma/client";
+import { TaskStatus } from "@prisma/client";
 import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -125,7 +125,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
     const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
     const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
     const now = new Date();
-    if (auction.status === AuctionStatus.ACTIVE && auctionStartTime < now && auctionEndTime > now) {
+    if (auction.status === TaskStatus.AUCTION_ACTIVE && auctionStartTime < now && auctionEndTime > now) {
       return true;
     } else {
       return false;
@@ -392,7 +392,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
                 <AuctionQA
                   auctionId={auction.id}
                   isDisplayAfterEnd={false}
-                  isEnd={auction.status === AuctionStatus.ENDED}
+                  isEnd={auction.status === TaskStatus.AUCTION_ENDED}
                   auctionEndDate={auction.endTime}
                 />
               </TabsContent>

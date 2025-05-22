@@ -4,7 +4,7 @@ import type { AuctionCard, AuctionListingResult, AuctionListingsConditions, Sugg
 import { cache } from "react";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
-import { AuctionStatus, Prisma } from "@prisma/client";
+import { Prisma, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -26,7 +26,7 @@ type RawAuctionData = {
   current_highest_bid: number;
   end_time: Date;
   start_time: Date;
-  status: AuctionStatus; // Prisma Client の型を使用
+  status: TaskStatus; // TaskStatusに変更
   created_at: Date;
   task: string;
   detail: string | null;
@@ -237,16 +237,16 @@ export const cachedGetAuctionListingsAndCount = cache(
               bidConditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
               break;
             case "ended":
-              statusWhereClausesSql.push(Prisma.sql`a.status::text = ${AuctionStatus.ENDED}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.AUCTION_ENDED}`);
               break;
             case "not_ended":
-              statusWhereClausesSql.push(Prisma.sql`(a.status::text != ${AuctionStatus.ENDED} AND a."end_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.AUCTION_ENDED} AND a."end_time" >= ${now})`);
               break;
             case "not_started":
-              statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.PENDING} AND a."start_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} AND a."start_time" >= ${now})`);
               break;
             case "started":
-              statusWhereClausesSql.push(Prisma.sql`(a.status::text = ${AuctionStatus.ACTIVE} AND a."start_time" <= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.AUCTION_ACTIVE} AND a."start_time" <= ${now})`);
               break;
           }
         });
@@ -450,7 +450,7 @@ export const cachedGetAuctionListingsAndCount = cache(
             a."current_highest_bid" as "current_highest_bid",
             a."end_time" as "end_time",
             a."start_time" as "start_time",
-            a.status as "status",
+            t.status as "status",
             a."created_at" as "created_at",
             t.task as "task",
             t.detail as "detail",

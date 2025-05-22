@@ -22,7 +22,6 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
     },
     select: {
       id: true,
-      status: true,
       currentHighestBid: true,
       startTime: true,
       endTime: true,
@@ -73,5 +72,10 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   /**
    * 出品商品の詳細を返却
    */
-  return auction as AuctionHistoryCreatedDetail | null;
+  if (!auction) return null;
+  // statusはauction.task.statusとして返却
+  return {
+    ...auction,
+    status: auction.task.status,
+  } as AuctionHistoryCreatedDetail;
 }

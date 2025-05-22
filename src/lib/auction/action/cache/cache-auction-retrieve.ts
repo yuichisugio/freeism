@@ -28,7 +28,7 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // オークション情報を取得
-    const auction: AuctionWithDetails | null = await prisma.auction.findUnique({
+    const auctionRaw = await prisma.auction.findUnique({
       where: { id: auctionId },
       select: {
         id: true,
@@ -36,7 +36,6 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
         endTime: true,
         currentHighestBid: true,
         currentHighestBidderId: true,
-        status: true,
         extensionTotalCount: true,
         extensionLimitCount: true,
         extensionTotalTime: true,
@@ -93,10 +92,14 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
         },
       },
     });
+    if (!auctionRaw) return null;
+    // task.status を auction.status としてマージ
+    const auction: AuctionWithDetails = {
+      ...auctionRaw,
+      status: auctionRaw.task.status,
+    };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    if (!auction) return null;
 
     console.log("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_auction_success", auction);
 

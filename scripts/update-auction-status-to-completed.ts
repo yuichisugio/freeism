@@ -5,7 +5,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
-import { AuctionEventType, AuctionStatus, BidStatus, NotificationSendMethod, NotificationSendTiming, TaskStatus } from "@prisma/client";
+import { AuctionEventType, BidStatus, NotificationSendMethod, NotificationSendTiming, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -17,17 +17,23 @@ type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" |
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークションの関連データを含む型
+ * タスク（オークション付き）の関連データを含む型
  */
-type AuctionWithRelations = Prisma.AuctionGetPayload<{
+type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
-    task: true;
-    group: true;
-    bidHistories: {
+    auction: {
       include: {
-        user: true;
+        bidHistories: {
+          include: {
+            user: true;
+          };
+          orderBy: {
+            amount: "desc";
+          };
+        };
       };
     };
+    group: true;
   };
 }>;
 
@@ -53,26 +59,31 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
      * 処理対象のオークションを取得
      * endTimeが現在日時以前かつstatusがACTIVEまたはPENDINGのオークション
      */
-    const auctions = await prisma.auction.findMany({
+    const auctions = await prisma.task.findMany({
       where: {
-        endTime: {
-          lte: now,
-        },
         status: {
-          in: [AuctionStatus.ACTIVE, AuctionStatus.PENDING],
+          in: [TaskStatus.AUCTION_ACTIVE, TaskStatus.PENDING],
+        },
+        auction: {
+          endTime: {
+            lte: now,
+          },
         },
       },
       include: {
-        task: true,
-        group: true,
-        bidHistories: {
+        auction: {
           include: {
-            user: true,
-          },
-          orderBy: {
-            amount: "desc",
+            bidHistories: {
+              include: {
+                user: true,
+              },
+              orderBy: {
+                amount: "desc",
+              },
+            },
           },
         },
+        group: true,
       },
     });
 
@@ -82,24 +93,24 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
     let processedCount = 0;
 
     // 各オークションに対して処理
-    for (const auction of auctions) {
+    for (const task of auctions) {
       try {
         // トランザクションを開始
         await prisma.$transaction(async (tx) => {
           // 入札履歴があるかチェック
-          if (auction.bidHistories.length === 0) {
+          if (!task.auction || task.auction.bidHistories.length === 0) {
             // 入札がない場合の処理
-            await handleAuctionWithNoBids(tx, auction);
+            await handleAuctionWithNoBids(tx, task);
           } else {
             // 入札がある場合の処理
-            await handleAuctionWithBids(tx, auction);
+            await handleAuctionWithBids(tx, task);
           }
         });
 
         processedCount++;
-        console.log(`オークション(ID: ${auction.id})の処理完了`);
+        console.log(`オークション(ID: ${task.id})の処理完了`);
       } catch (error) {
-        console.error(`オークション(ID: ${auction.id})の処理中にエラーが発生:`, error);
+        console.error(`オークション(ID: ${task.id})の処理中にエラーが発生:`, error);
       }
     }
 
@@ -117,9 +128,9 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
 /**
  * 入札がないオークションの処理
  * @param tx トランザクションオブジェクト
- * @param auction オークションオブジェクト
+ * @param task オークションオブジェクト
  */
-async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWithRelations): Promise<void> {
+async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithNoBids_start");
@@ -129,15 +140,10 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
   /**
    * オークションのステータスを更新
    */
-  await tx.auction.update({
-    where: { id: auction.id },
+  await tx.task.update({
+    where: { id: task.id },
     data: {
-      status: AuctionStatus.ENDED,
-      task: {
-        update: {
-          status: TaskStatus.ARCHIVED,
-        },
-      },
+      status: TaskStatus.ARCHIVED,
     },
   });
 
@@ -146,7 +152,7 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
   /**
    * オークション詳細ページのURL
    */
-  const actionUrl = `/auctions/${auction.id}`;
+  const actionUrl = `/auctions/${task.id}`;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -154,13 +160,13 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
    * 出品者への通知（オークション終了）
    */
   await sendNotification({
-    auctionId: auction.id,
+    auctionId: task.id,
     auctionEventType: AuctionEventType.ENDED,
     text: {
-      first: auction.task.task,
-      second: auction.task.task,
+      first: task.task,
+      second: task.task,
     },
-    recipientUserId: await getTaskCreatorId(tx, auction),
+    recipientUserId: await getTaskCreatorId(tx, task),
     actionUrl: actionUrl,
   });
 
@@ -170,13 +176,13 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
    * 出品者への通知（落札者なし）
    */
   await sendNotification({
-    auctionId: auction.id,
+    auctionId: task.id,
     auctionEventType: AuctionEventType.NO_WINNER,
     text: {
-      first: auction.task.task,
-      second: auction.task.task,
+      first: task.task,
+      second: task.task,
     },
-    recipientUserId: await getTaskCreatorId(tx, auction),
+    recipientUserId: await getTaskCreatorId(tx, task),
     actionUrl: actionUrl,
   });
 }
@@ -186,9 +192,9 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, auction: AuctionWi
 /**
  * 入札があるオークションの処理
  * @param tx トランザクションオブジェクト
- * @param auction オークションオブジェクト
+ * @param task オークションオブジェクト
  */
-async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWithRelations): Promise<void> {
+async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithBids_start");
@@ -198,7 +204,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
   /**
    * 有効な入札（BIDDING状態）のみを抽出し、金額の降順で並べる
    */
-  const validBids = auction.bidHistories.filter((bid) => bid.status === BidStatus.BIDDING).sort((a, b) => b.amount - a.amount);
+  const validBids = task.auction?.bidHistories?.filter((bid) => bid.status === BidStatus.BIDDING).sort((a, b) => b.amount - a.amount) ?? [];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -206,7 +212,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
    * 有効な入札がない場合は入札なしと同じ処理
    */
   if (validBids.length === 0) {
-    await handleAuctionWithNoBids(tx, auction);
+    await handleAuctionWithNoBids(tx, task);
     return;
   }
 
@@ -241,7 +247,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     where: {
       userId_groupId: {
         userId: winnerUser.id,
-        groupId: auction.groupId,
+        groupId: task.groupId,
       },
     },
   });
@@ -266,16 +272,18 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     const remainingBids = validBids.slice(1);
     if (remainingBids.length > 0) {
       // 更新されたオークションを再取得
-      const updatedAuction = await tx.auction.findUnique({
-        where: { id: auction.id },
+      const updatedTask = await tx.task.findUnique({
+        where: { id: task.id },
         include: {
-          task: true,
-          group: true,
-          bidHistories: {
+          auction: {
             include: {
-              user: true,
+              bidHistories: {
+                include: { user: true },
+                orderBy: { amount: "desc" },
+              },
             },
           },
+          group: true,
         },
       });
 
@@ -284,13 +292,16 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
       /**
        * 残りの入札で再処理
        */
-      if (updatedAuction) {
+      if (updatedTask && updatedTask.auction) {
         // 残りの入札で再処理
-        const auctionWithRemainingBids = {
-          ...updatedAuction,
-          bidHistories: remainingBids,
+        const taskWithRemainingBids = {
+          ...updatedTask,
+          auction: {
+            ...updatedTask.auction,
+            bidHistories: remainingBids,
+          },
         };
-        await handleAuctionWithBids(tx, auctionWithRemainingBids);
+        await handleAuctionWithBids(tx, taskWithRemainingBids);
       }
       return;
     } else {
@@ -299,7 +310,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
       /**
        * 有効な入札者がいなくなった場合
        */
-      await handleAuctionWithNoBids(tx, auction);
+      await handleAuctionWithNoBids(tx, task);
       return;
     }
   }
@@ -313,7 +324,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
     where: {
       userId_groupId: {
         userId: winnerUser.id,
-        groupId: auction.groupId,
+        groupId: task.groupId,
       },
     },
     data: {
@@ -341,9 +352,10 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
   /**
    * 他の入札ステータスをLOSTに更新（INSUFFICIENTを除く）
    */
+  if (!task.auction) return;
   await tx.bidHistory.updateMany({
     where: {
-      auctionId: auction.id,
+      auctionId: task.auction.id,
       status: BidStatus.BIDDING,
       id: { not: winnerBid.id },
     },
@@ -355,12 +367,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークションのステータスとウィナーを更新
+   * オークションのウィナーを更新
    */
   await tx.auction.update({
-    where: { id: auction.id },
+    where: { id: task.auction.id },
     data: {
-      status: AuctionStatus.ENDED,
       winnerId: winnerUser.id,
     },
   });
@@ -371,7 +382,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
    * タスクのステータスを更新
    */
   await tx.task.update({
-    where: { id: auction.taskId },
+    where: { id: task.id },
     data: {
       status: TaskStatus.POINTS_DEPOSITED,
     },
@@ -382,7 +393,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
   /**
    * オークション詳細ページのURL
    */
-  const actionUrl = `/auctions/${auction.id}`;
+  const actionUrl = `/auctions/${task.id}`;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -390,13 +401,13 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
    * 出品者への通知（オークション終了）
    */
   await sendNotification({
-    auctionId: auction.id,
+    auctionId: task.id,
     auctionEventType: AuctionEventType.ENDED,
     text: {
-      first: auction.task.task,
-      second: auction.task.task,
+      first: task.task,
+      second: task.task,
     },
-    recipientUserId: await getTaskCreatorId(tx, auction),
+    recipientUserId: await getTaskCreatorId(tx, task),
     actionUrl: actionUrl,
   });
 
@@ -406,13 +417,13 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
    * 出品者への通知（商品落札）
    */
   await sendNotification({
-    auctionId: auction.id,
+    auctionId: task.id,
     auctionEventType: AuctionEventType.ITEM_SOLD,
     text: {
-      first: auction.task.task,
-      second: auction.task.task,
+      first: task.task,
+      second: task.task,
     },
-    recipientUserId: await getTaskCreatorId(tx, auction),
+    recipientUserId: await getTaskCreatorId(tx, task),
     actionUrl: actionUrl,
   });
 
@@ -422,11 +433,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
    * 落札者への通知
    */
   await sendNotification({
-    auctionId: auction.id,
+    auctionId: task.id,
     auctionEventType: AuctionEventType.AUCTION_WIN,
     text: {
-      first: auction.task.task,
-      second: auction.task.task,
+      first: task.task,
+      second: task.task,
     },
     recipientUserId: [winnerUser.id],
     actionUrl: actionUrl,
@@ -440,11 +451,11 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
   for (const bid of validBids) {
     if (bid.id !== winnerBid.id && bid.status !== BidStatus.INSUFFICIENT) {
       await sendNotification({
-        auctionId: auction.id,
+        auctionId: task.id,
         auctionEventType: AuctionEventType.AUCTION_LOST,
         text: {
-          first: auction.task.task,
-          second: auction.task.task,
+          first: task.task,
+          second: task.task,
         },
         recipientUserId: [bid.userId],
         actionUrl: actionUrl,
@@ -458,12 +469,12 @@ async function handleAuctionWithBids(tx: PrismaTransaction, auction: AuctionWith
 /**
  * タスク作成者のIDを取得する
  * @param tx トランザクションオブジェクト
- * @param auction オークションオブジェクト
+ * @param task オークションオブジェクト
  * @returns タスク作成者ID（配列形式）
  */
-async function getTaskCreatorId(tx: PrismaTransaction, auction: AuctionWithRelations): Promise<string[]> {
+async function getTaskCreatorId(tx: PrismaTransaction, task: TaskWithRelations): Promise<string[]> {
   const taskCreator = await tx.task.findUnique({
-    where: { id: auction.taskId },
+    where: { id: task.id },
     select: { creatorId: true },
   });
 
