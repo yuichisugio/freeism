@@ -73,6 +73,8 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
     auctionEndTime: bid.auction.endTime,
   }));
 
+  console.log("getUserLatestBids_returnBidedAuctionPerPage:", returnBidedAuctionPerPage);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

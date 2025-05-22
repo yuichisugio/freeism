@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useCallback, useMemo } from "react";
-import { RatingStar } from "@/components/auction/common/rating-star";
 import { BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Loading } from "@/components/share/loading";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ type HistoryCardProps = {
   avatarName?: string | null;
   deliveryMethod?: string | null;
   leftBadge: React.ReactNode;
-  rightBadge: React.ReactNode;
+  rightBadge?: React.ReactNode;
   onClick: (id: string) => void;
   extraContent?: React.ReactNode;
 };
@@ -279,13 +278,6 @@ export const AuctionHistory = memo(function AuctionHistory() {
           amountLabel="落札額"
           deliveryMethod={auction.deliveryMethod}
           leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
-          rightBadge={
-            auction.rating && auction.rating > 0 ? (
-              <RatingStar rating={auction.rating} size={16} />
-            ) : (
-              <span className="text-xs text-gray-500">未評価</span>
-            )
-          }
           onClick={handleWonItemClick}
         />
       );
@@ -316,7 +308,6 @@ export const AuctionHistory = memo(function AuctionHistory() {
           amountLabel={auction.taskStatus === "AUCTION_ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
           avatarName={auction.winnerName ?? (auction.taskStatus === "AUCTION_ENDED" ? "落札者なし" : "落札者未定")}
           leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
-          rightBadge={<TaskStatusBadge status={auction.taskStatus} />}
           onClick={handleCreatedItemClick}
         />
       );

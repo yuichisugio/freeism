@@ -32,6 +32,10 @@ export function BidStatusBadge({ status }: { status: BidStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const config = bidStatusConfig[status];
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  if (!config) {
+    // 万が一未定義のステータスが来た場合のフォールバック
+    return <Badge variant="outline">不明</Badge>;
+  }
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
