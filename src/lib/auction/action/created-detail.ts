@@ -1,6 +1,7 @@
 "use server";
 
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
@@ -37,6 +38,13 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string): Promise
  * @param deliveryMethod 提供方法
  */
 export async function updateDeliveryMethod(taskId: string, deliveryMethod: string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュを無効化
+   */
+  revalidateTag(`auction-history-created-detail:${taskId}`);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

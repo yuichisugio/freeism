@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { TaskStatus } from "@prisma/client";
@@ -66,6 +67,15 @@ export async function completeTaskDelivery(taskId: string): Promise<{
       status: TaskStatus.SUPPLIER_DONE,
     },
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュを無効化
+   */
+  revalidateTag(`auction-history-created-detail:${taskId}`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
     success: true,

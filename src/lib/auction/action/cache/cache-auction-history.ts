@@ -1,6 +1,7 @@
 "use cache";
 
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
+import { unstable_cacheTag as cacheTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -77,13 +78,24 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  console.log("src/lib/auction/action/cache/cache-auction-history.ts_getCachedAuctionHistoryCreatedDetail_auction", auction);
 
   /**
    * 出品商品の詳細を返却
    */
   if (!auction) return null;
-  // statusはauction.task.statusとして返却
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュにタグをつける
+   */
+  cacheTag(`auction-history-created-detail:${auction.task.id}`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品商品の詳細を返却
+   */
   return {
     ...auction,
     status: auction.task.status,
