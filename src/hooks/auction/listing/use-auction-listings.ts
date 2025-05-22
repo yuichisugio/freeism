@@ -111,7 +111,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     const currentSort = searchParams.get("sort") as AuctionSortField | null;
 
     // ソートの降順/昇順の方向のURLパラメータ
-    const currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
+    let currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
+    if (!currentSortDirection) currentSortDirection = "desc";
 
     // 検索クエリのURLパラメータ
     const currentQuery = searchParams.get("q");
@@ -259,8 +260,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
           console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.field", firstSort.field);
         }
 
-        // ソート方向
-        if (firstSort.direction && firstSort.direction !== "desc") {
+        // ソート方向（必ずセットする）
+        if (firstSort.direction) {
           params.set("sort_direction", firstSort.direction);
           console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.direction", firstSort.direction);
         }

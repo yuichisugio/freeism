@@ -346,7 +346,7 @@ export const cachedGetAuctionListingsAndCount = cache(
       }
 
       let orderBySql: Prisma.Sql = Prisma.empty;
-      const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`a."created_at" DESC`;
+      const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`"created_at" DESC`;
 
       if (sort && sort.length > 0) {
         const primarySort = sort[0];
@@ -419,7 +419,7 @@ export const cachedGetAuctionListingsAndCount = cache(
           ${orderByClauseForListings}
         ),
         "PaginatedAuctionsCTE" AS (
-          SELECT id, task_id ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty}
+          SELECT id,current_highest_bid,created_at,end_time,task_id ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty}
           FROM "FilteredAuctionsCTE"
           LIMIT ${take} OFFSET ${skip}
         ),
@@ -481,7 +481,7 @@ export const cachedGetAuctionListingsAndCount = cache(
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ;
+        ${orderByClauseForListings}
       `;
       console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_listingsSql", listingsSql);
       const auctionsData: RawAuctionData[] = await prisma.$queryRaw(listingsSql);
