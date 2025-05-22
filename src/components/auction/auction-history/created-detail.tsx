@@ -28,7 +28,7 @@ import { ja } from "date-fns/locale";
 import { Edit, History, Info, MessageSquare } from "lucide-react";
 
 import { QARating } from "../common/auction-rating";
-import { AuctionStatusBadge, TaskStatusBadge } from "../common/status-badge";
+import { TaskStatusBadge } from "../common/status-badge";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -115,7 +115,6 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                   <CardHeader>
                     <CardTitle className="text-2xl">オークション情報</CardTitle>
                     <CardDescription className="flex items-center gap-2">
-                      <AuctionStatusBadge status={auction.task.status} />
                       <TaskStatusBadge status={auction.task.status} />
                     </CardDescription>
                   </CardHeader>
@@ -287,32 +286,32 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
         <TabsContent value="chat-before-end">
           <AuctionQA
             auctionId={auction.id}
-            isEnd={
-              auction.task.status === "AUCTION_ENDED" ||
-              auction.task.status === "SUPPLIER_DONE" ||
-              auction.task.status === "TASK_COMPLETED" ||
-              auction.task.status === "FIXED_EVALUATED" ||
-              auction.task.status === "POINTS_AWARDED" ||
-              auction.task.status === "POINTS_DEPOSITED"
-            }
             isDisplayAfterEnd={false}
             auctionEndDate={auction.endTime}
+            isEnd={
+              auction.task.status === TaskStatus.AUCTION_ENDED ||
+              auction.task.status === TaskStatus.SUPPLIER_DONE ||
+              auction.task.status === TaskStatus.TASK_COMPLETED ||
+              auction.task.status === TaskStatus.FIXED_EVALUATED ||
+              auction.task.status === TaskStatus.POINTS_AWARDED ||
+              auction.task.status === TaskStatus.POINTS_DEPOSITED
+            }
           />
         </TabsContent>
 
         <TabsContent value="chat-after-end">
           <AuctionQA
             auctionId={auction.id}
-            isEnd={
-              auction.task.status === "AUCTION_ENDED" ||
-              auction.task.status === "SUPPLIER_DONE" ||
-              auction.task.status === "TASK_COMPLETED" ||
-              auction.task.status === "FIXED_EVALUATED" ||
-              auction.task.status === "POINTS_AWARDED" ||
-              auction.task.status === "POINTS_DEPOSITED"
-            }
             isDisplayAfterEnd={true}
             auctionEndDate={auction.endTime}
+            isEnd={
+              auction.task.status === TaskStatus.AUCTION_ENDED ||
+              auction.task.status === TaskStatus.SUPPLIER_DONE ||
+              auction.task.status === TaskStatus.TASK_COMPLETED ||
+              auction.task.status === TaskStatus.FIXED_EVALUATED ||
+              auction.task.status === TaskStatus.POINTS_AWARDED ||
+              auction.task.status === TaskStatus.POINTS_DEPOSITED
+            }
           />
         </TabsContent>
       </Tabs>

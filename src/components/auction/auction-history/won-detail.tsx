@@ -292,7 +292,14 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                 <AuctionQA
                   auctionId={auctionId}
                   isDisplayAfterEnd={true}
-                  isEnd={auction.auctionStatus === TaskStatus.AUCTION_ENDED}
+                  isEnd={
+                    auction.taskStatus === TaskStatus.AUCTION_ENDED ||
+                    auction.taskStatus === TaskStatus.SUPPLIER_DONE ||
+                    auction.taskStatus === TaskStatus.POINTS_DEPOSITED ||
+                    auction.taskStatus === TaskStatus.TASK_COMPLETED ||
+                    auction.taskStatus === TaskStatus.FIXED_EVALUATED ||
+                    auction.taskStatus === TaskStatus.POINTS_AWARDED
+                  }
                   auctionEndDate={auction.auctionEndTime}
                 />
               </CardContent>

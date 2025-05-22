@@ -238,9 +238,19 @@ export const cachedGetAuctionListingsAndCount = cache(
               break;
             case "ended":
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.AUCTION_ENDED}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.SUPPLIER_DONE}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.TASK_COMPLETED}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.FIXED_EVALUATED}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.POINTS_AWARDED}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.POINTS_DEPOSITED}`);
               break;
             case "not_ended":
               statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.AUCTION_ENDED} AND a."end_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.SUPPLIER_DONE} AND a."end_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.TASK_COMPLETED} AND a."end_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.FIXED_EVALUATED} AND a."end_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.POINTS_AWARDED} AND a."end_time" >= ${now})`);
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.POINTS_DEPOSITED} AND a."end_time" >= ${now})`);
               break;
             case "not_started":
               statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} AND a."start_time" >= ${now})`);

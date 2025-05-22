@@ -64,12 +64,11 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
    */
   const returnBidedAuctionPerPage: BidHistoryItem[] = allBids.map((bid) => ({
     auctionId: bid.auctionId,
-    status: bid.status,
+    bidStatus: bid.status,
     lastBidAt: bid.auction.createdAt,
     taskId: bid.auction.task.id,
     taskName: bid.auction.task.task,
     taskStatus: bid.auction.task.status,
-    auctionStatus: bid.auction.task.status,
     currentHighestBid: bid.auction.currentHighestBid,
     auctionEndTime: bid.auction.endTime,
   }));
@@ -125,7 +124,18 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
   const wonAuctionsData = await prisma.auction.findMany({
     where: {
       winnerId: userId,
-      task: { status: TaskStatus.AUCTION_ENDED },
+      task: {
+        status: {
+          in: [
+            TaskStatus.AUCTION_ENDED,
+            TaskStatus.SUPPLIER_DONE,
+            TaskStatus.POINTS_DEPOSITED,
+            TaskStatus.TASK_COMPLETED,
+            TaskStatus.FIXED_EVALUATED,
+            TaskStatus.POINTS_AWARDED,
+          ],
+        },
+      },
     },
     orderBy: {
       endTime: "desc",
@@ -156,6 +166,7 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
       },
     },
   });
+  console.log("getUserWonAuctions_wonAuctionsData:", wonAuctionsData);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -166,7 +177,6 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
     auctionId: auction.id,
     currentHighestBid: auction.currentHighestBid,
     auctionEndTime: auction.endTime,
-    auctionStatus: auction.task.status,
     auctionCreatedAt: auction.createdAt,
     taskId: auction.task.id,
     taskName: auction.task.task,
@@ -194,9 +204,21 @@ export async function getUserWonAuctionsCount(userId: string): Promise<number> {
   const count = await prisma.auction.count({
     where: {
       winnerId: userId,
-      task: { status: TaskStatus.AUCTION_ENDED },
+      task: {
+        status: {
+          in: [
+            TaskStatus.AUCTION_ENDED,
+            TaskStatus.SUPPLIER_DONE,
+            TaskStatus.POINTS_DEPOSITED,
+            TaskStatus.TASK_COMPLETED,
+            TaskStatus.FIXED_EVALUATED,
+            TaskStatus.POINTS_AWARDED,
+          ],
+        },
+      },
     },
   });
+  console.log("getUserWonAuctionsCount_count:", count);
   return count;
 }
 
@@ -252,6 +274,7 @@ async function getUserCreatedAuctionsWhereCondition(
   }
   if (filter.includes("ended")) {
     statusFilters.push(TaskStatus.AUCTION_ENDED);
+    statusFilters.push(TaskStatus.POINTS_DEPOSITED);
   }
   if (filter.includes("pending")) {
     statusFilters.push(TaskStatus.PENDING);
@@ -275,7 +298,9 @@ async function getUserCreatedAuctionsWhereCondition(
       andConditions.push({ task: { status: { in: statusFilters } } });
     }
     if (supplierDoneFilter) {
-      andConditions.push({ task: { status: { in: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED] } } });
+      andConditions.push({
+        task: { status: { in: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED] } },
+      });
     }
     if (andConditions.length > 0) {
       if (filterCondition === "and") {
@@ -377,7 +402,6 @@ export async function getUserCreatedAuctions(
     auctionId: auction.id,
     currentHighestBid: auction.currentHighestBid,
     auctionEndTime: auction.endTime,
-    auctionStatus: auction.task.status,
     auctionCreatedAt: auction.createdAt,
     taskId: auction.task.id,
     taskName: auction.task.task,

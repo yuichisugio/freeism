@@ -16,7 +16,7 @@ export type AuctionCreatedTabFilter = "creator" | "executor" | "reporter" | "end
  */
 export type BidHistoryItem = {
   auctionId: string;
-  status: BidStatus;
+  bidStatus: BidStatus;
   lastBidAt: Date;
   taskId: string;
   taskName: string;
@@ -282,7 +282,6 @@ export type FilterCondition = "and" | "or";
  */
 export type AuctionWonDetail = {
   auctionId: string;
-  auctionStatus: TaskStatus;
   auctionEndTime: Date;
   auctionStartTime: Date;
   currentHighestBid: number;

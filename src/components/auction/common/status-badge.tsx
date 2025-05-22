@@ -3,46 +3,6 @@ import { BidStatus, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// TaskStatusをオークション用バッジとして利用
-const auctionTaskStatusConfig: Record<string, { label: string; variant: "secondary" | "default" | "outline" }> = {
-  [TaskStatus.PENDING]: {
-    label: "開始前",
-    variant: "secondary",
-  },
-  [TaskStatus.AUCTION_ACTIVE]: {
-    label: "開催中",
-    variant: "default",
-  },
-  [TaskStatus.AUCTION_ENDED]: {
-    label: "終了",
-    variant: "outline",
-  },
-  [TaskStatus.POINTS_DEPOSITED]: { label: "ポイント預け済み", variant: "outline" },
-  [TaskStatus.SUPPLIER_DONE]: { label: "提供の完了", variant: "outline" },
-  [TaskStatus.TASK_COMPLETED]: { label: "タスク完了", variant: "outline" },
-  [TaskStatus.FIXED_EVALUATED]: { label: "評価済み", variant: "outline" },
-  [TaskStatus.POINTS_AWARDED]: { label: "ポイント付与済み", variant: "outline" },
-  [TaskStatus.ARCHIVED]: { label: "アーカイブ", variant: "outline" },
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークション用タスクステータスバッジ
- * @param status タスク（オークション）ステータス
- */
-export function AuctionStatusBadge({ status }: { status: TaskStatus }) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  const config = auctionTaskStatusConfig[status as string];
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  if (!config) {
-    return <Badge variant="outline">不明</Badge>;
-  }
-  return <Badge variant={config.variant}>{config.label}</Badge>;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 const bidStatusConfig = {
   [BidStatus.BIDDING]: {
     label: "入札中",

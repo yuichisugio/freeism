@@ -24,6 +24,8 @@
 
 ### TaskStatus
 
+(2025/05/22更新)→AuctionStatusは廃止
+
 - PENDING
   - 使用
     - タスク実施予定
@@ -31,6 +33,16 @@
     - Taskテーブルのレコードを作成した際に自動で入る
   - 詳細
     - タスクを新規作成した時のステータス
+- AUCTION_ACTIVE
+  - 使用
+    - オークション進行中
+  - トリガー
+    - AuctionのstartTimeが今日以前をGitHub Actionsでステータス変更する際に実行
+- AUCTION_ENDED
+  - 使用
+    - オークション終了
+  - トリガー
+    - AuctionテーブルのendTimeが今日以前の場合
 - POINTS_DEPOSITED
   - 使用
     - ポイント預け済み
@@ -62,27 +74,7 @@
     - タスクをアーカイブしたときに使用
   - 補足
     - これは現在はアーカイブにする機能がないので使用しない
-
-### AuctionStatus
-
-- PENDING
-  - 使用
-    - タスク実施予定
-  - トリガー
-    - Taskテーブルのレコードを作成した際に自動で入る
-  - 詳細
-    - タスクを新規作成した時のステータス
-- ACTIVE
-  - 使用
-    - オークション進行中
-  - トリガー
-    - AuctionのstartTimeが今日以前をGitHub Actionsでステータス変更する際に実行
-- ENDED
-  - 使用
-    - オークション終了
-  - トリガー
-    - AuctionテーブルのendTimeが今日以前の場合
-- CANCELED
+- AUCTION_CANCELED
   - 使用
     - オークションキャンセルして実施しない場合に使用
   - トリガー

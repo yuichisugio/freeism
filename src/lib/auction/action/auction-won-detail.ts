@@ -116,7 +116,6 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
    */
   const returnAuctionWonData: AuctionWonDetail = {
     auctionId: auction.id,
-    auctionStatus: auction.task.status,
     auctionEndTime: auction.endTime,
     auctionStartTime: auction.startTime,
     currentHighestBid: auction.currentHighestBid,

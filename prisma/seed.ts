@@ -288,7 +288,7 @@ type SeedAuction = {
   currentHighestBid: number;
   currentHighestBidderId?: string | null;
   winnerId?: string | null;
-  status: TaskStatus; // AuctionStatusからTaskStatusへ
+  status: TaskStatus;
   extensionTotalCount: number;
   extensionLimitCount: number;
   extensionTotalTime: number;

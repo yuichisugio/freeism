@@ -357,7 +357,14 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
                 <AuctionQA
                   auctionId={auction.id}
                   isDisplayAfterEnd={false}
-                  isEnd={auction.status === TaskStatus.AUCTION_ENDED}
+                  isEnd={
+                    auction.status === TaskStatus.AUCTION_ENDED ||
+                    auction.status === TaskStatus.SUPPLIER_DONE ||
+                    auction.status === TaskStatus.POINTS_DEPOSITED ||
+                    auction.status === TaskStatus.TASK_COMPLETED ||
+                    auction.status === TaskStatus.FIXED_EVALUATED ||
+                    auction.status === TaskStatus.POINTS_AWARDED
+                  }
                   auctionEndDate={auction.endTime}
                 />
               </TabsContent>

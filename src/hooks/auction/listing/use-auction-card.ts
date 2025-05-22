@@ -58,7 +58,15 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
    */
   const now = useMemo(() => new Date(), []);
   const [isStarted] = useState(new Date(auction.start_time) <= now);
-  const [isEnded, setIsEnded] = useState(new Date(auction.end_time) <= now || auction.status === TaskStatus.AUCTION_ENDED);
+  const [isEnded, setIsEnded] = useState(
+    new Date(auction.end_time) <= now ||
+      auction.status === TaskStatus.AUCTION_ENDED ||
+      auction.status === TaskStatus.SUPPLIER_DONE ||
+      auction.status === TaskStatus.TASK_COMPLETED ||
+      auction.status === TaskStatus.FIXED_EVALUATED ||
+      auction.status === TaskStatus.POINTS_AWARDED ||
+      auction.status === TaskStatus.POINTS_DEPOSITED,
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -483,6 +483,9 @@ async function getTaskCreatorId(tx: PrismaTransaction, task: TaskWithRelations):
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * 通知パラメータ
+ */
 type NotificationParams = {
   auctionId: string;
   auctionEventType: AuctionEventType;
@@ -493,6 +496,8 @@ type NotificationParams = {
   recipientUserId: string[];
   actionUrl?: string;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * auction-notification.tsのsendAuctionNotificationを使用して通知を送信する

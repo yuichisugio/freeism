@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useMemo } from "react";
 import { RatingStar } from "@/components/auction/common/rating-star";
-import { AuctionStatusBadge, BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
+import { BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Loading } from "@/components/share/loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -241,8 +241,8 @@ export const AuctionHistory = memo(function AuctionHistory() {
           }
           amount={bid.currentHighestBid}
           amountLabel="入札額"
-          leftBadge={<BidStatusBadge status={bid.status} />}
-          rightBadge={<AuctionStatusBadge status={bid.taskStatus} />}
+          leftBadge={<BidStatusBadge status={bid.bidStatus} />}
+          rightBadge={<TaskStatusBadge status={bid.taskStatus} />}
           onClick={handleItemClick}
           extraContent={
             <div className="mb-2 flex items-center justify-between">
