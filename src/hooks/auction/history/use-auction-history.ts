@@ -56,7 +56,7 @@ export function useAuctionHistory() {
     parse: (v) => (v ? v.split(",") : []),
     serialize: (v) => v.join(","),
   });
-  const [filterConditionRaw = "or", setFilterConditionRaw] = useQueryState("condition", { defaultValue: "or", history: "push" });
+  const [filterConditionRaw = "and", setFilterConditionRaw] = useQueryState("condition", { defaultValue: "and", history: "push" });
   const filter = filterRaw as AuctionCreatedTabFilter[];
   const setFilter = setFilterRaw as (v: AuctionCreatedTabFilter[]) => void;
   const filterCondition = filterConditionRaw as FilterCondition;

@@ -61,6 +61,7 @@ export type CreatedAuctionItem = {
   isCreator: boolean;
   isExecutor: boolean;
   isReporter: boolean;
+  taskRole: TaskRole[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -346,5 +347,9 @@ export type AuctionHistoryCreatedDetail = {
     };
   }[];
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+export type TaskRole = "SUPPLIER" | "EXECUTOR" | "REPORTER";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

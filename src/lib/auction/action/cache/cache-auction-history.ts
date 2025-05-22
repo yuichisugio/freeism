@@ -34,6 +34,16 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
           status: true,
           deliveryMethod: true,
           creatorId: true,
+          executors: {
+            select: {
+              userId: true,
+            },
+          },
+          reporters: {
+            select: {
+              userId: true,
+            },
+          },
         },
       },
       winner: {

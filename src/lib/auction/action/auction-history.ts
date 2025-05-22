@@ -237,80 +237,56 @@ async function getUserCreatedAuctionsWhereCondition(
   console.log("getUserCreatedAuctionsWhereCondition_start_filter:", filter);
   console.log("getUserCreatedAuctionsWhereCondition_start_filterCondition:", filterCondition);
 
-  const whereCondition: Prisma.AuctionWhereInput = {};
+  // --- ロール条件の構築 ---
   const taskRoleConditions: Prisma.TaskWhereInput[] = [];
+  if (filter.includes("creator")) taskRoleConditions.push({ creatorId: userId });
+  if (filter.includes("executor")) taskRoleConditions.push({ executors: { some: { userId: userId } } });
+  if (filter.includes("reporter")) taskRoleConditions.push({ reporters: { some: { userId: userId } } });
+  // ロール条件が空なら全ロール対象
+  const roleCondition: Prisma.AuctionWhereInput | null =
+    taskRoleConditions.length > 0
+      ? { task: filterCondition === "and" ? { AND: taskRoleConditions } : { OR: taskRoleConditions } }
+      : { task: { OR: [{ creatorId: userId }, { executors: { some: { userId: userId } } }, { reporters: { some: { userId: userId } } }] } };
 
-  // ロールフィルターの処理
-  const hasCreatorFilter = filter.includes("creator");
-  const hasExecutorFilter = filter.includes("executor");
-  const hasReporterFilter = filter.includes("reporter");
-
-  if (hasCreatorFilter) {
-    taskRoleConditions.push({ creatorId: userId });
-  }
-  if (hasExecutorFilter) {
-    taskRoleConditions.push({ executors: { some: { userId: userId } } });
-  }
-  if (hasReporterFilter) {
-    taskRoleConditions.push({ reporters: { some: { userId: userId } } });
-  }
-
-  if (taskRoleConditions.length > 0) {
-    if (filterCondition === "and") {
-      whereCondition.task = { AND: taskRoleConditions };
-    } else {
-      whereCondition.task = { OR: taskRoleConditions };
-    }
-  } else {
-    // ロールフィルターが何も選択されていない場合は、ユーザーが関与する全てのロールを対象 (これはOR条件が自然)
-    whereCondition.task = {
-      OR: [{ creatorId: userId }, { executors: { some: { userId: userId } } }, { reporters: { some: { userId: userId } } }],
-    };
-  }
-
-  // ステータスフィルターの処理
+  // --- ステータス条件の構築 ---
   const statusFilters: TaskStatus[] = [];
-  let supplierDoneFilter = false;
-  if (filter.includes("active")) {
-    statusFilters.push(TaskStatus.AUCTION_ACTIVE);
-  }
+  if (filter.includes("active")) statusFilters.push(TaskStatus.AUCTION_ACTIVE);
   if (filter.includes("ended")) {
-    statusFilters.push(TaskStatus.AUCTION_ENDED);
-    statusFilters.push(TaskStatus.POINTS_DEPOSITED);
+    statusFilters.push(TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED);
   }
-  if (filter.includes("pending")) {
-    statusFilters.push(TaskStatus.PENDING);
-  }
+  if (filter.includes("pending")) statusFilters.push(TaskStatus.PENDING);
   if (filter.includes("supplier_done")) {
-    supplierDoneFilter = true;
+    statusFilters.push(TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED);
   }
 
-  if (statusFilters.length > 0 || supplierDoneFilter) {
-    // ここでは、ロール条件とステータス条件はANDで結ぶのが一般的か。
-    // filterCondition が AND の場合: (RoleA AND RoleB) AND (StatusA OR StatusB)
-    // filterCondition が OR の場合: (RoleA OR RoleB) AND (StatusA OR StatusB) -> これは実質ロールフィルターのORに影響しない
-    // filterCondition は主にロール間の条件に使われると想定。
-    // ステータスは常にORで選択されたものを満たす、かつ、ロール条件を満たす。
-    const andConditions: Prisma.AuctionWhereInput[] = [];
-    if (whereCondition.task) {
-      andConditions.push({ task: whereCondition.task });
-      delete whereCondition.task;
-    }
-    if (statusFilters.length > 0) {
-      andConditions.push({ task: { status: { in: statusFilters } } });
-    }
-    if (supplierDoneFilter) {
-      andConditions.push({
-        task: { status: { in: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED] } },
-      });
-    }
-    if (andConditions.length > 0) {
-      if (filterCondition === "and") {
-        whereCondition.AND = andConditions;
-      } else {
-        whereCondition.OR = andConditions;
-      }
-    }
+  // ステータス条件
+  const statusCondition: Prisma.AuctionWhereInput | null =
+    statusFilters.length > 0
+      ? {
+          task: {
+            status: {
+              in: statusFilters,
+            },
+          },
+        }
+      : null;
+
+  // --- AND/ORの組み立て ---
+  let whereCondition: Prisma.AuctionWhereInput = {};
+  if (filterCondition === "and") {
+    // AND検索: 両方条件があればANDでつなぐ
+    const andArr: Prisma.AuctionWhereInput[] = [];
+    if (roleCondition) andArr.push(roleCondition);
+    if (statusCondition) andArr.push(statusCondition);
+    if (andArr.length === 1) whereCondition = andArr[0];
+    else if (andArr.length > 1) whereCondition.AND = andArr;
+  } else {
+    // OR検索: いずれかの条件を満たすもの
+    const orArr: Prisma.AuctionWhereInput[] = [];
+    if (roleCondition) orArr.push(roleCondition);
+    if (statusCondition) orArr.push(statusCondition);
+    if (orArr.length === 1) whereCondition = orArr[0];
+    else if (orArr.length > 1) whereCondition.OR = orArr;
   }
 
   console.dir(whereCondition, { depth: null });
@@ -400,23 +376,35 @@ export async function getUserCreatedAuctions(
   /**
    * データを整形
    */
-  const returnCreatedAuctions: CreatedAuctionItem[] = createdAuctionsData.map((auction) => ({
-    auctionId: auction.id,
-    currentHighestBid: auction.currentHighestBid,
-    auctionEndTime: auction.endTime,
-    auctionCreatedAt: auction.createdAt,
-    taskId: auction.task.id,
-    taskName: auction.task.task,
-    taskStatus: auction.task.status,
-    deliveryMethod: auction.task.deliveryMethod,
-    winnerId: auction.winner?.id ?? null,
-    winnerName: auction.winner?.name ?? null,
-    isCreator: auction.task.creator.id === userId,
-    isExecutor: auction.task.executors.some((executor) => executor.userId === userId),
-    isReporter: auction.task.reporters.some((reporter) => reporter.userId === userId),
-  }));
+  const returnCreatedAuctions: CreatedAuctionItem[] = createdAuctionsData.map((auction) => {
+    const isCreator = auction.task.creator.id === userId;
+    const isExecutor = auction.task.executors.some((executor) => executor.userId === userId);
+    const isReporter = auction.task.reporters.some((reporter) => reporter.userId === userId);
+    const taskRole: ("SUPPLIER" | "EXECUTOR" | "REPORTER")[] = [];
+    if (isCreator) taskRole.push("SUPPLIER");
+    if (isExecutor) taskRole.push("EXECUTOR");
+    if (isReporter) taskRole.push("REPORTER");
+    return {
+      auctionId: auction.id,
+      currentHighestBid: auction.currentHighestBid,
+      auctionEndTime: auction.endTime,
+      auctionCreatedAt: auction.createdAt,
+      taskId: auction.task.id,
+      taskName: auction.task.task,
+      taskStatus: auction.task.status,
+      deliveryMethod: auction.task.deliveryMethod,
+      winnerId: auction.winner?.id ?? null,
+      winnerName: auction.winner?.name ?? null,
+      isCreator,
+      isExecutor,
+      isReporter,
+      taskRole,
+    };
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  console.log("getUserCreatedAuctions_returnCreatedAuctions:", returnCreatedAuctions);
 
   /**
    * データを返却

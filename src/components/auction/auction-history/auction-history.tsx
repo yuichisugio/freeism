@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useMemo } from "react";
-import { BidStatusBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
+import { BidStatusBadge, TaskRoleBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Loading } from "@/components/share/loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -308,6 +308,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
           amountLabel={auction.taskStatus === "AUCTION_ENDED" && auction.winnerId ? "落札額" : "現在の最高額"}
           avatarName={auction.winnerName ?? (auction.taskStatus === "AUCTION_ENDED" ? "落札者なし" : "落札者未定")}
           leftBadge={<TaskStatusBadge status={auction.taskStatus} />}
+          rightBadge={<TaskRoleBadge role={auction.taskRole} />}
           onClick={handleCreatedItemClick}
         />
       );
@@ -372,7 +373,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
                   checked={filterCondition === "and"}
                   onCheckedChange={(checked) => handleFilterConditionChange(checked ? "and" : "or")}
                   aria-label="フィルター条件をANDとORで切り替え"
-                  disabled={filter.length < 2}
+                  disabled={filter.length < 1}
                 />
               </div>
             </div>
