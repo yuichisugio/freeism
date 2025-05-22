@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   getUserBidHistories,
   getUserBidHistoryCount,
@@ -35,7 +35,7 @@ export function useAuctionHistory() {
   /**
    * UIで表示するフィルターの定義 ("all" を除く)
    */
-  const VALID_UI_FILTERS = ["active", "ended", "pending", "creator", "executor", "reporter", "supplier_done"] as const;
+  const VALID_UI_FILTERS = ["pending", "active", "ended", "supplier_done", "creator", "executor", "reporter"] as const;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -83,14 +83,6 @@ export function useAuctionHistory() {
    */
   const { data: session } = useSession();
   const userId = session?.user?.id;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 検索パラメータ
-   */
-  const searchParams = useSearchParams();
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -357,7 +349,6 @@ export function useAuctionHistory() {
     currentDataCount,
     isLoadingCurrentTab,
     userId,
-    searchParams,
     VALID_UI_FILTERS,
     // function
     handleItemClick,

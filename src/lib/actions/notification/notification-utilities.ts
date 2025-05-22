@@ -115,7 +115,7 @@ export const updateNotificationStatus = cache(async (updates: Array<{ notificati
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // キャッシュを更新
-    revalidateTag("notification");
+    revalidateTag(`Notification:${userId}`);
     revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
