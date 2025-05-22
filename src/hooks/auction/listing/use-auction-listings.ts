@@ -1,13 +1,14 @@
 "use client";
 
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/types/auction-types";
-import { useCallback, useEffect, useState } from "react";
-import { redirect, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo } from "react";
+import { redirect } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -39,6 +40,8 @@ function arraysAreEqual(arr1: string[] | null | undefined, arr2: string[] | null
   }
   return true; // 長さも要素も同じ
 }
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ソート配列が等しいかどうかを判定するヘルパー関数 (最初の要素のみ比較)
@@ -89,239 +92,87 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   /**
    * URLからパラメータを取得
    */
-  const searchParams = useSearchParams();
-
-  // データ取得のためのパラメータを取得
-  const getListingsConditionsFromParams = useCallback((): AuctionListingsConditions => {
-    // ページ数のURLパラメータ
-    const currentPage = Number(searchParams.get("page") ?? 1);
-
-    // カテゴリのURLパラメータ（複数可能）
-    const currentCategoriesParams = searchParams.getAll("category");
-    const currentCategories = currentCategoriesParams.length > 0 ? currentCategoriesParams : ["すべて"];
-
-    // ステータスのURLパラメータ（複数可能）
-    const currentStatusParams = searchParams.getAll("status");
-    const currentStatus = currentStatusParams.length > 0 ? currentStatusParams.map((status) => status as AuctionFilterTypes) : ["all" as const];
-
-    // ステータス結合タイプのURLパラメータ
-    const currentStatusJoinType = searchParams.get("status_join_type") as "OR" | "AND" | null;
-
-    // ソートのURLパラメータ
-    const currentSort = searchParams.get("sort") as AuctionSortField | null;
-
-    // ソートの降順/昇順の方向のURLパラメータ
-    let currentSortDirection = searchParams.get("sort_direction") as SortDirection | null;
-    if (!currentSortDirection) currentSortDirection = "desc";
-
-    // 検索クエリのURLパラメータ
-    const currentQuery = searchParams.get("q");
-
-    // 価格範囲フィルター
-    const minBid = searchParams.get("min_bid") ? Number(searchParams.get("min_bid")) : null;
-    const maxBid = searchParams.get("max_bid") ? Number(searchParams.get("max_bid")) : null;
-
-    // 残り時間範囲フィルター (時間単位: 0-720時間 = 0-30日)
-    const minRemainingTime = searchParams.get("min_remaining_time") ? Number(searchParams.get("min_remaining_time")) : null;
-    const maxRemainingTime = searchParams.get("max_remaining_time") ? Number(searchParams.get("max_remaining_time")) : null;
-
-    // グループリスト。複数あるのでgetAllで取得?groupId=1&groupId=2&groupId=3
-    const groupIdsRaw = searchParams.getAll("group_id");
-    const groupIds = groupIdsRaw.filter((id): id is string => id !== null);
-
-    // データ取得のためのパラメータを返す
-    return {
-      categories: currentCategories,
-      status: currentStatus,
-      statusConditionJoinType: currentStatusJoinType ?? "OR",
-      minBid: minBid,
-      maxBid: maxBid,
-      minRemainingTime: minRemainingTime,
-      maxRemainingTime: maxRemainingTime,
-      groupIds: groupIds.length > 0 ? groupIds : null,
-      searchQuery: currentQuery,
-      sort:
-        currentSort && currentSortDirection
-          ? [
-              {
-                field: currentSort,
-                direction: currentSortDirection,
-              },
-            ]
-          : null,
-      page: currentPage,
-    };
-  }, [searchParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * フィルター状態。
-   * 基本はuse-auction-filtersで使用するが、子コンポーネントに渡すために、ここで定義
-   */
-  const [listingsConditions, setListingsConditions] = useState<AuctionListingsConditions>(getListingsConditionsFromParams());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * URLパラメータが変更された際に、listingsConditionsを更新
-   * ブラウザの戻るボタンを押してURLが変わった場合に、データを反映させるために必要
-   */
-  useEffect(() => {
-    setListingsConditions(getListingsConditionsFromParams());
-  }, [searchParams, getListingsConditionsFromParams]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * URLパラメータを更新する関数
-   * 必要なパラメータのみURLに含める（デフォルト値は含めない）
-   */
-  const updateUrlParams = useCallback(
-    (newListingsConditions: AuctionListingsConditions) => {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_start", newListingsConditions);
-      console.log(
-        "src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_sort",
-        newListingsConditions.sort ? JSON.stringify(newListingsConditions.sort) : "null",
-      );
-
-      /**
-       * ページ以外の条件が変更された場合は、ページを1に戻す
-       */
-      const current = listingsConditions;
-      const next = newListingsConditions;
-
-      const conditionsChanged =
-        current.searchQuery !== next.searchQuery ||
-        current.statusConditionJoinType !== next.statusConditionJoinType ||
-        current.minBid !== next.minBid ||
-        current.maxBid !== next.maxBid ||
-        current.minRemainingTime !== next.minRemainingTime ||
-        current.maxRemainingTime !== next.maxRemainingTime ||
-        // 配列の比較: ヘルパー関数を使用
-        !arraysAreEqual(current.categories, next.categories) ||
-        !arraysAreEqual(current.status, next.status) ||
-        !arraysAreEqual(current.groupIds, next.groupIds) ||
-        // ソート配列の比較: 専用のヘルパー関数を使用
-        !sortArraysAreEqual(current.sort, next.sort);
-
-      if (conditionsChanged) {
-        newListingsConditions.page = 1;
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // URLパラメータを作成
-      const params = new URLSearchParams();
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // ページ数
-      if (newListingsConditions.page > 1) {
-        params.set("page", String(newListingsConditions.page));
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // カテゴリ - 複数選択可能になったため、各カテゴリを追加
-      if (newListingsConditions.categories && newListingsConditions.categories.length > 0 && !newListingsConditions.categories.includes("すべて")) {
-        // 複数カテゴリを追加
-        newListingsConditions.categories.forEach((category) => {
-          if (category) params.append("category", category);
-        });
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // ステータス
-      if (newListingsConditions.status && newListingsConditions.status.length > 0 && newListingsConditions.status[0] !== "all") {
-        newListingsConditions.status.forEach((status) => {
-          params.append("status", status);
-        });
-
-        // ステータス結合タイプ
-        if (newListingsConditions.statusConditionJoinType && newListingsConditions.statusConditionJoinType === "AND") {
-          params.set("status_join_type", newListingsConditions.statusConditionJoinType);
-        }
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // ソート - 複数選択可能になったため、最初のソート条件のみ使用
-      if (newListingsConditions.sort && newListingsConditions.sort.length > 0) {
-        console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_listingsConditions.sort_start");
-        const firstSort = newListingsConditions.sort[0];
-        const defaultSort = newListingsConditions.searchQuery ? "relevance" : "newest";
-
-        if (firstSort.field && firstSort.field !== defaultSort) {
-          params.set("sort", firstSort.field);
-          console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.field", firstSort.field);
-        }
-
-        // ソート方向（必ずセットする）
-        if (firstSort.direction) {
-          params.set("sort_direction", firstSort.direction);
-          console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_firstSort.direction", firstSort.direction);
-        }
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 検索クエリ
-      if (newListingsConditions.searchQuery) {
-        params.set("q", newListingsConditions.searchQuery);
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 価格範囲
-      if (newListingsConditions.minBid !== null && newListingsConditions.minBid !== undefined && newListingsConditions.minBid !== 0) {
-        params.set("min_bid", String(newListingsConditions.minBid));
-      }
-      if (newListingsConditions.maxBid !== null && newListingsConditions.maxBid !== undefined && newListingsConditions.maxBid !== 0) {
-        params.set("max_bid", String(newListingsConditions.maxBid));
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 残り時間範囲
-      if (
-        newListingsConditions.minRemainingTime !== null &&
-        newListingsConditions.minRemainingTime !== undefined &&
-        newListingsConditions.minRemainingTime !== 0
-      ) {
-        params.set("min_remaining_time", String(newListingsConditions.minRemainingTime));
-      }
-      if (
-        newListingsConditions.maxRemainingTime !== null &&
-        newListingsConditions.maxRemainingTime !== undefined &&
-        newListingsConditions.maxRemainingTime !== 0
-      ) {
-        params.set("max_remaining_time", String(newListingsConditions.maxRemainingTime));
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // グループID
-      if (newListingsConditions.groupIds && newListingsConditions.groupIds.length > 0) {
-        newListingsConditions.groupIds.forEach((id) => params.append("group_id", id));
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // URLパラメータを作成
-      const newUrl = `/dashboard/auction${params.toString() ? `?${params.toString()}` : ""}`;
-
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_updateUrlParams_newUrl", newUrl);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 指定URLに画面遷移。scroll: false を追加してページスクロールを防止
-      window.history.pushState({}, "", newUrl);
+  const [params, setParams] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      category: parseAsArrayOf(parseAsString).withDefault(["すべて"]),
+      status: parseAsArrayOf(parseAsString).withDefault(["all"]),
+      status_join_type: parseAsString.withDefault("OR"),
+      sort: parseAsString,
+      sort_direction: parseAsString.withDefault("desc"),
+      q: parseAsString,
+      min_bid: parseAsInteger,
+      max_bid: parseAsInteger,
+      min_remaining_time: parseAsInteger,
+      max_remaining_time: parseAsInteger,
+      group_id: parseAsArrayOf(parseAsString),
     },
-    [listingsConditions],
+    {
+      clearOnDefault: true,
+      history: "push",
+    },
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * AuctionListingsConditionsへの変換
+   */
+  const listingsConditions: AuctionListingsConditions = useMemo(() => {
+    return {
+      categories: params.category && params.category.length > 0 ? params.category : ["すべて"],
+      status: params.status && params.status.length > 0 ? (params.status as AuctionFilterTypes[]) : ["all"],
+      statusConditionJoinType: params.status_join_type === "AND" ? "AND" : "OR",
+      minBid: params.min_bid ?? null,
+      maxBid: params.max_bid ?? null,
+      minRemainingTime: params.min_remaining_time ?? null,
+      maxRemainingTime: params.max_remaining_time ?? null,
+      groupIds: params.group_id && params.group_id.length > 0 ? params.group_id : null,
+      searchQuery: params.q === undefined ? null : params.q,
+      sort: params.sort ? [{ field: params.sort as AuctionSortField, direction: (params.sort_direction as SortDirection) ?? "desc" }] : null,
+      page: params.page ?? 1,
+    };
+  }, [params]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * setListingsConditionsでURLパラメータを更新
+   */
+  const setListingsConditions = useCallback(
+    (newListingsConditions: AuctionListingsConditions) => {
+      // ページ以外の条件が変わったらページを1に戻す
+      const conditionsChanged =
+        listingsConditions.searchQuery !== newListingsConditions.searchQuery ||
+        listingsConditions.statusConditionJoinType !== newListingsConditions.statusConditionJoinType ||
+        listingsConditions.minBid !== newListingsConditions.minBid ||
+        listingsConditions.maxBid !== newListingsConditions.maxBid ||
+        listingsConditions.minRemainingTime !== newListingsConditions.minRemainingTime ||
+        listingsConditions.maxRemainingTime !== newListingsConditions.maxRemainingTime ||
+        !arraysAreEqual(listingsConditions.categories, newListingsConditions.categories) ||
+        !arraysAreEqual(listingsConditions.status, newListingsConditions.status) ||
+        !arraysAreEqual(listingsConditions.groupIds, newListingsConditions.groupIds) ||
+        !sortArraysAreEqual(listingsConditions.sort, newListingsConditions.sort);
+      const page = conditionsChanged ? 1 : newListingsConditions.page;
+      void setParams({
+        page: page === 1 ? null : page,
+        category: arraysAreEqual(newListingsConditions.categories, ["すべて"]) ? null : newListingsConditions.categories,
+        status: arraysAreEqual(newListingsConditions.status, ["all"]) ? null : newListingsConditions.status,
+        status_join_type: newListingsConditions.statusConditionJoinType === "OR" ? null : newListingsConditions.statusConditionJoinType,
+        sort: newListingsConditions.sort && newListingsConditions.sort.length > 0 ? newListingsConditions.sort[0].field : null,
+        sort_direction:
+          newListingsConditions.sort && newListingsConditions.sort.length > 0 && newListingsConditions.sort[0].direction !== "desc"
+            ? newListingsConditions.sort[0].direction
+            : null,
+        q: newListingsConditions.searchQuery ?? null,
+        min_bid: newListingsConditions.minBid ?? null,
+        max_bid: newListingsConditions.maxBid ?? null,
+        min_remaining_time: newListingsConditions.minRemainingTime ?? null,
+        max_remaining_time: newListingsConditions.maxRemainingTime ?? null,
+        group_id: newListingsConditions.groupIds && newListingsConditions.groupIds.length > 0 ? newListingsConditions.groupIds : null,
+      });
+    },
+    [listingsConditions, setParams],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -342,6 +193,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!listingsConditions && !!userId,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 次のページをprefetch
@@ -375,15 +228,13 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     // state
     auctions: auctionListings?.listings ?? [],
     totalAuctionsCount: auctionListings?.count ?? 0,
-    listingsConditions,
+    listingsConditions: {
+      ...listingsConditions,
+      searchQuery: listingsConditions.searchQuery === undefined ? null : listingsConditions.searchQuery,
+    },
     isLoading: isPending,
 
     // action
-    setListingsConditions: (newListingsConditions: AuctionListingsConditions) => {
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_newConditions", newListingsConditions);
-      updateUrlParams(newListingsConditions);
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_setListingsConditions_after_state_update", newListingsConditions);
-      setListingsConditions(newListingsConditions);
-    },
+    setListingsConditions,
   };
 }
