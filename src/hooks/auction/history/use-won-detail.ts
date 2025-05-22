@@ -4,7 +4,7 @@ import type { AuctionWonDetail } from "@/types/auction-types";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getAuctionWonDetail } from "@/lib/auction/action/auction-won-detail";
-import { completeTaskDelivery } from "@/lib/auction/action/history";
+import { completeTaskDelivery } from "@/lib/auction/action/won-detail";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
