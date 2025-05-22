@@ -236,7 +236,6 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       // 全体の既読数を計算
       const readCount = allNotificationsTotalCount - unreadCount;
 
-      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_notifications", notifications);
       console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_unreadCount", unreadCount);
       console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_readCount", readCount);
       console.log(

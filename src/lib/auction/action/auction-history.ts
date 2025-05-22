@@ -212,6 +212,9 @@ export async function getUserCreatedAuctionsWhereCondition(
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
 ): Promise<Prisma.AuctionWhereInput> {
+  console.log("getUserCreatedAuctionsWhereCondition_start_filter:", filter);
+  console.log("getUserCreatedAuctionsWhereCondition_start_filterCondition:", filterCondition);
+
   const whereCondition: Prisma.AuctionWhereInput = {};
   const taskRoleConditions: Prisma.TaskWhereInput[] = [];
 
@@ -260,7 +263,6 @@ export async function getUserCreatedAuctionsWhereCondition(
   }
 
   if (statusFilters.length > 0 || supplierDoneFilter) {
-    // ステータスフィルターとロールフィルターの関係性をどうするか？
     // ここでは、ロール条件とステータス条件はANDで結ぶのが一般的か。
     // filterCondition が AND の場合: (RoleA AND RoleB) AND (StatusA OR StatusB)
     // filterCondition が OR の場合: (RoleA OR RoleB) AND (StatusA OR StatusB) -> これは実質ロールフィルターのORに影響しない
@@ -275,12 +277,14 @@ export async function getUserCreatedAuctionsWhereCondition(
       andConditions.push({ status: { in: statusFilters } });
     }
     if (supplierDoneFilter) {
-      andConditions.push({ task: { status: "SUPPLIER_DONE" } });
+      andConditions.push({ task: { status: { in: ["SUPPLIER_DONE", "TASK_COMPLETED"] } } });
     }
     if (andConditions.length > 0) {
       whereCondition.AND = andConditions;
     }
   }
+
+  console.dir(whereCondition, { depth: null });
 
   return whereCondition;
 }

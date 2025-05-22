@@ -49,7 +49,6 @@ export const getNotificationsAndUnreadCount = cache(
       // 引数で渡された userId を使用
       const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
 
-      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_notifications", notifications);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_unreadCount", unreadCount);
       console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_readCount", readCount);

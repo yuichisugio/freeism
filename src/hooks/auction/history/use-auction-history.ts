@@ -37,7 +37,11 @@ export function useAuctionHistory() {
    */
   const VALID_UI_FILTERS = ["active", "ended", "pending", "creator", "executor", "reporter", "supplier_done"] as const;
 
-  // nuqsでクエリパラメータを管理
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * nuqsでクエリパラメータを管理
+   */
   const [activeTab = "bids", setActiveTab] = useQueryState("tab", { defaultValue: "bids", history: "push" });
   const [currentPage = 1, setCurrentPage] = useQueryState("page", { defaultValue: 1, history: "push", parse: Number, serialize: String });
   const [itemPerPage = AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE, setItemPerPage] = useQueryState("itemPerPage", {

@@ -117,6 +117,11 @@ const taskStatusConfig = {
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  // SUPPLIER_DONEまたはTASK_COMPLETEDなら「タスク完了」バッジ
+  if (status === TaskStatus.SUPPLIER_DONE || status === TaskStatus.TASK_COMPLETED) {
+    return <Badge variant="success">タスク完了</Badge>;
+  }
+
   const config = taskStatusConfig[status];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

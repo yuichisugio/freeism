@@ -6,7 +6,7 @@ import type { Auction, AuctionReview, AuctionStatus, BidStatus, ReviewPosition, 
 /**
  * フィルターの型
  * - "ended": オークション終了 (AuctionStatus.ENDED)
- * - "supplier_done": 提供の完了 (TaskStatus.SUPPLIER_DONE)
+ * - "supplier_done": 提供の完了 (TaskStatus.SUPPLIER_DONE or TaskStatus.TASK_COMPLETED)
  */
 export type AuctionCreatedTabFilter = "creator" | "executor" | "reporter" | "ended" | "active" | "pending" | "all" | "supplier_done";
 
