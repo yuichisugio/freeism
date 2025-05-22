@@ -57,9 +57,9 @@ export const queryCacheKeys = {
     historyBids: (userId: string, page: number, itemPerPage: number) =>
       [...queryCacheKeys.auction.history(), "bids", userId, page, itemPerPage] as const,
     historyBidsCount: (userId: string) => [...queryCacheKeys.auction.history(), "bidsCount", userId] as const,
-    historyWon: (userId: string, page: number, itemPerPage: number) =>
-      [...queryCacheKeys.auction.history(), "won", userId, page, itemPerPage] as const,
-    historyWonCount: (userId: string) => [...queryCacheKeys.auction.history(), "wonCount", userId] as const,
+    historyWon: (userId: string, page: number, itemPerPage: number, wonStatus: string) =>
+      [...queryCacheKeys.auction.history(), "won", userId, page, itemPerPage, wonStatus] as const,
+    historyWonCount: (userId: string, wonStatus: string) => [...queryCacheKeys.auction.history(), "wonCount", userId, wonStatus] as const,
     historyCreated: (userId: string, page: number, itemPerPage: number, filter: AuctionCreatedTabFilter[], filterCondition: FilterCondition) =>
       [...queryCacheKeys.auction.history(), "created", userId, page, itemPerPage, ...[...filter].sort(), filterCondition] as const,
     historyCreatedCount: (userId: string, filter: AuctionCreatedTabFilter[], filterCondition: FilterCondition) =>

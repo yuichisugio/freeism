@@ -163,7 +163,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
     filter,
     VALID_UI_FILTERS,
     filterCondition,
-
+    wonStatus,
     // function
     handleTabChange,
     handlePageChange,
@@ -174,6 +174,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
     handleFilterChange,
     handleClearFilters,
     handleFilterConditionChange,
+    setParams,
   } = useAuctionHistory();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -337,6 +338,41 @@ export const AuctionHistory = memo(function AuctionHistory() {
         </TabsContent>
 
         <TabsContent value="won" forceMount={activeTab === "won" ? undefined : true} hidden={activeTab !== "won"}>
+          <div className="mb-4 flex flex-wrap items-center gap-4">
+            <Label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                name="wonStatus"
+                value="all"
+                checked={wonStatus === "all"}
+                onChange={() => setParams((prev) => ({ ...prev, wonStatus: "all", page: 1 }))}
+                className="accent-blue-600"
+              />
+              すべて
+            </Label>
+            <Label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                name="wonStatus"
+                value="completed"
+                checked={wonStatus === "completed"}
+                onChange={() => setParams((prev) => ({ ...prev, wonStatus: "completed", page: 1 }))}
+                className="accent-blue-600"
+              />
+              報告タスク済み
+            </Label>
+            <Label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                name="wonStatus"
+                value="incomplete"
+                checked={wonStatus === "incomplete"}
+                onChange={() => setParams((prev) => ({ ...prev, wonStatus: "incomplete", page: 1 }))}
+                className="accent-blue-600"
+              />
+              報告タスク未完了
+            </Label>
+          </div>
           <HistoryGrid items={wonHistoryData} renderItem={renderWonItem} emptyMessage="落札履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
 
