@@ -79,6 +79,10 @@ const taskStatusConfig = {
     label: "アーカイブ",
     variant: "outline" as const,
   },
+  [TaskStatus.AUCTION_CANCELED]: {
+    label: "キャンセル",
+    variant: "destructive" as const,
+  },
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
