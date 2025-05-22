@@ -18,7 +18,7 @@ import { type z } from "zod";
 /**
  * グループを編集するフォームのデータ型
  */
-export type EditGroupFormData = z.infer<typeof createGroupSchema>;
+type EditGroupFormData = z.infer<typeof createGroupSchema>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -17,7 +17,7 @@ import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 /**
  * 共通入札処理の結果型
  */
-export type ExecuteBidReturn = {
+type ExecuteBidReturn = {
   success: boolean;
   message: string;
 };
@@ -40,7 +40,7 @@ export type ValidateAuctionResult = {
 /**
  * バリデーション用のオークションデータ型
  */
-export type AuctionValidationData = {
+type AuctionValidationData = {
   status: TaskStatus;
   currentHighestBid: number;
   currentHighestBidderId: string | null;

@@ -134,69 +134,6 @@ export const updateNotificationStatus = cache(async (updates: Array<{ notificati
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 全ての通知を既読にする関数
- * @returns 処理結果
- */
-export const markAllNotificationsAsRead = cache(async (): Promise<{ success: boolean }> => {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 認証済みユーザーのIDを取得
-     */
-    const userId = await getAuthenticatedSessionUserId();
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 共通のWHERE句を取得 (タスク条件は不要なので false を指定)
-     */
-    const whereClause = await buildCommonNotificationWhereClause(userId, false);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 全ての通知を一括で既読に設定
-     */
-    const readAt = new Date().toISOString();
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 全ての通知を一括で既読に設定
-     */
-    await prisma.$executeRaw`
-      UPDATE "Notification" n -- エイリアス n を追加
-      SET "is_read" =
-        COALESCE(n."is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
-      WHERE ${whereClause}
-    `;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * キャッシュを更新
-     */
-    revalidateTag("notification");
-    revalidatePath("/dashboard/notifications");
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 処理結果を返す
-     */
-    return { success: true };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("全通知既読マークエラー:", error);
-    return { success: false };
-  }
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 通知クエリの共通WHERE条件を生成する関数
  * @param userId ユーザーID
  * @param includeTaskCondition タスク条件を含めるかどうか (デフォルト: true)
@@ -253,7 +190,7 @@ export const getUserAccessibleGroupIds = cache(async (userId: string): Promise<s
  * @param groupIds グループIDの配列
  * @returns タスクIDの配列
  */
-export const getTaskIdsByGroupIds = cache(async (groupIds: string[]): Promise<string[]> => {
+const getTaskIdsByGroupIds = cache(async (groupIds: string[]): Promise<string[]> => {
   const taskList = await prisma.task.findMany({
     where: {
       groupId: { in: groupIds },
@@ -284,19 +221,6 @@ export const buildNotificationTargetCondition = cache(async (userId: string, gro
     (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
     ${taskCondition}
   )`;
-});
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 日付またはnullをISOString形式に変換する関数
- * @param date 日付オブジェクトか文字列かnull
- * @param defaultNow デフォルト値として現在時刻を使うかどうか
- * @returns ISO文字列またはnull
- */
-export const formatDateToISOString = cache(async (date: string | Date | null, defaultNow = false): Promise<string | null> => {
-  if (!date && !defaultNow) return null;
-  return date ? new Date(date).toISOString() : defaultNow ? new Date().toISOString() : null;
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

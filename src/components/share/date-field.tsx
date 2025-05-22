@@ -12,7 +12,7 @@ import { ja } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useController } from "react-hook-form";
 
-export type DateFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = {
+type DateFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = {
   control: Control<TFieldValues>;
   name: TName;
   label: string;

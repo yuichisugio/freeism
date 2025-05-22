@@ -1,17 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { isR2Enabled } from "@/lib/cloudflare/r2-client-config";
 import { getSignedUploadUrl } from "@/lib/cloudflare/upload";
 import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/lib/cloudflare/upload-constants";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Image as ImageIcon, Loader2, Trash2, Upload, X } from "lucide-react";
+import { Image as ImageIcon, Loader2, Trash2, Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
-import { Button } from "./button";
 import { Progress } from "./progress";
 
 // グローバルドロップエリアのアニメーション設定
@@ -240,7 +239,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
   // クライアントサイドで安全に環境変数チェック
   const isEnabled = isR2Enabled();
 
-  const { currentFile, previewUrl, isUploading, uploadProgress, handleFileSelected, handleUpload, handleRemoveImage } = useImageUpload({
+  const { previewUrl, isUploading, uploadProgress, handleFileSelected, handleUpload, handleRemoveImage } = useImageUpload({
     initialImageUrl,
     onImageUploaded,
     onImageRemoved,
@@ -285,7 +284,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
   );
 
   // ドロップゾーン設定
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       "image/jpeg": [".jpg", ".jpeg"],
       "image/jpg": [".jpg"],

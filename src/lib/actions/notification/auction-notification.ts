@@ -149,7 +149,7 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
  * @param eventType - オークションイベントタイプ
  * @returns {Date | null} 自動削除日時
  */
-export async function calculateExpiryDate(eventType: AuctionEventType): Promise<Date | null> {
+async function calculateExpiryDate(eventType: AuctionEventType): Promise<Date | null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 現在の日時を取得

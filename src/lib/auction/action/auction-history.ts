@@ -205,7 +205,7 @@ export async function getUserWonAuctionsCount(userId: string): Promise<number> {
 /**
  * 出品したオークション履歴の条件を設定
  */
-export async function getUserCreatedAuctionsWhereCondition(
+async function getUserCreatedAuctionsWhereCondition(
   userId: string,
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,

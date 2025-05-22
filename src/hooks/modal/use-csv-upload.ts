@@ -161,7 +161,7 @@ type TaskStatusData = {
  * 定数
  */
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-export const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
+const ACCEPTED_FILE_TYPES = { "text/csv": [".csv"] };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

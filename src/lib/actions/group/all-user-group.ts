@@ -65,7 +65,7 @@ export async function getAllUserGroupsAndCount({
  * ユーザーの参加しているグループ一覧を取得する関数
  * @returns ユーザーの参加しているグループ一覧
  */
-export async function getAllUserGroups(
+async function getAllUserGroups(
   page: number,
   sortField: string,
   sortDirection: string,

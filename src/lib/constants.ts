@@ -32,7 +32,7 @@ export const AUCTION_HISTORY_CONSTANTS = {
 /**
  * オークション表示関連の定数
  */
-export const AUCTION_DISPLAY = {
+const AUCTION_DISPLAY = {
   // 入札履歴の表示件数
   BID_HISTORY_LIMIT: 25,
   // 質問と回答の表示件数

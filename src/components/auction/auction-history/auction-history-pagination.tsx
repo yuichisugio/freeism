@@ -22,7 +22,7 @@ import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 /**
  * ページネーションのprops
  */
-export type ShareTablePaginationProps = {
+type ShareTablePaginationProps = {
   currentPage: number;
   onPageChange: (page: number) => void;
   totalRowCount: number;

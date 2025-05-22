@@ -1,6 +1,5 @@
 import { memo, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { File, X } from "lucide-react";
 
 export const SelectedFileCard = memo(({ name, fileSize, onRemove }: { name: string; fileSize: number; onRemove: () => void }) => {

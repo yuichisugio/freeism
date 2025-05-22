@@ -62,37 +62,6 @@ export async function getAuthenticatedSessionUserId(): Promise<string> {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * クライアントコンポーネント用のユーザーID取得関数
- * APIを経由して認証情報を取得する
- * @returns ユーザーID
- */
-export async function fetchAuthenticatedUserId(): Promise<string> {
-  try {
-    // セッション情報をAPIから取得
-    const response = await fetch("/api/auth/session");
-
-    if (!response.ok) {
-      throw new Error("セッション情報の取得に失敗しました");
-    }
-
-    const session = (await response.json()) as { user: { id: string } };
-
-    // セッション情報が取得できない場合はエラーを投げる
-    if (!session?.user?.id) {
-      throw new Error("utils.ts_fetchAuthenticatedUserId_ユーザーIDが取得できませんでした");
-    }
-
-    return session.user.id;
-  } catch (error) {
-    console.error("utils.ts_fetchAuthenticatedUserId_エラーが発生しました", error);
-    // クライアントコンポーネントではredirectではなくエラーを投げる
-    throw error;
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 金額を通貨形式にフォーマットする
  * @param amount 金額
  * @returns フォーマットされた金額文字列

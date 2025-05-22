@@ -50,7 +50,7 @@ export type Column<T> = {
 /**
  * EditTaskのためのProps型定義
  */
-export type EditTaskProps<T> = {
+type EditTaskProps<T> = {
   canEdit: (row: T) => boolean;
   onEdit: (row: T) => void;
   editingTaskId: string | null;
@@ -202,16 +202,6 @@ export type TaskParticipant = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * ユーザー情報の型
- */
-export type User = {
-  id: string;
-  name: string | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * GroupDetailTableのタスクの型
  */
 export type GroupDetailTask = {
@@ -292,16 +282,6 @@ export type MyTaskTable = {
   groupName: string;
   auctionId: string | null;
   group: { id: string; name: string };
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ユーザーの型
- */
-export type BasicUser = {
-  id: string;
-  name: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

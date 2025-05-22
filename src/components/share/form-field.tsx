@@ -381,6 +381,3 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
     />
   );
 }
-
-// 便宜上、別名も用意して移行をスムーズにする
-export const FormField = CustomFormField;

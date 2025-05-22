@@ -64,7 +64,7 @@ function prepareAccountData(userId: string, account: AuthAccount): Prisma.Accoun
  * - signIn: サインイン関数
  * - signOut: サインアウト関数
  */
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth } = NextAuth({
   // 認証プロバイダーの設定（Googleのみ）
   providers: [Google],
   // デバッグモードを有効にする（開発環境でのみ有効）

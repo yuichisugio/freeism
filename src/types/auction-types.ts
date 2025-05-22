@@ -1,5 +1,5 @@
 import type { AUCTION_CONSTANTS } from "@/lib/constants";
-import type { Auction, AuctionReview, BidStatus, ReviewPosition, TaskStatus, User } from "@prisma/client";
+import type { AuctionReview, BidStatus, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -267,27 +267,6 @@ export type CountdownState = {
   isUrgent: boolean;
   isCritical: boolean;
 };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションのレビューの型
- */
-export type AuctionReviewType = {
-  createdAt: string;
-  updatedAt: string;
-  auction: Auction;
-  reviewee: User;
-  reviewer: User;
-  reviewPosition: ReviewPosition;
-} & Omit<AuctionReview, "createdAt" | "updatedAt" | "auction" | "reviewee" | "reviewer">;
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションの有効なタブ
- */
-export type AuctionValidTab = "bids" | "won" | "created";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
