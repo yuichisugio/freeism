@@ -179,6 +179,17 @@ export type GroupMembership = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * グループメンバーの型定義
+ */
+export type GetGroupMembers = {
+  isGroupOwner: boolean;
+  userId: string;
+  appUserName: string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * グループメンバーの型定義（ユーザー情報を含む）
  */
 export type GroupMemberWithUser = GroupMembership & {

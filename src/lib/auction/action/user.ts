@@ -16,7 +16,9 @@ export async function getUserGroups() {
 
   return prisma.groupMembership.findMany({
     where: { userId },
-    include: { group: { select: { id: true, name: true } } },
+    select: {
+      group: { select: { id: true, name: true } },
+    },
   });
 }
 

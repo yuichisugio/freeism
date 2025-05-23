@@ -2,7 +2,7 @@
 
 import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
+import { checkAppOwner, checkOwner } from "@/lib/actions/group";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
@@ -740,7 +740,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
 
     // アプリオーナーとグループオーナーの確認
     const isAppOwner = await checkAppOwner(userId);
-    const isGroupOwner = await checkGroupOwner(userId, task.group.id);
+    const isGroupOwner = await checkOwner(userId, task.group.id);
 
     // いずれかの権限がある場合のみ変更可能
     if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
@@ -1197,7 +1197,7 @@ export async function bulkUpdateTaskStatuses(
         const isCreator = task.creator.id === userId;
         const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
         const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
-        const isGroupOwner = await checkGroupOwner(userId, task.group.id);
+        const isGroupOwner = await checkOwner(userId, task.group.id);
 
         // いずれかの権限がある場合のみ変更可能
         if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {

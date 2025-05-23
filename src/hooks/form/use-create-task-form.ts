@@ -371,7 +371,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
 
         if (result.success) {
           toast.success("タスクを保存しました");
-          router.push(result.task.groupId ? `/dashboard/group/${result.task.groupId}` : "/dashboard/my-tasks");
+          router.push(`/dashboard/group/${data.groupId}`);
           router.refresh();
         } else if (result.error) {
           toast.error(result.error);

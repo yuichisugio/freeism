@@ -29,7 +29,10 @@ async function returnAuctionDepositPoints(): Promise<number> {
           status: "AUCTION_ENDED",
         },
       },
-      include: {
+      select: {
+        id: true,
+        endTime: true,
+        taskId: true,
         group: {
           select: {
             id: true,

@@ -36,12 +36,16 @@ export async function prepareCreateTaskForm() {
    */
   let groups: { id: string; name: string }[] = [];
 
-  // ユーザーが参加しているグループを取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーが参加しているグループを取得
+   */
   const memberships = await prisma.groupMembership.findMany({
     where: {
       userId: userId,
     },
-    include: {
+    select: {
       group: {
         select: {
           id: true,
@@ -51,12 +55,17 @@ export async function prepareCreateTaskForm() {
     },
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを整形
+   */
   groups = memberships.map((membership) => ({
     id: membership.group.id,
     name: membership.group.name,
   }));
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループに所属するユーザー一覧を取得
@@ -72,7 +81,7 @@ export async function prepareCreateTaskForm() {
           in: allGroupIds,
         },
       },
-      include: {
+      select: {
         user: {
           select: {
             id: true,
@@ -111,29 +120,39 @@ export async function prepareCreateTaskForm() {
  */
 export async function createTask(data: CreateTaskParams) {
   try {
-    // groupIdの存在確認
-    if (!data.groupId) {
-      return { error: "グループIDが指定されていません" };
-    }
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループの存在確認
+    /**
+     * グループの存在確認
+     */
     const group = await prisma.group.findUnique({
       where: { id: data.groupId },
+      select: {
+        id: true,
+      },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループが見つからない場合はエラーを返す
+     */
     if (!group) {
       return { error: "指定されたグループが見つかりません" };
     }
 
-    // 認証セッションを取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 認証セッションを取得
+     */
     const userId = await getAuthenticatedSessionUserId();
 
-    // バリデーション
-    if (!data || !data.groupId) {
-      return { error: "必須項目が入力されていません" };
-    }
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // タスクを作成
+    /**
+     * タスクを作成
+     */
     const newTask = await prisma.task.create({
       data: {
         task: data.task,
@@ -142,12 +161,10 @@ export async function createTask(data: CreateTaskParams) {
         info: data.info,
         imageUrl: data.imageUrl,
         contributionType: data.contributionType,
-        category: data.category, // カテゴリを追加
+        category: data.category,
         creatorId: userId,
         groupId: data.groupId,
-        // 提供方法を追加
         deliveryMethod: data.deliveryMethod,
-        // 報告者の設定
         reporters: {
           create:
             data.reporters && data.reporters.length > 0
@@ -159,7 +176,6 @@ export async function createTask(data: CreateTaskParams) {
               : // 報告者が指定されていない場合、作成者を報告者として追加
                 [{ userId: userId }],
         },
-        // 実行者の設定
         executors: {
           create:
             data.executors && data.executors.length > 0
@@ -174,45 +190,32 @@ export async function createTask(data: CreateTaskParams) {
       },
     });
 
-    // 作成したタスクを関連データを含めて再取得
-    const taskWithRelations = await prisma.task.findUnique({
-      where: { id: newTask.id },
-      include: {
-        creator: {
-          select: {
-            name: true,
-          },
-        },
-        reporters: {
-          include: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-        executors: {
-          include: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 報酬タイプがREWARDの場合はオークションを作成
+    /**
+     * 報酬タイプがREWARDの場合はオークションを作成
+     */
     if (data.contributionType === contributionType.REWARD) {
-      // デフォルトの日時を設定
-      const startTime = data.auctionStartTime ?? new Date();
-      const endTime = data.auctionEndTime ?? new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // デフォルトは1週間後
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // isExtensionの値を適切に変換
+      /**
+       * デフォルトの日時を設定
+       */
+      const startTime = data.auctionStartTime ?? new Date();
+      const endTime = data.auctionEndTime ?? new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * isExtensionの値を適切に変換
+       */
       const isExtension = typeof data.isExtension === "string" ? data.isExtension === "true" : Boolean(data.isExtension);
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークションを作成
+       */
       await prisma.auction.create({
         data: {
           taskId: newTask.id,
@@ -224,15 +227,30 @@ export async function createTask(data: CreateTaskParams) {
           extensionTime: 10,
           remainingTimeForExtension: 10,
           groupId: data.groupId,
-          // isExtensionフィールドを追加
           isExtension,
         },
       });
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パスを再検証
+     */
     revalidatePath(`/dashboard/group/${data.groupId}`);
-    return { success: true, task: taskWithRelations ?? newTask };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 成功を返却
+     */
+    return { success: true };
   } catch (error) {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラーを返却
+     */
     console.error("[CREATE_TASK]", error);
     return { error: "タスクの作成中にエラーが発生しました" };
   }

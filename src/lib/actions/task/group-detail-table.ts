@@ -94,7 +94,17 @@ export async function getGroupTaskAndCount({
       orderBy,
       skip: (page - 1) * itemPerPage,
       take: itemPerPage,
-      include: {
+      select: {
+        // Task テーブルから必要なフィールドのみ選択
+        id: true,
+        task: true,
+        detail: true,
+        status: true,
+        contributionType: true,
+        fixedContributionPoint: true,
+        fixedEvaluationLogic: true,
+        createdAt: true,
+        // 関連データも select で必要な部分のみ取得
         auction: {
           select: {
             id: true,
@@ -155,13 +165,13 @@ export async function getGroupTaskAndCount({
             maxParticipants: true,
             goal: true,
             evaluationMethod: true,
+            depositPeriod: true,
             members: {
               select: {
                 id: true,
                 userId: true,
               },
             },
-            depositPeriod: true,
           },
         },
       },

@@ -1,9 +1,9 @@
 "use client";
 
-import type { Group, GroupMemberWithUser } from "@/types/group-types";
+import type { Group } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { deleteGroup, getGroupMembers, joinGroup, removeMember } from "@/lib/actions/group";
+import { deleteGroup, joinGroup, removeMember } from "@/lib/actions/group";
 import { getGroupById } from "@/lib/actions/group/grop-detail";
 import { leaveGroup } from "@/lib/actions/group/my-group";
 import { queryCacheKeys } from "@/lib/tanstack-query";
@@ -23,7 +23,6 @@ type UseGroupDetailReturn = {
   deleteDialogOpen: boolean;
   leaveDialogOpen: boolean;
   editDialogOpen: boolean;
-  groupMembers: GroupMemberWithUser[];
   removeMemberDialogOpen: boolean;
   selectedMemberForRemoval: string | null;
   selectedMemberNameForRemoval: string | null;
@@ -34,7 +33,6 @@ type UseGroupDetailReturn = {
   isJoiningGroup: boolean;
   isLeavingGroup: boolean;
   isDeletingGroup: boolean;
-  isFetchingMembersForRemoval: boolean;
   isRemovingMember: boolean;
 
   // action dialog setters
@@ -102,8 +100,6 @@ export function useGroupManipulation({
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   // 編集ダイアログ
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  // グループメンバー一覧（除名ダイアログ用）
-  const [groupMembers, setGroupMembers] = useState<GroupMemberWithUser[]>([]);
   // メンバー除名ダイアログ
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
   // メンバー除名ダイアログで選択されたユーザーID
@@ -114,8 +110,6 @@ export function useGroupManipulation({
   const [isRemovalComboboxOpen, setIsRemovalComboboxOpen] = useState(false);
   // メンバー除名ダイアログで選択されたユーザーをブラックリストに追加するかどうか
   const [addToBlackList, setAddToBlackList] = useState(false);
-  // メンバー情報取得中（除名用）
-  const [isFetchingMembersForRemoval, setIsFetchingMembersForRemoval] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -313,20 +307,8 @@ export function useGroupManipulation({
       toast.error("権限がありません");
       return;
     }
-
-    setIsFetchingMembersForRemoval(true);
-    try {
-      const members = await getGroupMembers(groupId);
-      // グループメンバー一覧を設定（オーナー以外のメンバーのみ）
-      setGroupMembers(members.filter((member) => !member.isGroupOwner));
-      setRemoveMemberDialogOpen(true);
-    } catch (error) {
-      console.error(error);
-      toast.error("メンバー情報の取得に失敗しました");
-    } finally {
-      setIsFetchingMembersForRemoval(false);
-    }
-  }, [groupId, isGroupOwner, isAppOwner]);
+    setRemoveMemberDialogOpen(true);
+  }, [isGroupOwner, isAppOwner]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -389,7 +371,6 @@ export function useGroupManipulation({
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
-    groupMembers,
     removeMemberDialogOpen,
     selectedMemberForRemoval,
     selectedMemberNameForRemoval,
@@ -400,7 +381,6 @@ export function useGroupManipulation({
     isJoiningGroup,
     isLeavingGroup,
     isDeletingGroup,
-    isFetchingMembersForRemoval,
     isRemovingMember,
 
     // action dialog setters

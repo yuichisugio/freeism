@@ -20,12 +20,24 @@ type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" |
  * タスク（オークション付き）の関連データを含む型
  */
 type TaskWithRelations = Prisma.TaskGetPayload<{
-  include: {
+  select: {
+    id: true;
+    task: true;
+    groupId: true;
     auction: {
-      include: {
+      select: {
+        id: true;
         bidHistories: {
-          include: {
-            user: true;
+          select: {
+            id: true;
+            amount: true;
+            status: true;
+            userId: true;
+            user: {
+              select: {
+                id: true;
+              };
+            };
           };
           orderBy: {
             amount: "desc";
@@ -33,7 +45,11 @@ type TaskWithRelations = Prisma.TaskGetPayload<{
         };
       };
     };
-    group: true;
+    group: {
+      select: {
+        id: true;
+      };
+    };
   };
 }>;
 
@@ -70,12 +86,24 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        task: true,
+        groupId: true,
         auction: {
-          include: {
+          select: {
+            id: true,
             bidHistories: {
-              include: {
-                user: true,
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                userId: true,
+                user: {
+                  select: {
+                    id: true,
+                  },
+                },
               },
               orderBy: {
                 amount: "desc",
@@ -83,7 +111,11 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
             },
           },
         },
-        group: true,
+        group: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -274,16 +306,34 @@ async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelati
       // 更新されたオークションを再取得
       const updatedTask = await tx.task.findUnique({
         where: { id: task.id },
-        include: {
+        select: {
+          id: true,
+          task: true,
+          groupId: true,
           auction: {
-            include: {
+            select: {
+              id: true,
               bidHistories: {
-                include: { user: true },
+                select: {
+                  id: true,
+                  amount: true,
+                  status: true,
+                  userId: true,
+                  user: {
+                    select: {
+                      id: true,
+                    },
+                  },
+                },
                 orderBy: { amount: "desc" },
               },
             },
           },
-          group: true,
+          group: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
@@ -292,7 +342,7 @@ async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelati
       /**
        * 残りの入札で再処理
        */
-      if (updatedTask && updatedTask.auction) {
+      if (updatedTask?.auction) {
         // 残りの入札で再処理
         const taskWithRemainingBids = {
           ...updatedTask,

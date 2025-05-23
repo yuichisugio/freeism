@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/lib/actions/evaluation";
-import { checkAppOwner, checkGroupOwner } from "@/lib/actions/group";
+import { checkAppOwner, checkOwner } from "@/lib/actions/group";
 import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/lib/actions/task/task";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
@@ -371,7 +371,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
         }
 
         const userId = session.data.user.id;
-        const [appOwnerResult, groupOwnerResult] = await Promise.all([checkAppOwner(userId), checkGroupOwner(userId, groupId)]);
+        const [appOwnerResult, groupOwnerResult] = await Promise.all([checkAppOwner(userId), checkOwner(userId, groupId)]);
 
         setIsAppOwner(!!appOwnerResult);
         setIsGroupOwner(!!groupOwnerResult);

@@ -1,9 +1,9 @@
 "use client";
 
-import type { GroupMemberWithUser } from "@/types/group-types";
+import type { GetGroupMembers } from "@/types/group-types";
 import { useCallback, useState } from "react";
 import { redirect } from "next/navigation";
-import { checkAppOwner, checkGroupOwner, getGroupMembers, grantOwnerPermission } from "@/lib/actions/group";
+import { checkAppOwner, checkOwner, getGroupMembers, grantOwnerPermission } from "@/lib/actions/group";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -27,7 +27,7 @@ type UseGroupPermissionReturn = {
   // state
   isAppOwner: boolean;
   isGroupOwner: boolean;
-  groupMembers: GroupMemberWithUser[];
+  groupMembers: GetGroupMembers[];
   showPermissionDialog: boolean;
   addToBlackList: boolean;
   selectedUserId: string | null;
@@ -122,7 +122,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
    */
   const { data: isGroupOwner = false, isLoading: isLoadingGroupOwner } = useQuery({
     queryKey: queryCacheKeys.permission.groupOwner(groupId, userId),
-    queryFn: async () => await checkGroupOwner(userId, groupId),
+    queryFn: async () => await checkOwner(userId, groupId),
     enabled: !!userId && !!groupId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
   });
@@ -132,7 +132,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   /**
    * グループメンバーの取得
    */
-  const { data: groupMembers = [], refetch: refetchGroupMembers } = useQuery<GroupMemberWithUser[], Error>({
+  const { data: groupMembers = [], refetch: refetchGroupMembers } = useQuery<GetGroupMembers[], Error>({
     queryKey: queryCacheKeys.permission.members(groupId),
     queryFn: async () => await getGroupMembers(groupId),
     enabled: false,

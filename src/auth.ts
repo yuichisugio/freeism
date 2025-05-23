@@ -110,7 +110,17 @@ export const { handlers, auth } = NextAuth({
                   providerAccountId: account.providerAccountId,
                 },
               },
-              include: { user: true },
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
             });
 
             // 2. 既存アカウントがある場合（既存ユーザー）
@@ -148,7 +158,14 @@ export const { handlers, auth } = NextAuth({
             }
 
             // 3. メールアドレスで既存ユーザーを検索（同じメールの別アカウントの場合）
-            const existingUserByEmail = user.email ? await tx.user.findUnique({ where: { email: user.email } }) : null;
+            const existingUserByEmail = user.email
+              ? await tx.user.findUnique({
+                  where: { email: user.email },
+                  select: {
+                    id: true,
+                  },
+                })
+              : null;
 
             // 4A. メールアドレスで見つかった場合は、新しいアカウントを既存ユーザーに紐づける
             if (existingUserByEmail) {
@@ -197,7 +214,16 @@ export const { handlers, auth } = NextAuth({
                 providerAccountId: account.providerAccountId,
               },
             },
-            include: { user: true },
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
           });
 
           if (dbAccount) {
@@ -210,6 +236,12 @@ export const { handlers, auth } = NextAuth({
             // 最悪、ユーザーのメールアドレスでデータベースからユーザー情報を取得
             const dbUser = await prisma.user.findUnique({
               where: { email: user.email! },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                image: true,
+              },
             });
 
             if (dbUser) {

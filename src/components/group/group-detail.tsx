@@ -1,6 +1,6 @@
 "use client";
 
-import type { GroupMemberWithUser } from "@/types/group-types";
+import type { GetGroupMembers } from "@/types/group-types";
 import { memo, useEffect, useState } from "react";
 import { EditGroupForm } from "@/components/form/edit-group-form";
 import { GroupDetailTable } from "@/components/group/group-detail-table";
@@ -125,7 +125,6 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     deleteDialogOpen,
     leaveDialogOpen,
     editDialogOpen,
-    groupMembers: manipGroupMembers, // 別名
     removeMemberDialogOpen,
     selectedMemberForRemoval,
     selectedMemberNameForRemoval,
@@ -137,7 +136,6 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     isJoiningGroup,
     isLeavingGroup,
     isDeletingGroup,
-    isFetchingMembersForRemoval,
     isRemovingMember,
 
     // actions
@@ -256,13 +254,8 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                   権限を付与
                 </Button>
 
-                <Button
-                  variant="outline"
-                  className="bg-white hover:bg-gray-50"
-                  onClick={handleOpenRemoveMemberDialog}
-                  disabled={isFetchingMembersForRemoval}
-                >
-                  {isFetchingMembersForRemoval ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserMinus />}
+                <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenRemoveMemberDialog} disabled={isRemovingMember}>
+                  {isRemovingMember ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserMinus />}
                   メンバーを除名
                 </Button>
 
@@ -339,19 +332,19 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                         <CommandEmpty>ユーザーが見つかりません</CommandEmpty>
                         <CommandGroup>
                           {groupMembers
-                            .filter((member: GroupMemberWithUser) => !member.isGroupOwner)
-                            .map((member: GroupMemberWithUser) => (
+                            .filter((member: GetGroupMembers) => !member.isGroupOwner)
+                            .map((member: GetGroupMembers) => (
                               <CommandItem
-                                key={member.user.id}
-                                value={member.user.name ?? ""}
+                                key={member.userId}
+                                value={member.appUserName}
                                 onSelect={() => {
-                                  setSelectedUserId(member.user.id);
-                                  setSelectedUserName(member.user.name);
+                                  setSelectedUserId(member.userId);
+                                  setSelectedUserName(member.appUserName);
                                   setIsComboboxOpen(false);
                                 }}
                               >
-                                <Check className={`mr-2 h-4 w-4 ${selectedUserId === member.user.id ? "opacity-100" : "opacity-0"}`} />
-                                {member.user.name ?? "No Name"}
+                                <Check className={`mr-2 h-4 w-4 ${selectedUserId === member.userId ? "opacity-100" : "opacity-0"}`} />
+                                {member.appUserName}
                               </CommandItem>
                             ))}
                         </CommandGroup>
@@ -422,20 +415,22 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                       <CommandList>
                         <CommandEmpty>メンバーが見つかりません</CommandEmpty>
                         <CommandGroup>
-                          {manipGroupMembers.map((member: GroupMemberWithUser) => (
-                            <CommandItem
-                              key={member.user.id}
-                              value={member.user.name ?? ""}
-                              onSelect={() => {
-                                setSelectedMemberForRemoval(member.user.id);
-                                setSelectedMemberNameForRemoval(member.user.name);
-                                setIsRemovalComboboxOpen(false);
-                              }}
-                            >
-                              <Check className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.user.id ? "opacity-100" : "opacity-0"}`} />
-                              {member.user.name ?? "No Name"}
-                            </CommandItem>
-                          ))}
+                          {groupMembers
+                            .filter((member: GetGroupMembers) => !member.isGroupOwner)
+                            .map((member: GetGroupMembers) => (
+                              <CommandItem
+                                key={member.userId}
+                                value={member.appUserName}
+                                onSelect={() => {
+                                  setSelectedMemberForRemoval(member.userId);
+                                  setSelectedMemberNameForRemoval(member.appUserName);
+                                  setIsRemovalComboboxOpen(false);
+                                }}
+                              >
+                                <Check className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.userId ? "opacity-100" : "opacity-0"}`} />
+                                {member.appUserName}
+                              </CommandItem>
+                            ))}
                         </CommandGroup>
                       </CommandList>
                     </Command>

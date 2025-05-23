@@ -1,7 +1,7 @@
 "use server";
 
 import type { CreateGroupFormData } from "@/components/form/create-group-form";
-import type { GroupMemberWithUser } from "@/types/group-types";
+import type { GetGroupMembers } from "@/types/group-types";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -315,19 +315,34 @@ export async function checkGroupMembership(userId: string, groupId: string) {
  * @param groupId - チェックするグループのID
  * @returns グループオーナーの場合はtrue、それ以外はfalse
  */
-export async function checkGroupOwner(userId: string, groupId: string) {
+export async function checkOwner(userId: string, groupId: string) {
   try {
-    //Appオーナー権限があるかチェック
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * Appオーナー権限があるかチェック
+     */
     const appOwner = await prisma.user.findFirst({
       where: {
         id: userId,
         isAppOwner: true,
       },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * Appオーナー権限がある場合はtrueを返す
+     */
     if (appOwner) {
       return true;
     }
-    //Groupオーナー権限があるかチェック
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * Groupオーナー権限があるかチェック
+     */
     const membership = await prisma.groupMembership.findFirst({
       where: {
         userId,
@@ -335,6 +350,12 @@ export async function checkGroupOwner(userId: string, groupId: string) {
         isGroupOwner: true,
       },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * Groupオーナー権限がある場合はtrueを返す
+     */
     return !!membership;
   } catch (error) {
     console.error("[CHECK_GROUP_OWNER]", error);
@@ -353,7 +374,7 @@ export async function checkGroupOwner(userId: string, groupId: string) {
 export async function grantOwnerPermission(groupId: string, userId: string) {
   try {
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkGroupOwner(userId, groupId);
+    const isOwner = await checkOwner(userId, groupId);
     if (!isOwner) {
       return { error: "グループオーナー権限がありません" };
     }
@@ -394,18 +415,18 @@ export async function grantOwnerPermission(groupId: string, userId: string) {
  * @param groupId - 取得するグループのID
  * @returns グループメンバーの配列
  */
-export async function getGroupMembers(groupId: string): Promise<GroupMemberWithUser[]> {
+export async function getGroupMembers(groupId: string): Promise<GetGroupMembers[]> {
   try {
     const members = await prisma.groupMembership.findMany({
       where: {
         groupId,
       },
-      include: {
+      select: {
+        isGroupOwner: true,
         user: {
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
       },
@@ -414,7 +435,13 @@ export async function getGroupMembers(groupId: string): Promise<GroupMemberWithU
       },
     });
 
-    return members;
+    const returnMembers: GetGroupMembers[] = members.map((member) => ({
+      isGroupOwner: member.isGroupOwner,
+      userId: member.user.id,
+      appUserName: member.user.name ?? "未設定",
+    }));
+
+    return returnMembers;
   } catch (error) {
     console.error("[GET_GROUP_MEMBERS]", error);
     throw error;
@@ -436,7 +463,7 @@ export async function removeMember(groupId: string, userId: string, addToBlackLi
     const currentUserId = await getAuthenticatedSessionUserId();
 
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkGroupOwner(currentUserId, groupId);
+    const isOwner = await checkOwner(currentUserId, groupId);
     if (!isOwner) {
       return { error: "グループメンバーを削除する権限がありません" };
     }
