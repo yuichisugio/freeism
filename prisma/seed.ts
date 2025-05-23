@@ -300,8 +300,8 @@ type SeedAuction = {
   isExtension: boolean;
   extensionTotalCount: number;
   extensionLimitCount: number;
-  extensionTotalTime: number;
-  extensionLimitTime: number;
+  extensionTime: number;
+  remainingTimeForExtension: number;
   createdAt: Date;
   updatedAt: Date;
   groupId: string; // 追加
@@ -1227,13 +1227,13 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
     // オークション延長設定を生成
     const isExtension = faker.datatype.boolean(SEED_CONFIG.AUCTION_EXTENSION_PROBABILITY);
     let extensionTotalCount = 0;
-    let extensionTotalTime = 0;
+    let extensionTime = 0;
 
     // 延長制限回数と時間を設定（延長機能が有効な場合のみ有意味な値、無効でもデフォルト値を設定）
     const extensionLimitCount = isExtension
       ? faker.number.int({ min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MIN, max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MAX })
       : 3; // デフォルト値
-    const extensionLimitTime = isExtension
+    const extensionTimeLimit = isExtension
       ? faker.number.int({ min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MIN, max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MAX })
       : 10; // デフォルト値
 
@@ -1244,7 +1244,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
         // 実際に延長が発生した回数（制限回数以下）
         extensionTotalCount = faker.number.int({ min: 1, max: extensionLimitCount });
         // 延長総時間は「延長回数 × 延長単位時間」
-        extensionTotalTime = extensionTotalCount * extensionLimitTime;
+        extensionTime = extensionTotalCount * extensionTimeLimit;
       }
     }
 
@@ -1260,8 +1260,8 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       isExtension,
       extensionTotalCount,
       extensionLimitCount,
-      extensionTotalTime,
-      extensionLimitTime,
+      extensionTime,
+      remainingTimeForExtension: extensionTimeLimit,
     };
 
     const auction = await prisma.auction.create({
@@ -1281,8 +1281,8 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       isExtension,
       extensionTotalCount,
       extensionLimitCount,
-      extensionTotalTime,
-      extensionLimitTime,
+      extensionTime,
+      remainingTimeForExtension: extensionTimeLimit,
       createdAt: auction.createdAt,
       updatedAt: auction.updatedAt,
       groupId: task.groupId,
@@ -1772,6 +1772,8 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
     })[] = relatedAuctions.map((a) => ({
       ...a,
       status: a.task?.status ?? TaskStatus.PENDING, // task.statusをSeedAuction.statusに流用
+      extensionTime: a.extensionTime ?? 10, // デフォルト値を設定
+      remainingTimeForExtension: a.remainingTimeForExtension ?? 10, // デフォルト値を設定
       task: a.task,
       bidHistories: a.bidHistories,
     }));
@@ -1789,6 +1791,8 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           ...otherAuctionsData.map((a) => ({
             ...a,
             status: a.task?.status ?? TaskStatus.PENDING,
+            extensionTime: a.extensionTime ?? 10, // デフォルト値を設定
+            remainingTimeForExtension: a.remainingTimeForExtension ?? 10, // デフォルト値を設定
             task: a.task,
             bidHistories: a.bidHistories,
           })),

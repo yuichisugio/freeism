@@ -199,8 +199,8 @@ export type UpdateAuctionWithDetails = {
   status: TaskStatus;
   extensionTotalCount: number;
   extensionLimitCount: number;
-  extensionTotalTime: number;
-  extensionLimitTime: number;
+  extensionTime: number;
+  remainingTimeForExtension: number;
   bidHistories: {
     id: string;
     amount: number;

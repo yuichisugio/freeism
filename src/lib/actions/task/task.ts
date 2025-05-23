@@ -575,8 +575,8 @@ export async function bulkCreateTasks(
                 currentHighestBid: 0,
                 extensionTotalCount: 0,
                 extensionLimitCount: 3,
-                extensionTotalTime: 0,
-                extensionLimitTime: 10,
+                extensionTime: 10,
+                remainingTimeForExtension: 10,
                 groupId: groupId,
               },
             });

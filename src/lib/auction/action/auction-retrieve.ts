@@ -35,8 +35,8 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
       status: updatedAuctionRaw.task.status, // TaskStatusで統一
       extensionTotalCount: updatedAuctionRaw.extensionTotalCount,
       extensionLimitCount: updatedAuctionRaw.extensionLimitCount,
-      extensionTotalTime: updatedAuctionRaw.extensionTotalTime,
-      extensionLimitTime: updatedAuctionRaw.extensionLimitTime,
+      extensionTime: updatedAuctionRaw.extensionTime,
+      remainingTimeForExtension: updatedAuctionRaw.remainingTimeForExtension,
       bidHistories: updatedAuctionRaw.bidHistories.map((bid) => {
         return bid as unknown as {
           id: string;

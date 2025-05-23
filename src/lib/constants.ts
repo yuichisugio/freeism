@@ -53,8 +53,8 @@ export function getAuctionUpdateSelect(take: number): Prisma.AuctionSelect {
     currentHighestBidderId: true,
     extensionTotalCount: true,
     extensionLimitCount: true,
-    extensionTotalTime: true,
-    extensionLimitTime: true,
+    extensionTime: true,
+    remainingTimeForExtension: true,
     // Auctionに紐づくTaskのstatusを取得
     task: {
       select: {

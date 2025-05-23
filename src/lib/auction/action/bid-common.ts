@@ -45,6 +45,7 @@ type AuctionValidationData = {
   currentHighestBid: number;
   currentHighestBidderId: string | null;
   endTime: Date;
+  startTime: Date;
   taskId: string;
   task: {
     creator: {
@@ -62,6 +63,12 @@ type AuctionValidationData = {
     };
   }> | null;
   version: number | null;
+  // 延長関連フィールド
+  isExtension: boolean;
+  extensionTotalCount: number;
+  extensionLimitCount: number;
+  extensionTime: number;
+  remainingTimeForExtension: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -113,8 +120,14 @@ export async function validateAuction(
         where: { id: auctionId },
         select: {
           endTime: true,
+          startTime: true,
           currentHighestBid: true,
           currentHighestBidderId: true,
+          isExtension: true,
+          extensionTotalCount: true,
+          extensionLimitCount: true,
+          extensionTime: true,
+          remainingTimeForExtension: true,
           task: {
             select: {
               task: true,
@@ -137,9 +150,15 @@ export async function validateAuction(
           currentHighestBid: result.currentHighestBid,
           currentHighestBidderId: result.currentHighestBidderId,
           endTime: result.endTime,
+          startTime: result.startTime,
           taskId: result.task.creator.id,
           bidHistories: null,
           version: null,
+          isExtension: result.isExtension,
+          extensionTotalCount: result.extensionTotalCount,
+          extensionLimitCount: result.extensionLimitCount,
+          extensionTime: result.extensionTime,
+          remainingTimeForExtension: result.remainingTimeForExtension,
           task: {
             ...result.task,
           },
@@ -153,7 +172,13 @@ export async function validateAuction(
           currentHighestBid: true,
           currentHighestBidderId: true,
           endTime: true,
+          startTime: true,
           taskId: true,
+          isExtension: true,
+          extensionTotalCount: true,
+          extensionLimitCount: true,
+          extensionTime: true,
+          remainingTimeForExtension: true,
           task: {
             select: {
               creator: {
@@ -178,9 +203,15 @@ export async function validateAuction(
           currentHighestBid: result.currentHighestBid,
           currentHighestBidderId: result.currentHighestBidderId,
           endTime: result.endTime,
+          startTime: result.startTime,
           taskId: result.taskId,
           bidHistories: null,
           version: null,
+          isExtension: result.isExtension,
+          extensionTotalCount: result.extensionTotalCount,
+          extensionLimitCount: result.extensionLimitCount,
+          extensionTime: result.extensionTime,
+          remainingTimeForExtension: result.remainingTimeForExtension,
           task: {
             ...result.task,
           },
@@ -346,7 +377,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 入札履歴を作成
+      /**
+       * 入札履歴を作成
+       */
       await tx.bidHistory.create({
         data: {
           auctionId,
@@ -359,7 +392,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // オークション情報を更新（楽観的ロックを使用）
+      /**
+       * オークション情報を更新（楽観的ロックを使用）
+       */
       const updatedAuctionVersion = await tx.auction.update({
         where: {
           id: auctionId,
@@ -382,7 +417,24 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 更新後の最新情報を取得
+      /**
+       * オークション延長処理を実行
+       */
+      const extensionResult = await processAuctionExtension({
+        auctionId,
+        auction: validation.auction!,
+        tx,
+      });
+
+      if (extensionResult.extended) {
+        console.log("オークションが延長されました:", extensionResult.message);
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 更新後の最新情報を取得
+       */
       const updatedAuctionRaw = await tx.auction.findUnique({
         where: { id: auctionId },
         select: getAuctionUpdateSelect(1),
@@ -411,8 +463,8 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         status: updatedAuctionRaw.task.status,
         extensionTotalCount: updatedAuctionRaw.extensionTotalCount,
         extensionLimitCount: updatedAuctionRaw.extensionLimitCount,
-        extensionTotalTime: updatedAuctionRaw.extensionTotalTime,
-        extensionLimitTime: updatedAuctionRaw.extensionLimitTime,
+        extensionTime: updatedAuctionRaw.extensionTime,
+        remainingTimeForExtension: updatedAuctionRaw.remainingTimeForExtension,
         bidHistories: (updatedAuctionRaw.bidHistories as unknown as BidHistorySelect[]).map((history) => ({
           id: history.id,
           amount: history.amount,
@@ -424,7 +476,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 楽観的ロックのためのバージョン取得
+      /**
+       * 楽観的ロックのためのバージョン取得
+       */
       const auctionWithEndVersion = await tx.auction.findUnique({
         where: { id: auctionId },
         select: { version: true },
@@ -465,7 +519,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         });
       }
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * SSEでリアルタイム更新を通知。
@@ -483,7 +537,10 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 手動入札（自動入札でない場合）の場合、他の自動入札者のための自動入札処理を実行
+    /**
+     * 自動入札処理を実行
+     * 手動入札（自動入札でない場合）の場合
+     */
     if (!isAutoBid) {
       try {
         // 動的インポートを使用して循環依存を回避
@@ -507,6 +564,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 入札処理の結果を返す
+     */
     return {
       success: true,
       message: isAutoBid ? `${amount}ポイントで自動入札しました` : "入札が完了しました",
@@ -523,3 +583,130 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション延長処理のパラメータ型
+ */
+type ProcessAuctionExtensionParams = {
+  auctionId: string;
+  auction: AuctionValidationData;
+  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]; // Prismaトランザクション型
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション延長処理の結果型
+ */
+type ProcessAuctionExtensionResult = {
+  extended: boolean;
+  newEndTime?: Date;
+  message: string;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション延長処理を行う関数
+ * @param params 延長処理のパラメータ
+ * @returns 延長処理の結果
+ */
+async function processAuctionExtension(params: ProcessAuctionExtensionParams): Promise<ProcessAuctionExtensionResult> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  const { auctionId, auction, tx } = params;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  try {
+    /**
+     * 延長条件チェック：isExtensionがtrueのオークションのみ延長
+     */
+    if (!auction.isExtension) {
+      return {
+        extended: false,
+        message: "延長設定されていないオークションです",
+      };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 延長回数の制限チェック
+     */
+    // 延長回数の制限チェック
+    if (auction.extensionTotalCount >= auction.extensionLimitCount) {
+      return {
+        extended: false,
+        message: "延長回数の上限に達しています",
+      };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 延長トリガーの条件チェック
+     */
+    // 現在時刻を取得
+    const now = new Date();
+    const endTime = auction.endTime;
+    const startTime = auction.startTime;
+
+    // 残り時間を計算（ミリ秒）
+    const remainingTime = endTime.getTime() - now.getTime();
+
+    // オークション期間全体の時間を計算（ミリ秒）
+    const totalAuctionTime = endTime.getTime() - startTime.getTime();
+
+    // 延長トリガーの時間を計算
+    // 「endTimeとstartTimeの差分の5%の時間」or「extensionTime分」のどちらか長い時間
+    const fivePercentTime = totalAuctionTime * 0.05;
+    const extensionTimeMs = auction.extensionTime * 60 * 1000; // 分をミリ秒に変換
+    const triggerTime = Math.max(fivePercentTime, extensionTimeMs);
+
+    // 延長トリガーの条件チェック：残り時間が指定の条件以下の場合
+    if (remainingTime > triggerTime) {
+      return {
+        extended: false,
+        message: "延長トリガーの条件を満たしていません",
+      };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 延長時間を計算
+     */
+    // 「endTimeとstartTimeの差分の5%」or「extensionTime分」のどちらか長い時間
+    const extensionDuration = Math.max(fivePercentTime, extensionTimeMs);
+
+    // 新しい終了時間を計算
+    const newEndTime = new Date(endTime.getTime() + extensionDuration);
+
+    // オークション情報を更新（endTimeを延長し、extensionTotalCountを1増加）
+    await tx.auction.update({
+      where: { id: auctionId },
+      data: {
+        endTime: newEndTime,
+        extensionTotalCount: { increment: 1 },
+      },
+    });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    return {
+      extended: true,
+      newEndTime,
+      message: `オークションが${Math.round(extensionDuration / (60 * 1000))}分延長されました`,
+    };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  } catch (error) {
+    console.error("オークション延長処理でエラーが発生しました:", error);
+    return {
+      extended: false,
+      message: "延長処理中にエラーが発生しました",
+    };
+  }
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -38,8 +38,8 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
         currentHighestBidderId: true,
         extensionTotalCount: true,
         extensionLimitCount: true,
-        extensionTotalTime: true,
-        extensionLimitTime: true,
+        extensionTime: true,
+        remainingTimeForExtension: true,
         bidHistories: {
           select: {
             id: true,

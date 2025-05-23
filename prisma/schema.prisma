@@ -325,9 +325,9 @@ model Auction {
 
   isExtension         Boolean @default(false) @map("is_extension") // オークション延長をするかどうかのフラグ
   extensionTotalCount Int     @default(0) @map("extension_total_count")
-  extensionLimitCount Int     @default(3) @map("extension_limit_count")
-  extensionTotalTime  Int     @default(0) @map("extension_total_time")
-  extensionLimitTime  Int     @default(10) @map("extension_limit_time")
+  extensionLimitCount Int     @default(2) @map("extension_limit_count")
+  extensionTime  Int     @default(10) @map("extension_time")
+  remainingTimeForExtension  Int     @default(10) @map("remaining_time_for_extension")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
