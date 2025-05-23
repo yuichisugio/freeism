@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AuctionQA } from "@/components/auction/common/auction-qa";
+import { Error } from "@/components/share/error";
 import { Loading } from "@/components/share/loading";
 import {
   AlertDialog,
@@ -51,6 +52,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
     isUpdatingDelivery,
     isCompleting,
     tab,
+    error,
 
     // functions
     handleComplete,
@@ -67,7 +69,6 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
    * ローディング中
    */
   if (isLoading) {
-    console.log("src/components/auction/auction-history/created-detail.tsx_isLoading", isLoading);
     return <Loading />;
   }
 
@@ -77,8 +78,16 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
    * 出品商品が見つからない
    */
   if (!auction) {
-    console.log("src/components/auction/auction-history/created-detail.tsx_auction", auction);
     notFound();
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品商品詳細画面
+   */
+  if (error) {
+    return <Error error={error} previousPageURL="/dashboard/auction/history?tab=created" />;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

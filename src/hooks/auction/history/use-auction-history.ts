@@ -261,19 +261,19 @@ export function useAuctionHistory() {
       if (value === "won") {
         // wonタブ: wonStatus以外の出品用パラメータを消す
         void setParams((prev) => {
-          const { filter, condition, ...rest } = prev;
+          const { ...rest } = prev;
           return { ...rest, tab: value, page: 1, wonStatus: "all", filter: null, condition: null };
         });
       } else if (value === "created") {
         // createdタブ: wonStatusを消す
         void setParams((prev) => {
-          const { wonStatus, ...rest } = prev;
+          const { ...rest } = prev;
           return { ...rest, tab: value, page: 1, wonStatus: null };
         });
       } else {
         // bidsタブ: wonStatus, filter, conditionを消す
         void setParams((prev) => {
-          const { wonStatus, filter, condition, ...rest } = prev;
+          const { ...rest } = prev;
           return { ...rest, tab: value, page: 1, wonStatus: null, filter: null, condition: null };
         });
       }

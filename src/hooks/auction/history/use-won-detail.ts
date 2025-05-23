@@ -1,12 +1,14 @@
 "use client";
 
 import type { AuctionWonDetail } from "@/types/auction-types";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getAuctionWonDetail } from "@/lib/auction/action/auction-won-detail";
 import { completeTaskDelivery } from "@/lib/auction/action/won-detail";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,9 +31,47 @@ export function useWonDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * タブの状態をURLパラメータで管理
+   */
+  const [tab, setTab] = useQueryState("tab", {
+    defaultValue: "info",
+    history: "replace",
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーID
+   */
+  const { data: session, status: sessionStatus } = useSession();
+  const userId = useMemo(() => {
+    return session?.user?.id ?? "";
+  }, [session?.user?.id]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * TanStack Query のクエリクライアントインスタンス。キャッシュの無効化などに使用します。
    */
   const queryClient = useQueryClient();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * クエリ有効化の条件
+   */
+  const auctionQueryEnabled = useMemo(() => {
+    const enabled = sessionStatus === "authenticated" && !!userId && !!auctionId;
+    console.log("[useWonDetail] auctionQueryEnabled check:", {
+      sessionStatus,
+      userId,
+      hasUserId: !!userId,
+      auctionId,
+      hasAuctionId: !!auctionId,
+      enabled,
+    });
+    return enabled;
+  }, [sessionStatus, userId, auctionId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -40,12 +80,15 @@ export function useWonDetail(auctionId: string) {
    */
   const {
     data: auction,
-    isLoading: isAuctionLoading,
+    isPending: isAuctionQueryPending,
     error: auctionError,
   } = useQuery<AuctionWonDetail, Error>({
-    queryKey: queryCacheKeys.auction.wonDetail(auctionId),
-    queryFn: () => getAuctionWonDetail(auctionId),
-    enabled: !!auctionId,
+    queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId),
+    queryFn: async () => {
+      console.log("[useWonDetail] queryFn executing with:", { auctionId, userId });
+      return await getAuctionWonDetail(auctionId);
+    },
+    enabled: auctionQueryEnabled,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -63,7 +106,7 @@ export function useWonDetail(auctionId: string) {
     },
     onSuccess: async () => {
       toast.success("商品の受け取りを完了しました");
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.wonDetail(auctionId) });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId) });
       router.refresh();
     },
     onError: (error) => {
@@ -82,18 +125,35 @@ export function useWonDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 全体のローディング状態を管理
+   */
+  const isLoadingOverall = useMemo(() => {
+    if (sessionStatus === "loading") {
+      return true; // セッション情報ロード中
+    }
+    if (auctionQueryEnabled && isAuctionQueryPending) {
+      return true; // オークション詳細クエリが有効でロード中
+    }
+    return false; // 上記以外はロード完了または非表示状態
+  }, [sessionStatus, auctionQueryEnabled, isAuctionQueryPending]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * フックからの返り値
    */
   return {
     // state
     auction,
-    isLoading: isAuctionLoading,
-    error: auctionError,
+    isLoading: isLoadingOverall,
+    error: auctionError?.message ?? null,
     isCompleting: isCompletingDelivery,
     router,
+    tab,
 
     // functions
     handleComplete,
+    setTab,
   };
 }
 

@@ -30,7 +30,7 @@ export function useCreatedDetail(auctionId: string) {
    */
   const [tab, setTab] = useQueryState("tab", {
     defaultValue: "info",
-    history: "push",
+    history: "replace",
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -82,7 +82,11 @@ export function useCreatedDetail(auctionId: string) {
   /**
    * 出品商品詳細を取得
    */
-  const { data: auction, isPending: isAuctionQueryPending } = useQuery<AuctionHistoryCreatedDetail | null>({
+  const {
+    data: auction,
+    isPending: isAuctionQueryPending,
+    error: auctionError,
+  } = useQuery<AuctionHistoryCreatedDetail | null>({
     queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
     queryFn: async () => {
       // queryFnが実行される直前にもログを追加
@@ -104,7 +108,11 @@ export function useCreatedDetail(auctionId: string) {
   /**
    * 商品の提供を完了する
    */
-  const { mutate: handleComplete, isPending: isCompleting } = useMutation({
+  const {
+    mutate: handleComplete,
+    isPending: isCompleting,
+    error: completeError,
+  } = useMutation({
     mutationFn: () => {
       if (!auction?.task.id) {
         throw new Error("タスクIDが指定されていません。");
@@ -131,7 +139,11 @@ export function useCreatedDetail(auctionId: string) {
   /**
    * 提供方法を更新する
    */
-  const { mutate: handleUpdateDeliveryMethod, isPending: isUpdatingDelivery } = useMutation({
+  const {
+    mutate: handleUpdateDeliveryMethod,
+    isPending: isUpdatingDelivery,
+    error: updateDeliveryMethodError,
+  } = useMutation({
     mutationFn: (newDeliveryMethod: string) => {
       console.log("[useCreatedDetail] handleUpdateDeliveryMethod", newDeliveryMethod);
       if (!auction?.task.id) {
@@ -201,7 +213,8 @@ export function useCreatedDetail(auctionId: string) {
   return {
     // state
     isCompleting,
-    auction: auction ?? null,
+    auction,
+    error: auctionError?.message ?? updateDeliveryMethodError?.message ?? completeError?.message ?? null,
     isLoading: isLoadingOverall,
     deliveryMethod,
     isEditingDelivery,

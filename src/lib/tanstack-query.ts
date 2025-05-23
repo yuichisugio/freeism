@@ -66,7 +66,7 @@ export const queryCacheKeys = {
       [...queryCacheKeys.auction.history(), "createdCount", userId, ...[...filter].sort(), filterCondition] as const,
     historyCreatedDetail: (userId: string, auctionId: string) => [...queryCacheKeys.auction.history(), "createdDetail", userId, auctionId] as const,
     winningRating: (winnerId: string) => [...queryCacheKeys.auction._root, "winningRating", winnerId] as const,
-    wonDetail: (auctionId: string) => [...queryCacheKeys.auction._root, "wonDetail", auctionId] as const,
+    wonDetail: (auctionId: string, userId: string) => [...queryCacheKeys.auction._root, "wonDetail", auctionId, userId] as const,
     displayUserInfo: (auctionId: string, reviewPosition: ReviewPosition) =>
       [...queryCacheKeys.auction._root, "displayUserInfo", auctionId, reviewPosition] as const,
   },

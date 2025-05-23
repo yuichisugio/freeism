@@ -52,6 +52,7 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
           task: true,
           detail: true,
           status: true,
+          imageUrl: true,
           creatorId: true,
           deliveryMethod: true,
           creator: {
@@ -126,6 +127,7 @@ export async function getAuctionWonDetail(auctionId: string): Promise<AuctionWon
     taskDetail: auction.task.detail,
     taskStatus: auction.task.status,
     taskDeliveryMethod: auction.task.deliveryMethod,
+    taskImageUrl: auction.task.imageUrl,
     creator: {
       creatorUserId: auction.task.creatorId,
       creatorAppUserName: auction.task.creator?.settings?.username ?? "未設定",

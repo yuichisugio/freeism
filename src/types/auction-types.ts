@@ -293,6 +293,7 @@ export type AuctionWonDetail = {
   taskDetail: string | null;
   taskStatus: TaskStatus;
   taskDeliveryMethod: string | null;
+  taskImageUrl: string | null;
   creator: {
     creatorUserId: string;
     creatorAppUserName: string | null;
