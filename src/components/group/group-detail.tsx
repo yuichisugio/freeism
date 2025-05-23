@@ -290,23 +290,25 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
 
         {/* グループ情報編集ダイアログ */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
+          <DialogContent className="flex max-h-[95vh] flex-col overflow-hidden sm:max-w-[600px]">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle className="text-lg font-semibold">グループ情報編集</DialogTitle>
             </DialogHeader>
-            {group && (
-              <EditGroupForm
-                group={{
-                  id: group.id,
-                  name: group.name,
-                  goal: group.goal,
-                  evaluationMethod: group.evaluationMethod,
-                  maxParticipants: group.maxParticipants,
-                  depositPeriod: group.depositPeriod ?? 0,
-                }}
-                onCloseAction={() => setEditDialogOpen(false)}
-              />
-            )}
+            <div className="flex-1 overflow-y-auto">
+              {group && (
+                <EditGroupForm
+                  group={{
+                    id: group.id,
+                    name: group.name,
+                    goal: group.goal,
+                    evaluationMethod: group.evaluationMethod,
+                    maxParticipants: group.maxParticipants,
+                    depositPeriod: group.depositPeriod ?? 0,
+                  }}
+                  onCloseAction={() => setEditDialogOpen(false)}
+                />
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 

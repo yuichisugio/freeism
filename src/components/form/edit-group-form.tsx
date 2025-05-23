@@ -1,13 +1,15 @@
 "use client";
 
 import type { Control, FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
 import { checkGroupExistByName, checkGroupOwner, updateGroup } from "@/lib/actions/group";
+import { queryCacheKeys } from "@/lib/tanstack-query";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -52,28 +54,19 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
 
   // セッション
   const { data: session } = useSession();
+  const userId = session?.user?.id;
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const [isGroupOwner, setIsGroupOwner] = useState(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // コンポーネントがマウントされた時にグループオーナー権限をチェック
-  useEffect(() => {
-    async function checkOwnerPermission() {
-      try {
-        if (session?.user?.id) {
-          const hasPermission = await checkGroupOwner(session.user.id, group.id);
-          setIsGroupOwner(hasPermission);
-        }
-      } catch (error) {
-        console.error("グループオーナー権限チェックエラー:", error);
-      }
-    }
-
-    void checkOwnerPermission();
-  }, [group.id, session?.user?.id]);
+  /**
+   * グループオーナー権限の取得
+   */
+  const { data: isGroupOwner = false } = useQuery({
+    queryKey: queryCacheKeys.permission.groupOwner(group.id, userId ?? ""),
+    queryFn: async () => await checkGroupOwner(userId ?? "", group.id),
+    enabled: !!userId && !!group.id,
+    staleTime: 1000 * 60 * 60 * 24, // 24時間
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -180,7 +173,6 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
             /* ダイアログを閉じる */
           })
         }
-        className="max-h-[90vh]"
       >
         <CustomFormField
           fieldType="input"

@@ -140,9 +140,7 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
       <motion.div
         variants={ANIMATION_VARIANTS.card}
         animate={state.exportType === "TASK" ? "selected" : "unselected"}
-        whileHover="hover"
-        whileTap="tap"
-        className="relative cursor-pointer rounded-lg border-2 p-4 shadow-sm transition-all"
+        className="relative cursor-pointer rounded-lg border-2 p-4 shadow-sm transition-all hover:shadow-md"
         onClick={() => updateState({ exportType: "TASK" })}
       >
         <div className="flex items-start">
@@ -179,9 +177,7 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
       <motion.div
         variants={ANIMATION_VARIANTS.card}
         animate={state.exportType === "ANALYTICS" ? "selected" : "unselected"}
-        whileHover="hover"
-        whileTap="tap"
-        className="relative cursor-pointer rounded-lg border-2 p-4 shadow-sm transition-all"
+        className="relative cursor-pointer rounded-lg border-2 p-4 shadow-sm transition-all hover:shadow-md"
         onClick={() => updateState({ exportType: "ANALYTICS" })}
       >
         <div className="flex items-start">
@@ -244,9 +240,7 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
       <motion.div
         variants={ANIMATION_VARIANTS.card}
         animate={state.exportPurpose === value ? "selected" : "unselected"}
-        whileHover="hover"
-        whileTap="tap"
-        className="relative cursor-pointer rounded-lg border-2 p-3 shadow-sm transition-all"
+        className="relative cursor-pointer rounded-lg border-2 p-3 shadow-sm transition-all hover:shadow-md"
         onClick={() => updateState({ exportPurpose: value })}
       >
         <div className="flex items-start">
@@ -341,20 +335,18 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         </Label>
         <Popover open={isOpen} onOpenChange={onOpenChange}>
           <PopoverTrigger asChild>
-            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal shadow-sm transition-all",
-                  !date && "text-gray-400",
-                  date && "border-blue-200 bg-blue-50 text-blue-800",
-                )}
-                id={`${label}-date`}
-              >
-                <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-blue-500" : "text-gray-400")} />
-                {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
-              </Button>
-            </motion.div>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal shadow-sm transition-all hover:shadow-md",
+                !date && "text-gray-400",
+                date && "border-blue-200 bg-blue-50 text-blue-800",
+              )}
+              id={`${label}-date`}
+            >
+              <CalendarIcon className={cn("mr-2 h-4 w-4", date ? "text-blue-500" : "text-gray-400")} />
+              {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
+            </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="center" side="bottom" sideOffset={5}>
             <Calendar
@@ -592,38 +584,40 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
       {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
-      <DialogContent className="max-h-[95vh] overflow-y-auto rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
-        <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-          <button
-            onClick={() => onCloseAction(false)}
-            className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none"
-            disabled={state.isExporting}
-            aria-label="閉じる"
-          >
-            <XIcon className="h-5 w-5" />
-          </button>
+      <DialogContent className="max-h-[95vh] rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
+        <div className="flex h-full max-h-[95vh] flex-col overflow-hidden rounded-xl">
+          <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
+            <button
+              onClick={() => onCloseAction(false)}
+              className="absolute top-4 right-4 rounded-full p-1.5 text-white transition-colors hover:bg-white/20 focus:outline-none"
+              disabled={state.isExporting}
+              aria-label="閉じる"
+            >
+              <XIcon className="h-5 w-5" />
+            </button>
 
-          <DialogTitle className="pr-8 text-2xl font-bold tracking-tight">データをエクスポート</DialogTitle>
-          <p className="mt-1 text-sm text-blue-100">{groupName} のデータをCSV形式でダウンロードします</p>
+            <DialogTitle className="pr-8 text-2xl font-bold tracking-tight">データをエクスポート</DialogTitle>
+            <p className="mt-1 text-sm text-blue-100">{groupName} のデータをCSV形式でダウンロードします</p>
 
-          {/* ステッププログレス */}
-          <StepProgress />
-          <StepLabels />
-        </div>
-
-        {/* コンテンツエリア */}
-        <div className="flex h-full flex-col">
-          <div className="flex-1 p-6">
-            <AnimatePresence custom={state.direction} mode="wait">
-              {/* ステップに応じたコンポーネントを直接レンダリング */}
-              {state.step === 1 && <ExportTypeSelectionStep />}
-              {state.step === 2 && state.exportType === "TASK" && <DateRangeSelectionStep />}
-              {state.step === 2 && state.exportType === "ANALYTICS" && <PageSelectionStep />}
-            </AnimatePresence>
+            {/* ステッププログレス */}
+            <StepProgress />
+            <StepLabels />
           </div>
 
-          {/* アクションボタン */}
-          <ActionButtons />
+          {/* コンテンツエリア */}
+          <div className="flex h-full flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6">
+              <AnimatePresence custom={state.direction} mode="wait">
+                {/* ステップに応じたコンポーネントを直接レンダリング */}
+                {state.step === 1 && <ExportTypeSelectionStep />}
+                {state.step === 2 && state.exportType === "TASK" && <DateRangeSelectionStep />}
+                {state.step === 2 && state.exportType === "ANALYTICS" && <PageSelectionStep />}
+              </AnimatePresence>
+            </div>
+
+            {/* アクションボタン */}
+            <ActionButtons />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
