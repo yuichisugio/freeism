@@ -32,13 +32,10 @@ type UseAuctionListingsReturn = {
  * 配列が等しいかどうかを判定するヘルパー関数 (null/undefinedも考慮)
  */
 function arraysAreEqual(arr1: string[] | null | undefined, arr2: string[] | null | undefined): boolean {
-  if (arr1 === arr2) return true; // 同じ参照または両方 null/undefined
-  if (!arr1 || !arr2) return false; // どちらかが null/undefined
-  if (arr1.length !== arr2.length) return false; // 長さが違う
-  for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) return false; // 要素が違う
-  }
-  return true; // 長さも要素も同じ
+  const a1 = arr1 ?? [];
+  const a2 = arr2 ?? [];
+  if (a1.length !== a2.length) return false;
+  return a1.every((v, i) => v === a2[i]);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -154,23 +151,53 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         !arraysAreEqual(listingsConditions.groupIds, newListingsConditions.groupIds) ||
         !sortArraysAreEqual(listingsConditions.sort, newListingsConditions.sort);
       const page = conditionsChanged ? 1 : newListingsConditions.page;
-      void setParams({
+
+      // 常に更新するパラメータ（検索クエリや数値フィルターなど）
+      const paramsToUpdate: Record<string, string | string[] | number | null> = {
         page: page === 1 ? null : page,
-        category: arraysAreEqual(newListingsConditions.categories, ["すべて"]) ? null : newListingsConditions.categories,
-        status: arraysAreEqual(newListingsConditions.status, ["all"]) ? null : newListingsConditions.status,
-        status_join_type: newListingsConditions.statusConditionJoinType === "OR" ? null : newListingsConditions.statusConditionJoinType,
-        sort: newListingsConditions.sort && newListingsConditions.sort.length > 0 ? newListingsConditions.sort[0].field : null,
-        sort_direction:
-          newListingsConditions.sort && newListingsConditions.sort.length > 0 && newListingsConditions.sort[0].direction !== "desc"
-            ? newListingsConditions.sort[0].direction
-            : null,
         q: newListingsConditions.searchQuery ?? null,
         min_bid: newListingsConditions.minBid ?? null,
         max_bid: newListingsConditions.maxBid ?? null,
         min_remaining_time: newListingsConditions.minRemainingTime ?? null,
         max_remaining_time: newListingsConditions.maxRemainingTime ?? null,
-        group_id: newListingsConditions.groupIds && newListingsConditions.groupIds.length > 0 ? newListingsConditions.groupIds : null,
-      });
+      };
+
+      // categories が変更されている場合のみ更新
+      if (!arraysAreEqual(listingsConditions.categories, newListingsConditions.categories)) {
+        paramsToUpdate.category = arraysAreEqual(newListingsConditions.categories, ["すべて"]) ? null : newListingsConditions.categories;
+      }
+
+      // status が変更されている場合のみ更新
+      if (!arraysAreEqual(listingsConditions.status, newListingsConditions.status)) {
+        paramsToUpdate.status = arraysAreEqual(newListingsConditions.status, ["all"]) ? null : newListingsConditions.status;
+      }
+
+      // status_join_type が変更されている場合のみ更新
+      if (listingsConditions.statusConditionJoinType !== newListingsConditions.statusConditionJoinType) {
+        paramsToUpdate.status_join_type =
+          newListingsConditions.statusConditionJoinType === "OR" ? null : newListingsConditions.statusConditionJoinType;
+      }
+
+      // sort が変更されている場合のみ更新
+      if (!sortArraysAreEqual(listingsConditions.sort, newListingsConditions.sort)) {
+        paramsToUpdate.sort = newListingsConditions.sort && newListingsConditions.sort.length > 0 ? newListingsConditions.sort[0].field : null;
+        paramsToUpdate.sort_direction =
+          newListingsConditions.sort && newListingsConditions.sort.length > 0 && newListingsConditions.sort[0].direction !== "desc"
+            ? newListingsConditions.sort[0].direction
+            : null;
+      }
+
+      // group_id が変更されている場合のみ更新
+      if (!arraysAreEqual(listingsConditions.groupIds, newListingsConditions.groupIds)) {
+        // ①値がある → そのままセット
+        if (newListingsConditions.groupIds?.length) {
+          paramsToUpdate.group_id = newListingsConditions.groupIds;
+        }
+        // ②空になった → キーを渡さず削除 (omit)
+        //    → 既存の値を保持したい場合はそもそも if に入らない
+      }
+
+      void setParams(paramsToUpdate);
     },
     [listingsConditions, setParams],
   );

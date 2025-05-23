@@ -336,20 +336,13 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
         // ユーザーが参加している全てのGroupをstateにセット
         setJoinTypeinedGroupList(groupData);
-
-        // ドラフト状態のみ更新し、実際のフィルターには適用しない
-        setDraftConditions({
-          ...draftConditions,
-          groupIds: groupData.map((group) => group.id),
-        });
       } catch (error) {
         console.error("グループ情報の取得に失敗しました", error);
       }
     }
 
     void fetchGroups();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 依存配列を空にして初回レンダリング時のみ実行
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -381,9 +374,18 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    * @param value 選択値
    * @param defaultValue デフォルト値（単一アイテムの配列）
    * @param isExclusive 排他的選択かどうか（例：「すべて」と他の選択肢）
+   * @param exclusiveValue 排他的選択値
+   * @param isHandleCategorySelect カテゴリ選択時の処理かどうか
    */
   const handleMultiSelect = useCallback(
-    <T extends string>(field: keyof AuctionListingsConditions, value: T, defaultValue: T[], isExclusive = false, exclusiveValue: T) => {
+    <T extends string>(
+      field: keyof AuctionListingsConditions,
+      value: T,
+      defaultValue: T[],
+      isExclusive = false,
+      exclusiveValue: T,
+      isHandleCategorySelect = false,
+    ) => {
       const currentValues = Array.isArray(draftConditions[field]) ? [...(draftConditions[field] as T[])] : [];
 
       // 排他的な値が選択された場合
@@ -418,8 +420,14 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
         ...draftConditions,
         [field]: newValues,
       });
+      if (isHandleCategorySelect) {
+        setListingsConditionsAction({
+          ...listingsConditions,
+          [field]: newValues,
+        });
+      }
     },
-    [draftConditions],
+    [draftConditions, listingsConditions, setListingsConditionsAction],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -434,7 +442,14 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       const categoryValue = category;
       const defaultCategory = "すべて";
 
-      handleMultiSelect<(typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number]>("categories", categoryValue, [defaultCategory], true, defaultCategory);
+      handleMultiSelect<(typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number]>(
+        "categories",
+        categoryValue,
+        [defaultCategory],
+        true,
+        defaultCategory,
+        true,
+      );
     },
     [handleMultiSelect],
   );
@@ -698,7 +713,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
     setDraftConditions(initialConditions);
     setListingsConditionsAction(initialConditions);
-  }, [setListingsConditionsAction]);
+    setShowFilters(false);
+  }, [setListingsConditionsAction, setShowFilters]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -806,7 +822,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     // 親コンポーネントの状態を更新
     setListingsConditionsAction(updatedConditions);
     console.log("src/hooks/auction/listing/use-auction-filters.ts_applyAllFilters_applied");
-  }, [draftConditions, setListingsConditionsAction]);
+    setShowFilters(false);
+  }, [draftConditions, setListingsConditionsAction, setShowFilters]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
