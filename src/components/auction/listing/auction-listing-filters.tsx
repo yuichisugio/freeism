@@ -620,7 +620,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         type="button"
                         onClick={() => handleStatusJoinTypeChange("OR")}
                         className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
-                          (draftConditions.statusConditionJoinType ?? "OR") === "OR"
+                          (draftConditions.statusConditionJoinType ?? "AND") === "OR"
                             ? "bg-green-100 text-gray-900 shadow-sm"
                             : "bg-transparent text-gray-900 hover:bg-green-50"
                         }`}
@@ -631,7 +631,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         type="button"
                         onClick={() => handleStatusJoinTypeChange("AND")}
                         className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
-                          draftConditions.statusConditionJoinType === "AND"
+                          (draftConditions.statusConditionJoinType ?? "AND") === "AND"
                             ? "bg-green-100 text-gray-900 shadow-sm"
                             : "bg-transparent text-gray-900 hover:bg-green-50"
                         }`}
@@ -640,7 +640,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                       </button>
                     </div>
                     <p className="mt-2 text-xs text-gray-500">
-                      {(draftConditions.statusConditionJoinType ?? "OR") === "OR"
+                      {(draftConditions.statusConditionJoinType ?? "AND") === "OR"
                         ? "いずれかの条件に一致するアイテムを表示"
                         : "すべての条件に一致するアイテムを表示"}
                     </p>

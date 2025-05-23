@@ -86,7 +86,6 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
    * オークションがアクティブかどうか
    */
   const isActive = useMemo(() => {
-    console.log("src/components/auction/bid/auction-detail.tsx_isActive", auction.status, auction.startTime);
     const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
     const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
     const now = new Date();
@@ -247,13 +246,17 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         {/* 左側: オークション画像 */}
         <div className="relative h-[300px] overflow-hidden rounded-lg shadow-md md:h-[400px]">
-          <Image
-            src={auction.task?.imageUrl ?? AUCTION_CONSTANTS?.DEFAULT_AUCTION_IMAGE_URL ?? ""}
-            alt={auction.task?.task ?? "オークション画像"}
-            fill
-            className="object-cover transition-transform duration-500 hover:scale-105"
-            priority
-          />
+          {auction.task?.imageUrl ? (
+            <Image
+              src={auction.task?.imageUrl ?? AUCTION_CONSTANTS.DEFAULT_AUCTION_IMAGE_URL}
+              alt={auction.task?.task ?? "オークション画像"}
+              fill
+              className="object-cover transition-transform duration-500 hover:scale-105"
+              priority
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-500">画像がありません</div>
+          )}
         </div>
 
         {/* 右側: オークション情報ヘッダー部分 */}
@@ -275,9 +278,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <User size={16} className="text-primary" />
               </div>
-              <p className="text-muted-foreground">
-                {auction.task.executors.find((executor) => executor.user?.id === currentUserId)?.user?.settings?.username ?? "不明なユーザー"}
-              </p>
+              <p className="text-muted-foreground">{auction.task.executors[0]?.user?.settings?.username ?? "不明なユーザー"}</p>
             </div>
           </div>
 

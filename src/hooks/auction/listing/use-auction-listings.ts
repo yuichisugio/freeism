@@ -94,7 +94,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       page: parseAsInteger.withDefault(1),
       category: parseAsArrayOf(parseAsString).withDefault(["すべて"]),
       status: parseAsArrayOf(parseAsString).withDefault(["all"]),
-      status_join_type: parseAsString.withDefault("OR"),
+      status_join_type: parseAsString.withDefault("AND"),
       sort: parseAsString,
       sort_direction: parseAsString.withDefault("desc"),
       q: parseAsString,
@@ -119,7 +119,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     return {
       categories: params.category && params.category.length > 0 ? params.category : ["すべて"],
       status: params.status && params.status.length > 0 ? (params.status as AuctionFilterTypes[]) : ["all"],
-      statusConditionJoinType: params.status_join_type === "AND" ? "AND" : "OR",
+      statusConditionJoinType: params.status_join_type === "OR" ? "OR" : "AND",
       minBid: params.min_bid ?? null,
       maxBid: params.max_bid ?? null,
       minRemainingTime: params.min_remaining_time ?? null,
@@ -175,7 +175,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       // status_join_type が変更されている場合のみ更新
       if (listingsConditions.statusConditionJoinType !== newListingsConditions.statusConditionJoinType) {
         paramsToUpdate.status_join_type =
-          newListingsConditions.statusConditionJoinType === "OR" ? null : newListingsConditions.statusConditionJoinType;
+          newListingsConditions.statusConditionJoinType === "AND" ? null : newListingsConditions.statusConditionJoinType;
       }
 
       // sort が変更されている場合のみ更新
