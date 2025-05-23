@@ -3,6 +3,7 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Error } from "@/components/share/share-error";
 import { Loading } from "@/components/share/share-loading";
 import { Badge } from "@/components/ui/badge";
@@ -284,9 +285,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
 
           {/* オークションのステータスとグループを表示 */}
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={isActive ? "secondary" : "destructive"} className="px-3 py-1 text-sm font-medium">
-              {isActive ? "出品中" : "終了"}
-            </Badge>
+            <TaskStatusBadge status={auction.status} className="px-3 py-1 text-sm font-medium" />
             {auction.task.group && (
               <Badge key={auction.task.group.id} variant="outline" className="px-3 py-1 text-sm font-medium">
                 {auction.task.group.name}

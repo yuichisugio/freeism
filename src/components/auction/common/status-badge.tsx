@@ -91,19 +91,18 @@ const taskStatusConfig = {
  * タスクステータスバッジ（オークション以外も含む）
  * @param status タスクステータス
  */
-export function TaskStatusBadge({ status }: { status: TaskStatus }) {
+export function TaskStatusBadge({ status, className }: { status: TaskStatus; className?: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   // SUPPLIER_DONEまたはTASK_COMPLETEDなら「タスク完了」バッジ
   if (status === TaskStatus.SUPPLIER_DONE || status === TaskStatus.TASK_COMPLETED) {
     return <Badge variant="success">タスク完了</Badge>;
   }
-  const config = taskStatusConfig[status];
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  if (!config) {
-    // 万が一未定義のステータスが来た場合のフォールバック
-    return <Badge variant="outline">不明</Badge>;
-  }
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+  const config = taskStatusConfig[status] ?? { label: "不明", variant: "outline" };
+  return (
+    <Badge variant={config.variant} className={className}>
+      {config.label}
+    </Badge>
+  );
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
