@@ -12,6 +12,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
 import { getUserGroups } from "@/lib/auction/action/user";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -30,6 +32,10 @@ type UseAuctionFiltersReturn = {
   categoriesList: string[];
   areAllGroupsSelected: boolean;
   joinTypeinedGroupList: Array<{ id: string; name: string }>;
+
+  // loading states
+  isSuggestionsLoading: boolean;
+  isUserGroupsLoading: boolean;
 
   // action
   setListingsConditionsAction: (newListingsConditions: AuctionListingsConditions) => void;
@@ -100,12 +106,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
   // 一時的なフィルター状態（ドラフト状態）
   const [draftConditions, setDraftConditions] = useState<AuctionListingsConditions>({ ...listingsConditions });
 
-  // ユーザーが参加している全てのGroup
-  const [joinTypeinedGroupList, setJoinTypeinedGroupList] = useState<Array<{ id: string; name: string }>>([]);
-
-  // サジェスト結果
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-
   // サジェストのハイライトインデックス
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
@@ -124,9 +124,12 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   /**
    * サジェスト関連
-   * 検索クエリの変更を監視し、サジェストを取得
+   * TanStack Query v5 を使用してサジェストを取得
    */
   const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string | null>(null);
+
+  // デバウンス処理
   useEffect(() => {
     // 以前のタイムアウトがあればクリア
     if (suggestionTimeoutRef.current) {
@@ -135,43 +138,42 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
     // 新しいタイムアウトを設定 (デバウンス)
     suggestionTimeoutRef.current = setTimeout(() => {
-      // 検索クエリが空でない場合のみサジェストを取得
-      if (userId && changingSearchQuery && changingSearchQuery.trim() !== "") {
-        // 非同期処理を実行する内部関数
-        const executeFetch = async () => {
-          try {
-            console.log("src/hooks/auction/listing/use-auction-filters.ts_useEffect_Fetching suggestions for:", changingSearchQuery);
-            // サーバーアクションを呼び出してサジェストを取得
-            const fetchedSuggestions = await getSearchSuggestions(changingSearchQuery, userId);
-            // サジェスト結果をステートにセット
-            setSuggestions(fetchedSuggestions);
-            // 新しいサジェストが表示されたらハイライトをリセット
-            setHighlightedIndex(-1);
-          } catch (error) {
-            console.error("src/hooks/auction/listing/use-auction-filters.ts_useEffect_Failed to fetch suggestions:", error);
-            // エラー発生時はサジェストをクリア
-            setSuggestions([]);
-            // エラー発生時はハイライトをリセット
-            setHighlightedIndex(-1);
-          }
-        };
-        // 非同期関数を実行
-        void executeFetch();
-      } else {
-        // 検索クエリが空の場合はサジェストをクリア
-        setSuggestions([]);
-        // ハイライトをリセット
-        setHighlightedIndex(-1);
-      }
+      setDebouncedSearchQuery(changingSearchQuery);
     }, 400); // 400ミリ秒のデバウンス
 
-    // クリーンアップ関数: コンポーネントのアンマウント時や依存配列の変更前にタイムアウトをクリア
+    // クリーンアップ関数
     return () => {
       if (suggestionTimeoutRef.current) {
         clearTimeout(suggestionTimeoutRef.current);
       }
     };
-  }, [changingSearchQuery, userId]);
+  }, [changingSearchQuery]);
+
+  // サジェスト取得用のuseQuery
+  const {
+    data: suggestions = [],
+    error: suggestionsError,
+    isLoading: isSuggestionsLoading,
+  } = useQuery({
+    queryKey: queryCacheKeys.auction.suggestions(debouncedSearchQuery ?? "", userId),
+    queryFn: async () => {
+      if (!debouncedSearchQuery?.trim() || !userId) {
+        return [];
+      }
+      console.log("src/hooks/auction/listing/use-auction-filters.ts_useQuery_Fetching suggestions for:", debouncedSearchQuery);
+      return await getSearchSuggestions(debouncedSearchQuery, userId);
+    },
+    enabled: !!debouncedSearchQuery?.trim() && !!userId,
+    staleTime: 30 * 60 * 1000, // 30分間キャッシュ
+    gcTime: 60 * 60 * 1000, // 1時間ガベージコレクション
+  });
+
+  useEffect(() => {
+    if (suggestionsError) {
+      console.error("src/hooks/auction/listing/use-auction-filters.ts_useQuery_Failed to fetch suggestions:", suggestionsError);
+      setHighlightedIndex(-1);
+    }
+  }, [suggestionsError]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -273,10 +275,45 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * ユーザーグループ情報を取得（TanStack Query v5使用）
+   */
+  const {
+    data: userGroups = [],
+    error: userGroupsError,
+    isLoading: isUserGroupsLoading,
+  } = useQuery({
+    queryKey: queryCacheKeys.users.groups(userId),
+    queryFn: async () => {
+      if (!userId) return [];
+      return await getUserGroups();
+    },
+    enabled: !!userId,
+    staleTime: 30 * 60 * 1000, // 10分間キャッシュ
+    gcTime: 30 * 60 * 1000, // 30分間ガベージコレクション
+  });
+
+  // ユーザーグループのエラーログ出力
+  useEffect(() => {
+    if (userGroupsError) {
+      console.error("ユーザーグループ情報の取得に失敗しました", userGroupsError);
+    }
+  }, [userGroupsError]);
+
+  // ユーザーグループデータの整形
+  const joinTypeinedGroupList = useMemo(() => {
+    return userGroups.map((membership) => ({
+      id: membership.group.id,
+      name: membership.group.name,
+    }));
+  }, [userGroups]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * すべてのグループが選択されているかを確認
    */
   const areAllGroupsSelected = useMemo(() => {
-    // draftConditions.groupIdsがない場合はtrue
+    // draftConditions.groupIdsがない場合、またはjoinTypeinedGroupListがない場合はtrue
     if (!draftConditions.groupIds || draftConditions.groupIds.length === 0 || joinTypeinedGroupList.length === 0) {
       return true;
     }
@@ -291,58 +328,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       return draftConditions.groupIds?.includes(group.id);
     });
   }, [draftConditions.groupIds, joinTypeinedGroupList]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 価格範囲をリセット
-   */
-  const resetPriceRange = useCallback(() => {
-    setDraftConditions({
-      ...draftConditions,
-      minBid: null,
-      maxBid: null,
-    });
-  }, [draftConditions]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 残り時間範囲をリセット
-   */
-  const resetTimeRange = useCallback(() => {
-    setDraftConditions({
-      ...draftConditions,
-      minRemainingTime: null,
-      maxRemainingTime: null,
-    });
-  }, [draftConditions]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループ情報を取得
-   */
-  useEffect(() => {
-    async function fetchGroups() {
-      try {
-        const userGroups = await getUserGroups();
-
-        // グループIDのリストを作成
-        const groupData: Array<{ id: string; name: string }> = userGroups.map((membership) => ({
-          id: membership.group.id,
-          name: membership.group.name,
-        }));
-
-        // ユーザーが参加している全てのGroupをstateにセット
-        setJoinTypeinedGroupList(groupData);
-      } catch (error) {
-        console.error("グループ情報の取得に失敗しました", error);
-      }
-    }
-
-    void fetchGroups();
-  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -535,8 +520,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     (searchQuery: string) => {
       console.log("src/hooks/auction/listing/use-auction-filters.ts_handleSearchQueryEnter_Executing search for:", searchQuery);
       // サジェストをクリア
-      setSuggestions([]);
-      // ハイライトをリセット
       setHighlightedIndex(-1);
       // 入力値も確定させる
       setChangingSearchQuery(searchQuery);
@@ -570,7 +553,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    * サジェストを閉じる関数
    */
   const closeSuggestions = useCallback(() => {
-    setSuggestions([]);
     setHighlightedIndex(-1);
   }, []); // 依存配列は空でOK
 
@@ -846,6 +828,32 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 価格範囲をリセット
+   */
+  const resetPriceRange = useCallback(() => {
+    setDraftConditions({
+      ...draftConditions,
+      minBid: null,
+      maxBid: null,
+    });
+  }, [draftConditions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 残り時間範囲をリセット
+   */
+  const resetTimeRange = useCallback(() => {
+    setDraftConditions({
+      ...draftConditions,
+      minRemainingTime: null,
+      maxRemainingTime: null,
+    });
+  }, [draftConditions]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 返す
    */
   return {
@@ -859,6 +867,10 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     categoriesList,
     areAllGroupsSelected,
     joinTypeinedGroupList,
+
+    // loading states
+    isSuggestionsLoading,
+    isUserGroupsLoading,
 
     // action
     setListingsConditionsAction,
