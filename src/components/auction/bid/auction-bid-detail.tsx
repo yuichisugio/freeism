@@ -1,15 +1,15 @@
 "use client";
 
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback } from "react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import { TaskStatusBadge } from "@/components/auction/common/status-badge";
+import { TaskRoleBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Error } from "@/components/share/share-error";
 import { Loading } from "@/components/share/share-loading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionBidSSE } from "@/hooks/auction/bid/use-auction-bid-sse";
+import { useAuctionBidUI } from "@/hooks/auction/bid/use-auction-bid-ui";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
@@ -18,7 +18,6 @@ import { type AuctionWithDetails } from "@/types/auction-types";
 import { TaskStatus } from "@prisma/client";
 import { motion } from "framer-motion";
 import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, TruckIcon, User } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { AuctionQA } from "../common/auction-qa";
 import { CountdownDisplay } from "./auction-bid-countdown";
@@ -40,29 +39,16 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * アクティブタブ
-   *  */
-  const [activeTab, setActiveTab] = useState("details");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ユーザーIDを取得
-   */
-  const { data: session } = useSession();
-  const currentUserId = useMemo(() => {
-    if (!session?.user?.id) {
-      notFound();
-    }
-    return session.user.id;
-  }, [session?.user?.id]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * useAuctionEventフックを使用してSSEからリアルタイムデータを取得
    */
   const { auction = initialAuction, loading, error, lastMsg } = useAuctionBidSSE(initialAuction);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * UI状態を管理するカスタムフック
+   */
+  const { activeTab, setActiveTab, usersWithRoles, isActive, isExecutor } = useAuctionBidUI(auction);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -80,36 +66,6 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
    * watchはuserIdが必要で、userIdを入れるとキャッシュできないため、意図的に取得しない
    */
   const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, null);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * オークションがアクティブかどうか
-   */
-  const isActive = useMemo(() => {
-    const auctionStartTime = typeof auction.startTime === "string" ? new Date(auction.startTime) : auction.startTime;
-    const auctionEndTime = typeof auction.endTime === "string" ? new Date(auction.endTime) : auction.endTime;
-    const now = new Date();
-    if (auction.status === TaskStatus.AUCTION_ACTIVE && auctionStartTime < now && auctionEndTime > now) {
-      return true;
-    } else {
-      return false;
-    }
-  }, [auction.startTime, auction.endTime, auction.status]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 実行者かどうか
-   */
-  const isExecutor = useMemo(() => {
-    console.log(
-      "src/components/auction/bid/auction-detail.tsx_isExecutor",
-      currentUserId,
-      auction.task.executors.map((executor) => executor.user?.id),
-    );
-    return auction.task.executors.some((executor) => executor.user?.id === currentUserId);
-  }, [auction.task.executors, currentUserId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -275,11 +231,24 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
                 <Heart className={isWatchlisted ? "fill-current" : ""} size={20} />
               </motion.button>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
-                <User size={16} className="text-primary" />
-              </div>
-              <p className="text-muted-foreground">{auction.task.executors[0]?.user?.settings?.username ?? "不明なユーザー"}</p>
+
+            {/* タスクに関わる全ユーザーの表示 */}
+            <div className="space-y-3">
+              {usersWithRoles.map((userWithRole) => (
+                <div key={userWithRole.id} className="flex items-center gap-3">
+                  <div className="bg-primary/10 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+                    {userWithRole.image ? (
+                      <Image src={userWithRole.image} alt={userWithRole.username} width={32} height={32} className="object-cover" />
+                    ) : (
+                      <User size={16} className="text-primary" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-muted-foreground">{userWithRole.username}</p>
+                    <TaskRoleBadge role={userWithRole.roles} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

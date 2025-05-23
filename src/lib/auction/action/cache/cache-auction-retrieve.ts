@@ -73,12 +73,40 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
                 depositPeriod: true,
               },
             },
+            creator: {
+              select: {
+                id: true,
+                image: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
             executors: {
               select: {
                 id: true,
                 user: {
                   select: {
                     id: true,
+                    image: true,
+                    settings: {
+                      select: {
+                        username: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            reporters: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    id: true,
+                    image: true,
                     settings: {
                       select: {
                         username: true,
@@ -92,6 +120,9 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
         },
       },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     if (!auctionRaw) return null;
     // task.status を auction.status としてマージ
     const auction: AuctionWithDetails = {

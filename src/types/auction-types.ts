@@ -234,9 +234,25 @@ export type AuctionWithDetails = UpdateAuctionWithDetails & {
       depositPeriod: number;
     };
     executors: {
-      id: string;
       user: {
         id: string;
+        image: string | null;
+        settings: {
+          username: string;
+        } | null;
+      } | null;
+    }[];
+    creator: {
+      id: string;
+      image: string | null;
+      settings: {
+        username: string;
+      } | null;
+    };
+    reporters: {
+      user: {
+        id: string;
+        image: string | null;
         settings: {
           username: string;
         } | null;
