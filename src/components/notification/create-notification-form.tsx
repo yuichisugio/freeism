@@ -4,7 +4,7 @@ import { memo, useMemo } from "react";
 import Link from "next/link";
 import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
-import { Loading } from "@/components/share/loading";
+import { Loading } from "@/components/share/share-loading";
 import { useCreateNotification } from "@/hooks/notification/use-create-notification";
 import { ArrowLeft } from "lucide-react";
 import { type Control, type FieldValues, type UseFormReturn } from "react-hook-form";

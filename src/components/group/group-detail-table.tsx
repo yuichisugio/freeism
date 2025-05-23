@@ -4,7 +4,7 @@ import type { Column, DataTableProps, GroupDetailTask } from "@/types/group-type
 import type { TaskStatus } from "@prisma/client";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Loading } from "@/components/share/loading";
+import { Loading } from "@/components/share/share-loading";
 import { ShareTable } from "@/components/share/share-table";
 import { Button } from "@/components/ui/button";
 import { useGroupDetailTable } from "@/hooks/group/group-detail/use-group-detail-table";

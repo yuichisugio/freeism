@@ -3,8 +3,8 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Error } from "@/components/share/error";
-import { Loading } from "@/components/share/loading";
+import { Error } from "@/components/share/share-error";
+import { Loading } from "@/components/share/share-loading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

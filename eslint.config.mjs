@@ -82,7 +82,16 @@ const eslintConfig = [
     },
   },
   {
-    files: ["**/page.tsx", "**/layout.tsx", "**/not-found.tsx", "next.config.ts", "postcss.config.mjs", "tailwind.config.ts", "src/emails/**.tsx"],
+    files: [
+      "**/page.tsx",
+      "**/layout.tsx",
+      "**/not-found.tsx",
+      "**/loading.tsx",
+      "next.config.ts",
+      "postcss.config.mjs",
+      "tailwind.config.ts",
+      "src/emails/**.tsx",
+    ],
     rules: {
       "import/no-default-export": "off",
       "import/prefer-default-export": "error",

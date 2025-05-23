@@ -4,7 +4,7 @@ import type { Column, DataTableProps, MyTaskTable } from "@/types/group-types";
 import type { TaskStatus } from "@prisma/client";
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { Loading } from "@/components/share/loading";
+import { Loading } from "@/components/share/share-loading";
 import { ShareTable } from "@/components/share/share-table";
 import { Button } from "@/components/ui/button";
 import { useMyTaskTable } from "@/hooks/task/use-my-task-table";

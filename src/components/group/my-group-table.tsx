@@ -3,7 +3,7 @@
 import type { Column, DataTableProps, MyGroupTable } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { Loading } from "@/components/share/loading";
+import { Loading } from "@/components/share/share-loading";
 import { ShareTable } from "@/components/share/share-table";
 import { useMyGroupTable } from "@/hooks/group/use-my-group-table";
 import { LogOut } from "lucide-react";

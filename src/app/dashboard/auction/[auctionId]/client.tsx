@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import dynamic from "next/dynamic";
-import { NoResult } from "@/components/share/no-result";
+import { NoResult } from "@/components/share/share-no-result";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery } from "@tanstack/react-query";

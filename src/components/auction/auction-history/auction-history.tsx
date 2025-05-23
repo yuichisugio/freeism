@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useMemo } from "react";
 import { BidStatusBadge, TaskRoleBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
-import { Loading } from "@/components/share/loading";
+import { Loading } from "@/components/share/share-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";

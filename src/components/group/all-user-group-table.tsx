@@ -3,7 +3,7 @@
 import type { AllUserGroupTable, Column, DataTableProps } from "@/types/group-types";
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { Loading } from "@/components/share/loading";
+import { Loading } from "@/components/share/share-loading";
 import { ShareTable } from "@/components/share/share-table";
 import { useAllUserGroupTable } from "@/hooks/group/use-all-user-group-table";
 import { UserPlus } from "lucide-react";

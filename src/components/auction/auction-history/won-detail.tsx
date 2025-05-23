@@ -3,8 +3,8 @@
 import { memo } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Error } from "@/components/share/error";
-import { Loading } from "@/components/share/loading";
+import { Error } from "@/components/share/share-error";
+import { Loading } from "@/components/share/share-loading";
 import {
   AlertDialog,
   AlertDialogAction,

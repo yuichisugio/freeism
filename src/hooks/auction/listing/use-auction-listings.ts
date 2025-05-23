@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/types/auction-types";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
@@ -66,6 +66,20 @@ function sortArraysAreEqual(
  * @description オークション一覧画面のロジックを管理するカスタムフック
  */
 export function useAuctionListings(): UseAuctionListingsReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydrationの状態を管理 (SSR/CSRの不一致を防ぐため)
+   */
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  /**
+   * Hydration完了後にフラグを立てる
+   */
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -259,7 +273,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       ...listingsConditions,
       searchQuery: listingsConditions.searchQuery === undefined ? null : listingsConditions.searchQuery,
     },
-    isLoading: isPending,
+    isLoading: !isHydrated || isPending, // Hydration前は常にtrue、Hydration後はisPendingを返す
 
     // action
     setListingsConditions,

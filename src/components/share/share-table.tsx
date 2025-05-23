@@ -2,7 +2,7 @@
 
 import type { DataTableComponentProps } from "@/types/group-types";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { NoResult } from "@/components/share/no-result";
+import { NoResult } from "@/components/share/share-no-result";
 import { ShareTableFilter } from "@/components/share/share-table-filter";
 import { ShareTablePagination } from "@/components/share/share-table-pagination";
 import { TaskEditModal } from "@/components/task/task-edit-modal";
