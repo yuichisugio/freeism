@@ -3,8 +3,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { prepareCreateTaskForm } from "@/lib/actions/task/create-task-form";
-import { createTask } from "@/lib/actions/task/task";
+import { createTask, prepareCreateTaskForm } from "@/lib/actions/task/create-task-form";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { taskFormSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,6 +74,8 @@ const formSchema = taskFormSchema.extend({
     .optional(),
   // 画像URL
   imageUrl: z.string().optional(),
+  // オークション延長フラグを追加（文字列として定義）
+  isExtension: z.string().optional(),
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -207,6 +208,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
       auctionStartTime: getDateWithoutTime(new Date()), // 時刻をリセット
       auctionEndTime: getDateWithoutTime(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 時刻をリセット
       deliveryMethod: "",
+      isExtension: "false", // 文字列として設定
     },
   });
 
@@ -364,6 +366,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
           auctionStartTime: startTime,
           auctionEndTime: endTime,
           deliveryMethod: data.contributionType === contributionType.REWARD ? data.deliveryMethod : undefined,
+          isExtension: data.isExtension, // 文字列として送信
         });
 
         if (result.success) {

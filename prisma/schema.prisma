@@ -317,15 +317,17 @@ model GroupPoint {
 }
 
 model Auction {
-  id                  String   @id @default(cuid())
-  startTime           DateTime @map("start_time")
-  endTime             DateTime @map("end_time")
-  currentHighestBid   Int      @default(0) @map("current_highest_bid")
-  version             Int      @default(1)
-  extensionTotalCount Int      @default(0) @map("extension_total_count")
-  extensionLimitCount Int      @default(3) @map("extension_limit_count")
-  extensionTotalTime  Int      @default(0) @map("extension_total_time")
-  extensionLimitTime  Int      @default(10) @map("extension_limit_time")
+  id                String   @id @default(cuid())
+  startTime         DateTime @map("start_time")
+  endTime           DateTime @map("end_time")
+  currentHighestBid Int      @default(0) @map("current_highest_bid")
+  version           Int      @default(1) // 楽観的更新に使用
+
+  isExtension         Boolean @default(false) @map("is_extension") // オークション延長をするかどうかのフラグ
+  extensionTotalCount Int     @default(0) @map("extension_total_count")
+  extensionLimitCount Int     @default(3) @map("extension_limit_count")
+  extensionTotalTime  Int     @default(0) @map("extension_total_time")
+  extensionLimitTime  Int     @default(10) @map("extension_limit_time")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

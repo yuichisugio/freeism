@@ -8,7 +8,7 @@ import { Loading } from "@/components/share/loading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuctionEvent } from "@/hooks/auction/bid/use-auction-event";
+import { useAuctionBidSSE } from "@/hooks/auction/bid/use-auction-bid-sse";
 import { useCountdown } from "@/hooks/auction/bid/use-countdown";
 import { useWatchlist } from "@/hooks/auction/bid/use-watchlist";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
@@ -61,7 +61,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
   /**
    * useAuctionEventフックを使用してSSEからリアルタイムデータを取得
    */
-  const { auction = initialAuction, loading, error, lastMsg } = useAuctionEvent(initialAuction);
+  const { auction = initialAuction, loading, error, lastMsg } = useAuctionBidSSE(initialAuction);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

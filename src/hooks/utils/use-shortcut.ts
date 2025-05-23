@@ -50,7 +50,7 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
         }
 
         // 押されたキーが設定されたキーと一致するか確認 (大文字・小文字を区別しない)
-        const codeMatch = event.code.toLowerCase() === config.code.toLowerCase();
+        const codeMatch = event.code?.toLowerCase() === config.code?.toLowerCase();
         // CtrlキーまたはMetaキーの条件が一致するか確認
         // config.ctrlOrMetaがtrueの場合、event.ctrlKeyまたはevent.metaKeyのどちらかがtrueである必要がある
         // config.ctrlOrMetaがfalseまたは未定義の場合、event.ctrlKeyとevent.metaKeyの両方がfalseである必要がある

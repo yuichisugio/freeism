@@ -17,7 +17,7 @@ type SSEResponse = {
 /**
  * オークションSSEを購読するカスタムフック（拡張版）の型
  */
-type UseAuctionEventResult = {
+type UseAuctionBidSSEReturn = {
   auction: AuctionWithDetails | undefined;
   loading: boolean;
   error: string | null;
@@ -33,8 +33,8 @@ type UseAuctionEventResult = {
  * @param {AuctionWithDetails} 初期オークションデータ
  * @returns {UseAuctionEventResult} オークション情報、入札履歴、接続状態、ユーティリティ関数
  */
-export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionEventResult {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export function useAuctionBidSSE(initialAuction: AuctionWithDetails): UseAuctionBidSSEReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * state
@@ -48,7 +48,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   // 最後のメッセージ
   const [lastMsg, setLastMsg] = useState<string | null>(null);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ref
@@ -62,7 +62,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
   // 再接続回数
   const retryCountRef = useRef<number>(0);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * SSE接続のメッセージを処理
@@ -121,7 +121,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     }
   }, []);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * オークションSSEを購読する
@@ -177,6 +177,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
   }, [initialAuction.id, processSSEMessage]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * オークションSSEを切断する
    */
@@ -189,6 +191,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     eventSourceRef.current = null;
     setLoading(false);
   }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ページが表示されているかどうかをハンドリングする
@@ -203,6 +207,8 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     return () => document.removeEventListener("visibilitychange", handler);
   }, [connect, disconnect]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * mount / unmount
    */
@@ -213,7 +219,7 @@ export function useAuctionEvent(initialAuction: AuctionWithDetails): UseAuctionE
     };
   }, [connect, disconnect]);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 返す

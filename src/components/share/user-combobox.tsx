@@ -65,12 +65,11 @@ export function UserCombobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value} // ここでの value は検索用及び識別に使われる
-                  onSelect={(currentValue) => {
-                    // currentValue には CommandItem の value が渡される (この場合は option.value と同じ)
+                  value={option.label} // 検索対象をlabelに変更（ユーザー名で検索できるように）
+                  onSelect={() => {
                     // 既に選択されている項目と同じ項目を選択した場合、選択を解除 (空文字を渡す)
                     // そうでない場合は新しい値を選択
-                    onValueChangeAction(currentValue === value ? "" : currentValue);
+                    onValueChangeAction(option.value === value ? "" : option.value);
                     setOpenAction(false); // 選択後、Popoverを閉じる
                   }}
                 >

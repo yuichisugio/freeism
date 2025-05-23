@@ -86,6 +86,14 @@ const SEED_CONFIG = {
   WATCHLISTS_PER_AUCTION_MIN: 0, // オークションあたりの最小ウォッチリスト登録数
   WATCHLISTS_PER_AUCTION_MAX: 5, // オークションあたりの最大ウォッチリスト登録数
 
+  // オークション延長関連設定
+  AUCTION_EXTENSION_PROBABILITY: 0.3, // オークション延長機能を有効にする確率
+  AUCTION_EXTENSION_OCCURRED_PROBABILITY: 0.6, // 延長機能が有効な場合に実際に延長が発生する確率
+  AUCTION_EXTENSION_LIMIT_COUNT_MIN: 1, // 延長制限回数の最小値
+  AUCTION_EXTENSION_LIMIT_COUNT_MAX: 5, // 延長制限回数の最大値
+  AUCTION_EXTENSION_LIMIT_TIME_MIN: 5, // 延長制限時間の最小値（分）
+  AUCTION_EXTENSION_LIMIT_TIME_MAX: 15, // 延長制限時間の最大値（分）
+
   // グループポイント関連設定
   GROUP_POINTS_INITIAL_MIN: 100, // 初期グループポイントの最小値
   GROUP_POINTS_INITIAL_MAX: 10000, // 初期グループポイントの最大値
@@ -289,6 +297,7 @@ type SeedAuction = {
   currentHighestBidderId?: string | null;
   winnerId?: string | null;
   status: TaskStatus;
+  isExtension: boolean;
   extensionTotalCount: number;
   extensionLimitCount: number;
   extensionTotalTime: number;
@@ -1215,6 +1224,30 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       });
     }
 
+    // オークション延長設定を生成
+    const isExtension = faker.datatype.boolean(SEED_CONFIG.AUCTION_EXTENSION_PROBABILITY);
+    let extensionTotalCount = 0;
+    let extensionTotalTime = 0;
+
+    // 延長制限回数と時間を設定（延長機能が有効な場合のみ有意味な値、無効でもデフォルト値を設定）
+    const extensionLimitCount = isExtension
+      ? faker.number.int({ min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MIN, max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MAX })
+      : 3; // デフォルト値
+    const extensionLimitTime = isExtension
+      ? faker.number.int({ min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MIN, max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MAX })
+      : 10; // デフォルト値
+
+    // 延長機能が有効な場合、実際に延長が発生したかをシミュレート
+    if (isExtension) {
+      const hasExtensionOccurred = faker.datatype.boolean(SEED_CONFIG.AUCTION_EXTENSION_OCCURRED_PROBABILITY);
+      if (hasExtensionOccurred) {
+        // 実際に延長が発生した回数（制限回数以下）
+        extensionTotalCount = faker.number.int({ min: 1, max: extensionLimitCount });
+        // 延長総時間は「延長回数 × 延長単位時間」
+        extensionTotalTime = extensionTotalCount * extensionLimitTime;
+      }
+    }
+
     // AuctionCreateInputからstatusを削除
     const auctionDataForCreation: Prisma.AuctionCreateInput = {
       task: { connect: { id: task.id } },
@@ -1224,6 +1257,11 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       endTime,
       currentHighestBidder: currentHighestBidderId ? { connect: { id: currentHighestBidderId } } : undefined,
       winner: winnerId ? { connect: { id: winnerId } } : undefined,
+      isExtension,
+      extensionTotalCount,
+      extensionLimitCount,
+      extensionTotalTime,
+      extensionLimitTime,
     };
 
     const auction = await prisma.auction.create({
@@ -1240,10 +1278,11 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       currentHighestBidderId: auction.currentHighestBidderId,
       winnerId: auction.winnerId,
       status, // TaskStatus型で保持
-      extensionTotalCount: auction.extensionTotalCount,
-      extensionLimitCount: auction.extensionLimitCount,
-      extensionTotalTime: auction.extensionTotalTime,
-      extensionLimitTime: auction.extensionLimitTime,
+      isExtension,
+      extensionTotalCount,
+      extensionLimitCount,
+      extensionTotalTime,
+      extensionLimitTime,
       createdAt: auction.createdAt,
       updatedAt: auction.updatedAt,
       groupId: task.groupId,
@@ -1286,13 +1325,11 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
     if (potentialBidders.length === 0) continue;
 
     const bidCount = faker.number.int({ min: SEED_CONFIG.BIDS_PER_AUCTION_MIN, max: SEED_CONFIG.BIDS_PER_AUCTION_MAX });
-    // if (bidCount === 0) continue; // この行を削除
 
     // Fetch the initial price directly from the created auction record
-    // We need the actual initial price, not the potentially updated currentHighestBid from the SeedAuction object if bids were already placed in createAuctions
     const dbAuction = await prisma.auction.findUnique({
       where: { id: auction.id },
-      select: { startTime: true, endTime: true, currentHighestBid: true }, // Select necessary fields
+      select: { startTime: true, endTime: true, currentHighestBid: true },
     });
 
     if (!dbAuction) {
@@ -1300,11 +1337,8 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       continue;
     }
 
-    // Use the currentHighestBid from the DB record as the base for initial price
-    // This reflects the state *before* this bid history loop potentially increases it.
-    // If createAuctions set a highest bid, that's our starting point here. Otherwise, it's the initial price.
     const initialPrice = dbAuction.currentHighestBid;
-    let currentBid = initialPrice; // Start bidding from the actual current highest bid
+    let currentBid = initialPrice;
 
     const bidTimeRange = Math.max(0, dbAuction.endTime.getTime() - dbAuction.startTime.getTime());
     const bidTimes = Array(bidCount)
@@ -1312,10 +1346,10 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       .map(() => new Date(dbAuction.startTime.getTime() + faker.number.float() * bidTimeRange))
       .sort((a, b) => a.getTime() - b.getTime());
 
-    const bidRecords: BidHistory[] = []; // 型指定を修正
+    const bidRecords: BidHistory[] = [];
 
+    // 入札履歴を作成
     for (let i = 0; i < bidCount; i++) {
-      // const PRESERVED_BIDDER_PROBABILITY = 0.4; // SEED_CONFIGから取得するように変更
       let bidder = null;
       if (preservedBidders.length > 0 && faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_BIDDER_PROBABILITY)) {
         bidder = faker.helpers.arrayElement(preservedBidders);
@@ -1323,12 +1357,10 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
         bidder = faker.helpers.arrayElement(otherBidders.length > 0 ? otherBidders : potentialBidders);
       }
 
-      // Calculate bid increase based on the *current* bid amount in the loop
       const bidIncrease =
         currentBid *
         (SEED_CONFIG.BID_INCREASE_MIN_PERCENT +
           faker.number.float({ min: 0, max: SEED_CONFIG.BID_INCREASE_MAX_PERCENT - SEED_CONFIG.BID_INCREASE_MIN_PERCENT }));
-      // Ensure the new bid is at least the initial price + 1, and at least current bid + 1
       currentBid = Math.max(initialPrice + 1, currentBid + 1, Math.floor(currentBid + bidIncrease));
 
       const isAutoBid = faker.datatype.boolean(SEED_CONFIG.BID_IS_AUTOBID_PROBABILITY);
@@ -1352,250 +1384,284 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       }
     }
 
-    // --- Auction status update logic after bids (Transaction part) ---
+    // オークション終了後の処理
     if (auction.status === TaskStatus.AUCTION_ENDED) {
-      await prisma.$transaction(async (tx) => {
-        let winnerFound = false;
-        // Linter fix: winner の型を明示的に指定
-        let winner: { id: string; userId: string; amount: number; status: BidStatus; depositPoint: number | null } | null = null;
-        let depositAmount = 0;
-
-        if (bidRecords.length > 0) {
-          // 入札がある場合のみ落札者決定ロジックを実行
-          const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount); // Create a new sorted array
-
-          for (let i = 0; i < sortedBids.length; i++) {
-            const currentBid = sortedBids[i];
-            // Fetch the latest status of the bid before potentially updating it
-            const latestBidStatus = await tx.bidHistory.findUnique({ where: { id: currentBid.id }, select: { status: true } });
-            if (latestBidStatus?.status !== BidStatus.BIDDING) continue; // Skip if already processed (e.g., INSUFFICIENT from previous iteration)
-
-            const nextBid = i < sortedBids.length - 1 ? sortedBids[i + 1] : null;
-            depositAmount = nextBid ? nextBid.amount + 1 : currentBid.amount;
-
-            const groupPoint = await tx.groupPoint.findFirst({
-              where: { userId: currentBid.userId, groupId: auction.groupId },
-            });
-
-            if (groupPoint && groupPoint.balance >= depositAmount) {
-              // Linter Fix: winner の型に合わせるために必要なフィールドだけを選択する
-              const bidForWinner = await tx.bidHistory.findUnique({
-                where: { id: currentBid.id },
-                select: { id: true, userId: true, amount: true, status: true, depositPoint: true },
-              });
-              if (bidForWinner) {
-                winner = { ...bidForWinner, depositPoint: depositAmount };
-              }
-              winnerFound = true;
-
-              await tx.bidHistory.update({
-                where: { id: currentBid.id },
-                // Linter Fix: Use explicit key-value pair
-                data: { status: BidStatus.WON, depositPoint: depositAmount },
-              });
-
-              await tx.groupPoint.update({
-                where: { id: groupPoint.id },
-                data: { balance: { decrement: depositAmount } },
-              });
-
-              await tx.auction.update({
-                where: { id: auction.id },
-                data: { winnerId: currentBid.userId }, // Update winnerId on Auction
-              });
-              break;
-            } else {
-              await tx.bidHistory.update({
-                where: { id: currentBid.id },
-                data: { status: BidStatus.INSUFFICIENT },
-              });
-            }
-          }
-
-          // Update remaining bidding bids to LOST
-          for (const bid of sortedBids) {
-            // Fetch the latest status again before potentially updating to LOST
-            const latestBid = await tx.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
-            if (latestBid?.status === BidStatus.BIDDING) {
-              // Only update if it's still BIDDING
-              await tx.bidHistory.update({
-                where: { id: bid.id },
-                data: { status: BidStatus.LOST },
-              });
-            }
-          }
-          // Notifications for losers - CORRECT PLACEMENT IS HERE
-          for (const bid of sortedBids) {
-            const latestBid = await tx.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
-            if (latestBid?.status === BidStatus.LOST) {
-              const loserReadStatus = { [bid.userId]: { isRead: false, readAt: null } };
-              await tx.notification.create({
-                data: {
-                  title: generateNotificationTitle("AUCTION_LOST"),
-                  message: generateNotificationMessage("AUCTION_LOST", auction),
-                  targetType: "AUCTION_BIDDER",
-                  auctionEventType: "AUCTION_LOST",
-                  sendTimingType: "NOW",
-                  sendMethods: ["IN_APP"],
-                  auctionId: auction.id,
-                  isRead: loserReadStatus,
-                  senderUserId: null,
-                },
-              });
-            }
-          }
-        } // End of if (bidRecords.length > 0)
-
-        // Update task status if winner found
-        if (winnerFound) {
-          await tx.task.update({
-            where: { id: auction.taskId },
-            data: { status: TaskStatus.POINTS_DEPOSITED },
-          });
-        } else {
-          // オークションが終了し、落札者がいなかった場合 (入札が0件の場合も含む)
-          const currentTask = await tx.task.findUnique({
-            where: { id: auction.taskId },
-            select: { status: true },
-          });
-          // PENDING の場合のみ ARCHIVED に更新する
-          if (currentTask && currentTask.status === TaskStatus.PENDING) {
-            await tx.task.update({
-              where: { id: auction.taskId },
-              data: { status: TaskStatus.ARCHIVED },
-            });
-          }
-        }
-
-        // --- Notification creation ---
-        const taskSeller = await tx.task.findUnique({
-          where: { id: auction.taskId },
-          select: { creatorId: true },
-        });
-
-        if (taskSeller) {
-          const sellerId = taskSeller.creatorId;
-          const sellerReadStatus = { [sellerId]: { isRead: false, readAt: null } };
-
-          if (winnerFound && winner) {
-            const winnerReadStatus = { [winner.userId]: { isRead: false, readAt: null } };
-            // Item sold notification to seller
-            await tx.notification.create({
-              data: {
-                title: generateNotificationTitle("ITEM_SOLD"),
-                message: generateNotificationMessage("ITEM_SOLD", auction),
-                targetType: "AUCTION_SELLER",
-                auctionEventType: "ITEM_SOLD",
-                sendTimingType: "NOW",
-                sendMethods: ["IN_APP"],
-                auctionId: auction.id,
-                isRead: sellerReadStatus,
-                senderUserId: null,
-              },
-            });
-            // Auction win notification to winner
-            await tx.notification.create({
-              data: {
-                title: generateNotificationTitle("AUCTION_WIN"),
-                message: generateNotificationMessage("AUCTION_WIN", auction),
-                targetType: "AUCTION_BIDDER",
-                auctionEventType: "AUCTION_WIN",
-                sendTimingType: "NOW",
-                sendMethods: ["IN_APP"],
-                auctionId: auction.id,
-                isRead: winnerReadStatus,
-                senderUserId: null,
-              },
-            });
-          } else {
-            // No winner notification to seller
-            await tx.notification.create({
-              data: {
-                title: generateNotificationTitle("NO_WINNER"),
-                message: generateNotificationMessage("NO_WINNER", auction),
-                targetType: "AUCTION_SELLER",
-                auctionEventType: "NO_WINNER",
-                sendTimingType: "NOW",
-                sendMethods: ["IN_APP"],
-                auctionId: auction.id,
-                isRead: sellerReadStatus,
-                senderUserId: null,
-              },
-            });
-          }
-
-          // Auction ended notification to seller
-          await tx.notification.create({
-            data: {
-              title: generateNotificationTitle("ENDED"),
-              message: generateNotificationMessage("ENDED", auction),
-              targetType: "AUCTION_SELLER",
-              auctionEventType: "ENDED",
-              sendTimingType: "NOW",
-              sendMethods: ["IN_APP"],
-              auctionId: auction.id,
-              isRead: sellerReadStatus,
-              senderUserId: null,
-            },
-          });
-
-          // The "Notifications for losers" loop has been moved inside the "if (bidRecords.length > 0)" block.
-          // Any remaining comments or old logic for loser notifications here should be removed.
-        }
-      });
+      await processEndedAuction(auction, bidRecords);
     } else if (auction.status === TaskStatus.AUCTION_ACTIVE && bidRecords.length > 0) {
-      // アクティブなオークションの処理 (変更なし)
-      // Update current highest bid for ACTIVE auctions
-      const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount); // Add this line to define sortedBids
-      const highestBid = sortedBids[0]; // Use sortedBids here
-      if (highestBid) {
-        try {
-          // Only update if the new bid is higher than the current one in the DB
-          const currentDbAuction = await prisma.auction.findUnique({
-            where: { id: auction.id },
-            select: { currentHighestBid: true },
-          });
-          if (currentDbAuction && highestBid.amount > currentDbAuction.currentHighestBid) {
-            await prisma.auction.update({
-              where: { id: auction.id },
-              data: {
-                currentHighestBid: highestBid.amount,
-                currentHighestBidderId: highestBid.userId,
-              },
-            });
-          }
-        } catch (error) {
-          console.error(`オークション最高入札額更新エラー: AuctionID=${auction.id}`, error);
-        }
-      }
-
-      // Notifications for losers - ここに移動
-      for (const bid of sortedBids) {
-        // sortedBids はこのスコープで見える
-        const latestBid = await prisma.bidHistory.findUnique({ where: { id: bid.id }, select: { status: true } });
-        if (latestBid?.status === BidStatus.LOST) {
-          // LOST になった入札に対して通知
-          const loserReadStatus = { [bid.userId]: { isRead: false, readAt: null } };
-          await prisma.notification.create({
-            data: {
-              title: generateNotificationTitle("AUCTION_LOST"),
-              message: generateNotificationMessage("AUCTION_LOST", auction),
-              targetType: "AUCTION_BIDDER",
-              auctionEventType: "AUCTION_LOST",
-              sendTimingType: "NOW",
-              sendMethods: ["IN_APP"],
-              auctionId: auction.id,
-              isRead: loserReadStatus,
-              senderUserId: null,
-            },
-          });
-        }
-      }
+      await processActiveAuction(auction, bidRecords);
     }
   }
 
   console.log(`Created ${bidHistories.length} bid histories`);
   return bidHistories;
+}
+
+// 終了したオークションの処理を別関数に分離
+async function processEndedAuction(auction: SeedAuction, bidRecords: BidHistory[]) {
+  if (bidRecords.length === 0) {
+    // 入札がない場合のタスクステータス更新
+    const currentTask = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { status: true },
+    });
+    if (currentTask && currentTask.status === TaskStatus.PENDING) {
+      await prisma.task.update({
+        where: { id: auction.taskId },
+        data: { status: TaskStatus.ARCHIVED },
+      });
+    }
+
+    // 出品者への通知
+    await createSellerNotification(auction, "NO_WINNER");
+    await createSellerNotification(auction, "ENDED");
+    return;
+  }
+
+  // 入札がある場合の処理
+  const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount);
+  let winnerFound = false;
+  let winnerId: string | null = null;
+
+  // 最高入札者から順に落札者を決定
+  for (let i = 0; i < sortedBids.length; i++) {
+    const currentBid = sortedBids[i];
+    const nextBid = i < sortedBids.length - 1 ? sortedBids[i + 1] : null;
+    const depositAmount = nextBid ? nextBid.amount + 1 : currentBid.amount;
+
+    const groupPoint = await prisma.groupPoint.findFirst({
+      where: { userId: currentBid.userId, groupId: auction.groupId },
+    });
+
+    if (groupPoint && groupPoint.balance >= depositAmount) {
+      // 落札者決定
+      await processBidWinner(currentBid, depositAmount, auction);
+      winnerId = currentBid.userId;
+      winnerFound = true;
+      break;
+    } else {
+      // 残高不足
+      await prisma.bidHistory.update({
+        where: { id: currentBid.id },
+        data: { status: BidStatus.INSUFFICIENT },
+      });
+    }
+  }
+
+  // 残りの入札を敗者に設定
+  await updateLosingBids(sortedBids);
+
+  // タスクステータスの更新
+  if (winnerFound) {
+    await prisma.task.update({
+      where: { id: auction.taskId },
+      data: { status: TaskStatus.POINTS_DEPOSITED },
+    });
+  } else {
+    const currentTask = await prisma.task.findUnique({
+      where: { id: auction.taskId },
+      select: { status: true },
+    });
+    if (currentTask && currentTask.status === TaskStatus.PENDING) {
+      await prisma.task.update({
+        where: { id: auction.taskId },
+        data: { status: TaskStatus.ARCHIVED },
+      });
+    }
+  }
+
+  // 通知の作成
+  await createAuctionEndNotifications(auction, winnerFound, winnerId, sortedBids);
+}
+
+// 落札者の処理を別関数に分離
+async function processBidWinner(bid: BidHistory, depositAmount: number, auction: SeedAuction) {
+  await prisma.bidHistory.update({
+    where: { id: bid.id },
+    data: { status: BidStatus.WON, depositPoint: depositAmount },
+  });
+
+  await prisma.groupPoint.updateMany({
+    where: { userId: bid.userId, groupId: auction.groupId },
+    data: { balance: { decrement: depositAmount } },
+  });
+
+  await prisma.auction.update({
+    where: { id: auction.id },
+    data: { winnerId: bid.userId },
+  });
+}
+
+// 敗者の更新を別関数に分離
+async function updateLosingBids(sortedBids: BidHistory[]) {
+  for (const bid of sortedBids) {
+    const latestBid = await prisma.bidHistory.findUnique({
+      where: { id: bid.id },
+      select: { status: true },
+    });
+
+    if (latestBid?.status === BidStatus.BIDDING) {
+      await prisma.bidHistory.update({
+        where: { id: bid.id },
+        data: { status: BidStatus.LOST },
+      });
+    }
+  }
+}
+
+// 出品者への通知作成を別関数に分離
+async function createSellerNotification(auction: SeedAuction, eventType: string) {
+  const taskSeller = await prisma.task.findUnique({
+    where: { id: auction.taskId },
+    select: { creatorId: true },
+  });
+
+  if (!taskSeller) return;
+
+  const sellerId = taskSeller.creatorId;
+  const sellerReadStatus = { [sellerId]: { isRead: false, readAt: null } };
+
+  await prisma.notification.create({
+    data: {
+      title: generateNotificationTitle(eventType),
+      message: generateNotificationMessage(eventType, auction),
+      targetType: "AUCTION_SELLER",
+      auctionEventType: eventType as AuctionEventType,
+      sendTimingType: "NOW",
+      sendMethods: ["IN_APP"],
+      auctionId: auction.id,
+      isRead: sellerReadStatus,
+      senderUserId: null,
+    },
+  });
+}
+
+// オークション終了時の通知作成を別関数に分離
+async function createAuctionEndNotifications(auction: SeedAuction, winnerFound: boolean, winnerId: string | null, sortedBids: BidHistory[]) {
+  const taskSeller = await prisma.task.findUnique({
+    where: { id: auction.taskId },
+    select: { creatorId: true },
+  });
+
+  if (!taskSeller) return;
+
+  const sellerId = taskSeller.creatorId;
+  const sellerReadStatus = { [sellerId]: { isRead: false, readAt: null } };
+
+  if (winnerFound && winnerId) {
+    const winnerReadStatus = { [winnerId]: { isRead: false, readAt: null } };
+
+    // 出品者への落札通知
+    await prisma.notification.create({
+      data: {
+        title: generateNotificationTitle("ITEM_SOLD"),
+        message: generateNotificationMessage("ITEM_SOLD", auction),
+        targetType: "AUCTION_SELLER",
+        auctionEventType: "ITEM_SOLD",
+        sendTimingType: "NOW",
+        sendMethods: ["IN_APP"],
+        auctionId: auction.id,
+        isRead: sellerReadStatus,
+        senderUserId: null,
+      },
+    });
+
+    // 落札者への勝利通知
+    await prisma.notification.create({
+      data: {
+        title: generateNotificationTitle("AUCTION_WIN"),
+        message: generateNotificationMessage("AUCTION_WIN", auction),
+        targetType: "AUCTION_BIDDER",
+        auctionEventType: "AUCTION_WIN",
+        sendTimingType: "NOW",
+        sendMethods: ["IN_APP"],
+        auctionId: auction.id,
+        isRead: winnerReadStatus,
+        senderUserId: null,
+      },
+    });
+  } else {
+    // 落札者がいない場合の通知
+    await prisma.notification.create({
+      data: {
+        title: generateNotificationTitle("NO_WINNER"),
+        message: generateNotificationMessage("NO_WINNER", auction),
+        targetType: "AUCTION_SELLER",
+        auctionEventType: "NO_WINNER",
+        sendTimingType: "NOW",
+        sendMethods: ["IN_APP"],
+        auctionId: auction.id,
+        isRead: sellerReadStatus,
+        senderUserId: null,
+      },
+    });
+  }
+
+  // 出品者への終了通知
+  await prisma.notification.create({
+    data: {
+      title: generateNotificationTitle("ENDED"),
+      message: generateNotificationMessage("ENDED", auction),
+      targetType: "AUCTION_SELLER",
+      auctionEventType: "ENDED",
+      sendTimingType: "NOW",
+      sendMethods: ["IN_APP"],
+      auctionId: auction.id,
+      isRead: sellerReadStatus,
+      senderUserId: null,
+    },
+  });
+
+  // 敗者への通知
+  for (const bid of sortedBids) {
+    const latestBid = await prisma.bidHistory.findUnique({
+      where: { id: bid.id },
+      select: { status: true },
+    });
+
+    if (latestBid?.status === BidStatus.LOST) {
+      const loserReadStatus = { [bid.userId]: { isRead: false, readAt: null } };
+      await prisma.notification.create({
+        data: {
+          title: generateNotificationTitle("AUCTION_LOST"),
+          message: generateNotificationMessage("AUCTION_LOST", auction),
+          targetType: "AUCTION_BIDDER",
+          auctionEventType: "AUCTION_LOST",
+          sendTimingType: "NOW",
+          sendMethods: ["IN_APP"],
+          auctionId: auction.id,
+          isRead: loserReadStatus,
+          senderUserId: null,
+        },
+      });
+    }
+  }
+}
+
+// アクティブなオークションの処理を別関数に分離
+async function processActiveAuction(auction: SeedAuction, bidRecords: BidHistory[]) {
+  const sortedBids = [...bidRecords].sort((a, b) => b.amount - a.amount);
+  const highestBid = sortedBids[0];
+
+  if (highestBid) {
+    try {
+      const currentDbAuction = await prisma.auction.findUnique({
+        where: { id: auction.id },
+        select: { currentHighestBid: true },
+      });
+
+      if (currentDbAuction && highestBid.amount > currentDbAuction.currentHighestBid) {
+        await prisma.auction.update({
+          where: { id: auction.id },
+          data: {
+            currentHighestBid: highestBid.amount,
+            currentHighestBidderId: highestBid.userId,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(`オークション最高入札額更新エラー: AuctionID=${auction.id}`, error);
+    }
+  }
 }
 
 // 自動入札設定の生成

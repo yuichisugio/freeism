@@ -186,6 +186,19 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
             placeholder="終了日時を選択"
           />
 
+          {/* スナイピング対策のオークション延長設定を追加 */}
+          <CustomFormField
+            fieldType="radio"
+            control={typedControl}
+            name="isExtension"
+            label="スナイピング対策のオークション延長"
+            description="終了直前の入札に対してオークション時間を自動延長するかどうかを選択してください"
+            options={[
+              { value: "true", label: "延長する" },
+              { value: "false", label: "延長しない" },
+            ]}
+          />
+
           {/* 提供方法 */}
           <CustomFormField
             fieldType="textarea"
