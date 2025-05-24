@@ -1,119 +1,262 @@
 "use client";
 
-import type { ReviewSearchParams, SearchSuggestion } from "@/components/review-search/review-search";
-import { useMemo, useState } from "react";
-import { getSearchSuggestions, getUserReviews } from "@/lib/actions/review-search/review-search";
-import { useQuery } from "@tanstack/react-query";
+import type { EditableReviewData, ReviewSearchParams, SearchSuggestion } from "@/components/review-search/review-search";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getAllReviews, getMyReviews, getSearchSuggestions, getUserReviews, updateReview } from "@/lib/actions/review-search/review-search";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryState } from "nuqs";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * レビューデータとその操作を管理するカスタムフック
- * @param userId - 対象ユーザーのID
  */
 export function useReviewSearch() {
-  // 検索状態の管理
-  const [searchParams, setSearchParams] = useState<ReviewSearchParams>({
-    searchType: "username", // デフォルトはユーザー名検索
-    searchQuery: "",
-    page: 1,
-    limit: 10,
+  const queryClient = useQueryClient();
+
+  // URLパラメータでタブと検索クエリを管理
+  const [activeTab, setActiveTab] = useQueryState("tab", {
+    defaultValue: "search" as "search" | "edit" | "received",
+    parse: (value) => {
+      if (value === "edit" || value === "received") return value;
+      return "search";
+    },
+    history: "push",
   });
 
+  const [searchQuery, setSearchQuery] = useQueryState("q", {
+    defaultValue: "",
+    history: "push",
+  });
+
+  const [page, setPage] = useQueryState("page", {
+    defaultValue: 1,
+    parse: (value) => parseInt(value) || 1,
+    history: "push",
+  });
+
+  // 検索状態の管理
+  const searchParams: ReviewSearchParams = useMemo(
+    () => ({
+      searchQuery,
+      page,
+      tab: activeTab,
+    }),
+    [searchQuery, page, activeTab],
+  );
+
   // サジェスト機能の状態管理
-  const [suggestionQuery, setSuggestionQuery] = useState("");
+  const [suggestionQuery, setSuggestionQuery] = useState(searchQuery);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // 編集状態の管理
+  const [editingReviews, setEditingReviews] = useState<Set<string>>(new Set());
+
+  // debounce用のref
+  const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [debouncedSuggestionQuery, setDebouncedSuggestionQuery] = useState<string>("");
+
+  // debounce処理
+  useEffect(() => {
+    // 以前のタイムアウトがあればクリア
+    if (suggestionTimeoutRef.current) {
+      clearTimeout(suggestionTimeoutRef.current);
+    }
+
+    // 新しいタイムアウトを設定 (デバウンス)
+    suggestionTimeoutRef.current = setTimeout(() => {
+      setDebouncedSuggestionQuery(suggestionQuery);
+    }, 400); // 400ミリ秒のデバウンス
+
+    // クリーンアップ関数
+    return () => {
+      if (suggestionTimeoutRef.current) {
+        clearTimeout(suggestionTimeoutRef.current);
+      }
+    };
+  }, [suggestionQuery]);
+
+  // searchQueryが外部から変更された時のみsuggestQueryを同期（初期化時など）
+  useEffect(() => {
+    // URLパラメータからの初期化やタブ切り替え時のみ同期
+    // ユーザーが入力中の場合は同期しない
+    if (suggestionQuery === "" || !showSuggestions) {
+      setSuggestionQuery(searchQuery);
+    }
+  }, [searchQuery, showSuggestions, suggestionQuery]);
+
   // メインのレビューデータを取得するクエリ
-  // TanStack Query でキャッシングと再フェッチを管理
   const {
     data: reviewData,
-    isLoading,
+    isPending: isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["user-reviews", searchParams], // キャッシュキー
-    queryFn: () => getUserReviews(searchParams), // データ取得関数
-    staleTime: 5 * 60 * 1000, // 5分間はキャッシュを新鮮とみなす
-    gcTime: 10 * 60 * 1000, // 10分間キャッシュを保持
+    queryKey: ["reviews", activeTab, searchParams],
+    queryFn: () => {
+      switch (activeTab) {
+        case "edit":
+          return getMyReviews(searchParams);
+        case "received":
+          return getUserReviews(searchParams);
+        default:
+          return getAllReviews(searchParams);
+      }
+    },
+    enabled: true, // 常にクエリを有効にする
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   // サジェストデータを取得するクエリ
   const { data: suggestions = [] } = useQuery({
-    queryKey: ["search-suggestions", suggestionQuery, searchParams.searchType],
-    queryFn: () => getSearchSuggestions(suggestionQuery, searchParams.searchType),
-    enabled: suggestionQuery.length >= 2 && showSuggestions, // 2文字以上かつサジェスト表示中のみ実行
-    staleTime: 30 * 1000, // 30秒間はキャッシュを新鮮とみなす
+    queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
+    queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
+    enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions,
+    staleTime: 30 * 1000,
   });
 
-  // 検索パラメータを更新する関数
-  const updateSearchParams = (newParams: Partial<ReviewSearchParams>) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      ...newParams,
-      page: newParams.page ?? 1, // ページはリセット（検索条件変更時）
-    }));
-  };
+  // レビュー更新のミューテーション
+  const updateReviewMutation = useMutation({
+    mutationFn: ({ reviewId, rating, comment }: { reviewId: string; rating: number; comment: string | null }) =>
+      updateReview(reviewId, rating, comment),
+    onSuccess: (_updatedReview, variables) => {
+      // 編集モードを終了
+      setEditingReviews((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(variables.reviewId);
+        return newSet;
+      });
+      // 関連するキャッシュを無効化（他のタブのデータも更新）
+      void queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.review.all(),
+        exact: false,
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to update review:", error);
+    },
+  });
 
-  // 検索クエリを更新する関数
+  // 検索クエリを更新する関数（入力フィールド用）
   const updateSearchQuery = (query: string) => {
     setSuggestionQuery(query);
-    updateSearchParams({ searchQuery: query });
+    void setPage(1); // ページをリセット
+    // 入力中はサジェストを表示
+    if (query.length >= 2) {
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
   };
 
-  // 検索タイプを変更する関数
-  const updateSearchType = (type: ReviewSearchParams["searchType"]) => {
-    updateSearchParams({
-      searchType: type,
-      searchQuery: "", // 検索タイプ変更時はクエリをリセット
-    });
+  // 検索を実行する関数
+  const executeSearch = () => {
+    void setSearchQuery(suggestionQuery); // 検索実行時にsearchQueryを更新
+    void setPage(1); // ページをリセット
+    setShowSuggestions(false); // サジェストを閉じる
+  };
+
+  // 検索をクリアする関数
+  const clearSearch = () => {
+    // debounceタイムアウトをクリア
+    if (suggestionTimeoutRef.current) {
+      clearTimeout(suggestionTimeoutRef.current);
+    }
     setSuggestionQuery("");
+    void setSearchQuery("");
+    setDebouncedSuggestionQuery("");
+    void setPage(1);
+    setShowSuggestions(false);
+  };
+
+  // タブを変更する関数
+  const changeTab = (tab: "search" | "edit" | "received") => {
+    void setActiveTab(tab);
+    void setPage(1); // ページをリセット
   };
 
   // ページを変更する関数
-  const changePage = (page: number) => {
-    updateSearchParams({ page });
+  const changePage = (newPage: number) => {
+    void setPage(newPage);
   };
 
   // サジェストを選択した時の処理
   const selectSuggestion = (suggestion: SearchSuggestion) => {
-    updateSearchQuery(suggestion.value);
+    // 入力フィールドの値を選択されたサジェストに設定
+    setSuggestionQuery(suggestion.value);
+    // 即座に検索を実行
+    void setSearchQuery(suggestion.value);
+    void setPage(1); // ページをリセット
     setShowSuggestions(false);
   };
 
-  // 平均評価の星表示用の計算
-  const averageRatingStars = useMemo(() => {
-    if (!reviewData?.averageRating) return { full: 0, half: false, empty: 5 };
+  // レビュー編集モードを切り替える関数
+  const toggleEditMode = (reviewId: string) => {
+    setEditingReviews((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(reviewId)) {
+        newSet.delete(reviewId);
+      } else {
+        newSet.add(reviewId);
+      }
+      return newSet;
+    });
+  };
 
-    const rating = reviewData.averageRating;
-    const full = Math.floor(rating); // 満点の星の数
-    const half = rating % 1 >= 0.5; // 半分の星が必要かどうか
-    const empty = 5 - full - (half ? 1 : 0); // 空の星の数
+  // レビューを更新する関数
+  const handleUpdateReview = async (reviewId: string, rating: number, comment: string | null) => {
+    try {
+      await updateReviewMutation.mutateAsync({ reviewId, rating, comment });
+    } catch (error) {
+      console.error("Failed to update review:", error);
+    }
+  };
 
-    return { full, half, empty };
-  }, [reviewData?.averageRating]);
+  // コンポーネントのアンマウント時のクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (suggestionTimeoutRef.current) {
+        clearTimeout(suggestionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // 編集可能なレビューデータを作成
+  const editableReviews: EditableReviewData[] = useMemo(() => {
+    return (reviewData?.reviews ?? []).map((review) => ({
+      ...review,
+      isEditing: editingReviews.has(review.id),
+    }));
+  }, [reviewData?.reviews, editingReviews]);
 
   return {
     // データ
-    reviews: reviewData?.reviews ?? [],
+    reviews: editableReviews,
     totalCount: reviewData?.totalCount ?? 0,
-    averageRating: reviewData?.averageRating ?? 0,
     totalPages: reviewData?.totalPages ?? 0,
     suggestions,
-    averageRatingStars,
 
     // 状態
     searchParams,
+    activeTab,
+    suggestionQuery,
     isLoading,
     error,
     showSuggestions,
+    isUpdating: updateReviewMutation.isPending,
 
     // アクション
     updateSearchQuery,
-    updateSearchType,
+    executeSearch,
+    clearSearch,
+    changeTab,
     changePage,
     selectSuggestion,
     setShowSuggestions,
+    toggleEditMode,
+    handleUpdateReview,
     refetch,
   };
 }

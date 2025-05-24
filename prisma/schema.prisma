@@ -1,13 +1,15 @@
 generator client {
-  provider      = "prisma-client-js"
-  plugin        = "@prisma/nextjs-monorepo-workaround-plugin"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  plugin          = "@prisma/nextjs-monorepo-workaround-plugin"
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pg_bigm]
 }
 
 model User {
@@ -108,6 +110,7 @@ model UserSettings {
   @@index([username])
   @@index([isEmailEnabled])
   @@index([isPushEnabled])
+  @@index([username(ops: raw("gin_bigm_ops"))], type: Gin, map: "idx_user_settings_username_gin")
 }
 
 model Group {

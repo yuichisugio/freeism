@@ -108,6 +108,19 @@ export const queryCacheKeys = {
     oneGroupOwner: (userId: string) => [...queryCacheKeys.permission._root, "oneGroupOwner", userId] as const,
     members: (groupId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "members"] as const,
   },
+
+  review: {
+    _root: ["review"] as const,
+    all: () => [...queryCacheKeys.review._root] as const,
+    allReviews: (searchParams: string, activeTab: string) => [...queryCacheKeys.review.all(), "allReviews", searchParams, activeTab] as const,
+    search: (searchParams: string, userId: string) => [...queryCacheKeys.review.all(), "search", searchParams, userId] as const,
+    myReviews: (searchParams: string, userId: string, activeTab: string) =>
+      [...queryCacheKeys.review.all(), "myReviews", searchParams, userId, activeTab] as const,
+    userReviews: (searchParams: string, userId: string, activeTab: string) =>
+      [...queryCacheKeys.review.all(), "userReviews", searchParams, userId, activeTab] as const,
+    suggestions: (query: string) => [...queryCacheKeys.review.all(), "suggestions", query] as const,
+    update: (reviewId: string) => [...queryCacheKeys.review.all(), "update", reviewId] as const,
+  },
 } as const;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
