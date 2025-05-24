@@ -148,27 +148,40 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       select: {
-        group: true, // グループ情報を取得
+        group: true,
         fixedContributionPoint: true,
+        groupId: true,
         creator: {
           select: {
             id: true,
-            name: true,
           },
         },
         reporters: {
-          include: {
-            user: true,
+          select: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
         executors: {
-          include: {
-            user: true,
+          select: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクが見つからない場合はエラーを返す
+     */
     if (!task) {
       throw new Error("Task not found");
     }
@@ -188,7 +201,7 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
     /**
      * 権限チェック
      */
-    const isOwner = await checkIsOwner(userId, task.group.id, taskId, true);
+    const isOwner = await checkIsOwner(userId, task.groupId, taskId, true);
 
     if (!isOwner.success) {
       return { error: "このタスクのステータスを変更する権限がありません" };
@@ -228,7 +241,7 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
           where: {
             userId_groupId: {
               userId: userId,
-              groupId: task.group.id,
+              groupId: task.groupId,
             },
           },
         });
@@ -239,7 +252,7 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
             where: {
               userId_groupId: {
                 userId: userId,
-                groupId: task.group.id,
+                groupId: task.groupId,
               },
             },
             data: {
@@ -251,7 +264,7 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
           await prisma.groupPoint.create({
             data: {
               userId: userId,
-              groupId: task.group.id,
+              groupId: task.groupId,
               balance: contributionPoint,
               fixedTotalPoints: contributionPoint,
             },

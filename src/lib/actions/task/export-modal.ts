@@ -1,7 +1,7 @@
 "use server";
 
-import type { TaskStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { TaskStatus } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -16,7 +16,11 @@ import { endOfDay, startOfDay } from "date-fns";
  */
 export async function exportGroupTask(groupId: string, startDate?: Date, endDate?: Date, onlyTaskCompleted = false) {
   try {
-    // クエリ条件を構築
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * クエリ条件を構築
+     */
     const whereConditions: {
       groupId: string;
       createdAt?: {
@@ -26,7 +30,11 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       status?: TaskStatus;
     } = { groupId };
 
-    // 日付範囲が指定されている場合、条件に追加
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 日付範囲が指定されている場合、条件に追加
+     */
     if (startDate) {
       whereConditions.createdAt = {
         ...whereConditions.createdAt,
@@ -41,53 +49,37 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       };
     }
 
-    // 分析用の場合はTASK_COMPLETEDのタスクのみ対象にする
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 分析用の場合はTASK_COMPLETEDのタスクのみ対象にする
+     */
     if (onlyTaskCompleted) {
       whereConditions.status = "TASK_COMPLETED" as TaskStatus;
     }
 
-    // Prismaの返却型に合わせた型定義
-    type PrismaTaskWithIncludes = {
-      id: string;
-      task: string;
-      reference: string | null;
-      status: string;
-      contributionType: string;
-      info: string | null;
-      fixedContributionPoint: number | null;
-      fixedEvaluatorId: string | null;
-      createdAt: Date;
-      updatedAt: Date;
-      creator: {
-        name: string | null;
-      } | null;
-      reporters: {
-        user: {
-          name: string | null;
-        } | null;
-        name: string | null;
-      }[];
-      executors: {
-        user: {
-          name: string | null;
-        } | null;
-        name: string | null;
-      }[];
-      group: {
-        name: string | null;
-      } | null;
-    };
-
-    const tasks = (await prisma.task.findMany({
+    // タスクを取得（selectのみ使用）
+    const tasks = await prisma.task.findMany({
       where: whereConditions,
-      include: {
+      select: {
+        id: true,
+        task: true,
+        reference: true,
+        status: true,
+        contributionType: true,
+        info: true,
+        fixedContributionPoint: true,
+        fixedEvaluatorId: true,
+        createdAt: true,
+        updatedAt: true,
         creator: {
           select: {
             name: true,
           },
         },
         reporters: {
-          include: {
+          select: {
+            name: true,
             user: {
               select: {
                 name: true,
@@ -96,7 +88,8 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
           },
         },
         executors: {
-          include: {
+          select: {
+            name: true,
             user: {
               select: {
                 name: true,
@@ -104,22 +97,26 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
             },
           },
         },
-        group: {
-          select: {
-            name: true,
-          },
-        },
       },
       orderBy: {
         createdAt: "desc",
       },
-    })) as unknown as PrismaTaskWithIncludes[];
+    });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクが見つからない場合はエラーを返す
+     */
     if (!tasks || tasks.length === 0) {
       throw new Error("タスクが見つかりません");
     }
 
-    // タスクのユーザー名を取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクのユーザー名を取得
+     */
     const formattedTasks = tasks.map((task) => {
       // 報告者と実行者の名前をカンマ区切りで連結
       const reporterNames = task.reporters.map((r) => r.user?.name ?? r.name ?? "不明").join(", ");
@@ -142,6 +139,11 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
       };
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスク情報を返す
+     */
     return formattedTasks;
   } catch (error) {
     console.error("[EXPORT_GROUP_TASK]", error);
@@ -152,40 +154,27 @@ export async function exportGroupTask(groupId: string, startDate?: Date, endDate
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * タスクとその関連データの型定義
+ * CSV出力用データの型定義
  */
-type TaskWithRelations = {
-  id: string;
-  task: string;
-  reference: string | null;
-  status: string;
-  contributionType: string;
-  info: string | null;
-  fixedContributionPoint: number | null;
-  fixedEvaluatorId: string | null;
-  fixedEvaluationLogic: string | null;
-  fixedEvaluationDate: Date | null;
-  userFixedSubmitterId: string | null;
-  executors: TaskUserRelation[];
-  reporters: TaskUserRelation[];
-  creator: {
-    id: string;
-    name: string | null;
-  } | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスクとユーザーの関連の型定義
- */
-type TaskUserRelation = {
-  user?: {
-    id?: string;
-    name?: string | null;
-  } | null;
-  name?: string | null;
-  userId?: string;
+type CsvDataItem = {
+  分析ID: string;
+  タスクID: string;
+  貢献ポイント: number;
+  評価ロジック: string;
+  評価者ID: string;
+  評価者名: string;
+  タスク内容: string;
+  参照情報: string;
+  証拠情報: string;
+  ステータス: string;
+  貢献タイプ: string;
+  タスク報告者: string;
+  タスク実行者: string;
+  タスク作成者: string;
+  グループ目標: string | null;
+  評価方法: string | null;
+  作成日: string;
+  評価日?: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -224,12 +213,10 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
 
     // FIX済みのみの条件
     if (onlyFixed) {
-      whereConditions.AND = [
-        { status: "POINTS_AWARDED" as TaskStatus }, // ステータスがPOINTS_AWARDEDのもののみに限定
-      ];
+      whereConditions.AND = [{ status: TaskStatus.POINTS_AWARDED }];
     } else if (onlyTaskCompleted) {
       // FIX済み条件がオフで、分析用の場合はTASK_COMPLETEDのみを対象とする
-      whereConditions.AND = [{ status: "TASK_COMPLETED" as TaskStatus }];
+      whereConditions.AND = [{ status: TaskStatus.TASK_COMPLETED }];
     }
 
     // タスク数を取得
@@ -239,8 +226,8 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
 
     const totalPages = Math.ceil(tasksCount / limit);
 
-    // タスクを取得
-    const tasks = (await prisma.task.findMany({
+    // タスクを取得（selectのみ使用）
+    const tasks = await prisma.task.findMany({
       where: whereConditions,
       skip: offset,
       take: limit,
@@ -256,166 +243,63 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
         fixedEvaluationLogic: true,
         fixedEvaluationDate: true,
         userFixedSubmitterId: true,
-        // 作成者情報
         creator: {
           select: {
             id: true,
             name: true,
           },
         },
-        // 報告者情報
         reporters: {
-          include: {
+          select: {
+            name: true,
             user: {
               select: {
-                id: true,
                 name: true,
               },
             },
           },
         },
-        // 実行者情報
         executors: {
-          include: {
+          select: {
+            name: true,
             user: {
               select: {
-                id: true,
                 name: true,
               },
             },
           },
         },
       },
-    })) as unknown as TaskWithRelations[];
-
-    // 関連するユーザーIDを収集
-    const userIds: string[] = [];
-
-    // 固定評価者と固定提出者のIDを追加（nullでないものだけ）
-    tasks.forEach((task) => {
-      if (task.fixedEvaluatorId) {
-        userIds.push(task.fixedEvaluatorId);
-      }
-
-      if (task.userFixedSubmitterId) {
-        userIds.push(task.userFixedSubmitterId);
-      }
     });
 
-    // 評価者情報を一括取得 - 空の配列の場合は検索しない
-    const users =
-      userIds.length > 0
+    // 固定評価者のユーザー情報を一括取得
+    const evaluatorIds = tasks.map((task) => task.fixedEvaluatorId).filter((id): id is string => id !== null);
+
+    const evaluators =
+      evaluatorIds.length > 0
         ? await prisma.user.findMany({
-            where: {
-              id: { in: userIds.filter(Boolean) }, // null値を除外
-            },
-            select: {
-              id: true,
-              name: true,
-            },
+            where: { id: { in: evaluatorIds } },
+            select: { id: true, name: true },
           })
         : [];
 
-    // 取得したデータをマッピングするためのマップを作成
-    const tasksMap: Record<string, TaskWithRelations> = {};
+    // 評価者マップを作成
+    const evaluatorMap = new Map(evaluators.map((user) => [user.id, user.name]));
 
-    // マップを作成
-    tasks.forEach((task) => {
-      tasksMap[task.id] = {
-        id: task.id,
-        task: task.task,
-        reference: task.reference,
-        status: task.status,
-        contributionType: task.contributionType,
-        info: task.info,
-        fixedContributionPoint: task.fixedContributionPoint,
-        fixedEvaluatorId: task.fixedEvaluatorId,
-        fixedEvaluationLogic: task.fixedEvaluationLogic,
-        fixedEvaluationDate: task.fixedEvaluationDate,
-        userFixedSubmitterId: task.userFixedSubmitterId,
-        executors: task.executors,
-        reporters: task.reporters,
-        creator: task.creator,
-      };
-    });
-
-    type UserMapItem = {
-      id: string;
-      name: string | null;
-    };
-
-    const usersMap: Record<string, UserMapItem> = {};
-
-    // ユーザーマップを作成
-    users.forEach((user) => {
-      usersMap[user.id] = user;
-    });
-
-    // 最終的なデータを組み立てる
-    type AnalyticsItem = {
-      id: string;
-      executors: TaskUserRelation[];
-      reporters: TaskUserRelation[];
-      creator: {
-        id: string;
-        name: string | null;
-      } | null;
-      group: typeof group;
-    };
-
-    const analytics: AnalyticsItem[] = tasks.map((task) => {
-      return {
-        id: task.id,
-        executors: task.executors,
-        reporters: task.reporters,
-        creator: task.creator,
-        group: group,
-      };
-    });
-
-    // 評価者ごとにグループ化
-    type CsvDataItem = {
-      分析ID: string;
-      タスクID: string;
-      貢献ポイント: number;
-      評価ロジック: string;
-      評価者ID: string;
-      評価者名: string;
-      タスク内容: string;
-      参照情報: string;
-      証拠情報: string;
-      ステータス: string;
-      貢献タイプ: string;
-      タスク報告者: string;
-      タスク実行者: string;
-      タスク作成者: string;
-      グループ目標: string | null;
-      評価方法: string | null;
-      作成日: string;
-      評価日?: string;
-    };
-
+    // CSV用データを作成
     const groupedByEvaluator: Record<string, CsvDataItem[]> = {};
 
-    analytics.forEach((item) => {
-      const task = tasksMap[item.id];
-      const evaluatorId = task.fixedEvaluatorId;
-
-      // nullの安全な処理
-      const evaluator = evaluatorId && typeof evaluatorId === "string" && usersMap[evaluatorId] ? usersMap[evaluatorId] : undefined;
-      const evaluatorName = evaluator ? evaluator.name : "未割り当て";
-      const taskContent = task.task ?? "";
-      const referenceContent = task.reference ?? "";
-      const infoContent = task.info ?? "";
+    tasks.forEach((task) => {
+      const evaluatorName = task.fixedEvaluatorId ? (evaluatorMap.get(task.fixedEvaluatorId) ?? "未割り当て") : "未割り当て";
 
       // 報告者と実行者の名前を抽出
       const reporterNames = task.reporters
-        .map((r) => (r.user ? r.user.name : r.name) ?? "")
+        .map((r) => r.user?.name ?? r.name ?? "")
         .filter((name) => name.length > 0)
         .join(", ");
 
       const executorNames = task.executors
-        .map((e) => (e.user ? e.user.name : e.name) ?? "")
+        .map((e) => e.user?.name ?? e.name ?? "")
         .filter((name) => name.length > 0)
         .join(", ");
 
@@ -426,33 +310,32 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
         貢献ポイント: task.fixedContributionPoint ?? 0,
         評価ロジック: task.fixedEvaluationLogic ?? "",
         評価者ID: task.fixedEvaluatorId ?? "",
-        評価者名: evaluatorName ?? "",
-        タスク内容: taskContent,
-        参照情報: referenceContent,
-        証拠情報: infoContent,
+        評価者名: evaluatorName,
+        タスク内容: task.task,
+        参照情報: task.reference ?? "",
+        証拠情報: task.info ?? "",
         ステータス: task.status,
         貢献タイプ: task.contributionType,
         タスク報告者: reporterNames,
         タスク実行者: executorNames,
-        タスク作成者: task.creator ? (task.creator.name ?? "") : "",
+        タスク作成者: task.creator?.name ?? "",
         グループ目標: group.goal,
         評価方法: group.evaluationMethod,
-        作成日: task.fixedEvaluationDate ? new Date(task.fixedEvaluationDate).toISOString().split("T")[0] : "",
+        作成日: task.fixedEvaluationDate ? task.fixedEvaluationDate.toISOString().split("T")[0] : "",
       };
 
-      // FIX済みの場合は追加情報を含める
+      // FIX済みの場合は評価日を追加
       if (onlyFixed && task.fixedEvaluationDate) {
         csvData.評価日 = task.fixedEvaluationDate.toISOString().split("T")[0];
       }
 
       // 評価者ごとのグループに追加
-      if (!groupedByEvaluator[evaluatorName ?? ""]) {
-        groupedByEvaluator[evaluatorName ?? ""] = [];
+      if (!groupedByEvaluator[evaluatorName]) {
+        groupedByEvaluator[evaluatorName] = [];
       }
-      groupedByEvaluator[evaluatorName ?? ""].push(csvData);
+      groupedByEvaluator[evaluatorName].push(csvData);
     });
 
-    // 全体のページ数も返す
     return {
       data: groupedByEvaluator,
       totalPages,
@@ -460,7 +343,6 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
     };
   } catch (error) {
     console.error("[EXPORT_GROUP_ANALYTICS]", error);
-    // エラーメッセージを含めて返す
     return { error: "分析データのエクスポート中にエラーが発生しました" };
   }
 }

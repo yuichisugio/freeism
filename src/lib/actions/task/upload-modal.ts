@@ -1,10 +1,9 @@
 "use server";
 
-import type { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
-import { contributionType } from "@prisma/client";
+import { contributionType, TaskStatus } from "@prisma/client";
 
 import { checkIsOwner } from "../permission";
 
@@ -14,7 +13,6 @@ import { checkIsOwner } from "../permission";
  * CSVからタスクを一括登録する関数
  * @param data - CSVから読み込んだタスクデータ
  * @param groupId - グループID
- * @param userId - ユーザーID
  * @returns 処理結果を含むオブジェクト
  */
 export async function bulkCreateTasks(
@@ -39,6 +37,7 @@ export async function bulkCreateTasks(
     // グループの存在確認
     const group = await prisma.group.findUnique({
       where: { id: groupId },
+      select: { id: true },
     });
 
     if (!group) {
@@ -82,6 +81,7 @@ export async function bulkCreateTasks(
                 ],
               },
             },
+            select: { id: true },
           });
 
           // 報酬タイプがREWARDの場合はオークションを作成
@@ -136,6 +136,11 @@ export async function bulkCreateTasks(
   }
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 固定評価データの型定義
+ */
 type FixedEvaluationData = {
   id: string;
   fixedContributionPoint: string | number;
@@ -170,6 +175,7 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
         groupId: groupId,
         isGroupOwner: true,
       },
+      select: { id: true },
     });
 
     // 権限がない場合はエラーを返す
@@ -200,6 +206,10 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
           where: {
             id: row.id,
             groupId: groupId,
+          },
+          select: {
+            id: true,
+            status: true,
           },
         });
 
@@ -259,13 +269,17 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
               userFixedSubmitterId: userId,
               status: "POINTS_AWARDED",
             },
+            select: {
+              id: true,
+              status: true,
+            },
           });
 
           // GroupPointテーブルの残高を更新
           // 1. 報告者と実行者のユーザーIDを取得
           const taskWithUsers = await tx.task.findUnique({
             where: { id: row.id },
-            include: {
+            select: {
               reporters: {
                 select: { userId: true },
                 where: { userId: { not: null } }, // 登録済みユーザーのみ
@@ -291,6 +305,7 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
                     groupId: groupId,
                   },
                 },
+                select: { id: true },
               });
 
               // GroupPointが存在しなければ作成、存在すれば更新
@@ -352,15 +367,7 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
 /**
  * 有効なステータスの配列
  */
-// 有効なステータスの配列
-const validStatuses: TaskStatus[] = [
-  "PENDING",
-  "POINTS_DEPOSITED",
-  "TASK_COMPLETED",
-  "FIXED_EVALUATED",
-  "POINTS_AWARDED",
-  "ARCHIVED",
-] as TaskStatus[];
+const validStatuses: TaskStatus[] = ["PENDING", "POINTS_DEPOSITED", "TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -377,33 +384,9 @@ type FailedResult = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * タスクステータスの更新に成功した場合のデータ型
+ * タスクステータスの更新に成功した場合のデータ型（簡素化）
  */
 type UpdatedTaskResult = {
-  reporters: {
-    user: {
-      id: string;
-      name: string | null;
-      email: string;
-      emailVerified: Date | null;
-      image: string | null;
-      isAppOwner: boolean;
-      createdAt: Date;
-      updatedAt: Date;
-    } | null;
-  }[];
-  executors: {
-    user: {
-      id: string;
-      name: string | null;
-      email: string;
-      emailVerified: Date | null;
-      image: string | null;
-      isAppOwner: boolean;
-      createdAt: Date;
-      updatedAt: Date;
-    } | null;
-  }[];
   id: string;
   task: string;
   reference: string | null;
@@ -419,6 +402,8 @@ type UpdatedTaskResult = {
   groupId: string;
   creatorId: string | null;
   userFixedSubmitterId: string | null;
+  reporters: { userId: string | null }[];
+  executors: { userId: string | null }[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -464,33 +449,10 @@ export async function bulkUpdateTaskStatuses(
         // タスクの存在チェック
         const task = await prisma.task.findUnique({
           where: { id: item.taskId },
-          include: {
-            creator: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            reporters: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
-                },
-              },
-            },
-            executors: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
-                },
-              },
-            },
+          select: {
+            id: true,
+            status: true,
+            fixedContributionPoint: true,
             group: {
               select: {
                 id: true,
@@ -514,7 +476,7 @@ export async function bulkUpdateTaskStatuses(
         }
 
         // 変更不可のステータスチェック（特定のステータスからは変更不可）
-        const immutableStatuses: TaskStatus[] = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+        const immutableStatuses: TaskStatus[] = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED, TaskStatus.ARCHIVED];
         if (immutableStatuses.includes(task.status)) {
           failedResults.push({ ...item, error: `このステータス(${task.status})のタスクは変更できません` });
           continue;
@@ -524,29 +486,38 @@ export async function bulkUpdateTaskStatuses(
         const updatedTask = await prisma.task.update({
           where: { id: item.taskId },
           data: { status: item.status as TaskStatus },
-          include: {
+          select: {
+            id: true,
+            task: true,
+            reference: true,
+            status: true,
+            contributionType: true,
+            info: true,
+            fixedContributionPoint: true,
+            fixedEvaluatorId: true,
+            fixedEvaluationLogic: true,
+            fixedEvaluationDate: true,
+            createdAt: true,
+            updatedAt: true,
+            groupId: true,
+            creatorId: true,
+            userFixedSubmitterId: true,
             reporters: {
-              include: {
-                user: true,
-              },
+              select: { userId: true },
             },
             executors: {
-              include: {
-                user: true,
-              },
+              select: { userId: true },
             },
           },
         });
 
         // ステータスがPOINTS_AWARDEDに変更されかつfixedContributionPointが設定されている場合、GroupPointを更新
-        if (item.status === "POINTS_AWARDED" && task.fixedContributionPoint) {
+        if (item.status === TaskStatus.POINTS_AWARDED && task.fixedContributionPoint) {
           const contributionPoint = task.fixedContributionPoint;
 
           // 報告者と実行者のユーザーIDを取得（重複排除）
-          const reporterUserIds = updatedTask.reporters.filter((r) => r.user?.id).map((r) => r.user!.id);
-
-          const executorUserIds = updatedTask.executors.filter((e) => e.user?.id).map((e) => e.user!.id);
-
+          const reporterUserIds = updatedTask.reporters.filter((r) => r.userId).map((r) => r.userId!);
+          const executorUserIds = updatedTask.executors.filter((e) => e.userId).map((e) => e.userId!);
           const userIds = [...new Set([...reporterUserIds, ...executorUserIds])];
 
           // 各ユーザーのGroupPointを更新
@@ -559,6 +530,7 @@ export async function bulkUpdateTaskStatuses(
                   groupId: task.group.id,
                 },
               },
+              select: { id: true },
             });
 
             // GroupPointが存在しなければ作成、存在すれば更新
