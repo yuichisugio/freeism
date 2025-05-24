@@ -3,7 +3,8 @@
 import type { GetGroupMembers } from "@/types/group-types";
 import { useCallback, useState } from "react";
 import { redirect } from "next/navigation";
-import { checkAppOwner, checkOwner, getGroupMembers, grantOwnerPermission } from "@/lib/actions/group";
+import { getGroupMembers } from "@/lib/actions/group";
+import { checkIsAppOwner, checkIsOwner, grantOwnerPermission } from "@/lib/actions/permission";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -108,9 +109,9 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   /**
    * アプリケーションオーナー権限の取得
    */
-  const { data: isAppOwner = false, isLoading: isLoadingAppOwner } = useQuery({
+  const { data: isAppOwner, isLoading: isLoadingAppOwner } = useQuery({
     queryKey: queryCacheKeys.permission.appOwner(userId),
-    queryFn: async () => await checkAppOwner(userId),
+    queryFn: async () => await checkIsAppOwner(userId),
     enabled: !!userId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
   });
@@ -120,9 +121,9 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   /**
    * グループオーナー権限の取得
    */
-  const { data: isGroupOwner = false, isLoading: isLoadingGroupOwner } = useQuery({
+  const { data: isGroupOwner, isLoading: isLoadingGroupOwner } = useQuery({
     queryKey: queryCacheKeys.permission.groupOwner(groupId, userId),
-    queryFn: async () => await checkOwner(userId, groupId),
+    queryFn: async () => await checkIsOwner(userId, groupId),
     enabled: !!userId && !!groupId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
   });
@@ -215,8 +216,8 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
    */
   return {
     // state
-    isAppOwner,
-    isGroupOwner,
+    isAppOwner: isAppOwner?.success ?? false,
+    isGroupOwner: isGroupOwner?.success ?? false,
     groupMembers,
     showPermissionDialog,
     selectedUserId,

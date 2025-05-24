@@ -2,31 +2,25 @@
 
 import { useState } from "react";
 import { updateTaskStatus } from "@/lib/actions/task/task";
+import { TaskStatus } from "@prisma/client";
 import { toast } from "sonner";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスクステータスの型
- */
-export type TaskStatus = {
-  label: string;
-  value: string;
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスクステータスの定義
  */
-export const taskStatuses: TaskStatus[] = [
-  { label: "タスク実施予定", value: "PENDING" },
-  { label: "落札済み", value: "BIDDED" },
-  { label: "ポイント預け済み", value: "POINTS_DEPOSITED" },
-  { label: "タスク完了", value: "TASK_COMPLETED" },
-  { label: "固定評価者による評価完了", value: "FIXED_EVALUATED" },
-  { label: "ポイント付与完了", value: "POINTS_AWARDED" },
-  { label: "アーカイブ", value: "ARCHIVED" },
+export const taskStatuses = [
+  { label: "タスク実施前", value: TaskStatus.PENDING },
+  { label: "オークション中", value: TaskStatus.AUCTION_ACTIVE },
+  { label: "オークション終了", value: TaskStatus.AUCTION_ENDED },
+  { label: "ポイント預け済み", value: TaskStatus.POINTS_DEPOSITED },
+  { label: "供給側の提供完了", value: TaskStatus.SUPPLIER_DONE },
+  { label: "タスク完了確認済み", value: TaskStatus.TASK_COMPLETED },
+  { label: "固定評価者による評価完了", value: TaskStatus.FIXED_EVALUATED },
+  { label: "ポイント付与完了", value: TaskStatus.POINTS_AWARDED },
+  { label: "アーカイブ済み", value: TaskStatus.ARCHIVED },
+  { label: "キャンセル済み", value: TaskStatus.AUCTION_CANCELED },
 ];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -52,7 +46,7 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
    * @param newStatus - 新しいステータス
    * @param data - 現在のテーブルデータ
    */
-  const handleStatusChange = async (taskId: string, newStatus: string, data: T[]) => {
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus, data: T[]) => {
     try {
       const result = await updateTaskStatus(taskId, newStatus);
 

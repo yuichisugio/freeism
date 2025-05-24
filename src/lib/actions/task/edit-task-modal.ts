@@ -2,7 +2,7 @@
 
 import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use-create-task-form";
 import { revalidatePath } from "next/cache";
-import { checkAppOwner, checkOwner } from "@/lib/actions/group";
+import { checkIsAppOwner, checkIsOwner } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
@@ -72,8 +72,8 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
     /**
      * グループ所有者またはアプリ所有者か確認
      */
-    const isGroupOwner = await checkOwner(userId, existingTask.groupId);
-    const isAppOwner = await checkAppOwner(userId);
+    const isGroupOwner = await checkIsOwner(userId, existingTask.groupId);
+    const isAppOwner = await checkIsAppOwner(userId);
     const isTaskCreator = existingTask.creatorId === userId;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

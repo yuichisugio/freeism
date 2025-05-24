@@ -40,7 +40,7 @@ export type Column<T> = {
   modalList: ModalListType[] | null;
   editTask: boolean;
   deleteTask?: {
-    canDelete: (row: T) => boolean;
+    canDelete: (row: T) => boolean | Promise<boolean>;
     onDelete: (rowId: string) => Promise<void>;
   } | null;
 };
@@ -51,7 +51,7 @@ export type Column<T> = {
  * EditTaskのためのProps型定義
  */
 type EditTaskProps<T> = {
-  canEdit: (row: T) => boolean;
+  canEdit: (row: T) => boolean | Promise<boolean>;
   onEdit: (row: T) => void;
   editingTaskId: string | null;
   isTaskEditModalOpen: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { exportGroupAnalytics, exportGroupTask } from "@/lib/actions/task/task";
+import { exportGroupAnalytics, exportGroupTask } from "@/lib/actions/task/export-modal";
 import { addMonths, endOfDay, format, isAfter, isBefore, startOfDay } from "date-fns";
 import { zip } from "fflate";
 import { saveAs } from "file-saver";

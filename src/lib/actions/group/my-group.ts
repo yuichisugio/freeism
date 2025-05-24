@@ -2,7 +2,7 @@
 
 import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { checkGroupMembership } from "@/lib/actions/group";
+import { checkGroupMembership } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 

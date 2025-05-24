@@ -3,7 +3,7 @@
 import type { MyTaskTable, MyTaskTableConditions, SortDirection } from "@/types/group-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { checkAppOwner } from "@/lib/actions/group";
+import { checkIsOwner } from "@/lib/actions/permission";
 import { getMyTaskData } from "@/lib/actions/task/my-task-table";
 import { deleteTask as deleteTaskAction } from "@/lib/actions/task/task";
 import { TABLE_CONSTANTS } from "@/lib/constants";
@@ -24,7 +24,6 @@ type UseMyTaskTableReturn = {
   isLoading: boolean;
   tasks: MyTaskTable[];
   userId: string | null;
-  isAppOwner: boolean;
   tableConditions: MyTaskTableConditions;
   totalTaskCount: number;
   editingTaskId: string | null;
@@ -32,9 +31,9 @@ type UseMyTaskTableReturn = {
   router: ReturnType<typeof useRouter>;
 
   // functions
-  canEditTask: (task: MyTaskTable) => boolean;
+  canEditTask: (task: MyTaskTable) => Promise<boolean>;
   handleTaskEdited: () => void;
-  canDeleteTask: (task: MyTaskTable) => boolean;
+  canDeleteTask: (task: MyTaskTable) => Promise<boolean>;
   handleDeleteTask: (taskId: string) => Promise<void>;
   openTaskEditModal: (task: MyTaskTable) => void;
   closeTaskEditModal: () => void;
@@ -50,7 +49,7 @@ type UseMyTaskTableReturn = {
  * @returns タスク管理に必要な状態と関数
  */
 export function useMyTaskTable(): UseMyTaskTableReturn {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 使用するデータの初期化
@@ -63,7 +62,11 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     redirect("/auth/signin");
   }
 
-  // nuqsでURLパラメータを管理
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * nuqsでURLパラメータを管理
+   */
   const [page, setPage] = useQueryState("page", { history: "push", defaultValue: 1, parse: Number, serialize: String });
   const [sortField, setSortField] = useQueryState("sort_field", { history: "push", defaultValue: "id" });
   const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
@@ -77,7 +80,11 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     serialize: String,
   });
 
-  // tableConditionsをuseMemoで生成
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * tableConditionsをuseMemoで生成
+   */
   const tableConditions = useMemo(
     () => ({
       sort: sortField && sortDirection ? { field: sortField as keyof MyTaskTable, direction: sortDirection as SortDirection } : null,
@@ -90,7 +97,11 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     [page, sortField, sortDirection, searchQuery, taskStatus, contributionType, itemPerPage],
   );
 
-  // changeTableConditionsでset関数を呼ぶ
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * changeTableConditionsでset関数を呼ぶ
+   */
   const changeTableConditions = useCallback(
     (newTableConditions: MyTaskTableConditions) => {
       void setPage(newTableConditions.page);
@@ -104,7 +115,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     [setPage, setSortField, setSortDirection, setSearchQuery, setTaskStatus, setContributionType, setItemPerPage],
   );
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * データフェッチ
@@ -146,19 +157,6 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 権限を取得
-   */
-  const { data: isAppOwner, isPending: isLoadingIsAppOwner } = useQuery({
-    queryKey: queryCacheKeys.permission.appOwner(currentUserId),
-    queryFn: () => checkAppOwner(currentUserId),
-    enabled: !!currentUserId,
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60, // 1 hour
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * タスク編集モーダル開閉
    */
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -170,18 +168,16 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * タスク編集・削除ロジック
    */
   const canEditTask = useCallback(
-    (task: MyTaskTable): boolean => {
+    async (task: MyTaskTable): Promise<boolean> => {
       const status = task.taskStatus;
       const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
       if (immutableStatuses.includes(status as string)) return false; // taskStatusがenumなのでstringにキャスト
-      if (!currentUserId) return false;
 
-      const isReporter = task.taskReporterUserIds?.includes(currentUserId) ?? false;
-      const isExecutor = task.taskExecutorUserIds?.includes(currentUserId) ?? false;
+      const isOwner = await checkIsOwner(currentUserId, task.groupId, task.id, true);
 
-      return isAppOwner ?? isReporter ?? isExecutor;
+      return !currentUserId || isOwner.success;
     },
-    [currentUserId, isAppOwner],
+    [currentUserId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -190,7 +186,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * タスク削除
    */
   const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
-    mutationFn: deleteTaskAction,
+    mutationFn: (taskId: string) => deleteTaskAction(taskId),
     onSuccess: async () => {
       toast.success("タスクを削除しました");
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myTask(), exact: false });
@@ -224,14 +220,11 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * タスク削除
    */
   const canDeleteTask = useCallback(
-    (task: MyTaskTable): boolean => {
-      if (!currentUserId) return false;
-      const isReporter = task.taskReporterUserIds?.includes(currentUserId) ?? false;
-      const isExecutor = task.taskExecutorUserIds?.includes(currentUserId) ?? false;
-      // 報酬タスクの場合はオークションの状態も考慮する必要があるが、ここでは簡略化
-      return (isAppOwner ?? isReporter ?? isExecutor) && task.taskStatus === "PENDING";
+    async (task: MyTaskTable): Promise<boolean> => {
+      const isOwner = await checkIsOwner(currentUserId, task.groupId, task.id, true);
+      return isOwner.success && task.taskStatus === "PENDING";
     },
-    [currentUserId, isAppOwner],
+    [currentUserId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -290,10 +283,9 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * 戻り値
    */
   return {
-    isLoading: isLoadingTasks || isDeletingTask || isPlaceholderData || isLoadingIsAppOwner,
+    isLoading: isLoadingTasks || isDeletingTask || isPlaceholderData,
     tasks: tasksResult?.tasks ?? [],
     userId: currentUserId ?? null,
-    isAppOwner: isAppOwner ?? false,
     tableConditions,
     totalTaskCount: tasksResult?.totalTaskCount ?? 0,
     editingTaskId,

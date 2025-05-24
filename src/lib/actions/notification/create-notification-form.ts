@@ -13,35 +13,6 @@ type UserForForm = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知作成フォームを返す
- */
-export async function checkOneGroupOwner(userId: string): Promise<boolean> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループオーナー情報を取得
-   */
-  const userGroupMemberships = await prisma.groupMembership.findFirst({
-    where: {
-      userId: userId,
-      isGroupOwner: true,
-    },
-    select: {
-      groupId: true,
-    },
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループオーナー権限があるかどうかを返す
-   */
-  return userGroupMemberships ? true : false;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * 通知作成フォームを準備する
  */
 export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroupOwner: boolean, userId: string) {
