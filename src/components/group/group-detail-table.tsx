@@ -18,8 +18,7 @@ import { contributionType } from "@prisma/client";
  */
 type GroupDetailTableProps = {
   groupId: string;
-  isGroupOwner: boolean;
-  isAppOwner: boolean;
+  isOwner: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,7 +28,7 @@ type GroupDetailTableProps = {
  * @param tasks {Task[]} タスクデータ
  * @returns {JSX.Element} グループ詳細ページのコンポーネント
  */
-export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGroupOwner, isAppOwner }: GroupDetailTableProps): JSX.Element {
+export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isOwner }: GroupDetailTableProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -61,7 +60,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isGrou
     changeTableConditions,
     resetFilters,
     resetSort,
-  } = useGroupDetailTable({ groupId, isGroupOwner, isAppOwner });
+  } = useGroupDetailTable({ groupId, isOwner });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

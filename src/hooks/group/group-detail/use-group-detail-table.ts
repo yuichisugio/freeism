@@ -24,8 +24,7 @@ import { toast } from "sonner";
  */
 type UseGroupDetailTableProps = {
   groupId: string;
-  isGroupOwner: boolean;
-  isAppOwner: boolean;
+  isOwner: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -60,10 +59,9 @@ type UseGroupDetailTableReturn = {
 /**
  * グループタスク用のカスタムフック
  * @param groupId {string} グループID
- * @param isGroupOwner {boolean} グループオーナーかどうか
- * @param isAppOwner {boolean} アプリオーナーかどうか
+ * @param isOwner {boolean} オーナーかどうか
  */
-export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGroupDetailTableProps): UseGroupDetailTableReturn {
+export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTableProps): UseGroupDetailTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -287,13 +285,13 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
       if (task.taskContributionType === "REWARD") {
         // 報酬タスクは、AuctionがPENDINGの場合のみ削除可能
         // 注: ここではAuction情報を持っていないため、ステータスでPENDINGかどうかを判断
-        return (isGroupOwner || isReporter || isExecutor) && task.taskStatus === "PENDING";
+        return (isOwner || isReporter || isExecutor) && task.taskStatus === "PENDING";
       } else {
         // 非報酬タスクは、TaskStatusがPENDINGの場合のみ削除可能
-        return (isGroupOwner || isReporter || isExecutor) && task.taskStatus === "PENDING";
+        return (isOwner || isReporter || isExecutor) && task.taskStatus === "PENDING";
       }
     },
-    [isGroupOwner, userId],
+    [isOwner, userId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -320,10 +318,10 @@ export function useGroupDetailTable({ groupId, isGroupOwner, isAppOwner }: UseGr
       // 実行者チェック
       const isExecutor = task.taskExecutorUserIds?.some((id: string) => id === userId) ?? false;
 
-      // アプリオーナーまたはグループオーナーの場合は編集可能
-      return isAppOwner || isGroupOwner || isReporter || isExecutor;
+      // オーナーの場合は編集可能
+      return isOwner || isReporter || isExecutor;
     },
-    [isAppOwner, isGroupOwner, userId],
+    [isOwner, userId],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/lib/actions/evaluation";
-import { checkIsAppOwner, checkIsOwner } from "@/lib/actions/permission";
+import { checkIsOwner } from "@/lib/actions/permission";
 import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/lib/actions/task/upload-modal";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
@@ -336,10 +336,6 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
   const [currentFiles, setCurrentFiles] = useState<File[]>([]);
   // ファイルオーバー
   const [isFileOver, setIsFileOver] = useState(false);
-  // アプリオーナーかどうか
-  const [isAppOwner, setIsAppOwner] = useState(false);
-  // グループオーナーかどうか
-  const [isGroupOwner, setIsGroupOwner] = useState(false);
   // 権限ありかどうか
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -371,11 +367,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
         }
 
         const userId = session.data.user.id;
-        const [appOwnerResult, groupOwnerResult] = await Promise.all([checkIsAppOwner(userId), checkIsOwner(userId, groupId)]);
+        const isOwnerOrRoleCheck = await checkIsOwner(userId, groupId, undefined, true);
 
-        setIsAppOwner(!!appOwnerResult);
-        setIsGroupOwner(!!groupOwnerResult);
-        setIsAuthorized(!!appOwnerResult || !!groupOwnerResult);
+        setIsAuthorized(isOwnerOrRoleCheck.success);
       } catch (error) {
         console.error("権限チェックエラー:", error);
         setIsAuthorized(false);
@@ -570,11 +564,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
   const hasPermissionForUploadType = useCallback(
     (type: UploadType): boolean => {
       if (type === "FIXED_CONTRIBUTION") {
-        return isGroupOwner || isAppOwner;
+        return isAuthorized;
       }
       return true;
     },
-    [isGroupOwner, isAppOwner],
+    [isAuthorized],
   );
 
   // ---------------------------------------------------------------------------

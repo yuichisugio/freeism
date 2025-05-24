@@ -61,20 +61,11 @@ type UseGroupDetailReturn = {
 /**
  * グループ詳細ページのフック
  * @param tasks {Task[]} タスクデータ
- * @param isGroupOwner {boolean} グループオーナーかどうか
- * @param isAppOwner {boolean} アプリオーナーかどうか
+ * @param isOwner {boolean} オーナーかどうか
  * @param groupId {string} グループID
  * @returns {UseGroupDetailReturn} グループ詳細ページのフックの戻り値
  */
-export function useGroupManipulation({
-  isGroupOwner,
-  isAppOwner,
-  groupId,
-}: {
-  isGroupOwner: boolean;
-  isAppOwner: boolean;
-  groupId: string;
-}): UseGroupDetailReturn {
+export function useGroupManipulation({ isOwner, groupId }: { isOwner: boolean; groupId: string }): UseGroupDetailReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -198,12 +189,8 @@ export function useGroupManipulation({
    * グループ脱退処理（ダイアログ表示）
    */
   const handleLeave = useCallback(() => {
-    if (isGroupOwner) {
-      toast.error("グループオーナーは脱退できません。オーナー権限を他のメンバーに譲渡するか、グループを削除してください。");
-      return;
-    }
     setLeaveDialogOpen(true);
-  }, [isGroupOwner, setLeaveDialogOpen]);
+  }, [setLeaveDialogOpen]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -236,13 +223,13 @@ export function useGroupManipulation({
    */
   const handleOpenEditDialog = useCallback(() => {
     // 保存された権限情報を使用
-    if (!isGroupOwner && !isAppOwner) {
+    if (!isOwner) {
       toast.error("権限がありません");
       return;
     }
 
     setEditDialogOpen(true);
-  }, [isGroupOwner, isAppOwner]);
+  }, [isOwner]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -251,13 +238,13 @@ export function useGroupManipulation({
    */
   const handleOpenDeleteDialog = useCallback(() => {
     // 保存された権限情報を使用
-    if (!isGroupOwner && !isAppOwner) {
+    if (!isOwner) {
       toast.error("権限がありません");
       return;
     }
 
     setDeleteDialogOpen(true);
-  }, [isGroupOwner, isAppOwner]);
+  }, [isOwner]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -288,13 +275,13 @@ export function useGroupManipulation({
    */
   const handleDeleteGroup = useCallback(
     (currentGroupId: string) => {
-      if (!isGroupOwner && !isAppOwner) {
+      if (!isOwner) {
         toast.error("権限がありません");
         return;
       }
       deleteGroupMutation(currentGroupId);
     },
-    [isGroupOwner, isAppOwner, deleteGroupMutation],
+    [isOwner, deleteGroupMutation],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -303,12 +290,12 @@ export function useGroupManipulation({
    * メンバー除名ダイアログを開く処理
    */
   const handleOpenRemoveMemberDialog = useCallback(async () => {
-    if (!isGroupOwner && !isAppOwner) {
+    if (!isOwner) {
       toast.error("権限がありません");
       return;
     }
     setRemoveMemberDialogOpen(true);
-  }, [isGroupOwner, isAppOwner]);
+  }, [isOwner]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -346,7 +333,7 @@ export function useGroupManipulation({
    * メンバー除名処理
    */
   const handleRemoveMember = useCallback(() => {
-    if (!isGroupOwner && !isAppOwner) {
+    if (!isOwner) {
       toast.error("権限がありません");
       return;
     }
@@ -356,7 +343,7 @@ export function useGroupManipulation({
       return;
     }
     removeMemberMutation();
-  }, [isGroupOwner, isAppOwner, selectedMemberForRemoval, removeMemberMutation]);
+  }, [isOwner, selectedMemberForRemoval, removeMemberMutation]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

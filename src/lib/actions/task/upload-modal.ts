@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
 
-import { checkIsAppOwner, checkIsOwner } from "../permission";
+import { checkIsOwner } from "../permission";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -350,6 +350,80 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 有効なステータスの配列
+ */
+// 有効なステータスの配列
+const validStatuses: TaskStatus[] = [
+  "PENDING",
+  "POINTS_DEPOSITED",
+  "TASK_COMPLETED",
+  "FIXED_EVALUATED",
+  "POINTS_AWARDED",
+  "ARCHIVED",
+] as TaskStatus[];
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクステータスの更新に失敗した場合のデータ型
+ */
+type FailedResult = {
+  taskId: string;
+  status: string;
+  error: string;
+  [key: string]: unknown;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクステータスの更新に成功した場合のデータ型
+ */
+type UpdatedTaskResult = {
+  reporters: {
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      emailVerified: Date | null;
+      image: string | null;
+      isAppOwner: boolean;
+      createdAt: Date;
+      updatedAt: Date;
+    } | null;
+  }[];
+  executors: {
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      emailVerified: Date | null;
+      image: string | null;
+      isAppOwner: boolean;
+      createdAt: Date;
+      updatedAt: Date;
+    } | null;
+  }[];
+  id: string;
+  task: string;
+  reference: string | null;
+  status: string;
+  contributionType: string;
+  info: string | null;
+  fixedContributionPoint: number | null;
+  fixedEvaluatorId: string | null;
+  fixedEvaluationLogic: string | null;
+  fixedEvaluationDate: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  groupId: string;
+  creatorId: string | null;
+  userFixedSubmitterId: string | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * タスクステータスを一括更新する関数
  * @param data タスクIDとステータスを含むデータ配列
  * @returns 処理結果を含むオブジェクト
@@ -363,67 +437,6 @@ export async function bulkUpdateTaskStatuses(
 ) {
   try {
     const userId = await getAuthenticatedSessionUserId();
-
-    const isAppOwner = await checkIsAppOwner(userId);
-
-    // 有効なステータスの配列
-    const validStatuses: TaskStatus[] = [
-      "PENDING",
-      "POINTS_DEPOSITED",
-      "TASK_COMPLETED",
-      "FIXED_EVALUATED",
-      "POINTS_AWARDED",
-      "ARCHIVED",
-    ] as TaskStatus[];
-
-    type FailedResult = {
-      taskId: string;
-      status: string;
-      error: string;
-      [key: string]: unknown;
-    };
-
-    type UpdatedTaskResult = {
-      reporters: {
-        user: {
-          id: string;
-          name: string | null;
-          email: string;
-          emailVerified: Date | null;
-          image: string | null;
-          isAppOwner: boolean;
-          createdAt: Date;
-          updatedAt: Date;
-        } | null;
-      }[];
-      executors: {
-        user: {
-          id: string;
-          name: string | null;
-          email: string;
-          emailVerified: Date | null;
-          image: string | null;
-          isAppOwner: boolean;
-          createdAt: Date;
-          updatedAt: Date;
-        } | null;
-      }[];
-      id: string;
-      task: string;
-      reference: string | null;
-      status: string;
-      contributionType: string;
-      info: string | null;
-      fixedContributionPoint: number | null;
-      fixedEvaluatorId: string | null;
-      fixedEvaluationLogic: string | null;
-      fixedEvaluationDate: Date | null;
-      createdAt: Date;
-      updatedAt: Date;
-      groupId: string;
-      creatorId: string | null;
-      userFixedSubmitterId: string | null;
-    };
 
     const results: UpdatedTaskResult[] = [];
     const failedResults: FailedResult[] = [];
@@ -492,13 +505,10 @@ export async function bulkUpdateTaskStatuses(
         }
 
         // 権限チェック
-        const isCreator = task.creator.id === userId;
-        const isReporter = task.reporters.some((reporter) => reporter.user?.id === userId);
-        const isExecutor = task.executors.some((executor) => executor.user?.id === userId);
-        const isGroupOwner = await checkIsOwner(userId, task.group.id);
+        const isOwnerOrRoleCheck = await checkIsOwner(userId, task.group.id, undefined, true);
 
         // いずれかの権限がある場合のみ変更可能
-        if (!(isCreator || isReporter || isExecutor || isAppOwner || isGroupOwner)) {
+        if (!isOwnerOrRoleCheck.success) {
           failedResults.push({ ...item, error: "このタスクのステータスを変更する権限がありません" });
           continue;
         }

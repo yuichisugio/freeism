@@ -4,7 +4,7 @@ import type { GetGroupMembers } from "@/types/group-types";
 import { useCallback, useState } from "react";
 import { redirect } from "next/navigation";
 import { getGroupMembers } from "@/lib/actions/group";
-import { checkIsAppOwner, checkIsOwner, grantOwnerPermission } from "@/lib/actions/permission";
+import { checkIsOwner, grantOwnerPermission } from "@/lib/actions/permission";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -26,8 +26,7 @@ type UseGroupPermissionProps = {
  */
 type UseGroupPermissionReturn = {
   // state
-  isAppOwner: boolean;
-  isGroupOwner: boolean;
+  isOwner: boolean;
   groupMembers: GetGroupMembers[];
   showPermissionDialog: boolean;
   addToBlackList: boolean;
@@ -107,23 +106,11 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * アプリケーションオーナー権限の取得
-   */
-  const { data: isAppOwner, isLoading: isLoadingAppOwner } = useQuery({
-    queryKey: queryCacheKeys.permission.appOwner(userId),
-    queryFn: async () => await checkIsAppOwner(userId),
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 60 * 24, // 24時間
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * グループオーナー権限の取得
    */
-  const { data: isGroupOwner, isLoading: isLoadingGroupOwner } = useQuery({
+  const { data: isOwner, isLoading: isLoadingOwner } = useQuery({
     queryKey: queryCacheKeys.permission.groupOwner(groupId, userId),
-    queryFn: async () => await checkIsOwner(userId, groupId),
+    queryFn: async () => await checkIsOwner(userId, groupId, undefined, false),
     enabled: !!userId && !!groupId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
   });
@@ -146,7 +133,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
    * 権限付与ダイアログを開く処理
    */
   const handleOpenPermissionDialog = useCallback(() => {
-    if (!isGroupOwner && !isAppOwner) {
+    if (!isOwner) {
       toast.error("権限がありません");
       return;
     }
@@ -157,7 +144,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
       console.error(error);
       toast.error("メンバー情報の取得に失敗しました");
     }
-  }, [isGroupOwner, isAppOwner, refetchGroupMembers]);
+  }, [isOwner, refetchGroupMembers]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -198,7 +185,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
    * 権限付与処理
    */
   const handleGrantPermission = useCallback(() => {
-    if (!isGroupOwner && !isAppOwner) {
+    if (!isOwner) {
       toast.error("権限がありません");
       return;
     }
@@ -207,7 +194,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
       return;
     }
     grantPermissionMutation();
-  }, [isGroupOwner, isAppOwner, selectedUserId, grantPermissionMutation]);
+  }, [isOwner, selectedUserId, grantPermissionMutation]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -216,8 +203,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
    */
   return {
     // state
-    isAppOwner: isAppOwner?.success ?? false,
-    isGroupOwner: isGroupOwner?.success ?? false,
+    isOwner: isOwner?.success ?? false,
     groupMembers,
     showPermissionDialog,
     selectedUserId,
@@ -228,7 +214,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
     selectedMemberNameForRemoval,
     isRemovalComboboxOpen,
     addToBlackList,
-    isLoadingPermissions: isLoadingAppOwner || isLoadingGroupOwner || isGrantingPermission,
+    isLoadingPermissions: isLoadingOwner || isGrantingPermission,
 
     // action
     setShowPermissionDialog,

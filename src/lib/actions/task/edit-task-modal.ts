@@ -2,7 +2,7 @@
 
 import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use-create-task-form";
 import { revalidatePath } from "next/cache";
-import { checkIsAppOwner, checkIsOwner } from "@/lib/actions/permission";
+import { checkIsOwner } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType } from "@prisma/client";
@@ -32,29 +32,7 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
     const existingTask = await prisma.task.findUnique({
       where: { id: taskId },
       select: {
-        id: true,
         groupId: true,
-        creatorId: true,
-        group: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        reporters: {
-          select: {
-            id: true,
-            name: true,
-            userId: true,
-          },
-        },
-        executors: {
-          select: {
-            id: true,
-            name: true,
-            userId: true,
-          },
-        },
       },
     });
 
@@ -72,16 +50,14 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
     /**
      * グループ所有者またはアプリ所有者か確認
      */
-    const isGroupOwner = await checkIsOwner(userId, existingTask.groupId);
-    const isAppOwner = await checkIsAppOwner(userId);
-    const isTaskCreator = existingTask.creatorId === userId;
+    const isOwnerOrRoleCheck = await checkIsOwner(userId, existingTask.groupId, undefined, true);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * 権限チェック（タスク作成者、グループ所有者、またはアプリ所有者のみ更新可能）
      */
-    if (!isTaskCreator && !isGroupOwner && !isAppOwner) {
+    if (!isOwnerOrRoleCheck.success) {
       return { error: "このタスクを更新する権限がありません" };
     }
 
@@ -203,6 +179,9 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
        */
       const existingAuction = await prismaClient.auction.findUnique({
         where: { taskId: taskId },
+        select: {
+          id: true,
+        },
       });
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

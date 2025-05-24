@@ -92,13 +92,8 @@ export async function checkIsOwner(
      */
     let groupId = propsGroupId;
 
-    // グループIDが指定されていない場合はタスクIDからグループIDを取得
-    if (!propsGroupId) {
-      // タスクIDが指定されていない場合はエラーを返す
-      if (!propsTaskId) {
-        return { success: false, error: "グループIDが指定されていません" };
-      }
-
+    // グループIDが指定されていない && タスクIDが指定されている場合はタスクIDからグループIDを取得
+    if (!propsGroupId && propsTaskId) {
       // タスクIDからグループIDを取得
       const task = await prisma.task.findUnique({
         where: { id: propsTaskId },
@@ -211,6 +206,7 @@ export async function grantOwnerPermission(groupId: string, userId: string): Pro
 
 /**
  * アプリオーナー権限をチェックする関数
+ * 通知作成で、アプリオーナー権限があるかどうかをチェックするために使用。Appオーナー権限は、ユーザー指定の通知を送れる
  * @param userId - チェックするユーザーのID
  * @returns アプリオーナー権限があればtrue、なければfalse
  */

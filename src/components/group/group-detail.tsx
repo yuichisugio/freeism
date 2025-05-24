@@ -77,8 +77,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
    */
   const {
     // states
-    isGroupOwner,
-    isAppOwner,
+    isOwner,
     groupMembers, // 権限付与ダイアログ用
     showPermissionDialog,
     selectedUserId,
@@ -158,8 +157,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
     handleOpenRemoveMemberDialog, // manip を削除
     handleRemoveMember, // manip を削除
   } = useGroupManipulation({
-    isGroupOwner,
-    isAppOwner,
+    isOwner,
     groupId: groupId,
   });
 
@@ -237,7 +235,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
               エクスポート
             </Button>
 
-            {(isGroupOwner || isAppOwner) && (
+            {isOwner && (
               <>
                 <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenEditDialog}>
                   <Edit />
@@ -267,7 +265,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             )}
 
             {/* 脱退ボタン（グループオーナー以外のメンバー向け） */}
-            {isMember && !isGroupOwner && (
+            {isMember && !isOwner && (
               <Button
                 variant="outline"
                 className="ml-auto border-red-200 bg-white text-red-600 hover:bg-gray-50 hover:text-red-700"
@@ -311,12 +309,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogHeader>
               <AlertDialogTitle className="text-lg font-semibold">グループオーナー権限付与</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-600">
-                {isGroupOwner || isAppOwner
+                {isOwner
                   ? "グループオーナー権限を付与するユーザーを選択してください。"
                   : "グループオーナー権限がないため、権限を付与することができません。"}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            {(isGroupOwner || isAppOwner) && (
+            {isOwner && (
               <div className="py-4">
                 <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
                   <PopoverTrigger asChild>
@@ -357,7 +355,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogFooter>
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Button onClick={handleGrantPermission} disabled={!(isGroupOwner || isAppOwner) || !selectedUserId} className="button-default-custom">
+                <Button onClick={handleGrantPermission} disabled={!isOwner || !selectedUserId} className="button-default-custom">
                   権限を付与
                 </Button>
               </AlertDialogAction>
@@ -371,14 +369,14 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogHeader>
               <AlertDialogTitle className="text-lg font-semibold">グループを削除しますか？</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-600">
-                {isGroupOwner || isAppOwner
+                {isOwner
                   ? "グループを削除すると、そのグループに関連するデータも全て削除されます。\nこの操作は元に戻せません。"
                   : "グループオーナー権限がないため、グループを削除することができません。"}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
-              {(isGroupOwner || isAppOwner) && (
+              {isOwner && (
                 <AlertDialogAction asChild>
                   <Button variant="destructive" onClick={() => handleDeleteGroup(group.id)} disabled={isDeletingGroup}>
                     {isDeletingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "削除する"}
@@ -395,12 +393,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogHeader>
               <AlertDialogTitle className="text-lg font-semibold">メンバー除名</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-600">
-                {isGroupOwner || isAppOwner
+                {isOwner
                   ? `除名するメンバーを選択してください。ブラックリストに追加すると、今後このメンバーは、${group.name}に参加できなくなります。`
                   : "グループオーナー権限がないため、メンバーを除名することができません。"}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            {(isGroupOwner || isAppOwner) && (
+            {isOwner && (
               <div className="space-y-4 py-4">
                 <Popover open={isRemovalComboboxOpen} onOpenChange={setIsRemovalComboboxOpen}>
                   <PopoverTrigger asChild>
@@ -444,7 +442,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             )}
             <AlertDialogFooter>
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
-              {(isGroupOwner || isAppOwner) && (
+              {isOwner && (
                 <AlertDialogAction asChild>
                   <Button variant="destructive" onClick={handleRemoveMember} disabled={!selectedMemberForRemoval || isRemovingMember}>
                     {isRemovingMember ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "除名する"}
@@ -483,7 +481,7 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
 
         {/* タスク・報酬セクション */}
         <div>
-          <GroupDetailTable groupId={group.id} isGroupOwner={isGroupOwner} isAppOwner={isAppOwner} />
+          <GroupDetailTable groupId={group.id} isOwner={isOwner} />
         </div>
 
         {/* データエクスポートモーダル */}
