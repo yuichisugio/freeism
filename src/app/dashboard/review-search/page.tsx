@@ -1,11 +1,9 @@
 "use cache";
 
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import { GroupDetail } from "@/components/group/group-detail";
-import { GroupDetailSkeleton } from "@/components/group/group-detail-skeleton";
 import { MainTemplate } from "@/components/layout/maintemplate";
+import { ReviewSearch } from "@/components/review-search/review-search";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -13,17 +11,17 @@ import { MainTemplate } from "@/components/layout/maintemplate";
  * メタデータ
  */
 export const metadata: Metadata = {
-  title: "グループ詳細 | Freeism App",
-  description: "グループの詳細を表示します",
+  title: "レビュー検索 | Freeism App",
+  description: "レビューを検索できます",
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * グループ詳細ページ
+ * レビュー検索ページ
  * @param params パラメータ
  */
-export default async function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReviewSearchPage() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -34,20 +32,11 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * パラメータを取得
-   */
-  const { id } = await params;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループ詳細ページを返す
+   * レビュー検索ページを返す
    */
   return (
-    <MainTemplate title={false} description={false}>
-      <Suspense fallback={<GroupDetailSkeleton />}>
-        <GroupDetail groupId={id} />
-      </Suspense>
+    <MainTemplate title={"レビュー検索"} description={"ユーザーのレビューを検索できます"}>
+      <ReviewSearch />
     </MainTemplate>
   );
 }

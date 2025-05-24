@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { History, Home, Menu, PlusCircle, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
+import { History, Home, Menu, PlusCircle, Search, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -43,6 +43,11 @@ const sidebarItems = [
         title: "Task作成",
         href: "/dashboard/create-task",
         icon: PlusCircle,
+      },
+      {
+        title: "レビュー検索",
+        href: "/dashboard/review-search",
+        icon: Search,
       },
       {
         title: "GitHub API変換",
