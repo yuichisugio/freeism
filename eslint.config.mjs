@@ -107,6 +107,7 @@ const eslintConfig = [
       "public/service-worker.js",
       "scripts/update-auction-status-to-active.cjs",
       "scripts/update-auction-status-to-completed.cjs",
+      "vitest.config.ts",
     ],
   },
 ];
