@@ -63,7 +63,6 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       toast.success("評価を送信しました");
       void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId) });
       void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition) });
-      void queryClient.refetchQueries({ queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition) });
       setRating(0);
       setComment("");
       setHasReviewed(true);
@@ -200,6 +199,8 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
   const { data: displayUserInfo = [], isPending: isLoadingDisplayUserInfo } = useQuery({
     queryKey: queryCacheKeys.auction.displayUserInfo(auctionId, reviewPosition),
     queryFn: () => getDisplayUserInfo(auctionId, reviewPosition),
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

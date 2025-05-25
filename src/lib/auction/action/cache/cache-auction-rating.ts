@@ -39,7 +39,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
    * キャッシュタグを設定
    */
   cacheTag(`DisplayUserInfo:${auctionId}:${reviewPosition}`);
-  cacheLife("hours");
+  cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
