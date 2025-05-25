@@ -131,18 +131,19 @@ export const ReviewSearchForm = memo(function ReviewSearchForm({
   onSearchExecute,
   onClearSearch,
 }: ReviewSearchFormProps) {
-  const { inputRef, suggestionRef, selectedIndex, handleKeyDown } = useReviewSuggest({
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サジェスト機能用のフック
+   */
+  const { inputRef, suggestionRef, selectedIndex, handleKeyDown, handleSubmit } = useReviewSuggest({
     onSuggestionsToggleAction: onSuggestionsToggle,
     suggestions,
-    onSuggestionSelect,
-    onSearchExecute,
+    onSuggestionSelectAction: onSuggestionSelect,
+    onSearchExecuteAction: onSearchExecute,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearchExecute();
-    onSuggestionsToggle(false);
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <form onSubmit={handleSubmit} className="relative">

@@ -10,14 +10,19 @@ import { useEffect, useRef, useState } from "react";
 export function useReviewSuggest({
   onSuggestionsToggleAction,
   suggestions = [],
-  onSuggestionSelect,
-  onSearchExecute,
+  onSuggestionSelectAction,
+  onSearchExecuteAction,
 }: {
   onSuggestionsToggleAction: (show: boolean) => void;
-  suggestions?: Array<{ value: string; label: string }>;
-  onSuggestionSelect?: (suggestion: { value: string; label: string }) => void;
-  onSearchExecute?: () => void;
+  suggestions: Array<{ value: string; label: string }>;
+  onSuggestionSelectAction: (suggestion: { value: string; label: string }) => void;
+  onSearchExecuteAction: () => void;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 入力フィールドのref/state
+   */
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -67,10 +72,10 @@ export function useReviewSuggest({
         e.preventDefault();
         if (suggestions.length > 0 && selectedIndex >= 0 && selectedIndex < suggestions.length) {
           // サジェストが選択されている場合：サジェストを選択
-          onSuggestionSelect?.(suggestions[selectedIndex]);
+          onSuggestionSelectAction?.(suggestions[selectedIndex]);
         } else {
           // サジェストが選択されていない場合：現在の入力内容で検索を実行
-          onSearchExecute?.();
+          onSearchExecuteAction?.();
         }
         onSuggestionsToggleAction(false);
         setSelectedIndex(-1);
@@ -93,10 +98,22 @@ export function useReviewSuggest({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 検索フォームの送信
+   */
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearchExecuteAction();
+    onSuggestionsToggleAction(false);
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return {
     inputRef,
     suggestionRef,
     selectedIndex,
     handleKeyDown,
+    handleSubmit,
   };
 }
