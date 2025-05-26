@@ -4,18 +4,9 @@ import React from "react";
 import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
-// テストセットアップ
-beforeAll(() => {
-  // テスト開始前の設定
-});
-
 afterEach(() => {
   // 各テスト後にDOMをクリーンアップ
   cleanup();
-});
-
-afterAll(() => {
-  // すべてのテスト終了後のクリーンアップ
 });
 
 // グローバルなモック設定
@@ -160,24 +151,18 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 // テスト実行時間の監視
 const testStartTime = performance.now();
 
+// メモリリークの検出支援
+let initialMemoryUsage: NodeJS.MemoryUsage;
+
 beforeAll(() => {
   console.log("テストセットアップ開始");
+  initialMemoryUsage = process.memoryUsage();
 });
 
 afterAll(() => {
   const testEndTime = performance.now();
   const totalTime = testEndTime - testStartTime;
   console.log(`総テスト実行時間: ${totalTime.toFixed(2)}ms`);
-});
-
-// メモリリークの検出支援
-let initialMemoryUsage: NodeJS.MemoryUsage;
-
-beforeAll(() => {
-  initialMemoryUsage = process.memoryUsage();
-});
-
-afterAll(() => {
   const finalMemoryUsage = process.memoryUsage();
   const memoryDiff = finalMemoryUsage.heapUsed - initialMemoryUsage.heapUsed;
 
