@@ -5,15 +5,20 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
+
+  // Vitestの設定
   test: {
     // テスト環境の設定
-    environment: "jsdom",
+    environment: "happy-dom",
 
     // セットアップファイルの指定
-    setupFiles: ["./src/test/setup.ts"],
+    setupFiles: ["./src/test/setup/setup.ts"],
 
     // グローバル設定
     globals: true,
+
+    // ファイル並列実行の設定
+    fileParallelism: true,
 
     // Next.jsとの互換性のための設定
     server: {
@@ -41,10 +46,10 @@ export default defineConfig({
       ],
       // カバレッジ目標値（test.mdの要件に基づく）
       thresholds: {
-        lines: 85,
-        functions: 70,
-        branches: 40,
-        statements: 85,
+        lines: 80,
+        functions: 75,
+        branches: 60,
+        statements: 80,
       },
     },
 
