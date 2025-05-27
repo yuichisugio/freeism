@@ -81,7 +81,7 @@ vi.mock("next-auth/react", () => ({
 
 // サーバーサイドの認証モック
 vi.mock("next-auth/next", () => ({
-  getServerSession: vi.fn(() =>
+  auth: vi.fn(() =>
     Promise.resolve({
       user: {
         id: "test-user-id",
@@ -170,4 +170,15 @@ afterAll(() => {
     // 50MB以上の増加で警告
     console.warn(`メモリ使用量が大幅に増加: ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
   }
+});
+
+// 未処理のエラーをキャッチ
+process.on("unhandledRejection", (reason) => {
+  console.error("未処理のPromise拒否:", reason);
+  throw reason;
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("未処理の例外:", error);
+  throw error;
 });
