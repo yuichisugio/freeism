@@ -13,8 +13,52 @@
 - ユーザーが遭遇するであろう、全てのパターンのテストを書く
 - 仕様上重要・バグが起きやすい境界条件を優先
 - 正常系・異常系のどちらも必須で作成
--
-- 包括的なテストスイートを作成
+- 関数をテストする場合は、全ての引数のパターンのテスを作成
+- 条件分岐がある場合は、全ての分岐を注意深く調査して全てのパターンを作成
+- 可読性が高まるようテストスイートを作成
+
+## **使用するライブラリ**
+
+- **`jest-mock-extended`ライブラリ**
+
+  - `jest-mock-extended`の必要性
+
+    - 通常のJestのモッキング機能では、複雑なオブジェクト（PrismaClientのような深い階層を持つオブジェクト）を完全にモックするのは困難です。
+    - jest-mock-extendedは、この問題を解決するために作られた専門的なライブラリです。
+
+  - `mockDeep<PrismaClient>()`
+    - モック化に使用
+    - これは型安全なディープモックを作成します。PrismaClientのすべてのメソッドとプロパティがモックされ、TypeScriptの型情報も保持されます。
+    - PrismaClientオブジェクトは以下のような複雑な構造を持っています通常のJestのmock機能では、この各階層を個別にモックする必要がありますが、mockDeepを使用すると、この全ての階層が自動的にモック関数に置き換えられます。- さらに重要なのは、TypeScriptの型情報も完全に保持されることです。
+
+- `DeepMockProxy<PrismaClient>`
+
+  - モック化した型引数の型定義ができる
+  - これは元のPrismaClientと同じインターフェースを持ちながら、すべてのメソッドがモック関数に置き換えられた型です。
+  - **DeepMockProxy**は、元のオブジェクトの型構造を保持しながら、全てのメソッドがモック関数になった新しい型を表現します。
+  - コード例
+
+    - `export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>`
+
+  - コード例
+
+    ```tsx
+    // Step 1: 元のPrismaClient型
+    type OriginalPrismaClient = PrismaClient;
+
+    // Step 2: mockDeepによってモック化された後の型
+    type MockedPrismaClient = DeepMockProxy<PrismaClient>;
+
+    // Step 3: 実際の使用例での違い
+    // 元のPrismaClient
+    const realPrisma: PrismaClient = new PrismaClient();
+    await realPrisma.user.create({ data: userData }); // 実際のDBアクセス
+
+    // モック化されたPrismaClient
+    const mockPrisma: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
+    mockPrisma.user.create.mockResolvedValue(expectedUser); // モック関数の設定
+    await mockPrisma.user.create({ data: userData }); // モック関数の実行
+    ```
 
 ## **単体テスト**
 
@@ -27,60 +71,6 @@
 - 方針:
   - 入力値の境界値テスト
   - エラーケースの網羅的テスト
-
-## **統合テスト**
-
-- 対象:
-  - サーバーアクションとデータベース間の連携
-  - Auth.jsとの認証統合
-  - SSEの実装とクライアント連携
-  - そのほか、.ts,.tsx,.js
-- ツール:
-  - Prisma + テスト用DBによる結合テスト
-    - Prisma 公式は「Docker などで本番と同じ RDBMS を立て、DATABASE_URL="postgres://…" npm run
-      test」を推奨しています。トランザクション中にロールバックする prisma.$transaction() を beforeEach で包むとテストデータのクリーンアップが高速
-  - SupertestによるAPIエンドポイントテスト
-- 方針:
-  - 実際のデータベースを使用した結合テスト
-  - トランザクション処理の整合性検証
-  - 楽観的ロック（OCC）の競合処理テスト
-    - OCC テスト
-    - Prisma の @updatedAt タイムスタンプや Version カラムを用い、意図的に競合を起こすテストを加えると良いでしょう。
-
-## **E2Eテスト**
-
-- 対象:
-  - オークション参加フロー全体
-  - 入札から落札までの一連の流れ
-  - 通知機能の動作確認
-- ツール:
-  - Playwright
-  - モック時計によるオークション終了テスト
-- 方針:
-  - クリティカルなユーザーフローの検証
-  - マルチユーザーシナリオのテスト
-  - モバイル/デスクトップレスポンシブ対応テスト
-
-## **パフォーマンステスト**
-
-- 対象:
-  - 全文検索のレスポンス時間
-  - 高負荷時のSSE配信パフォーマンス
-  - 同時多数入札時のシステム挙動
-- ツール
-  - k6
-  - Next.jsのAnalytics機能
-- 方針:
-  - 負荷テストシナリオの作成と実行
-  - ボトルネックの特定と改善
-  - スケーラビリティの検証
-
-## **CI/CD統合**
-
-- GitHub Actionsでの自動テスト実行
-  - PRごとのテスト実行
-  - メインブランチへのマージ前のゲートとしてのテスト
-  - 定期的なE2Eテストの実行
 
 ## **テストコード実装のベストプラクティス**
 
