@@ -1,2 +1,11 @@
-pnpm run test || true --concurrent false
+#!/usr/bin/env sh
+
+# 0) Rosetta なら arm64 で再実行
+if [ "$(uname -m)" != "arm64" ]; then
+  echo "🔄  Re-launching hook under arm64..."
+  exec /usr/bin/arch -arm64 sh "$0" "$@"
+fi
+
+# 1) 通常のチェック処理
+pnpm run test          # = vitest run --passWithNoTests
 pnpm dlx lint-staged --concurrent false
