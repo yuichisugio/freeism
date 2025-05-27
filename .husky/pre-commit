@@ -1,11 +1,17 @@
 #!/usr/bin/env sh
 
-# 0) Rosetta なら arm64 で再実行
-if [ "$(uname -m)" != "arm64" ]; then
-  echo "🔄  Re-launching hook under arm64..."
-  exec /usr/bin/arch -arm64 sh "$0" "$@"
+# ===== 0) Rosetta で走っている macOS Intel だけ arm64 で再実行 =====
+if [ "$(uname -s)" = "Darwin" ] && [ "$(uname -m)" != "arm64" ]; then
+  if /usr/bin/arch -arm64 true 2>/dev/null ; then       # Intel Mac では false を返す
+    echo "🔄  Re-launching hook under arm64..."
+    exec /usr/bin/arch -arm64 /bin/sh "$0" "$@"
+  fi
 fi
+# ここに来る時点で
+#   • Apple Silicon → すでに arm64
+#   • Intel Mac     → arch -arm64 が無いので再実行せずそのまま
+#   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
-# 1) 通常のチェック処理
-pnpm run test          # = vitest run --passWithNoTests
+# ===== 1) テスト & Lint =====
+pnpm run test
 pnpm dlx lint-staged --concurrent false
