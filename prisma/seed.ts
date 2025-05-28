@@ -4,6 +4,15 @@ import { faker } from "@faker-js/faker/locale/ja";
 import { AuctionEventType, BidStatus, NotificationTargetType, Prisma, PrismaClient, ReviewPosition, TaskStatus } from "@prisma/client";
 
 /**
+ * 乱数シードを設定
+ * データ生成の一貫性を確保するために、乱数シードを設定します。
+ * 同じデータを生成したい場合は、同じシード値を指定すれば取得できます。
+ */
+const randomSeed = Math.random();
+faker.seed(randomSeed);
+console.log("乱数シードを設定しました。シード値: ", randomSeed);
+
+/**
  * データ生成設定
  * 各エンティティの生成数を集中管理するための設定オブジェクト
  *
