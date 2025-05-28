@@ -357,7 +357,7 @@ export function usePushNotification() {
           let currentRecordId = recordIdRef.current; // Ref から最新の値を取得
           // 必要であれば getRecordId を再度呼ぶ
           if (!currentRecordId && subscriptionState.endpoint) {
-            currentRecordId = await getRecordId(subscriptionState.endpoint);
+            currentRecordId ??= await getRecordId(subscriptionState.endpoint);
             recordIdRef.current = currentRecordId; // Ref を更新
             dispatch({ type: "SET_RECORD_ID", payload: currentRecordId }); // State も更新
           }
@@ -449,15 +449,14 @@ export function usePushNotification() {
         if (userIdRef.current && existingSubscription?.endpoint) {
           // ★ userIdRef を使用
           try {
-            currentRecordId = await getRecordId(existingSubscription.endpoint);
+            currentRecordId ??= await getRecordId(existingSubscription.endpoint);
             const subscriptionData = formatSubscriptionForServer(existingSubscription, currentRecordId ?? undefined, currentDeviceId);
             if (subscriptionData) {
               const result = await saveSubscription(subscriptionData);
               if ("error" in result) {
                 syncError = new Error(`Failed to sync subscription: ${result.error}`);
-              } else if (!currentRecordId) {
-                // 保存後に recordId を取得
-                currentRecordId = await getRecordId(existingSubscription.endpoint);
+              } else {
+                currentRecordId ??= await getRecordId(existingSubscription.endpoint);
               }
             } else {
               syncError = new Error("Failed to format subscription data for sync.");
