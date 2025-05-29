@@ -1,13 +1,13 @@
-# テスト戦略
+# 単体テストの書き方
 
-## **テスト全般**
+## **単体テスト全般**
 
 - TDDを実施する。コード生成する際は、対応するユニットテストを常に生成する。
 - コードを追加/修正した際は、`pnpm test`でテストがパスするか常に確認する
 - コードカバレッジ
-  - 単体テスト: C0は85%以上、C1は70%以上、C2は40%以上を目指す
-  - 統合テスト: クリティカルパスの100%カバレッジ
-  - E2Eテスト: 主要ユーザーフローの網羅
+
+  - C0は85%以上、C1は70%以上、C2は40%以上を目指す
+
 - `npx vitest --run --coverage`を実行して、現在のカバレッジを取得して、最もカバレッジが上がるコードを考察してからコード実装して、再度カバレッジを取得して数値が向上していることを確認
 - 意味のあるテストを心がけて作成してください。
 - ユーザーが遭遇するであろう、全てのパターンのテストを書く
@@ -19,6 +19,122 @@
 
 ## **使用するライブラリ**
 
+1. `fishery`
+2. `jest-mock-extended`
+
+- **`fishery-js`ライブラリ**
+
+  - `fishery-js`の必要性
+    - c
+  - コード例
+
+  ```typescript
+  // factories/user.factory.ts
+  import { Factory } from 'fishery';
+  import { faker } from '@faker-js/faker';
+  import { prisma } from "@/lib/prisma";
+  import { User , UserSettings } from "@prisma/client";
+
+  // ユーザーファクトリーの定義
+  export const userFactory = Factory.define<User>(({ sequence, associations , params}) => ({
+    const { name = 'Bob Smith' } = params;
+    const email = params.email || `${kebabCase(name)}@example.com`;
+    // sequenceは連番を生成する関数で、テスト実行時に自動的にインクリメントされます
+    id: `user-${sequence}`,
+    name: faker.person.fullName(),
+    email: faker.internet.email(),
+    age: faker.number.int({ min: 18, max: 80 }),
+    createdAt: faker.date.past(),
+    email: email,
+    // associationsを使用して関連オブジェクトを定義
+    profile: associations.profile,
+  }));
+
+  // プロフィールファクトリーの定義
+  export const userSettingsFactory = Factory.define<UserSettings>(() => ({
+    bio: faker.lorem.paragraph(),
+    avatar: faker.image.avatar(),
+  }));
+
+  // コンパイル時に型チェックされるため、安全にテストデータを生成できる
+  const user = UserFactory.build(); // User型のオブジェクトが生成される
+  const users = UserFactory.buildList(5); // User[]型の配列が生成される
+
+  // 属性をオーバーライドする際も型安全
+  const adminUser = UserFactory.build({
+    name: '管理者ユーザー',
+    isActive: true,
+    // age: 'invalid' // TypeScriptエラーが発生するため、バグを未然に防げる
+  });
+
+  type UserTransientParams = {
+    registered: boolean;
+    numPosts: number;
+  };
+
+  const userFactory = Factory.define<User, UserTransientParams>(
+    ({ transientParams, sequence }) => {
+      const { registered, numPosts = 1 } = transientParams;
+
+      return {
+        name: 'Susan',
+        posts: postFactory.buildList(numPosts),
+        memberId: registered ? `member-${sequence}` : null,
+        permissions: { canPost: registered }
+      };
+    }
+  );
+
+  // 使用例
+  const user = userFactory.build({}, { transient: { registered: true, numPosts: 3 } });
+
+  // 投稿ファクトリーの定義
+  const PostFactory = Factory.define<Post>(() => ({
+    id: Factory.sequence('post', (n) => `post-${n}`),
+    title: 'テスト投稿',
+    content: 'これはテスト用の投稿内容です。',
+    authorId: UserFactory.build().id, // 関連するユーザーのIDを自動生成
+    createdAt: new Date(),
+    published: false,
+  })).trait('published', () => ({
+    published: true,
+    title: '公開済み投稿',
+  })).trait('withAuthor', () => ({
+    // 関連するユーザーオブジェクトも含める
+    author: UserFactory.build(),
+  }));
+
+  // 関連データを含む投稿を生成
+  const postWithAuthor = PostFactory.build(['published', 'withAuthor']);
+
+  const UserFactory = Factory.define<User>(() => ({
+  id: Factory.sequence('user', (n) => `user-${n}`),
+  name: 'テストユーザー',
+  email: Factory.sequence('email', (n) => `user${n}@example.com`),
+  age: 25,
+  createdAt: new Date(),
+  isActive: true,
+  })).trait('inactive', () => ({
+    // 非アクティブユーザーの特性を定義
+    isActive: false,
+    name: '退会済みユーザー',
+  })).trait('senior', () => ({
+    // シニアユーザーの特性を定義
+    age: Factory.chance('age', { min: 65, max: 85 }),
+    name: 'シニアユーザー',
+  })).trait('admin', () => ({
+    // 管理者ユーザーの特性を定義
+    name: '管理者',
+    email: 'admin@example.com',
+  }));
+
+  // 様々なバリエーションのユーザーを生成
+  const inactiveUser = UserFactory.build('inactive');
+  const seniorUser = UserFactory.build('senior');
+  const seniorAdmin = UserFactory.build(['senior', 'admin']); // 複数traitの組み合わせ
+
+  ```
+
 - **`jest-mock-extended`ライブラリ**
 
   - `jest-mock-extended`の必要性
@@ -27,15 +143,17 @@
     - jest-mock-extendedは、この問題を解決するために作られた専門的なライブラリです。
 
   - `mockDeep<PrismaClient>()`
+
     - モック化に使用
     - これは型安全なディープモックを作成します。PrismaClientのすべてのメソッドとプロパティがモックされ、TypeScriptの型情報も保持されます。
     - PrismaClientオブジェクトは以下のような複雑な構造を持っています通常のJestのmock機能では、この各階層を個別にモックする必要がありますが、mockDeepを使用すると、この全ての階層が自動的にモック関数に置き換えられます。- さらに重要なのは、TypeScriptの型情報も完全に保持されることです。
 
-- `DeepMockProxy<PrismaClient>`
+  - `DeepMockProxy<PrismaClient>`
 
-  - モック化した型引数の型定義ができる
-  - これは元のPrismaClientと同じインターフェースを持ちながら、すべてのメソッドがモック関数に置き換えられた型です。
-  - **DeepMockProxy**は、元のオブジェクトの型構造を保持しながら、全てのメソッドがモック関数になった新しい型を表現します。
+    - モック化した型引数の型定義ができる
+    - これは元のPrismaClientと同じインターフェースを持ちながら、すべてのメソッドがモック関数に置き換えられた型です。
+    - **DeepMockProxy**は、元のオブジェクトの型構造を保持しながら、全てのメソッドがモック関数になった新しい型を表現します。
+
   - コード例
 
     - `export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>`
@@ -58,6 +176,19 @@
     const mockPrisma: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
     mockPrisma.user.create.mockResolvedValue(expectedUser); // モック関数の設定
     await mockPrisma.user.create({ data: userData }); // モック関数の実行
+    import { PrismaClient } from "@prisma/client";
+    ```
+
+    ```typescript
+    import { mockDeep, mockReset, DeepMockProxy } from "jest-mock-extended";
+    import prisma from "./client";
+    vi.mock("./client", () => ({
+      default: mockDeep<PrismaClient>(),
+    }));
+    beforeEach(() => {
+      mockReset(prismaMock);
+    });
+    export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
     ```
 
 ## **単体テスト**
@@ -101,17 +232,8 @@
 
 ### **3. テストデータ管理**
 
-- ファクトリー関数を使用してテストデータを生成
+- `fishery`のファクトリー関数を使用してテストデータを生成
 - 最小限のデータセットで意味のあるテストを作成
-- 例:
-  ```typescript
-  const createMockReview = (overrides = {}) => ({
-    id: "test-id",
-    rating: 5,
-    comment: "Test comment",
-    ...overrides,
-  });
-  ```
 
 ### **4. モック戦略**
 

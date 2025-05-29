@@ -1,8 +1,12 @@
 import "@testing-library/jest-dom";
 
+import type { DeepMockProxy } from "jest-mock-extended";
 import React from "react";
+import { prisma } from "@/lib/prisma";
+import { type PrismaClient } from "@prisma/client";
 import { cleanup } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import { mockDeep, mockReset } from "jest-mock-extended";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 
 afterEach(() => {
   // 各テスト後にDOMをクリーンアップ
@@ -92,40 +96,18 @@ vi.mock("next-auth/next", () => ({
   ),
 }));
 
-// Prisma クライアントのモック
+// jest-mock-extendedを使用したPrisma クライアントのモック
 vi.mock("@/lib/prisma", () => ({
-  default: {
-    user: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    post: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    $connect: vi.fn(),
-    $disconnect: vi.fn(),
-    $transaction: vi.fn(),
-  },
+  default: mockDeep<PrismaClient>(),
 }));
 
-// Prisma の型安全性を保持したモックヘルパー
-export const mockPrisma = {
-  user: {
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
-  // 他のモデルも同様に定義
-};
+// Prismaモックのエクスポート（テストファイルで使用するため）
+export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
+
+// 各テスト前にPrismaモックをリセット
+beforeEach(() => {
+  mockReset(prismaMock);
+});
 
 // 環境変数のテスト専用設定
 process.env.NEXTAUTH_URL = "http://localhost:3000";
