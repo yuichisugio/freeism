@@ -16,6 +16,7 @@
 - 関数をテストする場合は、全ての引数のパターンのテスを作成
 - 条件分岐がある場合は、全ての分岐を注意深く調査して全てのパターンを作成
 - 可読性が高まるようテストスイートを作成
+- イコールの検証は`toStrictEqual`を使用する
 
 ## **使用するライブラリ**
 
@@ -50,12 +51,6 @@
     profile: associations.profile,
   }));
 
-  // プロフィールファクトリーの定義
-  export const userSettingsFactory = Factory.define<UserSettings>(() => ({
-    bio: faker.lorem.paragraph(),
-    avatar: faker.image.avatar(),
-  }));
-
   // コンパイル時に型チェックされるため、安全にテストデータを生成できる
   const user = UserFactory.build(); // User型のオブジェクトが生成される
   const users = UserFactory.buildList(5); // User[]型の配列が生成される
@@ -87,60 +82,14 @@
 
   // 使用例
   const user = userFactory.build({}, { transient: { registered: true, numPosts: 3 } });
-
-  // 投稿ファクトリーの定義
-  const PostFactory = Factory.define<Post>(() => ({
-    id: Factory.sequence('post', (n) => `post-${n}`),
-    title: 'テスト投稿',
-    content: 'これはテスト用の投稿内容です。',
-    authorId: UserFactory.build().id, // 関連するユーザーのIDを自動生成
-    createdAt: new Date(),
-    published: false,
-  })).trait('published', () => ({
-    published: true,
-    title: '公開済み投稿',
-  })).trait('withAuthor', () => ({
-    // 関連するユーザーオブジェクトも含める
-    author: UserFactory.build(),
-  }));
-
-  // 関連データを含む投稿を生成
-  const postWithAuthor = PostFactory.build(['published', 'withAuthor']);
-
-  const UserFactory = Factory.define<User>(() => ({
-  id: Factory.sequence('user', (n) => `user-${n}`),
-  name: 'テストユーザー',
-  email: Factory.sequence('email', (n) => `user${n}@example.com`),
-  age: 25,
-  createdAt: new Date(),
-  isActive: true,
-  })).trait('inactive', () => ({
-    // 非アクティブユーザーの特性を定義
-    isActive: false,
-    name: '退会済みユーザー',
-  })).trait('senior', () => ({
-    // シニアユーザーの特性を定義
-    age: Factory.chance('age', { min: 65, max: 85 }),
-    name: 'シニアユーザー',
-  })).trait('admin', () => ({
-    // 管理者ユーザーの特性を定義
-    name: '管理者',
-    email: 'admin@example.com',
-  }));
-
-  // 様々なバリエーションのユーザーを生成
-  const inactiveUser = UserFactory.build('inactive');
-  const seniorUser = UserFactory.build('senior');
-  const seniorAdmin = UserFactory.build(['senior', 'admin']); // 複数traitの組み合わせ
-
   ```
 
-- **`jest-mock-extended`ライブラリ**
+- **`vitest-mock-extended`ライブラリ**
 
-  - `jest-mock-extended`の必要性
+  - `vitest-mock-extended`の必要性
 
     - 通常のJestのモッキング機能では、複雑なオブジェクト（PrismaClientのような深い階層を持つオブジェクト）を完全にモックするのは困難です。
-    - jest-mock-extendedは、この問題を解決するために作られた専門的なライブラリです。
+    - vitest-mock-extendedは、この問題を解決するために作られた専門的なライブラリです。
 
   - `mockDeep<PrismaClient>()`
 
@@ -161,34 +110,29 @@
   - コード例
 
     ```tsx
-    // Step 1: 元のPrismaClient型
-    type OriginalPrismaClient = PrismaClient;
-
-    // Step 2: mockDeepによってモック化された後の型
-    type MockedPrismaClient = DeepMockProxy<PrismaClient>;
-
-    // Step 3: 実際の使用例での違い
-    // 元のPrismaClient
-    const realPrisma: PrismaClient = new PrismaClient();
-    await realPrisma.user.create({ data: userData }); // 実際のDBアクセス
-
-    // モック化されたPrismaClient
-    const mockPrisma: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
+    import { prisma } from "@/lib/prisma";
     mockPrisma.user.create.mockResolvedValue(expectedUser); // モック関数の設定
     await mockPrisma.user.create({ data: userData }); // モック関数の実行
-    import { PrismaClient } from "@prisma/client";
     ```
 
     ```typescript
-    import { mockDeep, mockReset, DeepMockProxy } from "jest-mock-extended";
-    import prisma from "./client";
-    vi.mock("./client", () => ({
-      default: mockDeep<PrismaClient>(),
+    import type { DeepMockProxy } from "vitest-mock-extended";
+    import { type PrismaClient } from "@prisma/client";
+    import { mockDeep, mockReset } from "vitest-mock-extended";
+
+    // Prismaモックのエクスポート（テストファイルで使用するため）
+    export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
+
+    // jest-mock-extendedを使用したPrisma クライアントのモック
+    vi.mock("@/lib/prisma", () => ({
+      prisma: prismaMock,
+      __esModule: true,
     }));
+
+    // 各テスト前にPrismaモックをリセット
     beforeEach(() => {
       mockReset(prismaMock);
     });
-    export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
     ```
 
 ## **単体テスト**

@@ -1,12 +1,7 @@
 import "@testing-library/jest-dom";
 
-import type { DeepMockProxy } from "jest-mock-extended";
 import React from "react";
-import { prisma } from "@/lib/prisma";
-import { type PrismaClient } from "@prisma/client";
 import { cleanup } from "@testing-library/react";
-import { mockDeep, mockReset } from "jest-mock-extended";
-import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 
 afterEach(() => {
   // 各テスト後にDOMをクリーンアップ
@@ -95,19 +90,6 @@ vi.mock("next-auth/next", () => ({
     }),
   ),
 }));
-
-// jest-mock-extendedを使用したPrisma クライアントのモック
-vi.mock("@/lib/prisma", () => ({
-  default: mockDeep<PrismaClient>(),
-}));
-
-// Prismaモックのエクスポート（テストファイルで使用するため）
-export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
-
-// 各テスト前にPrismaモックをリセット
-beforeEach(() => {
-  mockReset(prismaMock);
-});
 
 // 環境変数のテスト専用設定
 process.env.NEXTAUTH_URL = "http://localhost:3000";
