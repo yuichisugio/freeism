@@ -108,7 +108,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       <div>
         <p className="text-center font-medium">{user.appUserName}</p>
         <div className="flex items-center justify-center gap-2">
-          <RatingStar rating={user.rating ?? 0} size={16} />
+          <RatingStar rating={user.rating} size={16} />
           <span className="text-sm text-gray-500">({user.ratingCount})</span>
         </div>
       </div>
@@ -116,7 +116,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
         <div className="py-4 text-center">
           <p className="mb-2 text-gray-500">評価済みです</p>
           <div className="flex justify-center">
-            <RatingStar rating={user.rating ?? 0} size={24} />
+            <RatingStar rating={user.rating} size={24} />
           </div>
           {user.reviewComment && (
             <div className="bg-muted mt-2 rounded p-2 text-left text-sm text-gray-700">
@@ -233,7 +233,9 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
                   {idx + 1}
                 </button>
                 <div className="flex h-5 items-center justify-center">
-                  {user.hasReviewed && <CheckCircle className="mt-1 h-4 w-4 rounded-full bg-green-100 text-green-500" />}
+                  {user.hasReviewed && (
+                    <CheckCircle className="mt-1 h-4 w-4 rounded-full bg-green-100 text-green-500" data-testid="check-circle-icon" />
+                  )}
                 </div>
               </div>
             ))}
@@ -245,7 +247,7 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
               {isLoadingDisplayUserInfo ? (
                 <CarouselItem>
                   <div className="flex h-full items-center justify-center">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" data-testid="loading-spinner" />
                   </div>
                 </CarouselItem>
               ) : displayUserInfo.length === 0 ? (

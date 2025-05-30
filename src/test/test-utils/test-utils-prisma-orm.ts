@@ -1,17 +1,28 @@
 import type {
+  Account,
+  Analytics,
   Auction,
   AuctionMessage,
   AuctionReview,
+  AutoBid,
   BidHistory,
   Group,
   GroupMembership,
+  GroupPoint,
   Notification,
+  PushSubscription,
+  Session,
   Task,
+  TaskExecutor,
+  TaskReporter,
+  TaskWatchList,
   User,
   UserSettings,
+  VerificationToken,
 } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 import {
+  AuctionEventType,
   BidStatus,
   contributionType,
   NotificationSendMethod,
@@ -22,6 +33,11 @@ import {
 } from "@prisma/client";
 import { Factory } from "fishery";
 
+const randomAuctionEventType = () => {
+  const eventTypes = Object.values(AuctionEventType);
+  return eventTypes[Math.floor(Math.random() * eventTypes.length)];
+};
+
 // ユーザーファクトリー
 export const userFactory = Factory.define<User>(({ params }) => ({
   id: crypto.randomUUID(),
@@ -31,6 +47,43 @@ export const userFactory = Factory.define<User>(({ params }) => ({
   createdAt: params.createdAt ?? faker.date.past(),
   emailVerified: params.emailVerified ?? faker.date.past(),
   isAppOwner: params.isAppOwner ?? false,
+  updatedAt: params.updatedAt ?? new Date(),
+}));
+
+// アカウントファクトリー
+export const accountFactory = Factory.define<Account>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  type: params.type ?? "oauth",
+  provider: params.provider ?? "google",
+  providerAccountId: params.providerAccountId ?? `provider-${sequence}`,
+  refresh_token: params.refresh_token ?? faker.string.alphanumeric(50),
+  access_token: params.access_token ?? faker.string.alphanumeric(50),
+  expires_at: params.expires_at ?? faker.number.int({ min: 1000000000, max: 9999999999 }),
+  token_type: params.token_type ?? "Bearer",
+  scope: params.scope ?? "read write",
+  id_token: params.id_token ?? faker.string.alphanumeric(100),
+  session_state: params.session_state ?? faker.string.alphanumeric(20),
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+  userId: params.userId ?? `user-${sequence}`,
+}));
+
+// セッションファクトリー
+export const sessionFactory = Factory.define<Session>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  sessionToken: params.sessionToken ?? faker.string.alphanumeric(50),
+  userId: params.userId ?? `user-${sequence}`,
+  expires: params.expires ?? faker.date.future(),
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+}));
+
+// 認証トークンファクトリー
+export const verificationTokenFactory = Factory.define<VerificationToken>(({ params }) => ({
+  identifier: params.identifier ?? faker.internet.email(),
+  token: params.token ?? faker.string.alphanumeric(50),
+  expires: params.expires ?? faker.date.future(),
+  createdAt: params.createdAt ?? faker.date.past(),
   updatedAt: params.updatedAt ?? new Date(),
 }));
 
@@ -71,6 +124,17 @@ export const groupMembershipFactory = Factory.define<GroupMembership>(({ sequenc
   updatedAt: params.updatedAt ?? new Date(),
 }));
 
+// グループポイントファクトリー
+export const groupPointFactory = Factory.define<GroupPoint>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  userId: params.userId ?? `user-${sequence}`,
+  groupId: params.groupId ?? `group-${sequence}`,
+  balance: params.balance ?? faker.number.int({ min: 0, max: 1000 }),
+  fixedTotalPoints: params.fixedTotalPoints ?? faker.number.int({ min: 0, max: 5000 }),
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+}));
+
 // タスクファクトリー
 export const taskFactory = Factory.define<Task>(({ sequence, params }) => ({
   id: crypto.randomUUID(),
@@ -92,6 +156,38 @@ export const taskFactory = Factory.define<Task>(({ sequence, params }) => ({
   userFixedSubmitterId: params.userFixedSubmitterId ?? null,
   deliveryMethod: params.deliveryMethod ?? "オンライン",
   category: params.category ?? "その他",
+}));
+
+// タスクレポーターファクトリー
+export const taskReporterFactory = Factory.define<TaskReporter>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  name: params.name ?? faker.person.fullName(),
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+  taskId: params.taskId ?? `task-${sequence}`,
+  userId: params.userId ?? null,
+}));
+
+// タスク実行者ファクトリー
+export const taskExecutorFactory = Factory.define<TaskExecutor>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  name: params.name ?? faker.person.fullName(),
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+  taskId: params.taskId ?? `task-${sequence}`,
+  userId: params.userId ?? null,
+}));
+
+// アナリティクスファクトリー
+export const analyticsFactory = Factory.define<Analytics>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  evaluator: params.evaluator ?? `user-${sequence}`,
+  contributionPoint: params.contributionPoint ?? faker.number.int({ min: 1, max: 100 }),
+  createdAt: params.createdAt ?? faker.date.past(),
+  evaluationLogic: params.evaluationLogic ?? "自動評価ロジック",
+  groupId: params.groupId ?? `group-${sequence}`,
+  taskId: params.taskId ?? `task-${sequence}`,
+  updatedAt: params.updatedAt ?? new Date(),
 }));
 
 // オークションファクトリー
@@ -127,6 +223,28 @@ export const bidHistoryFactory = Factory.define<BidHistory>(({ sequence, params 
   userId: params.userId ?? `user-${sequence}`,
   createdAt: params.createdAt ?? faker.date.past(),
   updatedAt: params.updatedAt ?? new Date(),
+}));
+
+// 自動入札ファクトリー
+export const autoBidFactory = Factory.define<AutoBid>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  userId: params.userId ?? `user-${sequence}`,
+  auctionId: params.auctionId ?? `auction-${sequence}`,
+  maxBidAmount: params.maxBidAmount ?? faker.number.int({ min: 100, max: 10000 }),
+  bidIncrement: params.bidIncrement ?? faker.number.int({ min: 1, max: 10 }),
+  lastBidTime: params.lastBidTime ?? null,
+  isActive: params.isActive ?? true,
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+}));
+
+// タスクウォッチリストファクトリー
+export const taskWatchListFactory = Factory.define<TaskWatchList>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+  auctionId: params.auctionId ?? `auction-${sequence}`,
+  userId: params.userId ?? `user-${sequence}`,
 }));
 
 // オークションメッセージファクトリー
@@ -168,9 +286,22 @@ export const notificationFactory = Factory.define<Notification>(({ params }) => 
   updatedAt: params.updatedAt ?? new Date(),
   sendScheduledDate: params.sendScheduledDate ?? null,
   sendTimingType: params.sendTimingType ?? NotificationSendTiming.NOW,
-  auctionEventType: params.auctionEventType ?? null,
+  auctionEventType: params.auctionEventType ?? randomAuctionEventType(),
   auctionId: params.auctionId ?? null,
   isRead: params.isRead ?? {},
   sendMethods: params.sendMethods ?? [NotificationSendMethod.IN_APP],
   senderUserId: params.senderUserId ?? null,
+}));
+
+// プッシュ通知購読ファクトリー
+export const pushSubscriptionFactory = Factory.define<PushSubscription>(({ sequence, params }) => ({
+  id: crypto.randomUUID(),
+  endpoint: params.endpoint ?? faker.internet.url(),
+  p256dh: params.p256dh ?? faker.string.alphanumeric(50),
+  auth: params.auth ?? faker.string.alphanumeric(30),
+  expirationTime: params.expirationTime ?? faker.date.future(),
+  userId: params.userId ?? `user-${sequence}`,
+  createdAt: params.createdAt ?? faker.date.past(),
+  updatedAt: params.updatedAt ?? new Date(),
+  deviceId: params.deviceId ?? faker.string.alphanumeric(20),
 }));

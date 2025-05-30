@@ -85,6 +85,7 @@ export const RatingStar = memo(function RatingStar({ rating = 0, size = 20, read
         <Star
           key={index}
           size={size}
+          data-testid="star-icon"
           className={`cursor-${readonly ? "default" : "pointer"} ${index <= (hoverRating || clampedRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
           onClick={() => handleClick(index)}
           onMouseEnter={() => handleMouseEnter(index)}
