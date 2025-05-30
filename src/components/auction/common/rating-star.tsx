@@ -1,7 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
-import { cn } from "@/lib/utils";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -10,11 +9,10 @@ import { Star } from "lucide-react";
  * 評価表示コンポーネントのprops
  */
 type RatingDisplayProps = {
-  rating: number;
+  rating?: number;
   size?: number;
   readonly?: boolean;
   onChange?: (rating: number) => void;
-  className?: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -26,8 +24,14 @@ type RatingDisplayProps = {
  * @param readonly 読み取り専用
  * @param onChange 評価変更時のコールバック
  */
-export const RatingStar = memo(function RatingStar({ rating, size = 20, readonly = true, onChange, className }: RatingDisplayProps) {
+export const RatingStar = memo(function RatingStar({ rating = 0, size = 20, readonly = true, onChange }: RatingDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 評価値を0以上5以下の範囲に制限
+   * 呼び出す側で0以下・5以上が渡されても正常に動くように実装
+   */
+  const clampedRating = useMemo(() => Math.max(0, Math.min(5, rating)), [rating]);
 
   /**
    * ホバー評価
@@ -81,11 +85,7 @@ export const RatingStar = memo(function RatingStar({ rating, size = 20, readonly
         <Star
           key={index}
           size={size}
-          className={cn(
-            `cursor-${readonly ? "default" : "pointer"}`,
-            index <= (hoverRating || rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300",
-            className,
-          )}
+          className={`cursor-${readonly ? "default" : "pointer"} ${index <= (hoverRating || clampedRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
           onClick={() => handleClick(index)}
           onMouseEnter={() => handleMouseEnter(index)}
           onMouseLeave={handleMouseLeave}
