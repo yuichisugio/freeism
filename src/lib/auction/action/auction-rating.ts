@@ -39,6 +39,15 @@ export async function createAuctionReview(
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 評価が0から5の間であることを確認する
+   */
+  if (rating < 0 || rating > 5) {
+    throw new Error("評価は0から5の間で指定してください");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * userIdを取得する
    */
   const userId = await getAuthenticatedSessionUserId();

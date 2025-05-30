@@ -47,7 +47,7 @@ describe("getDisplayUserInfo", () => {
   describe("正常系", () => {
     it("should return display user info for SELLER_TO_BUYER position", async () => {
       // Arrange
-      const auctionId = "test-auction-id";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
       const expectedDisplayUserInfo: DisplayUserInfo[] = [
         {
@@ -83,10 +83,10 @@ describe("getDisplayUserInfo", () => {
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
       const expectedDisplayUserInfo: DisplayUserInfo[] = [
         {
-          userId: "user-2",
+          userId: "cmb0e9xnm0001mchbj6ler4py",
           appUserName: "テストユーザー2",
           userImage: "https://example.com/image2.jpg",
-          creatorId: "user-2",
+          creatorId: "cmb0e9xnm0001mchbj6ler4py",
           reporterId: null,
           executorId: null,
           rating: 3.8,
@@ -133,10 +133,10 @@ describe("getDisplayUserInfo", () => {
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
       const expectedDisplayUserInfo: DisplayUserInfo[] = [
         {
-          userId: "user-1",
+          userId: "cmb0e9xnm0001mchbj6ler4py",
           appUserName: "作成者",
           userImage: "https://example.com/creator.jpg",
-          creatorId: "user-1",
+          creatorId: "cmb0e9xnm0001mchbj6ler4py",
           reporterId: null,
           executorId: null,
           rating: 4.2,
@@ -146,11 +146,11 @@ describe("getDisplayUserInfo", () => {
           reviewComment: null,
         },
         {
-          userId: "user-2",
+          userId: "cmb0e9xnm0001mchbj6ler4py",
           appUserName: "報告者",
           userImage: "https://example.com/reporter.jpg",
           creatorId: null,
-          reporterId: "user-2",
+          reporterId: "cmb0e9xnm0001mchbj6ler4py",
           executorId: null,
           rating: 3.9,
           ratingCount: 12,
@@ -279,9 +279,9 @@ describe("createAuctionReview", () => {
   describe("正常系", () => {
     it("should create auction review successfully with SELLER_TO_BUYER position", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "素晴らしい取引でした";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -322,9 +322,9 @@ describe("createAuctionReview", () => {
 
     it("should create auction review successfully with BUYER_TO_SELLER position", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 4;
       const comment = "良い取引でした";
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
@@ -365,9 +365,9 @@ describe("createAuctionReview", () => {
 
     it("should create auction review successfully with null comment", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 3;
       const comment = null;
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -408,9 +408,9 @@ describe("createAuctionReview", () => {
 
     it("should create auction review successfully with empty string comment", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 2;
       const comment = "";
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
@@ -458,9 +458,9 @@ describe("createAuctionReview", () => {
   describe("境界値テスト", () => {
     it("should create auction review with minimum rating (1)", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 1;
       const comment = "最低評価";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -499,9 +499,9 @@ describe("createAuctionReview", () => {
 
     it("should create auction review with maximum rating (5)", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "最高評価";
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
@@ -540,9 +540,9 @@ describe("createAuctionReview", () => {
 
     it("should create auction review with very long comment", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 4;
       const comment = "a".repeat(1000); // 非常に長いコメント
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -588,8 +588,8 @@ describe("createAuctionReview", () => {
   describe("異常系", () => {
     it("should throw error when getAuthenticatedSessionUserId fails", async () => {
       // Arrange
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -609,9 +609,9 @@ describe("createAuctionReview", () => {
 
     it("should throw error when prisma.auctionReview.create fails", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
@@ -643,9 +643,9 @@ describe("createAuctionReview", () => {
 
     it("should handle database constraint violation error", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -674,6 +674,46 @@ describe("createAuctionReview", () => {
       });
       expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
     });
+
+    it("should handle negative rating", async () => {
+      // Arrange
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
+      const rating = -1;
+      const comment = "テストコメント";
+      const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
+
+      // getAuthenticatedSessionUserIdのモック設定
+      vi.mocked(getAuthenticatedSessionUserId).mockResolvedValue(mockUserId);
+
+      // Act & Assert
+      await expect(createAuctionReview(auctionId, revieweeId, rating, comment, reviewPosition)).rejects.toThrow("評価は0から5の間で指定してください");
+
+      expect(vi.mocked(getAuthenticatedSessionUserId)).not.toHaveBeenCalled();
+      expect(vi.mocked(prismaMock).auctionReview.create).not.toHaveBeenCalled();
+      expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
+    });
+
+    it("should handle rating greater than 5", async () => {
+      // Arrange
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
+      const rating = 10;
+      const comment = "テストコメント";
+      const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
+
+      // getAuthenticatedSessionUserIdのモック設定
+      vi.mocked(getAuthenticatedSessionUserId).mockResolvedValue(mockUserId);
+
+      // Act & Assert
+      await expect(createAuctionReview(auctionId, revieweeId, rating, comment, reviewPosition)).rejects.toThrow("評価は0から5の間で指定してください");
+
+      expect(vi.mocked(getAuthenticatedSessionUserId)).not.toHaveBeenCalled();
+      expect(vi.mocked(prismaMock).auctionReview.create).not.toHaveBeenCalled();
+      expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
+    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -684,9 +724,9 @@ describe("createAuctionReview", () => {
   describe("引数の境界値・異常値テスト", () => {
     it("should handle empty string auctionId", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
       const auctionId = "";
-      const revieweeId = "test-reviewee-id";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -725,8 +765,8 @@ describe("createAuctionReview", () => {
 
     it("should handle empty string revieweeId", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
       const revieweeId = "";
       const rating = 5;
       const comment = "テストコメント";
@@ -766,9 +806,9 @@ describe("createAuctionReview", () => {
 
     it("should handle zero rating", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 0;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -807,84 +847,42 @@ describe("createAuctionReview", () => {
 
     it("should handle negative rating", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = -1;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
 
-      const expectedReview = auctionReviewFactory.build({
-        auctionId,
-        reviewerId: mockUserId,
-        revieweeId,
-        rating,
-        comment,
-        reviewPosition,
-      });
-
       // getAuthenticatedSessionUserIdのモック設定
       vi.mocked(getAuthenticatedSessionUserId).mockResolvedValue(mockUserId);
 
-      // Prismaのモック設定
-      vi.mocked(prismaMock).auctionReview.create.mockResolvedValue(expectedReview);
+      // Act & Assert
+      await expect(createAuctionReview(auctionId, revieweeId, rating, comment, reviewPosition)).rejects.toThrow("評価は0から5の間で指定してください");
 
-      // Act
-      const result = await createAuctionReview(auctionId, revieweeId, rating, comment, reviewPosition);
-
-      // Assert
-      expect(result).toStrictEqual(expectedReview);
-      expect(vi.mocked(prismaMock).auctionReview.create).toHaveBeenCalledWith({
-        data: {
-          auctionId,
-          reviewerId: mockUserId,
-          revieweeId,
-          rating,
-          comment,
-          reviewPosition,
-        },
-      });
+      expect(vi.mocked(getAuthenticatedSessionUserId)).not.toHaveBeenCalled();
+      expect(vi.mocked(prismaMock).auctionReview.create).not.toHaveBeenCalled();
+      expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
     });
 
     it("should handle rating greater than 5", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 10;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
 
-      const expectedReview = auctionReviewFactory.build({
-        auctionId,
-        reviewerId: mockUserId,
-        revieweeId,
-        rating,
-        comment,
-        reviewPosition,
-      });
-
       // getAuthenticatedSessionUserIdのモック設定
       vi.mocked(getAuthenticatedSessionUserId).mockResolvedValue(mockUserId);
 
-      // Prismaのモック設定
-      vi.mocked(prismaMock).auctionReview.create.mockResolvedValue(expectedReview);
+      // Act & Assert
+      await expect(createAuctionReview(auctionId, revieweeId, rating, comment, reviewPosition)).rejects.toThrow("評価は0から5の間で指定してください");
 
-      // Act
-      const result = await createAuctionReview(auctionId, revieweeId, rating, comment, reviewPosition);
-
-      // Assert
-      expect(result).toStrictEqual(expectedReview);
-      expect(vi.mocked(prismaMock).auctionReview.create).toHaveBeenCalledWith({
-        data: {
-          auctionId,
-          reviewerId: mockUserId,
-          revieweeId,
-          rating,
-          comment,
-          reviewPosition,
-        },
-      });
+      expect(vi.mocked(getAuthenticatedSessionUserId)).not.toHaveBeenCalled();
+      expect(vi.mocked(prismaMock).auctionReview.create).not.toHaveBeenCalled();
+      expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
     });
   });
 
@@ -896,9 +894,9 @@ describe("createAuctionReview", () => {
   describe("関数呼び出し順序のテスト", () => {
     it("should call functions in correct order", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
@@ -932,9 +930,9 @@ describe("createAuctionReview", () => {
 
     it("should not call revalidateTag when prisma.create fails", async () => {
       // Arrange
-      const mockUserId = "test-user-id";
-      const auctionId = "test-auction-id";
-      const revieweeId = "test-reviewee-id";
+      const mockUserId = "cmb0e9xnm0001mchbj6ler4py";
+      const auctionId = "cmb0e9xnm0001mchbj6ler4py";
+      const revieweeId = "cmb0e9xnm0001mchbj6ler4py";
       const rating = 5;
       const comment = "テストコメント";
       const reviewPosition = ReviewPosition.BUYER_TO_SELLER;
