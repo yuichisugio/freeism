@@ -26,6 +26,16 @@ vi.mock("@/lib/auction/action/auction-rating", () => ({
   getDisplayUserInfo: vi.fn(),
 }));
 
+// console.errorのモック
+const originalConsoleError = console.error;
+beforeEach(() => {
+  console.error = vi.fn();
+});
+
+afterEach(() => {
+  console.error = originalConsoleError;
+});
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 // テストデータ
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -73,7 +83,7 @@ const renderWithProviders = (component: React.ReactElement) => {
 // テストスイート
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-describe("QARating", () => {
+describe("QARating_auciton-rating.tsx", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -111,7 +121,7 @@ describe("QARating", () => {
       await waitFor(() => {
         expect(screen.getByText("テストユーザー1")).toBeInTheDocument();
         expect(screen.getByText("(10)")).toBeInTheDocument();
-        expect(screen.getAllByTestId("star-icon")).toHaveLength(20); // 2人のユーザー × (表示用5個 + インタラクション用5個)
+        expect(screen.getAllByTestId("star-icon")).toHaveLength(20); // 2人のユーザー × (既存の評価用に5個 + ユーザーが評価用に5個)
       });
     });
 
@@ -224,9 +234,9 @@ describe("QARating", () => {
         expect(screen.getByText("テストユーザー2")).toBeInTheDocument();
       });
 
-      // 前へボタンをクリック
-      const prevButton = screen.getByLabelText("前へ");
-      fireEvent.click(prevButton);
+      // さらに次へボタンを押したら、最初に戻るかテスト
+      const nextButton2 = screen.getByLabelText("次へ");
+      fireEvent.click(nextButton2);
 
       await waitFor(() => {
         expect(screen.getByText("テストユーザー1")).toBeInTheDocument();
@@ -362,14 +372,14 @@ describe("QARating", () => {
     });
 
     test("should handle maximum rating", async () => {
-      const userWithMaxRating = { ...mockDisplayUserInfo[0], rating: 5.0, ratingCount: 999 };
+      const userWithMaxRating = { ...mockDisplayUserInfo[0], rating: 5.0, ratingCount: 99999 };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithMaxRating]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
 
       await waitFor(() => {
         expect(screen.getByText("テストユーザー1")).toBeInTheDocument();
-        expect(screen.getByText("(999)")).toBeInTheDocument();
+        expect(screen.getByText("(99999)")).toBeInTheDocument();
       });
     });
 
@@ -461,7 +471,7 @@ describe("QARating", () => {
     test("should show loading state during review submission", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
-      // createAuctionReviewを永続的にpending状態にする
+      // createAuctionReviewを一時的にpending状態にして、その後解決する
       type AuctionReviewType = {
         id: string;
         createdAt: Date;
@@ -500,7 +510,7 @@ describe("QARating", () => {
         expect(screen.getByText("送信中...")).toBeInTheDocument();
       });
 
-      // テスト終了時にPromiseを解決
+      // Promiseを解決して状態更新を完了させる
       resolvePromise!({
         id: "review-1",
         createdAt: new Date(),
@@ -512,6 +522,11 @@ describe("QARating", () => {
         comment: "",
         completionProofUrl: null,
         reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+      });
+
+      // 状態更新の完了を待機
+      await waitFor(() => {
+        expect(screen.queryByText("送信中...")).not.toBeInTheDocument();
       });
     });
   });

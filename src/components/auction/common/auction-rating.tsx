@@ -108,7 +108,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       <div>
         <p className="text-center font-medium">{user.appUserName}</p>
         <div className="flex items-center justify-center gap-2">
-          <RatingStar rating={user.rating} size={16} />
+          <RatingStar rating={user.rating} size={16} readonly={true} />
           <span className="text-sm text-gray-500">({user.ratingCount})</span>
         </div>
       </div>
@@ -116,7 +116,7 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
         <div className="py-4 text-center">
           <p className="mb-2 text-gray-500">評価済みです</p>
           <div className="flex justify-center">
-            <RatingStar rating={user.rating} size={24} />
+            <RatingStar rating={user.rating} size={24} readonly={true} />
           </div>
           {user.reviewComment && (
             <div className="bg-muted mt-2 rounded p-2 text-left text-sm text-gray-700">

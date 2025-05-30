@@ -51,18 +51,6 @@
       "path": "cz-conventional-changelog"
     }
   },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{md,json,lintstagedrc,yml,yaml}": [
-      "prettier --write"
-    ],
-    "**/*.prisma": [
-      "prisma format"
-    ]
-  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
     "@aws-sdk/s3-request-presigner": "^3.758.0",
@@ -145,6 +133,7 @@
     "@typescript-eslint/parser": "^8.26.0",
     "@vitejs/plugin-react": "^4.5.0",
     "@vitest/coverage-v8": "^3.1.4",
+    "@vitest/ui": "3.1.4",
     "autoprefixer": "^10.4.20",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
