@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom";
+import "./auth-js-setup"; // Auth.js関連のモック設定をインポート
 
 import React from "react";
 import { cleanup } from "@testing-library/react";
@@ -54,41 +55,6 @@ vi.mock("next/image", () => ({
 vi.mock("next/server", () => ({
   NextRequest: vi.fn(),
   NextResponse: vi.fn(),
-}));
-
-// Auth.js のモック設定
-vi.mock("next-auth", () => ({
-  default: vi.fn(() => Promise.resolve()),
-}));
-
-vi.mock("next-auth/react", () => ({
-  useSession: vi.fn(() => ({
-    data: {
-      user: {
-        id: "test-user-id",
-        email: "test@example.com",
-        name: "Test User",
-      },
-      accessToken: "test-access-token",
-    },
-    status: "authenticated",
-  })),
-  signIn: vi.fn(() => Promise.resolve({ ok: true })),
-  signOut: vi.fn(() => Promise.resolve({ ok: true })),
-  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
-
-// サーバーサイドの認証モック
-vi.mock("next-auth/next", () => ({
-  auth: vi.fn(() =>
-    Promise.resolve({
-      user: {
-        id: "test-user-id",
-        email: "test@example.com",
-        name: "Test User",
-      },
-    }),
-  ),
 }));
 
 // 環境変数のテスト専用設定

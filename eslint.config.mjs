@@ -5,6 +5,7 @@ import tanstackQueryPlugin from "@tanstack/eslint-plugin-query";
 import pluginQuery from "@tanstack/eslint-plugin-query";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
+import vitest from "@vitest/eslint-plugin";
 import importPlugin from "eslint-plugin-import";
 import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
 import reactPlugin from "eslint-plugin-react";
@@ -112,6 +113,17 @@ const eslintConfig = [
       ".next/**/*",
       "coverage/**/*",
     ],
+  },
+  {
+    files: ["**/*.test.{ts,tsx}"],
+    plugins: { vitest },
+    rules: {
+      ...vitest.configs.recommended.rules,
+      "@typescript-eslint/unbound-method": "off",
+    },
+    languageOptions: {
+      globals: vitest.environments.env.globals,
+    },
   },
 ];
 

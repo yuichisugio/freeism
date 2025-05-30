@@ -12,7 +12,7 @@ export default defineConfig({
     environment: "happy-dom",
 
     // セットアップファイルの指定
-    setupFiles: ["./src/test/setup/setup.ts", "./src/test/setup/prisma-orm-setup.ts"],
+    setupFiles: ["./src/test/setup/setup.ts", "./src/test/setup/prisma-orm-setup.ts", "./src/test/setup/auth-js-setup.ts"],
 
     // グローバル設定
     globals: true,

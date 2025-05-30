@@ -3,7 +3,7 @@ import { AllTheProviders } from "@/test/test-utils/test-utils-tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, vi } from "vitest";
 
 import type { DisplayUserInfo } from "./auction-rating";
 import { QARating } from "./auction-rating";
@@ -28,8 +28,10 @@ vi.mock("@/lib/auction/action/auction-rating", () => ({
 
 // console.errorのモック
 const originalConsoleError = console.error;
+
 beforeEach(() => {
-  console.error = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -83,13 +85,13 @@ const renderWithProviders = (component: React.ReactElement) => {
 // テストスイート
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-describe("QARating_auciton-rating.tsx", () => {
+describe("qARating_auciton-rating.tsx", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("正常系テスト", () => {
-    test("should render seller rating component correctly", async () => {
+    it("should render seller rating component correctly", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -101,7 +103,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should render buyer rating component correctly", async () => {
+    it("should render buyer rating component correctly", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="落札画面" />);
@@ -113,7 +115,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should display user information correctly", async () => {
+    it("should display user information correctly", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -125,7 +127,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should show reviewed status for reviewed users", async () => {
+    it("should show reviewed status for reviewed users", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -135,7 +137,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should display review comment for reviewed users", async () => {
+    it("should display review comment for reviewed users", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -152,7 +154,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle rating submission successfully", async () => {
+    it("should handle rating submission successfully", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
       vi.mocked(createAuctionReview).mockResolvedValue({
         id: "review-1",
@@ -191,7 +193,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should navigate between multiple users using page indicators", async () => {
+    it("should navigate between multiple users using page indicators", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -217,7 +219,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should navigate using carousel arrows", async () => {
+    it("should navigate using carousel arrows", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfo);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -245,7 +247,7 @@ describe("QARating_auciton-rating.tsx", () => {
   });
 
   describe("異常系テスト", () => {
-    test("should show error when rating is not selected", async () => {
+    it("should show error when rating is not selected", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -263,7 +265,7 @@ describe("QARating_auciton-rating.tsx", () => {
       expect(toast.error).not.toHaveBeenCalled();
     });
 
-    test("should handle API error during review submission", async () => {
+    it("should handle API error during review submission", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
       vi.mocked(createAuctionReview).mockRejectedValue(new Error("API Error"));
 
@@ -286,7 +288,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should show error when user ID is missing", async () => {
+    it("should show error when user ID is missing", async () => {
       const userWithoutId = { ...mockDisplayUserInfo[0], userId: "" };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithoutId]);
 
@@ -295,11 +297,12 @@ describe("QARating_auciton-rating.tsx", () => {
       await waitFor(() => {
         // userIdが空の場合、ボタンが無効化されるため、クリックしても何も起こらない
         const submitButton = screen.getByText("評価を送信");
+
         expect(submitButton).toBeDisabled();
       });
     });
 
-    test("should show error when auction ID is missing", async () => {
+    it("should show error when auction ID is missing", async () => {
       const userWithoutAuctionId = { ...mockDisplayUserInfo[0], auctionId: "" };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithoutAuctionId]);
 
@@ -308,11 +311,12 @@ describe("QARating_auciton-rating.tsx", () => {
       await waitFor(() => {
         // auctionIdが空の場合、ボタンが無効化されるため、クリックしても何も起こらない
         const submitButton = screen.getByText("評価を送信");
+
         expect(submitButton).toBeDisabled();
       });
     });
 
-    test("should handle API error during data fetching", async () => {
+    it("should handle API error during data fetching", async () => {
       vi.mocked(getDisplayUserInfo).mockRejectedValue(new Error("Fetch Error"));
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -323,7 +327,7 @@ describe("QARating_auciton-rating.tsx", () => {
   });
 
   describe("境界値テスト", () => {
-    test("should handle empty user list", async () => {
+    it("should handle empty user list", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue(mockDisplayUserInfoEmpty);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -333,7 +337,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle single user", async () => {
+    it("should handle single user", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -346,7 +350,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle user with null image", async () => {
+    it("should handle user with null image", async () => {
       const userWithNullImage = { ...mockDisplayUserInfo[0], userImage: null };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithNullImage]);
 
@@ -359,7 +363,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle user with zero rating", async () => {
+    it("should handle user with zero rating", async () => {
       const userWithZeroRating = { ...mockDisplayUserInfo[0], rating: 0, ratingCount: 0 };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithZeroRating]);
 
@@ -371,7 +375,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle maximum rating", async () => {
+    it("should handle maximum rating", async () => {
       const userWithMaxRating = { ...mockDisplayUserInfo[0], rating: 5.0, ratingCount: 99999 };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithMaxRating]);
 
@@ -383,7 +387,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle very long comment", async () => {
+    it("should handle very long comment", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
       vi.mocked(createAuctionReview).mockResolvedValue({
         id: "review-1",
@@ -420,7 +424,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should handle empty comment", async () => {
+    it("should handle empty comment", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
       vi.mocked(createAuctionReview).mockResolvedValue({
         id: "review-1",
@@ -455,7 +459,7 @@ describe("QARating_auciton-rating.tsx", () => {
   });
 
   describe("ローディング状態テスト", () => {
-    test("should show loading spinner while fetching data", () => {
+    it("should show loading spinner while fetching data", () => {
       vi.mocked(getDisplayUserInfo).mockImplementation(
         () =>
           new Promise(() => {
@@ -468,7 +472,7 @@ describe("QARating_auciton-rating.tsx", () => {
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
     });
 
-    test("should show loading state during review submission", async () => {
+    it("should show loading state during review submission", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       // createAuctionReviewを一時的にpending状態にして、その後解決する
@@ -531,8 +535,8 @@ describe("QARating_auciton-rating.tsx", () => {
     });
   });
 
-  describe("ReviewPosition テスト", () => {
-    test("should use SELLER_TO_BUYER position for seller screen", async () => {
+  describe("reviewPosition テスト", () => {
+    it("should use SELLER_TO_BUYER position for seller screen", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -542,7 +546,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should use BUYER_TO_SELLER position for buyer screen", async () => {
+    it("should use BUYER_TO_SELLER position for buyer screen", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="落札画面" />);
@@ -553,19 +557,20 @@ describe("QARating_auciton-rating.tsx", () => {
     });
   });
 
-  describe("UI状態テスト", () => {
-    test("should disable submit button when rating is not selected", async () => {
+  describe("uI状態テスト", () => {
+    it("should disable submit button when rating is not selected", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
 
       await waitFor(() => {
         const submitButton = screen.getByText("評価を送信");
+
         expect(submitButton).toBeDisabled();
       });
     });
 
-    test("should enable submit button when rating is selected", async () => {
+    it("should enable submit button when rating is selected", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[0]]);
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -580,11 +585,12 @@ describe("QARating_auciton-rating.tsx", () => {
 
       await waitFor(() => {
         const submitButton = screen.getByText("評価を送信");
+
         expect(submitButton).not.toBeDisabled();
       });
     });
 
-    test("should disable submit button for reviewed users", async () => {
+    it("should disable submit button for reviewed users", async () => {
       vi.mocked(getDisplayUserInfo).mockResolvedValue([mockDisplayUserInfo[1]]); // 評価済みユーザー
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -595,7 +601,7 @@ describe("QARating_auciton-rating.tsx", () => {
       });
     });
 
-    test("should disable submit button when user ID is empty", async () => {
+    it("should disable submit button when user ID is empty", async () => {
       const userWithEmptyId = { ...mockDisplayUserInfo[0], userId: "" };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithEmptyId]);
 
@@ -603,11 +609,12 @@ describe("QARating_auciton-rating.tsx", () => {
 
       await waitFor(() => {
         const submitButton = screen.getByText("評価を送信");
+
         expect(submitButton).toBeDisabled();
       });
     });
 
-    test("should disable submit button when auction ID is empty", async () => {
+    it("should disable submit button when auction ID is empty", async () => {
       const userWithEmptyAuctionId = { ...mockDisplayUserInfo[0], auctionId: "" };
       vi.mocked(getDisplayUserInfo).mockResolvedValue([userWithEmptyAuctionId]);
 
@@ -615,6 +622,7 @@ describe("QARating_auciton-rating.tsx", () => {
 
       await waitFor(() => {
         const submitButton = screen.getByText("評価を送信");
+
         expect(submitButton).toBeDisabled();
       });
     });

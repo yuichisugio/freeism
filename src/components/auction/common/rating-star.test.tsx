@@ -1,5 +1,5 @@
 import { fireEvent, render } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { RatingStar } from "./rating-star";
 
@@ -15,22 +15,24 @@ describe("RatingStar", () => {
    * 基本的な表示機能のテスト
    */
   describe("基本表示", () => {
-    test("should render 5 stars", () => {
+    it("should render 5 stars", () => {
       const { container } = render(<RatingStar rating={3} />);
 
       // 5つの星が表示されることを確認
       const stars = container.querySelectorAll("svg");
+
       expect(stars).toHaveLength(5);
     });
 
-    test("should apply correct rating display", () => {
+    it("should apply correct rating display", () => {
       const { container } = render(<RatingStar rating={3} />);
 
       const containerDiv = container.querySelector("div");
+
       expect(containerDiv).toBeInTheDocument();
     });
 
-    test("should apply default size when size prop is not provided", () => {
+    it("should apply default size when size prop is not provided", () => {
       const { container } = render(<RatingStar rating={3} />);
 
       const stars = container.querySelectorAll("svg");
@@ -41,7 +43,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should apply custom size when size prop is provided", () => {
+    it("should apply custom size when size prop is provided", () => {
       const customSize = 30;
       const { container } = render(<RatingStar rating={3} size={customSize} />);
 
@@ -59,7 +61,7 @@ describe("RatingStar", () => {
    * 評価表示のテスト
    */
   describe("評価表示", () => {
-    test("should display correct rating with filled stars", () => {
+    it("should display correct rating with filled stars", () => {
       const { container } = render(<RatingStar rating={3} />);
 
       const stars = container.querySelectorAll("svg");
@@ -76,7 +78,7 @@ describe("RatingStar", () => {
       }
     });
 
-    test("should handle rating of 0", () => {
+    it("should handle rating of 0", () => {
       const { container } = render(<RatingStar rating={0} />);
 
       const stars = container.querySelectorAll("svg");
@@ -88,7 +90,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should handle rating of 5", () => {
+    it("should handle rating of 5", () => {
       const { container } = render(<RatingStar rating={5} />);
 
       const stars = container.querySelectorAll("svg");
@@ -99,7 +101,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should handle decimal rating by rounding down", () => {
+    it("should handle decimal rating by rounding down", () => {
       const { container } = render(<RatingStar rating={3.7} />);
 
       const stars = container.querySelectorAll("svg");
@@ -121,7 +123,7 @@ describe("RatingStar", () => {
    * 読み取り専用モードのテスト
    */
   describe("読み取り専用モード", () => {
-    test("should apply default cursor style when readonly is true", () => {
+    it("should apply default cursor style when readonly is true", () => {
       const { container } = render(<RatingStar rating={3} readonly={true} />);
 
       const stars = container.querySelectorAll("svg");
@@ -130,7 +132,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should not call onChange when clicked in readonly mode", () => {
+    it("should not call onChange when clicked in readonly mode", () => {
       const mockOnChange = vi.fn();
       const { container } = render(<RatingStar rating={3} readonly={true} onChange={mockOnChange} />);
 
@@ -140,7 +142,7 @@ describe("RatingStar", () => {
       expect(mockOnChange).not.toHaveBeenCalled();
     });
 
-    test("should not update hover state when mouse enters in readonly mode", () => {
+    it("should not update hover state when mouse enters in readonly mode", () => {
       const { container } = render(<RatingStar rating={2} readonly={true} />);
 
       const stars = container.querySelectorAll("svg");
@@ -165,7 +167,7 @@ describe("RatingStar", () => {
    * インタラクティブモードのテスト
    */
   describe("インタラクティブモード", () => {
-    test("should apply pointer cursor style when readonly is false", () => {
+    it("should apply pointer cursor style when readonly is false", () => {
       const { container } = render(<RatingStar rating={3} readonly={false} />);
 
       const stars = container.querySelectorAll("svg");
@@ -174,7 +176,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should call onChange with correct rating when star is clicked", () => {
+    it("should call onChange with correct rating when star is clicked", () => {
       const mockOnChange = vi.fn();
       const { container } = render(<RatingStar rating={2} readonly={false} onChange={mockOnChange} />);
 
@@ -187,7 +189,7 @@ describe("RatingStar", () => {
       expect(mockOnChange).toHaveBeenCalledTimes(1);
     });
 
-    test("should call onChange multiple times for different star clicks", () => {
+    it("should call onChange multiple times for different star clicks", () => {
       const mockOnChange = vi.fn();
       const { container } = render(<RatingStar rating={1} readonly={false} onChange={mockOnChange} />);
 
@@ -204,7 +206,7 @@ describe("RatingStar", () => {
       expect(mockOnChange).toHaveBeenNthCalledWith(3, 1);
     });
 
-    test("should not call onChange when onChange prop is not provided", () => {
+    it("should not call onChange when onChange prop is not provided", () => {
       // onChangeが提供されていない場合でもエラーが発生しないことを確認
       expect(() => {
         const { container } = render(<RatingStar rating={3} readonly={false} />);
@@ -220,7 +222,7 @@ describe("RatingStar", () => {
    * ホバー機能のテスト
    */
   describe("ホバー機能", () => {
-    test("should update display when mouse enters star in interactive mode", () => {
+    it("should update display when mouse enters star in interactive mode", () => {
       const { container } = render(<RatingStar rating={2} readonly={false} />);
 
       const stars = container.querySelectorAll("svg");
@@ -236,7 +238,7 @@ describe("RatingStar", () => {
       expect(stars[4]).toHaveClass("text-gray-300");
     });
 
-    test("should reset to original rating when mouse leaves in interactive mode", () => {
+    it("should reset to original rating when mouse leaves in interactive mode", () => {
       const { container } = render(<RatingStar rating={2} readonly={false} />);
 
       const stars = container.querySelectorAll("svg");
@@ -257,7 +259,7 @@ describe("RatingStar", () => {
       }
     });
 
-    test("should handle sequential mouse enter events", () => {
+    it("should handle sequential mouse enter events", () => {
       const { container } = render(<RatingStar rating={1} readonly={false} />);
 
       const stars = container.querySelectorAll("svg");
@@ -286,7 +288,7 @@ describe("RatingStar", () => {
    * 境界値テスト
    */
   describe("境界値テスト", () => {
-    test("should clamp negative rating to 0", () => {
+    it("should clamp negative rating to 0", () => {
       const { container } = render(<RatingStar rating={-1} />);
 
       const stars = container.querySelectorAll("svg");
@@ -298,7 +300,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should clamp very negative rating to 0", () => {
+    it("should clamp very negative rating to 0", () => {
       const { container } = render(<RatingStar rating={-100} />);
 
       const stars = container.querySelectorAll("svg");
@@ -310,7 +312,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should clamp rating greater than 5 to 5", () => {
+    it("should clamp rating greater than 5 to 5", () => {
       const { container } = render(<RatingStar rating={7} />);
 
       const stars = container.querySelectorAll("svg");
@@ -321,7 +323,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should clamp very large rating to 5", () => {
+    it("should clamp very large rating to 5", () => {
       const { container } = render(<RatingStar rating={1000} />);
 
       const stars = container.querySelectorAll("svg");
@@ -332,7 +334,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should handle exact boundary values correctly", () => {
+    it("should handle exact boundary values correctly", () => {
       // rating = 0 のテスト
       const { container: container0 } = render(<RatingStar rating={0} />);
       const stars0 = container0.querySelectorAll("svg");
@@ -349,7 +351,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should handle decimal values within range correctly", () => {
+    it("should handle decimal values within range correctly", () => {
       const { container } = render(<RatingStar rating={3.7} />);
 
       const stars = container.querySelectorAll("svg");
@@ -364,7 +366,7 @@ describe("RatingStar", () => {
       }
     });
 
-    test("should clamp decimal values outside range", () => {
+    it("should clamp decimal values outside range", () => {
       // rating = -0.5 のテスト（0にクランプされる）
       const { container: containerNegative } = render(<RatingStar rating={-0.5} />);
       const starsNegative = containerNegative.querySelectorAll("svg");
@@ -381,7 +383,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should handle size of 0", () => {
+    it("should handle size of 0", () => {
       const { container } = render(<RatingStar rating={3} size={0} />);
 
       const stars = container.querySelectorAll("svg");
@@ -391,7 +393,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should handle very large size", () => {
+    it("should handle very large size", () => {
       const largeSize = 1000;
       const { container } = render(<RatingStar rating={3} size={largeSize} />);
 
@@ -409,7 +411,7 @@ describe("RatingStar", () => {
    * プロパティのデフォルト値テスト
    */
   describe("デフォルト値", () => {
-    test("should use default readonly value (true) when not specified", () => {
+    it("should use default readonly value (true) when not specified", () => {
       const mockOnChange = vi.fn();
       const { container } = render(<RatingStar rating={3} onChange={mockOnChange} />);
 
@@ -417,6 +419,7 @@ describe("RatingStar", () => {
 
       // デフォルトでreadonlyがtrueなので、クリックしても何も起こらない
       fireEvent.click(stars[4]);
+
       expect(mockOnChange).not.toHaveBeenCalled();
 
       // カーソルスタイルもdefaultになる
@@ -425,7 +428,7 @@ describe("RatingStar", () => {
       });
     });
 
-    test("should use default size value (20) when not specified", () => {
+    it("should use default size value (20) when not specified", () => {
       const { container } = render(<RatingStar rating={3} />);
 
       const stars = container.querySelectorAll("svg");
