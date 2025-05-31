@@ -4,7 +4,7 @@ import { beforeEach, vi } from "vitest";
 import { mockDeep, mockReset } from "vitest-mock-extended";
 
 // Prismaモックのエクスポート（テストファイルで使用するため）
-export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
+export const prismaMock: DeepMockProxy<PrismaClient> = vi.mocked(mockDeep<PrismaClient>());
 
 // jest-mock-extendedを使用したPrisma クライアントのモック
 vi.mock("@/lib/prisma", () => ({

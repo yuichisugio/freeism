@@ -17,7 +17,7 @@ import { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
  *
  * @returns 処理されたオークションの数
  */
-async function returnAuctionDepositPoints(): Promise<number> {
+export async function returnAuctionDepositPoints(): Promise<number> {
   try {
     // 現在の日時を取得
     const now = new Date();
@@ -152,7 +152,7 @@ async function returnAuctionDepositPoints(): Promise<number> {
 /**
  * メイン関数
  */
-async function main() {
+export async function main() {
   try {
     console.log("オークションのポイント返還処理を開始します...");
 
@@ -170,7 +170,10 @@ async function main() {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // スクリプト実行
-main().catch((error) => {
-  console.error("スクリプト実行中にエラーが発生しました:", error);
-  process.exit(1);
-});
+// テスト環境では実行しない
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("スクリプト実行中にエラーが発生しました:", error);
+    process.exit(1);
+  });
+}

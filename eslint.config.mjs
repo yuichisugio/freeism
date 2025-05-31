@@ -108,6 +108,7 @@ const eslintConfig = [
       "public/service-worker.js",
       "scripts/update-auction-status-to-active.cjs",
       "scripts/update-auction-status-to-completed.cjs",
+      "scripts/**/*.test.{ts,tsx}",
       "vitest.config.ts",
       "html/**/*",
       ".next/**/*",

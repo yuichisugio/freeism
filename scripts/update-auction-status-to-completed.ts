@@ -12,14 +12,14 @@ import { AuctionEventType, BidStatus, NotificationSendMethod, NotificationSendTi
 /**
  * Prismaトランザクションの型定義
  */
-type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+export type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスク（オークション付き）の関連データを含む型
  */
-type TaskWithRelations = Prisma.TaskGetPayload<{
+export type TaskWithRelations = Prisma.TaskGetPayload<{
   select: {
     id: true;
     task: true;
@@ -60,7 +60,7 @@ type TaskWithRelations = Prisma.TaskGetPayload<{
  * endTimeが現在日時以前かつstatusがACTIVEまたはPENDINGのオークションを処理する
  * @returns 処理されたオークションの数
  */
-async function updateAuctionStatusToCompleted(): Promise<number> {
+export async function updateAuctionStatusToCompleted(): Promise<number> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -162,7 +162,7 @@ async function updateAuctionStatusToCompleted(): Promise<number> {
  * @param tx トランザクションオブジェクト
  * @param task オークションオブジェクト
  */
-async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
+export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithNoBids_start");
@@ -226,7 +226,7 @@ async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRela
  * @param tx トランザクションオブジェクト
  * @param task オークションオブジェクト
  */
-async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
+export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithBids_start");
@@ -612,8 +612,10 @@ async function main() {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// スクリプト実行
-main().catch((error) => {
-  console.error("スクリプト実行中にエラーが発生しました:", error);
-  process.exit(1);
-});
+// スクリプト実行（テスト環境では実行しない）
+if (process.env.NODE_ENV !== "test" && require.main === module) {
+  main().catch((error) => {
+    console.error("スクリプト実行中にエラーが発生しました:", error);
+    process.exit(1);
+  });
+}

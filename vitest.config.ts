@@ -20,6 +20,9 @@ export default defineConfig({
     // ファイル並列実行の設定
     fileParallelism: true,
 
+    // コンソール出力を抑制
+    silent: true,
+
     // Next.jsとの互換性のための設定
     server: {
       deps: {
@@ -40,7 +43,6 @@ export default defineConfig({
         "**/dist/**",
         "**/.next/**",
         "**/prisma/**",
-        "**/scripts/**",
         "**/*.test.*",
         "**/*.spec.*",
       ],
@@ -54,10 +56,10 @@ export default defineConfig({
     },
 
     // テストファイルのパターン
-    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", "scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 
     // 除外するファイル
-    exclude: ["node_modules", "dist", ".next", "coverage", "prisma", "scripts"],
+    exclude: ["node_modules", "dist", ".next", "coverage", "prisma"],
 
     // タイムアウト設定
     testTimeout: 10000,

@@ -14,7 +14,7 @@ import { TaskStatus } from "@prisma/client";
  *
  * @returns 更新されたオークションの数
  */
-async function updateAuctionStatusToActive(): Promise<number> {
+export async function updateAuctionStatusToActive(): Promise<number> {
   try {
     // 現在の日時を取得
     const now = new Date();
@@ -50,7 +50,7 @@ async function updateAuctionStatusToActive(): Promise<number> {
 /**
  * メイン関数
  */
-async function main() {
+export async function main() {
   try {
     console.log("オークションのステータスを更新します...");
 
@@ -67,8 +67,10 @@ async function main() {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// スクリプト実行
-main().catch((error) => {
-  console.error("スクリプト実行中にエラーが発生しました:", error);
-  process.exit(1);
-});
+// スクリプト実行（テスト時は実行しない）
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("スクリプト実行中にエラーが発生しました:", error);
+    process.exit(1);
+  });
+}
