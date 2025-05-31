@@ -55,6 +55,13 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   /**
    * 0. 取得するデータのselect条件
    */
+  // 共通のユーザー選択条件
+  const userSelectCondition = {
+    id: true,
+    image: true,
+    settings: { select: { username: true } },
+  };
+
   let selectCondition: Prisma.AuctionSelect = {
     id: true,
   };
@@ -64,11 +71,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
     selectCondition = {
       ...selectCondition,
       winner: {
-        select: {
-          id: true,
-          image: true,
-          settings: { select: { username: true } },
-        },
+        select: userSelectCondition,
       },
     };
   }
@@ -81,31 +84,19 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
         select: {
           id: true,
           creator: {
-            select: {
-              id: true,
-              image: true,
-              settings: { select: { username: true } },
-            },
+            select: userSelectCondition,
           },
           reporters: {
             select: {
               user: {
-                select: {
-                  id: true,
-                  image: true,
-                  settings: { select: { username: true } },
-                },
+                select: userSelectCondition,
               },
             },
           },
           executors: {
             select: {
               user: {
-                select: {
-                  id: true,
-                  image: true,
-                  settings: { select: { username: true } },
-                },
+                select: userSelectCondition,
               },
             },
           },
