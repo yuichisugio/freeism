@@ -68,26 +68,19 @@
     // age: 'invalid' // TypeScriptエラーが発生するため、バグを未然に防げる
   });
 
-  type UserTransientParams = {
-    registered: boolean;
-    numPosts: number;
-  };
-
-  const userFactory = Factory.define<User, UserTransientParams>(
-    ({ transientParams, sequence }) => {
-      const { registered, numPosts = 1 } = transientParams;
-
-      return {
-        name: 'Susan',
-        posts: postFactory.buildList(numPosts),
-        memberId: registered ? `member-${sequence}` : null,
-        permissions: { canPost: registered }
-      };
-    }
-  );
-
-  // 使用例
-  const user = userFactory.build({}, { transient: { registered: true, numPosts: 3 } });
+  // 正常なデータの作成
+  const validUser = userFactory.build();
+  // 異常なデータの作成（emailがundefined）
+  const invalidUser = userFactory.build({ email: undefined });
+  // または
+  const invalidUser2 = createInvalidUserData();
+  // テストでPrismaエラーを検証
+  test('必須フィールドがない場合はエラーが発生する', async () => {
+    const invalidData = createInvalidUserData();
+    await expect(prisma.user.create({ data: invalidData }))
+      .rejects
+      .toThrow(); // Prismaの必須フィールドエラーが発生
+  });
   ```
 
 - **`vitest-mock-extended`ライブラリ**

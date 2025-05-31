@@ -39,6 +39,23 @@ export async function createAuctionReview(
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 必須フィールドのバリデーション
+   */
+  if (!auctionId || auctionId.trim() === "") {
+    throw new Error("オークションIDは必須です");
+  }
+
+  if (!revieweeId || revieweeId.trim() === "") {
+    throw new Error("レビュー対象者IDは必須です");
+  }
+
+  if (!reviewPosition) {
+    throw new Error("レビューポジションは必須です");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 評価が0から5の間であることを確認する
    */
   if (rating < 0 || rating > 5) {

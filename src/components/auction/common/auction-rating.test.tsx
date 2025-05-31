@@ -3,7 +3,7 @@ import { AllTheProviders } from "@/test/test-utils/test-utils-tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
-import { beforeEach, describe, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DisplayUserInfo } from "./auction-rating";
 import { QARating } from "./auction-rating";

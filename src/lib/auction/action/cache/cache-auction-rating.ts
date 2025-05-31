@@ -44,6 +44,15 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * バリデーション
+   */
+  if (!auctionId || !reviewPosition) {
+    throw new Error("Invalid auctionId or reviewPosition");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 0. 取得するデータのselect条件
    */
   let selectCondition: Prisma.AuctionSelect = {
@@ -157,7 +166,9 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   // BUYER_TO_SELLER の場合は Creator, Reporter, Executorを取得
   if (reviewPosition === ReviewPosition.BUYER_TO_SELLER) {
     users.forEach(({ role, user }) => {
+      // userIdがまだない場合は、userIdをキーにして、rolesとして、空のsetを追加して、userを追加
       if (!userMap.has(user.id)) userMap.set(user.id, { roles: new Set<Role>(), user });
+      // userIdがすでにある場合は、rolesにroleを追加
       userMap.get(user.id)!.roles.add(role);
     });
   }
@@ -174,7 +185,10 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
    */
   // .keys()でuserIdのみの配列を作成
   const userIds = Array.from(userMap.keys());
+  // 表示するユーザーがいない場合（reviewPositionがSELLER_TO_BUYERの場合は、まだ落札者がいない場合）は空配列を返す
   if (userIds.length === 0) return [];
+
+  // 表示するユーザーのレビューを取得
   const reviews = await prisma.auctionReview.findMany({
     where: { revieweeId: { in: userIds } },
     select: { revieweeId: true, rating: true, auctionId: true },
@@ -185,6 +199,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   /**
    * 6. 今回のオークションで既に評価されているか
    */
+  // 今回のオークションで既に評価されているか
   const reviewsForThisAuction = await prisma.auctionReview.findMany({
     where: { auctionId, revieweeId: { in: userIds }, reviewPosition },
     select: { revieweeId: true, comment: true },
@@ -206,7 +221,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   userIds.forEach((uid) => {
     const userReviews = reviews.filter((r) => r.revieweeId === uid);
     const avg = userReviews.length > 0 ? userReviews.reduce((acc, r) => acc + r.rating, 0) / userReviews.length : 0;
-    ratingMap.set(uid, Math.round(avg * 10) / 10); // 小数1桁で四捨五入
+    ratingMap.set(uid, Math.floor(avg)); // 整数部分のみ取得（小数点以下切り捨て）
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -3,6 +3,7 @@ import "./auth-js-setup"; // Auth.js関連のモック設定をインポート
 
 import React from "react";
 import { cleanup } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 afterEach(() => {
   // 各テスト後にDOMをクリーンアップ
