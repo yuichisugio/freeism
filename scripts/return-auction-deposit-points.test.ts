@@ -57,6 +57,151 @@ const mockProcessExit = vi.spyOn(process, "exit").mockImplementation(() => {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * テストヘルパー関数
+ */
+
+/**
+ * 過去の日付を生成するヘルパー関数
+ */
+function createPastDate(daysAgo: number): Date {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date;
+}
+
+/**
+ * 未来の日付を生成するヘルパー関数
+ */
+function createFutureDate(daysFromNow: number): Date {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date;
+}
+
+/**
+ * 基本的なオークションテストデータを作成するヘルパー関数
+ */
+function createBasicAuctionTestData(options: {
+  depositPeriod: number;
+  daysAgo: number;
+  taskName?: string;
+  depositPoint?: number | null | undefined;
+  taskStatus?: TaskStatus;
+}) {
+  const { depositPeriod, daysAgo, taskName = "テストタスク", taskStatus = TaskStatus.AUCTION_ENDED } = options;
+
+  // depositPointが明示的に渡されていない場合のみデフォルト値を使用
+  const depositPoint = "depositPoint" in options ? options.depositPoint : 100;
+
+  const user = userFactory.build();
+  const group = groupFactory.build({ depositPeriod });
+  const task = taskFactory.build({
+    status: taskStatus,
+    groupId: group.id,
+    task: taskName,
+  });
+
+  const auction = auctionFactory.build({
+    endTime: createPastDate(daysAgo),
+    taskId: task.id,
+    groupId: group.id,
+  });
+
+  const bidHistory = bidHistoryFactory.build({
+    status: BidStatus.WON,
+    userId: user.id,
+    auctionId: auction.id,
+    depositPoint,
+  });
+
+  return { user, group, task, auction, bidHistory };
+}
+
+/**
+ * 複数のオークションテストデータを作成するヘルパー関数
+ */
+function createMultipleAuctionTestData(count: number, depositPeriod: number, daysAgo: number) {
+  return Array.from({ length: count }, (_, index) => {
+    const user = userFactory.build();
+    const task = taskFactory.build({
+      status: TaskStatus.AUCTION_ENDED,
+      groupId: `group-${index}`,
+      task: `タスク${index + 1}`,
+    });
+    const group = groupFactory.build({ depositPeriod });
+    const auction = auctionFactory.build({
+      endTime: createPastDate(daysAgo),
+      taskId: task.id,
+      groupId: group.id,
+    });
+    const bidHistory = bidHistoryFactory.build({
+      status: BidStatus.WON,
+      userId: user.id,
+      auctionId: auction.id,
+      depositPoint: (index + 1) * 100,
+    });
+
+    return { user, group, task, auction, bidHistory };
+  });
+}
+
+/**
+ * Prismaトランザクションモックを設定するヘルパー関数
+ */
+function setupPrismaTransactionMock(options: {
+  groupPointUpdateCount?: number;
+  taskFindResult?: any;
+  shouldThrowError?: boolean;
+  errorMessage?: string;
+}) {
+  const {
+    groupPointUpdateCount = 1,
+    taskFindResult = { task: "テストタスク" },
+    shouldThrowError = false,
+    errorMessage = "Transaction error",
+  } = options;
+
+  if (shouldThrowError) {
+    vi.mocked(prismaMock.$transaction).mockRejectedValue(new Error(errorMessage));
+    return;
+  }
+
+  vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
+    const mockTx = {
+      groupPoint: {
+        updateMany: vi.fn().mockResolvedValue({ count: groupPointUpdateCount }),
+      },
+      task: {
+        findUnique: vi.fn().mockResolvedValue(taskFindResult),
+      },
+    };
+    return await callback(mockTx as unknown as PrismaClient);
+  });
+}
+
+/**
+ * 期待される通知パラメータを生成するヘルパー関数
+ */
+function createExpectedNotificationParams(auctionId: string, taskName: string, depositPoint: string, userId: string) {
+  return {
+    text: {
+      first: taskName,
+      second: depositPoint,
+    },
+    auctionEventType: "POINT_RETURNED",
+    auctionId,
+    recipientUserId: [userId],
+    sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
+    actionUrl: `/auction/${auctionId}`,
+    sendTiming: NotificationSendTiming.NOW,
+    sendScheduledDate: null,
+    expiresAt: null,
+  };
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 describe("returnAuctionDepositPoints", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -71,52 +216,22 @@ describe("returnAuctionDepositPoints", () => {
   describe("正常系", () => {
     test("should return deposit points for eligible auctions", async () => {
       // テストデータの準備
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      // 7日前に終了したオークション（返還対象）
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
+      const { user, group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
       });
 
       // Prismaモックの設定
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({});
 
       // テスト実行
       const result = await returnAuctionDepositPoints();
@@ -157,85 +272,24 @@ describe("returnAuctionDepositPoints", () => {
           },
         },
       });
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith({
-        text: {
-          first: "テストタスク",
-          second: "100",
-        },
-        auctionEventType: "POINT_RETURNED",
-        auctionId: auction.id,
-        recipientUserId: [user.id],
-        sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-        actionUrl: `/auction/${auction.id}`,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-      });
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, task.task, "100", user.id));
     });
 
     test("should handle multiple eligible auctions", async () => {
       // 複数のオークションのテストデータ準備
-      const user1 = userFactory.build();
-      const user2 = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 5 });
-
-      const task1 = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "タスク1",
-      });
-      const task2 = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "タスク2",
-      });
-
-      // 6日前に終了したオークション（返還対象）
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 6);
-
-      const auction1 = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task1.id,
-        groupId: group.id,
-      });
-
-      const auction2 = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task2.id,
-        groupId: group.id,
-      });
-
-      const bidHistory1 = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user1.id,
-        auctionId: auction1.id,
-        depositPoint: 150,
-      });
-
-      const bidHistory2 = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user2.id,
-        auctionId: auction2.id,
-        depositPoint: 200,
-      });
+      const testDataArray = createMultipleAuctionTestData(2, 5, 6);
 
       // Prismaモックの設定
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction1,
-          group: group,
-          task: task1,
-          bidHistories: [bidHistory1],
-        },
-        {
-          ...auction2,
-          group: group,
-          task: task2,
-          bidHistories: [bidHistory2],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
+      vi.mocked(prismaMock.auction.findMany).mockResolvedValue(
+        testDataArray.map(({ auction, group, task, bidHistory }) => ({
+          ...auction,
+          group,
+          task,
+          bidHistories: [bidHistory],
+        })) as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>,
+      );
 
+      // 複数のタスクに対応するモック設定
       vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
         const mockTx = {
           groupPoint: {
@@ -258,62 +312,38 @@ describe("returnAuctionDepositPoints", () => {
 
     test("should handle zero deposit point correctly", async () => {
       // depositPointが0のケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
+      const { user, group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
         depositPoint: 0,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({});
 
       const result = await returnAuctionDepositPoints();
 
       expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          text: {
-            first: "テストタスク",
-            second: "0",
-          },
-        }),
-      );
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, task.task, "0", user.id));
+    });
+
+    test("should handle empty auction list", async () => {
+      // オークションが存在しない場合
+      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([]);
+
+      const result = await returnAuctionDepositPoints();
+
+      expect(result).toBe(0);
+      expect(mockConsoleLog).toHaveBeenCalledWith("ポイント返還対象のオークション数: 0件");
+      expect(mockConsoleLog).toHaveBeenCalledWith("0件のオークションのポイント返還処理が完了しました。");
     });
   });
 
@@ -325,27 +355,16 @@ describe("returnAuctionDepositPoints", () => {
   describe("異常系", () => {
     test("should skip auctions with no winning bid history", async () => {
       // 落札者がいないオークション
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
+      const { group, task, auction } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [], // 落札者なし
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
@@ -357,79 +376,21 @@ describe("returnAuctionDepositPoints", () => {
       expect(mockSendAuctionNotification).not.toHaveBeenCalled();
     });
 
-    test("should skip auctions with null deposit point", async () => {
-      // depositPointがnullのケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: null,
+    test.each([
+      { depositPoint: null, description: "null deposit point" },
+      { depositPoint: undefined, description: "undefined deposit point" },
+    ])("should skip auctions with $description", async ({ depositPoint }) => {
+      const { group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
+        depositPoint,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
-          bidHistories: [bidHistory],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(0);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`オークションID: ${auction.id} の落札者の預けポイントがありません。スキップします。`);
-      expect(mockSendAuctionNotification).not.toHaveBeenCalled();
-    });
-
-    test("should skip auctions with undefined deposit point", async () => {
-      // depositPointがundefinedのケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: undefined,
-      });
-
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
@@ -443,100 +404,42 @@ describe("returnAuctionDepositPoints", () => {
 
     test("should throw error when group point update fails", async () => {
       // GroupPointの更新に失敗するケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
+      const { user, group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 0 }), // 更新対象なし
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({ groupPointUpdateCount: 0 });
 
       await expect(returnAuctionDepositPoints()).rejects.toThrow(`ユーザーID: ${user.id} のグループポイントレコードが見つかりませんでした。`);
     });
 
     test("should throw error when task is not found", async () => {
       // タスクが見つからないケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
+      const { group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue(null), // タスクが見つからない
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({ taskFindResult: null });
 
       await expect(returnAuctionDepositPoints()).rejects.toThrow(`タスクID: ${task.id} が見つかりませんでした。`);
     });
@@ -551,50 +454,21 @@ describe("returnAuctionDepositPoints", () => {
 
     test("should handle notification sending failure", async () => {
       // 通知送信に失敗するケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
+      const { group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({});
 
       // 通知送信を失敗させる
       mockSendAuctionNotification.mockRejectedValue(new Error("Notification failed"));
@@ -619,203 +493,89 @@ describe("returnAuctionDepositPoints", () => {
    * 境界値テスト
    */
   describe("境界値テスト", () => {
-    test("should not process auction that ends exactly on deposit period boundary", async () => {
-      // 預け期間ちょうどに終了したオークション（返還対象外）
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      // ちょうど7日前に終了（境界値）
-      const boundaryDate = new Date();
-      boundaryDate.setDate(boundaryDate.getDate() - 7);
-
-      const auction = auctionFactory.build({
-        endTime: boundaryDate,
-        taskId: task.id,
-        groupId: group.id,
+    test.each([
+      { depositPeriod: 7, daysAgo: 7, expected: 0, description: "exactly on deposit period boundary" },
+      { depositPeriod: 7, daysAgo: 8, expected: 1, description: "one day after deposit period" },
+      { depositPeriod: 0, daysAgo: 1, expected: 1, description: "deposit period of 0 days" },
+      { depositPeriod: 365, daysAgo: 400, expected: 1, description: "very large deposit period" },
+      { depositPeriod: -1, daysAgo: 1, expected: 1, description: "negative deposit period" },
+    ])("should handle $description", async ({ depositPeriod, daysAgo, expected }) => {
+      const { group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod,
+        daysAgo,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
-          bidHistories: [],
+          group,
+          task,
+          bidHistories: expected > 0 ? [bidHistory] : [],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
+      if (expected > 0) {
+        setupPrismaTransactionMock({});
+      }
+
       const result = await returnAuctionDepositPoints();
 
-      expect(result).toBe(0);
+      expect(result).toBe(expected);
     });
 
-    test("should process auction that ends one day after deposit period", async () => {
-      // 預け期間+1日後に終了したオークション（返還対象）
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      // 8日前に終了（境界値+1）
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
+    test.each([
+      { depositPoint: 0, description: "zero deposit point" },
+      { depositPoint: Number.MAX_SAFE_INTEGER, description: "maximum deposit point value" },
+    ])("should handle $description", async ({ depositPoint }) => {
+      const { user, group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
+        depositPoint,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(1);
-    });
-
-    test("should handle deposit period of 0 days", async () => {
-      // 預け期間が0日のケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 0 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      // 1日前に終了
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
-      });
-
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction,
-          group: group,
-          task: task,
-          bidHistories: [bidHistory],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(1);
-    });
-
-    test("should handle maximum deposit point value", async () => {
-      // 最大値のdepositPoint
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: Number.MAX_SAFE_INTEGER,
-      });
-
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction,
-          group: group,
-          task: task,
-          bidHistories: [bidHistory],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({});
 
       const result = await returnAuctionDepositPoints();
 
       expect(result).toBe(1);
       expect(mockSendAuctionNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          text: {
-            first: "テストタスク",
-            second: String(Number.MAX_SAFE_INTEGER),
-          },
-        }),
+        createExpectedNotificationParams(auction.id, task.task, String(depositPoint), user.id),
       );
+    });
+
+    test("should handle very long task name", async () => {
+      // 非常に長いタスク名のケース
+      const longTaskName = "a".repeat(2000);
+      const { user, group, task, auction, bidHistory } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
+        taskName: longTaskName,
+      });
+
+      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
+        {
+          ...auction,
+          group,
+          task,
+          bidHistories: [bidHistory],
+        },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
+
+      setupPrismaTransactionMock({ taskFindResult: { task: longTaskName } });
+
+      const result = await returnAuctionDepositPoints();
+
+      expect(result).toBe(1);
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, longTaskName, "100", user.id));
     });
   });
 
@@ -827,27 +587,17 @@ describe("returnAuctionDepositPoints", () => {
   describe("フィルタリング条件", () => {
     test("should not process auctions with task status other than AUCTION_ENDED", async () => {
       // タスクステータスがAUCTION_ENDED以外のケース
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.PENDING, // AUCTION_ENDED以外
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
+      const { group, task, auction } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
+        taskStatus: TaskStatus.PENDING,
       });
 
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
@@ -866,12 +616,8 @@ describe("returnAuctionDepositPoints", () => {
         task: "テストタスク",
       });
 
-      // 未来の日付
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 1);
-
       const auction = auctionFactory.build({
-        endTime: futureDate,
+        endTime: createFutureDate(1),
         taskId: task.id,
         groupId: group.id,
       });
@@ -879,8 +625,8 @@ describe("returnAuctionDepositPoints", () => {
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [],
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
@@ -897,201 +643,13 @@ describe("returnAuctionDepositPoints", () => {
    * エッジケースのテスト
    */
   describe("エッジケース", () => {
-    test("should handle empty auction list", async () => {
-      // オークションが存在しない場合
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([]);
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(0);
-      expect(mockConsoleLog).toHaveBeenCalledWith("ポイント返還対象のオークション数: 0件");
-      expect(mockConsoleLog).toHaveBeenCalledWith("0件のオークションのポイント返還処理が完了しました。");
-    });
-
-    test("should handle auction with very large deposit period", async () => {
-      // 非常に大きな預け期間のケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 365 }); // 1年
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      // 1年以上前に終了したオークション
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 400);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
-      });
-
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction,
-          group: group,
-          task: task,
-          bidHistories: [bidHistory],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(1);
-    });
-
-    test("should handle auction with negative deposit period", async () => {
-      // 負の預け期間のケース（異常なデータ）
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: -1 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
-      });
-
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction,
-          group: group,
-          task: task,
-          bidHistories: [bidHistory],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(1);
-    });
-
-    test("should handle auction with very long task name", async () => {
-      // 非常に長いタスク名のケース
-      const user = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const longTaskName = "a".repeat(2000); // 2000文字
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: longTaskName,
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory = bidHistoryFactory.build({
-        status: BidStatus.WON,
-        userId: user.id,
-        auctionId: auction.id,
-        depositPoint: 100,
-      });
-
-      vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-        {
-          ...auction,
-          group: group,
-          task: task,
-          bidHistories: [bidHistory],
-        },
-      ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: longTaskName }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
-
-      const result = await returnAuctionDepositPoints();
-
-      expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          text: {
-            first: longTaskName,
-            second: "100",
-          },
-        }),
-      );
-    });
-
     test("should handle multiple bidHistories with same status", async () => {
       // 同じステータスの複数の入札履歴がある場合（通常は起こらないが）
       const user1 = userFactory.build();
       const user2 = userFactory.build();
-      const group = groupFactory.build({ depositPeriod: 7 });
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ENDED,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 8);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
+      const { group, task, auction } = createBasicAuctionTestData({
+        depositPeriod: 7,
+        daysAgo: 8,
       });
 
       const bidHistory1 = bidHistoryFactory.build({
@@ -1111,37 +669,19 @@ describe("returnAuctionDepositPoints", () => {
       vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
         {
           ...auction,
-          group: group,
-          task: task,
+          group,
+          task,
           bidHistories: [bidHistory1, bidHistory2], // 複数のWONステータス
         },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-          },
-          task: {
-            findUnique: vi.fn().mockResolvedValue({ task: "テストタスク" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaClient);
-      });
+      setupPrismaTransactionMock({});
 
       const result = await returnAuctionDepositPoints();
 
       // 最初の入札履歴のみが処理される
       expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          recipientUserId: [user1.id],
-          text: {
-            first: "テストタスク",
-            second: "100",
-          },
-        }),
-      );
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, task.task, "100", user1.id));
     });
   });
 });
@@ -1177,64 +717,16 @@ describe("main", () => {
 
   test("should process multiple auctions and log correct count", async () => {
     // 複数のオークションが処理されるケース
-    const user1 = userFactory.build();
-    const user2 = userFactory.build();
-    const group = groupFactory.build({ depositPeriod: 7 });
+    const testDataArray = createMultipleAuctionTestData(2, 7, 8);
 
-    const task1 = taskFactory.build({
-      status: TaskStatus.AUCTION_ENDED,
-      groupId: group.id,
-      task: "タスク1",
-    });
-    const task2 = taskFactory.build({
-      status: TaskStatus.AUCTION_ENDED,
-      groupId: group.id,
-      task: "タスク2",
-    });
-
-    const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 8);
-
-    const auction1 = auctionFactory.build({
-      endTime: pastDate,
-      taskId: task1.id,
-      groupId: group.id,
-    });
-
-    const auction2 = auctionFactory.build({
-      endTime: pastDate,
-      taskId: task2.id,
-      groupId: group.id,
-    });
-
-    const bidHistory1 = bidHistoryFactory.build({
-      status: BidStatus.WON,
-      userId: user1.id,
-      auctionId: auction1.id,
-      depositPoint: 100,
-    });
-
-    const bidHistory2 = bidHistoryFactory.build({
-      status: BidStatus.WON,
-      userId: user2.id,
-      auctionId: auction2.id,
-      depositPoint: 200,
-    });
-
-    vi.mocked(prismaMock.auction.findMany).mockResolvedValue([
-      {
-        ...auction1,
-        group: group,
-        task: task1,
-        bidHistories: [bidHistory1],
-      },
-      {
-        ...auction2,
-        group: group,
-        task: task2,
-        bidHistories: [bidHistory2],
-      },
-    ] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
+    vi.mocked(prismaMock.auction.findMany).mockResolvedValue(
+      testDataArray.map(({ auction, group, task, bidHistory }) => ({
+        ...auction,
+        group,
+        task,
+        bidHistories: [bidHistory],
+      })) as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>,
+    );
 
     vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
       const mockTx = {

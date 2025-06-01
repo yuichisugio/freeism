@@ -79,6 +79,9 @@ importers:
       "@tanstack/react-query-persist-client":
         specifier: ^5.75.2
         version: 5.77.2(@tanstack/react-query@5.77.2(react@19.1.0))(react@19.1.0)
+      "@upstash/redis":
+        specifier: ^1.34.9
+        version: 1.34.9
       "@vercel/analytics":
         specifier: ^1.5.0
         version: 1.5.0(next@15.3.0(@babel/core@7.27.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
@@ -186,7 +189,7 @@ importers:
         specifier: ^3
         version: 3.3.1
       "@faker-js/faker":
-        specifier: ^9.5.1
+        specifier: ^9.8.0
         version: 9.8.0
       "@ianvs/prettier-plugin-sort-imports":
         specifier: ^4.4.0
@@ -4069,6 +4072,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  "@upstash/redis@1.34.9":
+    resolution: { integrity: sha512-7qzzF2FQP5VxR2YUNjemWs+hl/8VzJJ6fOkT7O7kt9Ct8olEVzb1g6/ik6B8Pb8W7ZmYv81SdlVV9F6O8bh/gw== }
+
   "@vercel/analytics@1.5.0":
     resolution: { integrity: sha512-MYsBzfPki4gthY5HnYN7jgInhAZ7Ac1cYDoRWFomwGHWEX7odTEzbtg9kf/QSo7XEsEAqlQugA6gJ2WS2DEa3g== }
     peerDependencies:
@@ -4796,6 +4802,9 @@ packages:
   cross-spawn@7.0.6:
     resolution: { integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA== }
     engines: { node: ">= 8" }
+
+  crypto-js@4.2.0:
+    resolution: { integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q== }
 
   crypto-random-string@2.0.0:
     resolution: { integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA== }
@@ -12486,6 +12495,10 @@ snapshots:
   "@unrs/resolver-binding-win32-x64-msvc@1.7.2":
     optional: true
 
+  "@upstash/redis@1.34.9":
+    dependencies:
+      crypto-js: 4.2.0
+
   "@vercel/analytics@1.5.0(next@15.3.0(@babel/core@7.27.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)":
     optionalDependencies:
       next: 15.3.0(@babel/core@7.27.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -13291,6 +13304,8 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  crypto-js@4.2.0: {}
 
   crypto-random-string@2.0.0: {}
 

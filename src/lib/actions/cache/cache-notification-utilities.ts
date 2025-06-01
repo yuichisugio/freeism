@@ -37,7 +37,7 @@ export type NotificationData = {
 /**
  * データベースからの生の通知データ型
  */
-type RawNotificationFromDB = {
+export type RawNotificationFromDB = {
   id: string;
   title: string | null;
   message: string | null;

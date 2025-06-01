@@ -7,7 +7,7 @@ import { useMemo } from "react";
 /**
  * ページネーションフックのプロップ
  */
-type UsePaginationProps = {
+export type UsePaginationProps = {
   currentPage: number;
   totalPages: number;
   maxPageToShow: number; // 飛べるページの表示数を指定。これ以上の場合は「...」を表示
@@ -19,7 +19,7 @@ type UsePaginationProps = {
 /**
  * ページネーションフックの返り値
  */
-type UsePaginationResult = {
+export type UsePaginationResult = {
   pageNumbers: number[];
   hasPreviousPage: boolean;
   hasNextPage: boolean;

@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react";
 /**
  * ショートカットキーの設定を表す型定義
  */
-type ShortcutConfig = {
+export type ShortcutConfig = {
   // 押されるべきキー（例: 's', 'Enter', 'ArrowUp'など）
   code: string;
   // Ctrlキー（Windows/Linux）またはCommandキー（Mac）が押されている必要があるか

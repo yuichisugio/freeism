@@ -17,6 +17,41 @@ const mockProcessExit = vi.spyOn(process, "exit").mockImplementation(() => {
   throw new Error("process.exit called");
 });
 
+/**
+ * テストヘルパー関数
+ */
+const setupPrismaMockForSuccess = (count: number) => {
+  prismaMock.task.updateMany.mockResolvedValue({ count });
+};
+
+const setupPrismaMockForError = (error: Error) => {
+  prismaMock.task.updateMany.mockRejectedValue(error);
+};
+
+const expectUpdateManyCalledWithCorrectParams = () => {
+  expect(prismaMock.task.updateMany).toHaveBeenCalledWith({
+    where: {
+      status: TaskStatus.PENDING,
+      auction: {
+        startTime: {
+          lte: expect.any(Date),
+        },
+      },
+    },
+    data: {
+      status: TaskStatus.AUCTION_ACTIVE,
+    },
+  });
+};
+
+const expectSuccessLog = (count: number) => {
+  expect(mockConsoleLog).toHaveBeenCalledWith(`${count}件のオークションを開始しました。`);
+};
+
+const expectErrorLog = (error: Error) => {
+  expect(mockConsoleError).toHaveBeenCalledWith("オークション開始処理でエラーが発生しました:", error);
+};
+
 describe("updateAuctionStatusToActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,148 +61,30 @@ describe("updateAuctionStatusToActive", () => {
    * 正常系テスト
    */
   describe("正常系", () => {
-    test("should update auction status from PENDING to AUCTION_ACTIVE when startTime is before now", async () => {
+    test.each([
+      { count: 0, description: "更新対象なし" },
+      { count: 1, description: "1件の更新" },
+      { count: 3, description: "複数件の更新" },
+      { count: 1000, description: "大量の更新" },
+      { count: Number.MAX_SAFE_INTEGER, description: "最大整数値の更新" },
+    ])("should handle $description correctly (count: $count)", async ({ count }) => {
       // Prismaモックの設定
-      prismaMock.task.updateMany.mockResolvedValue({ count: 3 });
+      setupPrismaMockForSuccess(count);
 
       // テスト実行
       const result = await updateAuctionStatusToActive();
 
       // 検証
-      expect(result).toBe(3);
-      expect(prismaMock.task.updateMany).toHaveBeenCalledWith({
-        where: {
-          status: TaskStatus.PENDING,
-          auction: {
-            startTime: {
-              lte: expect.any(Date),
-            },
-          },
-        },
-        data: {
-          status: TaskStatus.AUCTION_ACTIVE,
-        },
-      });
-      expect(mockConsoleLog).toHaveBeenCalledWith("3件のオークションを開始しました。");
-    });
-
-    test("should return 0 when no auctions need to be updated", async () => {
-      // Prismaモックの設定 - 更新対象なし
-      prismaMock.task.updateMany.mockResolvedValue({ count: 0 });
-
-      // テスト実行
-      const result = await updateAuctionStatusToActive();
-
-      // 検証
-      expect(result).toBe(0);
-      expect(prismaMock.task.updateMany).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog).toHaveBeenCalledWith("0件のオークションを開始しました。");
-    });
-
-    test("should handle large number of auctions", async () => {
-      // 大量のオークション更新をテスト
-      const largeCount = 1000;
-      prismaMock.task.updateMany.mockResolvedValue({ count: largeCount });
-
-      // テスト実行
-      const result = await updateAuctionStatusToActive();
-
-      // 検証
-      expect(result).toBe(largeCount);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`${largeCount}件のオークションを開始しました。`);
-    });
-
-    test("should disconnect from Prisma on success", async () => {
-      prismaMock.task.updateMany.mockResolvedValue({ count: 1 });
-
-      await updateAuctionStatusToActive();
-
+      expect(result).toBe(count);
+      expectUpdateManyCalledWithCorrectParams();
+      expectSuccessLog(count);
       expect(prismaMock.$disconnect).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  /**
-   * 異常系テスト
-   */
-  describe("異常系", () => {
-    test("should throw error when database operation fails", async () => {
-      // データベースエラーをシミュレート
-      const dbError = new Error("Database connection failed");
-      prismaMock.task.updateMany.mockRejectedValue(dbError);
-
-      // テスト実行と検証
-      await expect(updateAuctionStatusToActive()).rejects.toThrow("Database connection failed");
-      expect(mockConsoleError).toHaveBeenCalledWith("オークション開始処理でエラーが発生しました:", dbError);
-    });
-
-    test("should throw error when Prisma client throws unexpected error", async () => {
-      // 予期しないエラーをシミュレート
-      const unexpectedError = new Error("Unexpected Prisma error");
-      prismaMock.task.updateMany.mockRejectedValue(unexpectedError);
-
-      // テスト実行と検証
-      await expect(updateAuctionStatusToActive()).rejects.toThrow("Unexpected Prisma error");
-      expect(mockConsoleError).toHaveBeenCalledWith("オークション開始処理でエラーが発生しました:", unexpectedError);
-    });
-
-    test("should handle null or undefined return from updateMany", async () => {
-      // 異常な戻り値をシミュレート
-      prismaMock.task.updateMany.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.updateMany>>);
-
-      // テスト実行と検証
-      await expect(updateAuctionStatusToActive()).rejects.toThrow();
-    });
-
-    test("should disconnect from Prisma even when error occurs", async () => {
-      const dbError = new Error("Database error");
-      prismaMock.task.updateMany.mockRejectedValue(dbError);
-
-      await expect(updateAuctionStatusToActive()).rejects.toThrow();
-      expect(prismaMock.$disconnect).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  /**
-   * 境界値テスト
-   */
-  describe("境界値テスト", () => {
-    test("should handle exactly current time as boundary", async () => {
-      // 現在時刻ちょうどの境界値テスト
-      prismaMock.task.updateMany.mockResolvedValue({ count: 1 });
-
-      const result = await updateAuctionStatusToActive();
-
-      expect(result).toBe(1);
-      expect(prismaMock.task.updateMany).toHaveBeenCalledWith({
-        where: {
-          status: TaskStatus.PENDING,
-          auction: {
-            startTime: {
-              lte: expect.any(Date),
-            },
-          },
-        },
-        data: {
-          status: TaskStatus.AUCTION_ACTIVE,
-        },
-      });
-    });
-
-    test("should handle maximum integer count", async () => {
-      // 最大整数値のテスト
-      const maxCount = Number.MAX_SAFE_INTEGER;
-      prismaMock.task.updateMany.mockResolvedValue({ count: maxCount });
-
-      const result = await updateAuctionStatusToActive();
-
-      expect(result).toBe(maxCount);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`${maxCount}件のオークションを開始しました。`);
     });
 
     test("should use current date for comparison", async () => {
       // 現在時刻の取得をテスト
       const beforeTest = new Date();
-      prismaMock.task.updateMany.mockResolvedValue({ count: 1 });
+      setupPrismaMockForSuccess(1);
 
       await updateAuctionStatusToActive();
       const afterTest = new Date();
@@ -189,14 +106,9 @@ describe("updateAuctionStatusToActive", () => {
         expect(usedDate.getTime()).toBeLessThanOrEqual(afterTest.getTime());
       }
     });
-  });
 
-  /**
-   * 機能別テスト
-   */
-  describe("機能別テスト", () => {
     test("should use correct TaskStatus enum values", async () => {
-      prismaMock.task.updateMany.mockResolvedValue({ count: 1 });
+      setupPrismaMockForSuccess(1);
 
       await updateAuctionStatusToActive();
 
@@ -204,28 +116,33 @@ describe("updateAuctionStatusToActive", () => {
       expect(callArgs?.where?.status).toBe(TaskStatus.PENDING);
       expect(callArgs?.data?.status).toBe(TaskStatus.AUCTION_ACTIVE);
     });
+  });
 
-    test("should log correct message format", async () => {
-      const testCases = [0, 1, 5, 100];
+  /**
+   * 異常系テスト
+   */
+  describe("異常系", () => {
+    test.each([
+      { error: new Error("Database connection failed"), description: "データベース接続エラー" },
+      { error: new Error("Unexpected Prisma error"), description: "予期しないPrismaエラー" },
+      { error: new Error("Network timeout"), description: "ネットワークタイムアウト" },
+    ])("should handle $description", async ({ error }) => {
+      // エラーをシミュレート
+      setupPrismaMockForError(error);
 
-      for (const count of testCases) {
-        vi.clearAllMocks();
-        prismaMock.task.updateMany.mockResolvedValue({ count });
-
-        await updateAuctionStatusToActive();
-
-        expect(mockConsoleLog).toHaveBeenCalledWith(`${count}件のオークションを開始しました。`);
-        expect(mockConsoleLog).toHaveBeenCalledTimes(1);
-      }
+      // テスト実行と検証
+      await expect(updateAuctionStatusToActive()).rejects.toThrow(error.message);
+      expectErrorLog(error);
+      expect(prismaMock.$disconnect).toHaveBeenCalledTimes(1);
     });
 
-    test("should log error message when exception occurs", async () => {
-      const error = new Error("Test error");
-      prismaMock.task.updateMany.mockRejectedValue(error);
+    test("should handle null or undefined return from updateMany", async () => {
+      // 異常な戻り値をシミュレート
+      prismaMock.task.updateMany.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.updateMany>>);
 
+      // テスト実行と検証
       await expect(updateAuctionStatusToActive()).rejects.toThrow();
-
-      expect(mockConsoleError).toHaveBeenCalledWith("オークション開始処理でエラーが発生しました:", error);
+      expect(prismaMock.$disconnect).toHaveBeenCalledTimes(1);
     });
   });
 });
@@ -239,75 +156,29 @@ describe("main", () => {
    * 正常系テスト
    */
   describe("正常系", () => {
-    test("should execute successfully and exit with code 0", async () => {
+    test.each([
+      { count: 0, description: "更新対象なし" },
+      { count: 1, description: "1件の更新" },
+      { count: 5, description: "複数件の更新" },
+    ])("should execute successfully with $description (count: $count)", async ({ count }) => {
       // updateAuctionStatusToActiveの成功をモック
-      prismaMock.task.updateMany.mockResolvedValue({ count: 5 });
+      setupPrismaMockForSuccess(count);
 
       // テスト実行と検証
       await expect(main()).rejects.toThrow("process.exit called");
 
       // ログの検証
       expect(mockConsoleLog).toHaveBeenCalledWith("オークションのステータスを更新します...");
-      expect(mockConsoleLog).toHaveBeenCalledWith("5件のオークションを開始しました。");
-      expect(mockConsoleLog).toHaveBeenCalledWith("処理が完了しました。5件のオークションのステータスを更新しました。");
+      expectSuccessLog(count);
+      expect(mockConsoleLog).toHaveBeenCalledWith(`処理が完了しました。${count}件のオークションのステータスを更新しました。`);
 
       // process.exitが正常終了コードで呼ばれることを確認
       expect(mockProcessExit).toHaveBeenCalledWith(0);
     });
 
-    test("should handle zero updates correctly", async () => {
-      // 更新対象なしの場合
-      prismaMock.task.updateMany.mockResolvedValue({ count: 0 });
-
-      await expect(main()).rejects.toThrow("process.exit called");
-
-      expect(mockConsoleLog).toHaveBeenCalledWith("オークションのステータスを更新します...");
-      expect(mockConsoleLog).toHaveBeenCalledWith("0件のオークションを開始しました。");
-      expect(mockConsoleLog).toHaveBeenCalledWith("処理が完了しました。0件のオークションのステータスを更新しました。");
-      expect(mockProcessExit).toHaveBeenCalledWith(0);
-    });
-  });
-
-  /**
-   * 異常系テスト
-   */
-  describe("異常系", () => {
-    test("should handle database error and exit with code 1", async () => {
-      // データベースエラーをシミュレート
-      const dbError = new Error("Database connection failed");
-      prismaMock.task.updateMany.mockRejectedValue(dbError);
-
-      // テスト実行と検証
-      await expect(main()).rejects.toThrow("process.exit called");
-
-      // エラーログの検証
-      expect(mockConsoleLog).toHaveBeenCalledWith("オークションのステータスを更新します...");
-      expect(mockConsoleError).toHaveBeenCalledWith("オークション開始処理でエラーが発生しました:", dbError);
-      expect(mockConsoleError).toHaveBeenCalledWith("エラーが発生しました:", dbError);
-
-      // process.exitがエラーコードで呼ばれることを確認
-      expect(mockProcessExit).toHaveBeenCalledWith(1);
-    });
-
-    test("should handle unexpected error and exit with code 1", async () => {
-      // 予期しないエラーをシミュレート
-      const unexpectedError = new Error("Unexpected error");
-      prismaMock.task.updateMany.mockRejectedValue(unexpectedError);
-
-      await expect(main()).rejects.toThrow("process.exit called");
-
-      expect(mockConsoleError).toHaveBeenCalledWith("オークション開始処理でエラーが発生しました:", unexpectedError);
-      expect(mockConsoleError).toHaveBeenCalledWith("エラーが発生しました:", unexpectedError);
-      expect(mockProcessExit).toHaveBeenCalledWith(1);
-    });
-  });
-
-  /**
-   * 統合テスト
-   */
-  describe("統合テスト", () => {
     test("should log messages in correct order", async () => {
-      prismaMock.task.updateMany.mockResolvedValue({ count: 3 });
+      const count = 3;
+      setupPrismaMockForSuccess(count);
 
       await expect(main()).rejects.toThrow("process.exit called");
 
@@ -315,20 +186,44 @@ describe("main", () => {
       const logCalls = mockConsoleLog.mock.calls.map((call) => call[0]);
       expect(logCalls).toEqual([
         "オークションのステータスを更新します...",
-        "3件のオークションを開始しました。",
-        "処理が完了しました。3件のオークションのステータスを更新しました。",
+        `${count}件のオークションを開始しました。`,
+        `処理が完了しました。${count}件のオークションのステータスを更新しました。`,
       ]);
     });
+  });
 
-    test("should call process.exit with correct codes", async () => {
+  /**
+   * 異常系テスト
+   */
+  describe("異常系", () => {
+    test.each([
+      { error: new Error("Database connection failed"), description: "データベースエラー" },
+      { error: new Error("Unexpected error"), description: "予期しないエラー" },
+    ])("should handle $description and exit with code 1", async ({ error }) => {
+      // エラーをシミュレート
+      setupPrismaMockForError(error);
+
+      // テスト実行と検証
+      await expect(main()).rejects.toThrow("process.exit called");
+
+      // エラーログの検証
+      expect(mockConsoleLog).toHaveBeenCalledWith("オークションのステータスを更新します...");
+      expectErrorLog(error);
+      expect(mockConsoleError).toHaveBeenCalledWith("エラーが発生しました:", error);
+
+      // process.exitがエラーコードで呼ばれることを確認
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
+    });
+
+    test("should call process.exit with correct codes for both success and error cases", async () => {
       // 正常系
-      prismaMock.task.updateMany.mockResolvedValue({ count: 1 });
+      setupPrismaMockForSuccess(1);
       await expect(main()).rejects.toThrow("process.exit called");
       expect(mockProcessExit).toHaveBeenCalledWith(0);
 
       // 異常系
       vi.clearAllMocks();
-      prismaMock.task.updateMany.mockRejectedValue(new Error("Test error"));
+      setupPrismaMockForError(new Error("Test error"));
       await expect(main()).rejects.toThrow("process.exit called");
       expect(mockProcessExit).toHaveBeenCalledWith(1);
     });

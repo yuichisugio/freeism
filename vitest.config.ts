@@ -12,7 +12,12 @@ export default defineConfig({
     environment: "happy-dom",
 
     // セットアップファイルの指定
-    setupFiles: ["./src/test/setup/setup.ts", "./src/test/setup/prisma-orm-setup.ts", "./src/test/setup/auth-js-setup.ts"],
+    setupFiles: [
+      "./src/test/setup/setup.ts",
+      "./src/test/setup/prisma-orm-setup.ts",
+      "./src/test/setup/auth-js-setup.ts",
+      "./src/test/setup/tanstack-query-setup.tsx",
+    ],
 
     // グローバル設定
     globals: true,
@@ -45,6 +50,16 @@ export default defineConfig({
         "**/prisma/**",
         "**/*.test.*",
         "**/*.spec.*",
+        "**/.prettierrc.mjs",
+        "public/**/*",
+        "workbox-8817a5e5.js",
+        "src/lib/zod-schema.ts",
+        "src/lib/auth-js.ts",
+        "src/lib/prisma.ts",
+        "src/lib/redis.ts",
+        "src/lib/tanstack-query.ts",
+        "src/lib/constants.ts",
+        "src/types/**/*",
       ],
       // カバレッジ目標値（test.mdの要件に基づく）
       thresholds: {

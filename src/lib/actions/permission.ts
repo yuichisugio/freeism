@@ -169,7 +169,7 @@ export async function grantOwnerPermission(groupId: string, userId: string): Pro
   try {
     // 操作者がグループオーナーかチェック
     const isOwner = await checkIsOwner(userId, groupId);
-    if (!isOwner) {
+    if (!isOwner.success) {
       return { success: false, error: "グループオーナー権限がありません" };
     }
 

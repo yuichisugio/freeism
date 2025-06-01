@@ -8,6 +8,8 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest";
 afterEach(() => {
   // 各テスト後にDOMをクリーンアップ
   cleanup();
+  // 各テスト後にモックをリセット
+  vi.clearAllMocks();
 });
 
 // グローバルなモック設定
@@ -30,18 +32,53 @@ Object.defineProperty(window, "matchMedia", {
   }),
 });
 
-// Next.js router のモック
+// Sonner（トースト通知）のモック
+export const mockToastError = vi.fn();
+export const mockToastSuccess = vi.fn();
+export const mockToastInfo = vi.fn();
+export const mockToastWarning = vi.fn();
+
+vi.mock("sonner", () => ({
+  toast: {
+    error: mockToastError,
+    success: mockToastSuccess,
+    info: mockToastInfo,
+    warning: mockToastWarning,
+  },
+}));
+
+// Next.js navigation のモック
+export const mockPush = vi.fn();
+export const mockReplace = vi.fn();
+export const mockBack = vi.fn();
+export const mockForward = vi.fn();
+export const mockRefresh = vi.fn();
+export const mockPrefetch = vi.fn();
+export const mockRedirect = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
+    push: mockPush,
+    replace: mockReplace,
+    back: mockBack,
+    forward: mockForward,
+    refresh: mockRefresh,
+    prefetch: mockPrefetch,
   }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/",
+  redirect: mockRedirect,
+}));
+
+// Next-auth/react のモック
+export const mockUseSession = vi.fn();
+export const mockSignIn = vi.fn();
+export const mockSignOut = vi.fn();
+
+vi.mock("next-auth/react", () => ({
+  useSession: mockUseSession,
+  signIn: mockSignIn,
+  signOut: mockSignOut,
 }));
 
 // Next.js Image コンポーネントのモック
@@ -57,6 +94,10 @@ vi.mock("next/server", () => ({
   NextRequest: vi.fn(),
   NextResponse: vi.fn(),
 }));
+
+// Fetch APIのグローバルモック
+export const fetchMock = vi.fn();
+global.fetch = fetchMock;
 
 // 環境変数のテスト専用設定
 process.env.NEXTAUTH_URL = "http://localhost:3000";
@@ -88,6 +129,24 @@ let initialMemoryUsage: NodeJS.MemoryUsage;
 beforeAll(() => {
   console.log("テストセットアップ開始");
   initialMemoryUsage = process.memoryUsage();
+
+  // デフォルトのセッション状態を設定
+  mockUseSession.mockReturnValue({
+    data: {
+      user: {
+        id: "test-user-id",
+        email: "test@example.com",
+        name: "Test User",
+      },
+    },
+    status: "authenticated",
+  });
+
+  // デフォルトのfetchレスポンスを設定
+  fetchMock.mockResolvedValue({
+    ok: true,
+    json: async () => ({ success: true }),
+  } as Response);
 });
 
 afterAll(() => {
@@ -113,3 +172,52 @@ process.on("uncaughtException", (error) => {
   console.error("未処理の例外:", error);
   throw error;
 });
+
+// コンソール出力を完全に抑制（テスト中の不要な出力を防ぐ）
+const originalConsole = { ...console };
+
+// テストセットアップ
+/**
+ * 出力されたか検証する場合のコード
+ * test("should log error message", () => {
+   const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+   expect(mockConsoleError).toHaveBeenCalledWith("期待するエラーメッセージ");
+   mockConsoleError.mockRestore();
+ });
+ */
+beforeAll(() => {
+  // テスト開始前の設定
+  // グローバルなconsoleオブジェクトを上書きして出力を抑制
+  global.console = {
+    ...console,
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    dir: vi.fn(),
+  };
+});
+
+afterAll(() => {
+  // すべてのテスト終了後のクリーンアップ
+  // コンソールを元に戻す
+  global.console = originalConsole;
+  vi.restoreAllMocks();
+});
+
+// permission APIのモック
+vi.mock("@/lib/actions/permission", () => ({
+  checkIsAppOwner: vi.fn(),
+  checkOneGroupOwner: vi.fn(),
+}));
+
+// notification form APIのモック
+vi.mock("@/lib/actions/notification/create-notification-form", () => ({
+  prepareCreateNotificationForm: vi.fn(),
+}));
+
+// next-themesのモック
+vi.mock("next-themes", () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
+}));

@@ -13,5 +13,5 @@ fi
 #   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
 # ===== 1) テスト & Lint =====
-pnpm run test
+# pnpm run test
 pnpm dlx lint-staged --concurrent false

@@ -22,8 +22,6 @@ vi.mock("@/lib/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 /**
  * main関数の実行を防ぐためのモック
  */
@@ -37,23 +35,157 @@ vi.mock("./update-auction-status-to-completed", async (importOriginal) => {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// テスト対象の関数をインポート（モック設定後にインポート）
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 /**
  * モック関数の取得
  */
 const { sendAuctionNotification } = await import("@/lib/actions/notification/auction-notification");
 const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 /**
  * console.logとconsole.errorのモック
  */
 const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通テストデータ作成関数
+ */
+const createTestData = () => {
+  const seller = userFactory.build();
+  const bidder1 = userFactory.build();
+  const bidder2 = userFactory.build();
+  const group = groupFactory.build();
+
+  const pastDate = new Date();
+  pastDate.setHours(pastDate.getHours() - 1);
+
+  return { seller, bidder1, bidder2, group, pastDate };
+};
+
+/**
+ * タスクとオークションの作成
+ */
+const createTaskWithAuction = (seller: any, group: any, pastDate: Date, taskName = "テストタスク") => {
+  const task = taskFactory.build({
+    status: TaskStatus.AUCTION_ACTIVE,
+    groupId: group.id,
+    creatorId: seller.id,
+    task: taskName,
+  });
+
+  const auction = auctionFactory.build({
+    endTime: pastDate,
+    taskId: task.id,
+    groupId: group.id,
+  });
+
+  return { task, auction };
+};
+
+/**
+ * 入札履歴なしのタスクデータ作成
+ */
+const createTaskWithNoBids = (task: any, auction: any, group: any): TaskWithRelations => ({
+  id: task.id,
+  task: task.task,
+  groupId: group.id,
+  auction: {
+    id: auction.id,
+    bidHistories: [],
+  },
+  group: {
+    id: group.id,
+  },
+});
+
+/**
+ * 入札履歴ありのタスクデータ作成
+ */
+const createTaskWithBids = (task: any, auction: any, group: any, bidHistories: any[]): TaskWithRelations => ({
+  id: task.id,
+  task: task.task,
+  groupId: group.id,
+  auction: {
+    id: auction.id,
+    bidHistories: bidHistories.map((bid) => ({
+      id: bid.id,
+      amount: bid.amount,
+      status: bid.status,
+      userId: bid.userId,
+      user: { id: bid.userId },
+    })),
+  },
+  group: {
+    id: group.id,
+  },
+});
+
+/**
+ * 共通のPrismaモック設定（入札なし）
+ */
+const setupPrismaMockForNoBids = (taskWithRelations: TaskWithRelations, creatorId: string) => {
+  vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
+
+  vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
+    const mockTx = {
+      task: {
+        update: vi.fn().mockResolvedValue({}),
+        findUnique: vi.fn().mockResolvedValue({ creatorId }),
+      },
+    };
+    return await callback(mockTx as unknown as PrismaTransaction);
+  });
+};
+
+/**
+ * 共通のPrismaモック設定（入札あり）
+ */
+const setupPrismaMockForBids = (taskWithRelations: TaskWithRelations, groupPoint: any, creatorId: string) => {
+  vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
+
+  vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
+    const mockTx = {
+      groupPoint: {
+        findUnique: vi.fn().mockResolvedValue(groupPoint),
+        update: vi.fn().mockResolvedValue({}),
+      },
+      bidHistory: {
+        update: vi.fn().mockResolvedValue({}),
+        updateMany: vi.fn().mockResolvedValue({}),
+      },
+      auction: {
+        update: vi.fn().mockResolvedValue({}),
+      },
+      task: {
+        update: vi.fn().mockResolvedValue({}),
+        findUnique: vi.fn().mockResolvedValue({ creatorId }),
+      },
+    };
+    return await callback(mockTx as unknown as PrismaTransaction);
+  });
+};
+
+/**
+ * 通知送信の検証
+ */
+const expectNotificationSent = (auctionId: string, eventType: AuctionEventType, taskName: string, recipientIds: string[]) => {
+  expect(mockSendAuctionNotification).toHaveBeenCalledWith({
+    auctionId,
+    auctionEventType: eventType,
+    text: {
+      first: taskName,
+      second: taskName,
+    },
+    recipientUserId: recipientIds,
+    actionUrl: `/auctions/${auctionId}`,
+    sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+    sendTiming: NotificationSendTiming.NOW,
+    sendScheduledDate: null,
+    expiresAt: null,
+  });
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -65,62 +197,16 @@ describe("update-auction-status-to-completed", () => {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 正常系テスト
-   */
   describe("正常系", () => {
     test("should process auction with no bids correctly", async () => {
-      // テストデータの準備
-      const user = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user.id,
-        task: "テストタスク",
-      });
+      const { seller, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
 
-      // 終了時刻が過去のオークション
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
+      setupPrismaMockForNoBids(taskWithRelations, seller.id);
 
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      // 入札履歴なしのタスクデータ
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [], // 入札なし
-        },
-        group: {
-          id: group.id,
-        },
-      };
-
-      // Prismaモックの設定
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: user.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(1);
       expect(vi.mocked(prismaMock.task.findMany)).toHaveBeenCalledWith({
         where: {
@@ -166,367 +252,102 @@ describe("update-auction-status-to-completed", () => {
         },
       });
 
-      // 通知が送信されることを確認
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith({
-        auctionId: task.id,
-        auctionEventType: AuctionEventType.ENDED,
-        text: {
-          first: task.task,
-          second: task.task,
-        },
-        recipientUserId: [user.id],
-        actionUrl: `/auctions/${task.id}`,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-      });
-
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith({
-        auctionId: task.id,
-        auctionEventType: AuctionEventType.NO_WINNER,
-        text: {
-          first: task.task,
-          second: task.task,
-        },
-        recipientUserId: [user.id],
-        actionUrl: `/auctions/${task.id}`,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-      });
+      expectNotificationSent(task.id, AuctionEventType.ENDED, task.task, [seller.id]);
+      expectNotificationSent(task.id, AuctionEventType.NO_WINNER, task.task, [seller.id]);
     });
 
     test("should process auction with single bid correctly", async () => {
-      // テストデータの準備
-      const seller = userFactory.build();
-      const bidder = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: seller.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
+      const { seller, bidder1, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
 
       const bidHistory = bidHistoryFactory.build({
         status: BidStatus.BIDDING,
-        userId: bidder.id,
+        userId: bidder1.id,
         auctionId: auction.id,
         amount: 100,
       });
 
       const groupPoint = groupPointFactory.build({
-        userId: bidder.id,
+        userId: bidder1.id,
         groupId: group.id,
-        balance: 1000, // 十分な残高
+        balance: 1000,
       });
 
-      // 入札ありのタスクデータ
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [
-            {
-              id: bidHistory.id,
-              amount: bidHistory.amount,
-              status: bidHistory.status,
-              userId: bidHistory.userId,
-              user: { id: bidder.id },
-            },
-          ],
-        },
-        group: {
-          id: group.id,
-        },
-      };
+      const taskWithRelations = createTaskWithBids(task, auction, group, [bidHistory]);
+      setupPrismaMockForBids(taskWithRelations, groupPoint, seller.id);
 
-      // Prismaモックの設定
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(groupPoint),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          bidHistory: {
-            update: vi.fn().mockResolvedValue({}),
-            updateMany: vi.fn().mockResolvedValue({}),
-          },
-          auction: {
-            update: vi.fn().mockResolvedValue({}),
-          },
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: seller.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(1);
-
-      // 落札者への通知が送信されることを確認
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith({
-        auctionId: task.id,
-        auctionEventType: AuctionEventType.AUCTION_WIN,
-        text: {
-          first: task.task,
-          second: task.task,
-        },
-        recipientUserId: [bidder.id],
-        actionUrl: `/auctions/${task.id}`,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-      });
-
-      // 出品者への通知が送信されることを確認
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith({
-        auctionId: task.id,
-        auctionEventType: AuctionEventType.ITEM_SOLD,
-        text: {
-          first: task.task,
-          second: task.task,
-        },
-        recipientUserId: [seller.id],
-        actionUrl: `/auctions/${task.id}`,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-      });
+      expectNotificationSent(task.id, AuctionEventType.AUCTION_WIN, task.task, [bidder1.id]);
+      expectNotificationSent(task.id, AuctionEventType.ITEM_SOLD, task.task, [seller.id]);
     });
 
     test("should process auction with multiple bids correctly", async () => {
-      // テストデータの準備
-      const seller = userFactory.build();
-      const bidder1 = userFactory.build();
-      const bidder2 = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: seller.id,
-        task: "テストタスク",
-      });
+      const { seller, bidder1, bidder2, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
 
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      // 複数の入札履歴（金額の降順で並んでいる）
       const bidHistory1 = bidHistoryFactory.build({
         status: BidStatus.BIDDING,
         userId: bidder1.id,
         auctionId: auction.id,
-        amount: 200, // 最高額
+        amount: 200,
       });
 
       const bidHistory2 = bidHistoryFactory.build({
         status: BidStatus.BIDDING,
         userId: bidder2.id,
         auctionId: auction.id,
-        amount: 150, // 次点
+        amount: 150,
       });
 
       const groupPoint = groupPointFactory.build({
         userId: bidder1.id,
         groupId: group.id,
-        balance: 1000, // 十分な残高
+        balance: 1000,
       });
 
-      // 複数入札ありのタスクデータ
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [
-            {
-              id: bidHistory1.id,
-              amount: bidHistory1.amount,
-              status: bidHistory1.status,
-              userId: bidHistory1.userId,
-              user: { id: bidder1.id },
-            },
-            {
-              id: bidHistory2.id,
-              amount: bidHistory2.amount,
-              status: bidHistory2.status,
-              userId: bidder2.id,
-              user: { id: bidder2.id },
-            },
-          ], // 金額降順
-        },
-        group: {
-          id: group.id,
-        },
-      };
+      const taskWithRelations = createTaskWithBids(task, auction, group, [bidHistory1, bidHistory2]);
+      setupPrismaMockForBids(taskWithRelations, groupPoint, seller.id);
 
-      // Prismaモックの設定
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(groupPoint),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          bidHistory: {
-            update: vi.fn().mockResolvedValue({}),
-            updateMany: vi.fn().mockResolvedValue({}),
-          },
-          auction: {
-            update: vi.fn().mockResolvedValue({}),
-          },
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: seller.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(1);
-
-      // 落札者（bidder1）への通知が送信されることを確認
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith({
-        auctionId: task.id,
-        auctionEventType: AuctionEventType.AUCTION_WIN,
-        text: {
-          first: task.task,
-          second: task.task,
-        },
-        recipientUserId: [bidder1.id],
-        actionUrl: `/auctions/${task.id}`,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-      });
+      expectNotificationSent(task.id, AuctionEventType.AUCTION_WIN, task.task, [bidder1.id]);
     });
 
     test("should return 0 when no auctions need to be processed", async () => {
-      // 処理対象のオークションがない場合
       vi.mocked(prismaMock.task.findMany).mockResolvedValue([]);
 
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(0);
       expect(mockConsoleLog).toHaveBeenCalledWith("処理対象のオークション: 0件");
     });
 
     test("should handle multiple auctions", async () => {
-      // 複数のオークションを処理する場合
-      const user1 = userFactory.build();
+      const { seller, group } = createTestData();
       const user2 = userFactory.build();
-      const group = groupFactory.build();
 
-      const task1 = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user1.id,
-        task: "テストタスク1",
-      });
+      const { task: task1, auction: auction1 } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000), "テストタスク1");
+      const { task: task2, auction: auction2 } = createTaskWithAuction(user2, group, new Date(Date.now() - 3600000), "テストタスク2");
 
-      const task2 = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user2.id,
-        task: "テストタスク2",
-      });
+      const tasksWithRelations = [createTaskWithNoBids(task1, auction1, group), createTaskWithNoBids(task2, auction2, group)];
 
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction1 = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task1.id,
-        groupId: group.id,
-      });
-
-      const auction2 = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task2.id,
-        groupId: group.id,
-      });
-
-      const tasksWithRelations: TaskWithRelations[] = [
-        {
-          id: task1.id,
-          task: task1.task,
-          groupId: group.id,
-          auction: {
-            id: auction1.id,
-            bidHistories: [],
-          },
-          group: {
-            id: group.id,
-          },
-        },
-        {
-          id: task2.id,
-          task: task2.task,
-          groupId: group.id,
-          auction: {
-            id: auction2.id,
-            bidHistories: [],
-          },
-          group: {
-            id: group.id,
-          },
-        },
-      ];
-
-      // Prismaモックの設定
       vi.mocked(prismaMock.task.findMany).mockResolvedValue(tasksWithRelations as any);
 
       vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
         const mockTx = {
           task: {
             update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValueOnce({ creatorId: user1.id }).mockResolvedValueOnce({ creatorId: user2.id }),
+            findUnique: vi.fn().mockResolvedValueOnce({ creatorId: seller.id }).mockResolvedValueOnce({ creatorId: user2.id }),
           },
         };
         return await callback(mockTx as unknown as PrismaTransaction);
       });
 
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(2);
       expect(mockConsoleLog).toHaveBeenCalledWith("処理対象のオークション: 2件");
     });
@@ -534,26 +355,79 @@ describe("update-auction-status-to-completed", () => {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 異常系テスト
-   */
   describe("異常系", () => {
     test("should throw error when database operation fails", async () => {
-      // データベースエラーをシミュレート
       const dbError = new Error("Database connection failed");
       vi.mocked(prismaMock.task.findMany).mockRejectedValue(dbError);
 
-      // テスト実行と検証
       await expect(updateAuctionStatusToCompleted()).rejects.toThrow("Database connection failed");
       expect(mockConsoleError).toHaveBeenCalledWith("オークション終了処理でエラーが発生しました:", dbError);
     });
 
     test("should handle insufficient points for winner", async () => {
-      // ポイント不足のテストデータ準備
-      const seller = userFactory.build();
-      const bidder1 = userFactory.build();
-      const bidder2 = userFactory.build();
-      const group = groupFactory.build();
+      const { seller, bidder1, bidder2, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
+
+      const bidHistory1 = bidHistoryFactory.build({
+        status: BidStatus.BIDDING,
+        userId: bidder1.id,
+        auctionId: auction.id,
+        amount: 200,
+      });
+
+      const bidHistory2 = bidHistoryFactory.build({
+        status: BidStatus.BIDDING,
+        userId: bidder2.id,
+        auctionId: auction.id,
+        amount: 150,
+      });
+
+      const insufficientGroupPoint = groupPointFactory.build({
+        userId: bidder1.id,
+        groupId: group.id,
+        balance: 100, // 不足
+      });
+
+      const taskWithRelations = createTaskWithBids(task, auction, group, [bidHistory1, bidHistory2]);
+      setupPrismaMockForBids(taskWithRelations, insufficientGroupPoint, seller.id);
+
+      const result = await updateAuctionStatusToCompleted();
+
+      expect(result).toBe(1);
+    });
+
+    test("should handle transaction failure", async () => {
+      const { seller, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
+
+      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
+
+      const transactionError = new Error("Transaction failed");
+      vi.mocked(prismaMock.$transaction).mockRejectedValue(transactionError);
+
+      const result = await updateAuctionStatusToCompleted();
+
+      expect(result).toBe(0);
+      expect(mockConsoleError).toHaveBeenCalledWith(`オークション(ID: ${task.id})の処理中にエラーが発生:`, transactionError);
+    });
+
+    test("should handle notification sending failure", async () => {
+      const { seller, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
+
+      setupPrismaMockForNoBids(taskWithRelations, seller.id);
+      mockSendAuctionNotification.mockResolvedValue({ success: false, error: "Notification failed" });
+
+      const result = await updateAuctionStatusToCompleted();
+
+      expect(result).toBe(1);
+      expect(mockSendAuctionNotification).toHaveBeenCalled();
+    });
+
+    test("should handle null or undefined auction data", async () => {
+      const { seller, group } = createTestData();
       const task = taskFactory.build({
         status: TaskStatus.AUCTION_ACTIVE,
         groupId: group.id,
@@ -561,266 +435,27 @@ describe("update-auction-status-to-completed", () => {
         task: "テストタスク",
       });
 
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const bidHistory1 = bidHistoryFactory.build({
-        status: BidStatus.BIDDING,
-        userId: bidder1.id,
-        auctionId: auction.id,
-        amount: 200, // 最高額
-      });
-
-      const bidHistory2 = bidHistoryFactory.build({
-        status: BidStatus.BIDDING,
-        userId: bidder2.id,
-        auctionId: auction.id,
-        amount: 150, // 次点
-      });
-
-      // ポイント不足のgroupPoint（落札額151ポイント必要だが100ポイントしかない）
-      const insufficientGroupPoint = groupPointFactory.build({
-        userId: bidder1.id,
-        groupId: group.id,
-        balance: 100, // 不足
-      });
-
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [
-            {
-              id: bidHistory1.id,
-              amount: bidHistory1.amount,
-              status: bidHistory1.status,
-              userId: bidHistory1.userId,
-              user: { id: bidder1.id },
-            },
-            {
-              id: bidHistory2.id,
-              amount: bidHistory2.amount,
-              status: bidHistory2.status,
-              userId: bidder2.id,
-              user: { id: bidder2.id },
-            },
-          ],
-        },
-        group: {
-          id: group.id,
-        },
-      };
-
-      // Prismaモックの設定
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(insufficientGroupPoint),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          bidHistory: {
-            update: vi.fn().mockResolvedValue({}),
-            updateMany: vi.fn().mockResolvedValue({}),
-          },
-          auction: {
-            update: vi.fn().mockResolvedValue({}),
-          },
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: seller.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
-      const result = await updateAuctionStatusToCompleted();
-
-      // 検証
-      expect(result).toBe(1);
-    });
-
-    test("should handle transaction failure", async () => {
-      // トランザクション内でエラーが発生する場合
-      const user = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [],
-        },
-        group: {
-          id: group.id,
-        },
-      };
-
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      // トランザクション内でエラーを発生させる
-      const transactionError = new Error("Transaction failed");
-      vi.mocked(prismaMock.$transaction).mockRejectedValue(transactionError);
-
-      // テスト実行
-      const result = await updateAuctionStatusToCompleted();
-
-      // 検証
-      expect(result).toBe(0); // エラーが発生したオークションは処理されない
-      expect(mockConsoleError).toHaveBeenCalledWith(`オークション(ID: ${task.id})の処理中にエラーが発生:`, transactionError);
-    });
-
-    test("should handle notification sending failure", async () => {
-      // 通知送信が失敗する場合
-      const user = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [],
-        },
-        group: {
-          id: group.id,
-        },
-      };
-
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: user.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // 通知送信を失敗させる
-      mockSendAuctionNotification.mockResolvedValue({ success: false, error: "Notification failed" });
-
-      // テスト実行（通知失敗でもオークション処理は完了する）
-      const result = await updateAuctionStatusToCompleted();
-
-      // 検証
-      expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalled();
-    });
-
-    test("should handle null or undefined auction data", async () => {
-      // オークションデータがnullまたはundefinedの場合
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: "group-id",
-        creatorId: "user-id",
-        task: "テストタスク",
-      });
-
       const taskWithRelations: TaskWithRelations = {
         id: task.id,
         task: task.task,
         groupId: task.groupId,
-        auction: null as any, // nullのオークション
+        auction: null as any,
         group: {
           id: task.groupId,
         },
       };
 
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
+      setupPrismaMockForNoBids(taskWithRelations, seller.id);
 
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: "user-id" }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証（nullのオークションは入札なしとして処理される）
       expect(result).toBe(1);
     });
 
     test("should handle empty creator ID", async () => {
-      // 作成者IDが取得できない場合
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [],
-        },
-        group: {
-          id: group.id,
-        },
-      };
+      const { group } = createTestData();
+      const { task, auction } = createTaskWithAuction({ id: "unknown-user" }, group, new Date(Date.now() - 3600000));
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
 
       vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
 
@@ -828,76 +463,32 @@ describe("update-auction-status-to-completed", () => {
         const mockTx = {
           task: {
             update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue(null), // 作成者が見つからない
+            findUnique: vi.fn().mockResolvedValue(null),
           },
         };
         return await callback(mockTx as unknown as PrismaTransaction);
       });
 
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(1);
-      // 作成者が見つからない場合、通知は送信されない（sendNotification内でスキップされる）
       expect(mockSendAuctionNotification).not.toHaveBeenCalled();
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 境界値テスト
-   */
   describe("境界値テスト", () => {
     test("should handle exactly current time as boundary", async () => {
-      // 現在時刻ちょうどの境界値テスト
-      const user = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user.id,
-        task: "テストタスク",
-      });
-
-      // 現在時刻ちょうどに終了するオークション
+      const { seller, group } = createTestData();
       const now = new Date();
-      const auction = auctionFactory.build({
-        endTime: now,
-        taskId: task.id,
-        groupId: group.id,
-      });
+      const { task, auction } = createTaskWithAuction(seller, group, now);
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
 
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [],
-        },
-        group: {
-          id: group.id,
-        },
-      };
+      setupPrismaMockForNoBids(taskWithRelations, seller.id);
 
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: user.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(1);
       expect(vi.mocked(prismaMock.task.findMany)).toHaveBeenCalledWith({
         where: {
@@ -915,225 +506,65 @@ describe("update-auction-status-to-completed", () => {
     });
 
     test("should handle zero bid amount", async () => {
-      // 入札額が0の場合
-      const seller = userFactory.build();
-      const bidder = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: seller.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
+      const { seller, bidder1, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
 
       const bidHistory = bidHistoryFactory.build({
         status: BidStatus.BIDDING,
-        userId: bidder.id,
+        userId: bidder1.id,
         auctionId: auction.id,
-        amount: 0, // 0ポイント入札
+        amount: 0,
       });
 
       const groupPoint = groupPointFactory.build({
-        userId: bidder.id,
+        userId: bidder1.id,
         groupId: group.id,
         balance: 1000,
       });
 
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [
-            {
-              id: bidHistory.id,
-              amount: bidHistory.amount,
-              status: bidHistory.status,
-              userId: bidHistory.userId,
-              user: { id: bidder.id },
-            },
-          ],
-        },
-        group: {
-          id: group.id,
-        },
-      };
+      const taskWithRelations = createTaskWithBids(task, auction, group, [bidHistory]);
+      setupPrismaMockForBids(taskWithRelations, groupPoint, seller.id);
 
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(groupPoint),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          bidHistory: {
-            update: vi.fn().mockResolvedValue({}),
-            updateMany: vi.fn().mockResolvedValue({}),
-          },
-          auction: {
-            update: vi.fn().mockResolvedValue({}),
-          },
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: seller.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証（0ポイント入札でも処理される）
       expect(result).toBe(1);
     });
 
     test("should handle maximum integer bid amount", async () => {
-      // 最大整数値の入札額
-      const seller = userFactory.build();
-      const bidder = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: seller.id,
-        task: "テストタスク",
-      });
-
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
-
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
+      const { seller, bidder1, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000));
 
       const maxAmount = Number.MAX_SAFE_INTEGER;
       const bidHistory = bidHistoryFactory.build({
         status: BidStatus.BIDDING,
-        userId: bidder.id,
+        userId: bidder1.id,
         auctionId: auction.id,
         amount: maxAmount,
       });
 
       const groupPoint = groupPointFactory.build({
-        userId: bidder.id,
+        userId: bidder1.id,
         groupId: group.id,
-        balance: maxAmount, // 十分な残高
+        balance: maxAmount,
       });
 
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [
-            {
-              id: bidHistory.id,
-              amount: bidHistory.amount,
-              status: bidHistory.status,
-              userId: bidHistory.userId,
-              user: { id: bidder.id },
-            },
-          ],
-        },
-        group: {
-          id: group.id,
-        },
-      };
+      const taskWithRelations = createTaskWithBids(task, auction, group, [bidHistory]);
+      setupPrismaMockForBids(taskWithRelations, groupPoint, seller.id);
 
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(groupPoint),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          bidHistory: {
-            update: vi.fn().mockResolvedValue({}),
-            updateMany: vi.fn().mockResolvedValue({}),
-          },
-          auction: {
-            update: vi.fn().mockResolvedValue({}),
-          },
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: seller.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証
       expect(result).toBe(1);
     });
 
     test("should handle empty task name", async () => {
-      // タスク名が空文字の場合
-      const user = userFactory.build();
-      const group = groupFactory.build();
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user.id,
-        task: "", // 空文字
-      });
+      const { seller, group } = createTestData();
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000), "");
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
 
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
+      setupPrismaMockForNoBids(taskWithRelations, seller.id);
 
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [],
-        },
-        group: {
-          id: group.id,
-        },
-      };
-
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: user.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証（空文字のタスク名でも処理される）
       expect(result).toBe(1);
       expect(mockSendAuctionNotification).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1146,55 +577,15 @@ describe("update-auction-status-to-completed", () => {
     });
 
     test("should handle very long task name", async () => {
-      // 非常に長いタスク名の場合
-      const user = userFactory.build();
-      const group = groupFactory.build();
-      const longTaskName = "a".repeat(1000); // 1000文字のタスク名
-      const task = taskFactory.build({
-        status: TaskStatus.AUCTION_ACTIVE,
-        groupId: group.id,
-        creatorId: user.id,
-        task: longTaskName,
-      });
+      const { seller, group } = createTestData();
+      const longTaskName = "a".repeat(1000);
+      const { task, auction } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000), longTaskName);
+      const taskWithRelations = createTaskWithNoBids(task, auction, group);
 
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 1);
+      setupPrismaMockForNoBids(taskWithRelations, seller.id);
 
-      const auction = auctionFactory.build({
-        endTime: pastDate,
-        taskId: task.id,
-        groupId: group.id,
-      });
-
-      const taskWithRelations: TaskWithRelations = {
-        id: task.id,
-        task: task.task,
-        groupId: group.id,
-        auction: {
-          id: auction.id,
-          bidHistories: [],
-        },
-        group: {
-          id: group.id,
-        },
-      };
-
-      vi.mocked(prismaMock.task.findMany).mockResolvedValue([taskWithRelations] as any);
-
-      vi.mocked(prismaMock.$transaction).mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValue({ creatorId: user.id }),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
-      });
-
-      // テスト実行
       const result = await updateAuctionStatusToCompleted();
 
-      // 検証（長いタスク名でも処理される）
       expect(result).toBe(1);
       expect(mockSendAuctionNotification).toHaveBeenCalledWith(
         expect.objectContaining({

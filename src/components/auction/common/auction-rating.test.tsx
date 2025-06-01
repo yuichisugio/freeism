@@ -1,5 +1,5 @@
 import { createAuctionReview, getDisplayUserInfo } from "@/lib/auction/action/auction-rating";
-import { AllTheProviders } from "@/test/test-utils/test-utils-tanstack-query";
+import { AllTheProviders } from "@/test/setup/tanstack-query-setup";
 import { ReviewPosition } from "@prisma/client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";

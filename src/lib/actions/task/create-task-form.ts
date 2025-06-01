@@ -11,7 +11,7 @@ import { contributionType } from "@prisma/client";
 /**
  * タスク作成パラメータの型定義（サーバーアクション用）
  */
-type CreateTaskParams = TaskFormValuesAndGroupId & {
+export type CreateTaskParams = TaskFormValuesAndGroupId & {
   isExtension?: boolean | string;
 };
 

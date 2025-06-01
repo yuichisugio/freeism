@@ -320,7 +320,7 @@ export async function removeMember(groupId: string, userId: string, addToBlackLi
 
     // 操作者がグループオーナーかチェック
     const isOwner = await checkIsOwner(currentUserId, groupId);
-    if (!isOwner) {
+    if (!isOwner.success) {
       return { error: "グループメンバーを削除する権限がありません" };
     }
 

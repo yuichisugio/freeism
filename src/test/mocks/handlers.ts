@@ -2,16 +2,6 @@ import { http, HttpResponse } from "msw";
 
 // APIエンドポイントのモックハンドラー
 export const handlers = [
-  // GraphQL APIのモック
-  http.post("/api/graphql", () => {
-    return HttpResponse.json({
-      data: {
-        // デフォルトのGraphQLレスポンス
-        message: "Mock GraphQL response",
-      },
-    });
-  }),
-
   // 認証関連のモック
   http.get("/api/auth/session", () => {
     return HttpResponse.json({

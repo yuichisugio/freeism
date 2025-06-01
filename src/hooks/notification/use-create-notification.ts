@@ -216,7 +216,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
    * 通知対象タイプのオプション（権限によってフィルタリング）
    */
   const targetTypeOptions: RadioOption[] = useMemo(() => {
-    return isAppOwner
+    return isAppOwner?.success
       ? [
           { value: "SYSTEM", label: "システム全体" },
           { value: "USER", label: "ユーザー" },
@@ -227,7 +227,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
           { value: "GROUP", label: "グループ" },
           { value: "TASK", label: "タスク" },
         ];
-  }, [isAppOwner]);
+  }, [isAppOwner?.success]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -246,13 +246,13 @@ export function useCreateNotification(): UseCreateNotificationReturn {
         }
 
         // アプリオーナーかグループオーナーでなければエラー
-        if (!isAppOwner && !isGroupOwner) {
+        if (!isAppOwner?.success && !isGroupOwner?.success) {
           toast.error("通知を作成する権限がありません");
           return;
         }
 
         // グループオーナーのみの場合、SYSTEMは作成不可
-        if (!isAppOwner && data.targetType === "SYSTEM") {
+        if (!isAppOwner?.success && data.targetType === "SYSTEM") {
           toast.error("この通知タイプを作成する権限がありません");
           return;
         }
