@@ -1,7 +1,7 @@
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { auctionFactory, bidHistoryFactory, groupFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, PrismaClient, TaskStatus } from "@prisma/client";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -42,9 +42,15 @@ const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
 
 /**
  * console.logとconsole.errorのモック
+ * setup.tsでグローバルにモックされているため、元のconsoleオブジェクトを使用
  */
-const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+const originalConsole = {
+  log: console.log,
+  error: console.error,
+};
+
+const mockConsoleLog = vi.fn();
+const mockConsoleError = vi.fn();
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -53,6 +59,17 @@ const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {})
  */
 const mockProcessExit = vi.spyOn(process, "exit").mockImplementation(() => {
   throw new Error("process.exit called");
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テスト終了後のクリーンアップ
+ */
+afterAll(() => {
+  // コンソールを元に戻す
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -206,6 +223,10 @@ describe("returnAuctionDepositPoints", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSendAuctionNotification.mockResolvedValue({ success: true });
+
+    // コンソールモックを設定
+    console.log = mockConsoleLog;
+    console.error = mockConsoleError;
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -692,6 +713,10 @@ describe("main", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSendAuctionNotification.mockResolvedValue({ success: true });
+
+    // コンソールモックを設定
+    console.log = mockConsoleLog;
+    console.error = mockConsoleError;
   });
 
   test("should execute successfully and exit with code 0", async () => {

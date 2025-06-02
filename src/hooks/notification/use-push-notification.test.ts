@@ -6,7 +6,7 @@
  * モック関数のインポート
  */
 import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
-import { AllTheProviders } from "@/test/setup/tanstack-query-setup";
+import { AllTheProviders, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { pushSubscriptionFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useSession } from "next-auth/react";
@@ -108,6 +108,8 @@ type BrowserConfig = {
     mobile: boolean;
   };
   serviceWorkerReady?: Promise<ServiceWorkerRegistration>;
+  customAddEventListener?: ReturnType<typeof vi.fn>;
+  customRemoveEventListener?: ReturnType<typeof vi.fn>;
 };
 
 function setupBrowserEnvironment(config: BrowserConfig = {}) {
@@ -122,6 +124,8 @@ function setupBrowserEnvironment(config: BrowserConfig = {}) {
       mobile: false,
     },
     serviceWorkerReady = Promise.resolve(mockServiceWorkerRegistration),
+    customAddEventListener,
+    customRemoveEventListener,
   } = config;
 
   // Navigator のモック設定
@@ -145,8 +149,8 @@ function setupBrowserEnvironment(config: BrowserConfig = {}) {
   if (serviceWorkerSupported) {
     navigatorMock.serviceWorker = {
       ready: serviceWorkerReady,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
+      addEventListener: customAddEventListener ?? vi.fn(),
+      removeEventListener: customRemoveEventListener ?? vi.fn(),
     };
   }
 
@@ -234,6 +238,16 @@ describe("usePushNotification", () => {
     vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(null);
     vi.mocked(mockServiceWorkerRegistration.pushManager.subscribe).mockResolvedValue(mockPushSubscriptionObject);
     vi.mocked(mockPushSubscriptionObject.unsubscribe).mockResolvedValue(true);
+
+    // TanStack Queryのモック設定
+    mockUseQueryClient.mockReturnValue({
+      invalidateQueries: vi.fn(),
+      setQueryData: vi.fn(),
+      getQueryData: vi.fn(),
+      removeQueries: vi.fn(),
+      clear: vi.fn(),
+      prefetchQuery: vi.fn().mockResolvedValue(undefined),
+    });
 
     // Notification許可状態をgrantedに設定
     Object.defineProperty(global, "Notification", {
@@ -651,28 +665,20 @@ describe("usePushNotification", () => {
     test("should handle subscription change message", async () => {
       // Arrange
       const mockAddEventListener = vi.fn();
+      const mockRemoveEventListener = vi.fn();
 
-      // Service Workerのnavigatorモックを設定
-      Object.defineProperty(global, "navigator", {
-        value: {
-          userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          userAgentData: {
-            brands: [{ brand: "Chrome", version: "120" }],
-            platform: "Windows",
-            mobile: false,
-          },
-          serviceWorker: {
-            ready: Promise.resolve(mockServiceWorkerRegistration),
-            addEventListener: mockAddEventListener,
-            removeEventListener: vi.fn(),
-          },
-        },
-        writable: true,
+      // カスタムのaddEventListenerを使ってブラウザ環境を設定
+      setupBrowserEnvironment({
+        customAddEventListener: mockAddEventListener,
+        customRemoveEventListener: mockRemoveEventListener,
       });
 
       const messageHandler = setupMessageHandler(mockAddEventListener);
 
-      // Act - Service Workerからのメッセージをシミュレート
+      // Act - フックを初期化してaddEventListenerが呼ばれるようにする
+      const { result } = await renderHookAndWaitForInitialization();
+
+      // Service Workerからのメッセージをシミュレート
       if (messageHandler) {
         const messageEvent = {
           data: {
@@ -689,34 +695,26 @@ describe("usePushNotification", () => {
 
       // Assert
       expect(mockAddEventListener).toHaveBeenCalledWith("message", expect.any(Function));
+      expect(result.current.isInitialized).toBe(true);
     });
 
     test("should handle invalid message type", async () => {
       // Arrange
       const mockAddEventListener = vi.fn();
+      const mockRemoveEventListener = vi.fn();
 
-      // Service Workerのnavigatorモックを設定
-      Object.defineProperty(global, "navigator", {
-        value: {
-          userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          userAgentData: {
-            brands: [{ brand: "Chrome", version: "120" }],
-            platform: "Windows",
-            mobile: false,
-          },
-          serviceWorker: {
-            ready: Promise.resolve(mockServiceWorkerRegistration),
-            addEventListener: mockAddEventListener,
-            removeEventListener: vi.fn(),
-          },
-        },
-        writable: true,
+      // カスタムのaddEventListenerを使ってブラウザ環境を設定
+      setupBrowserEnvironment({
+        customAddEventListener: mockAddEventListener,
+        customRemoveEventListener: mockRemoveEventListener,
       });
 
       const messageHandler = setupMessageHandler(mockAddEventListener);
+
+      // Act - フックを初期化
       const { result } = await renderHookAndWaitForInitialization();
 
-      // Act - 無効なメッセージタイプをシミュレート
+      // 無効なメッセージタイプをシミュレート
       if (messageHandler) {
         const messageEvent = {
           data: {
@@ -732,6 +730,7 @@ describe("usePushNotification", () => {
 
       // Assert - エラーが発生しないことを確認
       expect(result.current.error).toBeNull();
+      expect(mockAddEventListener).toHaveBeenCalledWith("message", expect.any(Function));
     });
   });
 

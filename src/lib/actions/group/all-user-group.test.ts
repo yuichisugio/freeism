@@ -338,6 +338,12 @@ describe("getAllUserGroupsAndCount", () => {
     });
 
     test("should sort groups by currentParticipants", async () => {
+      // Arrange
+      const props = createValidGetAllUserGroupsAndCountProps({
+        sortField: "currentParticipants",
+        sortDirection: "asc",
+      });
+
       const mockGroups = createGroupMockData([
         {
           id: "group-1",
@@ -355,6 +361,9 @@ describe("getAllUserGroupsAndCount", () => {
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(1);
 
+      // Act
+      await getAllUserGroupsAndCount(props);
+
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -368,6 +377,12 @@ describe("getAllUserGroupsAndCount", () => {
     });
 
     test("should handle pagination correctly", async () => {
+      // Arrange
+      const props = createValidGetAllUserGroupsAndCountProps({
+        page: 2,
+        itemPerPage: 5,
+      });
+
       const mockGroups = createGroupMockData([
         {
           id: "group-6",
@@ -384,6 +399,9 @@ describe("getAllUserGroupsAndCount", () => {
 
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(10);
+
+      // Act
+      await getAllUserGroupsAndCount(props);
 
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
@@ -482,9 +500,17 @@ describe("getAllUserGroupsAndCount", () => {
     });
 
     test("should handle page 0", async () => {
+      // Arrange
+      const props = createValidGetAllUserGroupsAndCountProps({
+        page: 0,
+      });
+
       const mockGroups = createGroupMockData([]);
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(0);
+
+      // Act
+      await getAllUserGroupsAndCount(props);
 
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
@@ -495,9 +521,17 @@ describe("getAllUserGroupsAndCount", () => {
     });
 
     test("should handle very large itemPerPage", async () => {
+      // Arrange
+      const props = createValidGetAllUserGroupsAndCountProps({
+        itemPerPage: 1000,
+      });
+
       const mockGroups = createGroupMockData([]);
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(0);
+
+      // Act
+      await getAllUserGroupsAndCount(props);
 
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
@@ -510,10 +544,16 @@ describe("getAllUserGroupsAndCount", () => {
     test("should handle very long search query", async () => {
       // Arrange
       const longSearchQuery = "a".repeat(1000);
+      const props = createValidGetAllUserGroupsAndCountProps({
+        searchQuery: longSearchQuery,
+      });
 
       const mockGroups = createGroupMockData([]);
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(0);
+
+      // Act
+      await getAllUserGroupsAndCount(props);
 
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
@@ -528,9 +568,18 @@ describe("getAllUserGroupsAndCount", () => {
     });
 
     test("should handle invalid sort field", async () => {
+      // Arrange
+      const props = createValidGetAllUserGroupsAndCountProps({
+        sortField: "invalidField",
+        sortDirection: "asc",
+      });
+
       const mockGroups = createGroupMockData([]);
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(0);
+
+      // Act
+      await getAllUserGroupsAndCount(props);
 
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
@@ -543,9 +592,18 @@ describe("getAllUserGroupsAndCount", () => {
     });
 
     test("should handle combined filters", async () => {
+      // Arrange
+      const props = createValidGetAllUserGroupsAndCountProps({
+        isJoined: "isJoined",
+        searchQuery: "テスト",
+      });
+
       const mockGroups = createGroupMockData([]);
       prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
       prismaMock.group.count.mockResolvedValue(0);
+
+      // Act
+      await getAllUserGroupsAndCount(props);
 
       // Assert
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(

@@ -32,13 +32,6 @@ vi.mock("next/cache", () => ({
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-/**
- * console.errorのモック
- */
-const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
-  // 空の実装
-});
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("getCachedAllUsers", () => {
@@ -46,7 +39,7 @@ describe("getCachedAllUsers", () => {
     /**
      * 各テスト前にモックをリセット
      */
-    consoleErrorSpy.mockClear();
+    vi.clearAllMocks();
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -346,9 +339,9 @@ describe("getCachedAllUsers", () => {
 
       /**
        * console.errorが呼ばれたことを確認
+       * setup.tsでconsole.errorがモックされているため、直接検証
        */
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching users:", databaseError);
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith("Error fetching users:", databaseError);
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -372,7 +365,7 @@ describe("getCachedAllUsers", () => {
       /**
        * console.errorが呼ばれたことを確認
        */
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching users:", timeoutError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching users:", timeoutError);
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -396,7 +389,7 @@ describe("getCachedAllUsers", () => {
       /**
        * console.errorが呼ばれたことを確認
        */
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching users:", networkError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching users:", networkError);
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -420,7 +413,7 @@ describe("getCachedAllUsers", () => {
       /**
        * console.errorが呼ばれたことを確認
        */
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching users:", validationError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching users:", validationError);
     });
   });
 

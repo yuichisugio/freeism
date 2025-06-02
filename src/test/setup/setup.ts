@@ -177,16 +177,7 @@ process.on("uncaughtException", (error) => {
 const originalConsole = { ...console };
 
 // テストセットアップ
-/**
- * 出力されたか検証する場合のコード
- * test("should log error message", () => {
-   const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-   expect(mockConsoleError).toHaveBeenCalledWith("期待するエラーメッセージ");
-   mockConsoleError.mockRestore();
- });
- */
 beforeAll(() => {
-  // テスト開始前の設定
   // グローバルなconsoleオブジェクトを上書きして出力を抑制
   global.console = {
     ...console,
@@ -208,7 +199,10 @@ afterAll(() => {
 
 // permission APIのモック
 vi.mock("@/lib/actions/permission", () => ({
+  checkIsOwner: vi.fn(),
+  grantOwnerPermission: vi.fn(),
   checkIsAppOwner: vi.fn(),
+  checkGroupMembership: vi.fn(),
   checkOneGroupOwner: vi.fn(),
 }));
 

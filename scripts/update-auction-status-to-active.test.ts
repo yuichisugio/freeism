@@ -1,20 +1,35 @@
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { main, updateAuctionStatusToActive } from "./update-auction-status-to-active";
 
 /**
  * コンソール出力のモック
+ * setup.tsでグローバルにモックされているため、元のconsoleオブジェクトを使用
  */
-const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+const originalConsole = {
+  log: console.log,
+  error: console.error,
+};
+
+const mockConsoleLog = vi.fn();
+const mockConsoleError = vi.fn();
 
 /**
  * process.exitのモック
  */
 const mockProcessExit = vi.spyOn(process, "exit").mockImplementation(() => {
   throw new Error("process.exit called");
+});
+
+/**
+ * テスト終了後のクリーンアップ
+ */
+afterAll(() => {
+  // コンソールを元に戻す
+  console.log = originalConsole.log;
+  console.error = originalConsole.error;
 });
 
 /**
@@ -55,6 +70,10 @@ const expectErrorLog = (error: Error) => {
 describe("updateAuctionStatusToActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // コンソールモックを設定
+    console.log = mockConsoleLog;
+    console.error = mockConsoleError;
   });
 
   /**
@@ -150,6 +169,10 @@ describe("updateAuctionStatusToActive", () => {
 describe("main", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // コンソールモックを設定
+    console.log = mockConsoleLog;
+    console.error = mockConsoleError;
   });
 
   /**
@@ -237,10 +260,13 @@ describe("main", () => {
       // require.main === moduleの分岐をテストするため、
       // スクリプト実行時のエラーハンドリングをテスト
       const originalRequireMain = require.main;
-      const localMockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      const localMockConsoleError = vi.fn();
       const localMockProcessExit = vi.spyOn(process, "exit").mockImplementation(() => {
         throw new Error("process.exit called");
       });
+
+      // ローカルコンソールモックを設定
+      console.error = localMockConsoleError;
 
       try {
         // require.mainをモジュール自体に設定
@@ -260,7 +286,8 @@ describe("main", () => {
       } finally {
         // require.mainを元に戻す
         require.main = originalRequireMain;
-        localMockConsoleError.mockRestore();
+        // コンソールを元に戻す
+        console.error = originalConsole.error;
         localMockProcessExit.mockRestore();
       }
     });

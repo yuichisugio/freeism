@@ -195,6 +195,15 @@ describe("auto-bid", () => {
     });
 
     test("should limit bid amount to max bid amount when calculated amount exceeds it", async () => {
+      // Arrange
+      const params: ProcessAutoBidParams = {
+        auctionId: testAuctionId,
+        currentHighestBid: 190, // 上限額を超える計算になるように設定
+        currentHighestBidderId: testUserId,
+        validationDone: true,
+        paramsValidationResult: mockValidationSuccess,
+      };
+
       const mockAutoBid = autoBidFactory.build({
         id: "auto-bid-1",
         userId: testUserId2,
@@ -205,11 +214,24 @@ describe("auto-bid", () => {
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
       mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
 
+      // Act
+      const result = await processAutoBid(params);
+
       // Assert
+      expect(result.success).toBe(true);
       expect(mockExecuteBid).toHaveBeenCalledWith(testAuctionId, 200, true); // 上限額に制限
     });
 
     test("should deactivate auto bid and send notification when bid reaches max amount", async () => {
+      // Arrange
+      const params: ProcessAutoBidParams = {
+        auctionId: testAuctionId,
+        currentHighestBid: 180, // 上限額に達するように設定
+        currentHighestBidderId: testUserId,
+        validationDone: true,
+        paramsValidationResult: mockValidationSuccess,
+      };
+
       const mockAutoBid = autoBidFactory.build({
         id: "auto-bid-1",
         userId: testUserId2,
@@ -222,7 +244,11 @@ describe("auto-bid", () => {
       prismaMock.autoBid.update.mockResolvedValue(mockAutoBid);
       mockSendAuctionNotification.mockResolvedValue({ success: true });
 
+      // Act
+      const result = await processAutoBid(params);
+
       // Assert
+      expect(result.success).toBe(true);
       expect(prismaMock.autoBid.update).toHaveBeenCalledWith({
         where: { id: mockAutoBid.id },
         data: { isActive: false },

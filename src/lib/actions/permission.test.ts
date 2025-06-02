@@ -7,6 +7,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { checkGroupMembership, checkIsAppOwner, checkIsOwner, checkOneGroupOwner, grantOwnerPermission } from "./permission";
 
+// テストファイル内でモックを上書きして実際の実装を使用
+vi.mock("@/lib/actions/permission", async (importOriginal) => {
+  const actual = await importOriginal();
+  return actual;
+});
+
 // getAuthenticatedSessionUserIdのモック
 vi.mock("@/lib/utils", () => ({
   getAuthenticatedSessionUserId: vi.fn(),

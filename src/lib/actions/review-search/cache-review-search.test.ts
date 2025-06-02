@@ -7,16 +7,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getCachedAllReviews, getCachedMyReviews, getCachedSearchSuggestions, getCachedUserReviews } from "./cache-review-search";
 
-// コンソールエラーをモック化
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
 describe("cache-review-search", () => {
   beforeEach(() => {
-    consoleErrorSpy.mockClear();
-    consoleLogSpy.mockClear();
+    // 各テスト前にモックをリセット
+    vi.clearAllMocks();
   });
 
   describe("getCachedUserReviews", () => {
@@ -281,7 +275,7 @@ describe("cache-review-search", () => {
       prismaMock.auctionReview.findMany.mockRejectedValue(dbError);
 
       await expect(getCachedUserReviews(null, userId)).rejects.toThrow("レビューの取得に失敗しました");
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching user reviews:", dbError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching user reviews:", dbError);
     });
 
     test("should handle empty search query", async () => {
@@ -485,7 +479,7 @@ describe("cache-review-search", () => {
 
       const result = await getCachedSearchSuggestions(query);
       expect(result).toStrictEqual([]);
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching search suggestions:", dbError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching search suggestions:", dbError);
     });
 
     test("should remove duplicate suggestions", async () => {
@@ -710,7 +704,7 @@ describe("cache-review-search", () => {
       prismaMock.auctionReview.findMany.mockRejectedValue(dbError);
 
       await expect(getCachedMyReviews(null, userId)).rejects.toThrow("自分のレビューの取得に失敗しました");
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching my reviews:", dbError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching my reviews:", dbError);
     });
   });
 
@@ -912,16 +906,13 @@ describe("cache-review-search", () => {
 
       await getCachedAllReviews(searchParams);
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        "src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_searchParams",
-        searchParams,
-      );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(console.log).toHaveBeenCalledWith("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_searchParams", searchParams);
+      expect(console.log).toHaveBeenCalledWith(
         "src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_whereCondition",
         expect.any(String) as unknown as string,
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_reviews_length", 0);
-      expect(consoleLogSpy).toHaveBeenCalledWith("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_totalCount", 0);
+      expect(console.log).toHaveBeenCalledWith("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_reviews_length", 0);
+      expect(console.log).toHaveBeenCalledWith("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_totalCount", 0);
     });
 
     test("should throw error when database operation fails", async () => {
@@ -930,7 +921,7 @@ describe("cache-review-search", () => {
       prismaMock.auctionReview.findMany.mockRejectedValue(dbError);
 
       await expect(getCachedAllReviews(null)).rejects.toThrow("レビューの取得に失敗しました");
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching all reviews:", dbError);
+      expect(console.error).toHaveBeenCalledWith("Error fetching all reviews:", dbError);
     });
 
     test("should calculate total pages correctly", async () => {

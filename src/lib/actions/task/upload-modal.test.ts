@@ -652,21 +652,57 @@ describe("upload-modal", () => {
 
     test("should update task statuses successfully", async () => {
       // Arrange
-      const tasks = validStatusData.map((data) =>
-        taskFactory.build({
-          id: data.taskId,
-          status: TaskStatus.PENDING,
-          fixedContributionPoint: null,
-          groupId: testGroupId,
-        }),
-      );
+      const tasks = validStatusData.map((data) => ({
+        id: data.taskId,
+        status: TaskStatus.PENDING,
+        fixedContributionPoint: null,
+        group: { id: testGroupId },
+      }));
 
       // 各タスクに対してfindUniqueとupdateをモック
-      prismaMock.task.findUnique.mockResolvedValueOnce(tasks[0]).mockResolvedValueOnce(tasks[1]);
+      prismaMock.task.findUnique
+        .mockResolvedValueOnce(tasks[0] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>)
+        .mockResolvedValueOnce(tasks[1] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
 
       prismaMock.task.update
-        .mockResolvedValueOnce({ ...tasks[0], status: TaskStatus.PENDING } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
-        .mockResolvedValueOnce({ ...tasks[1], status: TaskStatus.TASK_COMPLETED } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        .mockResolvedValueOnce({
+          id: tasks[0].id,
+          task: "テストタスク1",
+          reference: null,
+          status: TaskStatus.PENDING,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
+        .mockResolvedValueOnce({
+          id: tasks[1].id,
+          task: "テストタスク2",
+          reference: null,
+          status: TaskStatus.TASK_COMPLETED,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
 
       // Act
       const result = await bulkUpdateTaskStatuses(validStatusData);
@@ -734,13 +770,14 @@ describe("upload-modal", () => {
 
     test("should handle permission denied", async () => {
       // Arrange
-      const task = taskFactory.build({
+      const task = {
         id: "task-1",
         status: TaskStatus.PENDING,
-        groupId: testGroupId,
-      });
+        fixedContributionPoint: null,
+        group: { id: testGroupId },
+      };
 
-      prismaMock.task.findUnique.mockResolvedValue(task);
+      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
       mockCheckIsOwner.mockResolvedValue({ success: false });
 
       // Act
@@ -754,13 +791,14 @@ describe("upload-modal", () => {
 
     test("should handle immutable status", async () => {
       // Arrange
-      const task = taskFactory.build({
+      const task = {
         id: "task-1",
         status: TaskStatus.FIXED_EVALUATED, // 変更不可ステータス
-        groupId: testGroupId,
-      });
+        fixedContributionPoint: null,
+        group: { id: testGroupId },
+      };
 
-      prismaMock.task.findUnique.mockResolvedValue(task);
+      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
 
       // Act
       const result = await bulkUpdateTaskStatuses([{ taskId: "task-1", status: TaskStatus.PENDING }]);
@@ -773,30 +811,30 @@ describe("upload-modal", () => {
 
     test("should update group points when status changes to POINTS_AWARDED", async () => {
       // Arrange
-      const task = taskFactory.build({
+      const task = {
         id: "task-1",
         status: TaskStatus.TASK_COMPLETED,
         fixedContributionPoint: 100,
-        groupId: testGroupId,
-      });
+        group: { id: testGroupId },
+      };
 
-      prismaMock.task.findUnique.mockResolvedValue(task);
+      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
       prismaMock.task.update.mockResolvedValue({
-        id: task.id,
-        task: task.task,
-        reference: task.reference,
+        id: "task-1",
+        task: "テストタスク",
+        reference: null,
         status: TaskStatus.POINTS_AWARDED,
-        contributionType: task.contributionType,
-        info: task.info,
-        fixedContributionPoint: task.fixedContributionPoint,
-        fixedEvaluatorId: task.fixedEvaluatorId,
-        fixedEvaluationLogic: task.fixedEvaluationLogic,
-        fixedEvaluationDate: task.fixedEvaluationDate,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
-        groupId: task.groupId,
-        creatorId: task.creatorId,
-        userFixedSubmitterId: task.userFixedSubmitterId,
+        contributionType: "NON_REWARD",
+        info: null,
+        fixedContributionPoint: 100,
+        fixedEvaluatorId: null,
+        fixedEvaluationLogic: null,
+        fixedEvaluationDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        groupId: testGroupId,
+        creatorId: testUserId,
+        userFixedSubmitterId: null,
         reporters: [{ userId: "user-1" }],
         executors: [{ userId: "user-2" }],
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
@@ -849,30 +887,30 @@ describe("upload-modal", () => {
 
     test("should not update group points when fixedContributionPoint is null", async () => {
       // Arrange
-      const task = taskFactory.build({
+      const task = {
         id: "task-1",
         status: TaskStatus.TASK_COMPLETED,
         fixedContributionPoint: null, // ポイントが設定されていない
-        groupId: testGroupId,
-      });
+        group: { id: testGroupId },
+      };
 
-      prismaMock.task.findUnique.mockResolvedValue(task);
+      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
       prismaMock.task.update.mockResolvedValue({
-        id: task.id,
-        task: task.task,
-        reference: task.reference,
+        id: "task-1",
+        task: "テストタスク",
+        reference: null,
         status: TaskStatus.POINTS_AWARDED,
-        contributionType: task.contributionType,
-        info: task.info,
-        fixedContributionPoint: task.fixedContributionPoint,
-        fixedEvaluatorId: task.fixedEvaluatorId,
-        fixedEvaluationLogic: task.fixedEvaluationLogic,
-        fixedEvaluationDate: task.fixedEvaluationDate,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
-        groupId: task.groupId,
-        creatorId: task.creatorId,
-        userFixedSubmitterId: task.userFixedSubmitterId,
+        contributionType: "NON_REWARD",
+        info: null,
+        fixedContributionPoint: null,
+        fixedEvaluatorId: null,
+        fixedEvaluationLogic: null,
+        fixedEvaluationDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        groupId: testGroupId,
+        creatorId: testUserId,
+        userFixedSubmitterId: null,
         reporters: [{ userId: "user-1" }],
         executors: [{ userId: "user-2" }],
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
@@ -900,13 +938,14 @@ describe("upload-modal", () => {
 
     test("should handle database error during individual task update", async () => {
       // Arrange
-      const task = taskFactory.build({
+      const task = {
         id: "task-1",
         status: TaskStatus.PENDING,
-        groupId: testGroupId,
-      });
+        fixedContributionPoint: null,
+        group: { id: testGroupId },
+      };
 
-      prismaMock.task.findUnique.mockResolvedValue(task);
+      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
       prismaMock.task.update.mockRejectedValue(new Error("Database update error"));
 
       // Act
@@ -942,30 +981,137 @@ describe("upload-modal", () => {
         { taskId: "task-6", status: TaskStatus.ARCHIVED },
       ];
 
-      const tasks = allValidStatuses.map((data) =>
-        taskFactory.build({
-          id: data.taskId,
-          status: TaskStatus.PENDING,
-          groupId: testGroupId,
-        }),
-      );
+      const tasks = allValidStatuses.map((data) => ({
+        id: data.taskId,
+        status: TaskStatus.PENDING,
+        fixedContributionPoint: null,
+        group: { id: testGroupId },
+      }));
 
       // 各タスクに対してfindUniqueとupdateをモック
       prismaMock.task.findUnique
-        .mockResolvedValueOnce(tasks[0])
-        .mockResolvedValueOnce(tasks[1])
-        .mockResolvedValueOnce(tasks[2])
-        .mockResolvedValueOnce(tasks[3])
-        .mockResolvedValueOnce(tasks[4])
-        .mockResolvedValueOnce(tasks[5]);
+        .mockResolvedValueOnce(tasks[0] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>)
+        .mockResolvedValueOnce(tasks[1] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>)
+        .mockResolvedValueOnce(tasks[2] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>)
+        .mockResolvedValueOnce(tasks[3] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>)
+        .mockResolvedValueOnce(tasks[4] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>)
+        .mockResolvedValueOnce(tasks[5] as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
 
       prismaMock.task.update
-        .mockResolvedValueOnce({ ...tasks[0], status: TaskStatus.PENDING } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
-        .mockResolvedValueOnce({ ...tasks[1], status: TaskStatus.POINTS_DEPOSITED } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
-        .mockResolvedValueOnce({ ...tasks[2], status: TaskStatus.TASK_COMPLETED } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
-        .mockResolvedValueOnce({ ...tasks[3], status: TaskStatus.FIXED_EVALUATED } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
-        .mockResolvedValueOnce({ ...tasks[4], status: TaskStatus.POINTS_AWARDED } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
-        .mockResolvedValueOnce({ ...tasks[5], status: TaskStatus.ARCHIVED } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        .mockResolvedValueOnce({
+          id: "task-1",
+          task: "テストタスク1",
+          reference: null,
+          status: TaskStatus.PENDING,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
+        .mockResolvedValueOnce({
+          id: "task-2",
+          task: "テストタスク2",
+          reference: null,
+          status: TaskStatus.POINTS_DEPOSITED,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
+        .mockResolvedValueOnce({
+          id: "task-3",
+          task: "テストタスク3",
+          reference: null,
+          status: TaskStatus.TASK_COMPLETED,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
+        .mockResolvedValueOnce({
+          id: "task-4",
+          task: "テストタスク4",
+          reference: null,
+          status: TaskStatus.FIXED_EVALUATED,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
+        .mockResolvedValueOnce({
+          id: "task-5",
+          task: "テストタスク5",
+          reference: null,
+          status: TaskStatus.POINTS_AWARDED,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>)
+        .mockResolvedValueOnce({
+          id: "task-6",
+          task: "テストタスク6",
+          reference: null,
+          status: TaskStatus.ARCHIVED,
+          contributionType: "NON_REWARD",
+          info: null,
+          fixedContributionPoint: null,
+          fixedEvaluatorId: null,
+          fixedEvaluationLogic: null,
+          fixedEvaluationDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          groupId: testGroupId,
+          creatorId: testUserId,
+          userFixedSubmitterId: null,
+          reporters: [],
+          executors: [],
+        } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
 
       // Act
       const result = await bulkUpdateTaskStatuses(allValidStatuses);

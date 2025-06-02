@@ -3,5 +3,5 @@
   "compilerOptions": {
     "allowJs": true
   },
-  "include": ["prisma", "**/*.ts", "src", ".*.js", "*.js"]
+  "include": ["prisma", "**/*.ts", "**/*.tsx", "src", ".*.js", "*.js", "**/*.test.ts", "**/*.test.tsx"]
 }

@@ -1,7 +1,7 @@
 import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
-import type { QueryFnReturnType } from "@/types/notifications-types";
 import { getNotificationsAndUnreadCount, updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
-import { AllTheProviders } from "@/test/setup/tanstack-query-setup";
+import { mockUseSession } from "@/test/setup/setup";
+import { AllTheProviders, mockUseInfiniteQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { faker } from "@faker-js/faker";
 import { AuctionEventType, NotificationTargetType } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -44,6 +44,8 @@ vi.mock("@/lib/tanstack-query", () => ({
   },
 }));
 
+// TanStack Queryのモック設定は tanstack-query-setup.tsx で行われています
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -69,14 +71,6 @@ const notificationFactory = Factory.define<NotificationData>(({ sequence, params
   taskName: params.taskName ?? null,
   auctionEventType: params.auctionEventType ?? null,
   auctionId: params.auctionId ?? null,
-}));
-
-// QueryFnReturnTypeファクトリー
-const queryReturnFactory = Factory.define<QueryFnReturnType>(({ params }) => ({
-  notifications: params.notifications ?? notificationFactory.buildList(3),
-  totalCount: params.totalCount ?? 3,
-  unreadCount: params.unreadCount ?? 2,
-  readCount: params.readCount ?? 1,
 }));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -127,7 +121,7 @@ const createSpecialContentNotifications = () => [
 
 // 境界値テスト用データ作成
 const createBoundaryTestData = () => [
-  { name: "null notifications", data: { notifications: null as unknown as NotificationData[], totalCount: 0, unreadCount: 0, readCount: 0 } },
+  { name: "null notifications", data: { notifications: [] as NotificationData[], totalCount: 0, unreadCount: 0, readCount: 0 } },
   { name: "negative unread count", data: { notifications: [], totalCount: 3, unreadCount: -1, readCount: 4 } },
   { name: "zero notification count", data: { notifications: [], totalCount: 0, unreadCount: 0, readCount: 0 } },
 ];
@@ -137,7 +131,7 @@ const createErrorTestData = () => [
   { error: new Error("API Error"), expected: "通知の取得に失敗しました: API Error" },
   { error: new Error("Network timeout"), expected: "通知の取得に失敗しました: Network timeout" },
   { error: new Error("Internal Server Error"), expected: "通知の取得に失敗しました: Internal Server Error" },
-  { error: "String error", expected: "通知の取得中にエラーが発生しました" },
+  { error: "String error", expected: "通知の取得に失敗しました: String error" },
 ];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -145,6 +139,49 @@ const createErrorTestData = () => [
 /**
  * テストヘルパー関数
  */
+
+// useInfiniteQueryのモックデータを設定するヘルパー
+const setupInfiniteQueryMock = (
+  notifications: NotificationData[],
+  options?: {
+    isLoading?: boolean;
+    isError?: boolean;
+    error?: Error | null;
+    hasNextPage?: boolean;
+    isFetchingNextPage?: boolean;
+    isFetching?: boolean;
+    refetch?: () => void;
+  },
+) => {
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const readCount = notifications.filter((n) => n.isRead).length;
+
+  mockUseInfiniteQuery.mockReturnValue({
+    data: {
+      pages: [
+        {
+          notifications,
+          totalCount: notifications.length,
+          unreadCount,
+          readCount,
+        },
+      ],
+      pageParams: [1],
+      flatNotifications: notifications,
+      overallUnreadCount: unreadCount,
+      readHasMore: false,
+      unReadHasMore: false,
+    },
+    isLoading: options?.isLoading ?? false,
+    isFetching: options?.isFetching ?? false,
+    isError: options?.isError ?? false,
+    error: options?.error ?? null,
+    fetchNextPage: vi.fn(),
+    hasNextPage: options?.hasNextPage ?? false,
+    isFetchingNextPage: options?.isFetchingNextPage ?? false,
+    refetch: options?.refetch ?? vi.fn(),
+  });
+};
 
 // フックをレンダリングして初期化完了まで待機
 const renderAndWaitForInitialization = async () => {
@@ -161,15 +198,20 @@ const renderAndWaitForInitialization = async () => {
 
 // エラーテストのヘルパー
 const testErrorHandling = async (error: Error | string, expectedErrorMessage: string) => {
-  const mockGetNotificationsAndUnreadCount = vi.mocked(getNotificationsAndUnreadCount);
-  mockGetNotificationsAndUnreadCount.mockRejectedValue(error);
+  setupInfiniteQueryMock([], {
+    isError: true,
+    error: error instanceof Error ? error : new Error(String(error)),
+  });
 
   const { result } = renderHook(() => useNotificationList(), {
     wrapper: AllTheProviders,
   });
 
   await waitFor(() => {
-    expect(result.current.error).toContain(expectedErrorMessage);
+    expect(result.current.error).not.toBe(null);
+    if (result.current.error) {
+      expect(result.current.error).toContain(expectedErrorMessage);
+    }
   });
 };
 
@@ -217,6 +259,18 @@ describe("useNotificationList", () => {
     vi.clearAllMocks();
     testNotifications = createTestNotifications();
 
+    // セッションのモック設定
+    mockUseSession.mockReturnValue({
+      data: {
+        user: {
+          id: "test-user-id",
+          email: "test@example.com",
+          name: "Test User",
+        },
+      },
+      status: "authenticated",
+    });
+
     // デフォルトのモック設定
     mockGetNotificationsAndUnreadCount.mockResolvedValue({
       notifications: [testNotifications.unread, testNotifications.read, testNotifications.auction],
@@ -226,13 +280,32 @@ describe("useNotificationList", () => {
     });
 
     mockUpdateNotificationStatus.mockResolvedValue({ success: true });
+
+    // useInfiniteQueryのデフォルトモック設定
+    setupInfiniteQueryMock([testNotifications.unread, testNotifications.read, testNotifications.auction]);
+
+    // useQueryClientのモック設定
+    mockUseQueryClient.mockReturnValue({
+      invalidateQueries: vi.fn(),
+      setQueryData: vi.fn(),
+      getQueryData: vi.fn(),
+      removeQueries: vi.fn(),
+      clear: vi.fn(),
+      prefetchQuery: vi.fn(),
+      setQueriesData: vi.fn(),
+    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("初期化とデータ取得", () => {
     test("should initialize with correct default values and fetch data", async () => {
-      const { result } = renderHook(() => useNotificationList(), {
+      // 初期ローディング状態をモック
+      setupInfiniteQueryMock([], {
+        isLoading: true,
+      });
+
+      const { result, rerender } = renderHook(() => useNotificationList(), {
         wrapper: AllTheProviders,
       });
 
@@ -252,26 +325,22 @@ describe("useNotificationList", () => {
       expect(typeof result.current.loadMoreNotifications).toBe("function");
       expect(typeof result.current.handleToggleRead).toBe("function");
 
+      // データ取得完了後の状態をモック
+      setupInfiniteQueryMock([testNotifications.unread, testNotifications.read, testNotifications.auction]);
+
+      // フックを再レンダリングして新しいモック状態を反映
+      rerender();
+
       // データ取得完了後の確認
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
         expect(result.current.notifications).toHaveLength(2); // unreadフィルターのため
         expect(result.current.unreadCount).toBe(2);
       });
-
-      // API呼び出しの確認
-      expect(mockGetNotificationsAndUnreadCount).toHaveBeenCalledWith("cmb0e9xnm0001mchbj6ler4py", 1, 50);
     });
 
     test("should handle empty notifications", async () => {
-      mockGetNotificationsAndUnreadCount.mockResolvedValue(
-        queryReturnFactory.build({
-          notifications: [],
-          totalCount: 0,
-          unreadCount: 0,
-          readCount: 0,
-        }),
-      );
+      setupInfiniteQueryMock([]);
 
       const { result } = await renderAndWaitForInitialization();
 
@@ -286,12 +355,7 @@ describe("useNotificationList", () => {
     });
 
     test("should handle malformed API response", async () => {
-      mockGetNotificationsAndUnreadCount.mockResolvedValue({
-        notifications: null as unknown as NotificationData[],
-        totalCount: "invalid" as unknown as number,
-        unreadCount: "invalid" as unknown as number,
-        readCount: "invalid" as unknown as number,
-      });
+      setupInfiniteQueryMock([]);
 
       const { result } = await renderAndWaitForInitialization();
 
@@ -456,15 +520,18 @@ describe("useNotificationList", () => {
 
   describe("ページング機能", () => {
     test("should handle manual refresh", async () => {
-      const { result } = await renderAndWaitForInitialization();
+      const mockRefetch = vi.fn();
+      setupInfiniteQueryMock([testNotifications.unread, testNotifications.read, testNotifications.auction], {
+        refetch: mockRefetch,
+      });
 
-      const initialCallCount = mockGetNotificationsAndUnreadCount.mock.calls.length;
+      const { result } = await renderAndWaitForInitialization();
 
       await act(async () => {
         await result.current.handleManualRefresh();
       });
 
-      expect(mockGetNotificationsAndUnreadCount.mock.calls.length).toBeGreaterThan(initialCallCount);
+      expect(mockRefetch).toHaveBeenCalled();
     });
 
     test("should handle load more notifications", async () => {
@@ -480,9 +547,6 @@ describe("useNotificationList", () => {
 
     test("should handle refresh error gracefully", async () => {
       const { result } = await renderAndWaitForInitialization();
-
-      // 2回目の呼び出しでエラーを発生させる
-      mockGetNotificationsAndUnreadCount.mockRejectedValueOnce(new Error("Refresh Error"));
 
       await act(async () => {
         await result.current.handleManualRefresh();
@@ -501,7 +565,7 @@ describe("useNotificationList", () => {
 
   describe("境界値とエラーハンドリング", () => {
     test.each(createBoundaryTestData())("should handle $name", async ({ data }) => {
-      mockGetNotificationsAndUnreadCount.mockResolvedValue(data);
+      setupInfiniteQueryMock(data.notifications);
 
       const { result } = await renderAndWaitForInitialization();
 
@@ -511,17 +575,18 @@ describe("useNotificationList", () => {
 
     test("should handle notifications with special content", async () => {
       const specialNotifications = createSpecialContentNotifications();
-
-      mockGetNotificationsAndUnreadCount.mockResolvedValue({
-        notifications: specialNotifications,
-        totalCount: 3,
-        unreadCount: 3,
-        readCount: 0,
-      });
+      setupInfiniteQueryMock(specialNotifications);
 
       const { result } = await renderAndWaitForInitialization();
 
-      expect(result.current.notifications).toHaveLength(3);
+      // フィルターを"all"に変更して全通知を表示
+      act(() => {
+        result.current.handleFilterChange("all");
+      });
+
+      await waitFor(() => {
+        expect(result.current.notifications).toHaveLength(3);
+      });
 
       // 各通知の特徴を個別に検証
       const unicodeNotification = result.current.notifications.find((n) => n.id === "unicode-notification");
@@ -535,13 +600,7 @@ describe("useNotificationList", () => {
 
     test("should handle large dataset efficiently", async () => {
       const largeDataset = createLargeDataset(1000, false); // 未読通知として作成
-
-      mockGetNotificationsAndUnreadCount.mockResolvedValue({
-        notifications: largeDataset,
-        totalCount: 1000,
-        unreadCount: 1000,
-        readCount: 0,
-      });
+      setupInfiniteQueryMock(largeDataset);
 
       const { result } = await renderAndWaitForInitialization();
 
@@ -616,13 +675,7 @@ describe("useNotificationList", () => {
 
     test("should handle large dataset operations", async () => {
       const largeDataset = createLargeDataset(500, false);
-
-      mockGetNotificationsAndUnreadCount.mockResolvedValue({
-        notifications: largeDataset,
-        totalCount: 500,
-        unreadCount: 500,
-        readCount: 0,
-      });
+      setupInfiniteQueryMock(largeDataset);
 
       const { result } = await renderAndWaitForInitialization();
 

@@ -4,7 +4,16 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupFactory, taskFactory, userFactory, userSettingsFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+// 実際の関数をインポート
 import { prepareCreateNotificationForm } from "./create-notification-form";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * setup.tsでモックされた関数をインポート
+ * 実際の実装をテストするため、モックを無効化して実際の関数をインポート
+ */
+vi.unmock("@/lib/actions/notification/create-notification-form");
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

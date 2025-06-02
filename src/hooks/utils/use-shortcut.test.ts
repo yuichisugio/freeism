@@ -52,15 +52,19 @@ describe("useShortcut", () => {
   const mockCallback1 = vi.fn();
   const mockCallback2 = vi.fn();
 
-  // コンソールログのモック
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  // コンソールログのモック（グローバルモックを上書き）
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
     // activeElementをリセット
     vi.spyOn(document, "activeElement", "get").mockReturnValue(null);
+
+    // グローバルなconsole.logモックを上書きして、呼び出しを追跡可能にする
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+      // テスト用のコンソールログモック - 何もしない
+    });
   });
 
   afterEach(() => {
