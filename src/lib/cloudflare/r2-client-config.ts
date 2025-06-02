@@ -13,5 +13,5 @@ export const clientR2Config = {
  * @returns R2が有効かどうか
  */
 export function isR2Enabled(): boolean {
-  return !!process.env.NEXT_PUBLIC_CLOUDFLARE_R2_ENABLED === true;
+  return process.env.NEXT_PUBLIC_CLOUDFLARE_R2_ENABLED === "true";
 }
