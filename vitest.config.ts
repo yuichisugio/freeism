@@ -61,6 +61,7 @@ export default defineConfig({
         "src/lib/constants.ts",
         "src/types/**/*",
       ],
+      include: ["src/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", "scripts/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
       // カバレッジ目標値（test.mdの要件に基づく）
       thresholds: {
         lines: 80,

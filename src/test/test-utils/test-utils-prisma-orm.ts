@@ -400,3 +400,69 @@ export const createInvalidAuctionData = () =>
   auctionFactory.build({ startTime: undefined, endTime: undefined, groupId: undefined, taskId: undefined });
 export const createInvalidBidHistoryData = () => bidHistoryFactory.build({ amount: undefined, auctionId: undefined, userId: undefined });
 export const createInvalidNotificationData = () => notificationFactory.build({ title: undefined, message: undefined, targetType: undefined });
+
+/**
+ * GroupDetailTask型のファクトリー（テスト用）
+ */
+export const groupDetailTaskFactory = Factory.define<{
+  id: string;
+  auctionId: string | null;
+  taskName: string;
+  taskDetail: string | null;
+  taskStatus: string;
+  taskContributionType: contributionType;
+  taskFixedContributionPoint: number | null;
+  taskFixedEvaluator: string | null;
+  taskFixedEvaluationLogic: string | null;
+  taskCreator: string | null;
+  taskReporterUserIds: string[] | null;
+  taskExecutorUserIds: string[] | null;
+  taskReporterUserNames: string[] | null;
+  taskExecutorUserNames: string[] | null;
+  createdAt: Date;
+  group: {
+    id: string;
+    name: string;
+    maxParticipants: number;
+    goal: string;
+    evaluationMethod: string;
+    members: { userId: string }[];
+    depositPeriod?: number;
+  };
+}>(({ sequence, params }) => ({
+  id: params.id ?? `task-${sequence}`,
+  auctionId: params.auctionId ?? null,
+  taskName: params.taskName ?? faker.lorem.sentence(),
+  taskDetail: params.taskDetail ?? faker.lorem.paragraph(),
+  taskStatus: params.taskStatus ?? TaskStatus.PENDING,
+  taskContributionType: params.taskContributionType ?? contributionType.NON_REWARD,
+  taskFixedContributionPoint: params.taskFixedContributionPoint ?? null,
+  taskFixedEvaluator: params.taskFixedEvaluator ?? null,
+  taskFixedEvaluationLogic: params.taskFixedEvaluationLogic ?? null,
+  taskCreator: params.taskCreator ?? faker.person.fullName(),
+  taskReporterUserIds: params.taskReporterUserIds ?? null,
+  taskExecutorUserIds: params.taskExecutorUserIds ?? null,
+  taskReporterUserNames: params.taskReporterUserNames ?? null,
+  taskExecutorUserNames: params.taskExecutorUserNames ?? null,
+  createdAt: params.createdAt ?? faker.date.past(),
+  group: {
+    id: params.group?.id ?? `group-${sequence}`,
+    name: params.group?.name ?? faker.company.name(),
+    maxParticipants: params.group?.maxParticipants ?? faker.number.int({ min: 5, max: 50 }),
+    goal: params.group?.goal ?? faker.lorem.sentence(),
+    evaluationMethod: params.group?.evaluationMethod ?? "自動評価",
+    members: params.group?.members ?? [{ userId: `user-${sequence}` }],
+    depositPeriod: params.group?.depositPeriod ?? faker.number.int({ min: 1, max: 30 }),
+  },
+}));
+
+/**
+ * TaskParticipant型のファクトリー（テスト用）
+ */
+export const taskParticipantFactory = Factory.define<{
+  appUserName: string | null;
+  appUserId: string | null;
+}>(({ sequence, params }) => ({
+  appUserName: params.appUserName ?? faker.person.fullName(),
+  appUserId: params.appUserId ?? `user-${sequence}`,
+}));

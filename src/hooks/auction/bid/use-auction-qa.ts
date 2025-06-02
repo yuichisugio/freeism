@@ -89,7 +89,7 @@ export type UseAuctionMessageReturn = {
  * メッセージフォームのバリデーションスキーマ
  */
 const messageFormSchema = z.object({
-  message: z.string().min(1, "メッセージを入力してください"),
+  message: z.string().trim().min(1, "メッセージを入力してください"),
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

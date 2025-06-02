@@ -56,6 +56,8 @@ export const mockRefresh = vi.fn();
 export const mockPrefetch = vi.fn();
 export const mockRedirect = vi.fn();
 
+export const mockNotFound = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
@@ -68,6 +70,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/",
   redirect: mockRedirect,
+  notFound: mockNotFound,
 }));
 
 // Next-auth/react のモック
