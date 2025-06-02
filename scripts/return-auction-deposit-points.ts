@@ -3,6 +3,7 @@
  * オークションのポイント返還処理を行うスクリプト
  * GitHub Actionsから実行するためのスクリプトです
  */
+import { fileURLToPath } from "node:url";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
 import { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
@@ -171,7 +172,8 @@ export async function main() {
 
 // スクリプト実行
 // テスト環境では実行しない
-if (require.main === module) {
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
   main().catch((error) => {
     console.error("スクリプト実行中にエラーが発生しました:", error);
     process.exit(1);

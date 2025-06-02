@@ -3,6 +3,7 @@
  * オークションのステータスを更新するスクリプト
  * GitHub Actionsから実行するためのスクリプトです
  */
+import { fileURLToPath } from "node:url";
 import { prisma } from "@/lib/prisma";
 import { TaskStatus } from "@prisma/client";
 
@@ -68,7 +69,9 @@ export async function main() {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // スクリプト実行（テスト時は実行しない）
-if (require.main === module) {
+// ES moduleでスクリプトが直接実行されているかを判定
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
   main().catch((error) => {
     console.error("スクリプト実行中にエラーが発生しました:", error);
     process.exit(1);
