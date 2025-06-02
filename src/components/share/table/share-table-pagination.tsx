@@ -1,8 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +9,9 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/table-dropdown-menu";
+} from "@/components/share/table/table-dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { PaginationNext, PaginationPrevious } from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/utils/use-pagination";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";

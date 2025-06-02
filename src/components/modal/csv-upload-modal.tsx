@@ -3,12 +3,12 @@
 import type { UploadType } from "@/hooks/modal/use-csv-upload";
 import type { DropzoneInputProps, DropzoneRootProps } from "react-dropzone";
 import React, { memo, useCallback } from "react";
+import { SelectedFileCard } from "@/components/share/upload-file-card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SelectedFileCard } from "@/components/ui/upload-file-card";
 import { globalDropOverlay, UPLOAD_TYPE_INFO, useCsvUpload } from "@/hooks/modal/use-csv-upload";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";

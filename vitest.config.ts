@@ -39,6 +39,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
+      include: ["src/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", "scripts/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
       exclude: [
         "node_modules/",
         "src/test/",
@@ -60,13 +61,13 @@ export default defineConfig({
         "src/lib/tanstack-query.ts",
         "src/lib/constants.ts",
         "src/types/**/*",
+        "src/components/ui/**/*",
       ],
-      include: ["src/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", "scripts/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
       // カバレッジ目標値（test.mdの要件に基づく）
       thresholds: {
-        lines: 80,
-        functions: 75,
-        branches: 60,
+        lines: 90,
+        functions: 85,
+        branches: 80,
         statements: 80,
       },
     },

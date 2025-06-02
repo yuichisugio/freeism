@@ -3,8 +3,8 @@
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { NotificationButtonWrapper } from "@/components/notification/notification-button-wrapper";
+import { ThemeToggle } from "@/components/share/theme-toggle";
 import { AppLogoSvg } from "@/components/ui/svg";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

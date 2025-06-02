@@ -11,7 +11,7 @@ import { Image as ImageIcon, Loader2, Trash2, Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
-import { Progress } from "./progress";
+import { Progress } from "../ui/progress";
 
 // グローバルドロップエリアのアニメーション設定
 const globalDropOverlay = {
@@ -124,7 +124,7 @@ function useImageUpload({
   onImageRemoved?: () => void;
 }) {
   const [currentFile, setCurrentFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl ?? null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -252,7 +252,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
 
       // 自動アップロード開始
       if (isEnabled) {
-        handleUpload(file);
+        void handleUpload(file);
       }
     },
     [isEnabled, handleFileSelected, handleUpload],
@@ -276,7 +276,7 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
 
         // 自動アップロード開始
         if (isEnabled) {
-          handleUpload(processedFile);
+          void handleUpload(processedFile);
         }
       });
     },

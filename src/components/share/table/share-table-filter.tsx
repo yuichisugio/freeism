@@ -2,10 +2,10 @@
 
 import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/share/table/table-radio-group";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/table-radio-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { cn } from "@/lib/utils";

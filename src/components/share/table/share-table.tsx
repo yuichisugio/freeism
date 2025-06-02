@@ -3,11 +3,6 @@
 import type { DataTableComponentProps } from "@/types/group-types";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { NoResult } from "@/components/share/share-no-result";
-import { ShareTableFilter } from "@/components/share/share-table-filter";
-import { ShareTablePagination } from "@/components/share/share-table-pagination";
-import { TaskEditModal } from "@/components/task/task-edit-modal";
-import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +13,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/share-table-alert-dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/share-table-popover";
+} from "@/components/share/table/share-table-alert-dialog";
+import { ShareTableFilter } from "@/components/share/table/share-table-filter";
+import { ShareTablePagination } from "@/components/share/table/share-table-pagination";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/share/table/share-table-popover";
+import { TaskEditModal } from "@/components/task/task-edit-modal";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { taskStatuses, useTaskStatus } from "@/hooks/task/use-task-status";
 import { cn } from "@/lib/utils";
 import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronsUpDown, Edit, Trash2 } from "lucide-react";

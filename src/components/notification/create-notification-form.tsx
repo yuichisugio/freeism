@@ -2,8 +2,8 @@
 
 import { memo, useMemo } from "react";
 import Link from "next/link";
-import { CustomFormField } from "@/components/share/form-field";
 import { FormLayout } from "@/components/share/form-layout";
+import { CustomFormField } from "@/components/share/form/form-field";
 import { Loading } from "@/components/share/share-loading";
 import { useCreateNotification } from "@/hooks/notification/use-create-notification";
 import { ArrowLeft } from "lucide-react";

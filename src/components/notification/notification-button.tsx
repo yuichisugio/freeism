@@ -1,8 +1,8 @@
 "use client";
 
 import { memo } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/notification/notification-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/notification-dialog";
 import { useNotificationButton } from "@/hooks/notification/use-notification-button";
 import { useShortcut } from "@/hooks/utils/use-shortcut";
 import { Bell } from "lucide-react";

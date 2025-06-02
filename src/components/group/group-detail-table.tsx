@@ -5,7 +5,7 @@ import type { TaskStatus } from "@prisma/client";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Loading } from "@/components/share/share-loading";
-import { ShareTable } from "@/components/share/share-table";
+import { ShareTable } from "@/components/share/table/share-table";
 import { Button } from "@/components/ui/button";
 import { useGroupDetailTable } from "@/hooks/group/group-detail/use-group-detail-table";
 import { contributionType } from "@prisma/client";

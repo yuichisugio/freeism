@@ -2,11 +2,11 @@
 
 import type { Control, FieldValues, UseFormReturn } from "react-hook-form";
 import { memo } from "react";
-import { CustomFormField } from "@/components/share/form-field";
-import { FormLayout } from "@/components/share/form-layout";
+import { CustomFormField } from "@/components/share/form/form-field";
+import { FormLayout } from "@/components/share/form/form-layout";
+import { ImageUploadArea } from "@/components/share/image-upload-area";
 import { Loading } from "@/components/share/share-loading";
 import { UserCombobox } from "@/components/share/user-combobox";
-import { ImageUploadArea } from "@/components/ui/image-upload-area";
 import { useTaskInputForm } from "@/hooks/form/use-create-task-form";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
