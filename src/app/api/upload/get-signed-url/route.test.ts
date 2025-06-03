@@ -336,6 +336,9 @@ describe("API /api/upload/get-signed-url", () => {
         json: vi.fn().mockRejectedValue(new Error("Invalid JSON")),
       } as Partial<NextRequest> as NextRequest;
 
+      // console.errorをモック
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+
       // Act
       const response = await POST(mockRequest);
       const responseData = (await response.json()) as ErrorResponse;
@@ -344,7 +347,11 @@ describe("API /api/upload/get-signed-url", () => {
       expect(response.status).toBe(500);
       expect(responseData).toStrictEqual({ error: "内部サーバーエラー" });
       expect(mockNextResponseJson).toHaveBeenCalledWith({ error: "内部サーバーエラー" }, { status: 500 });
+      expect(consoleErrorSpy).toHaveBeenCalledWith("署名付きURLの生成中にエラーが発生しました", expect.any(Error));
       expect(mockGenerateSignedUploadUrl).not.toHaveBeenCalled();
+
+      // クリーンアップ
+      consoleErrorSpy.mockRestore();
     });
 
     test("should return 500 error when generateSignedUploadUrl throws an error", async () => {
@@ -366,6 +373,9 @@ describe("API /api/upload/get-signed-url", () => {
         json: vi.fn().mockResolvedValue(requestBody),
       } as Partial<NextRequest> as NextRequest;
 
+      // console.errorをモック
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+
       // Act
       const response = await POST(mockRequest);
       const responseData = (await response.json()) as ErrorResponse;
@@ -375,6 +385,10 @@ describe("API /api/upload/get-signed-url", () => {
       expect(responseData).toStrictEqual({ error: "内部サーバーエラー" });
       expect(mockGenerateSignedUploadUrl).toHaveBeenCalledWith("image/jpeg", undefined);
       expect(mockNextResponseJson).toHaveBeenCalledWith({ error: "内部サーバーエラー" }, { status: 500 });
+      expect(consoleErrorSpy).toHaveBeenCalledWith("署名付きURLの生成中にエラーが発生しました", mockError);
+
+      // クリーンアップ
+      consoleErrorSpy.mockRestore();
     });
 
     test("should handle non-Error exceptions", async () => {
@@ -396,6 +410,9 @@ describe("API /api/upload/get-signed-url", () => {
         json: vi.fn().mockResolvedValue(requestBody),
       } as Partial<NextRequest> as NextRequest;
 
+      // console.errorをモック
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+
       // Act
       const response = await POST(mockRequest);
       const responseData = (await response.json()) as ErrorResponse;
@@ -403,6 +420,10 @@ describe("API /api/upload/get-signed-url", () => {
       // Assert
       expect(response.status).toBe(500);
       expect(responseData).toStrictEqual({ error: "内部サーバーエラー" });
+      expect(consoleErrorSpy).toHaveBeenCalledWith("署名付きURLの生成中にエラーが発生しました", mockError);
+
+      // クリーンアップ
+      consoleErrorSpy.mockRestore();
     });
   });
 

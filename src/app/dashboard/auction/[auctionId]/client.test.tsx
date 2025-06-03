@@ -126,7 +126,6 @@ describe("AuctionDetailWrapper", () => {
     test("should render successfully with valid auction data", async () => {
       // Arrange
       const testAuction = createTestAuction();
-      // task名だけを変更
       testAuction.id = "test-auction-id";
       testAuction.task.task = "テストオークション";
 
