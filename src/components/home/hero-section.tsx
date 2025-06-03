@@ -55,6 +55,7 @@ export async function HeroSection() {
               variant="outline"
               size="lg"
               className="w-40 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-700 sm:w-auto sm:min-w-[200px] dark:border-blue-800 dark:bg-gray-950 dark:text-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-200"
+              asChild
             >
               <Link href="/dashboard/group-list">利用する</Link>
             </Button>
