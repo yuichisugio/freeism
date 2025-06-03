@@ -117,10 +117,14 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }));
 
 // IntersectionObserver のモック
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+global.IntersectionObserver = vi.fn().mockImplementation((_callback) => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
+  root: null,
+  rootMargin: "",
+  thresholds: [],
+  takeRecords: vi.fn(() => []),
 }));
 
 // テスト実行時間の監視

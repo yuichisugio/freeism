@@ -1,6 +1,5 @@
 "use cache";
 
-import { memo } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -9,7 +8,7 @@ import { unstable_cacheLife as cacheLife } from "next/cache";
  * 説明セクションコンポーネント
  * Googleドキュメントを埋め込んで詳細な説明を表示
  */
-export const DescriptionSection = memo(async function DescriptionSection() {
+export async function DescriptionSection() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -42,4 +41,4 @@ export const DescriptionSection = memo(async function DescriptionSection() {
       </div>
     </section>
   );
-});
+}

@@ -358,7 +358,7 @@ export const ReviewPagination = memo(function ReviewPagination({ currentPage, to
 /**
  * 編集可能なレビューカードコンポーネント
  */
-const EditableReviewCard = memo(function EditableReviewCard({
+export const EditableReviewCard = memo(function EditableReviewCard({
   review,
   onToggleEdit,
   onUpdateReview,
@@ -520,7 +520,7 @@ const EditableReviewCard = memo(function EditableReviewCard({
 /**
  * 個別レビューを表示するカードコンポーネント
  */
-const ReviewCard = memo(function ReviewCard({ review, showReviewer = false }: { review: ReviewData; showReviewer?: boolean }) {
+export const ReviewCard = memo(function ReviewCard({ review, showReviewer = false }: { review: ReviewData; showReviewer?: boolean }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

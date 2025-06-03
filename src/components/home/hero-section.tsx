@@ -1,6 +1,5 @@
 "use cache";
 
-import { memo } from "react";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { Button } from "@/components/ui/button";
  * ヒーローセクション
  * @returns ヒーローセクション
  */
-export const HeroSection = memo(async function HeroSection() {
+export async function HeroSection() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -64,4 +63,4 @@ export const HeroSection = memo(async function HeroSection() {
       </div>
     </section>
   );
-});
+}
