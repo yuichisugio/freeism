@@ -1,6 +1,6 @@
 import React from "react";
 import * as useBidActionsModule from "@/hooks/auction/bid/use-bid-actions";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -155,16 +155,52 @@ describe("BidForm", () => {
   describe("入力フィールド", () => {
     test("should allow manual input of bid amount", async () => {
       // Arrange
+      render(<BidForm {...defaultProps} />);
+
+      // Act
+      const bidInput = screen.getByRole("spinbutton");
+      fireEvent.change(bidInput, { target: { value: "150" } });
+
+      // Assert
+      expect(bidInput).toHaveValue(150);
+    });
+
+    test("should have correct minimum attribute", () => {
+      // Arrange
+      render(<BidForm {...defaultProps} />);
+
+      // Act
+      const bidInput = screen.getByRole("spinbutton");
+
+      // Assert
+      expect(bidInput).toHaveAttribute("min", "101");
+    });
+
+    test("should handle increment button correctly", async () => {
+      // Arrange
       const user = userEvent.setup();
       render(<BidForm {...defaultProps} />);
 
       // Act
-      const bidInput = screen.getByDisplayValue("101");
-      await user.clear(bidInput);
-      await user.type(bidInput, "150");
+      const incrementButton = document.querySelector("#increment-bid");
+      if (incrementButton) {
+        await user.click(incrementButton);
+      }
 
       // Assert
-      expect(screen.getByDisplayValue("150")).toBeInTheDocument();
+      const bidInput = screen.getByRole("spinbutton");
+      expect(bidInput).toHaveValue(102); // 101 + 1
+    });
+
+    test("should handle decrement button being disabled at minimum value", () => {
+      // Arrange
+      render(<BidForm {...defaultProps} />);
+
+      // Act
+      const decrementButton = document.querySelector("#decrement-bid");
+
+      // Assert
+      expect(decrementButton).toBeDisabled(); // 最小値なので無効化されているべき
     });
   });
 });

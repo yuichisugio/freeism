@@ -304,7 +304,7 @@ describe("AutoBidForm", () => {
 
       // Assert
       const maxBidInput = screen.getByLabelText("最大入札額");
-      expect(maxBidInput).toBe("101"); // currentHighestBid + 1
+      expect(maxBidInput).toHaveAttribute("value", "101"); // currentHighestBid + 1
     });
 
     test("should set correct min value for bid increment input", () => {

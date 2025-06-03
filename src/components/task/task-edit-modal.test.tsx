@@ -276,6 +276,7 @@ describe("TaskEditModal", () => {
         <AllTheProviders>
           <TaskEditModal {...props} />
         </AllTheProviders>,
+        { container: document.body.appendChild(container) },
       );
 
       // Assert
@@ -424,7 +425,7 @@ describe("TaskEditModal", () => {
 
       // Assert
       expect(screen.getByText("選択された実行者:")).toBeInTheDocument();
-      expect(screen.getAllByText("削除")).toHaveLength(4); // 実行者2つ + 報告者2つ（デフォルトで空配列なので実際は2つ）
+      expect(screen.getAllByText("削除")).toHaveLength(2); // 実行者2つ分の削除ボタン
     });
 
     test("should render reporters list when reporters exist", () => {
@@ -476,7 +477,7 @@ describe("TaskEditModal", () => {
       );
 
       // Assert
-      expect(screen.getByText("登録済みユーザーから選択...")).toBeInTheDocument();
+      expect(screen.getAllByText("登録済みユーザーから選択...")).toHaveLength(2); // 実行者と報告者の両方
     });
 
     test("should render no users message when users array is empty", () => {
