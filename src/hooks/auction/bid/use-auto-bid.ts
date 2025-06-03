@@ -25,7 +25,7 @@ type AutoBidSettings = {
 /**
  * 自動入札のカスタムフックの型
  */
-type UseAutoBidReturn = {
+export type UseAutoBidReturn = {
   // state
   autoBidSettings: AutoBidSettings | null;
   loading: boolean;

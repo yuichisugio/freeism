@@ -24,6 +24,7 @@
     "unused:fix": "ts-prune --project tsconfig.json --write",
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\" && prisma format",
+    "format:add": "git diff --cached --name-only | grep -E '\\.(js|jsx|ts|tsx|json|css|scss|md)$' | xargs npx prettier --write",
     "prepare": "husky",
     "commit": "git-cz",
     "postinstall": "prisma generate",
