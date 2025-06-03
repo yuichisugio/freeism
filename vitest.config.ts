@@ -62,6 +62,7 @@ export default defineConfig({
         "src/lib/constants.ts",
         "src/types/**/*",
         "src/components/ui/**/*",
+        "src/app/dashboard/**/*",
       ],
       // カバレッジ目標値（test.mdの要件に基づく）
       thresholds: {
