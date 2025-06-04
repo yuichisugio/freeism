@@ -56,7 +56,7 @@ export async function sendEmailNotification(params: NotificationParams): Promise
 
   console.log("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", isEmailNotificationEnabled);
 
-  if (isEmailNotificationEnabled.length === 0) {
+  if (isEmailNotificationEnabled.length === 0 || !isEmailNotificationEnabled.some((u) => u.isEmailEnabled)) {
     return { success: true, message: "メール通知設定が見つかりません" };
   }
 
