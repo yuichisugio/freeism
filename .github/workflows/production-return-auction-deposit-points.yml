@@ -2,8 +2,8 @@ name: ポイント返還_本番環境
 
 on:
   # 毎日JST 00:00（UTC 15:00）に実行
-  # schedule:
-  #   - cron: "0 15 * * *"
+  schedule:
+    - cron: "0 15 * * *"
 
   # 手動実行用のトリガー
   workflow_dispatch:

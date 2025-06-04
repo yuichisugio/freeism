@@ -2,8 +2,8 @@ name: オークションステータスをACTIVE/PENDINGからENDEDに更新_本
 
 on:
   # 毎日JST 00:00（UTC 15:00）に実行
-  # schedule:
-  #   - cron: "0 15 * * *"
+  schedule:
+    - cron: "0 15 * * *"
 
   # 手動実行用トリガー
   workflow_dispatch:

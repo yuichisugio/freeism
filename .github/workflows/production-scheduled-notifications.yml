@@ -2,8 +2,8 @@ name: 予約送信通知処理_本番環境
 
 on:
   # 日本時間の毎日01:00に実行 (UTC 16:00)
-  # schedule:
-  #   - cron: "0 16 * * *"
+  schedule:
+    - cron: "0 16 * * *"
   workflow_dispatch: # 手動実行用トリガー
 
 jobs:
