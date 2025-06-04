@@ -59,6 +59,7 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     emailNotificationSettings,
   );
 
+  if (isEmailNotificationEnabled.length === 0 || !isEmailNotificationEnabled.some((u) => u.isEmailEnabled)) {
   // メール通知が有効なユーザーのみ抽出
   const enabledEmailSettings = emailNotificationSettings.filter(
     (setting) => setting.isEmailEnabled,

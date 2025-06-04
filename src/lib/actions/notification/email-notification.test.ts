@@ -597,8 +597,10 @@ describe("sendEmailNotification", () => {
       const result = await sendEmailNotification(allDisabledParams);
 
       // 結果を検証
-      expect(result.success).toBe(true);
-      expect(result.message).toBe("メール通知設定が見つかりません");
+      expect(result).toStrictEqual({
+        success: true,
+        message: "メール通知設定が見つかりません",
+      });
     });
 
     test("should handle partial user settings found", async () => {
