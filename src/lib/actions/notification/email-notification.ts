@@ -45,7 +45,7 @@ export async function sendEmailNotification(params: NotificationParams): Promise
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 受信者のメール通知設定を取得
-  const isEmailNotificationEnabled = await prisma.userSettings.findMany({
+  const emailNotificationSettings = await prisma.userSettings.findMany({
     where: {
       userId: { in: params.recipientUserIds },
     },
@@ -54,9 +54,17 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     },
   });
 
-  console.log("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", isEmailNotificationEnabled);
+  console.log(
+    "email-notification.ts_sendEmailNotification_isEmailNotificationEnabled",
+    emailNotificationSettings,
+  );
 
-  if (isEmailNotificationEnabled.length === 0) {
+  // メール通知が有効なユーザーのみ抽出
+  const enabledEmailSettings = emailNotificationSettings.filter(
+    (setting) => setting.isEmailEnabled,
+  );
+
+  if (enabledEmailSettings.length === 0) {
     return { success: true, message: "メール通知設定が見つかりません" };
   }
 
