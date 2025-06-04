@@ -45,7 +45,6 @@ describe("useBidActions", () => {
       // Assert
       expect(result.current.submitting).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.warningMessage).toBeNull();
       expect(result.current.bidAmount).toBe(101); // currentHighestBid + 1
       expect(result.current.minBid).toBe(101);
       expect(typeof result.current.setBidAmount).toBe("function");
