@@ -54,16 +54,14 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     },
   });
 
-  console.log(
-    "email-notification.ts_sendEmailNotification_isEmailNotificationEnabled",
-    emailNotificationSettings,
-  );
+  console.log("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", emailNotificationSettings);
 
-  if (isEmailNotificationEnabled.length === 0 || !isEmailNotificationEnabled.some((u) => u.isEmailEnabled)) {
+  if (emailNotificationSettings.length === 0 || !emailNotificationSettings.some((u) => u.isEmailEnabled)) {
+    return { success: true, message: "メール通知設定が見つかりません" };
+  }
+
   // メール通知が有効なユーザーのみ抽出
-  const enabledEmailSettings = emailNotificationSettings.filter(
-    (setting) => setting.isEmailEnabled,
-  );
+  const enabledEmailSettings = emailNotificationSettings.filter((setting) => setting.isEmailEnabled);
 
   if (enabledEmailSettings.length === 0) {
     return { success: true, message: "メール通知設定が見つかりません" };

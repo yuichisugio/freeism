@@ -303,7 +303,8 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
               auction.task.status === TaskStatus.TASK_COMPLETED ||
               auction.task.status === TaskStatus.FIXED_EVALUATED ||
               auction.task.status === TaskStatus.POINTS_AWARDED ||
-              auction.task.status === TaskStatus.POINTS_DEPOSITED
+              auction.task.status === TaskStatus.POINTS_DEPOSITED ||
+              auction.task.status === TaskStatus.ARCHIVED
             }
           />
         </TabsContent>
@@ -319,7 +320,8 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
               auction.task.status === TaskStatus.TASK_COMPLETED ||
               auction.task.status === TaskStatus.FIXED_EVALUATED ||
               auction.task.status === TaskStatus.POINTS_AWARDED ||
-              auction.task.status === TaskStatus.POINTS_DEPOSITED
+              auction.task.status === TaskStatus.POINTS_DEPOSITED ||
+              auction.task.status === TaskStatus.ARCHIVED
             }
           />
         </TabsContent>

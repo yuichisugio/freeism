@@ -190,7 +190,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
    * エラー状態の表示
    */
   if (error) {
-    return <Error error={error} />;
+    return <Error error={error} previousPageURL={`/dashboard/auction/`} />;
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -354,7 +354,8 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
                     auction.status === TaskStatus.POINTS_DEPOSITED ||
                     auction.status === TaskStatus.TASK_COMPLETED ||
                     auction.status === TaskStatus.FIXED_EVALUATED ||
-                    auction.status === TaskStatus.POINTS_AWARDED
+                    auction.status === TaskStatus.POINTS_AWARDED ||
+                    auction.status === TaskStatus.ARCHIVED
                   }
                   auctionEndDate={auction.endTime}
                 />
