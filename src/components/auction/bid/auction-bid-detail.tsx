@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import Image from "next/image";
 import { TaskRoleBadge, TaskStatusBadge } from "@/components/auction/common/status-badge";
 import { Error } from "@/components/share/share-error";
@@ -234,21 +234,38 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
 
             {/* タスクに関わる全ユーザーの表示 */}
             <div className="space-y-3">
-              {usersWithRoles.map((userWithRole) => (
-                <div key={userWithRole.id} className="flex items-center gap-3">
-                  <div className="bg-primary/10 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-                    {userWithRole.image ? (
-                      <Image src={userWithRole.image} alt={userWithRole.username} width={32} height={32} className="object-cover" />
-                    ) : (
-                      <User size={16} className="text-primary" />
-                    )}
+              {usersWithRoles.map((userWithRole) => {
+                const UserAvatar = () => {
+                  const [imageError, setImageError] = useState(false);
+
+                  return (
+                    <div className="bg-primary/10 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+                      {userWithRole.image && !imageError ? (
+                        <Image
+                          src={userWithRole.image}
+                          alt={userWithRole.username}
+                          width={32}
+                          height={32}
+                          className="object-cover"
+                          onError={() => setImageError(true)}
+                        />
+                      ) : (
+                        <User size={16} className="text-primary" />
+                      )}
+                    </div>
+                  );
+                };
+
+                return (
+                  <div key={userWithRole.id} className="flex items-center gap-3">
+                    <UserAvatar />
+                    <div className="flex items-center gap-2">
+                      <p className="text-muted-foreground">{userWithRole.username}</p>
+                      <TaskRoleBadge role={userWithRole.roles} />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-muted-foreground">{userWithRole.username}</p>
-                    <TaskRoleBadge role={userWithRole.roles} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

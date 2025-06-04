@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { NoResult } from "@/components/share/share-no-result";
 import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
@@ -27,10 +27,10 @@ LoadingDisplay.displayName = "LoadingDisplay";
 
 /**
  * 動的インポートされたコンポーネント
+ * Hydrationエラーを回避するため、loadingプロパティは使用せずSuspenseで包む
  */
 const AuctionDetailClient = dynamic(() => import("@/components/auction/bid/auction-bid-detail").then((mod) => ({ default: mod.AuctionBidDetail })), {
   ssr: false,
-  loading: () => <LoadingDisplay />,
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -80,5 +80,9 @@ export default function AuctionDetailWrapper({ auctionId }: { auctionId: string 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return <AuctionDetailClient initialAuction={initialAuction} />;
+  return (
+    <Suspense fallback={<LoadingDisplay />}>
+      <AuctionDetailClient initialAuction={initialAuction} />
+    </Suspense>
+  );
 }

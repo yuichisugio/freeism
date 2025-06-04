@@ -47,6 +47,7 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
         };
       }),
     };
+    console.log("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_updatedAuction", updatedAuction);
     return updatedAuction;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -2,6 +2,7 @@
 
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import Link from "next/link";
+import { NavigationButton } from "@/components/home/navigation-button";
 import { Button } from "@/components/ui/button";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -51,14 +52,14 @@ export async function HeroSection() {
                 詳細
               </Link>
             </Button>
-            <Button
+            <NavigationButton
+              href="/dashboard/group-list"
               variant="outline"
               size="lg"
               className="w-40 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-700 sm:w-auto sm:min-w-[200px] dark:border-blue-800 dark:bg-gray-950 dark:text-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-200"
-              asChild
             >
-              <Link href="/dashboard/group-list">利用する</Link>
-            </Button>
+              利用する
+            </NavigationButton>
           </div>
         </div>
       </div>

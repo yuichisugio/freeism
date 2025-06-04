@@ -36,6 +36,39 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      // cdn.jsdelivr.net を許可する設定を追加
+      {
+        protocol: "https",
+        hostname: "cdn.jsdelivr.net",
+        port: "",
+        pathname: "/**",
+      },
+      // Google Photos（Googleアカウントのプロフィール画像）を許可する設定を追加
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      // 他のGoogleドメインも追加（必要に応じて）
+      {
+        protocol: "https",
+        hostname: "lh4.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh5.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh6.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   async headers() {
