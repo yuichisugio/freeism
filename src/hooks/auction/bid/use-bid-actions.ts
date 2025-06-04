@@ -13,10 +13,9 @@ import { toast } from "sonner";
  */
 type UseBidActionsResult = {
   submitting: boolean;
-  error: string | null;
-  warningMessage: string | null;
   bidAmount: number;
   minBid: number;
+  error: string | null;
   setBidAmount: React.Dispatch<React.SetStateAction<number>>;
   incrementBid: () => void;
   decrementBid: () => void;
@@ -60,11 +59,6 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
   // 最低入札額は現在価格の1ポイント増し
   const [minBid] = useState(currentHighestBid + 1);
 
-  // エラーメッセージ
-  const [error, setError] = useState<string | null>(null);
-  // 警告メッセージ
-  const [warningMessage, setWarningMessage] = useState<string | null>(null);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -74,11 +68,9 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
     mutateAsync: placeBidMutation,
     isPending: submitting,
     reset: resetMutation,
+    error,
   } = useMutation<BidResponse, Error, BidRequest>({
     onMutate: () => {
-      // エラーと警告メッセージをリセット
-      setError(null);
-      setWarningMessage(null);
       resetMutation();
     },
     mutationFn: async (bidRequest: BidRequest) => {
@@ -107,28 +99,31 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
         exact: false,
       });
 
+      // 入札履歴関連のクエリも無効化
       void queryClient.invalidateQueries({
         queryKey: queryCacheKeys.auction.history(),
         exact: false,
       });
 
+      // 入札関連のクエリも無効化
+      void queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.auction.bid(auctionId),
+        exact: false,
+      });
+
       // 警告メッセージがある場合は設定、そうでなければ成功メッセージ
       if (data.message) {
-        setWarningMessage(data.message);
         toast.warning(data.message);
       } else {
         toast.success("入札が完了しました");
       }
 
-      setError(null);
       // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
       setBidAmount(bidAmount + 1);
     },
     onError: (error: Error) => {
       console.error("useBidActions_placeBidMutation_入札サーバーアクション呼び出しエラー:", error);
-      setError(error.message || "入札処理中にエラーが発生しました");
       toast.error(error.message || "入札処理中にエラーが発生しました");
-      setWarningMessage(null);
     },
   });
 
@@ -168,10 +163,9 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
 
   return {
     submitting,
-    error,
-    warningMessage,
     bidAmount,
     minBid,
+    error: error?.message ?? null,
     setBidAmount,
     incrementBid,
     decrementBid,

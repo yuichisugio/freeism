@@ -56,6 +56,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initi
             </TableRow>
           </TableHeader>
           <TableBody>
+            {/* SSEで更新されたbidHistoriesを新しい順に表示（配列の先頭が最新） */}
             {initialBids.map((bid, index) => (
               <motion.tr
                 key={bid.id}
