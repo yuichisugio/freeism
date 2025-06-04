@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { executeBid } from "@/lib/auction/action/bid-common";
-import { type BidFormData } from "@/types/auction-types";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -14,20 +15,51 @@ type UseBidActionsResult = {
   submitting: boolean;
   error: string | null;
   warningMessage: string | null;
-  clientPlaceBid: (bidData: BidFormData, onBiddingStatusChange: (isBidding: boolean) => void) => Promise<boolean>;
+  bidAmount: number;
+  minBid: number;
+  setBidAmount: React.Dispatch<React.SetStateAction<number>>;
+  incrementBid: () => void;
+  decrementBid: () => void;
+  onSubmit: (bidRequest: BidRequest) => Promise<BidResponse>;
+};
+
+/**
+ * 入札リクエストの型
+ */
+type BidRequest = {
+  auctionId: string;
+  amount: number;
+  isAutoBid: boolean;
+};
+
+/**
+ * 入札レスポンスの型
+ */
+type BidResponse = {
+  success: boolean;
+  message: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * 入札操作用カスタムフック
+ * @param auctionId オークションID
+ * @param currentHighestBid 現在の最高入札額
  * @returns {UseBidActionsResult} 入札操作用の関数群
  */
-export function useBidActions(): UseBidActionsResult {
+export function useBidActions(auctionId: string, currentHighestBid: number): UseBidActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札中フラグ
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  // TanStack Query クライアント
+  const queryClient = useQueryClient();
+
+  // 入札額を管理するuseState
+  const [bidAmount, setBidAmount] = useState(currentHighestBid + 1);
+
+  // 最低入札額は現在価格の1ポイント増し
+  const [minBid] = useState(currentHighestBid + 1);
+
   // エラーメッセージ
   const [error, setError] = useState<string | null>(null);
   // 警告メッセージ
@@ -36,79 +68,101 @@ export function useBidActions(): UseBidActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 入札を実行
-   * @param {BidFormData} bidData 入札データ
-   * @param {Function} onBiddingStatusChange 入札状態変更時のコールバック（オプション）
-   * @returns {boolean} 入札成功時true, 失敗時false
+   * TanStack Query v5 の useMutation を使用した入札処理
    */
-  const clientPlaceBid = useCallback(async (bidData: BidFormData, onBiddingStatusChange: (isBidding: boolean) => void) => {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    setSubmitting(true);
-    setError(null);
-    setWarningMessage(null);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 外部コールバックがあれば入札開始を通知
-    if (onBiddingStatusChange) {
-      onBiddingStatusChange(true);
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    try {
-      console.log("useBidActions_clientPlaceBid_入札サーバーアクション実行", bidData);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // bidData.auctionIdがない場合、エラーを投げる
-      if (!bidData.auctionId) {
-        throw new Error("オークションIDが指定されていません");
+  const {
+    mutateAsync: placeBidMutation,
+    isPending: submitting,
+    reset: resetMutation,
+  } = useMutation<BidResponse, Error, BidRequest>({
+    onMutate: () => {
+      // エラーと警告メッセージをリセット
+      setError(null);
+      setWarningMessage(null);
+      resetMutation();
+    },
+    mutationFn: async (bidRequest: BidRequest) => {
+      console.log("useBidActions_placeBidMutation_入札サーバーアクション実行", bidRequest);
+      if (bidAmount < minBid) {
+        toast.error("入札額が最低入札額未満です");
+        return {
+          success: false,
+          message: "入札額が最低入札額未満です",
+        };
       }
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // サーバーアクションを呼び出し
-      const result = await executeBid(bidData.auctionId, bidData.amount, bidData.isAutoBid ?? false);
-
+      const result = await executeBid(bidRequest.auctionId, bidRequest.amount, bidRequest.isAutoBid);
       if (!result.success) {
-        setError(result.message ?? "入札に失敗しました");
-        toast.error(result.message ?? "入札に失敗しました");
-        return false;
+        throw new Error(result.message ?? "入札に失敗しました");
       }
 
-      // 成功時
-      console.log("useBidActions_clientPlaceBid_入札サーバーアクション成功レスポンス", result);
+      return result;
+    },
+    onSuccess: (data: BidResponse) => {
+      console.log("useBidActions_placeBidMutation_入札サーバーアクション成功レスポンス", data);
 
-      // 警告メッセージがある場合は設定
-      if (result.message) {
-        setWarningMessage(result.message);
-        toast.warning(result.message);
+      // 関連するキャッシュを無効化
+      void queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.auction.detail(auctionId),
+        exact: false,
+      });
+
+      void queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.auction.history(),
+        exact: false,
+      });
+
+      // 警告メッセージがある場合は設定、そうでなければ成功メッセージ
+      if (data.message) {
+        setWarningMessage(data.message);
+        toast.warning(data.message);
       } else {
-        toast.success(result.message);
+        toast.success("入札が完了しました");
       }
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      setError(null);
+      // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
+      setBidAmount(bidAmount + 1);
+    },
+    onError: (error: Error) => {
+      console.error("useBidActions_placeBidMutation_入札サーバーアクション呼び出しエラー:", error);
+      setError(error.message || "入札処理中にエラーが発生しました");
+      toast.error(error.message || "入札処理中にエラーが発生しました");
+      setWarningMessage(null);
+    },
+  });
 
-      return true;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    } catch (err) {
-      console.error("useBidActions_clientPlaceBid_入札サーバーアクション呼び出しエラー:", err);
-      setError("useBidActions_clientPlaceBid_入札処理中にエラーが発生しました");
-      toast.error("useBidActions_clientPlaceBid_入札処理中にエラーが発生しました");
-      return false;
-    } finally {
-      setSubmitting(false);
-
-      // 外部コールバックがあれば入札終了を通知
-      if (onBiddingStatusChange) {
-        onBiddingStatusChange(false);
-      }
-
-      console.log("useBidActions_clientPlaceBid_入札処理完了");
+  /**
+   * 現在の最高入札額が変更された場合、入札額を更新
+   */
+  useEffect(() => {
+    // 最低入札額は現在価格の1ポイント増し。現在の入札額が、他社が入札して更新された額より小さい場合は1ポイント増し
+    if (currentHighestBid >= bidAmount) {
+      setBidAmount(currentHighestBid + 1);
     }
+  }, [currentHighestBid, bidAmount]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 入札額をインクリメント
+   */
+  const incrementBid = useCallback(() => {
+    setBidAmount((prev: number) => prev + 1);
   }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 入札額をデクリメント（最小入札額未満にはならないように）
+   */
+  const decrementBid = useCallback(() => {
+    if (bidAmount > minBid) {
+      setBidAmount((prev: number) => prev - 1);
+    }
+  }, [bidAmount, minBid]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -116,6 +170,11 @@ export function useBidActions(): UseBidActionsResult {
     submitting,
     error,
     warningMessage,
-    clientPlaceBid,
+    bidAmount,
+    minBid,
+    setBidAmount,
+    incrementBid,
+    decrementBid,
+    onSubmit: placeBidMutation,
   };
 }

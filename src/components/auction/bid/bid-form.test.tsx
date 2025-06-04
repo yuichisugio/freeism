@@ -7,7 +7,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { BidForm } from "./bid-form";
 
 // モックの設定
-const mockClientPlaceBid = vi.fn();
+const mockOnSubmit = vi.fn();
+const mockSetBidAmount = vi.fn();
+const mockIncrementBid = vi.fn();
+const mockDecrementBid = vi.fn();
 
 vi.mock("@/hooks/auction/bid/use-bid-actions");
 
@@ -47,10 +50,15 @@ describe("BidForm", () => {
 
     // useBidActionsのモックを設定
     vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
-      clientPlaceBid: mockClientPlaceBid,
       submitting: false,
       error: null,
       warningMessage: null,
+      bidAmount: 101,
+      minBid: 101,
+      setBidAmount: mockSetBidAmount,
+      incrementBid: mockIncrementBid,
+      decrementBid: mockDecrementBid,
+      onSubmit: mockOnSubmit,
     });
   });
 
@@ -83,16 +91,29 @@ describe("BidForm", () => {
       // Assert
       expect(screen.getByTestId("auto-bid-form")).toHaveTextContent("AutoBidForm - auction-456 - 100");
     });
+
+    test("should call useBidActions with correct parameters", () => {
+      // Act
+      render(<BidForm {...defaultProps} />);
+
+      // Assert
+      expect(useBidActionsModule.useBidActions).toHaveBeenCalledWith("auction-456", 100);
+    });
   });
 
   describe("エラー表示", () => {
     test("should display error message when error exists", () => {
       // Arrange
       vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
-        clientPlaceBid: mockClientPlaceBid,
         submitting: false,
         error: "入札に失敗しました",
         warningMessage: null,
+        bidAmount: 101,
+        minBid: 101,
+        setBidAmount: mockSetBidAmount,
+        incrementBid: mockIncrementBid,
+        decrementBid: mockDecrementBid,
+        onSubmit: mockOnSubmit,
       });
 
       // Act
@@ -115,10 +136,15 @@ describe("BidForm", () => {
     test("should disable submit button when submitting", () => {
       // Arrange
       vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
-        clientPlaceBid: mockClientPlaceBid,
         submitting: true,
         error: null,
         warningMessage: null,
+        bidAmount: 101,
+        minBid: 101,
+        setBidAmount: mockSetBidAmount,
+        incrementBid: mockIncrementBid,
+        decrementBid: mockDecrementBid,
+        onSubmit: mockOnSubmit,
       });
 
       // Act
@@ -139,21 +165,8 @@ describe("BidForm", () => {
     });
   });
 
-  describe("プロップスの変化に対する反応", () => {
-    test("should update bid amount when currentHighestBid changes", () => {
-      // Arrange
-      const { rerender } = render(<BidForm {...defaultProps} />);
-
-      // Act - プロップスを変更
-      rerender(<BidForm {...defaultProps} currentHighestBid={200} />);
-
-      // Assert - 新しい最低額に更新される
-      expect(screen.getByDisplayValue("201")).toBeInTheDocument();
-    });
-  });
-
   describe("入力フィールド", () => {
-    test("should allow manual input of bid amount", async () => {
+    test("should call setBidAmount when input value changes", async () => {
       // Arrange
       render(<BidForm {...defaultProps} />);
 
@@ -162,7 +175,7 @@ describe("BidForm", () => {
       fireEvent.change(bidInput, { target: { value: "150" } });
 
       // Assert
-      expect(bidInput).toHaveValue(150);
+      expect(mockSetBidAmount).toHaveBeenCalledWith(150);
     });
 
     test("should have correct minimum attribute", () => {
@@ -176,7 +189,7 @@ describe("BidForm", () => {
       expect(bidInput).toHaveAttribute("min", "101");
     });
 
-    test("should handle increment button correctly", async () => {
+    test("should call incrementBid when increment button is clicked", async () => {
       // Arrange
       const user = userEvent.setup();
       render(<BidForm {...defaultProps} />);
@@ -188,11 +201,39 @@ describe("BidForm", () => {
       }
 
       // Assert
-      const bidInput = screen.getByRole("spinbutton");
-      expect(bidInput).toHaveValue(102); // 101 + 1
+      expect(mockIncrementBid).toHaveBeenCalledTimes(1);
     });
 
-    test("should handle decrement button being disabled at minimum value", () => {
+    test("should call decrementBid when decrement button is clicked and not disabled", async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // bidAmountがminBidより大きい場合のモック
+      vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
+        submitting: false,
+        error: null,
+        warningMessage: null,
+        bidAmount: 102, // minBidより大きい
+        minBid: 101,
+        setBidAmount: mockSetBidAmount,
+        incrementBid: mockIncrementBid,
+        decrementBid: mockDecrementBid,
+        onSubmit: mockOnSubmit,
+      });
+
+      render(<BidForm {...defaultProps} />);
+
+      // Act
+      const decrementButton = document.querySelector("#decrement-bid");
+      if (decrementButton) {
+        await user.click(decrementButton);
+      }
+
+      // Assert
+      expect(mockDecrementBid).toHaveBeenCalledTimes(1);
+    });
+
+    test("should disable decrement button when bidAmount equals minBid", () => {
       // Arrange
       render(<BidForm {...defaultProps} />);
 
@@ -200,7 +241,47 @@ describe("BidForm", () => {
       const decrementButton = document.querySelector("#decrement-bid");
 
       // Assert
-      expect(decrementButton).toBeDisabled(); // 最小値なので無効化されているべき
+      expect(decrementButton).toBeDisabled(); // bidAmount === minBidなので無効化されているべき
+    });
+  });
+
+  describe("フォームサブミット", () => {
+    test("should call onSubmit when form is submitted", async () => {
+      // Arrange
+      const user = userEvent.setup();
+      render(<BidForm {...defaultProps} />);
+
+      // Act
+      const form = screen.getByRole("button", { name: /入札する/ }).closest("form");
+      if (form) {
+        await user.click(screen.getByRole("button", { name: /入札する/ }));
+      }
+
+      // Assert
+      expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    test("should disable submit button when bidAmount is less than minBid", () => {
+      // Arrange
+      vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
+        submitting: false,
+        error: null,
+        warningMessage: null,
+        bidAmount: 100, // minBidより小さい
+        minBid: 101,
+        setBidAmount: mockSetBidAmount,
+        incrementBid: mockIncrementBid,
+        decrementBid: mockDecrementBid,
+        onSubmit: mockOnSubmit,
+      });
+
+      render(<BidForm {...defaultProps} />);
+
+      // Act
+      const submitButton = screen.getByRole("button", { name: /入札する/ });
+
+      // Assert
+      expect(submitButton).toBeDisabled();
     });
   });
 });

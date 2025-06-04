@@ -54,6 +54,7 @@ export const queryCacheKeys = {
     detail: (auctionId: string) => [...queryCacheKeys.auction._root, "detail", auctionId] as const,
     autoBid: (auctionId: string, userId: string, currentHighestBid: number) =>
       [...queryCacheKeys.auction._root, "autoBid", auctionId, userId, currentHighestBid] as const,
+    bid: (auctionId: string) => [...queryCacheKeys.auction._root, "bid", auctionId] as const,
     history: () => [...queryCacheKeys.auction._root, "history"] as const,
     historyBids: (userId: string, page: number, itemPerPage: number) =>
       [...queryCacheKeys.auction.history(), "bids", userId, page, itemPerPage] as const,

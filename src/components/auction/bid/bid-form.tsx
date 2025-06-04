@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,9 @@ import { AutoBidForm } from "./auto-bid-form";
 
 /**
  * 入札フォーム
- * @param auction オークション
- * @param onCancel キャンセルボタンのクリックハンドラ
+ * @param currentHighestBid 現在の最高入札額
+ * @param currentHighestBidderId 現在の最高入札者ID
+ * @param auctionId オークションID
  * @returns 入札フォーム
  */
 export const BidForm = memo(function BidForm({
@@ -31,79 +32,8 @@ export const BidForm = memo(function BidForm({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 入札額を管理するuseState
-  const [bidAmount, setBidAmount] = useState(currentHighestBid + 1);
-
-  // 最低入札額は現在価格の1ポイント増し
-  const [minBid] = useState(currentHighestBid + 1);
-
-  // 入札フォームのサブミットハンドラ
-  const { clientPlaceBid, submitting, error } = useBidActions();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 現在の最高入札額が変更された場合、入札額を更新
-   */
-  useEffect(() => {
-    // 最低入札額は現在価格の1ポイント増し。現在の入札額が、他社が入札して更新された額より小さい場合は1ポイント増し
-    if (currentHighestBid >= bidAmount) {
-      setBidAmount(currentHighestBid + 1);
-    }
-  }, [currentHighestBid, bidAmount]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 入札フォームのサブミットハンドラ
-  const onSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      if (bidAmount < minBid) {
-        return;
-      }
-
-      try {
-        // 入札を実行（入札状態変更のコールバックを渡す）
-        await clientPlaceBid(
-          {
-            auctionId: auctionId,
-            amount: bidAmount,
-            isAutoBid: false,
-          },
-          (isBidding) => {
-            console.log("入札状態変更:", isBidding);
-          },
-        );
-
-        // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
-        setBidAmount(bidAmount + 1);
-      } catch (error) {
-        console.error("Bid failed:", error);
-      }
-    },
-    [auctionId, bidAmount, clientPlaceBid, minBid],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 入札額をインクリメント
-   */
-  const incrementBid = useCallback(() => {
-    setBidAmount((prev: number) => prev + 1);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 入札額をデクリメント（最小入札額未満にはならないように）
-   */
-  const decrementBid = useCallback(() => {
-    if (bidAmount > minBid) {
-      setBidAmount((prev: number) => prev - 1);
-    }
-  }, [bidAmount, minBid]);
+  // 入札フォームのロジック（use-bid-actionsに移動済み）
+  const { submitting, error, bidAmount, minBid, setBidAmount, incrementBid, decrementBid, onSubmit } = useBidActions(auctionId, currentHighestBid);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -120,7 +50,7 @@ export const BidForm = memo(function BidForm({
         </CardHeader>
 
         {/* 入札フォームのコンテンツ */}
-        <form onSubmit={onSubmit}>
+        <form onSubmit={() => onSubmit({ auctionId, amount: bidAmount, isAutoBid: false })}>
           <CardContent className="pt-4">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
