@@ -21,6 +21,7 @@ import { AlertTriangle, BarChart, Heart, Info, MessageSquare, ShoppingBag, Truck
 
 import { AuctionQA } from "../common/auction-qa";
 import { CountdownDisplay } from "./auction-bid-countdown";
+import { AutoBidForm } from "./auto-bid-form";
 import { BidForm } from "./bid-form";
 import { BidHistory } from "./bid-history";
 
@@ -127,8 +128,11 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
 
         {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
         {!isExecutor && isActive && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <BidForm
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-4">
+            {/* 入札フォーム */}
+            <BidForm currentHighestBid={auction.currentHighestBid} auctionId={auction.id} />
+            {/* 自動入札フォーム */}
+            <AutoBidForm
               currentHighestBid={auction.currentHighestBid}
               currentHighestBidderId={auction.currentHighestBidderId ?? null}
               auctionId={auction.id}
