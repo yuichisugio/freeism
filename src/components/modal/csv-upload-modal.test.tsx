@@ -116,10 +116,11 @@ describe("CsvUploadModal", () => {
    * 基本的なレンダリングテスト
    */
   describe("基本的なレンダリング", () => {
-    test("should render modal when isOpen is true", () => {
+    test("should render modal when isOpen is true", async () => {
       render(<CsvUploadModal {...defaultProps} />);
 
       // モーダルタイトルが表示されることを確認
+      await screen.findByText("CSVファイルのアップロード");
       expect(screen.getByText("CSVファイルのアップロード")).toBeInTheDocument();
       expect(screen.getByText("CSVファイルをアップロードして一括でデータを登録します")).toBeInTheDocument();
     });

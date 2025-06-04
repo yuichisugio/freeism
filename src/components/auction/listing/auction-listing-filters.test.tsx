@@ -451,7 +451,7 @@ describe("AuctionFilters", () => {
       expect(screen.getByText("降順")).toBeInTheDocument();
     });
 
-    test("should call handleSortDirectionToggle when direction button is clicked", () => {
+    test("should call handleSortDirectionToggle when direction button is clicked", async () => {
       // Arrange
       const mockHandleSortDirectionToggle = vi.fn();
       vi.mocked(useAuctionFilters).mockReturnValue(
@@ -464,7 +464,7 @@ describe("AuctionFilters", () => {
       // Act
       render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
 
-      const ascButton = screen.getByText("昇順");
+      const ascButton = await screen.findByText("昇順");
       fireEvent.click(ascButton);
 
       // Assert

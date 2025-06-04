@@ -661,7 +661,7 @@ describe("AuctionQA", () => {
   });
 
   describe("境界値テスト", () => {
-    test("should handle large number of messages correctly", () => {
+    test("should handle large number of messages correctly", async () => {
       // Arrange
       const messages = Array.from({ length: 100 }, (_, index) =>
         createTestMessage({
@@ -690,7 +690,8 @@ describe("AuctionQA", () => {
         </AllTheProviders>,
       );
 
-      // Assert - 最初と最後のメッセージが表示されることを確認
+      // Assert - 最初と最後のメッセージが表示されることを確認（非同期で待機）
+      await screen.findByText("メッセージ0");
       expect(screen.getByText("メッセージ0")).toBeInTheDocument();
       expect(screen.getByText("メッセージ99")).toBeInTheDocument();
     });

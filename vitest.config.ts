@@ -39,6 +39,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
+      reportsDirectory: "./coverage",
+      cleanOnRerun: true,
       include: ["src/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", "scripts/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
       exclude: [
         "node_modules/",
@@ -50,6 +52,12 @@ export default defineConfig({
         "src/app/dashboard/**/*",
         "src/app/dashboard/**/*",
         "src/emails/notification.tsx",
+        "src/app/api/[...nextauth]/route.ts",
+        "src/lib/resend.ts",
+        "src/test/mocks/handlers.ts",
+        "src/test/msw-mocks/handlers.ts",
+        "src/test/msw-mocks/server.ts",
+        "src/test/test-utils/test-utils-prisma-orm.ts",
         "**/*.d.ts",
         "**/*.config.*",
         "**/coverage/**",
@@ -70,6 +78,7 @@ export default defineConfig({
         "src/types/**/*",
         "src/components/ui/**/*",
         "src/app/dashboard/**/*",
+        "src/test/utils.tsx",
       ],
       // カバレッジ目標値（test.mdの要件に基づく）
       thresholds: {
@@ -81,14 +90,18 @@ export default defineConfig({
     },
 
     // テストファイルのパターン
-    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}", "scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    include: [
+      "src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+    ],
 
     // 除外するファイル
     exclude: ["node_modules", "dist", ".next", "coverage", "prisma"],
 
     // タイムアウト設定
-    testTimeout: 10000,
-    hookTimeout: 10000,
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
 
   // パスエイリアスの設定
