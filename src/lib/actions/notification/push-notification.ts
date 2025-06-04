@@ -9,18 +9,6 @@ import type { NotificationParams } from "./email-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// VAPID詳細を設定
-const vapidDetails = {
-  subject: process.env.VAPID_SUBJECT ?? "",
-  publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "",
-  privateKey: process.env.VAPID_PRIVATE_KEY ?? "",
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// プッシュ通知の設定を初期化
-webPush.setVapidDetails(vapidDetails.subject, vapidDetails.publicKey, vapidDetails.privateKey);
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -82,11 +70,19 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // VAPIDキーを取得して設定
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+    const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ?? "";
+    const vapidSubject = process.env.VAPID_SUBJECT ?? "";
+
     // VAPIDキーが設定されていない場合は送信処理を中断
-    if (!vapidDetails.publicKey || !vapidDetails.privateKey) {
+    if (!vapidPublicKey || !vapidPrivateKey) {
       console.error("VAPID keys are not configured. Cannot send push notification.");
       return { success: false, message: "VAPIDキーが設定されていません。" };
     }
+
+    // 毎回最新の環境変数で設定
+    webPush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

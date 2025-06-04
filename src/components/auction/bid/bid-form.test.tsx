@@ -52,7 +52,6 @@ describe("BidForm", () => {
     vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
       submitting: false,
       error: null,
-      warningMessage: null,
       bidAmount: 101,
       minBid: 101,
       setBidAmount: mockSetBidAmount,
@@ -107,7 +106,6 @@ describe("BidForm", () => {
       vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
         submitting: false,
         error: "入札に失敗しました",
-        warningMessage: null,
         bidAmount: 101,
         minBid: 101,
         setBidAmount: mockSetBidAmount,
@@ -138,7 +136,6 @@ describe("BidForm", () => {
       vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
         submitting: true,
         error: null,
-        warningMessage: null,
         bidAmount: 101,
         minBid: 101,
         setBidAmount: mockSetBidAmount,
@@ -212,7 +209,6 @@ describe("BidForm", () => {
       vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
         submitting: false,
         error: null,
-        warningMessage: null,
         bidAmount: 102, // minBidより大きい
         minBid: 101,
         setBidAmount: mockSetBidAmount,
@@ -266,7 +262,6 @@ describe("BidForm", () => {
       vi.mocked(useBidActionsModule.useBidActions).mockReturnValue({
         submitting: false,
         error: null,
-        warningMessage: null,
         bidAmount: 100, // minBidより小さい
         minBid: 101,
         setBidAmount: mockSetBidAmount,

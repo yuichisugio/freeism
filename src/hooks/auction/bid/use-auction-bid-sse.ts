@@ -3,6 +3,8 @@
 import type { AuctionWithDetails } from "@/types/auction-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { AUCTION_CONSTANTS } from "../../../lib/constants";
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -100,12 +102,16 @@ export function useAuctionBidSSE(initialAuction: AuctionWithDetails): UseAuction
         // 今回の新着 bidHistories（今回は単一要素の配列想定）
         const incomingHistories = auctionData.bidHistories ?? [];
 
-        // 末尾を切って、新着を先頭に追加して26個以下に押さえる
-        // prevHistories.slice(0, prevHistories.length - incomingHistories.length)で、古い履歴から incomingHistories.length 分だけ末尾を落とす
-        const maxRetain = prevHistories.length - incomingHistories.length;
-        const retained = maxRetain > 0 ? prevHistories.slice(0, maxRetain) : [];
+        // 新着履歴がない場合は、bidHistories以外だけを更新
+        if (incomingHistories.length === 0) {
+          return {
+            ...prev,
+            ...auctionData,
+            bidHistories: prevHistories,
+          };
+        }
 
-        const newHistories = [...incomingHistories, ...retained];
+        const newHistories = [...incomingHistories, ...prevHistories].slice(0, AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1);
 
         return {
           // bidHistories 以外は全て auctionData で上書き

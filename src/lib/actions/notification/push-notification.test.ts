@@ -334,11 +334,10 @@ describe("sendPushNotification", () => {
       const result = await sendPushNotification(params);
 
       // Assert
-      // 実際のコードでは、環境変数が削除されてもvapidDetailsオブジェクトは初期化時に作成されているため、
-      // catchブロックに入って一般的なエラーメッセージが返される
+      // VAPIDキーが設定されていない場合のエラーメッセージを確認
       expect(result).toStrictEqual({
         success: false,
-        message: "通知の送信に失敗しました",
+        message: "VAPIDキーが設定されていません。",
       });
     });
 

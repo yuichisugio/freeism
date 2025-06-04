@@ -90,7 +90,7 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
    * @returns {boolean} まもなく終了判定
    */
   const isEndingSoon = useMemo(
-    () => isStarted && !isEnded && new Date(auction.end_time).getTime() - now.getTime() < 24 * 60 * 60 * 1000,
+    () => isStarted && !isEnded && new Date(auction.end_time).getTime() - now.getTime() <= 24 * 60 * 60 * 1000,
     [auction.end_time, isStarted, isEnded, now],
   );
 

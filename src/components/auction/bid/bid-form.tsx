@@ -38,7 +38,12 @@ export const BidForm = memo(function BidForm({ currentHighestBid, auctionId }: {
       </CardHeader>
 
       {/* 入札フォームのコンテンツ */}
-      <form onSubmit={() => onSubmit({ auctionId, amount: bidAmount, isAutoBid: false })}>
+      <form
+        onSubmit={async (event) => {
+          event.preventDefault();
+          await onSubmit({ auctionId, amount: bidAmount, isAutoBid: false });
+        }}
+      >
         <CardContent className="pt-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">

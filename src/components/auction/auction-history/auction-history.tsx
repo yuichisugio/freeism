@@ -334,6 +334,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
         </div>
 
         <TabsContent value="bids" forceMount={activeTab === "bids" ? undefined : true} hidden={activeTab !== "bids"}>
+          {/* 入札履歴（重複なしのオークション単位での履歴を表示） */}
           <HistoryGrid items={bidHistoryData} renderItem={renderBidItem} emptyMessage="入札履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
 

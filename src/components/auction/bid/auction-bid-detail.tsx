@@ -93,6 +93,7 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
               <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">入札数</p>
                 <p className="mt-2 text-3xl font-bold text-purple-700">
+                  {/* SSEで更新されたbidHistoriesの長さを表示 */}
                   {auction.bidHistories.length > 25 ? "25+" : (auction.bidHistories.length ?? 0)}
                 </p>
               </div>

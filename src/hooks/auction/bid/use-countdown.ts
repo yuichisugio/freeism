@@ -48,7 +48,7 @@ export function useCountdown(targetDate: Date | string, onExpire: () => void | n
      * 12時間以内は注意状態
      * 30分以内は警告状態
      */
-    const isUrgent = days === 0 && hours < 12;
+    const isUrgent = days === 0 && (hours < 12 || (hours === 12 && minutes === 0));
     const isCritical = days === 0 && hours === 0 && minutes < 30;
 
     return { days, hours, minutes, isExpired: false, isUrgent, isCritical };
