@@ -598,6 +598,7 @@ describe("sendEmailNotification", () => {
 
       // 結果を検証
       expect(result.success).toBe(true);
+      expect(result.message).toBe("メール通知設定が見つかりません");
     });
 
     test("should handle partial user settings found", async () => {
