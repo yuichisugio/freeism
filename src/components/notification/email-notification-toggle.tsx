@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +24,13 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * クライアントサイドでのマウント状態を管理
+   */
+  const [isMounted, setIsMounted] = useState(false);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * メール通知設定の更新
    */
   const queryClient = useQueryClient();
@@ -43,6 +50,22 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * コンポーネントがマウントされた後にクライアントサイドの状態を有効にする
+   */
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 表示する値を決定（Hydrationエラーを防ぐため、マウント前は初期値を使用）
+   */
+  const displayValue = isMounted && variables !== undefined ? variables : isEmailEnabled;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   return (
     <Card>
       <CardHeader>
@@ -51,9 +74,9 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
-          <Switch id="email-notification-toggle" checked={variables ?? isEmailEnabled} onCheckedChange={mutate} disabled={isPending} />
+          <Switch id="email-notification-toggle" checked={displayValue} onCheckedChange={mutate} disabled={isPending} />
           <Label htmlFor="email-notification-toggle">
-            現在：{(variables ?? isEmailEnabled) ? "受信中" : "受信拒否中"}
+            現在：{displayValue ? "受信中" : "受信拒否中"}
             {isPending && " (更新中...)"}
           </Label>
         </div>

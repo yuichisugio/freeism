@@ -1,5 +1,5 @@
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { Providers } from "./providers";
@@ -7,82 +7,86 @@ import { Providers } from "./providers";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // ホイストされたモック関数の作成
-const { mockQueryClient, mockPersistOptions, MockThemeProvider, MockPersistQueryClientProvider, MockPushNotificationProvider, MockNuqsAdapter } =
-  vi.hoisted(() => {
-    const mockQueryClient = {
-      getQueryCache: vi.fn(),
-      getMutationCache: vi.fn(),
-      mount: vi.fn(),
-      unmount: vi.fn(),
-      clear: vi.fn(),
-      getQueryData: vi.fn(),
-      setQueryData: vi.fn(),
-      invalidateQueries: vi.fn(),
-      removeQueries: vi.fn(),
-      cancelQueries: vi.fn(),
-      isFetching: vi.fn(() => 0),
-      isMutating: vi.fn(() => 0),
-      getDefaultOptions: vi.fn(() => ({})),
-      setDefaultOptions: vi.fn(),
-      getQueryDefaults: vi.fn(() => ({})),
-      setQueryDefaults: vi.fn(),
-      getMutationDefaults: vi.fn(() => ({})),
-      setMutationDefaults: vi.fn(),
-    };
+const {
+  mockQueryClient,
+  mockPersistOptions,
+  MockThemeProvider,
+  MockPersistQueryClientProvider,
+  MockNuqsAdapter,
+  MockToaster,
+  MockReactQueryDevtools,
+} = vi.hoisted(() => {
+  const mockQueryClient = {
+    getQueryCache: vi.fn(),
+    getMutationCache: vi.fn(),
+    mount: vi.fn(),
+    unmount: vi.fn(),
+    clear: vi.fn(),
+    getQueryData: vi.fn(),
+    setQueryData: vi.fn(),
+    invalidateQueries: vi.fn(),
+    removeQueries: vi.fn(),
+    cancelQueries: vi.fn(),
+    isFetching: vi.fn(() => 0),
+    isMutating: vi.fn(() => 0),
+    getDefaultOptions: vi.fn(() => ({})),
+    setDefaultOptions: vi.fn(),
+    getQueryDefaults: vi.fn(() => ({})),
+    setQueryDefaults: vi.fn(),
+    getMutationDefaults: vi.fn(() => ({})),
+    setMutationDefaults: vi.fn(),
+  };
 
-    const mockPersistOptions = {
-      persister: {
-        persistClient: vi.fn(),
-        restoreClient: vi.fn(),
-        removeClient: vi.fn(),
-      },
-      maxAge: Infinity,
-      retry: 1,
-      buster: "0",
-    };
+  const mockPersistOptions = {
+    persister: {
+      persistClient: vi.fn(),
+      restoreClient: vi.fn(),
+      removeClient: vi.fn(),
+    },
+    maxAge: Infinity,
+    retry: 1,
+    buster: "0",
+  };
 
-    const MockThemeProvider = vi.fn(({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-      <div data-testid="theme-provider" data-props={JSON.stringify(props)}>
+  const MockThemeProvider = vi.fn(({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+    <div data-testid="theme-provider" data-props={JSON.stringify(props)}>
+      {children}
+    </div>
+  ));
+
+  const MockPersistQueryClientProvider = vi.fn(
+    ({ children, client, persistOptions }: { children: React.ReactNode; client: unknown; persistOptions: unknown }) => (
+      <div
+        data-testid="persist-query-client-provider"
+        data-client={client ? "present" : "missing"}
+        data-persist-options={persistOptions ? "present" : "missing"}
+      >
         {children}
       </div>
-    ));
+    ),
+  );
 
-    const MockPersistQueryClientProvider = vi.fn(
-      ({ children, client, persistOptions }: { children: React.ReactNode; client: unknown; persistOptions: unknown }) => (
-        <div
-          data-testid="persist-query-client-provider"
-          data-client={client ? "present" : "missing"}
-          data-persist-options={persistOptions ? "present" : "missing"}
-        >
-          {children}
-        </div>
-      ),
-    );
+  const MockNuqsAdapter = vi.fn(({ children }: { children: React.ReactNode }) => <div data-testid="nuqs-adapter">{children}</div>);
 
-    const MockPushNotificationProvider = vi.fn(({ children }: { children: React.ReactNode }) => (
-      <div data-testid="push-notification-provider">{children}</div>
-    ));
+  const MockToaster = vi.fn(() => <div data-testid="toaster" />);
 
-    const MockNuqsAdapter = vi.fn(({ children }: { children: React.ReactNode }) => <div data-testid="nuqs-adapter">{children}</div>);
+  const MockReactQueryDevtools = vi.fn(() => <div data-testid="react-query-devtools" />);
 
-    return {
-      mockQueryClient,
-      mockPersistOptions,
-      MockThemeProvider,
-      MockPersistQueryClientProvider,
-      MockPushNotificationProvider,
-      MockNuqsAdapter,
-    };
-  });
+  return {
+    mockQueryClient,
+    mockPersistOptions,
+    MockThemeProvider,
+    MockPersistQueryClientProvider,
+    MockNuqsAdapter,
+    MockToaster,
+    MockReactQueryDevtools,
+  };
+});
 
 // モック設定
 vi.mock("@/lib/tanstack-query", () => ({
   queryClient: mockQueryClient,
   persistOptions: mockPersistOptions,
-}));
-
-vi.mock("./push-notification-provider", () => ({
-  PushNotificationProvider: MockPushNotificationProvider,
 }));
 
 vi.mock("next-themes", () => ({
@@ -97,6 +101,14 @@ vi.mock("nuqs/adapters/next/app", () => ({
   NuqsAdapter: MockNuqsAdapter,
 }));
 
+vi.mock("@/components/ui/sonner", () => ({
+  Toaster: MockToaster,
+}));
+
+vi.mock("@tanstack/react-query-devtools", () => ({
+  ReactQueryDevtools: MockReactQueryDevtools,
+}));
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("Providers", () => {
@@ -105,8 +117,9 @@ describe("Providers", () => {
     // モック関数のリセット
     MockThemeProvider.mockClear();
     MockPersistQueryClientProvider.mockClear();
-    MockPushNotificationProvider.mockClear();
     MockNuqsAdapter.mockClear();
+    MockToaster.mockClear();
+    MockReactQueryDevtools.mockClear();
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -141,10 +154,11 @@ describe("Providers", () => {
 
       // Assert
       // 全てのプロバイダーが存在することを確認
-      expect(screen.getByTestId("theme-provider")).toBeInTheDocument();
-      expect(screen.getByTestId("persist-query-client-provider")).toBeInTheDocument();
-      expect(screen.getByTestId("push-notification-provider")).toBeInTheDocument();
       expect(screen.getByTestId("nuqs-adapter")).toBeInTheDocument();
+      expect(screen.getByTestId("persist-query-client-provider")).toBeInTheDocument();
+      expect(screen.getByTestId("theme-provider")).toBeInTheDocument();
+      expect(screen.getByTestId("toaster")).toBeInTheDocument();
+      expect(screen.getByTestId("react-query-devtools")).toBeInTheDocument();
 
       // 子要素が正しくレンダリングされることを確認
       expect(screen.getByTestId("test-child")).toBeInTheDocument();
@@ -200,189 +214,139 @@ describe("Providers", () => {
       );
 
       // Assert
-      expect(MockThemeProvider).toHaveBeenCalledTimes(1);
-      expect(MockPersistQueryClientProvider).toHaveBeenCalledTimes(1);
-      expect(MockPushNotificationProvider).toHaveBeenCalledTimes(1);
       expect(MockNuqsAdapter).toHaveBeenCalledTimes(1);
+      expect(MockPersistQueryClientProvider).toHaveBeenCalledTimes(1);
+      expect(MockThemeProvider).toHaveBeenCalledTimes(1);
+      expect(MockToaster).toHaveBeenCalledTimes(1);
+      expect(MockReactQueryDevtools).toHaveBeenCalledTimes(1);
+    });
+
+    test("should handle multiple children correctly", () => {
+      // Arrange
+      const child1 = "Child 1";
+      const child2 = "Child 2";
+
+      // Act
+      render(
+        <Providers>
+          <div data-testid="child-1">{child1}</div>
+          <div data-testid="child-2">{child2}</div>
+        </Providers>,
+      );
+
+      // Assert
+      expect(screen.getByTestId("child-1")).toBeInTheDocument();
+      expect(screen.getByTestId("child-2")).toBeInTheDocument();
+      expect(screen.getByText(child1)).toBeInTheDocument();
+      expect(screen.getByText(child2)).toBeInTheDocument();
+    });
+
+    test("should handle empty children", () => {
+      // Act & Assert - エラーが発生しないことを確認
+      expect(() => {
+        render(<Providers>{null}</Providers>);
+      }).not.toThrow();
+    });
+
+    test("should use default queryClient and persistOptions", () => {
+      // Act
+      render(
+        <Providers>
+          <div>Test</div>
+        </Providers>,
+      );
+
+      // Assert
+      const persistProviderCall = MockPersistQueryClientProvider.mock.calls[0];
+      const props = persistProviderCall[0];
+
+      expect(props.client).toBe(mockQueryClient);
+      expect(props.persistOptions).toBe(mockPersistOptions);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("異常系", () => {
-    test("should handle undefined children", () => {
-      // Act & Assert
+    test("should handle missing children gracefully", () => {
+      // Act & Assert - エラーが発生しないことを確認
       expect(() => {
-        render(<Providers>{undefined}</Providers>);
-      }).not.toThrow();
-    });
-
-    test("should handle null children", () => {
-      // Act & Assert
-      expect(() => {
-        render(<Providers>{null}</Providers>);
-      }).not.toThrow();
-    });
-
-    test("should handle empty children", () => {
-      // Act & Assert
-      expect(() => {
-        render(<Providers>{""}</Providers>);
+        render(<Providers>{undefined as unknown as React.ReactNode}</Providers>);
       }).not.toThrow();
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("memoization テスト", () => {
-    test("should be memoized and not re-render unnecessarily", () => {
+  describe("パフォーマンス", () => {
+    test("should not cause unnecessary re-renders", () => {
       // Arrange
-      const TestChild = vi.fn(() => <div data-testid="test-child">Test</div>);
+      const TestComponent = ({ count }: { count: number }) => <div data-testid="counter">Count: {count}</div>;
 
-      // Act - 初回レンダリング
       const { rerender } = render(
         <Providers>
-          <TestChild />
+          <TestComponent count={1} />
         </Providers>,
       );
 
-      // 初回レンダリング後のモック呼び出し回数を記録（未使用だが、テストの意図を明確にするため残す）
-      // 初期状態のモック呼び出し回数を記録（将来の拡張用）
-      // const initialThemeProviderCalls = MockThemeProvider.mock.calls.length;
-      // const initialPersistProviderCalls = MockPersistQueryClientProvider.mock.calls.length;
-      // const initialPushProviderCalls = MockPushNotificationProvider.mock.calls.length;
-      // const initialNuqsAdapterCalls = MockNuqsAdapter.mock.calls.length;
+      // 初期レンダリング後のコール数を記録
+      const initialNuqsAdapterCalls = MockNuqsAdapter.mock.calls.length;
+      const initialPersistProviderCalls = MockPersistQueryClientProvider.mock.calls.length;
+      const initialThemeProviderCalls = MockThemeProvider.mock.calls.length;
 
-      // Act - 同じpropsで再レンダリング
+      // Act - 子コンポーネントのpropsを変更して再レンダリング
       rerender(
         <Providers>
-          <TestChild />
+          <TestComponent count={2} />
         </Providers>,
       );
 
-      // Assert - Reactのmemoizationの動作を確認
-      // 注意: モックコンポーネントは実際のReactコンポーネントではないため、
-      // memoizationの効果は限定的です。ここでは基本的な動作確認を行います。
-      expect(MockThemeProvider).toHaveBeenCalled();
-      expect(MockPersistQueryClientProvider).toHaveBeenCalled();
-      expect(MockPushNotificationProvider).toHaveBeenCalled();
-      expect(MockNuqsAdapter).toHaveBeenCalled();
+      // Assert - プロバイダーが再レンダリングされていないことを確認
+      expect(MockNuqsAdapter.mock.calls.length).toBe(initialNuqsAdapterCalls);
+      expect(MockPersistQueryClientProvider.mock.calls.length).toBe(initialPersistProviderCalls);
+      expect(MockThemeProvider.mock.calls.length).toBe(initialThemeProviderCalls);
 
-      // 子コンポーネントが再レンダリングされることを確認
-      expect(TestChild).toHaveBeenCalledTimes(2);
+      // 子コンポーネントは更新されていることを確認
+      expect(screen.getByText("Count: 2")).toBeInTheDocument();
     });
 
-    test("should maintain component identity across re-renders", () => {
-      // Act - 初回レンダリング
+    test("should handle rapid re-renders without issues", () => {
+      // Arrange
+      const TestComponent = ({ value }: { value: string }) => <div data-testid="value">{value}</div>;
+
       const { rerender } = render(
         <Providers>
-          <div>Test</div>
+          <TestComponent value="initial" />
         </Providers>,
       );
-      const firstRenderProviders = screen.getByTestId("theme-provider");
 
-      // Act - 再レンダリング
-      rerender(
-        <Providers>
-          <div>Test</div>
-        </Providers>,
-      );
-      const secondRenderProviders = screen.getByTestId("theme-provider");
+      // Act - 複数回の高速な再レンダリング
+      expect(() => {
+        for (let i = 0; i < 10; i++) {
+          rerender(
+            <Providers>
+              <TestComponent value={`value-${i}`} />
+            </Providers>,
+          );
+        }
+      }).not.toThrow();
 
-      // Assert - 同じDOM要素が維持される
-      expect(firstRenderProviders).toBe(secondRenderProviders);
+      // Assert - 最終的な値が正しく表示されることを確認
+      expect(screen.getByText("value-9")).toBeInTheDocument();
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("プロバイダー統合テスト", () => {
-    test("should handle provider nesting correctly", () => {
-      // Act
-      render(
-        <Providers>
-          <div data-testid="test-content">Test Content</div>
-        </Providers>,
-      );
-
-      // Assert - プロバイダーの階層構造を確認
-      const themeProvider = screen.getByTestId("theme-provider");
-      const persistProvider = screen.getByTestId("persist-query-client-provider");
-      const pushProvider = screen.getByTestId("push-notification-provider");
-      const nuqsAdapter = screen.getByTestId("nuqs-adapter");
-      const testContent = screen.getByTestId("test-content");
-
-      // 階層構造の確認（外側から内側へ）
-      expect(themeProvider).toContainElement(persistProvider);
-      expect(persistProvider).toContainElement(pushProvider);
-      expect(pushProvider).toContainElement(nuqsAdapter);
-      expect(nuqsAdapter).toContainElement(testContent);
-    });
-
-    test("should render providers with correct configuration", () => {
-      // Act
-      render(
-        <Providers>
-          <div data-testid="test-content">Test Content</div>
-        </Providers>,
-      );
-
-      // Assert - 各プロバイダーが正しい設定で呼ばれることを確認
-      expect(MockThemeProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          attribute: "class",
-          defaultTheme: "system",
-          enableSystem: true,
-          disableTransitionOnChange: true,
-        }),
-        undefined,
-      );
-
-      expect(MockPersistQueryClientProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          client: mockQueryClient,
-          persistOptions: mockPersistOptions,
-        }),
-        undefined,
-      );
-
-      expect(MockPushNotificationProvider).toHaveBeenCalled();
-      expect(MockNuqsAdapter).toHaveBeenCalled();
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("境界値テスト", () => {
-    test("should handle multiple children", () => {
-      // Arrange
-      const children = [
-        <div key="1" data-testid="child-1">
-          Child 1
-        </div>,
-        <div key="2" data-testid="child-2">
-          Child 2
-        </div>,
-        <div key="3" data-testid="child-3">
-          Child 3
-        </div>,
-      ];
-
-      // Act
-      render(<Providers>{children}</Providers>);
-
-      // Assert
-      expect(screen.getByTestId("child-1")).toBeInTheDocument();
-      expect(screen.getByTestId("child-2")).toBeInTheDocument();
-      expect(screen.getByTestId("child-3")).toBeInTheDocument();
-    });
-
-    test("should handle deeply nested children", () => {
+  describe("統合テスト", () => {
+    test("should work with complex nested components", () => {
       // Arrange
       const NestedComponent = () => (
-        <div data-testid="nested-parent">
-          <div data-testid="nested-child">
-            <span data-testid="deeply-nested">Deeply nested content</span>
+        <div data-testid="nested">
+          <div data-testid="level-1">
+            <div data-testid="level-2">
+              <span data-testid="deep-content">Deep nested content</span>
+            </div>
           </div>
         </div>
       );
@@ -394,80 +358,39 @@ describe("Providers", () => {
         </Providers>,
       );
 
-      // Assert
-      expect(screen.getByTestId("nested-parent")).toBeInTheDocument();
-      expect(screen.getByTestId("nested-child")).toBeInTheDocument();
-      expect(screen.getByTestId("deeply-nested")).toBeInTheDocument();
+      // Assert - 深くネストされたコンポーネントが正しくレンダリングされることを確認
+      expect(screen.getByTestId("nested")).toBeInTheDocument();
+      expect(screen.getByTestId("level-1")).toBeInTheDocument();
+      expect(screen.getByTestId("level-2")).toBeInTheDocument();
+      expect(screen.getByTestId("deep-content")).toBeInTheDocument();
+      expect(screen.getByText("Deep nested content")).toBeInTheDocument();
     });
 
-    test("should handle large number of children", () => {
-      // Arrange
-      const manyChildren = Array.from({ length: 100 }, (_, i) => (
-        <div key={i} data-testid={`child-${i}`}>
-          Child {i}
-        </div>
-      ));
-
-      // Act
-      render(<Providers>{manyChildren}</Providers>);
-
-      // Assert - 最初と最後の要素を確認
-      expect(screen.getByTestId("child-0")).toBeInTheDocument();
-      expect(screen.getByTestId("child-99")).toBeInTheDocument();
-      expect(screen.getByText("Child 0")).toBeInTheDocument();
-      expect(screen.getByText("Child 99")).toBeInTheDocument();
-    });
-
-    test("should handle React fragments as children", () => {
+    test("should maintain provider hierarchy correctly", () => {
       // Act
       render(
         <Providers>
-          <>
-            <div data-testid="fragment-child-1">Fragment Child 1</div>
-            <div data-testid="fragment-child-2">Fragment Child 2</div>
-          </>
+          <div data-testid="test-content">Test</div>
         </Providers>,
       );
 
-      // Assert
-      expect(screen.getByTestId("fragment-child-1")).toBeInTheDocument();
-      expect(screen.getByTestId("fragment-child-2")).toBeInTheDocument();
-    });
-  });
+      // Assert - DOM階層が正しいことを確認
+      const nuqsAdapter = screen.getByTestId("nuqs-adapter");
+      const persistProvider = screen.getByTestId("persist-query-client-provider");
+      const themeProvider = screen.getByTestId("theme-provider");
+      const testContent = screen.getByTestId("test-content");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // NuqsAdapter が最上位にあることを確認
+      expect(nuqsAdapter).toBeInTheDocument();
 
-  describe("パフォーマンステスト", () => {
-    test("should render efficiently with many re-renders", () => {
-      // Arrange
-      const TestComponent = ({ count }: { count: number }) => <div data-testid="counter">Count: {count}</div>;
+      // PersistQueryClientProvider が NuqsAdapter の子であることを確認
+      expect(nuqsAdapter).toContainElement(persistProvider);
 
-      // Act - 複数回の再レンダリング
-      const { rerender } = render(
-        <Providers>
-          <TestComponent count={0} />
-        </Providers>,
-      );
+      // ThemeProvider が PersistQueryClientProvider の子であることを確認
+      expect(persistProvider).toContainElement(themeProvider);
 
-      // 複数回再レンダリングを実行
-      for (let i = 1; i <= 10; i++) {
-        act(() => {
-          rerender(
-            <Providers>
-              <TestComponent count={i} />
-            </Providers>,
-          );
-        });
-      }
-
-      // Assert - 最終的な状態を確認
-      expect(screen.getByTestId("counter")).toHaveTextContent("Count: 10");
-
-      // プロバイダーが適切に動作していることを確認
-      expect(screen.getByTestId("theme-provider")).toBeInTheDocument();
-      expect(screen.getByTestId("persist-query-client-provider")).toBeInTheDocument();
-      expect(screen.getByTestId("push-notification-provider")).toBeInTheDocument();
-      expect(screen.getByTestId("nuqs-adapter")).toBeInTheDocument();
+      // テストコンテンツが ThemeProvider の子であることを確認
+      expect(themeProvider).toContainElement(testContent);
     });
   });
 });

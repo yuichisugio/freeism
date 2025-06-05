@@ -1,12 +1,12 @@
 "use client";
 
 import { memo } from "react";
+import { Toaster } from "@/components/ui/sonner";
 import { persistOptions, queryClient } from "@/lib/tanstack-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ThemeProvider } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-
-import { PushNotificationProvider } from "./push-notification-provider";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -17,12 +17,14 @@ export const Providers = memo(function Providers({ children }: { children: React
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <NuqsAdapter>
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
-        <PushNotificationProvider>
-          <NuqsAdapter>{children}</NuqsAdapter>
-        </PushNotificationProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+          <Toaster />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </ThemeProvider>
       </PersistQueryClientProvider>
-    </ThemeProvider>
+    </NuqsAdapter>
   );
 });

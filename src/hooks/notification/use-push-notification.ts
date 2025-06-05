@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
+import { updateUserSettingToggle } from "@/lib/actions/user-settings";
+import { queryCacheKeys } from "@/lib/tanstack-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -16,6 +20,9 @@ type PushNotificationState = {
   recordId: string | null;
   deviceId: string | null;
   error: Error | null;
+  // トグル関連の状態を追加
+  isEnabled: boolean;
+  isUpdating: boolean;
 };
 
 // 初期状態
@@ -28,6 +35,9 @@ const initialState: PushNotificationState = {
   recordId: null,
   deviceId: null,
   error: null,
+  // トグル関連の初期状態
+  isEnabled: false, // デフォルトでOFF
+  isUpdating: false,
 };
 
 // Action の型定義
@@ -41,6 +51,8 @@ type Action =
   | { type: "SET_RECORD_ID"; payload: string | null }
   | { type: "SET_DEVICE_ID"; payload: string | null }
   | { type: "SET_ERROR"; payload: Error | null }
+  | { type: "SET_IS_ENABLED"; payload: boolean }
+  | { type: "SET_IS_UPDATING"; payload: boolean }
   | { type: "RESET_STATE" };
 
 // Reducer 関数
@@ -64,6 +76,10 @@ function reducer(state: PushNotificationState, action: Action): PushNotification
       return { ...state, deviceId: action.payload };
     case "SET_ERROR":
       return { ...state, error: action.payload };
+    case "SET_IS_ENABLED":
+      return { ...state, isEnabled: action.payload };
+    case "SET_IS_UPDATING":
+      return { ...state, isUpdating: action.payload };
     case "RESET_STATE":
       return { ...initialState, isSupported: state.isSupported }; // isSupported は維持
     default:
@@ -168,32 +184,33 @@ function formatSubscriptionForServer(subscription: PushSubscription | null, reco
   return subscriptionData;
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * プッシュ通知を管理するフック
+ * @param initialIsPushEnabled - 初期のプッシュ通知有効状態（DBから取得）
  * @returns {Object} プッシュ通知の購読情報とエラー
  */
-export function usePushNotification() {
+export function usePushNotification(initialIsPushEnabled?: boolean) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // useReducer フックを使用
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { isInitialized, isSupported, permissionState, registrationState, subscriptionState, recordId, deviceId, error } = state;
+  const { isInitialized, isSupported, permissionState, registrationState, subscriptionState, recordId, deviceId, error, isEnabled } = state;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // userId の取得 (ここは変更なし)
+  // userId の取得
   const session = useSession();
   const userId = useMemo(() => session.data?.user?.id ?? null, [session.data?.user?.id]);
   const userIdRef = useRef(userId); // ★ userId を保持する Ref
 
-  // Refs to hold the latest values of recordId and deviceId for callbacks (変更なし)
+  // Refs to hold the latest values of recordId and deviceId for callbacks
   const recordIdRef = useRef(recordId);
   const deviceIdRef = useRef(deviceId);
   const isInitialSetupDoneRef = useRef(false); // ★ 初期セットアップ完了フラグ
 
-  // Update refs whenever the state changes (変更なし)
+  // Update refs whenever the state changes
   useEffect(() => {
     recordIdRef.current = recordId;
   }, [recordId]);
@@ -206,6 +223,42 @@ export function usePushNotification() {
   useEffect(() => {
     userIdRef.current = userId;
   }, [userId]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ブラウザの通知許可状態と購読状態に基づいてローカルの isEnabled を更新する関数
+   */
+  const syncEnabledStateWithBrowser = useCallback(() => {
+    if (!isSupported) {
+      return;
+    }
+    // 'prompt' の間はユーザーの選択待ち。購読が実際に確立されているかで判断。
+    const browserIsEnabled = permissionState === "granted" && !!subscriptionState;
+    dispatch({ type: "SET_IS_ENABLED", payload: browserIsEnabled });
+  }, [isSupported, permissionState, subscriptionState]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * isSupported, permissionState, subscriptionState が変更されたときに isEnabled を同期
+   */
+  useEffect(() => {
+    syncEnabledStateWithBrowser();
+  }, [syncEnabledStateWithBrowser]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * initialIsPushEnabled (DBからの設定値) が変更された場合、isEnabled に反映。
+   * これにより、invalidateQueries後の親からのprops変更がUIに反映される。
+   * その後、syncEnabledStateWithBrowserがブラウザの実際の状態と最終調整する。
+   */
+  useEffect(() => {
+    if (initialIsPushEnabled !== undefined) {
+      dispatch({ type: "SET_IS_ENABLED", payload: initialIsPushEnabled });
+    }
+  }, [initialIsPushEnabled]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -674,6 +727,98 @@ export function usePushNotification() {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * プッシュ通知のトグルの状態を更新する
+   */
+  const queryClient = useQueryClient();
+  const { mutate: togglePushNotification, isPending: isUpdating } = useMutation<
+    { success: boolean; error?: string }, // APIレスポンスの型
+    Error, // エラーの型
+    boolean, // mutateに渡す引数の型 (トグルの新しい状態)
+    { previousIsEnabled: boolean } // onMutateのコンテキストの型
+  >({
+    mutationFn: async (newPushEnabledState: boolean) => {
+      if (!userId) {
+        throw new Error("ユーザーIDがありません。");
+      }
+
+      if (newPushEnabledState) {
+        // トグルをONにする場合
+        if (permissionState === "denied") {
+          alert("通知がブラウザ設定で拒否されています。設定を変更してください。");
+          throw new Error("通知はブラウザ設定で拒否されています。");
+        }
+        // 購読を試みる (これにより許可ダイアログが表示される場合がある)
+        const subscription = await subscribe();
+        if (!subscription) {
+          // ユーザーが許可しなかったか、その他の理由で購読に失敗
+          throw new Error("プッシュ通知の購読に失敗しました。通知が許可されていないか、ブラウザが対応していません。");
+        }
+        // 購読成功、DBを更新
+        const result = await updateUserSettingToggle(userId, true, "isPushEnabled");
+        if (!result.success) {
+          throw new Error(result.error ?? "サーバーでの設定更新に失敗しました。");
+        }
+        return result;
+      } else {
+        // トグルをOFFにする場合
+        if (subscriptionState) {
+          // 既に購読中の場合のみ解除
+          await unsubscribe();
+        }
+        // 購読解除後 (または元々未購読)、DBを更新
+        const result = await updateUserSettingToggle(userId, false, "isPushEnabled");
+        if (!result.success) {
+          throw new Error(result.error ?? "サーバーでの設定更新に失敗しました。");
+        }
+        return result;
+      }
+    },
+    onMutate: async (newPushEnabledState: boolean) => {
+      // 既存の関連クエリをキャンセル
+      if (userId) {
+        await queryClient.cancelQueries({ queryKey: ["userSettings", userId] });
+      }
+
+      // ロールバック用に現在のUIの状態を保存
+      const previousIsEnabled = isEnabled;
+
+      // UIをオプティミスティックに更新
+      dispatch({ type: "SET_IS_ENABLED", payload: newPushEnabledState });
+
+      // contextとして以前の値を返す
+      return { previousIsEnabled };
+    },
+    onSuccess: () => {
+      toast.success("プッシュ通知設定を更新しました");
+      // isEnabled は onMutate で更新済み。
+      // onSettled で invalidateQueries を呼び出し、サーバーの最新状態でUIが最終同期される。
+      // 必要であれば、ここで syncEnabledStateWithBrowser() を呼び出し、ブラウザ状態を即時反映も可能。
+    },
+    onError: (error: Error, newPushEnabledState, context) => {
+      toast.error(error.message || "プッシュ通知設定の更新に失敗しました。");
+      // オプティミスティックアップデートをロールバック
+      if (context?.previousIsEnabled !== undefined) {
+        dispatch({ type: "SET_IS_ENABLED", payload: context.previousIsEnabled });
+      } else {
+        // contextがない場合のフォールバック (稀なケース)
+        dispatch({ type: "SET_IS_ENABLED", payload: !newPushEnabledState });
+      }
+      // エラー後もブラウザの最新状態にUIを同期
+      syncEnabledStateWithBrowser();
+    },
+    onSettled: async () => {
+      // 成功・失敗に関わらず、サーバーの最新の状態で関連クエリを無効化して再フェッチ
+      if (userId) {
+        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
+      }
+      // 再フェッチ後、新しい initialIsPushEnabled が渡され、useEffect を通じて isEnabled が更新され、
+      // syncEnabledStateWithBrowser によりブラウザの実際の状態と最終同期される。
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 戻り値に isInitialized を追加
   return {
     isInitialized, // ★ 初期化完了フラグ
@@ -684,5 +829,9 @@ export function usePushNotification() {
     subscribe, // 購読を開始する関数 (許可要求含む)
     unsubscribe, // 購読を解除する関数
     permissionState, // 現在の通知許可状態
+    // トグル関連の戻り値を追加
+    isEnabled, // 現在のトグル状態
+    isUpdating, // 更新中フラグ
+    togglePushNotification, // トグル機能
   };
 }

@@ -3,13 +3,12 @@
 import type { UserSettings } from "@prisma/client";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import type * as z from "zod";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateUserSetup } from "@/lib/actions/user-settings";
 import { getUserSettings } from "@/lib/auction/action/user";
 import { queryCacheKeys } from "@/lib/tanstack-query";
@@ -35,6 +34,13 @@ export type SetupForm = z.infer<typeof setupSchema>;
  * @returns セットアップフォーム
  */
 export const SetupForm = memo(function SetupForm() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * クライアントサイドでのマウント状態を管理
+   */
+  const [isMounted, setIsMounted] = useState(false);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -123,63 +129,62 @@ export const SetupForm = memo(function SetupForm() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * コンポーネントがマウントされた後にクライアントサイドの状態を有効にする
+   */
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * ユーザー設定が見つかった場合は設定ページを表示
    * isPending または isLoading の場合は optimistic update の variables を、それ以外は userSettings を使用
+   * ただし、マウント前は安定した状態を表示
    */
-  const displayData = isPending || isLoading ? variables : userSettings;
+  const displayData = isMounted && (isPending || isLoading) ? variables : userSettings;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return (
     <>
-      {/* 現在の設定情報 */}
-      {displayData ? (
-        <>
-          <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
-            <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">現在の設定</h2>
-            <dl className="space-y-4">
-              <div>
-                <dt className="form-label-custom">ユーザー名</dt>
-                <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{displayData.username}</dd>
-              </div>
-              <div>
-                <dt className="form-label-custom">人生の目標</dt>
-                <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">{displayData.lifeGoal}</dd>
-              </div>
-              {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
-              {!isPending &&
-                typeof displayData === "object" &&
-                displayData !== null &&
-                "updatedAt" in displayData &&
-                displayData.updatedAt instanceof Date && (
-                  <div>
-                    <dt className="form-label-custom">最終更新日</dt>
-                    <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
-                      {new Date(displayData.updatedAt).toLocaleDateString("ja-JP")}
-                    </dd>
-                  </div>
-                )}
-            </dl>
+      {/* 現在の設定情報 - 統一されたレイアウト */}
+      <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
+        <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">現在の設定</h2>
+        {isMounted && displayData ? (
+          <dl className="space-y-4">
+            <div>
+              <dt className="form-label-custom">ユーザー名</dt>
+              <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{displayData.username}</dd>
+            </div>
+            <div>
+              <dt className="form-label-custom">人生の目標</dt>
+              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">{displayData.lifeGoal}</dd>
+            </div>
+            {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
+            {!isPending &&
+              typeof displayData === "object" &&
+              displayData !== null &&
+              "updatedAt" in displayData &&
+              displayData.updatedAt instanceof Date && (
+                <div>
+                  <dt className="form-label-custom">最終更新日</dt>
+                  <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+                    {new Date(displayData.updatedAt).toLocaleDateString("ja-JP")}
+                  </dd>
+                </div>
+              )}
+          </dl>
+        ) : (
+          <div className="flex items-center space-x-2 text-yellow-600">
+            <span>{isMounted ? "ユーザー設定がありません。" : "読み込み中..."}</span>
           </div>
-        </>
-      ) : (
-        <div className="mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-app dark:text-app-dark">ユーザー設定</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2 text-yellow-600">
-                <span>ユーザー設定がありません。</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* プッシュ通知設定 */}
       <div className="mb-8">
-        <WebPushNotificationToggle isPushEnabled={userSettings?.isPushEnabled ?? false} userId={userId} />
+        <WebPushNotificationToggle isPushEnabled={userSettings?.isPushEnabled} />
       </div>
 
       {/* メール通知設定 */}
