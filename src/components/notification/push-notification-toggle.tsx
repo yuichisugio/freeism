@@ -88,9 +88,26 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
         {pushHookError && <p className="mt-2 text-sm text-red-500">エラー: {pushHookError.message}</p>}
         {/* ブラウザで通知が拒否されている場合のアラート */}
         {permissionState === "denied" && (
-          <p className="mt-2 text-sm text-yellow-600">
-            ブラウザの通知設定が「拒否」されています。プッシュ通知を有効にするには、ブラウザの設定を変更してください。
-          </p>
+          <div className="mt-2 rounded-md border border-yellow-200 bg-yellow-50 p-2">
+            <p className="text-sm text-yellow-800">
+              <strong>ブラウザの通知設定が「拒否」されています。</strong>
+            </p>
+            <p className="mt-1 text-sm text-yellow-700">
+              プッシュ通知を有効にするには、ブラウザの設定で通知を許可してください。設定変更後、ページを再読み込みしてください。
+            </p>
+            {initialIsPushEnabled && <p className="mt-1 text-sm text-yellow-700">設定は自動的にOFFに更新されました。</p>}
+          </div>
+        )}
+        {/* ブラウザで通知がリセット（デフォルト）されている場合で、初期設定がONだった場合のアラート */}
+        {permissionState === "default" && initialIsPushEnabled && !isEnabled && (
+          <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-2">
+            <p className="text-sm text-blue-800">
+              <strong>ブラウザの通知設定がリセットされました。</strong>
+            </p>
+            <p className="mt-1 text-sm text-blue-700">
+              通知の権限が初期状態に戻ったため、設定を自動的にOFFに更新しました。再度ONにするには、トグルをクリックして権限を許可してください。
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>

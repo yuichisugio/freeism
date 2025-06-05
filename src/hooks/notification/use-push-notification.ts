@@ -87,7 +87,7 @@ function reducer(state: PushNotificationState, action: Action): PushNotification
   }
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * サービスワーカーのメッセージイベントの型定義
@@ -184,7 +184,7 @@ function formatSubscriptionForServer(subscription: PushSubscription | null, reco
   return subscriptionData;
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * プッシュ通知を管理するフック
@@ -821,6 +821,104 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 権限が拒否またはリセットされた場合にDBを自動的にOFFに更新する関数
+   */
+  const syncPermissionToDatabase = useCallback(
+    async (reason: "denied" | "reset") => {
+      if (!userId) return;
+
+      try {
+        const result = await updateUserSettingToggle(userId, false, "isPushEnabled");
+        if (result.success) {
+          // DB更新成功時にクエリを無効化して最新状態を取得
+          await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
+          const message =
+            reason === "denied"
+              ? "通知の権限が拒否されたため、設定を自動的にOFFにしました"
+              : "通知の権限がリセットされたため、設定を自動的にOFFにしました";
+          toast.info(message);
+          return true;
+        } else {
+          console.error(`権限${reason}時のDB更新に失敗:`, result.error);
+          return false;
+        }
+      } catch (error) {
+        console.error(`権限${reason}時のDB更新でエラー:`, error);
+        return false;
+      }
+    },
+    [userId, queryClient],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 権限が拒否またはリセットされた場合に自動的にDBを更新する
+   */
+  useEffect(() => {
+    // 初期化が完了していて、初期設定がONの場合
+    if (isInitialized && initialIsPushEnabled === true) {
+      // 権限が拒否されている場合
+      if (permissionState === "denied") {
+        console.log("権限が拒否されているため、DBを自動的にOFFに更新します");
+        void syncPermissionToDatabase("denied");
+      }
+      // 権限がリセット（default）されていて、購読がない場合
+      else if (permissionState === "default" && !subscriptionState) {
+        console.log("権限がリセットされているため、DBを自動的にOFFに更新します");
+        void syncPermissionToDatabase("reset");
+      }
+    }
+  }, [isInitialized, permissionState, subscriptionState, initialIsPushEnabled, syncPermissionToDatabase]);
+
+  /**
+   * ページフォーカス時に権限状態をチェックして、必要に応じてDB同期
+   */
+  useEffect(() => {
+    if (!isSupported || !isInitialized) return;
+
+    const handleFocus = () => {
+      // ページフォーカス時に最新の権限状態を確認
+      const currentPermission = typeof Notification !== "undefined" ? Notification.permission : "default";
+
+      // 初期設定がONの場合のみチェック
+      if (initialIsPushEnabled === true) {
+        // 権限が拒否されている場合
+        if (currentPermission === "denied") {
+          console.log("フォーカス時に権限拒否を検出、DBを自動的にOFFに更新します");
+          void syncPermissionToDatabase("denied");
+        }
+        // 権限がリセット（default）されている場合、購読状態を再確認してDB同期
+        else if (currentPermission === "default") {
+          // Service Workerから最新の購読状態を取得
+          if (registrationState) {
+            // 非同期処理を即座に実行
+            void (async () => {
+              try {
+                const currentSubscription = await registrationState.pushManager.getSubscription();
+                if (!currentSubscription) {
+                  console.log("フォーカス時に権限リセットを検出、DBを自動的にOFFに更新します");
+                  void syncPermissionToDatabase("reset");
+                }
+              } catch (error) {
+                console.error("フォーカス時の購読状態確認でエラー:", error);
+              }
+            })();
+          }
+        }
+      }
+    };
+
+    // ページフォーカスイベントリスナーを追加
+    window.addEventListener("focus", handleFocus);
+
+    // クリーンアップ
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [isSupported, isInitialized, initialIsPushEnabled, registrationState, syncPermissionToDatabase]);
 
   // 戻り値に isInitialized を追加
   return {
