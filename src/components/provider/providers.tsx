@@ -1,7 +1,6 @@
 "use client";
 
 import { memo } from "react";
-import { Toaster } from "@/components/ui/sonner";
 import { persistOptions, queryClient } from "@/lib/tanstack-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -21,7 +20,6 @@ export const Providers = memo(function Providers({ children }: { children: React
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
-          <Toaster />
           <ReactQueryDevtools initialIsOpen={false} />
         </ThemeProvider>
       </PersistQueryClientProvider>

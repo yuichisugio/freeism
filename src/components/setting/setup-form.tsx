@@ -3,7 +3,7 @@
 import type { UserSettings } from "@prisma/client";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import type * as z from "zod";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
@@ -37,9 +37,14 @@ export const SetupForm = memo(function SetupForm() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * クライアントサイドでのマウント状態を管理
+   * クライアントサイドレンダリングの制御
+   * Hydrationエラーを防ぐため、初期レンダリング時はサーバーサイドと同じ状態を維持
    */
-  const [isMounted, setIsMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -74,7 +79,7 @@ export const SetupForm = memo(function SetupForm() {
   const { data: userSettings, isLoading } = useQuery<UserSettings | null, Error, UserSettings | null, Readonly<[string, string]>>({
     queryKey: queryCacheKeys.userSettings.userAll(userId),
     queryFn: async (): Promise<UserSettings | null> => getUserSettings(userId),
-    enabled: !!userId,
+    enabled: !!userId && isClient, // クライアントサイドでのみクエリを実行
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
@@ -121,28 +126,84 @@ export const SetupForm = memo(function SetupForm() {
   const form = useForm<SetupForm>({
     resolver: zodResolver(setupSchema),
     defaultValues: {
-      username: userSettings?.username ?? "",
-      lifeGoal: userSettings?.lifeGoal ?? "",
+      username: "",
+      lifeGoal: "",
     },
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * コンポーネントがマウントされた後にクライアントサイドの状態を有効にする
+   * フォームのデフォルト値を更新
+   * userSettingsが取得された後にフォームの値を更新
    */
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (userSettings && isClient) {
+      form.reset({
+        username: userSettings.username ?? "",
+        lifeGoal: userSettings.lifeGoal ?? "",
+      });
+    }
+  }, [userSettings, form, isClient]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ユーザー設定が見つかった場合は設定ページを表示
-   * isPending または isLoading の場合は optimistic update の variables を、それ以外は userSettings を使用
-   * ただし、マウント前は安定した状態を表示
+   * 表示データの決定
+   * クライアントサイドでのみ動的なデータを表示し、サーバーサイドでは静的な状態を保持
    */
-  const displayData = isMounted && (isPending || isLoading) ? variables : userSettings;
+  const displayData = isClient ? (isPending && variables ? variables : userSettings) : null;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * レンダリング内容の決定
+   * サーバーサイドとクライアントサイドで一貫したHTMLを生成
+   */
+  const renderCurrentSettings = useCallback(() => {
+    // クライアントサイドでない場合は、常に読み込み中の状態を表示
+    if (!isClient) {
+      return (
+        <div className="flex items-center space-x-2 text-yellow-600">
+          <span>読み込み中...</span>
+        </div>
+      );
+    }
+
+    // クライアントサイドでデータが存在する場合
+    if (displayData) {
+      return (
+        <dl className="space-y-4">
+          <div>
+            <dt className="form-label-custom">ユーザー名</dt>
+            <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{displayData.username}</dd>
+          </div>
+          <div>
+            <dt className="form-label-custom">人生の目標</dt>
+            <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">{displayData.lifeGoal}</dd>
+          </div>
+          {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
+          {!isPending &&
+            typeof displayData === "object" &&
+            displayData !== null &&
+            "updatedAt" in displayData &&
+            displayData.updatedAt instanceof Date && (
+              <div>
+                <dt className="form-label-custom">最終更新日</dt>
+                <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{new Date(displayData.updatedAt).toLocaleDateString("ja-JP")}</dd>
+              </div>
+            )}
+        </dl>
+      );
+    }
+
+    // データが存在しない場合
+    return (
+      <div className="flex items-center space-x-2 text-yellow-600">
+        <span>{isLoading ? "読み込み中..." : "ユーザー設定がありません。"}</span>
+      </div>
+    );
+  }, [isClient, isLoading, isPending, displayData]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -151,45 +212,21 @@ export const SetupForm = memo(function SetupForm() {
       {/* 現在の設定情報 - 統一されたレイアウト */}
       <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
         <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">現在の設定</h2>
-        {isMounted && displayData ? (
-          <dl className="space-y-4">
-            <div>
-              <dt className="form-label-custom">ユーザー名</dt>
-              <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{displayData.username}</dd>
-            </div>
-            <div>
-              <dt className="form-label-custom">人生の目標</dt>
-              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">{displayData.lifeGoal}</dd>
-            </div>
-            {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
-            {!isPending &&
-              typeof displayData === "object" &&
-              displayData !== null &&
-              "updatedAt" in displayData &&
-              displayData.updatedAt instanceof Date && (
-                <div>
-                  <dt className="form-label-custom">最終更新日</dt>
-                  <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
-                    {new Date(displayData.updatedAt).toLocaleDateString("ja-JP")}
-                  </dd>
-                </div>
-              )}
-          </dl>
-        ) : (
-          <div className="flex items-center space-x-2 text-yellow-600">
-            <span>{isMounted ? "ユーザー設定がありません。" : "読み込み中..."}</span>
-          </div>
-        )}
+        {renderCurrentSettings()}
       </div>
 
       {/* プッシュ通知設定 */}
       <div className="mb-8">
-        <WebPushNotificationToggle isPushEnabled={userSettings?.isPushEnabled} />
+        <WebPushNotificationToggle isPushEnabled={isClient ? userSettings?.isPushEnabled : undefined} isLoading={!isClient || isLoading} />
       </div>
 
       {/* メール通知設定 */}
       <div className="mb-8">
-        <EmailNotificationToggle isEmailEnabled={userSettings?.isEmailEnabled ?? false} userId={userId} />
+        <EmailNotificationToggle
+          isEmailEnabled={isClient ? (userSettings?.isEmailEnabled ?? false) : false}
+          userId={userId}
+          isLoading={!isClient || isLoading}
+        />
       </div>
 
       {/* フォームコンテナ */}

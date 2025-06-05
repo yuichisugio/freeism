@@ -1,12 +1,13 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { updateUserSettingToggle } from "@/lib/actions/user-settings";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,17 +18,12 @@ import { toast } from "sonner";
 export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   isEmailEnabled,
   userId,
+  isLoading = false,
 }: {
   isEmailEnabled: boolean;
   userId: string;
+  isLoading?: boolean;
 }): JSX.Element {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * クライアントサイドでのマウント状態を管理
-   */
-  const [isMounted, setIsMounted] = useState(false);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -51,18 +47,43 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * コンポーネントがマウントされた後にクライアントサイドの状態を有効にする
+   * 表示する値を決定（Hydrationエラーを防ぐため、サーバー・クライアント間で一貫した初期値を使用）
+   * isPendingで変更中の場合のみvariablesの値を使用し、それ以外は常にisEmailEnabledを使用
    */
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const displayValue = isPending && variables !== undefined ? variables : isEmailEnabled;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 表示する値を決定（Hydrationエラーを防ぐため、マウント前は初期値を使用）
+   * ラベルテキストの決定（Hydrationエラーを防ぐため、サーバー・クライアント間で一貫性を保つ）
    */
-  const displayValue = isMounted && variables !== undefined ? variables : isEmailEnabled;
+  const getLabelText = () => {
+    const statusText = displayValue ? "受信中" : "受信拒否中";
+    const pendingText = isPending ? " (更新中...)" : "";
+    return `現在：${statusText}${pendingText}`;
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ローディング中の表示
+   */
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-app dark:text-app-dark">メール通知設定</CardTitle>
+          <CardDescription>メール通知の受信設定を管理します</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm text-neutral-600 dark:text-neutral-400">設定を読み込み中...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -75,10 +96,7 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
       <CardContent>
         <div className="flex items-center space-x-2">
           <Switch id="email-notification-toggle" checked={displayValue} onCheckedChange={mutate} disabled={isPending} />
-          <Label htmlFor="email-notification-toggle">
-            現在：{displayValue ? "受信中" : "受信拒否中"}
-            {isPending && " (更新中...)"}
-          </Label>
+          <Label htmlFor="email-notification-toggle">{getLabelText()}</Label>
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">メール通知を有効にすると、メールでの通知を受け取ることができます。</p>
         {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && (

@@ -591,12 +591,14 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     if (!isSupported) {
       dispatch({ type: "SET_ERROR", payload: new Error("Service WorkerまたはPush APIがサポートしていません。") });
       console.error("subscribe: Not supported.");
+      toast.error("Service WorkerまたはPush APIがサポートしていません。");
       return null;
     }
     // registrationState がまだ null の場合は初期化中か失敗の可能性
     if (!registrationState) {
       dispatch({ type: "SET_ERROR", payload: new Error("Service Worker の準備ができていません。") });
       console.error("subscribe: Service Worker registration not ready.");
+      toast.error("Service Worker の準備ができていません。");
       return null;
     }
 
@@ -607,6 +609,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     if (currentPermission === "denied") {
       dispatch({ type: "SET_ERROR", payload: new Error("通知の許可が拒否されています。") });
       console.error("subscribe: Permission denied.");
+      toast.error("通知の許可が拒否されています。");
       return null;
     }
 
