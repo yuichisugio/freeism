@@ -396,9 +396,9 @@ export function usePushNotification() {
     dispatch({ type: "SET_ERROR", payload: null });
 
     // 1. Service Workerサポートと通知許可を確認
-    const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
+    const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
     dispatch({ type: "SET_SUPPORTED", payload: supported });
-    const initialPermission = Notification.permission;
+    const initialPermission = supported && typeof Notification !== "undefined" ? Notification.permission : "default";
     dispatch({ type: "SET_PERMISSION", payload: initialPermission });
 
     if (!supported) {
@@ -548,7 +548,7 @@ export function usePushNotification() {
     }
 
     // 最新の通知許可状態を取得
-    const currentPermission = Notification.permission;
+    const currentPermission = typeof Notification !== "undefined" ? Notification.permission : "default";
     dispatch({ type: "SET_PERMISSION", payload: currentPermission });
 
     if (currentPermission === "denied") {
@@ -568,6 +568,10 @@ export function usePushNotification() {
       // 通知の許可を要求 (granted でなければ)
       if (currentPermission !== "granted") {
         console.log("subscribe: Requesting notification permission...");
+        if (typeof Notification === "undefined") {
+          dispatch({ type: "SET_ERROR", payload: new Error("このブラウザでは通知機能がサポートされていません。") });
+          return null;
+        }
         const permission = await Notification.requestPermission();
         dispatch({ type: "SET_PERMISSION", payload: permission });
         if (permission !== "granted") {
