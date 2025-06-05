@@ -632,3 +632,52 @@ sequenceDiagram
         Server->>DB: 購読情報更新
     end
 ```
+
+ブラウザの通知権限がリセットされた場合にトグルをOFFにしてDBも更新する修正を行います。段階的に確認しながら進めていきます。
+
+まず現在のコードの状況を確認します：Read file:
+src/hooks/notification/use-push-notification.ts続けて、権限拒否の処理と初期化後の権限変更検知の処理を確認します：Read file:
+src/hooks/notification/use-push-notification.ts現在のコードの問題点を整理しました：
+
+1. **現在の問題**: 権限が`"denied"`の場合のみ自動的にOFFに更新している
+2. **修正が必要な点**: 権限が`"default"`（リセット）の場合で、かつ購読がない場合にもOFFに更新する必要がある
+
+Step 1: まず、権限がリセット（`"default"`）された場合の検知と自動更新機能を追加します：Step 2:
+linterエラーを修正します。関数名の変更により参照が残っているため更新します：ファイルの現在の状態を確認します：Read file:
+src/hooks/notification/use-push-notification.ts Step
+3: 修正が必要です。関数の型定義を適切にし、権限リセット時の処理を追加します：既に修正済みのようです。次にuseEffectを修正します：Step
+4: フォーカス時のイベントハンドラーも同様に修正します：Step 5: useEffect内でasync関数を使用する際のlinterエラーを修正します：Step
+6: 最後に、`syncEnabledStateWithBrowser`関数も権限リセット時の処理に対応するよう修正します：Read file:
+src/hooks/notification/use-push-notification.ts現在の`syncEnabledStateWithBrowser`関数は適切に動作するはずです。この関数は権限が`granted`で購読が存在する場合のみ`enabled`を`true`にするため、権限が`default`や`denied`の場合、または購読がない場合は自動的に`false`になります。
+
+Step 7: 最後に、コンポーネント側でも権限がリセットされた場合の適切な表示を追加します：Read file:
+src/components/notification/push-notification-toggle.tsx Step 8: コンポーネント側にも権限がリセットされた場合のアラート表示を追加します：
+
+## 修正完了の確認
+
+以上で修正が完了しました。修正内容をまとめると以下のようになります：
+
+### Step 1-8: 権限リセット時の自動OFF化対応
+
+1. **関数名の変更**: `syncPermissionDeniedToDatabase` → `syncPermissionToDatabase`で、`"denied"` | `"reset"`の理由を受け取るよう修正
+
+2. **権限チェック拡張**:
+
+   - 権限が`"denied"`の場合：従来通り自動でOFFに更新
+   - 権限が`"default"`（リセット）で購読がない場合：新たに自動でOFFに更新
+
+3. **フォーカス時チェック強化**: ページフォーカス時に権限が`"default"`の場合、Service Workerから最新の購読状態を確認し、購読がなければ自動でOFFに更新
+
+4. **UI表示改善**: コンポーネント側で権限がリセットされた場合の専用アラートを青色で表示
+
+### 修正結果
+
+これで以下のような動作になります：
+
+- ユーザーがブラウザの通知設定で「ブロック」ではなく「リセット」を選択した場合
+- 権限が`"default"`に戻り、プッシュ購読も自動的に解除される
+- アプリ側でこれを検知し、DBの設定を自動的にOFFに更新
+- UIのトグルもOFFになり、ユーザーに状況が分かりやすく表示される
+- リロード後もDBから正しい状態（OFF）が読み込まれ、ユーザーの誤解を防ぐ
+
+これにより、ユーザーが権限をリセットした場合でも、アプリの表示と実際の状態が一致し、ユーザーの混乱を防げます。
