@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { cn, formatCurrency, formatRelativeTime } from "./utils";
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // Next.jsのredirect関数をモック
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
@@ -11,6 +13,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("utils", () => {
   describe("cn", () => {
