@@ -14,4 +14,4 @@ fi
 
 # ===== 1) テスト & Lint =====
 # pnpm run test
-pnpm dlx lint-staged --concurrent false
+pnpm run lint-staged

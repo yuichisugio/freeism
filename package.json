@@ -20,6 +20,7 @@
     "clean": "git clean -xdf node_modules dist",
     "lint": "next lint",
     "lint:fix": "next lint --fix && prisma validate",
+    "lint-staged": "lint-staged --concurrent false",
     "unused:check": "pnpm knip",
     "unused:fix": "ts-prune --project tsconfig.json --write",
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
