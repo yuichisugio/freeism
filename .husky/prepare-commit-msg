@@ -1,2 +1,9 @@
 #!/usr/bin/env sh
-exec < /dev/tty && npx cz --hook || true
+
+# Commitizenでコミットメッセージを作成し、エディタが開かないようにする
+if [ -z "$2" ] || [ "$2" = "message" ]; then
+  # 標準入力をターミナルに接続してCommitizenを実行
+  exec < /dev/tty
+  # Commitizenを実行し、作成されたメッセージをコミットメッセージファイルに書き込む
+  npx cz --hook || exit 1
+fi
