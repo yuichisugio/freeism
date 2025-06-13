@@ -13,321 +13,311 @@ describe("completeTaskDelivery", () => {
     prismaMock.task.update.mockReset();
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // 正常系テスト
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  test("should successfully complete task delivery with valid taskId", async () => {
-    // テストデータの準備
-    const taskId = "test-task-id";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
-
-    // Prismaモックの設定
-    prismaMock.task.update.mockResolvedValue(mockTask);
-
-    // 関数実行
-    const result = await completeTaskDelivery(taskId);
-
-    // 結果の検証
-    expect(result).toStrictEqual({
-      success: true,
-    });
-
-    // Prismaメソッドが正しく呼ばれたかを検証
-    expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
+  describe("正常系テスト", () => {
+    test("should successfully complete task delivery with valid taskId", async () => {
+      // テストデータの準備
+      const taskId = "test-task-id";
+      const mockTask = taskFactory.build({
         id: taskId,
-      },
-      data: {
         status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
+      });
 
-  test("should handle UUID format taskId correctly", async () => {
-    // UUIDフォーマットのタスクIDでテスト
-    const taskId = "550e8400-e29b-41d4-a716-446655440000";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
+      // Prismaモックの設定
+      prismaMock.task.update.mockResolvedValue(mockTask);
 
-    prismaMock.task.update.mockResolvedValue(mockTask);
+      // 関数実行
+      const result = await completeTaskDelivery(taskId);
 
-    const result = await completeTaskDelivery(taskId);
-
-    expect(result).toStrictEqual({
-      success: true,
-    });
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  test("should handle long taskId correctly", async () => {
-    // 長いタスクIDでテスト（境界値テスト）
-    const taskId = "a".repeat(100);
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
-
-    prismaMock.task.update.mockResolvedValue(mockTask);
-
-    const result = await completeTaskDelivery(taskId);
-
-    expect(result).toStrictEqual({
-      success: true,
-    });
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // 異常系テスト
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  test("should throw error when taskId does not exist", async () => {
-    // 存在しないタスクIDでテスト
-    const taskId = "non-existent-task-id";
-
-    // Prismaエラーをモック
-    const prismaError = new Error("Record to update not found");
-    prismaMock.task.update.mockRejectedValue(prismaError);
-
-    // エラーが投げられることを検証
-    await expect(completeTaskDelivery(taskId)).rejects.toThrow("Record to update not found");
-
-    expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  test("should throw error when database connection fails", async () => {
-    // データベース接続エラーをテスト
-    const taskId = "test-task-id";
-    const dbError = new Error("Database connection failed");
-
-    prismaMock.task.update.mockRejectedValue(dbError);
-
-    await expect(completeTaskDelivery(taskId)).rejects.toThrow("Database connection failed");
-
-    expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
-  });
-
-  test("should throw error when Prisma constraint violation occurs", async () => {
-    // Prisma制約違反エラーをテスト
-    const taskId = "test-task-id";
-    const constraintError = new Error("Unique constraint failed");
-
-    prismaMock.task.update.mockRejectedValue(constraintError);
-
-    await expect(completeTaskDelivery(taskId)).rejects.toThrow("Unique constraint failed");
-
-    expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // 境界値テスト
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  test("should handle empty string taskId", async () => {
-    // 空文字列のタスクIDでテスト
-    const taskId = "";
-
-    // Prismaエラーをモック（空文字列は通常無効なID）
-    const prismaError = new Error("Invalid ID format");
-    prismaMock.task.update.mockRejectedValue(prismaError);
-
-    await expect(completeTaskDelivery(taskId)).rejects.toThrow("Invalid ID format");
-
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  test("should handle single character taskId", async () => {
-    // 1文字のタスクIDでテスト（境界値）
-    const taskId = "a";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
-
-    prismaMock.task.update.mockResolvedValue(mockTask);
-
-    const result = await completeTaskDelivery(taskId);
-
-    expect(result).toStrictEqual({
-      success: true,
-    });
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  test("should handle taskId with special characters", async () => {
-    // 特殊文字を含むタスクIDでテスト
-    const taskId = "task-id_with.special@chars#123";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
-
-    prismaMock.task.update.mockResolvedValue(mockTask);
-
-    const result = await completeTaskDelivery(taskId);
-
-    expect(result).toStrictEqual({
-      success: true,
-    });
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  test("should handle numeric string taskId", async () => {
-    // 数値文字列のタスクIDでテスト
-    const taskId = "12345";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
-
-    prismaMock.task.update.mockResolvedValue(mockTask);
-
-    const result = await completeTaskDelivery(taskId);
-
-    expect(result).toStrictEqual({
-      success: true,
-    });
-    expect(prismaMock.task.update).toHaveBeenCalledWith({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // エッジケーステスト
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  test("should handle concurrent calls with same taskId", async () => {
-    // 同じタスクIDで同時実行された場合のテスト
-    const taskId = "concurrent-task-id";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
-    });
-
-    prismaMock.task.update.mockResolvedValue(mockTask);
-
-    // 同時に複数回実行
-    const promises = [completeTaskDelivery(taskId), completeTaskDelivery(taskId), completeTaskDelivery(taskId)];
-
-    const results = await Promise.all(promises);
-
-    // すべて成功することを確認
-    results.forEach((result) => {
+      // 結果の検証
       expect(result).toStrictEqual({
         success: true,
       });
+
+      // Prismaメソッドが正しく呼ばれたかを検証
+      expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
     });
 
-    // 3回呼ばれることを確認
-    expect(prismaMock.task.update).toHaveBeenCalledTimes(3);
+    test("should handle UUID format taskId correctly", async () => {
+      // UUIDフォーマットのタスクIDでテスト
+      const taskId = "550e8400-e29b-41d4-a716-446655440000";
+      const mockTask = taskFactory.build({
+        id: taskId,
+        status: TaskStatus.TASK_COMPLETED,
+      });
+
+      prismaMock.task.update.mockResolvedValue(mockTask);
+
+      const result = await completeTaskDelivery(taskId);
+
+      expect(result).toStrictEqual({
+        success: true,
+      });
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
+    });
+
+    test("should handle long taskId correctly", async () => {
+      // 長いタスクIDでテスト（境界値テスト）
+      const taskId = "a".repeat(100);
+      const mockTask = taskFactory.build({
+        id: taskId,
+        status: TaskStatus.TASK_COMPLETED,
+      });
+
+      prismaMock.task.update.mockResolvedValue(mockTask);
+
+      const result = await completeTaskDelivery(taskId);
+
+      expect(result).toStrictEqual({
+        success: true,
+      });
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
+    });
   });
 
-  test("should handle timeout scenario", async () => {
-    // タイムアウトシナリオのテスト
-    const taskId = "timeout-task-id";
-    const timeoutError = new Error("Operation timed out");
+  describe("異常系テスト", () => {
+    test("should throw error when taskId does not exist", async () => {
+      // 存在しないタスクIDでテスト
+      const taskId = "non-existent-task-id";
 
-    prismaMock.task.update.mockRejectedValue(timeoutError);
+      // Prismaエラーをモック
+      const prismaError = new Error("Record to update not found");
+      prismaMock.task.update.mockRejectedValue(prismaError);
 
-    await expect(completeTaskDelivery(taskId)).rejects.toThrow("Operation timed out");
+      // エラーが投げられることを検証
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Record to update not found");
 
-    expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
+    });
+
+    test("should throw error when database connection fails", async () => {
+      // データベース接続エラーをテスト
+      const taskId = "test-task-id";
+      const dbError = new Error("Database connection failed");
+
+      prismaMock.task.update.mockRejectedValue(dbError);
+
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Database connection failed");
+
+      expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
+    });
+
+    test("should throw error when Prisma constraint violation occurs", async () => {
+      // Prisma制約違反エラーをテスト
+      const taskId = "test-task-id";
+      const constraintError = new Error("Unique constraint failed");
+
+      prismaMock.task.update.mockRejectedValue(constraintError);
+
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Unique constraint failed");
+
+      expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
+    });
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  // 戻り値の型テスト
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  describe("境界値テスト", () => {
+    test("should handle empty string taskId", async () => {
+      // 空文字列のタスクIDでテスト
+      const taskId = "";
 
-  test("should return correct type structure", async () => {
-    // 戻り値の型構造が正しいことを確認
-    const taskId = "type-test-task-id";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
+      // Prismaエラーをモック（空文字列は通常無効なID）
+      const prismaError = new Error("Invalid ID format");
+      prismaMock.task.update.mockRejectedValue(prismaError);
+
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Invalid ID format");
+
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
     });
 
-    prismaMock.task.update.mockResolvedValue(mockTask);
+    test("should handle single character taskId", async () => {
+      // 1文字のタスクIDでテスト（境界値）
+      const taskId = "a";
+      const mockTask = taskFactory.build({
+        id: taskId,
+        status: TaskStatus.TASK_COMPLETED,
+      });
 
-    const result = await completeTaskDelivery(taskId);
+      prismaMock.task.update.mockResolvedValue(mockTask);
 
-    // 戻り値の型と構造を検証
-    expect(typeof result).toBe("object");
-    expect(typeof result.success).toBe("boolean");
-    expect(result.success).toBe(true);
-    expect(result.error).toBeUndefined();
-    expect(Object.keys(result)).toStrictEqual(["success"]);
-  });
+      const result = await completeTaskDelivery(taskId);
 
-  test("should not return error field in success case", async () => {
-    // 成功時にerrorフィールドが含まれないことを確認
-    const taskId = "success-test-task-id";
-    const mockTask = taskFactory.build({
-      id: taskId,
-      status: TaskStatus.TASK_COMPLETED,
+      expect(result).toStrictEqual({
+        success: true,
+      });
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
     });
 
-    prismaMock.task.update.mockResolvedValue(mockTask);
+    test("should handle taskId with special characters", async () => {
+      // 特殊文字を含むタスクIDでテスト
+      const taskId = "task-id_with.special@chars#123";
+      const mockTask = taskFactory.build({
+        id: taskId,
+        status: TaskStatus.TASK_COMPLETED,
+      });
 
-    const result = await completeTaskDelivery(taskId);
+      prismaMock.task.update.mockResolvedValue(mockTask);
 
-    expect(result).toStrictEqual({
-      success: true,
+      const result = await completeTaskDelivery(taskId);
+
+      expect(result).toStrictEqual({
+        success: true,
+      });
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
     });
-    expect("error" in result).toBe(false);
+
+    test("should handle numeric string taskId", async () => {
+      // 数値文字列のタスクIDでテスト
+      const taskId = "12345";
+      const mockTask = taskFactory.build({
+        id: taskId,
+        status: TaskStatus.TASK_COMPLETED,
+      });
+
+      prismaMock.task.update.mockResolvedValue(mockTask);
+
+      const result = await completeTaskDelivery(taskId);
+
+      expect(result).toStrictEqual({
+        success: true,
+      });
+      expect(prismaMock.task.update).toHaveBeenCalledWith({
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: TaskStatus.TASK_COMPLETED,
+        },
+      });
+    });
+
+    describe("エッジケーステスト", () => {
+      test("should handle concurrent calls with same taskId", async () => {
+        // 同じタスクIDで同時実行された場合のテスト
+        const taskId = "concurrent-task-id";
+        const mockTask = taskFactory.build({
+          id: taskId,
+          status: TaskStatus.TASK_COMPLETED,
+        });
+
+        prismaMock.task.update.mockResolvedValue(mockTask);
+
+        // 同時に複数回実行
+        const promises = [completeTaskDelivery(taskId), completeTaskDelivery(taskId), completeTaskDelivery(taskId)];
+
+        const results = await Promise.all(promises);
+
+        // すべて成功することを確認
+        results.forEach((result) => {
+          expect(result).toStrictEqual({
+            success: true,
+          });
+        });
+
+        // 3回呼ばれることを確認
+        expect(prismaMock.task.update).toHaveBeenCalledTimes(3);
+      });
+
+      test("should handle timeout scenario", async () => {
+        // タイムアウトシナリオのテスト
+        const taskId = "timeout-task-id";
+        const timeoutError = new Error("Operation timed out");
+
+        prismaMock.task.update.mockRejectedValue(timeoutError);
+
+        await expect(completeTaskDelivery(taskId)).rejects.toThrow("Operation timed out");
+
+        expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe("戻り値の型のテスト", () => {
+      test("should return correct type structure", async () => {
+        // 戻り値の型構造が正しいことを確認
+        const taskId = "type-test-task-id";
+        const mockTask = taskFactory.build({
+          id: taskId,
+          status: TaskStatus.TASK_COMPLETED,
+        });
+
+        prismaMock.task.update.mockResolvedValue(mockTask);
+
+        const result = await completeTaskDelivery(taskId);
+
+        // 戻り値の型と構造を検証
+        expect(typeof result).toBe("object");
+        expect(typeof result.success).toBe("boolean");
+        expect(result.success).toBe(true);
+        expect(result.error).toBeUndefined();
+        expect(Object.keys(result)).toStrictEqual(["success"]);
+      });
+
+      test("should not return error field in success case", async () => {
+        // 成功時にerrorフィールドが含まれないことを確認
+        const taskId = "success-test-task-id";
+        const mockTask = taskFactory.build({
+          id: taskId,
+          status: TaskStatus.TASK_COMPLETED,
+        });
+
+        prismaMock.task.update.mockResolvedValue(mockTask);
+
+        const result = await completeTaskDelivery(taskId);
+
+        expect(result).toStrictEqual({
+          success: true,
+        });
+        expect("error" in result).toBe(false);
+      });
+    });
   });
 });

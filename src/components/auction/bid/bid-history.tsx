@@ -89,7 +89,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initi
                   )}
                 </TableCell>
                 <TableCell className="text-primary text-lg font-bold">{formatCurrency(bid.amount)}</TableCell>
-                <TableCell className="text-muted-foreground text-right text-sm">{`${formatRelativeTime(bid.createdAt)}`}</TableCell>
+                <TableCell className="text-muted-foreground text-right text-sm">{`${formatRelativeTime(new Date(bid.createdAt))}`}</TableCell>
               </motion.tr>
             ))}
           </TableBody>

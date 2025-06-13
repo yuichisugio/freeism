@@ -406,7 +406,7 @@ describe("useAuctionFilters", () => {
       expect(result.current.draftConditions.maxRemainingTime).toBe(24);
     });
 
-    test("should format time display correctly", () => {
+    test("should handle time range operations", () => {
       // Arrange
       const { result } = renderHook(
         () =>
@@ -419,10 +419,23 @@ describe("useAuctionFilters", () => {
         },
       );
 
+      // Act - 時間範囲プリセット設定
+      act(() => {
+        result.current.setTimePreset(1, 24);
+      });
+
       // Assert
-      expect(result.current.formatTimeDisplay(0.5)).toBe("即時");
-      expect(result.current.formatTimeDisplay(12)).toBe("12時間");
-      expect(result.current.formatTimeDisplay(24)).toBe("1日");
+      expect(result.current.draftConditions.minRemainingTime).toBe(1);
+      expect(result.current.draftConditions.maxRemainingTime).toBe(24);
+
+      // Act - 時間範囲リセット
+      act(() => {
+        result.current.resetTimeRange();
+      });
+
+      // Assert
+      expect(result.current.draftConditions.minRemainingTime).toBe(null);
+      expect(result.current.draftConditions.maxRemainingTime).toBe(null);
     });
   });
 

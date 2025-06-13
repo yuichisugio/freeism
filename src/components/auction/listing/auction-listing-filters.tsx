@@ -11,7 +11,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
-import { cn } from "@/lib/utils";
+import { cn, formatTimeDisplay } from "@/lib/utils";
 import { type AuctionFiltersProps, type AuctionFilterTypes } from "@/types/auction-types";
 import {
   ArrowDown,
@@ -316,7 +316,6 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
     closeSuggestions,
 
     // utilities
-    formatTimeDisplay,
     isCategorySelected,
     isStatusSelected,
     isGroupSelected,

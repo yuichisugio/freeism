@@ -1,17 +1,9 @@
 import { memo, useMemo } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatFileSize } from "@/lib/utils";
 import { File, X } from "lucide-react";
 
 export const SelectedFileCard = memo(({ name, fileSize, onRemove }: { name: string; fileSize: number; onRemove: () => void }) => {
-  // ファイルサイズをKBに変換
-  function formatFileSize(bytes: number): string {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  }
-
   // ファイルサイズを適切な単位に変換
   const formattedSize = useMemo(() => formatFileSize(fileSize), [fileSize]);
 

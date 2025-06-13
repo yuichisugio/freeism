@@ -69,7 +69,6 @@ type UseAuctionFiltersReturn = {
   closeSuggestions: () => void;
 
   // utilities
-  formatTimeDisplay: (hours: number) => string;
   isCategorySelected: (category: string) => boolean;
   isStatusSelected: (status: string) => boolean;
   isGroupSelected: (groupId: string | null) => boolean;
@@ -183,18 +182,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
   useEffect(() => {
     setDraftConditions({ ...listingsConditions });
   }, [listingsConditions]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 時間範囲の表示
-   */
-  const formatTimeDisplay = useCallback((hours: number) => {
-    if (hours < 1) return "即時";
-    if (hours < 24) return `${hours}時間`;
-    const days = Math.floor(hours / 24);
-    return `${days}日`;
-  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -904,7 +891,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     closeSuggestions,
 
     // utilities
-    formatTimeDisplay,
     isCategorySelected,
     isStatusSelected,
     isGroupSelected,
