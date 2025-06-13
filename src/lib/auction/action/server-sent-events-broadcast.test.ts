@@ -139,9 +139,229 @@ describe("sendEventToAuctionSubscribers", () => {
         cache: "no-cache",
       });
     });
+
+    test("should handle null currentHighestBidderId", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        currentHighestBidderId: null,
+      });
+
+      // Act
+      await sendEventToAuctionSubscribers(auctionId, testData);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: JSON.stringify({
+            data: testData,
+            timestamp: 1234567890000,
+          }),
+        }),
+      );
+    });
   });
 
-  describe("異常系", () => {
+  describe("異常系 - 基本的なバリデーション", () => {
+    test("should throw error when auctionId is empty string", async () => {
+      // Arrange
+      const auctionId = "";
+      const testData = createTestUpdateAuctionData();
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("auctionId must be a non-empty string");
+    });
+
+    test("should throw error when auctionId is not a string", async () => {
+      // Arrange
+      const auctionId = 123 as unknown as string;
+      const testData = createTestUpdateAuctionData();
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("auctionId must be a non-empty string");
+    });
+
+    test("should throw error when data is null", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = null as unknown as UpdateAuctionWithDetails;
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("data must be a valid object");
+    });
+
+    test("should throw error when data is undefined", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = undefined as unknown as UpdateAuctionWithDetails;
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("data must be a valid object");
+    });
+  });
+
+  describe("異常系 - 環境変数", () => {
+    test("should throw error when UPSTASH_REDIS_REST_URL is missing", async () => {
+      // Arrange
+      vi.unstubAllEnvs();
+      vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "test-token");
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({ id: auctionId });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("UPSTASH_REDIS_REST_URL environment variable is required");
+    });
+
+    test("should throw error when UPSTASH_REDIS_REST_TOKEN is missing", async () => {
+      // Arrange
+      vi.unstubAllEnvs();
+      vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://test.upstash.com");
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({ id: auctionId });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("UPSTASH_REDIS_REST_TOKEN environment variable is required");
+    });
+
+    test("should throw error when both environment variables are missing", async () => {
+      // Arrange
+      vi.unstubAllEnvs();
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({ id: auctionId });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("UPSTASH_REDIS_REST_URL environment variable is required");
+    });
+  });
+
+  describe("異常系 - UpdateAuctionWithDetailsバリデーション", () => {
+    test("should throw error when id is missing", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData();
+      // @ts-expect-error - テスト用に意図的にidを削除
+      delete testData.id;
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "Required field 'id' is missing or null in UpdateAuctionWithDetails",
+      );
+    });
+
+    test("should throw error when currentHighestBid is missing", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData();
+      // @ts-expect-error - テスト用に意図的にcurrentHighestBidを削除
+      delete testData.currentHighestBid;
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "Required field 'currentHighestBid' is missing or null in UpdateAuctionWithDetails",
+      );
+    });
+
+    test("should throw error when currentHighestBid is negative", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        currentHighestBid: -100,
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("currentHighestBid must be a non-negative number");
+    });
+
+    test("should throw error when status is missing", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData();
+      // @ts-expect-error - テスト用に意図的にstatusを削除
+      delete testData.status;
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "Required field 'status' is missing or null in UpdateAuctionWithDetails",
+      );
+    });
+
+    test("should throw error when bidHistories is not an array", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        bidHistories: "not-an-array" as unknown as UpdateAuctionWithDetails["bidHistories"],
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("bidHistories must be an array");
+    });
+
+    test("should throw error when extensionTotalCount is negative", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        extensionTotalCount: -1,
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionTotalCount must be a non-negative integer");
+    });
+
+    test("should throw error when extensionTotalCount is not an integer", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        extensionTotalCount: 1.5,
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionTotalCount must be a non-negative integer");
+    });
+
+    test("should throw error when extensionLimitCount is negative", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        extensionLimitCount: -1,
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionLimitCount must be a non-negative integer");
+    });
+
+    test("should throw error when extensionTime is negative", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        extensionTime: -1,
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionTime must be a non-negative number");
+    });
+
+    test("should throw error when remainingTimeForExtension is negative", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        remainingTimeForExtension: -1,
+      });
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("remainingTimeForExtension must be a non-negative number");
+    });
+  });
+
+  describe("異常系 - HTTPエラー", () => {
     test("should throw error when fetch fails", async () => {
       // Arrange
       const auctionId = "test-auction-123";
@@ -153,7 +373,7 @@ describe("sendEventToAuctionSubscribers", () => {
       await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("Network error");
     });
 
-    test("should not throw error when Redis returns error status (current implementation)", async () => {
+    test("should throw error when Redis returns 500 status", async () => {
       // Arrange
       const auctionId = "test-auction-123";
       const testData = createTestUpdateAuctionData({ id: auctionId });
@@ -164,74 +384,40 @@ describe("sendEventToAuctionSubscribers", () => {
       } as Response);
 
       // Act & Assert
-      // 現在の実装では、HTTPエラーステータスでも例外を投げない
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).resolves.toBeUndefined();
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("HTTP Error: 500 Internal Server Error");
     });
 
-    test("should handle undefined environment variables", async () => {
+    test("should throw error when Redis returns 404 status", async () => {
       // Arrange
-      // unstubAllEnvsで、Bearerの環境変数定義をundefinedにして、bearerが無い場合のテストを行う
-      vi.unstubAllEnvs();
       const auctionId = "test-auction-123";
       const testData = createTestUpdateAuctionData({ id: auctionId });
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+      } as Response);
 
-      // Act
-      await sendEventToAuctionSubscribers(auctionId, testData);
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("HTTP Error: 404 Not Found");
+    });
 
-      // Assert
-      expect(mockFetch).toHaveBeenCalledWith("undefined/publish/auction%3Atest-auction-123%3Aevents", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer undefined",
-          Accept: "text/event-stream",
-        },
-        body: JSON.stringify({
-          data: testData,
-          timestamp: 1234567890000,
-        }),
-      });
+    test("should throw error when Redis returns 401 status", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({ id: auctionId });
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: "Unauthorized",
+      } as Response);
+
+      // Act & Assert
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("HTTP Error: 401 Unauthorized");
     });
   });
 
   describe("境界値テスト", () => {
-    test("should handle empty auction ID", async () => {
-      // Arrange
-      const auctionId = "";
-      const testData = createTestUpdateAuctionData({ id: auctionId });
-
-      // Act
-      await sendEventToAuctionSubscribers(auctionId, testData);
-
-      // Assert
-      expect(mockFetch).toHaveBeenCalledWith("https://test.upstash.com/publish/auction%3A%3Aevents", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer test-token",
-          Accept: "text/event-stream",
-        },
-        body: JSON.stringify({
-          data: testData,
-          timestamp: 1234567890000,
-        }),
-      });
-    });
-
-    test("should handle very long auction ID", async () => {
-      // Arrange
-      const auctionId = "a".repeat(1000);
-      const testData = createTestUpdateAuctionData({ id: auctionId });
-
-      // Act
-      await sendEventToAuctionSubscribers(auctionId, testData);
-
-      // Assert
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      const callArgs = mockFetch.mock.calls[0];
-      expect(callArgs[0]).toContain("auction%3A" + "a".repeat(1000) + "%3Aevents");
-    });
-
-    test("should handle minimum bid amount", async () => {
+    test("should handle minimum bid amount (0)", async () => {
       // Arrange
       const auctionId = "test-auction-123";
       const testData = createTestUpdateAuctionData({
@@ -253,6 +439,7 @@ describe("sendEventToAuctionSubscribers", () => {
           data: testData,
           timestamp: 1234567890000,
         }),
+        cache: "no-cache",
       });
     });
 
@@ -262,29 +449,6 @@ describe("sendEventToAuctionSubscribers", () => {
       const testData = createTestUpdateAuctionData({
         id: auctionId,
         currentHighestBid: Number.MAX_SAFE_INTEGER,
-      });
-
-      // Act
-      await sendEventToAuctionSubscribers(auctionId, testData);
-
-      // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          body: JSON.stringify({
-            data: testData,
-            timestamp: 1234567890000,
-          }),
-        }),
-      );
-    });
-
-    test("should handle null currentHighestBidderId", async () => {
-      // Arrange
-      const auctionId = "test-auction-123";
-      const testData = createTestUpdateAuctionData({
-        id: auctionId,
-        currentHighestBidderId: null,
       });
 
       // Act
@@ -323,6 +487,52 @@ describe("sendEventToAuctionSubscribers", () => {
           }),
         }),
       );
+    });
+
+    test("should handle very long auction ID", async () => {
+      // Arrange
+      const auctionId = "a".repeat(1000);
+      const testData = createTestUpdateAuctionData({ id: auctionId });
+
+      // Act
+      await sendEventToAuctionSubscribers(auctionId, testData);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const callArgs = mockFetch.mock.calls[0];
+      expect(callArgs[0]).toContain("auction%3A" + "a".repeat(1000) + "%3Aevents");
+    });
+
+    test("should handle zero extension counts", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        extensionTotalCount: 0,
+        extensionLimitCount: 0,
+      });
+
+      // Act
+      await sendEventToAuctionSubscribers(auctionId, testData);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test("should handle zero extension times", async () => {
+      // Arrange
+      const auctionId = "test-auction-123";
+      const testData = createTestUpdateAuctionData({
+        id: auctionId,
+        extensionTime: 0,
+        remainingTimeForExtension: 0,
+      });
+
+      // Act
+      await sendEventToAuctionSubscribers(auctionId, testData);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 
