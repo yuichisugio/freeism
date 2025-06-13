@@ -69,6 +69,13 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      // GitHubのアバター画像を許可する設定を追加
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   async headers() {

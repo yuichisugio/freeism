@@ -59,7 +59,7 @@ export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initi
             {/* SSEで更新されたbidHistoriesを新しい順に表示（配列の先頭が最新） */}
             {initialBids.map((bid, index) => (
               <motion.tr
-                key={bid.id}
+                key={`${bid.id}-${index}-${new Date(bid.createdAt).getTime()}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}

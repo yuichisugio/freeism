@@ -3,7 +3,6 @@
 import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "@/lib/actions/cache/cache-notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -16,11 +15,7 @@ import { Prisma } from "@prisma/client";
  * @returns 未読通知の数
  */
 export const getUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
-  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_start");
-
   const hasUnreadNotifications = await cachedGetUnreadNotificationsCount(userId);
-  console.log("src/lib/actions/notification/notification-utilities.ts_getUnreadNotificationsCount_hasUnreadNotifications", hasUnreadNotifications);
-
   return hasUnreadNotifications;
 });
 
@@ -48,10 +43,6 @@ export const getNotificationsAndUnreadCount = cache(
 
       // 引数で渡された userId を使用
       const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
-
-      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_totalCount", totalCount);
-      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_unreadCount", unreadCount);
-      console.log("src/lib/actions/notification/notification-utilities.ts_getNotificationsAndUnreadCount_readCount", readCount);
 
       return {
         notifications,
@@ -111,12 +102,6 @@ export const updateNotificationStatus = cache(async (updates: Array<{ notificati
         }
       }
     });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // キャッシュを更新
-    revalidateTag(`Notification:${userId}`);
-    revalidatePath("/dashboard/notifications");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
