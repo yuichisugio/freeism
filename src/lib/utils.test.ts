@@ -133,52 +133,90 @@ describe("utils", () => {
 
     describe("ja-JP locale (default)", () => {
       it("should return relative time for recent past dates", () => {
-        const recentDate = new Date("2023-04-15T11:59:30Z"); // 30秒前
-        // 実際の実装では30秒前は"30 秒前"として表示される
-        expect(formatRelativeTime(recentDate)).toBe("30 秒前");
+        const thirtySecondsAgo = new Date("2023-04-15T11:59:30Z");
+        const thirtySecondsLater = new Date("2023-04-15T12:00:30Z");
+        expect(formatRelativeTime(thirtySecondsAgo)).toBe("30秒前");
+        expect(formatRelativeTime(thirtySecondsLater)).toBe("30秒後");
       });
 
       it("should format minutes correctly", () => {
         const fiveMinutesAgo = new Date("2023-04-15T11:55:00Z");
         const fiveMinutesLater = new Date("2023-04-15T12:05:00Z");
 
-        expect(formatRelativeTime(fiveMinutesAgo)).toBe("5 分前");
-        expect(formatRelativeTime(fiveMinutesLater)).toBe("5 分後");
+        expect(formatRelativeTime(fiveMinutesAgo)).toBe("5分前");
+        expect(formatRelativeTime(fiveMinutesLater)).toBe("5分後");
       });
 
       it("should format hours correctly", () => {
         const twoHoursAgo = new Date("2023-04-15T10:00:00Z");
         const twoHoursLater = new Date("2023-04-15T14:00:00Z");
 
-        expect(formatRelativeTime(twoHoursAgo)).toBe("2 時間前");
-        expect(formatRelativeTime(twoHoursLater)).toBe("2 時間後");
+        expect(formatRelativeTime(twoHoursAgo)).toBe("2時間前");
+        expect(formatRelativeTime(twoHoursLater)).toBe("2時間後");
       });
 
       it("should format days correctly", () => {
         const yesterday = new Date("2023-04-14T12:00:00Z");
         const tomorrow = new Date("2023-04-16T12:00:00Z");
         const threeDaysAgo = new Date("2023-04-12T12:00:00Z");
+        const threeDaysLater = new Date("2023-04-18T12:00:00Z");
 
         expect(formatRelativeTime(yesterday)).toBe("昨日");
         expect(formatRelativeTime(tomorrow)).toBe("明日");
-        expect(formatRelativeTime(threeDaysAgo)).toBe("3 日前");
+        expect(formatRelativeTime(threeDaysAgo)).toBe("3日前");
+        expect(formatRelativeTime(threeDaysLater)).toBe("3日後");
       });
 
       it("should format weeks correctly", () => {
         const oneWeekAgo = new Date("2023-04-08T12:00:00Z");
+        const oneWeekLater = new Date("2023-04-22T12:00:00Z");
+        const twoWeeksAgo = new Date("2023-03-31T12:00:00Z");
         const twoWeeksLater = new Date("2023-04-29T12:00:00Z");
 
         expect(formatRelativeTime(oneWeekAgo)).toBe("先週");
-        expect(formatRelativeTime(twoWeeksLater)).toBe("2 週間後");
+        expect(formatRelativeTime(oneWeekLater)).toBe("来週");
+        expect(formatRelativeTime(twoWeeksAgo)).toBe("2週間前");
+        expect(formatRelativeTime(twoWeeksLater)).toBe("2週間後");
       });
 
       it("should format months for distant times", () => {
-        const distantPast = new Date("2023-01-01T12:00:00Z");
-        const distantFuture = new Date("2023-12-31T12:00:00Z");
+        const oneMonthAgo = new Date("2023-03-15T12:00:00Z");
+        const oneMonthLater = new Date("2023-05-15T12:00:00Z");
+        const twoMonthsAgo = new Date("2023-02-15T12:00:00Z");
+        const twoMonthsLater = new Date("2023-06-15T12:00:00Z");
 
         // 実際の実装では月単位で表示される
-        expect(formatRelativeTime(distantPast)).toBe("3 か月前");
-        expect(formatRelativeTime(distantFuture)).toBe("8 か月後");
+        expect(formatRelativeTime(oneMonthAgo)).toBe("先月");
+        expect(formatRelativeTime(oneMonthLater)).toBe("来月");
+        expect(formatRelativeTime(twoMonthsAgo)).toBe("先月");
+        expect(formatRelativeTime(twoMonthsLater)).toBe("2か月後");
+      });
+
+      it("should format years for distant times", () => {
+        const oneYearAgo = new Date("2022-04-15T12:00:00Z");
+        const oneYearLater = new Date("2024-04-15T12:00:00Z");
+        const twoYearsAgo = new Date("2021-04-15T12:00:00Z");
+        const twoYearsLater = new Date("2025-04-15T12:00:00Z");
+
+        expect(formatRelativeTime(oneYearAgo)).toBe("昨年");
+        expect(formatRelativeTime(oneYearLater)).toBe("来年");
+        expect(formatRelativeTime(twoYearsAgo)).toBe("2年前");
+        expect(formatRelativeTime(twoYearsLater)).toBe("2年後");
+      });
+
+      it("should handle invalid dates", () => {
+        expect(() => formatRelativeTime(new Date("invalid"))).toThrow("formatRelativeTime: 無効な日付です");
+      });
+
+      it("should handle edge cases", () => {
+        // 境界値のテスト
+        const exactly60SecondsAgo = new Date("2023-04-15T11:59:00Z");
+        const exactly60MinutesAgo = new Date("2023-04-15T11:00:00Z");
+        const exactly24HoursAgo = new Date("2023-04-14T12:00:00Z");
+
+        expect(formatRelativeTime(exactly60SecondsAgo)).toBe("1分前");
+        expect(formatRelativeTime(exactly60MinutesAgo)).toBe("1時間前");
+        expect(formatRelativeTime(exactly24HoursAgo)).toBe("昨日");
       });
     });
 
@@ -232,86 +270,67 @@ describe("utils", () => {
         expect(formatRelativeTime(distantFuture, "en-US")).toBe("in 8 months");
       });
     });
-
-    it("should handle invalid dates", () => {
-      expect(() => formatRelativeTime(new Date("invalid"))).toThrow("formatRelativeTime: 無効な日付です");
-    });
-
-    it("should handle edge cases", () => {
-      // 境界値のテスト
-      const exactly60SecondsAgo = new Date("2023-04-15T11:59:00Z");
-      const exactly60MinutesAgo = new Date("2023-04-15T11:00:00Z");
-      const exactly24HoursAgo = new Date("2023-04-14T12:00:00Z");
-
-      expect(formatRelativeTime(exactly60SecondsAgo)).toBe("1 分前");
-      expect(formatRelativeTime(exactly60MinutesAgo)).toBe("1 時間前");
-      expect(formatRelativeTime(exactly24HoursAgo)).toBe("昨日");
-    });
-
-    it("should handle Intl.RelativeTimeFormat fallback", () => {
-      const fiveMinutesAgo = new Date("2023-04-15T11:55:00Z");
-      const result = formatRelativeTime(fiveMinutesAgo);
-      expect(result).toBe("5 分前");
-    });
-
-    it("should handle future dates correctly", () => {
-      const futureMinutes = new Date("2023-04-15T12:30:00Z"); // 30分後
-      const futureHours = new Date("2023-04-15T15:00:00Z"); // 3時間後
-      const futureDays = new Date("2023-04-18T12:00:00Z"); // 3日後
-
-      expect(formatRelativeTime(futureMinutes)).toBe("30 分後");
-      expect(formatRelativeTime(futureHours)).toBe("3 時間後");
-      expect(formatRelativeTime(futureDays)).toBe("3 日後");
-    });
   });
 
   describe("formatFileSize", () => {
-    it("should format zero bytes correctly", () => {
-      expect(formatFileSize(0)).toBe("0 Bytes");
+    describe("正常テスト", () => {
+      it("should format zero bytes correctly", () => {
+        expect(formatFileSize(0)).toBe("0 B");
+      });
+
+      it("should format bytes correctly", () => {
+        expect(formatFileSize(500)).toBe("500 B");
+        expect(formatFileSize(1023)).toBe("1023 B");
+      });
+
+      it("should format KB correctly", () => {
+        expect(formatFileSize(1024)).toBe("1 KB");
+        expect(formatFileSize(1048)).toBe("1 KB");
+        expect(formatFileSize(1536)).toBe("1.5 KB");
+        expect(formatFileSize(2048)).toBe("2 KB");
+        expect(formatFileSize(1048575)).toBe("1024 KB");
+      });
+
+      it("should format MB correctly", () => {
+        expect(formatFileSize(1048576)).toBe("1 MB");
+        expect(formatFileSize(1088576)).toBe("1 MB");
+        expect(formatFileSize(1572864)).toBe("1.5 MB");
+        expect(formatFileSize(2097152)).toBe("2 MB");
+        expect(formatFileSize(1073741823)).toBe("1024 MB");
+      });
+
+      it("should format GB correctly", () => {
+        expect(formatFileSize(1073741824)).toBe("1 GB");
+        expect(formatFileSize(1101004800)).toBe("1 GB");
+        expect(formatFileSize(1610612736)).toBe("1.5 GB");
+        expect(formatFileSize(2147483648)).toBe("2 GB");
+      });
+
+      it("should handle decimal values correctly", () => {
+        expect(formatFileSize(1536.5)).toBe("1.5 KB");
+        expect(formatFileSize(1572864.7)).toBe("1.5 MB");
+        expect(formatFileSize(1610612736.7)).toBe("1.5 GB");
+      });
+
+      it("should handle very large numbers", () => {
+        expect(formatFileSize(1099511627776)).toBe("1 TB");
+        expect(formatFileSize(1125899906842624)).toBe("1 PB");
+        expect(formatFileSize(1152921504606846976)).toBe("1 EB");
+        expect(formatFileSize(1180591620717411303424)).toBe("1 ZB");
+        expect(formatFileSize(1208925819614629174706176)).toBe("1 YB");
+      });
+
+      it("should handle very small decimal numbers", () => {
+        expect(formatFileSize(0.5)).toBe("0.5 B");
+        expect(formatFileSize(0.1)).toBe("0.1 B");
+      });
     });
 
-    it("should format bytes correctly", () => {
-      expect(formatFileSize(500)).toBe("500 Bytes");
-      expect(formatFileSize(1023)).toBe("1023 Bytes");
-    });
-
-    it("should format KB correctly", () => {
-      expect(formatFileSize(1024)).toBe("1 KB");
-      expect(formatFileSize(1536)).toBe("1.5 KB");
-      expect(formatFileSize(2048)).toBe("2 KB");
-      expect(formatFileSize(1048575)).toBe("1024 KB");
-    });
-
-    it("should format MB correctly", () => {
-      expect(formatFileSize(1048576)).toBe("1 MB");
-      expect(formatFileSize(1572864)).toBe("1.5 MB");
-      expect(formatFileSize(2097152)).toBe("2 MB");
-      expect(formatFileSize(1073741823)).toBe("1024 MB");
-    });
-
-    it("should format GB correctly", () => {
-      expect(formatFileSize(1073741824)).toBe("1 GB");
-      expect(formatFileSize(1610612736)).toBe("1.5 GB");
-      expect(formatFileSize(2147483648)).toBe("2 GB");
-    });
-
-    it("should handle decimal values correctly", () => {
-      expect(formatFileSize(1536.5)).toBe("1.5 KB");
-      expect(formatFileSize(1572864.7)).toBe("1.5 MB");
-    });
-
-    it("should handle very large numbers", () => {
-      expect(formatFileSize(1099511627776)).toBe("1 TB");
-    });
-
-    it("should handle negative numbers", () => {
-      // 負の値は現実的ではないが、関数の堅牢性をテスト
-      expect(() => formatFileSize(-1024)).toThrow("formatFileSize: 負の値は受け付けません。");
-    });
-
-    it("should handle very small decimal numbers", () => {
-      expect(formatFileSize(0.5)).toBe("0.5 Bytes");
-      expect(formatFileSize(0.1)).toBe("0.1 Bytes");
+    describe("異常テスト", () => {
+      it("should handle negative numbers", () => {
+        // 負の値は現実的ではないが、関数の堅牢性をテスト
+        expect(() => formatFileSize(-1024)).toThrow("formatFileSize: 負の値は受け付けません。");
+      });
     });
   });
 
@@ -429,7 +448,7 @@ describe("utils", () => {
 
       const result = await getAuthSession();
 
-      expect(result).toEqual({
+      expect(result).toStrictEqual({
         user: {
           id: "cmb0e9xnm0001mchbj6ler4py",
           email: "test@example.com",
@@ -456,70 +475,74 @@ describe("utils", () => {
       vi.clearAllMocks();
     });
 
-    it("should return user ID when session exists", async () => {
-      const { auth } = await import("@/auth");
-      const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
+    describe("正常テスト", () => {
+      it("should return user ID when session exists", async () => {
+        const { auth } = await import("@/auth");
+        const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
 
-      mockAuth.mockResolvedValue({
-        user: {
-          id: "cmb0e9xnm0001mchbj6ler4py",
-          email: "test@example.com",
-          name: "Test User",
-          image: "https://example.com/avatar.jpg",
-        },
-        expires: "2024-12-31T23:59:59.999Z",
+        mockAuth.mockResolvedValue({
+          user: {
+            id: "cmb0e9xnm0001mchbj6ler4py",
+            email: "test@example.com",
+            name: "Test User",
+            image: "https://example.com/avatar.jpg",
+          },
+          expires: "2024-12-31T23:59:59.999Z",
+        });
+
+        const result = await getAuthenticatedSessionUserId();
+        expect(result).toBe("cmb0e9xnm0001mchbj6ler4py");
+      });
+    });
+
+    describe("異常テスト", () => {
+      it("should call redirect when session does not exist", async () => {
+        const { auth } = await import("@/auth");
+        const { redirect } = await import("next/navigation");
+        const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
+        const mockRedirect = vi.mocked(redirect);
+
+        mockAuth.mockResolvedValue(null);
+
+        // redirect関数がモックされているため、関数は正常終了する
+        const result = await getAuthenticatedSessionUserId();
+        expect(result).toBeUndefined();
+        expect(mockRedirect).toHaveBeenCalledWith("/auth/signin");
       });
 
-      const result = await getAuthenticatedSessionUserId();
-      expect(result).toBe("cmb0e9xnm0001mchbj6ler4py");
-    });
+      it("should call redirect when user ID is missing", async () => {
+        const { auth } = await import("@/auth");
+        const { redirect } = await import("next/navigation");
+        const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
+        const mockRedirect = vi.mocked(redirect);
 
-    it("should call redirect when session does not exist", async () => {
-      const { auth } = await import("@/auth");
-      const { redirect } = await import("next/navigation");
-      const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
-      const mockRedirect = vi.mocked(redirect);
+        mockAuth.mockResolvedValue({
+          user: {
+            email: "test@example.com",
+            name: "Test User",
+          },
+          expires: "2024-12-31T23:59:59.999Z",
+        });
 
-      mockAuth.mockResolvedValue(null);
-
-      // redirect関数がモックされているため、関数は正常終了する
-      const result = await getAuthenticatedSessionUserId();
-      expect(result).toBeUndefined();
-      expect(mockRedirect).toHaveBeenCalledWith("/auth/signin");
-    });
-
-    it("should call redirect when user ID is missing", async () => {
-      const { auth } = await import("@/auth");
-      const { redirect } = await import("next/navigation");
-      const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
-      const mockRedirect = vi.mocked(redirect);
-
-      mockAuth.mockResolvedValue({
-        user: {
-          email: "test@example.com",
-          name: "Test User",
-        },
-        expires: "2024-12-31T23:59:59.999Z",
+        // redirect関数がモックされているため、関数は正常終了する
+        const result = await getAuthenticatedSessionUserId();
+        expect(result).toBeUndefined();
+        expect(mockRedirect).toHaveBeenCalledWith("/auth/signin");
       });
 
-      // redirect関数がモックされているため、関数は正常終了する
-      const result = await getAuthenticatedSessionUserId();
-      expect(result).toBeUndefined();
-      expect(mockRedirect).toHaveBeenCalledWith("/auth/signin");
-    });
+      it("should call redirect when auth function throws error", async () => {
+        const { auth } = await import("@/auth");
+        const { redirect } = await import("next/navigation");
+        const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
+        const mockRedirect = vi.mocked(redirect);
 
-    it("should call redirect when auth function throws error", async () => {
-      const { auth } = await import("@/auth");
-      const { redirect } = await import("next/navigation");
-      const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
-      const mockRedirect = vi.mocked(redirect);
+        mockAuth.mockRejectedValue(new Error("Auth error"));
 
-      mockAuth.mockRejectedValue(new Error("Auth error"));
-
-      // redirect関数がモックされているため、関数は正常終了する
-      const result = await getAuthenticatedSessionUserId();
-      expect(result).toBeUndefined();
-      expect(mockRedirect).toHaveBeenCalledWith("/auth/signin");
+        // redirect関数がモックされているため、関数は正常終了する
+        const result = await getAuthenticatedSessionUserId();
+        expect(result).toBeUndefined();
+        expect(mockRedirect).toHaveBeenCalledWith("/auth/signin");
+      });
     });
   });
 });

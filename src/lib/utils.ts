@@ -122,10 +122,11 @@ export function formatRelativeTime(inputDate: Date, locale: "ja-JP" | "en-US" = 
   // Intl.RelativeTimeFormatを使用して相対時間をフォーマット
   // Note: ブラウザやNode.jsのバージョンによっては対応していない場合があります
   // numeric: 'auto' は "昨日", "明日", "先週", "来週" のような表現を可能にする
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  // 3 日後などのスペースを空けないように日本語のみ、narrowを使用する
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style: locale === "ja-JP" ? "narrow" : "long" });
 
   // 60秒未満で、過去の場合
-  if (seconds < 60 && isPast) {
+  if (seconds < 60) {
     return rtf.format(isPast ? -seconds : seconds, "second");
 
     // 60分未満の場合
@@ -140,8 +141,8 @@ export function formatRelativeTime(inputDate: Date, locale: "ja-JP" | "en-US" = 
   } else if (days < 7) {
     return rtf.format(isPast ? -days : days, "day");
 
-    // 6週間未満の場合
-  } else if (weeks < 6) {
+    // 30日未満の場合
+  } else if (days < 30) {
     return rtf.format(isPast ? -weeks : weeks, "week");
 
     // 12ヶ月未満の場合
@@ -169,12 +170,12 @@ export function formatFileSize(bytes: number): string {
 
   // 0の場合は0 Bytesを返す
   // 後の対数計算では、0の対数は定義されないため、この特別処理が必要になります。
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return "0 B";
 
   // 1024を底とする対数を計算
   // 1024は2の10乗であるため、1024を底とする対数を計算することで、ファイルサイズを1024で割ることができる。
   const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
   // 対数を計算。Math.logは底をeとする対数を計算する。
   const i = Math.floor(Math.log(bytes) / Math.log(k));
