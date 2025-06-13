@@ -272,7 +272,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     queryKey: queryCacheKeys.users.groups(userId),
     queryFn: async () => {
       if (!userId) return [];
-      return await getUserGroups();
+      return await getUserGroups(userId);
     },
     enabled: !!userId,
     staleTime: 30 * 60 * 1000, // 10分間キャッシュ

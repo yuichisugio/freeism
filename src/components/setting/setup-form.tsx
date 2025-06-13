@@ -9,8 +9,7 @@ import { EmailNotificationToggle } from "@/components/notification/email-notific
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
-import { updateUserSetup } from "@/lib/actions/user-settings";
-import { getUserSettings } from "@/lib/auction/action/user";
+import { getUserSettings, updateUserSetup } from "@/lib/actions/user-settings";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { setupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";

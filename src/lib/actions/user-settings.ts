@@ -1,6 +1,8 @@
 "use server";
 
 import type { SetupForm } from "@/components/setting/setup-form";
+import type { UserSettings } from "@prisma/client";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 
@@ -84,3 +86,13 @@ export async function updateUserSetup(data: SetupForm) {
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザー設定を取得
+ */
+export const getUserSettings = cache(async (userId: string): Promise<UserSettings | null> => {
+  const userSettings = await prisma.userSettings.findUnique({
+    where: { userId: userId },
+  });
+  return userSettings;
+});
