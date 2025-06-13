@@ -15,6 +15,13 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * 出品商品のIDが存在しない場合はnullを返却
+   */
+  if (!auctionId) return null;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * 自分が出品or実行or報告したオークションの詳細を取得
    */
   const auction = await prisma.auction.findUnique({

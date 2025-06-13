@@ -2,8 +2,8 @@
 
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { revalidateTag } from "next/cache";
+import { checkIsOwner } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { TaskStatus } from "@prisma/client";
 
 import { getCachedAuctionHistoryCreatedDetail } from "./cache/cache-auction-history";
@@ -38,28 +38,23 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string): Promise
  * @param taskId タスクID
  * @param deliveryMethod 提供方法
  */
-export async function updateDeliveryMethod(taskId: string, deliveryMethod: string) {
+export async function updateDeliveryMethod(taskId: string, deliveryMethod: string, userId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * キャッシュを無効化
+   * タスクID、提供方法、ユーザーIDがない場合
    */
-  revalidateTag(`auction-history-created-detail:${taskId}`);
+  if (!taskId || !deliveryMethod || !userId) {
+    throw new Error("タスクID、提供方法、ユーザーIDが必要です");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 自分のIDを取得
-   */
-  const userId = await getAuthenticatedSessionUserId();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 提供方法が入力されていない場合は、何もしない
+   * 提供方法が入力されていない場合
    */
   if (!deliveryMethod.trim()) {
-    return;
+    throw new Error("提供方法を入力してください");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -67,21 +62,10 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
   /**
    * 自分が作成したタスクかチェック
    */
-  const task = await prisma.task.findFirst({
-    where: {
-      id: taskId,
-      OR: [{ creatorId: userId }, { executors: { some: { userId: userId } } }, { reporters: { some: { userId: userId } } }],
-    },
-  });
+  const { success, error } = await checkIsOwner(userId, undefined, taskId, true);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 自分が作成したタスクかチェック
-   */
-  if (!task) {
-    console.log("[updateDeliveryMethod] task", task);
-    throw new Error("このタスクを編集する権限がありません");
+  if (!success) {
+    throw new Error(error ?? "このタスクを編集する権限がありません");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -94,9 +78,16 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
       id: taskId,
     },
     data: {
-      deliveryMethod,
+      deliveryMethod: deliveryMethod.trim(),
     },
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * キャッシュを無効化
+   */
+  revalidateTag(`auction-history-created-detail:${taskId}`);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -112,54 +103,37 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
  * タスク完了処理アクション
  * @param taskId タスクID
  */
-export async function completeTaskDelivery(taskId: string): Promise<{
+export async function completeTaskDelivery(
+  taskId: string,
+  userId: string,
+): Promise<{
   success: boolean;
   error?: string;
 }> {
-  const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const task = await prisma.task.findUnique({
-    where: {
-      id: taskId,
-    },
-    select: {
-      creatorId: true,
-      executors: {
-        select: {
-          id: true,
-        },
-      },
-      reporters: {
-        select: {
-          id: true,
-        },
-      },
-      auction: {
-        select: {
-          winnerId: true,
-        },
-      },
-    },
-  });
-
-  if (!task) {
-    throw new Error("タスクが見つかりません");
+  /**
+   * タスクID、ユーザーIDがない場合
+   */
+  if (!taskId || !userId) {
+    throw new Error("タスクID、ユーザーIDが必要です");
   }
 
-  // 自分が作成者か落札者か確認
-  const isCreator = task.creatorId === userId;
-  const isExecutor = task.executors.some((executor) => executor.id === userId);
-  const isReporter = task.reporters.some((reporter) => reporter.id === userId);
-  const isWinner = task.auction?.winnerId === userId;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  if (!isCreator && !isExecutor && !isReporter && !isWinner) {
-    return {
-      success: false,
-      error: "このタスクを完了する権限がありません",
-    };
+  /**
+   * 自分が出品者のタスクかチェック
+   */
+  const { success, error } = await checkIsOwner(userId, undefined, taskId, true);
+  if (!success) {
+    throw new Error(error ?? "このタスクを編集する権限がありません");
   }
 
-  // タスク完了ステータスに更新
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク完了ステータスに更新
+   */
   await prisma.task.update({
     where: {
       id: taskId,

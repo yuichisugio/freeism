@@ -114,10 +114,7 @@ export function useCreatedDetail(auctionId: string) {
     error: completeError,
   } = useMutation({
     mutationFn: () => {
-      if (!auction?.task.id) {
-        throw new Error("タスクIDが指定されていません。");
-      }
-      return completeTaskDelivery(auction.task.id);
+      return completeTaskDelivery(auction?.task.id ?? "", userId);
     },
     onSuccess: (result) => {
       if (result.success) {
@@ -146,13 +143,7 @@ export function useCreatedDetail(auctionId: string) {
   } = useMutation({
     mutationFn: (newDeliveryMethod: string) => {
       console.log("[useCreatedDetail] handleUpdateDeliveryMethod", newDeliveryMethod);
-      if (!auction?.task.id) {
-        throw new Error("タスクIDが指定されていません。");
-      }
-      if (!deliveryMethod.trim()) {
-        toast.error("提供方法を入力してください");
-      }
-      return updateDeliveryMethod(auction.task.id, newDeliveryMethod);
+      return updateDeliveryMethod(auction?.task.id ?? "", newDeliveryMethod, userId);
     },
     onSuccess: (_, newDeliveryMethod) => {
       toast.success("提供方法を更新しました");

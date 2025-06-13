@@ -11,6 +11,8 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
  * 権限があるかどうかをチェックする関数
  * @param userId - チェックするユーザーのID
  * @param groupId - チェックするグループのID
+ * @param taskId - チェックするタスクのID
+ * @param isRoleCheck - 出品者、報告者、実行者の場合も権限があるとみなしてOKか
  * @returns グループオーナーの場合はtrue、それ以外はfalse
  */
 export async function checkIsOwner(
