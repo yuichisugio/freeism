@@ -8,23 +8,29 @@ import { prisma } from "@/lib/prisma";
  * ウォッチリストの切り替え
  * @param auctionId オークションID
  * @param userId ユーザーID
+ * @param isWatchlisted ウォッチリストの状態
  * @returns ウォッチリストの状態
  */
-export async function serverToggleWatchlist(auctionId: string, userId: string): Promise<boolean> {
+export async function serverToggleWatchlist(auctionId: string, userId: string, isWatchlisted: boolean): Promise<boolean> {
   try {
-    // 既存のウォッチリスト項目を確認
-    const existingItem = await prisma.taskWatchList.findFirst({
-      where: {
-        userId,
-        auctionId,
-      },
-    });
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    if (existingItem) {
+    // オークションIDまたはユーザーIDが存在しない場合はエラーを返す
+    if (!auctionId || !userId) {
+      throw new Error("serverToggleWatchlist: オークションIDまたはユーザーIDが存在しません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // ウォッチリストの状態を確認
+    if (isWatchlisted) {
       // 存在する場合は削除
       await prisma.taskWatchList.delete({
         where: {
-          id: existingItem.id,
+          userId_auctionId: {
+            userId,
+            auctionId,
+          },
         },
       });
       return false;
