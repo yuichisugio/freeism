@@ -1,6 +1,6 @@
 "use server";
 
-import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
+import type { UpdateAuctionWithDetails } from "@/types/auction-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -11,19 +11,17 @@ import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
  * @param data イベントデータ (オークション詳細など)
  */
 export async function sendEventToAuctionSubscribers(auctionId: string, data: UpdateAuctionWithDetails): Promise<void> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log(
-    `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_start: auctionId=${auctionId}, data=${JSON.stringify(data)}`,
-  );
+  // バリデーション
+  if (!auctionId || !data) throw new Error("auctionId and data are required");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークションIDをキーにRedis Pub/Subチャンネルを作成
   const redisPubSubChannel = `auction:${auctionId}:events`;
-  console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_redisPubSubChannel: ${redisPubSubChannel}`);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // Pub/Subで送信するデータ構造 (SSEの data: 部分とは少し違う)
   const eventPayload = {
@@ -31,23 +29,27 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Upd
     timestamp: Date.now(),
   };
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
     // メッセージをJSON形式に変換
     const message = JSON.stringify(eventPayload);
-    console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信メッセージ: ${message}`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // Redisクライアントキーを作成
     const redisClientKey = `auction:${auctionId}:events`;
     const channel = encodeURIComponent(redisClientKey);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     // Redis REST APIのURLを作成
     const redisRestUrl = `${process.env.UPSTASH_REDIS_REST_URL}/publish/${channel}`;
-    console.log(`src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_redisRestUrl: ${redisRestUrl}`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // Redis REST APIにメッセージを送信
-    const upstream = await fetch(redisRestUrl, {
+    await fetch(redisRestUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
@@ -56,11 +58,8 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Upd
       body: message,
       cache: "no-cache",
     });
-    console.log(
-      `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信: [PubSub] Published event to ${redisPubSubChannel}. Subscribers: ${upstream.status}`,
-    );
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error(
       `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信エラー: [PubSub] Failed to publish event to ${redisPubSubChannel}:`,

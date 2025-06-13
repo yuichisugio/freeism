@@ -1,10 +1,9 @@
+import type { UpdateAuctionWithDetails } from "@/types/auction-types";
 import type { TaskStatus } from "@prisma/client";
+import { sendEventToAuctionSubscribers } from "@/lib/auction/action/server-sent-events-broadcast";
 import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-
-import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
-import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -118,30 +117,6 @@ describe("sendEventToAuctionSubscribers", () => {
       });
     });
 
-    test("should handle different auction IDs correctly", async () => {
-      // Arrange
-      const auctionId = "different-auction-456";
-      const testData = createTestUpdateAuctionData({
-        id: auctionId,
-        currentHighestBid: 2000,
-      });
-
-      // Act
-      await sendEventToAuctionSubscribers(auctionId, testData);
-
-      // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://test.upstash.com/publish/auction%3Adifferent-auction-456%3Aevents",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({
-            data: testData,
-            timestamp: 1234567890000,
-          }),
-        }),
-      );
-    });
-
     test("should encode special characters in auction ID", async () => {
       // Arrange
       const auctionId = "auction-with-special-chars!@#$%";
@@ -151,12 +126,18 @@ describe("sendEventToAuctionSubscribers", () => {
       await sendEventToAuctionSubscribers(auctionId, testData);
 
       // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://test.upstash.com/publish/auction%3Aauction-with-special-chars!%40%23%24%25%3Aevents",
-        expect.objectContaining({
-          method: "POST",
+      expect(mockFetch).toHaveBeenCalledWith("https://test.upstash.com/publish/auction%3Aauction-with-special-chars!%40%23%24%25%3Aevents", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer test-token",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify({
+          data: testData,
+          timestamp: 1234567890000,
         }),
-      );
+        cache: "no-cache",
+      });
     });
   });
 
@@ -190,6 +171,7 @@ describe("sendEventToAuctionSubscribers", () => {
 
     test("should handle undefined environment variables", async () => {
       // Arrange
+      // unstubAllEnvsで、Bearerの環境変数定義をundefinedにして、bearerが無い場合のテストを行う
       vi.unstubAllEnvs();
       const auctionId = "test-auction-123";
       const testData = createTestUpdateAuctionData({ id: auctionId });
@@ -198,15 +180,17 @@ describe("sendEventToAuctionSubscribers", () => {
       await sendEventToAuctionSubscribers(auctionId, testData);
 
       // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        "undefined/publish/auction%3Atest-auction-123%3Aevents",
-        expect.objectContaining({
-          headers: {
-            Authorization: "Bearer undefined",
-            Accept: "text/event-stream",
-          },
+      expect(mockFetch).toHaveBeenCalledWith("undefined/publish/auction%3Atest-auction-123%3Aevents", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer undefined",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify({
+          data: testData,
+          timestamp: 1234567890000,
         }),
-      );
+      });
     });
   });
 
@@ -220,12 +204,17 @@ describe("sendEventToAuctionSubscribers", () => {
       await sendEventToAuctionSubscribers(auctionId, testData);
 
       // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://test.upstash.com/publish/auction%3A%3Aevents",
-        expect.objectContaining({
-          method: "POST",
+      expect(mockFetch).toHaveBeenCalledWith("https://test.upstash.com/publish/auction%3A%3Aevents", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer test-token",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify({
+          data: testData,
+          timestamp: 1234567890000,
         }),
-      );
+      });
     });
 
     test("should handle very long auction ID", async () => {
@@ -254,15 +243,17 @@ describe("sendEventToAuctionSubscribers", () => {
       await sendEventToAuctionSubscribers(auctionId, testData);
 
       // Assert
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          body: JSON.stringify({
-            data: testData,
-            timestamp: 1234567890000,
-          }),
+      expect(mockFetch).toHaveBeenCalledWith("https://test.upstash.com/publish/auction%3Atest-auction-123%3Aevents", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer test-token",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify({
+          data: testData,
+          timestamp: 1234567890000,
         }),
-      );
+      });
     });
 
     test("should handle maximum bid amount", async () => {
