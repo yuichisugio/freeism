@@ -172,6 +172,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       if (success) {
         toast.info(message);
       }
+      if (!success) {
+        throw new Error(message);
+      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -289,8 +292,8 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           paramsValidationResult: validation,
         };
         await processAutoBid(params);
-      } catch (autoBidError) {
-        console.error("入札後の自動入札処理でエラーが発生しました", autoBidError);
+      } catch {
+        console.error("入札後の自動入札処理でエラーが発生しました");
         // エラーが発生しても入札自体は成功しているので、成功結果を返す
       }
     }
