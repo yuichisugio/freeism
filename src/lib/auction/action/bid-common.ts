@@ -1,15 +1,14 @@
 "use server";
 
-import type { TaskStatus } from "@prisma/client";
-import type { Session } from "next-auth";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/utils";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
 
 import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
 import type { ProcessAutoBidParams } from "./auto-bid";
+import type { AuctionValidationData } from "./bid-validation";
+import { validateAuction } from "./bid-validation";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -23,288 +22,6 @@ type ExecuteBidReturn = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークション検証結果の型
- */
-export type ValidateAuctionResult = {
-  success: boolean;
-  message: string;
-  userId: string | null;
-  auction: AuctionValidationData | null;
-  session: Session | null;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * バリデーション用のオークションデータ型
- */
-type AuctionValidationData = {
-  status: TaskStatus;
-  currentHighestBid: number;
-  currentHighestBidderId: string | null;
-  endTime: Date;
-  startTime: Date;
-  taskId: string;
-  task: {
-    creator: {
-      id: string;
-    };
-    task: string;
-    detail: string | null;
-    status: TaskStatus;
-  };
-  bidHistories: Array<{
-    user: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-  }> | null;
-  version: number | null;
-  // 延長関連フィールド
-  isExtension: boolean;
-  extensionTotalCount: number;
-  extensionLimitCount: number;
-  extensionTime: number;
-  remainingTimeForExtension: number;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションの基本的な検証を行う共通関数
- * @param auctionId オークションID
- * @param options 検証オプション
- * @returns 検証結果
- */
-export async function validateAuction(
-  auctionId: string,
-  options: {
-    checkSelfListing: boolean | null;
-    checkEndTime: boolean | null;
-    checkCurrentBid: boolean | null;
-    currentBid: number | null;
-    requireActive: boolean | null;
-    executeBid: boolean | null;
-  },
-): Promise<ValidateAuctionResult> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 認証チェック
-     */
-    const session = await getAuthSession();
-    const userId = session?.user?.id;
-
-    if (!userId) {
-      return {
-        success: false,
-        message: `操作するには、ログインが必要です`,
-        userId: null,
-        auction: null,
-        session: null,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // オークション情報を取得するためのクエリを構築
-    let auctionData: AuctionValidationData | null = null;
-
-    // executeBid()の場合
-    if (options.executeBid) {
-      const result = await prisma.auction.findUnique({
-        where: { id: auctionId },
-        select: {
-          endTime: true,
-          startTime: true,
-          currentHighestBid: true,
-          currentHighestBidderId: true,
-          isExtension: true,
-          extensionTotalCount: true,
-          extensionLimitCount: true,
-          extensionTime: true,
-          remainingTimeForExtension: true,
-          task: {
-            select: {
-              task: true,
-              creator: {
-                select: {
-                  id: true,
-                },
-              },
-              status: true,
-              detail: true,
-            },
-          },
-        },
-      });
-
-      // 型を合わせるために不足しているプロパティを追加
-      if (result) {
-        auctionData = {
-          status: result.task.status,
-          currentHighestBid: result.currentHighestBid,
-          currentHighestBidderId: result.currentHighestBidderId,
-          endTime: result.endTime,
-          startTime: result.startTime,
-          taskId: result.task.creator.id,
-          bidHistories: null,
-          version: null,
-          isExtension: result.isExtension,
-          extensionTotalCount: result.extensionTotalCount,
-          extensionLimitCount: result.extensionLimitCount,
-          extensionTime: result.extensionTime,
-          remainingTimeForExtension: result.remainingTimeForExtension,
-          task: {
-            ...result.task,
-          },
-        };
-      }
-    } else {
-      // 基本情報のみを取得する場合はselectを使用
-      const result = await prisma.auction.findUnique({
-        where: { id: auctionId },
-        select: {
-          currentHighestBid: true,
-          currentHighestBidderId: true,
-          endTime: true,
-          startTime: true,
-          taskId: true,
-          isExtension: true,
-          extensionTotalCount: true,
-          extensionLimitCount: true,
-          extensionTime: true,
-          remainingTimeForExtension: true,
-          task: {
-            select: {
-              creator: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                },
-              },
-              task: true,
-              status: true,
-              detail: true,
-            },
-          },
-        },
-      });
-
-      // 型を合わせるために不足しているプロパティを追加
-      if (result) {
-        auctionData = {
-          status: result.task.status,
-          currentHighestBid: result.currentHighestBid,
-          currentHighestBidderId: result.currentHighestBidderId,
-          endTime: result.endTime,
-          startTime: result.startTime,
-          taskId: result.taskId,
-          bidHistories: null,
-          version: null,
-          isExtension: result.isExtension,
-          extensionTotalCount: result.extensionTotalCount,
-          extensionLimitCount: result.extensionLimitCount,
-          extensionTime: result.extensionTime,
-          remainingTimeForExtension: result.remainingTimeForExtension,
-          task: {
-            ...result.task,
-          },
-        };
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    if (!auctionData) {
-      return {
-        success: false,
-        message: "オークションが見つかりません",
-        userId,
-        auction: auctionData,
-        session,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 自分の出品のチェック
-    if ((options.checkSelfListing || options.executeBid) && auctionData.task?.creator?.id === userId) {
-      return {
-        success: false,
-        message: "自分の出品に対して操作はできません",
-        userId,
-        auction: auctionData,
-        session,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 終了時間のチェック
-    if ((options.checkEndTime || options.executeBid) && auctionData.endTime < new Date()) {
-      return {
-        success: false,
-        message: "このオークションは終了しています",
-        userId,
-        auction: auctionData,
-        session,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // アクティブ状態のチェック
-    if ((options.requireActive || options.executeBid) && auctionData.task?.status !== "AUCTION_ACTIVE") {
-      return {
-        success: false,
-        message: "このオークションはアクティブではありません",
-        userId,
-        auction: auctionData,
-        session,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 現在の最高入札額チェック
-    if ((options.checkCurrentBid || options.executeBid) && options.currentBid !== null && auctionData.currentHighestBid >= options.currentBid) {
-      return {
-        success: false,
-        message: `現在の最高入札額（${auctionData.currentHighestBid}ポイント）より高い額で入札してください`,
-        userId,
-        auction: auctionData,
-        session,
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    return {
-      success: true,
-      message: "オークションの検証が完了しました",
-      userId,
-      auction: auctionData,
-      session,
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("オークション検証エラー:", error);
-    return {
-      success: false,
-      message: "オークションの検証中にエラーが発生しました",
-      userId: null,
-      auction: null,
-      session: null,
-    };
-  }
-}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -336,7 +53,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     /**
      * バリデーションエラーチェック
      */
-    if (!validation.success || !validation.userId) {
+    if (!validation.success) {
       return {
         success: false,
         message: validation.message ?? "入札に失敗しました",
@@ -347,6 +64,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
     /**
      * ユーザーIDを取得
+     * 必ずuserIdがある状態。ない場合はvalidateAuction()でエラーが発生している
      */
     const userId = validation.userId;
 
@@ -420,15 +138,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       /**
        * オークション延長処理を実行
        */
-      const extensionResult = await processAuctionExtension({
+      await processAuctionExtension({
         auctionId,
         auction: validation.auction!,
         tx,
       });
-
-      if (extensionResult.extended) {
-        console.log("オークションが延長されました:", extensionResult.message);
-      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -552,10 +266,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           validationDone: true,
           paramsValidationResult: validation,
         };
-        const autoBidResult = await processAutoBid(params);
-        if (autoBidResult) {
-          console.log("入札後の自動入札処理が実行されました", autoBidResult);
-        }
+        await processAutoBid(params);
       } catch (autoBidError) {
         console.error("入札後の自動入札処理でエラーが発生しました", autoBidError);
         // エラーが発生しても入札自体は成功しているので、成功結果を返す

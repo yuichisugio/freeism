@@ -10,12 +10,18 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { ProcessAutoBidParams } from "./auto-bid";
 import { cancelAutoBid, getAutoBidByUserId, processAutoBid, setAutoBid } from "./auto-bid";
 // モック関数の取得
-import { executeBid, validateAuction } from "./bid-common";
+import { executeBid } from "./bid-common";
+import { validateAuction } from "./bid-validation";
 
 // bid-commonモジュールのモック
 vi.mock("./bid-common", () => ({
-  validateAuction: vi.fn(),
   executeBid: vi.fn(),
+  __esModule: true,
+}));
+
+// bid-validationモジュールのモック
+vi.mock("./bid-validation", () => ({
+  validateAuction: vi.fn(),
   __esModule: true,
 }));
 
@@ -59,6 +65,7 @@ const mockValidationSuccess = {
     taskId: testTaskId,
     task: {
       creator: { id: "creator-id" },
+      executors: [],
       task: "テストタスク",
       detail: null,
       status: TaskStatus.AUCTION_ACTIVE,
@@ -71,7 +78,6 @@ const mockValidationSuccess = {
     extensionTime: 10,
     remainingTimeForExtension: 5,
   },
-  session: null,
 };
 
 describe("auto-bid", () => {
@@ -282,9 +288,8 @@ describe("auto-bid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "オークションが見つかりません",
-        userId: null,
+        userId: "",
         auction: null,
-        session: null,
       });
 
       // Act
@@ -476,9 +481,8 @@ describe("auto-bid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "オークションが見つかりません",
-        userId: null,
+        userId: "",
         auction: null,
-        session: null,
       });
 
       // Act
@@ -499,7 +503,6 @@ describe("auto-bid", () => {
         message: "検証成功",
         userId: testUserId,
         auction: null,
-        session: null,
       });
 
       // Act
@@ -621,9 +624,8 @@ describe("auto-bid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "認証が必要です",
-        userId: null,
+        userId: "",
         auction: null,
-        session: null,
       });
 
       // Act
@@ -728,9 +730,8 @@ describe("auto-bid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "認証が必要です",
-        userId: null,
+        userId: "",
         auction: null,
-        session: null,
       });
 
       // Act
@@ -869,9 +870,8 @@ describe("auto-bid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "オークションIDが無効です",
-        userId: null,
+        userId: "",
         auction: null,
-        session: null,
       });
 
       // Act
@@ -917,9 +917,8 @@ describe("auto-bid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "オークションIDが無効です",
-        userId: null,
+        userId: "",
         auction: null,
-        session: null,
       });
 
       // Act
