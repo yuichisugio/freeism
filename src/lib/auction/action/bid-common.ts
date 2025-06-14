@@ -4,11 +4,12 @@ import { sendAuctionNotification } from "@/lib/actions/notification/auction-noti
 import { getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
+import { toast } from "sonner";
 
 import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
 import type { ProcessAutoBidParams } from "./auto-bid";
-import type { AuctionValidationData } from "./bid-validation";
 import { validateAuction } from "./bid-validation";
+import { processAuctionExtension } from "./extend-auction-time";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -22,6 +23,21 @@ type ExecuteBidReturn = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * UpdateAuctionWithDetails型に変換するための型
+ */
+type BidHistorySelect = {
+  id: string;
+  amount: number;
+  createdAt: Date | string;
+  isAutoBid: boolean;
+  user: {
+    settings: {
+      username: string;
+    } | null;
+  } | null;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -74,6 +90,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     await prisma.$transaction(async (tx) => {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      /**
+       * 楽観的ロックのためのバージョン取得
+       */
       // 楽観的ロックのためのバージョン取得
       const auctionWithVersion = await tx.auction.findUnique({
         where: { id: auctionId },
@@ -83,20 +102,27 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         },
       });
 
-      // バージョン取得できない場合
+      // 楽観的ロックのためのバージョン取得できない場合
       if (!auctionWithVersion) {
-        throw new Error("オークションが見つかりません");
+        throw new Error("入札対象のオークションが見つかりません");
       }
 
-      // versionを取得
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * versionを取得
+       */
       const initialVersion = auctionWithVersion.version;
-      // 通知で使用
+
+      /**
+       * 通知で使用
+       */
       const initialHighestBidderId: string | null = auctionWithVersion.currentHighestBidderId;
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * 入札履歴を作成
+       * 入札履歴を作成（楽観的ロックを使用）
        */
       await tx.bidHistory.create({
         data: {
@@ -111,7 +137,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * オークション情報を更新（楽観的ロックを使用）
+       * オークション情報を更新
        */
       const updatedAuctionVersion = await tx.auction.update({
         where: {
@@ -128,7 +154,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         },
       });
 
-      // オークション情報を更新できない場合
+      // オークション情報を更新できない場合は、エラーを投げてロールバックする
       if (!updatedAuctionVersion) {
         throw new Error("オークション情報を更新できませんでした");
       }
@@ -138,11 +164,14 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       /**
        * オークション延長処理を実行
        */
-      await processAuctionExtension({
+      const { success, message } = await processAuctionExtension({
         auctionId,
         auction: validation.auction!,
         tx,
       });
+      if (success) {
+        toast.info(message);
+      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -158,18 +187,11 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         throw new Error("更新されたオークション情報を取得できませんでした");
       }
 
-      // UpdateAuctionWithDetails型に変換（statusはtask.statusをセット）
-      type BidHistorySelect = {
-        id: string;
-        amount: number;
-        createdAt: Date | string;
-        isAutoBid: boolean;
-        user: {
-          settings: {
-            username: string;
-          } | null;
-        } | null;
-      };
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 更新後の最新情報をUpdateAuctionWithDetails型に変換
+       */
       const updatedAuction: UpdateAuctionWithDetails = {
         id: updatedAuctionRaw.id,
         currentHighestBid: updatedAuctionRaw.currentHighestBid,
@@ -198,9 +220,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         select: { version: true },
       });
 
-      // バージョン取得できない場合
+      // バージョン取得できない場合は、エラーを投げてロールバックする
       if (!auctionWithEndVersion) {
-        throw new Error("オークションが見つかりません");
+        throw new Error("バージョン確認用のオークションが見つかりません");
       }
 
       // 楽観的ロックのためのバージョンで、データ更新後にインクリメントしているので、開始時と同じ値になるように-1する
@@ -288,136 +310,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     console.error("入札処理中にエラーが発生しました", error);
     return {
       success: false,
-      message: `入札処理中にエラーが発生しました`,
+      message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
     };
   }
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークション延長処理のパラメータ型
- */
-type ProcessAuctionExtensionParams = {
-  auctionId: string;
-  auction: AuctionValidationData;
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]; // Prismaトランザクション型
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークション延長処理の結果型
- */
-type ProcessAuctionExtensionResult = {
-  extended: boolean;
-  newEndTime?: Date;
-  message: string;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークション延長処理を行う関数
- * @param params 延長処理のパラメータ
- * @returns 延長処理の結果
- */
-async function processAuctionExtension(params: ProcessAuctionExtensionParams): Promise<ProcessAuctionExtensionResult> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  const { auctionId, auction, tx } = params;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  try {
-    /**
-     * 延長条件チェック：isExtensionがtrueのオークションのみ延長
-     */
-    if (!auction.isExtension) {
-      return {
-        extended: false,
-        message: "延長設定されていないオークションです",
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 延長回数の制限チェック
-     */
-    // 延長回数の制限チェック
-    if (auction.extensionTotalCount >= auction.extensionLimitCount) {
-      return {
-        extended: false,
-        message: "延長回数の上限に達しています",
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 延長トリガーの条件チェック
-     */
-    // 現在時刻を取得
-    const now = new Date();
-    const endTime = auction.endTime;
-    const startTime = auction.startTime;
-
-    // 残り時間を計算（ミリ秒）
-    const remainingTime = endTime.getTime() - now.getTime();
-
-    // オークション期間全体の時間を計算（ミリ秒）
-    const totalAuctionTime = endTime.getTime() - startTime.getTime();
-
-    // 延長トリガーの時間を計算
-    // 「endTimeとstartTimeの差分の5%の時間」or「extensionTime分」のどちらか長い時間
-    const fivePercentTime = totalAuctionTime * 0.05;
-    const extensionTimeMs = auction.extensionTime * 60 * 1000; // 分をミリ秒に変換
-    const triggerTime = Math.max(fivePercentTime, extensionTimeMs);
-
-    // 延長トリガーの条件チェック：残り時間が指定の条件以下の場合
-    if (remainingTime > triggerTime) {
-      return {
-        extended: false,
-        message: "延長トリガーの条件を満たしていません",
-      };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 延長時間を計算
-     */
-    // 「endTimeとstartTimeの差分の5%」or「extensionTime分」のどちらか長い時間
-    const extensionDuration = Math.max(fivePercentTime, extensionTimeMs);
-
-    // 新しい終了時間を計算
-    const newEndTime = new Date(endTime.getTime() + extensionDuration);
-
-    // オークション情報を更新（endTimeを延長し、extensionTotalCountを1増加）
-    await tx.auction.update({
-      where: { id: auctionId },
-      data: {
-        endTime: newEndTime,
-        extensionTotalCount: { increment: 1 },
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    return {
-      extended: true,
-      newEndTime,
-      message: `オークションが${Math.round(extensionDuration / (60 * 1000))}分延長されました`,
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("オークション延長処理でエラーが発生しました:", error);
-    return {
-      extended: false,
-      message: "延長処理中にエラーが発生しました",
-    };
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

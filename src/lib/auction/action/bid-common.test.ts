@@ -3,6 +3,7 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import type { AuctionValidationData } from "./bid-validation";
 import { executeBid } from "./bid-common";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -50,23 +51,149 @@ vi.mock("./auto-bid", () => ({
   processAutoBid: vi.fn().mockResolvedValue({ success: true, message: "自動入札完了" }),
 }));
 
+vi.mock("./bid-validation", () => ({
+  validateAuction: vi.fn(),
+}));
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * モック関数の型定義
  */
-const mockGetAuthenticatedSessionUserId = vi.mocked(await import("@/lib/utils")).getAuthenticatedSessionUserId;
 const mockSendAuctionNotification = vi.mocked(await import("@/lib/actions/notification/auction-notification")).sendAuctionNotification;
 const mockSendEventToAuctionSubscribers = vi.mocked(await import("./server-sent-events-broadcast")).sendEventToAuctionSubscribers;
 const mockProcessAutoBid = vi.mocked(await import("./auto-bid")).processAutoBid;
+const mockValidateAuction = vi.mocked(await import("./bid-validation")).validateAuction;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通テストデータ
+ */
+const TEST_CONSTANTS = {
+  USER_ID: "test-user-id",
+  AUCTION_ID: "test-auction-id",
+  TASK_ID: "test-task-id",
+  OTHER_USER_ID: "other-user",
+  PREVIOUS_BIDDER_ID: "previous-bidder",
+  BID_AMOUNT: 150,
+  CURRENT_HIGHEST_BID: 100,
+} as const;
+
+/**
+ * 共通のオークションデータを生成するファクトリー関数
+ */
+function createMockAuctionData(overrides: Partial<AuctionValidationData> = {}): AuctionValidationData {
+  const auctionData = {
+    status: TaskStatus.AUCTION_ACTIVE,
+    currentHighestBid: TEST_CONSTANTS.CURRENT_HIGHEST_BID,
+    currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID,
+    endTime: new Date(Date.now() + 86400000), // 1日後
+    startTime: new Date(Date.now() - 86400000), // 1日前
+    taskId: TEST_CONSTANTS.TASK_ID,
+    isExtension: false,
+    extensionTotalCount: 0,
+    extensionLimitCount: 5,
+    extensionTime: 10,
+    remainingTimeForExtension: 5,
+    task: {
+      creator: { id: TEST_CONSTANTS.OTHER_USER_ID },
+      executors: [{ userId: TEST_CONSTANTS.OTHER_USER_ID }],
+      task: "テストタスク",
+      status: TaskStatus.AUCTION_ACTIVE,
+      detail: "詳細",
+    },
+    bidHistories: null,
+    version: null,
+    ...overrides,
+  };
+  return auctionData;
+}
+
+/**
+ * 共通の更新後オークションデータを生成するファクトリー関数
+ */
+function createMockUpdatedAuction(isAutoBid = false) {
+  const updatedAuction = {
+    id: TEST_CONSTANTS.AUCTION_ID,
+    currentHighestBid: TEST_CONSTANTS.BID_AMOUNT,
+    currentHighestBidderId: TEST_CONSTANTS.USER_ID,
+    extensionTotalCount: 0,
+    extensionLimitCount: 5,
+    extensionTime: 10,
+    remainingTimeForExtension: 5,
+    task: { status: TaskStatus.AUCTION_ACTIVE },
+    bidHistories: [
+      {
+        id: "bid-1",
+        amount: TEST_CONSTANTS.BID_AMOUNT,
+        createdAt: new Date(),
+        isAutoBid,
+        user: { settings: { username: "testuser" } },
+      },
+    ],
+  };
+  return updatedAuction;
+}
+
+/**
+ * 共通のトランザクションモックを設定するヘルパー関数
+ */
+function setupTransactionMock(initialHighestBidderId: string | null = TEST_CONSTANTS.OTHER_USER_ID, shouldThrowError = false, errorMessage?: string) {
+  if (shouldThrowError) {
+    prismaMock.$transaction.mockRejectedValue(new Error(errorMessage ?? "Database transaction failed"));
+    return;
+  }
+
+  const mockUpdatedAuction = createMockUpdatedAuction();
+
+  prismaMock.$transaction.mockImplementation(async (callback) => {
+    const mockTx = {
+      auction: {
+        findUnique: vi
+          .fn()
+          .mockResolvedValueOnce({ version: 1, currentHighestBidderId: initialHighestBidderId })
+          .mockResolvedValueOnce(mockUpdatedAuction)
+          .mockResolvedValueOnce({ version: 2 }),
+        update: vi.fn().mockResolvedValue({ version: 2 }),
+      },
+      bidHistory: {
+        create: vi.fn().mockResolvedValue({ id: "bid-1" }),
+      },
+    };
+    return await callback(mockTx as unknown as Prisma.TransactionClient);
+  });
+}
+
+/**
+ * 共通のバリデーション成功モックを設定するヘルパー関数
+ */
+function setupValidationSuccessMock(auctionDataOverrides: Partial<AuctionValidationData> = {}) {
+  const mockAuctionData = createMockAuctionData(auctionDataOverrides);
+  mockValidateAuction.mockResolvedValue({
+    success: true,
+    message: "オークションの検証が完了しました",
+    userId: TEST_CONSTANTS.USER_ID,
+    auction: mockAuctionData,
+  });
+}
+
+/**
+ * 共通のバリデーション失敗モックを設定するヘルパー関数
+ */
+function setupValidationFailureMock(message: string | null) {
+  mockValidateAuction.mockResolvedValue({
+    success: false,
+    message: message ?? "入札に失敗しました",
+    userId: TEST_CONSTANTS.USER_ID,
+    auction: null,
+  });
+}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("bid-common.test.ts", () => {
   describe("executeBid", () => {
-    const mockUserId = "test-user-id";
-    const mockAuctionId = "test-auction-id";
-
     beforeEach(() => {
       vi.clearAllMocks();
     });
@@ -75,32 +202,244 @@ describe("bid-common.test.ts", () => {
 
     describe("異常系", () => {
       describe("バリデーション失敗時", () => {
-        test("should return error when authentication validation fails", async () => {
-          // モックの設定（認証失敗）
-          mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
+        test("should return error when validateAuction throws error", async () => {
+          // モックの設定（validateAuctionでエラー発生）
+          mockValidateAuction.mockRejectedValue(new Error("Validation error"));
 
           // テスト実行
-          const result = await executeBid(mockAuctionId, 150);
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
 
           // 検証
           expect(result).toStrictEqual({
             success: false,
-            message: "オークションの検証中にエラーが発生しました",
+            message: "Validation error",
           });
         });
 
-        test("should return error when no auction found validation fails", async () => {
-          // モックの設定（認証失敗）
-          mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        // パラメータ化テスト：バリデーション失敗のケース
+        test.each([
+          {
+            description: "オークションが見つからない場合",
+            message: "オークションが見つかりません",
+            expected: "オークションが見つかりません",
+          },
+          {
+            description: "自分の出品に対する操作の場合",
+            message: "自分の出品に対して操作はできません",
+            expected: "自分の出品に対して操作はできません",
+          },
+          {
+            description: "オークション終了の場合",
+            message: "このオークションは終了しています",
+            expected: "このオークションは終了しています",
+          },
+          {
+            description: "非アクティブオークションの場合",
+            message: "このオークションはアクティブではありません",
+            expected: "このオークションはアクティブではありません",
+          },
+          {
+            description: "入札額が低い場合",
+            message: "現在の最高入札額（200ポイント）より高い額で入札してください",
+            expected: "現在の最高入札額（200ポイント）より高い額で入札してください",
+          },
+          {
+            description: "メッセージがnullの場合",
+            message: null,
+            expected: "入札に失敗しました",
+          },
+        ])("should return error when validateAuction returns failure - $description", async ({ message, expected }) => {
+          // モックの設定
+          setupValidationFailureMock(message);
 
           // テスト実行
-          const result = await executeBid(mockAuctionId, 150);
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
 
           // 検証
           expect(result).toStrictEqual({
             success: false,
-            message: "オークションが見つかりません",
+            message: expected,
+          });
+        });
+      });
+
+      describe("データベースエラー", () => {
+        test("should handle database transaction errors", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+          setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID, true, "Database transaction failed");
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "Database transaction failed",
+          });
+        });
+      });
+
+      describe("楽観的ロック/transactionエラー", () => {
+        test("should handle transaction auction not found at start", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+          prismaMock.$transaction.mockImplementation(async (callback) => {
+            const mockTx = {
+              auction: {
+                findUnique: vi.fn().mockResolvedValueOnce(null),
+              },
+            };
+            return await callback(mockTx as unknown as Prisma.TransactionClient);
+          });
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "入札対象のオークションが見つかりません",
+          });
+        });
+
+        test("should handle auction update returning null", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+
+          // auction.updateがnullを返すケースをシミュレート
+          prismaMock.$transaction.mockImplementation(async (callback) => {
+            const mockTx = {
+              auction: {
+                findUnique: vi.fn().mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID }),
+                update: vi.fn().mockResolvedValue(null), // updateがnullを返す
+              },
+              bidHistory: {
+                create: vi.fn().mockResolvedValue({ id: "bid-1" }),
+              },
+            };
+            return await callback(mockTx as unknown as Prisma.TransactionClient);
+          });
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "オークション情報を更新できませんでした",
+          });
+        });
+
+        test("should handle updated auction data not found", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+
+          // 更新後のオークション情報取得でnullが返されるケースをシミュレート
+          prismaMock.$transaction.mockImplementation(async (callback) => {
+            const mockTx = {
+              auction: {
+                findUnique: vi
+                  .fn()
+                  .mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID })
+                  .mockResolvedValueOnce(null), // 更新後の情報取得でnullを返す
+                update: vi.fn().mockResolvedValue({ version: 2 }),
+              },
+              bidHistory: {
+                create: vi.fn().mockResolvedValue({ id: "bid-1" }),
+              },
+            };
+            return await callback(mockTx as unknown as Prisma.TransactionClient);
+          });
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "更新されたオークション情報を取得できませんでした",
+          });
+        });
+
+        test("should handle optimistic lock end version not found", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+
+          // 楽観的ロック終了時のバージョン取得でnullが返されるケースをシミュレート
+          prismaMock.$transaction.mockImplementation(async (callback) => {
+            const mockTx = {
+              auction: {
+                findUnique: vi
+                  .fn()
+                  .mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID })
+                  .mockResolvedValueOnce(createMockUpdatedAuction())
+                  .mockResolvedValueOnce(null), // 終了時のバージョン取得でnullを返す
+                update: vi.fn().mockResolvedValue({ version: 2 }),
+              },
+              bidHistory: {
+                create: vi.fn().mockResolvedValue({ id: "bid-1" }),
+              },
+            };
+            return await callback(mockTx as unknown as Prisma.TransactionClient);
+          });
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "バージョン確認用のオークションが見つかりません",
+          });
+        });
+
+        test("should handle version mismatch in optimistic lock", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+
+          // バージョン不一致をシミュレート
+          prismaMock.$transaction.mockImplementation(async (callback) => {
+            const mockTx = {
+              auction: {
+                findUnique: vi
+                  .fn()
+                  .mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID })
+                  .mockResolvedValueOnce(createMockUpdatedAuction())
+                  .mockResolvedValueOnce({ version: 3 }), // 異なるバージョン（競合発生）
+                update: vi.fn().mockResolvedValue({ version: 2 }),
+              },
+              bidHistory: {
+                create: vi.fn().mockResolvedValue({ id: "bid-1" }),
+              },
+            };
+            return await callback(mockTx as unknown as Prisma.TransactionClient);
+          });
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "他者によってオークション情報が変更されています",
+          });
+        });
+      });
+
+      describe("不明なエラー", () => {
+        test("should handle unknown error", async () => {
+          // モックの設定
+          setupValidationSuccessMock();
+          setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID, true, "不明なエラーが発生しました");
+
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+          // 検証
+          expect(result).toStrictEqual({
+            success: false,
+            message: "不明なエラーが発生しました",
           });
         });
       });
@@ -109,261 +448,80 @@ describe("bid-common.test.ts", () => {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     describe("正常系", () => {
-      test("should execute bid successfully", async () => {
-        // Arrange
-        // auctionのモック
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000), // 1日後
-          startTime: new Date(Date.now() - 86400000), // 1日前
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        // 更新後のauctionのモック
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [
-            {
-              id: "bid-1",
-              amount: 150,
-              createdAt: new Date(),
-              isAutoBid: false,
-              user: { settings: { username: "testuser" } },
-            },
-          ],
-        };
-
+      // パラメータ化テスト：手動入札と自動入札
+      test.each([
+        {
+          description: "手動入札",
+          isAutoBid: false,
+          expectedMessage: "入札が完了しました",
+          shouldCallProcessAutoBid: true,
+        },
+        {
+          description: "自動入札",
+          isAutoBid: true,
+          expectedMessage: `${TEST_CONSTANTS.BID_AMOUNT}ポイントで自動入札しました`,
+          shouldCallProcessAutoBid: false,
+        },
+      ])("should execute $description successfully", async ({ isAutoBid, expectedMessage, shouldCallProcessAutoBid }) => {
         // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique
-          .mockResolvedValueOnce(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>) // validateAuction内での呼び出し
-          .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" } as unknown as Awaited<
-            ReturnType<typeof prismaMock.auction.findUnique>
-          >) // トランザクション内での最初の呼び出し
-          .mockResolvedValueOnce(mockUpdatedAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>) // 更新後の情報取得
-          .mockResolvedValueOnce({ version: 2 } as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>); // 楽観的ロック確認用
+        setupValidationSuccessMock();
+        setupTransactionMock();
 
-        // トランザクション内のモック
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
+        // テスト実行
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT, isAutoBid);
+
+        // 検証
+        expect(result).toStrictEqual({
+          success: true,
+          message: expectedMessage,
         });
 
-        // Act
-        const result = await executeBid(mockAuctionId, 150);
+        // 共通の検証
+        expect(mockValidateAuction).toHaveBeenCalledWith(TEST_CONSTANTS.AUCTION_ID, {
+          checkSelfListing: null,
+          checkEndTime: null,
+          checkCurrentBid: null,
+          currentBid: TEST_CONSTANTS.BID_AMOUNT,
+          requireActive: null,
+          executeBid: true,
+        });
+        expect(mockSendEventToAuctionSubscribers).toHaveBeenCalledWith(TEST_CONSTANTS.AUCTION_ID, expect.any(Object));
 
-        // Assert
+        // 自動入札処理の呼び出し確認
+        if (shouldCallProcessAutoBid) {
+          expect(mockProcessAutoBid).toHaveBeenCalled();
+        } else {
+          expect(mockProcessAutoBid).not.toHaveBeenCalled();
+        }
+      });
+
+      // パラメータ化テスト：境界値
+      test.each([
+        {
+          description: "最小入札額",
+          bidAmount: 1,
+          currentHighestBid: 0,
+          currentHighestBidderId: null,
+        },
+        {
+          description: "大きな入札額",
+          bidAmount: 999999999,
+          currentHighestBid: 100,
+          currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID,
+        },
+      ])("should handle $description", async ({ bidAmount, currentHighestBid, currentHighestBidderId }) => {
+        // モックの設定
+        setupValidationSuccessMock({ currentHighestBid, currentHighestBidderId });
+        setupTransactionMock(currentHighestBidderId);
+
+        // テスト実行
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, bidAmount);
+
+        // 検証
         expect(result).toStrictEqual({
           success: true,
           message: "入札が完了しました",
         });
-        expect(mockSendEventToAuctionSubscribers).toHaveBeenCalledWith(mockAuctionId, expect.any(Object));
-        expect(mockProcessAutoBid).toHaveBeenCalled();
-      });
-
-      test("should execute auto bid successfully", async () => {
-        // テストデータの準備（自動入札の場合）
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [
-            {
-              id: "bid-1",
-              amount: 150,
-              createdAt: new Date(),
-              isAutoBid: true,
-              user: { settings: { username: "testuser" } },
-            },
-          ],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // テスト実行（自動入札）
-        const result = await executeBid(mockAuctionId, 150, true);
-
-        // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("150ポイントで自動入札しました");
-        expect(mockProcessAutoBid).not.toHaveBeenCalled(); // 自動入札の場合は呼ばれない
-      });
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    describe("楽観的ロック", () => {
-      test("should handle optimistic lock conflict", async () => {
-        // テストデータの準備
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        // 楽観的ロック競合をシミュレート
-        prismaMock.$transaction.mockImplementation(async () => {
-          throw new Error("他者によってオークション情報が変更されています");
-        });
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証
-        expect(result.success).toBe(false);
-        expect(result.message).toBe("入札処理中にエラーが発生しました");
-      });
-
-      test("should handle version mismatch in optimistic lock", async () => {
-        // テストデータの準備
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        // バージョン不一致をシミュレート
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" }) // 初期バージョン
-                .mockResolvedValueOnce({
-                  id: mockAuctionId,
-                  currentHighestBid: 150,
-                  currentHighestBidderId: mockUserId,
-                  extensionTotalCount: 0,
-                  extensionLimitCount: 5,
-                  extensionTime: 10,
-                  remainingTimeForExtension: 5,
-                  task: { status: TaskStatus.AUCTION_ACTIVE },
-                  bidHistories: [],
-                })
-                .mockResolvedValueOnce({ version: 3 }), // 異なるバージョン（競合発生）
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証
-        expect(result.success).toBe(false);
-        expect(result.message).toBe("入札処理中にエラーが発生しました");
       });
     });
 
@@ -371,75 +529,28 @@ describe("bid-common.test.ts", () => {
 
     describe("通知送信", () => {
       test("should send notification to previous highest bidder", async () => {
-        // テストデータの準備
-        const previousBidderId = "previous-bidder";
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: previousBidderId,
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
         // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: previousBidderId })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
+        setupValidationSuccessMock({ currentHighestBidderId: TEST_CONSTANTS.PREVIOUS_BIDDER_ID });
+        setupTransactionMock(TEST_CONSTANTS.PREVIOUS_BIDDER_ID);
 
         // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
 
         // 検証
-        expect(result.success).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "入札が完了しました",
+        });
         expect(mockSendAuctionNotification).toHaveBeenCalledWith({
           text: {
             first: "テストタスク",
-            second: "150",
+            second: TEST_CONSTANTS.BID_AMOUNT.toString(),
           },
           auctionEventType: PrismaAuctionEventType.OUTBID,
-          auctionId: mockAuctionId,
-          recipientUserId: [previousBidderId],
+          auctionId: TEST_CONSTANTS.AUCTION_ID,
+          recipientUserId: [TEST_CONSTANTS.PREVIOUS_BIDDER_ID],
           sendMethods: [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP],
-          actionUrl: `https://${process.env.DOMAIN}/dashboard/auction/${mockAuctionId}`,
+          actionUrl: `https://${process.env.DOMAIN}/dashboard/auction/${TEST_CONSTANTS.AUCTION_ID}`,
           sendTiming: NotificationSendTiming.NOW,
           sendScheduledDate: null,
           expiresAt: null,
@@ -447,608 +558,119 @@ describe("bid-common.test.ts", () => {
       });
 
       test("should not send notification when no previous bidder", async () => {
-        // テストデータの準備（以前の入札者がいない場合）
-        const mockAuction = {
-          currentHighestBid: 0,
-          currentHighestBidderId: null, // 以前の入札者なし
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: null })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
+        // モックの設定（以前の入札者がいない場合）
+        setupValidationSuccessMock({ currentHighestBid: 0, currentHighestBidderId: null });
+        setupTransactionMock(null);
 
         // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
 
         // 検証
-        expect(result.success).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "入札が完了しました",
+        });
         expect(mockSendAuctionNotification).not.toHaveBeenCalled();
       });
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    describe("エラーハンドリング", () => {
-      test("should handle database transaction errors", async () => {
-        // テストデータの準備
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-        prismaMock.$transaction.mockRejectedValue(new Error("Database transaction failed"));
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証
-        expect(result.success).toBe(false);
-        expect(result.message).toBe("入札処理中にエラーが発生しました");
-      });
-
-      test("should handle auto bid process errors gracefully", async () => {
-        // テストデータの準備
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // 自動入札処理でエラーが発生
-        mockProcessAutoBid.mockRejectedValue(new Error("Auto bid failed"));
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証（入札自体は成功するが、自動入札処理のエラーは無視される）
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    describe("境界値テスト", () => {
-      test("should handle minimum bid amount", async () => {
-        // テストデータの準備
-        const mockAuction = {
-          currentHighestBid: 0,
-          currentHighestBidderId: null,
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 1,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: null })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // テスト実行（最小入札額）
-        const result = await executeBid(mockAuctionId, 1);
-
-        // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-
-      test("should handle large bid amount", async () => {
-        // テストデータの準備
-        const largeBidAmount = 999999999;
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: largeBidAmount,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // テスト実行（大きな入札額）
-        const result = await executeBid(mockAuctionId, largeBidAmount);
-
-        // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     describe("オークション延長処理", () => {
-      test("should not extend auction when isExtension is false", async () => {
-        // テストデータの準備（延長設定なし）
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 300000), // 5分後（延長トリガー条件内）
-          startTime: new Date(Date.now() - 86400000), // 1日前
-          taskId: "test-task-id",
-          isExtension: false, // 延長設定なし
+      // パラメータ化テスト：延長条件
+      test.each([
+        {
+          description: "延長設定なし",
+          isExtension: false,
+          endTime: new Date(Date.now() + 300000), // 5分後
           extensionTotalCount: 0,
           extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-
-      test("should not extend auction when extension limit is reached", async () => {
-        // テストデータの準備（延長回数上限到達）
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 300000), // 5分後（延長トリガー条件内）
-          startTime: new Date(Date.now() - 86400000), // 1日前
-          taskId: "test-task-id",
-          isExtension: true, // 延長設定あり
-          extensionTotalCount: 5, // 延長回数上限到達
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
+          shouldExtend: false,
+        },
+        {
+          description: "延長回数上限到達",
+          isExtension: true,
+          endTime: new Date(Date.now() + 300000), // 5分後
           extensionTotalCount: 5,
           extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-
-      test("should not extend auction when remaining time is too long", async () => {
-        // テストデータの準備（残り時間が長すぎる）
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 3600000), // 1時間後（延長トリガー条件外）
-          startTime: new Date(Date.now() - 86400000), // 1日前
-          taskId: "test-task-id",
-          isExtension: true, // 延長設定あり
+          shouldExtend: false,
+        },
+        {
+          description: "残り時間が長すぎる",
+          isExtension: true,
+          endTime: new Date(Date.now() + 3600000), // 1時間後
           extensionTotalCount: 0,
           extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
+          shouldExtend: false,
+        },
+        {
+          description: "延長条件を満たす",
+          isExtension: true,
+          endTime: new Date(Date.now() + 300000), // 5分後
           extensionTotalCount: 0,
           extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
+          shouldExtend: true,
+        },
+      ])("should handle extension - $description", async ({ isExtension, endTime, extensionTotalCount, extensionLimitCount, shouldExtend }) => {
         // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
+        setupValidationSuccessMock({
+          isExtension,
+          endTime,
+          extensionTotalCount,
+          extensionLimitCount,
         });
 
+        if (shouldExtend) {
+          // 延長処理が実行される場合のモック
+          prismaMock.$transaction.mockImplementation(async (callback) => {
+            const mockTx = {
+              auction: {
+                findUnique: vi
+                  .fn()
+                  .mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID })
+                  .mockResolvedValueOnce(createMockUpdatedAuction())
+                  .mockResolvedValueOnce({ version: 2 }),
+                update: vi
+                  .fn()
+                  .mockResolvedValueOnce({ version: 2 }) // 入札更新
+                  .mockResolvedValueOnce({ version: 3 }), // 延長更新
+              },
+              bidHistory: {
+                create: vi.fn().mockResolvedValue({ id: "bid-1" }),
+              },
+            };
+            return await callback(mockTx as unknown as Prisma.TransactionClient);
+          });
+        } else {
+          setupTransactionMock();
+        }
+
         // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
 
         // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-
-      test("should extend auction when conditions are met", async () => {
-        // テストデータの準備（延長条件を満たす）
-        const now = new Date();
-        const startTime = new Date(now.getTime() - 86400000); // 1日前
-        const endTime = new Date(now.getTime() + 300000); // 5分後（延長トリガー条件内）
-
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: endTime,
-          startTime: startTime,
-          taskId: "test-task-id",
-          isExtension: true, // 延長設定あり
-          extensionTotalCount: 0, // 延長回数制限内
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 1, // 延長後
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 2 }) // 入札更新
-                .mockResolvedValueOnce({ version: 3 }), // 延長更新
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "入札が完了しました",
         });
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-        // 延長処理が呼ばれたことを確認（updateが2回呼ばれる：入札更新 + 延長更新）
-        expect(prismaMock.$transaction).toHaveBeenCalled();
       });
 
       test("should handle extension process error gracefully", async () => {
-        // テストデータの準備（延長処理でエラーが発生）
-        const now = new Date();
-        const startTime = new Date(now.getTime() - 86400000); // 1日前
-        const endTime = new Date(now.getTime() + 300000); // 5分後（延長トリガー条件内）
-
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: endTime,
-          startTime: startTime,
-          taskId: "test-task-id",
-          isExtension: true, // 延長設定あり
+        // モックの設定（延長処理でエラーが発生）
+        setupValidationSuccessMock({
+          isExtension: true,
+          endTime: new Date(Date.now() + 300000), // 5分後
           extensionTotalCount: 0,
           extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        });
 
         prismaMock.$transaction.mockImplementation(async (callback) => {
           const mockTx = {
             auction: {
               findUnique: vi
                 .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
+                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID })
+                .mockResolvedValueOnce(createMockUpdatedAuction())
                 .mockResolvedValueOnce({ version: 2 }),
               update: vi
                 .fn()
@@ -1063,143 +685,39 @@ describe("bid-common.test.ts", () => {
         });
 
         // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
 
         // 検証（延長処理でエラーが発生しても入札自体は成功）
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
-      });
-
-      test("should handle extension database error in processAuctionExtension", async () => {
-        // テストデータの準備（延長処理内でデータベースエラーが発生）
-        const now = new Date();
-        const startTime = new Date(now.getTime() - 86400000); // 1日前
-        const endTime = new Date(now.getTime() + 300000); // 5分後（延長トリガー条件内）
-
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: endTime,
-          startTime: startTime,
-          taskId: "test-task-id",
-          isExtension: true, // 延長設定あり
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
-        // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-        // 延長処理内でエラーが発生するようにモック
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 2 }) // 入札更新は成功
-                .mockImplementation(() => {
-                  // 延長処理でエラーを発生させる
-                  throw new Error("Database error in extension process");
-                }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "入札が完了しました",
         });
-
-        // テスト実行
-        const result = await executeBid(mockAuctionId, 150);
-
-        // 検証（延長処理でエラーが発生しても入札自体は成功）
-        expect(result.success).toBe(true);
-        expect(result.message).toBe("入札が完了しました");
       });
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    describe("自動入札処理のログ出力", () => {
-      test("should log auto bid process result when processAutoBid returns result", async () => {
-        // テストデータの準備
-        const mockAuction = {
-          currentHighestBid: 100,
-          currentHighestBidderId: "other-user",
-          endTime: new Date(Date.now() + 86400000),
-          startTime: new Date(Date.now() - 86400000),
-          taskId: "test-task-id",
-          isExtension: false,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: {
-            creator: { id: "other-user" },
-            task: "テストタスク",
-            status: TaskStatus.AUCTION_ACTIVE,
-            detail: "詳細",
-          },
-        };
-
-        const mockUpdatedAuction = {
-          id: mockAuctionId,
-          currentHighestBid: 150,
-          currentHighestBidderId: mockUserId,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          task: { status: TaskStatus.AUCTION_ACTIVE },
-          bidHistories: [],
-        };
-
+    describe("エラーハンドリング", () => {
+      test("should handle auto bid process errors gracefully", async () => {
         // モックの設定
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        setupValidationSuccessMock();
+        setupTransactionMock();
 
-        prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
-            auction: {
-              findUnique: vi
-                .fn()
-                .mockResolvedValueOnce({ version: 1, currentHighestBidderId: "other-user" })
-                .mockResolvedValueOnce(mockUpdatedAuction)
-                .mockResolvedValueOnce({ version: 2 }),
-              update: vi.fn().mockResolvedValue({ version: 2 }),
-            },
-            bidHistory: {
-              create: vi.fn().mockResolvedValue({ id: "bid-1" }),
-            },
-          };
-          return await callback(mockTx as unknown as Prisma.TransactionClient);
-        });
+        // 自動入札処理でエラーが発生
+        mockProcessAutoBid.mockRejectedValue(new Error("Auto bid failed"));
+
+        // テスト実行
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
+
+        // 検証（入札自体は成功するが、自動入札処理のエラーは無視される）
+        expect(result.success).toBe(true);
+        expect(result.message).toBe("入札が完了しました");
+      });
+
+      test("should log auto bid process result when processAutoBid returns result", async () => {
+        // モックの設定
+        setupValidationSuccessMock();
+        setupTransactionMock();
 
         // 自動入札処理が結果を返すようにモック
         mockProcessAutoBid.mockResolvedValue({
@@ -1213,7 +731,7 @@ describe("bid-common.test.ts", () => {
         });
 
         // テスト実行（手動入札）
-        const result = await executeBid(mockAuctionId, 150, false);
+        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT, false);
 
         // 検証
         expect(result.success).toBe(true);
