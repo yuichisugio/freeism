@@ -7,7 +7,7 @@ import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEvent
 import { toast } from "sonner";
 
 import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
-import type { ProcessAutoBidParams } from "./auto-bid";
+import type { ExecuteAutoBidParams } from "./auto-bid/auto-bid";
 import { validateAuction } from "./bid-validation";
 import { processAuctionExtension } from "./extend-auction-time";
 import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
@@ -283,8 +283,8 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     if (!isAutoBid) {
       try {
         // 動的インポートを使用して循環依存を回避
-        const { processAutoBid } = await import("./auto-bid");
-        const params: ProcessAutoBidParams = {
+        const { executeAutoBid: processAutoBid } = await import("./auto-bid/auto-bid");
+        const params: ExecuteAutoBidParams = {
           auctionId,
           currentHighestBid: amount,
           currentHighestBidderId: userId,

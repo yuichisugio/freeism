@@ -67,7 +67,7 @@ vi.mock("./extend-auction-time", () => ({
  */
 const mockSendAuctionNotification = vi.mocked(await import("@/lib/actions/notification/auction-notification")).sendAuctionNotification;
 const mockSendEventToAuctionSubscribers = vi.mocked(await import("./server-sent-events-broadcast")).sendEventToAuctionSubscribers;
-const mockProcessAutoBid = vi.mocked(await import("./auto-bid")).processAutoBid;
+const mockProcessAutoBid = vi.mocked(await import("./auto-bid/auto-bid")).executeAutoBid;
 const mockValidateAuction = vi.mocked(await import("./bid-validation")).validateAuction;
 const mockProcessAuctionExtension = vi.mocked(await import("./extend-auction-time")).processAuctionExtension;
 

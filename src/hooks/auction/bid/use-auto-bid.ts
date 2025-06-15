@@ -1,8 +1,8 @@
 "use client";
 
-import type { AutoBidResponse, ProcessAutoBidParams } from "@/lib/auction/action/auto-bid";
+import type { AutoBidResponse, ExecuteAutoBidParams } from "@/lib/auction/action/auto-bid/auto-bid";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { cancelAutoBid, getAutoBidByUserId, processAutoBid, setAutoBid } from "@/lib/auction/action/auto-bid";
+import { cancelAutoBid, executeAutoBid, getAutoBidByUserId, setAutoBid } from "@/lib/auction/action/auto-bid/auto-bid";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -154,14 +154,14 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
         // オークション詳細なども更新する場合
         void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.detail(auctionId) });
 
-        const params: ProcessAutoBidParams = {
+        const params: ExecuteAutoBidParams = {
           auctionId,
           currentHighestBid, // この値はmutation実行前のものなので注意。最新が必要なら再取得
           currentHighestBidderId, // 同上
           validationDone: false, // API側で検証するためfalse
           paramsValidationResult: null,
         };
-        processAutoBid(params)
+        executeAutoBid(params)
           .then((autoResult) => {
             if (autoResult?.success) {
               console.log("自動入札処理(mutation onSuccess)を実行しました", autoResult);
