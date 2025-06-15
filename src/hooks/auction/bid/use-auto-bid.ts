@@ -2,7 +2,10 @@
 
 import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "@/lib/auction/action/auto-bid/auto-bid";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { cancelAutoBid, executeAutoBid, getAutoBidByUserId, setAutoBid } from "@/lib/auction/action/auto-bid/auto-bid";
+import { executeAutoBid } from "@/lib/auction/action/auto-bid/auto-bid";
+import { cancelAutoBid } from "@/lib/auction/action/auto-bid/cancel-auto-bid";
+import { getAutoBidByUserId } from "@/lib/auction/action/auto-bid/get-auto-bid-settings";
+import { setAutoBid } from "@/lib/auction/action/auto-bid/set-auto-bid";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -197,7 +200,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       if (!auctionId || !userId) {
         throw new Error("ログインが必要です");
       }
-      return cancelAutoBid(auctionId);
+      return cancelAutoBid(auctionId, isDisplayAutoBidding);
     },
     onSuccess: (result) => {
       if (result.success) {

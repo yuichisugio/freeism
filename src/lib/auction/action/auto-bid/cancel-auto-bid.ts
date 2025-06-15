@@ -10,14 +10,33 @@ import { type ExecuteAutoBidReturn } from "./auto-bid";
 /**
  * 自動入札を取り消す
  * @param auctionId オークションID
+ * @param isDisplayAutoBidding 自動入札中フラグ
  * @returns 処理結果
  */
-export async function cancelAutoBid(auctionId: string): Promise<ExecuteAutoBidReturn> {
+export async function cancelAutoBid(auctionId: string, isDisplayAutoBidding: boolean): Promise<ExecuteAutoBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 1. オークションの検証
+     * 1. オークションIDのバリデーション
+     */
+    if (!auctionId) {
+      throw new Error("オークションIDが無効です");
+    }
+
+    /**
+     * 2. 自動入札中フラグのバリデーション
+     * 自動入札中フラグがfalseの場合は、自動入札を取り消すことができないので、エラーを投げる
+     * クライアント側でもバリデーションするが、テストやサーバー側でもバリデーションの忘れを検知するために、サーバー側でもバリデーションする
+     */
+    if (!isDisplayAutoBidding) {
+      throw new Error("自動入札中フラグが無効です");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 3. オークションの検証
      */
     const validation = await validateAuction(auctionId, {
       checkSelfListing: null,
@@ -43,42 +62,19 @@ export async function cancelAutoBid(auctionId: string): Promise<ExecuteAutoBidRe
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 2. トランザクションで自動入札の設定を無効化
+     * 4. 自動入札の設定を無効化
      */
-    const result = await prisma.$transaction(async (tx) => {
-      // 既存の自動入札設定を確認
-      const existingAutoBid = await tx.autoBid.findFirst({
-        where: {
-          auctionId,
-          userId,
-          isActive: true,
-        },
-      });
-
-      if (!existingAutoBid) {
-        return null;
-      }
-
-      // 設定を無効化
-      return await tx.autoBid.update({
-        where: { id: existingAutoBid.id },
-        data: {
-          isActive: false,
-          updatedAt: new Date(),
-        },
-      });
+    const result = await prisma.autoBid.update({
+      where: { userId_auctionId: { userId, auctionId } },
+      data: { isActive: false },
     });
-
-    if (!result) {
-      return {
-        success: false,
-        message: "有効な自動入札設定が見つかりません",
-        autoBid: null,
-      };
-    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 5. 自動入札の設定を無効化
+     * 自動入札の設定を無効化した結果を返す
+     */
     return {
       success: true,
       message: "自動入札を取り消しました",
@@ -94,7 +90,7 @@ export async function cancelAutoBid(auctionId: string): Promise<ExecuteAutoBidRe
     console.error("自動入札取り消しエラー:", error);
     return {
       success: false,
-      message: "自動入札の取り消し中にエラーが発生しました",
+      message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
       autoBid: null,
     };
   }

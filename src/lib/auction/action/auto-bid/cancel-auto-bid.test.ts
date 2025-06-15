@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { autoBidFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";
@@ -19,19 +17,12 @@ vi.mock("../bid-validation", () => ({
   __esModule: true,
 }));
 
-// sendAuctionNotificationのモック
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
-  sendAuctionNotification: vi.fn(),
-  __esModule: true,
-}));
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * テスト対象の関数をインポート
  */
 const mockValidateAuction = vi.mocked(validateAuction);
-const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -41,7 +32,6 @@ const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
 beforeEach(() => {
   vi.clearAllMocks();
   mockValidateAuction.mockReset();
-  mockSendAuctionNotification.mockReset();
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -111,18 +101,10 @@ describe("cancelAutoBid", () => {
         isActive: false,
       });
 
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          autoBid: {
-            findFirst: vi.fn().mockResolvedValue(existingAutoBid),
-            update: vi.fn().mockResolvedValue(canceledAutoBid),
-          },
-        };
-        return await callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      prismaMock.autoBid.update.mockResolvedValue(canceledAutoBid);
 
       // Act
-      const result = await cancelAutoBid(testAuctionId);
+      const result = await cancelAutoBid(testAuctionId, true);
 
       // Assert
       expect(result).toStrictEqual({
@@ -144,35 +126,15 @@ describe("cancelAutoBid", () => {
         requireActive: null,
         executeBid: null,
       });
+
+      expect(prismaMock.autoBid.update).toHaveBeenCalledWith({
+        where: { userId_auctionId: { userId: testUserId, auctionId: testAuctionId } },
+        data: { isActive: false },
+      });
     });
   });
 
   describe("異常系", () => {
-    test("should return error when no active auto bid found", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          autoBid: {
-            findFirst: vi.fn().mockResolvedValue(null),
-            update: vi.fn(),
-          },
-        };
-        return await callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
-      // Act
-      const result = await cancelAutoBid(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "有効な自動入札設定が見つかりません",
-        autoBid: null,
-      });
-    });
-
     test("should return error when validation fails", async () => {
       // Arrange
       mockValidateAuction.mockResolvedValue({
@@ -183,7 +145,7 @@ describe("cancelAutoBid", () => {
       });
 
       // Act
-      const result = await cancelAutoBid(testAuctionId);
+      const result = await cancelAutoBid(testAuctionId, true);
 
       // Assert
       expect(result).toStrictEqual({
@@ -192,28 +154,8 @@ describe("cancelAutoBid", () => {
         autoBid: null,
       });
 
-      // トランザクションが実行されていないことを確認
-      expect(prismaMock.$transaction).not.toHaveBeenCalled();
-    });
-
-    test("should return error when validation message is empty", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue({
-        success: false,
-        message: "",
-        userId: "",
-        auction: null,
-      });
-
-      // Act
-      const result = await cancelAutoBid(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "",
-        autoBid: null,
-      });
+      // Prismaが呼ばれていないことを確認
+      expect(prismaMock.autoBid.update).not.toHaveBeenCalled();
     });
 
     test("should return error when validation message is null (fallback to default)", async () => {
@@ -226,7 +168,7 @@ describe("cancelAutoBid", () => {
       });
 
       // Act
-      const result = await cancelAutoBid(testAuctionId);
+      const result = await cancelAutoBid(testAuctionId, true);
 
       // Assert
       expect(result).toStrictEqual({
@@ -246,7 +188,7 @@ describe("cancelAutoBid", () => {
       });
 
       // Act
-      const result = await cancelAutoBid(testAuctionId);
+      const result = await cancelAutoBid(testAuctionId, true);
 
       // Assert
       expect(result).toStrictEqual({
@@ -256,50 +198,41 @@ describe("cancelAutoBid", () => {
       });
     });
 
-    test("should handle exception and return error", async () => {
-      // Arrange
-      mockValidateAuction.mockRejectedValue(new Error("Database error"));
-
-      // Act
-      const result = await cancelAutoBid(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "自動入札の取り消し中にエラーが発生しました",
-        autoBid: null,
-      });
-    });
-
-    test("should handle transaction error", async () => {
+    test("should handle database error", async () => {
       // Arrange
       mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-      prismaMock.$transaction.mockRejectedValue(new Error("Transaction error"));
+      prismaMock.autoBid.update.mockRejectedValue(new Error("Database error"));
 
       // Act
-      const result = await cancelAutoBid(testAuctionId);
+      const result = await cancelAutoBid(testAuctionId, true);
 
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "自動入札の取り消し中にエラーが発生しました",
+        message: "Database error",
         autoBid: null,
       });
     });
-  });
 
-  describe("境界値テスト", () => {
+    test("should handle unknown error", async () => {
+      // Arrange
+      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      prismaMock.autoBid.update.mockRejectedValue("Unknown error");
+
+      // Act
+      const result = await cancelAutoBid(testAuctionId, true);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: false,
+        message: "不明なエラーが発生しました",
+        autoBid: null,
+      });
+    });
+
     test("should handle empty auctionId", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue({
-        success: false,
-        message: "オークションIDが無効です",
-        userId: "",
-        auction: null,
-      });
-
       // Act
-      const result = await cancelAutoBid("");
+      const result = await cancelAutoBid("", true);
 
       // Assert
       expect(result).toStrictEqual({
@@ -307,43 +240,24 @@ describe("cancelAutoBid", () => {
         message: "オークションIDが無効です",
         autoBid: null,
       });
+
+      // バリデーションが呼ばれていないことを確認
+      expect(mockValidateAuction).not.toHaveBeenCalled();
     });
 
-    test("should handle very long auctionId", async () => {
-      // Arrange
-      const longAuctionId = "a".repeat(1000);
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-
-      const existingAutoBid = autoBidFactory.build({
-        id: "auto-bid-1",
-        userId: testUserId,
-        auctionId: longAuctionId,
-        maxBidAmount: 200,
-        bidIncrement: 10,
-        isActive: true,
-      });
-
-      const canceledAutoBid = autoBidFactory.build({
-        ...existingAutoBid,
-        isActive: false,
-      });
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          autoBid: {
-            findFirst: vi.fn().mockResolvedValue(existingAutoBid),
-            update: vi.fn().mockResolvedValue(canceledAutoBid),
-          },
-        };
-        return await callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
+    test("should handle false isDisplayAutoBidding", async () => {
       // Act
-      const result = await cancelAutoBid(longAuctionId);
+      const result = await cancelAutoBid(testAuctionId, false);
 
       // Assert
-      expect(result.success).toBe(true);
-      expect(mockValidateAuction).toHaveBeenCalledWith(longAuctionId, expect.any(Object));
+      expect(result).toStrictEqual({
+        success: false,
+        message: "自動入札中フラグが無効です",
+        autoBid: null,
+      });
+
+      // バリデーションが呼ばれていないことを確認
+      expect(mockValidateAuction).not.toHaveBeenCalled();
     });
   });
 });
