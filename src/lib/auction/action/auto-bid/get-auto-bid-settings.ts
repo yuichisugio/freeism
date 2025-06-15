@@ -17,7 +17,16 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 1. オークションの検証（最小限のチェック）
+     * 1. オークションIDと現在の最高入札額のバリデーション
+     */
+    if (!auctionId || !currentHighestBid) {
+      throw new Error("オークションIDまたは現在の最高入札額が無効です");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 2. オークションの検証（最小限のチェック）
      */
     const validation = await validateAuction(auctionId, {
       checkSelfListing: null,
@@ -43,7 +52,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 2. ユーザーの自動入札設定を取得
+     * 3. ユーザーの自動入札設定を取得
      */
     const autoBid = await prisma.autoBid.findFirst({
       where: {
@@ -56,10 +65,15 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 4. 自動入札設定が存在しない場合
+     */
     if (!autoBid) {
       return {
         success: true,
-        message: "",
+        message: "自動入札設定が見つかりませんでした",
         autoBid: null,
       };
     }
@@ -67,7 +81,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 3. 自動入札設定を返す
+     * 5. 自動入札設定を返す
      */
     return {
       success: true,
@@ -82,13 +96,13 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 4. エラー時の処理
+     * 6. エラー時の処理
      */
   } catch (error) {
     console.error("自動入札設定取得エラー:", error);
     return {
       success: false,
-      message: "自動入札設定の取得中にエラーが発生しました",
+      message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
       autoBid: null,
     };
   }

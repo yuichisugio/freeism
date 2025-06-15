@@ -4,7 +4,7 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { AuctionValidationData, ValidateAuctionResult } from "./bid-validation";
+import type { AuctionValidationData, ValidateAuctionResult } from "../bid-validation";
 import { executeBid } from "./bid-common";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -66,9 +66,9 @@ vi.mock("./extend-auction-time", () => ({
  * モック関数の型定義
  */
 const mockSendAuctionNotification = vi.mocked(await import("@/lib/actions/notification/auction-notification")).sendAuctionNotification;
-const mockSendEventToAuctionSubscribers = vi.mocked(await import("./server-sent-events-broadcast")).sendEventToAuctionSubscribers;
-const mockProcessAutoBid = vi.mocked(await import("./auto-bid/auto-bid")).executeAutoBid;
-const mockValidateAuction = vi.mocked(await import("./bid-validation")).validateAuction;
+const mockSendEventToAuctionSubscribers = vi.mocked(await import("../server-sent-events-broadcast")).sendEventToAuctionSubscribers;
+const mockProcessAutoBid = vi.mocked(await import("../auto-bid/auto-bid")).executeAutoBid;
+const mockValidateAuction = vi.mocked(await import("../bid-validation")).validateAuction;
 const mockProcessAuctionExtension = vi.mocked(await import("./extend-auction-time")).processAuctionExtension;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

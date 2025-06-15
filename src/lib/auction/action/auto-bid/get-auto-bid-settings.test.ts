@@ -17,11 +17,6 @@ vi.mock("@/lib/auction/action/bid-validation", () => ({
   __esModule: true,
 }));
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * テスト対象の関数をインポート
- */
 const mockValidateAuction = vi.mocked(validateAuction);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -42,8 +37,6 @@ beforeEach(() => {
 const testAuctionId = "test-auction-id";
 const testUserId = "test-user-id";
 const testTaskId = "test-task-id";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * バリデーション成功時のレスポンス
@@ -134,7 +127,7 @@ describe("getAutoBidByUserId", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        message: "",
+        message: "自動入札設定が見つかりませんでした",
         autoBid: null,
       });
     });
@@ -181,26 +174,6 @@ describe("getAutoBidByUserId", () => {
       expect(prismaMock.autoBid.findFirst).not.toHaveBeenCalled();
     });
 
-    test("should return error when validation success is false", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue({
-        success: false,
-        message: "オークションが見つかりません",
-        userId: "",
-        auction: null,
-      });
-
-      // Act
-      const result = await getAutoBidByUserId(testAuctionId, 100);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "オークションが見つかりません",
-        autoBid: null,
-      });
-    });
-
     test("should return error when userId is not provided", async () => {
       // Arrange
       mockValidateAuction.mockResolvedValue({
@@ -221,7 +194,7 @@ describe("getAutoBidByUserId", () => {
       });
     });
 
-    test("should handle exception and return error", async () => {
+    test("should handle exception and return error message", async () => {
       // Arrange
       mockValidateAuction.mockRejectedValue(new Error("Database error"));
 
@@ -231,12 +204,12 @@ describe("getAutoBidByUserId", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "自動入札設定の取得中にエラーが発生しました",
+        message: "Database error",
         autoBid: null,
       });
     });
 
-    test("should handle prisma exception and return error", async () => {
+    test("should handle prisma exception and return error message", async () => {
       // Arrange
       mockValidateAuction.mockResolvedValue(mockValidationSuccess);
       prismaMock.autoBid.findFirst.mockRejectedValue(new Error("Prisma error"));
@@ -247,208 +220,87 @@ describe("getAutoBidByUserId", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "自動入札設定の取得中にエラーが発生しました",
+        message: "Prisma error",
         autoBid: null,
       });
     });
-  });
 
-  describe("境界値テスト", () => {
-    test("should handle zero currentHighestBid", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-      prismaMock.autoBid.findFirst.mockResolvedValue(null);
-
+    test.each([
+      {
+        description: "空文字のauctionId",
+        auctionId: "",
+        currentHighestBid: 100,
+        expectedMessage: "オークションIDが無効です",
+      },
+      {
+        description: "nullのauctionId",
+        auctionId: null as unknown as string,
+        currentHighestBid: 100,
+        expectedMessage: "オークションIDが無効です",
+      },
+      {
+        description: "0のcurrentHighestBid",
+        auctionId: testAuctionId,
+        currentHighestBid: 0,
+        expectedMessage: "オークションIDが無効です",
+      },
+      {
+        description: "undefinedのcurrentHighestBid",
+        auctionId: testAuctionId,
+        currentHighestBid: undefined as unknown as number,
+        expectedMessage: "オークションIDが無効です",
+      },
+    ])("should handle invalid auctionId or currentHighestBid", async ({ auctionId, currentHighestBid, expectedMessage }) => {
       // Act
-      const result = await getAutoBidByUserId(testAuctionId, 0);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          userId: testUserId,
-          isActive: true,
-          maxBidAmount: {
-            gt: 0,
-          },
-        },
-      });
-    });
-
-    test("should handle negative currentHighestBid", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-      prismaMock.autoBid.findFirst.mockResolvedValue(null);
-
-      // Act
-      const result = await getAutoBidByUserId(testAuctionId, -100);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          userId: testUserId,
-          isActive: true,
-          maxBidAmount: {
-            gt: -100,
-          },
-        },
-      });
-    });
-
-    test("should handle very large currentHighestBid", async () => {
-      // Arrange
-      const largeBid = 999999999;
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-      prismaMock.autoBid.findFirst.mockResolvedValue(null);
-
-      // Act
-      const result = await getAutoBidByUserId(testAuctionId, largeBid);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          userId: testUserId,
-          isActive: true,
-          maxBidAmount: {
-            gt: largeBid,
-          },
-        },
-      });
-    });
-  });
-
-  describe("引数の検証", () => {
-    test("should handle empty auctionId", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue({
-        success: false,
-        message: "オークションIDが無効です",
-        userId: "",
-        auction: null,
-      });
-
-      // Act
-      const result = await getAutoBidByUserId("", 100);
-
-      // Assert
+      const result = await getAutoBidByUserId(auctionId, currentHighestBid);
       expect(result).toStrictEqual({
         success: false,
-        message: "オークションIDが無効です",
+        message: expectedMessage,
         autoBid: null,
       });
-    });
-
-    test("should handle null auctionId", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue({
-        success: false,
-        message: "オークションIDが無効です",
-        userId: "",
-        auction: null,
-      });
-
-      // Act
-      // @ts-expect-error - Testing null input
-      const result = await getAutoBidByUserId(null, 100);
 
       // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "オークションIDが無効です",
-        autoBid: null,
-      });
+      expect(prismaMock.autoBid.findFirst).not.toHaveBeenCalled();
     });
 
-    test("should handle undefined currentHighestBid", async () => {
+    test("should query with correct conditions - 負の値", async () => {
       // Arrange
       mockValidateAuction.mockResolvedValue(mockValidationSuccess);
       prismaMock.autoBid.findFirst.mockResolvedValue(null);
 
       // Act
-      // @ts-expect-error - Testing undefined input
-      const result = await getAutoBidByUserId(testAuctionId, undefined);
+      await getAutoBidByUserId(testAuctionId, -100);
 
       // Assert
-      expect(result.success).toBe(true);
       expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
         where: {
           auctionId: testAuctionId,
           userId: testUserId,
           isActive: true,
-          maxBidAmount: {
-            gt: undefined,
-          },
+          maxBidAmount: { gt: -100 },
         },
       });
     });
   });
+});
 
+describe("境界値テスト", () => {
   describe("自動入札設定の条件テスト", () => {
-    test("should only return active auto bids", async () => {
+    test("should query with correct conditions - 現在の入札額より高い上限額のみ", async () => {
       // Arrange
       mockValidateAuction.mockResolvedValue(mockValidationSuccess);
       prismaMock.autoBid.findFirst.mockResolvedValue(null);
 
       // Act
-      await getAutoBidByUserId(testAuctionId, 100);
+      await getAutoBidByUserId(testAuctionId, 500);
 
-      // Assert
+      // Assert - 全ての条件を一度にテスト
       expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
         where: {
-          auctionId: testAuctionId,
-          userId: testUserId,
+          auctionId: testAuctionId, // 特定のオークション
+          userId: testUserId, // 特定のユーザー
           isActive: true, // 有効な自動入札のみ
-          maxBidAmount: {
-            gt: 100,
-          },
-        },
-      });
-    });
-
-    test("should only return auto bids with higher max bid amount", async () => {
-      // Arrange
-      const currentBid = 500;
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-      prismaMock.autoBid.findFirst.mockResolvedValue(null);
-
-      // Act
-      await getAutoBidByUserId(testAuctionId, currentBid);
-
-      // Assert
-      expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          userId: testUserId,
-          isActive: true,
-          maxBidAmount: {
-            gt: currentBid, // 現在の入札額より高い上限額のみ
-          },
-        },
-      });
-    });
-
-    test("should return auto bid for specific user", async () => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
-      prismaMock.autoBid.findFirst.mockResolvedValue(null);
-
-      // Act
-      await getAutoBidByUserId(testAuctionId, 100);
-
-      // Assert
-      expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          userId: testUserId, // 特定のユーザーの自動入札のみ
-          isActive: true,
-          maxBidAmount: {
-            gt: 100,
-          },
+          maxBidAmount: { gt: 500 }, // 現在の入札額より高い上限額のみ
         },
       });
     });

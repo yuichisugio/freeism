@@ -6,11 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
 import { toast } from "sonner";
 
-import type { UpdateAuctionWithDetails } from "../../../types/auction-types";
-import type { ExecuteAutoBidParams } from "./auto-bid/auto-bid";
-import { validateAuction } from "./bid-validation";
+import type { UpdateAuctionWithDetails } from "../../../../types/auction-types";
+import type { ExecuteAutoBidParams } from "../auto-bid/auto-bid";
+import { validateAuction } from "../bid-validation";
+import { sendEventToAuctionSubscribers } from "../server-sent-events-broadcast";
 import { processAuctionExtension } from "./extend-auction-time";
-import { sendEventToAuctionSubscribers } from "./server-sent-events-broadcast";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -292,7 +292,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
     if (!isAutoBid) {
       try {
         // 動的インポートを使用して循環依存を回避
-        const { executeAutoBid: processAutoBid } = await import("./auto-bid/auto-bid");
+        const { executeAutoBid: processAutoBid } = await import("../auto-bid/auto-bid");
         const params: ExecuteAutoBidParams = {
           auctionId,
           currentHighestBid: amount,

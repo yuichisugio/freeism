@@ -5,8 +5,8 @@ import { AuctionEventType, NotificationSendMethod, NotificationSendTiming, TaskS
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { ExecuteAutoBidParams } from "./auto-bid";
-import { executeBid } from "../bid-common";
 import { validateAuction } from "../bid-validation";
+import { executeBid } from "../bid/bid-common";
 import { executeAutoBid } from "./auto-bid";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

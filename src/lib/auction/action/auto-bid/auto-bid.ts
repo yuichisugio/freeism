@@ -2,8 +2,8 @@
 
 import type { ValidateAuctionResult } from "@/lib/auction/action/bid-validation";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
-import { executeBid } from "@/lib/auction/action/bid-common";
 import { validateAuction } from "@/lib/auction/action/bid-validation";
+import { executeBid } from "@/lib/auction/action/bid/bid-common";
 import { prisma } from "@/lib/prisma";
 import { NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
 

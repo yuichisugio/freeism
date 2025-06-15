@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { executeBid } from "@/lib/auction/action/bid-common";
+import { executeBid } from "@/lib/auction/action/bid/bid-common";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
