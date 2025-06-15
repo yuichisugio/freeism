@@ -429,7 +429,7 @@ describe("setAutoBid", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "自動入札の設定中にエラーが発生しました",
+        message: "Database error",
         autoBid: null,
       });
     });
@@ -447,7 +447,7 @@ describe("setAutoBid", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "自動入札の設定中にエラーが発生しました",
+        message: "Transaction failed",
         autoBid: null,
       });
     });

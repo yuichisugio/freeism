@@ -17,6 +17,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
+    "typecheck:rm": "rm -f tsconfig.tsbuildinfo && tsc --noEmit",
     "clean": "git clean -xdf node_modules dist",
     "lint": "next lint",
     "lint:fix": "next lint --fix && prisma validate",

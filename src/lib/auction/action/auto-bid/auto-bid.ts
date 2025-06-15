@@ -12,7 +12,7 @@ import { NotificationSendMethod, NotificationSendTiming, AuctionEventType as Pri
 /**
  * 自動入札処理の応答型
  */
-export type AutoBidResponse = {
+export type ExecuteAutoBidReturn = {
   success: boolean;
   message: string;
   autoBid: {
@@ -42,7 +42,7 @@ export type ExecuteAutoBidParams = {
  * @param params 自動入札処理パラメータ
  * @returns 処理結果または null（自動入札が実行されなかった場合）
  */
-export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<AutoBidResponse> {
+export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<ExecuteAutoBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -103,9 +103,24 @@ export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<Auto
     if (autoBids.length === 0) {
       return {
         success: true,
-        message: "自動入札の設定はありません",
+        message: "自動入札の設定はありません。処理をスキップします",
         autoBid: null,
       };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 4. 不要だけど、一応現在の最高入札額より高い自動入札の設定があるかチェック
+     */
+    if (!autoBids.some((autoBid) => autoBid.maxBidAmount > currentHighestBid)) {
+      throw new Error("現在の最高入札額より高い自動入札の設定がありません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    if (currentHighestBid < 0 || autoBids.some((autoBid) => autoBid.bidIncrement < 0)) {
+      throw new Error("現在の最高入札額が0以下か、入札単位が0以下です");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -149,7 +164,7 @@ export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<Auto
 
     // 入札に失敗した場合はエラーを返す
     if (!bidResult.success) {
-      console.error("自動入札実行エラー:", bidResult.message);
+      console.error("自動入札実行エラー: 入札に失敗しました", bidResult.message);
       throw new Error(bidResult.message ?? "入札エラー");
     }
 

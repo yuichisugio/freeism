@@ -1,6 +1,6 @@
 "use client";
 
-import type { AutoBidResponse, ExecuteAutoBidParams } from "@/lib/auction/action/auto-bid/auto-bid";
+import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "@/lib/auction/action/auto-bid/auto-bid";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cancelAutoBid, executeAutoBid, getAutoBidByUserId, setAutoBid } from "@/lib/auction/action/auto-bid/auto-bid";
 import { queryCacheKeys } from "@/lib/tanstack-query";
@@ -94,7 +94,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     data: fetchedAutoBidData,
     isLoading: isLoadingInitialAutoBid,
     error: errorInitialAutoBid,
-  } = useQuery<AutoBidResponse | null, Error>({
+  } = useQuery<ExecuteAutoBidReturn | null, Error>({
     queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid),
     queryFn: async () => {
       if (!auctionId || !userId) {
@@ -139,7 +139,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     mutate: setupAutoBidMutate,
     isPending: isSetupAutoBidPending,
     error: setupAutoBidError,
-  } = useMutation<AutoBidResponse, Error, { maxBidAmount: number; bidIncrement: number }>({
+  } = useMutation<ExecuteAutoBidReturn, Error, { maxBidAmount: number; bidIncrement: number }>({
     mutationFn: async (variables) => {
       if (!auctionId || !userId) {
         throw new Error("ログインが必要です");
@@ -192,7 +192,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
     mutateAsync: cancelAutoBidMutateAsync,
     isPending: isCancelAutoBidPending,
     error: cancelAutoBidError,
-  } = useMutation<AutoBidResponse, Error>({
+  } = useMutation<ExecuteAutoBidReturn, Error>({
     mutationFn: async () => {
       if (!auctionId || !userId) {
         throw new Error("ログインが必要です");

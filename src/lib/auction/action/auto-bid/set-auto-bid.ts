@@ -3,7 +3,7 @@
 import { validateAuction } from "@/lib/auction/action/bid-validation";
 import { prisma } from "@/lib/prisma";
 
-import type { AutoBidResponse, ExecuteAutoBidParams } from "./auto-bid";
+import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "./auto-bid";
 import { executeAutoBid } from "./auto-bid";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,7 +15,7 @@ import { executeAutoBid } from "./auto-bid";
  * @param bidIncrement 自動入札の入札単位
  * @returns 処理結果
  */
-export async function setAutoBid(auctionId: string, maxBidAmount: number, bidIncrement: number): Promise<AutoBidResponse> {
+export async function setAutoBid(auctionId: string, maxBidAmount: number, bidIncrement: number): Promise<ExecuteAutoBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -33,11 +33,7 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
 
     // バリデーションに失敗した場合はエラーを返す
     if (!validation.success || !validation.userId) {
-      return {
-        success: false,
-        message: validation.message || "検証エラー",
-        autoBid: null,
-      };
+      throw new Error(validation.message || "検証エラー");
     }
 
     // バリデーションに成功した場合は、ユーザーIDとオークション情報を取得
@@ -47,11 +43,7 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
     // オークション情報が取得できなかった場合はエラーを返す
     if (!auction) {
       console.log("bid-common_setAutoBid_error_!auction", !auction);
-      return {
-        success: false,
-        message: "オークション情報が取得できませんでした",
-        autoBid: null,
-      };
+      throw new Error("オークション情報が取得できませんでした");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -61,11 +53,7 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
      */
     if (maxBidAmount <= auction.currentHighestBid) {
       console.log("bid-common_setAutoBid_error_limitBidAmount <= auction.currentHighestBid", maxBidAmount, auction.currentHighestBid);
-      return {
-        success: false,
-        message: "最大入札額は現在の最高入札額より高く設定してください",
-        autoBid: null,
-      };
+      throw new Error("最大入札額は現在の最高入札額より高く設定してください");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -75,11 +63,7 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
      */
     if (bidIncrement < 1) {
       console.log("bid-common_setAutoBid_error_bidIncrement < 1", bidIncrement);
-      return {
-        success: false,
-        message: "入札単位は1以上の整数で設定してください",
-        autoBid: null,
-      };
+      throw new Error("入札単位は1以上の整数で設定してください");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -176,7 +160,7 @@ export async function setAutoBid(auctionId: string, maxBidAmount: number, bidInc
     console.log("setAutoBid_error_stack", new Error().stack);
     return {
       success: false,
-      message: "自動入札の設定中にエラーが発生しました",
+      message: `${error instanceof Error ? error.message : "不明なエラー"}`,
       autoBid: null,
     };
   }

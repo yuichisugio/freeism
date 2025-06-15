@@ -3,7 +3,7 @@
 import { validateAuction } from "@/lib/auction/action/bid-validation";
 import { prisma } from "@/lib/prisma";
 
-import type { AutoBidResponse } from "./auto-bid";
+import type { ExecuteAutoBidReturn } from "./auto-bid";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,7 +12,7 @@ import type { AutoBidResponse } from "./auto-bid";
  * @param auctionId オークションID
  * @returns 処理結果
  */
-export async function getAutoBidByUserId(auctionId: string, currentHighestBid: number): Promise<AutoBidResponse> {
+export async function getAutoBidByUserId(auctionId: string, currentHighestBid: number): Promise<ExecuteAutoBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
