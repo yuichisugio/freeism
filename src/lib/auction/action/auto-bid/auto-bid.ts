@@ -103,7 +103,7 @@ export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<Auto
     if (autoBids.length === 0) {
       return {
         success: true,
-        message: "自動入札がありません",
+        message: "自動入札の設定はありません",
         autoBid: null,
       };
     }
@@ -145,7 +145,7 @@ export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<Auto
     /**
      * 6. 自動入札を実行
      */
-    const bidResult = await executeBid(auctionId, newBidAmount, true);
+    const bidResult = await executeBid(auctionId, newBidAmount, true, highestAutoBid.userId);
 
     // 入札に失敗した場合はエラーを返す
     if (!bidResult.success) {

@@ -46,9 +46,10 @@ type BidHistorySelect = {
  * @param auctionId オークションID
  * @param amount 入札金額
  * @param isAutoBid 自動入札かどうか
+ * @param autoBidUserId 自動入札で入札する場合の、自動入札の最高入札額の設定者のユーザーID（自動入札の場合は必須）
  * @returns 入札処理の結果
  */
-export async function executeBid(auctionId: string, amount: number, isAutoBid = false): Promise<ExecuteBidReturn> {
+export async function executeBid(auctionId: string, amount: number, isAutoBid = false, autoBidUserId?: string): Promise<ExecuteBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -80,9 +81,17 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
 
     /**
      * ユーザーIDを取得
-     * 必ずuserIdがある状態。ない場合はvalidateAuction()でエラーが発生している
+     * 自動入札の場合は引数で渡されたuserIdを使用、手動入札の場合はvalidationから取得
      */
-    const userId = validation.userId;
+    const bidderUserId = autoBidUserId ?? validation.userId;
+
+    // ユーザーIDが取得できない場合はエラー
+    if (!bidderUserId) {
+      return {
+        success: false,
+        message: "入札者の情報を取得できませんでした",
+      };
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -127,7 +136,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       await tx.bidHistory.create({
         data: {
           auctionId,
-          userId,
+          userId: bidderUserId, // 修正: 正しい入札者のユーザーIDを使用
           amount: amount,
           status: BidStatus.BIDDING,
           isAutoBid: isAutoBid,
@@ -146,7 +155,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         },
         data: {
           currentHighestBid: amount,
-          currentHighestBidderId: userId,
+          currentHighestBidderId: bidderUserId, // 修正: 正しい入札者のユーザーIDを使用
           version: { increment: 1 }, // バージョンをインクリメント
         },
         select: {
@@ -241,7 +250,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
       /**
        * 以前の最高入札者が自分以外の場合は、以前の最高入札者に、AuctionEventType.OUTBIDの通知を送信
        */
-      if (initialHighestBidderId !== userId && initialHighestBidderId !== null) {
+      if (initialHighestBidderId !== bidderUserId && initialHighestBidderId !== null) {
         await sendAuctionNotification({
           text: {
             first: validation.auction?.task?.task ?? "",
@@ -287,7 +296,7 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
         const params: ExecuteAutoBidParams = {
           auctionId,
           currentHighestBid: amount,
-          currentHighestBidderId: userId,
+          currentHighestBidderId: bidderUserId, // 修正: 正しい入札者のユーザーIDを使用
           validationDone: true,
           paramsValidationResult: validation,
         };
