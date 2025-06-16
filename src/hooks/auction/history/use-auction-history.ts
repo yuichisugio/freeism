@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getUserBidHistoriesWithCount, getUserCreatedAuctionsWithCount, getUserWonAuctionsWithCount } from "@/lib/auction/action/auction-history";
+import { getUserBidHistoriesWithCount } from "@/lib/auction/action/auction-history/bid-auction";
+import { getUserCreatedAuctionsWithCount } from "@/lib/auction/action/auction-history/created-auction";
+import { getUserWonAuctionsWithCount } from "@/lib/auction/action/auction-history/won-auction";
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import {
