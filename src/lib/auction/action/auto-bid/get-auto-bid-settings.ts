@@ -19,7 +19,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     /**
      * 1. オークションIDと現在の最高入札額のバリデーション
      */
-    if (!auctionId || !currentHighestBid) {
+    if (!auctionId || !currentHighestBid || currentHighestBid <= 0) {
       throw new Error("オークションIDまたは現在の最高入札額が無効です");
     }
 
