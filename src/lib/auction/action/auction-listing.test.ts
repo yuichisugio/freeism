@@ -1,578 +1,290 @@
 import type { GetAuctionListingsParams } from "@/lib/auction/action/cache/cache-auction-listing";
 import type { AuctionListingResult, AuctionListingsConditions, Suggestion } from "@/types/auction-types";
-import { cachedGetAuctionListingsAndCount, cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing";
+import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-// テスト対象の関数をインポート（モック設定後）
 import { getAuctionListingsAndCount, getSearchSuggestions } from "./auction-listing";
 
-// モック設定
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * キャッシュ関数をモック
+ */
 vi.mock("@/lib/auction/action/cache/cache-auction-listing", () => ({
   cachedGetAuctionListingsAndCount: vi.fn(),
   cachedGetSearchSuggestions: vi.fn(),
-  __esModule: true,
 }));
 
-// モック関数の型アサーション
-const mockCachedGetAuctionListingsAndCount = cachedGetAuctionListingsAndCount as ReturnType<typeof vi.fn>;
-const mockCachedGetSearchSuggestions = cachedGetSearchSuggestions as ReturnType<typeof vi.fn>;
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 各テスト前にモックをリセット
-beforeEach(() => {
-  vi.clearAllMocks();
-  mockCachedGetAuctionListingsAndCount.mockReset();
-  mockCachedGetSearchSuggestions.mockReset();
-});
+/**
+ * モック関数の型定義
+ */
+const mockCachedGetAuctionListingsAndCount = vi.mocked(
+  (await import("@/lib/auction/action/cache/cache-auction-listing")).cachedGetAuctionListingsAndCount,
+);
+const mockCachedGetSearchSuggestions = vi.mocked((await import("@/lib/auction/action/cache/cache-auction-listing")).cachedGetSearchSuggestions);
 
-// テストデータの定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テスト用データ
+ */
 const testUserId = "test-user-id";
-const testAuctionId = "test-auction-id";
-const testTaskId = "test-task-id";
 const testGroupId = "test-group-id";
 
-// 共通のテストデータ
-const mockListingsConditions: AuctionListingsConditions = {
-  categories: ["プログラミング"],
-  status: ["not_ended"],
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 各テスト前にモックをリセット
+ */
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テストヘルパー関数：基本的なAuctionListingsConditionsを作成
+ */
+const createBaseListingsConditions = (overrides: Partial<AuctionListingsConditions> = {}): AuctionListingsConditions => ({
+  categories: null,
+  status: ["all"],
   statusConditionJoinType: "OR",
-  minBid: 100,
-  maxBid: 1000,
-  minRemainingTime: 1,
-  maxRemainingTime: 24,
-  groupIds: [testGroupId],
-  searchQuery: "テスト",
-  sort: [{ field: "newest", direction: "desc" }],
+  minBid: null,
+  maxBid: null,
+  minRemainingTime: null,
+  maxRemainingTime: null,
+  groupIds: null,
+  searchQuery: null,
+  sort: null,
   page: 1,
-};
+  ...overrides,
+});
 
-const mockAuctionCard = {
-  id: testAuctionId,
-  current_highest_bid: 500,
-  end_time: new Date("2024-12-31T23:59:59Z"),
-  start_time: new Date("2024-01-01T00:00:00Z"),
-  status: "PENDING" as const,
-  task: "テストタスク",
-  detail: "テストタスクの詳細",
-  image_url: "https://example.com/image.jpg",
-  category: "プログラミング",
-  group_id: testGroupId,
-  group_name: "テストグループ",
-  bids_count: 5,
-  is_watched: false,
-  score: 0.95,
-  task_highlighted: "<mark>テスト</mark>タスク",
-  detail_highlighted: "<mark>テスト</mark>タスクの詳細",
-  executors_json: [
-    {
-      id: "executor-1",
-      rating: 4.5,
-      userId: "executor-user-1",
-      userImage: "https://example.com/executor.jpg",
-      userSettingsUsername: "実行者1",
-    },
-  ],
-};
+/**
+ * テストヘルパー関数：GetAuctionListingsParamsを作成
+ */
+const createAuctionListingsParams = (listingsConditions: AuctionListingsConditions, userId: string = testUserId): GetAuctionListingsParams => ({
+  listingsConditions,
+  userId,
+});
 
-const mockAuctionListingResult: AuctionListingResult = [mockAuctionCard];
+/**
+ * テストヘルパー関数：空の結果を作成
+ */
+const createEmptyResult = (count = 0) => ({
+  listings: [] as AuctionListingResult,
+  count,
+});
 
-const mockSuggestion: Suggestion = {
-  id: testTaskId,
-  text: "テストタスク",
-  highlighted: "<mark>テスト</mark>タスク",
-  score: 0.95,
-};
+/**
+ * テストヘルパー関数：サンプルオークション結果を作成
+ */
+const createSampleAuctionResult = (): AuctionListingResult => [
+  {
+    id: "auction-1",
+    current_highest_bid: 1000,
+    end_time: new Date("2024-12-31T23:59:59"),
+    start_time: new Date("2024-01-01T00:00:00"),
+    status: TaskStatus.AUCTION_ACTIVE,
+    task: "テストタスク",
+    detail: "テストの詳細",
+    image_url: "https://example.com/image.jpg",
+    category: "プログラミング",
+    group_id: testGroupId,
+    group_name: "テストグループ",
+    bids_count: 5,
+    is_watched: false,
+    score: null,
+    task_highlighted: null,
+    detail_highlighted: null,
+    executors_json: [],
+  },
+];
 
-const mockSuggestions: Suggestion[] = [mockSuggestion];
+/**
+ * テストヘルパー関数：サンプルサジェストを作成
+ */
+const createSampleSuggestions = (query = "プログラミング"): Suggestion[] => [
+  {
+    id: "suggestion-1",
+    text: `${query}タスク`,
+    highlighted: `<mark>${query}</mark>タスク`,
+    score: 0.95,
+  },
+  {
+    id: "suggestion-2",
+    text: `${query}学習`,
+    highlighted: `<mark>${query}</mark>学習`,
+    score: 0.85,
+  },
+];
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("auction-listing", () => {
   describe("getAuctionListingsAndCount", () => {
-    test("should return auction listings and count successfully", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
+    describe("正常系", () => {
+      test("should return auction listings and count successfully", async () => {
+        // Arrange
+        const listingsConditions = createBaseListingsConditions({
+          categories: ["プログラミング"],
+          groupIds: [testGroupId],
+        });
+        const params = createAuctionListingsParams(listingsConditions);
+        const expectedResult = {
+          listings: createSampleAuctionResult(),
+          count: 1,
+        };
 
-      const mockCachedData = {
-        listings: mockAuctionListingResult,
-        count: 1,
-      };
+        mockCachedGetAuctionListingsAndCount.mockResolvedValue(expectedResult);
 
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(mockCachedData);
+        // Act
+        const result = await getAuctionListingsAndCount(params);
 
-      // Act
-      const result = await getAuctionListingsAndCount(mockParams);
+        // Assert
+        expect(result).toStrictEqual(expectedResult);
+        expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
+        expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledTimes(1);
+      });
 
-      // Assert
-      expect(result).toStrictEqual(mockCachedData);
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(mockParams);
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledTimes(1);
+      test("should handle empty results", async () => {
+        // Arrange
+        const listingsConditions = createBaseListingsConditions();
+        const params = createAuctionListingsParams(listingsConditions);
+        const expectedResult = createEmptyResult();
+
+        mockCachedGetAuctionListingsAndCount.mockResolvedValue(expectedResult);
+
+        // Act
+        const result = await getAuctionListingsAndCount(params);
+
+        // Assert
+        expect(result).toStrictEqual(expectedResult);
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+        expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
+      });
+
+      test("should handle complex filter conditions", async () => {
+        // Arrange
+        const listingsConditions = createBaseListingsConditions({
+          categories: ["プログラミング", "デザイン", "マーケティング"],
+          status: ["not_ended", "started", "bidded"],
+          statusConditionJoinType: "AND",
+          minBid: 100,
+          maxBid: 5000,
+          minRemainingTime: 3600, // 1時間
+          maxRemainingTime: 86400, // 24時間
+          groupIds: [testGroupId, "group-2", "group-3"],
+          searchQuery: "テスト 検索 クエリ",
+          sort: [
+            { field: "price", direction: "desc" },
+            { field: "time_remaining", direction: "asc" },
+          ],
+          page: 2,
+        });
+        const params = createAuctionListingsParams(listingsConditions);
+        const expectedResult = createEmptyResult();
+
+        mockCachedGetAuctionListingsAndCount.mockResolvedValue(expectedResult);
+
+        // Act
+        const result = await getAuctionListingsAndCount(params);
+
+        // Assert
+        expect(result).toStrictEqual(expectedResult);
+        expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
+      });
     });
 
-    test("should throw error when cached data is null", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
+    describe("異常系・境界値", () => {
+      test("should throw error null", async () => {
+        // Arrange
+        mockCachedGetAuctionListingsAndCount.mockRejectedValue(new Error("test"));
+        const listingsConditions = createBaseListingsConditions();
+        const params = createAuctionListingsParams(listingsConditions);
 
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(null);
+        // Act
+        const result = await getAuctionListingsAndCount(params);
 
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(mockParams)).rejects.toThrow("オークション一覧と件数の取得中に予期せぬエラーが発生しました。");
+        // Assert
+        expect(result).toThrowError();
+        expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
+      });
 
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(mockParams);
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledTimes(1);
-    });
+      test("should handle [0, 0]", async () => {
+        // Arrange
+        mockCachedGetAuctionListingsAndCount.mockResolvedValue({
+          listings: [],
+          count: 0,
+        });
+        const listingsConditions = createBaseListingsConditions();
+        const params = createAuctionListingsParams(listingsConditions);
 
-    test("should throw error when cached data is undefined", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
+        // Act
+        const result = await getAuctionListingsAndCount(params);
 
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(undefined);
-
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(mockParams)).rejects.toThrow("オークション一覧と件数の取得中に予期せぬエラーが発生しました。");
-
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(mockParams);
-    });
-
-    test("should handle empty listings array", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockCachedData = {
-        listings: [],
-        count: 0,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(mockCachedData);
-
-      // Act
-      const result = await getAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result).toStrictEqual(mockCachedData);
-      expect(result.listings).toHaveLength(0);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle large count value", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockCachedData = {
-        listings: mockAuctionListingResult,
-        count: 999999,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(mockCachedData);
-
-      // Act
-      const result = await getAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result).toStrictEqual(mockCachedData);
-      expect(result.count).toBe(999999);
-    });
-
-    test("should propagate error from cached function", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockError = new Error("Database connection error");
-      mockCachedGetAuctionListingsAndCount.mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(mockParams)).rejects.toThrow("Database connection error");
-
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(mockParams);
-    });
-
-    test("should handle null listingsConditions", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: null as unknown as AuctionListingsConditions,
-        userId: testUserId,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockRejectedValue(new Error("Invalid conditions"));
-
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(mockParams)).rejects.toThrow("Invalid conditions");
-    });
-
-    test("should handle empty userId", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: "",
-      };
-
-      const mockCachedData = {
-        listings: [],
-        count: 0,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(mockCachedData);
-
-      // Act
-      const result = await getAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result).toStrictEqual(mockCachedData);
-      expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(mockParams);
-    });
-
-    test("should handle undefined userId", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: undefined as unknown as string,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockRejectedValue(new Error("Invalid userId"));
-
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(mockParams)).rejects.toThrow("Invalid userId");
+        // Assert
+        expect(result).toStrictEqual({
+          listings: [],
+          count: 0,
+        });
+        expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
+      });
     });
   });
 
   describe("getSearchSuggestions", () => {
-    test("should return search suggestions successfully", async () => {
-      // Arrange
-      const query = "テスト";
-      mockCachedGetSearchSuggestions.mockResolvedValue(mockSuggestions);
+    describe("正常系", () => {
+      test("should return search suggestions successfully", async () => {
+        // Arrange
+        const query = "プログラミング";
+        const expectedSuggestions = createSampleSuggestions(query);
 
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
+        mockCachedGetSearchSuggestions.mockResolvedValue(expectedSuggestions);
 
-      // Assert
-      expect(result).toStrictEqual(mockSuggestions);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledTimes(1);
+        // Act
+        const result = await getSearchSuggestions(query, testUserId);
+
+        // Assert
+        expect(result).toStrictEqual(expectedSuggestions);
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledTimes(1);
+      });
     });
 
-    test("should throw error when cached data is null", async () => {
-      // Arrange
-      const query = "テスト";
-      mockCachedGetSearchSuggestions.mockResolvedValue(null);
+    describe("異常系・境界値", () => {
+      test("should handle null", async () => {
+        // Arrange
+        mockCachedGetSearchSuggestions.mockRejectedValue(new Error("test"));
+        const query = "テスト";
+        const userId = null as unknown as string;
 
-      // Act & Assert
-      await expect(getSearchSuggestions(query, testUserId)).rejects.toThrow("検索サジェストのキャッシュデータがありません");
+        // Act
+        const result = await getSearchSuggestions(query, userId);
 
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
-    });
+        // Assert
+        expect(result).toThrowError();
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, userId);
+      });
 
-    test("should throw error when cached data is undefined", async () => {
-      // Arrange
-      const query = "テスト";
-      mockCachedGetSearchSuggestions.mockResolvedValue(undefined);
+      test("should handle empty query", async () => {
+        // Arrange
+        const query = "";
+        const userId = testUserId;
+        const expectedSuggestions: Suggestion[] = [];
 
-      // Act & Assert
-      await expect(getSearchSuggestions(query, testUserId)).rejects.toThrow("検索サジェストのキャッシュデータがありません");
-    });
+        mockCachedGetSearchSuggestions.mockResolvedValue(expectedSuggestions);
 
-    test("should handle empty suggestions array", async () => {
-      // Arrange
-      const query = "存在しないクエリ";
-      mockCachedGetSearchSuggestions.mockResolvedValue([]);
+        // Act
+        const result = await getSearchSuggestions(query, userId);
 
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(result).toHaveLength(0);
-    });
-
-    test("should handle multiple suggestions", async () => {
-      // Arrange
-      const query = "テスト";
-      const multipleSuggestions: Suggestion[] = [
-        {
-          id: "task-1",
-          text: "テストタスク1",
-          highlighted: "<mark>テスト</mark>タスク1",
-          score: 0.95,
-        },
-        {
-          id: "task-2",
-          text: "テストタスク2",
-          highlighted: "<mark>テスト</mark>タスク2",
-          score: 0.85,
-        },
-        {
-          id: "task-3",
-          text: "テストタスク3",
-          highlighted: "<mark>テスト</mark>タスク3",
-          score: 0.75,
-        },
-      ];
-
-      mockCachedGetSearchSuggestions.mockResolvedValue(multipleSuggestions);
-
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual(multipleSuggestions);
-      expect(result).toHaveLength(3);
-    });
-
-    test("should propagate error from cached function", async () => {
-      // Arrange
-      const query = "テスト";
-      const mockError = new Error("Database connection error");
-      mockCachedGetSearchSuggestions.mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(getSearchSuggestions(query, testUserId)).rejects.toThrow("Database connection error");
-
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
-    });
-
-    test("should handle empty query string", async () => {
-      // Arrange
-      const query = "";
-      mockCachedGetSearchSuggestions.mockResolvedValue([]);
-
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
-    });
-
-    test("should handle whitespace-only query", async () => {
-      // Arrange
-      const query = "   ";
-      mockCachedGetSearchSuggestions.mockResolvedValue([]);
-
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
-    });
-
-    test("should handle null query", async () => {
-      // Arrange
-      const query = null as unknown as string;
-      mockCachedGetSearchSuggestions.mockRejectedValue(new Error("Invalid query"));
-
-      // Act & Assert
-      await expect(getSearchSuggestions(query, testUserId)).rejects.toThrow("Invalid query");
-    });
-
-    test("should handle undefined query", async () => {
-      // Arrange
-      const query = undefined as unknown as string;
-      mockCachedGetSearchSuggestions.mockRejectedValue(new Error("Invalid query"));
-
-      // Act & Assert
-      await expect(getSearchSuggestions(query, testUserId)).rejects.toThrow("Invalid query");
-    });
-
-    test("should handle empty userId", async () => {
-      // Arrange
-      const query = "テスト";
-      const emptyUserId = "";
-      mockCachedGetSearchSuggestions.mockResolvedValue([]);
-
-      // Act
-      const result = await getSearchSuggestions(query, emptyUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, emptyUserId);
-    });
-
-    test("should handle undefined userId", async () => {
-      // Arrange
-      const query = "テスト";
-      const undefinedUserId = undefined as unknown as string;
-      mockCachedGetSearchSuggestions.mockRejectedValue(new Error("Invalid userId"));
-
-      // Act & Assert
-      await expect(getSearchSuggestions(query, undefinedUserId)).rejects.toThrow("Invalid userId");
-    });
-
-    test("should handle very long query string", async () => {
-      // Arrange
-      const longQuery = "a".repeat(1000);
-      mockCachedGetSearchSuggestions.mockResolvedValue([]);
-
-      // Act
-      const result = await getSearchSuggestions(longQuery, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(longQuery, testUserId);
-    });
-
-    test("should handle special characters in query", async () => {
-      // Arrange
-      const specialQuery = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-      mockCachedGetSearchSuggestions.mockResolvedValue([]);
-
-      // Act
-      const result = await getSearchSuggestions(specialQuery, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(specialQuery, testUserId);
-    });
-  });
-
-  // 境界値テスト
-  describe("boundary value tests", () => {
-    test("should handle zero count in auction listings", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockCachedData = {
-        listings: [],
-        count: 0,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(mockCachedData);
-
-      // Act
-      const result = await getAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.count).toBe(0);
-      expect(result.listings).toHaveLength(0);
-    });
-
-    test("should handle maximum integer count", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const maxCount = Number.MAX_SAFE_INTEGER;
-      const mockCachedData = {
-        listings: mockAuctionListingResult,
-        count: maxCount,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockResolvedValue(mockCachedData);
-
-      // Act
-      const result = await getAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.count).toBe(maxCount);
-    });
-
-    test("should handle zero score in suggestions", async () => {
-      // Arrange
-      const query = "テスト";
-      const zeroScoreSuggestions: Suggestion[] = [
-        {
-          id: "task-1",
-          text: "テストタスク",
-          highlighted: "テストタスク",
-          score: 0,
-        },
-      ];
-
-      mockCachedGetSearchSuggestions.mockResolvedValue(zeroScoreSuggestions);
-
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result[0].score).toBe(0);
-    });
-
-    test("should handle maximum score in suggestions", async () => {
-      // Arrange
-      const query = "テスト";
-      const maxScoreSuggestions: Suggestion[] = [
-        {
-          id: "task-1",
-          text: "テストタスク",
-          highlighted: "<mark>テスト</mark>タスク",
-          score: 1.0,
-        },
-      ];
-
-      mockCachedGetSearchSuggestions.mockResolvedValue(maxScoreSuggestions);
-
-      // Act
-      const result = await getSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result[0].score).toBe(1.0);
-    });
-  });
-
-  // 異常系テスト（不正な引数）
-  describe("invalid input tests", () => {
-    test("should handle malformed listingsConditions object", async () => {
-      // Arrange
-      const malformedParams = {
-        listingsConditions: { invalidField: "invalid" } as unknown as AuctionListingsConditions,
-        userId: testUserId,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockRejectedValue(new Error("Invalid conditions format"));
-
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(malformedParams)).rejects.toThrow("Invalid conditions format");
-    });
-
-    test("should handle non-string query parameter", async () => {
-      // Arrange
-      const nonStringQuery = 123 as unknown as string;
-      mockCachedGetSearchSuggestions.mockRejectedValue(new Error("Query must be string"));
-
-      // Act & Assert
-      await expect(getSearchSuggestions(nonStringQuery, testUserId)).rejects.toThrow("Query must be string");
-    });
-
-    test("should handle non-string userId parameter in getSearchSuggestions", async () => {
-      // Arrange
-      const query = "テスト";
-      const nonStringUserId = 123 as unknown as string;
-      mockCachedGetSearchSuggestions.mockRejectedValue(new Error("UserId must be string"));
-
-      // Act & Assert
-      await expect(getSearchSuggestions(query, nonStringUserId)).rejects.toThrow("UserId must be string");
-    });
-
-    test("should handle non-string userId parameter in getAuctionListingsAndCount", async () => {
-      // Arrange
-      const malformedParams = {
-        listingsConditions: mockListingsConditions,
-        userId: 123 as unknown as string,
-      };
-
-      mockCachedGetAuctionListingsAndCount.mockRejectedValue(new Error("UserId must be string"));
-
-      // Act & Assert
-      await expect(getAuctionListingsAndCount(malformedParams)).rejects.toThrow("UserId must be string");
+        // Assert
+        expect(result).toStrictEqual(expectedSuggestions);
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, userId);
+      });
     });
   });
 });

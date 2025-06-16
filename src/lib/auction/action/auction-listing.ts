@@ -18,29 +18,8 @@ import { cachedGetAuctionListingsAndCount, cachedGetSearchSuggestions } from "@/
  * @returns オークション一覧と総件数
  */
 export const getAuctionListingsAndCount = cache(
-  async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
-    try {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      /**
-       * キャッシュデータを取得
-       */
-      const cachedData = await cachedGetAuctionListingsAndCount({ listingsConditions, userId });
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      /**
-       * キャッシュデータがあればそれを返す
-       */
-      if (cachedData) {
-        return cachedData;
-      } else {
-        throw new Error("オークション一覧と件数の取得中に予期せぬエラーが発生しました。");
-      }
-    } catch (error) {
-      console.error("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_error", error);
-      throw error;
-    }
+  async (params: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
+    return await cachedGetAuctionListingsAndCount(params);
   },
 );
 
@@ -53,12 +32,7 @@ export const getAuctionListingsAndCount = cache(
  * @returns オークション検索サジェスト
  */
 export const getSearchSuggestions = cache(async (query: string, userId: string): Promise<Suggestion[]> => {
-  const cachedData = await cachedGetSearchSuggestions(query, userId);
-  if (cachedData) {
-    return cachedData;
-  } else {
-    throw new Error("検索サジェストのキャッシュデータがありません");
-  }
+  return await cachedGetSearchSuggestions(query, userId);
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

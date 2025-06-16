@@ -52,12 +52,12 @@ type RawAuctionData = {
  * @returns オークション検索提案
  */
 export const cachedGetSearchSuggestions = cache(async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * クエリがない場合は空配列を返す
    */
-  if (!query || query.trim().length < 1) {
+  if (!query || query.trim().length < 1 || !userId) {
     return [];
   }
 
