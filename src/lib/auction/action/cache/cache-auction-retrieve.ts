@@ -11,10 +11,14 @@ import { type AuctionWithDetails } from "@/types/auction-types";
  */
 export async function getCachedAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
   try {
-    // オークションIDが指定されていない場合はエラーを返す
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * オークションIDが指定されていない場合はエラーを返す
+     */
     if (!auctionId) {
       console.error("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error_auctionId_not_specified");
-      return null;
+      throw new Error("オークションIDが指定されていません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -115,20 +119,26 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    if (!auctionRaw) return null;
+    if (!auctionRaw) throw new Error("オークション情報が見つかりません");
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * オークション情報を返す
+     */
     // task.status を auction.status としてマージ
     const auction: AuctionWithDetails = {
       ...auctionRaw,
       status: auctionRaw.task.status,
     };
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     return auction;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error", error);
-    return null;
+    throw new Error(`${error instanceof Error ? error.message : "不明なエラーが発生しました"}`);
   }
 }

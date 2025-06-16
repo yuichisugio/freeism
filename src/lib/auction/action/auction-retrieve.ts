@@ -15,14 +15,35 @@ import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/types/
  */
 export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<UpdateAuctionWithDetails | null> {
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * オークションIDが指定されていない場合はエラーを返す
+     */
+    if (!auctionId) throw new Error("オークションIDが指定されていません");
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * オークション情報を取得
+     */
     const updatedAuctionRaw = await prisma.auction.findUnique({
       where: { id: auctionId },
       select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
     });
-    if (!updatedAuctionRaw) return null;
-    // statusはauction.task.statusをセットし、taskは除外
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * オークション情報が見つからない場合
+     */
+    if (!updatedAuctionRaw) throw new Error("オークション情報が見つかりません");
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * オークション情報を更新
+     */
     const updatedAuction: UpdateAuctionWithDetails = {
       id: updatedAuctionRaw.id,
       currentHighestBid: updatedAuctionRaw.currentHighestBid,
@@ -42,12 +63,18 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
         };
       }),
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * オークション情報を返す
+     */
     return updatedAuction;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_error", error);
-    return null;
+    throw new Error(`${error instanceof Error ? error.message : "不明なエラーが発生しました"}`);
   }
 }
 
@@ -61,18 +88,7 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
  * @returns オークション情報
  */
 export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
-  try {
-    const auction = await getCachedAuctionByAuctionId(auctionId);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    return auction;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_error", error);
-    return null;
-  }
+  return await getCachedAuctionByAuctionId(auctionId);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
