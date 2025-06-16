@@ -197,12 +197,11 @@ export function useAuctionQA(auctionId: string, isEnd: boolean, isDisplayAfterEn
         toast.error("メッセージ本文、オークションID、ユーザーID、または受信者IDが無効です。");
         return { success: false, message: null };
       }
-      const result = await sendAuctionMessage(auctionId, messageText, recipientIds);
-      if (!result.success || !result.message) {
-        toast.error(result.error ?? "メッセージの送信に失敗しました");
-        return { success: false, message: null };
-      }
+      const result = await sendAuctionMessage(auctionId, messageText, recipientIds, currentUserId);
       return { success: true, message: result.message };
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
     onSuccess: (data) => {
       if (data?.success && data.message) {

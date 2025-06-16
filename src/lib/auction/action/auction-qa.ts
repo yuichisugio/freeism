@@ -3,7 +3,6 @@
 import { revalidateTag } from "next/cache";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { AuctionEventType, NotificationSendMethod } from "@prisma/client";
 
 import { getCachedAuctionMessageContents, getCachedAuctionSellerInfo } from "./cache/cache-auction-qa";
@@ -20,6 +19,15 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDispl
 
   try {
     /**
+     * バリデーション
+     */
+    if (!auctionId || typeof isDisplayAfterEnd !== "boolean" || !auctionEndDate?.getTime()) {
+      throw new Error("パラメータが不正です");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * キャッシュからメッセージを取得
      */
     const [messages, sellerInfo] = await Promise.all([
@@ -33,7 +41,11 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDispl
      * キャッシュからメッセージを取得できなかった場合
      */
     if (!messages.success || !sellerInfo.success) {
-      return { success: false, error: messages.error || sellerInfo.error };
+      throw new Error(messages.error && sellerInfo.error ? messages.error + sellerInfo.error : messages.error || sellerInfo.error);
+    }
+
+    if (!sellerInfo.auctionPersonInfo) {
+      throw new Error("オークションが見つかりません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -46,9 +58,11 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDispl
       messages: messages.messages,
       sellerInfo: sellerInfo.auctionPersonInfo,
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("メッセージ取得エラー:", error);
-    return { success: false, error: "メッセージの取得に失敗しました" };
+    throw new Error(`メッセージの取得に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
   }
 }
 
@@ -61,20 +75,26 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDispl
  * @param recipientIds 受信者ID（出品者または「全体」）
  * @returns 作成されたメッセージ
  */
-export async function sendAuctionMessage(auctionId: string, message: string, recipientIds: string[]) {
+export async function sendAuctionMessage(auctionId: string, message: string, recipientIds: string[], currentUserId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * メッセージのキャッシュの更新に必要。
-   */
-  revalidateTag(`auction-messages-${auctionId}`);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   try {
     /**
-     * セッション中のuserIdを取得
+     * バリデーション
      */
-    const senderUserId = await getAuthenticatedSessionUserId();
+    if (!auctionId || message === undefined || message === null || !recipientIds || !Array.isArray(recipientIds) || !currentUserId) {
+      throw new Error("パラメータが不正です");
+    }
+
+    if (message.trim() === "") {
+      throw new Error("メッセージが空です");
+    }
+
+    if (recipientIds.length === 0) {
+      throw new Error("受信者が指定されていません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * メッセージの作成
@@ -83,7 +103,7 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
       data: {
         message,
         auctionId,
-        senderId: senderUserId,
+        senderId: currentUserId,
       },
     });
 
@@ -96,7 +116,7 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
       /**
        * 送信者は通知を受け取らない
        */
-      if (recipientId === senderUserId) {
+      if (recipientId === currentUserId) {
         continue;
       }
       await sendAuctionNotification({
@@ -118,6 +138,13 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
+     * メッセージのキャッシュの更新に必要。
+     */
+    revalidateTag(`auction-messages-${auctionId}`);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * 成功
      */
     return { success: true, message: newMessage };
@@ -125,6 +152,6 @@ export async function sendAuctionMessage(auctionId: string, message: string, rec
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("メッセージ送信エラー:", error);
-    return { success: false, error: "メッセージの送信に失敗しました" };
+    throw new Error(`${error instanceof Error ? error.message : "不明なエラー"}`);
   }
 }

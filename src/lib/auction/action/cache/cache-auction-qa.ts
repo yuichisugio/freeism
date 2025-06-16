@@ -25,6 +25,10 @@ export async function getCachedAuctionMessageContents(
   cacheTag(`auction-messages-${auctionId}`);
   cacheLife("hours");
 
+  if (!auctionId || typeof isDisplayAfterEnd !== "boolean" || !auctionEndDate?.getTime()) {
+    throw new Error("パラメータが不正です");
+  }
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -105,7 +109,7 @@ export async function getCachedAuctionMessageContents(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("メッセージ取得エラー:", error);
-    return { success: false, error: "メッセージの取得に失敗しました", messages: [] };
+    return { success: false, error: `${error instanceof Error ? error.message : "不明なエラー"}`, messages: [] };
   }
 }
 
@@ -120,6 +124,10 @@ export async function getCachedAuctionSellerInfo(
   auctionId: string,
 ): Promise<{ success: boolean; error: string; auctionPersonInfo: AuctionPersonInfo | null }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  if (!auctionId) {
+    throw new Error("パラメータが不正です");
+  }
 
   try {
     /**
@@ -167,7 +175,7 @@ export async function getCachedAuctionSellerInfo(
      * オークションが見つからない場合
      */
     if (!auctionPersonInfo) {
-      return { success: false, error: "オークションが見つかりません", auctionPersonInfo: null };
+      throw new Error("オークションが見つかりません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -197,6 +205,6 @@ export async function getCachedAuctionSellerInfo(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("出品者情報取得エラー:", error);
-    return { success: false, error: "出品者情報の取得に失敗しました", auctionPersonInfo: null };
+    return { success: false, error: `${error instanceof Error ? error.message : "不明なエラー"}`, auctionPersonInfo: null };
   }
 }

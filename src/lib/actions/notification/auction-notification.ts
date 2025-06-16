@@ -49,9 +49,6 @@ type MessageData = {
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
 export async function sendAuctionNotification(params: AuctionNotificationParams): Promise<{ success: boolean; error?: string }> {
-  // Server Actions としてマーク
-  "use server";
-
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
