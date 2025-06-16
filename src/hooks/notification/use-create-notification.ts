@@ -292,11 +292,6 @@ export function useCreateNotification(): UseCreateNotificationReturn {
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-        console.log("data", data);
-        console.log("data.sendPushNotification", data.sendPushNotification);
-        console.log("data.sendEmailNotification", data.sendEmailNotification);
-        console.log("sendGeneralNotificationParams", sendGeneralNotificationParams);
-
         // サーバーアクションを直接呼び出す代わりに、APIエンドポイントを使用
         const response = await fetch("/api/notifications", {
           method: "POST",

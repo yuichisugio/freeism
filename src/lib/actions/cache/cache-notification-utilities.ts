@@ -65,7 +65,6 @@ export type RawNotificationFromDB = {
  */
 export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
   cacheTag(`Notification:${userId}`);
-  console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_start");
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -77,7 +76,6 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
     // 未読条件を追加
     const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
     const whereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
-    console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_whereClause", whereClause);
 
     // PostgreSQLのJSONB演算子を使用した効率的なクエリ
     const countResult = await prisma.$queryRaw<{ id: string }[]>`
@@ -90,7 +88,6 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 未読通知があるかどうかを返す
-    console.log("src/lib/actions/notification/cache-notification-utilities.ts_getUnreadNotificationsCount_countResult", countResult);
     return countResult.length > 0;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -235,13 +232,6 @@ export const cachedGetNotificationsAndUnreadCount = cache(
 
       // 全体の既読数を計算
       const readCount = allNotificationsTotalCount - unreadCount;
-
-      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_unreadCount", unreadCount);
-      console.log("src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_readCount", readCount);
-      console.log(
-        "src/lib/actions/notification/cache-notification-utilities.ts_cachedGetNotificationsAndUnreadCount_allNotificationsTotalCount",
-        allNotificationsTotalCount,
-      );
 
       return {
         notifications,

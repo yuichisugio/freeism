@@ -71,30 +71,22 @@ export function useAuctionBidSSE(initialAuction: AuctionWithDetails): UseAuction
    * @param {AuctionWithDetails} data
    */
   const processSSEMessage = useCallback((ev: MessageEvent<string>) => {
-    console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_start");
-
     const raw = ev.data;
-    console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_raw", raw);
 
     const jsonStart = raw.indexOf("{");
     const jsonStr = raw.substring(jsonStart);
     if (jsonStart === -1 || typeof jsonStr !== "string") {
-      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_jsonStr is not a string");
       return;
     }
 
     try {
-      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_jsonStr", jsonStr);
       const payload = JSON.parse(jsonStr) as SSEResponse;
-      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload", payload);
       if (!payload) {
-        console.warn("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data is undefined");
         return;
       }
       // 初期データと入札時のデータではdataプロパティの有無で異なる場合がある
       const auctionData = payload.data ?? (payload as AuctionWithDetails);
       setLastMsg(raw);
-      console.log("src/hooks/auction/bid/use-auction-event.ts_processSSEMessage_payload.data", auctionData);
       setAuction((prev) => {
         // 以前の bidHistories
         const prevHistories = prev.bidHistories ?? [];
@@ -144,14 +136,12 @@ export function useAuctionBidSSE(initialAuction: AuctionWithDetails): UseAuction
 
     // URL
     const url = `/api/auctions/${initialAuction.id}/sse-server-sent-events`;
-    console.log("src/hooks/auction/bid/use-auction-event.ts_connect_url", url);
 
     const es = new EventSource(url);
     eventSourceRef.current = es;
 
     // 接続確立の場合
     es.onopen = () => {
-      console.info("src/hooks/auction/bid/use-auction-event.ts_es.onopen", url);
       // 成功したら試行回数をリセット
       retryCountRef.current = 0;
       setError(null);

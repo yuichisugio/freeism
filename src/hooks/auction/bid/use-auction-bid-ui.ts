@@ -83,8 +83,6 @@ function getUsersWithRoles(auction: AuctionWithDetails): UserWithRoles[] {
  * @returns UI状態とハンドラー
  */
 export function useAuctionBidUI(auction: AuctionWithDetails) {
-  console.log("src/hooks/auction/bid/use-auction-bid-ui.ts_useAuctionBidUI_render");
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -138,11 +136,6 @@ export function useAuctionBidUI(auction: AuctionWithDetails) {
    * 実行者かどうか
    */
   const isExecutor = useMemo(() => {
-    console.log(
-      "src/hooks/auction/bid/use-auction-bid-ui.ts_isExecutor",
-      currentUserId,
-      auction.task.executors.map((executor) => executor.user?.id),
-    );
     return auction.task.executors.some((executor) => executor.user?.id === currentUserId);
   }, [auction.task.executors, currentUserId]);
 

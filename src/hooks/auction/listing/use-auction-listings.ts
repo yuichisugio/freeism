@@ -257,10 +257,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         queryKey: queryCacheKeys.auction.userAllListings(userId, { ...listingsConditions, page: nextPage }),
         queryFn: async () => await getAuctionListingsAndCount({ listingsConditions: { ...listingsConditions, page: nextPage }, userId }),
       });
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_nextPage", nextPage);
-      console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_executed");
     }
-    console.log("src/hooks/auction/listing/use-auction-listings.ts_prefetchQuery_end");
   }, [auctionListings, listingsConditions, isPlaceholderData, queryClient, isPending, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

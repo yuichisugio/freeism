@@ -189,19 +189,6 @@ async function getAllUserGroups(
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * グループ一覧の総数を取得
-   */
-  const AllUserGroupTotalCount = prismaReturnGroups.length;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * データ取得のデバッグ用
-   */
-  console.log("src/lib/actions/group.ts_AllUserGroupList", AllUserGroupList);
-  console.log("src/lib/actions/group.ts_AllUserGroupTotalCount", AllUserGroupTotalCount);
-
   return AllUserGroupList;
 }
 

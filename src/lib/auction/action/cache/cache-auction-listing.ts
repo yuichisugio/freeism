@@ -54,10 +54,6 @@ type RawAuctionData = {
 export const cachedGetSearchSuggestions = cache(async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_start", query);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * クエリがない場合は空配列を返す
    */
@@ -73,7 +69,6 @@ export const cachedGetSearchSuggestions = cache(async (query: string, userId: st
   const userGroupMemberships = await prisma.groupMembership.findMany({ where: { userId }, select: { groupId: true } });
   const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
   if (userGroupIds.length === 0) {
-    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_noUserGroupIds");
     return [];
   }
 
@@ -106,7 +101,6 @@ export const cachedGetSearchSuggestions = cache(async (query: string, userId: st
         LIMIT
           ${limit}
       `;
-    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_sql", sql);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -114,14 +108,12 @@ export const cachedGetSearchSuggestions = cache(async (query: string, userId: st
      * Rawクエリ実行
      */
     const suggestions: Suggestion[] = await prisma.$queryRaw<Suggestion[]>(sql);
-    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_suggestions", suggestions);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * コンソール
      */
-    console.log("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_success", { query, count: suggestions.length });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -146,8 +138,6 @@ export const cachedGetSearchSuggestions = cache(async (query: string, userId: st
 export const cachedGetAuctionListingsAndCount = cache(
   async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
     try {
-      console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_start", { ...listingsConditions });
-
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       // buildRawQueryComponents のロジックをここに展開
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -157,7 +147,6 @@ export const cachedGetAuctionListingsAndCount = cache(
        */
       const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, statusConditionJoinType, searchQuery } =
         listingsConditions;
-      console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_listingsConditions (integrated)", listingsConditions);
 
       /**
        * パラメータとWHERE句を初期化 (buildRawQueryComponents より)
@@ -174,13 +163,11 @@ export const cachedGetAuctionListingsAndCount = cache(
         select: { groupId: true },
       });
       const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
-      console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_userGroupIds (integrated)", userGroupIds);
 
       /**
        * ユーザーが参加しているグループがない場合 (buildRawQueryComponents より)
        */
       if (userGroupIds.length === 0) {
-        console.log("src/lib/auction/action/auction-listing.ts_getAuctionListings_noUserGroups (integrated)");
         // whereClauses を [Prisma.sql`1 = 0`] のような形で設定し、後続の処理で空の結果を返すようにする
         // この関数自体が早期リターンするため、以降の処理はスキップされる
         return { listings: [], count: 0 };
@@ -312,13 +299,8 @@ export const cachedGetAuctionListingsAndCount = cache(
         }
       }
 
-      console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_whereClauses (integrated)", whereClauses);
-      console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_ftsCondition (integrated)", ftsCondition);
-      console.log("src/lib/auction/action/cache-auction-listing.ts_buildRawQueryComponents_keywords (integrated)", keywords);
-
       // ユーザーが参加可能なグループがなく、かつ特定のグループID指定で絞り込まれた結果、表示できるオークションがない場合
       if (whereClauses.some((c) => c.sql === "1 = 0")) {
-        console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_noUserGroups_or_noMatchingGroups (integrated)");
         return { listings: [], count: 0 };
       }
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -483,7 +465,6 @@ export const cachedGetAuctionListingsAndCount = cache(
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
         ${orderByClauseForListings}
       `;
-      console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_listingsSql", listingsSql);
       const auctionsData: RawAuctionData[] = await prisma.$queryRaw(listingsSql);
       const items: AuctionListingResult = auctionsData.map<AuctionCard>((auction: RawAuctionData): AuctionCard => {
         type ExecutorJsonItem = {
@@ -564,7 +545,6 @@ export const cachedGetAuctionListingsAndCount = cache(
           score: auction.score ?? null,
         } as AuctionCard;
       });
-      console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_listings_success", items.length);
 
       // ---------------------------------------------------------------------------------
       // オークション件数取得ロジック (cachedGetAuctionCount から抜粋・調整)
@@ -587,10 +567,8 @@ export const cachedGetAuctionListingsAndCount = cache(
         ${joinClauseForCount}
         ${finalWhereClausesForCount.length > 0 ? Prisma.sql`WHERE ${Prisma.join(finalWhereClausesForCount, " AND ")}` : Prisma.empty}
       `;
-      console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_countSql", countSql);
       const countResult = await prisma.$queryRaw<{ count: bigint }[]>(countSql);
       const count = Number(countResult?.[0]?.count ?? BigInt(0));
-      console.log("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_count_success", count);
 
       return { listings: items, count };
     } catch (error) {

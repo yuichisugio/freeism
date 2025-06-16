@@ -44,10 +44,6 @@ export const AuctionPagination = memo(function AuctionPagination({
 }: AuctionPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/components/auction/listing/auction-pagination.tsx_AuctionPagination_start", { totalAuctionsCount });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * totalAuctionsCount を使って totalPages を計算
    */
@@ -89,12 +85,6 @@ export const AuctionPagination = memo(function AuctionPagination({
     setListingsConditionsAction({ ...listingsConditions, page });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // デバッグ用: totalAuctionsCount と totalPages の値をコンソールに出力
-  console.log("totalAuctionsCount:", totalAuctionsCount);
-  console.log("totalPages:", totalPages);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

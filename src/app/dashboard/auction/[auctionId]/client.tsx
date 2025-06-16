@@ -70,13 +70,8 @@ export default function AuctionDetailWrapper({ auctionId }: { auctionId: string 
    * オークションデータが存在しない場合は404エラーを返す
    */
   if (!initialAuction) {
-    console.log("src/app/dashboard/auction/[auctionId]/page.tsx_stack", new Error().stack);
     return <NoResult message="オークションが見つかりません" />;
   }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  console.log("src/app/dashboard/auction/[auctionId]/page.tsx_getAuctionByAuctionId_auctionData_success");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

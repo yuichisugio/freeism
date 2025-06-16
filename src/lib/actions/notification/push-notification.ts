@@ -42,9 +42,6 @@ type PushNotificationResult = {
  * @returns {PushNotificationResult} (success, sent, failed, totalTargets, message) 成功した場合はtrue, 失敗した場合はfalse
  */
 export async function sendPushNotification(params: NotificationParams): Promise<PushNotificationResult> {
-  // Server Actions としてマーク
-  "use server";
-
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -58,8 +55,6 @@ export async function sendPushNotification(params: NotificationParams): Promise<
         userId: true,
       },
     });
-
-    console.log("push-notification.ts_sendPushNotification_isPushNotificationEnabled", isPushNotificationEnabled);
 
     if (isPushNotificationEnabled.length === 0) {
       return { success: false, message: "プッシュ通知設定が見つかりません" };
@@ -96,10 +91,8 @@ export async function sendPushNotification(params: NotificationParams): Promise<
       },
     });
 
-    console.log("sendPushNotification_targetSubscriptions", targetSubscriptions);
-
     if (targetSubscriptions.length === 0) {
-      console.log("sendPushNotification_No valid subscriptions found for the target users.");
+      console.warn("sendPushNotification_No valid subscriptions found for the target users.");
       return { success: true, sent: 0, failed: 0, totalTargets: 0, message: "有効な購読者が見つかりませんでした" };
     }
 
@@ -111,8 +104,6 @@ export async function sendPushNotification(params: NotificationParams): Promise<
       body: params.message,
       ...(params.actionUrl && { data: { url: params.actionUrl } }), // Service Workerで扱いやすいようにdataプロパティに入れる
     });
-
-    console.log(`push-notification.ts_sendPushNotification_Payload:`, payload);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -129,10 +120,6 @@ export async function sendPushNotification(params: NotificationParams): Promise<
       }
       deviceGroups.get(subscription.deviceId)!.push(subscription);
     });
-
-    console.log(`${recipientUserIds.length}人のユーザーに通知を送信します。`);
-    console.log(`重複排除前のサブスクリプション数: ${targetSubscriptions.length}`);
-    console.log(`重複排除後のデバイス数: ${deviceGroups.size}`);
 
     const noDuplicationTargetSubscriptions: PushSubscription[] = [];
 
@@ -172,7 +159,6 @@ export async function sendPushNotification(params: NotificationParams): Promise<
         try {
           // push通知を送信
           await webPush.sendNotification(webPushSubscription, payload);
-          console.log(`sendPushNotification_Notification sent successfully to ${subscription.endpoint}, ${subscription.id}`);
           return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
@@ -181,7 +167,6 @@ export async function sendPushNotification(params: NotificationParams): Promise<
           // エラーの種類に応じて処理（購読が無効になっている場合はDBから削除）
           // 404 Not Found, 410 Gone は購読が無効と判断
           if (typedError.statusCode === 404 || typedError.statusCode === 410) {
-            console.log(`sendPushNotification_Deleting expired/invalid subscription: ${subscription.endpoint}`);
             // deleteSubscriptionを呼び出す (エラーハンドリングはdeleteSubscription内で行う)
             await deleteSubscription(subscription.endpoint).catch((delErr) => {
               console.error(`sendPushNotification_Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
@@ -213,8 +198,6 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     const successCount = fulfilledResults.filter((result) => result.value.success).length;
     const failedCount = fulfilledResults.length - successCount;
     const rejectedCount = results.filter((result) => result.status === "rejected").length;
-
-    console.log(`sendPushNotification_Push notification results: ${successCount} sent, ${failedCount} failed, ${rejectedCount} rejected.`);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -292,13 +275,11 @@ export async function saveSubscription(subscription: {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
-    console.log("push-notification.ts_saveSubscription_try_start");
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // ユーザーIDを取得
     const session = await getAuthSession();
     const userId = session?.user?.id;
-    console.log("push-notification_saveSubscription_userId", userId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -313,13 +294,10 @@ export async function saveSubscription(subscription: {
       if (recordId === null || recordId === undefined) {
         // ダミーを入れる
         subscription.recordId = dummyRecordId;
-        console.log("購読情報が見つからないため、ダミーを入れます。", subscription.recordId);
       } else {
         subscription.recordId = recordId;
       }
     }
-
-    console.log("push-notification_saveSubscription_subscription.recordId", subscription.recordId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -328,14 +306,11 @@ export async function saveSubscription(subscription: {
         ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
         : null; // nullまたはundefinedならnull
 
-    console.log("push-notification_saveSubscription_expirationTimeDate", expirationTimeDate);
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     let result: PushSubscription | undefined = undefined;
 
     if (dummyRecordId === subscription.recordId) {
-      console.log("push-notification_saveSubscription_dummyRecordId", subscription.recordId);
       result = await prisma.pushSubscription.create({
         data: {
           userId: userId,
@@ -362,8 +337,6 @@ export async function saveSubscription(subscription: {
         },
       });
     }
-
-    console.log("push-notification_saveSubscription_result");
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

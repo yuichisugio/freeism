@@ -74,7 +74,6 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
       resetMutation();
     },
     mutationFn: async (bidRequest: BidRequest) => {
-      console.log("useBidActions_placeBidMutation_入札サーバーアクション実行", bidRequest);
       if (bidAmount < minBid) {
         toast.error("入札額が最低入札額未満です");
         return {
@@ -91,8 +90,6 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
       return result;
     },
     onSuccess: (data: BidResponse) => {
-      console.log("useBidActions_placeBidMutation_入札サーバーアクション成功レスポンス", data);
-
       // 関連するキャッシュを無効化
       void queryClient.invalidateQueries({
         queryKey: queryCacheKeys.auction.detail(auctionId),
@@ -122,7 +119,7 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
       setBidAmount(bidAmount + 1);
     },
     onError: (error: Error) => {
-      console.error("useBidActions_placeBidMutation_入札サーバーアクション呼び出しエラー:", error);
+      console.error("src/hooks/auction/bid/use-bid-actions.ts_onError:", error);
       toast.error(error.message || "入札処理中にエラーが発生しました");
     },
   });

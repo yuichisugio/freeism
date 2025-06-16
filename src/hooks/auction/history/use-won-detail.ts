@@ -62,14 +62,6 @@ export function useWonDetail(auctionId: string) {
    */
   const auctionQueryEnabled = useMemo(() => {
     const enabled = sessionStatus === "authenticated" && !!userId && !!auctionId;
-    console.log("[useWonDetail] auctionQueryEnabled check:", {
-      sessionStatus,
-      userId,
-      hasUserId: !!userId,
-      auctionId,
-      hasAuctionId: !!auctionId,
-      enabled,
-    });
     return enabled;
   }, [sessionStatus, userId, auctionId]);
 
@@ -85,7 +77,6 @@ export function useWonDetail(auctionId: string) {
   } = useQuery<AuctionWonDetail, Error>({
     queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId),
     queryFn: async () => {
-      console.log("[useWonDetail] queryFn executing with:", { auctionId, userId });
       return await getAuctionWonDetail(auctionId);
     },
     enabled: auctionQueryEnabled,

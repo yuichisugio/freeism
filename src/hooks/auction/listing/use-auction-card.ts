@@ -110,8 +110,6 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
    * オークション詳細関連データをプリフェッチする関数
    */
   const prefetchAuctionDetails = useCallback(async () => {
-    console.log("src/hooks/auction/listing/use-auction-card.ts_prefetchAuctionDetails_start");
-
     // オークションIDがない場合はプリフェッチしない
     if (!auction.id) return;
 

@@ -341,8 +341,6 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
    */
   const onSubmit = useCallback(
     async (data: TaskFormValues) => {
-      console.log("フォーム送信データ:", data);
-
       try {
         // 時刻を00:00:00に設定
         const startTime =

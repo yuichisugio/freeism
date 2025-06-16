@@ -62,7 +62,7 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
   const { data: session } = useSession();
   const userId = useMemo(() => {
     if (!session?.user?.id) {
-      console.log("useAutoBid: ユーザーIDがありません", { session });
+      console.error("useAutoBid: ユーザーIDがありません", { session });
       return null;
     }
     return session.user.id;
@@ -167,7 +167,6 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
         executeAutoBid(params)
           .then((autoResult) => {
             if (autoResult?.success) {
-              console.log("自動入札処理(mutation onSuccess)を実行しました", autoResult);
               // 必要に応じて関連クエリをさらに無効化
               void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.detail(auctionId) });
             } else if (autoResult && !autoResult.success) {

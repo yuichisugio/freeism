@@ -159,7 +159,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       if (!debouncedSearchQuery?.trim() || !userId) {
         return [];
       }
-      console.log("src/hooks/auction/listing/use-auction-filters.ts_useQuery_Fetching suggestions for:", debouncedSearchQuery);
       return await getSearchSuggestions(debouncedSearchQuery, userId);
     },
     enabled: !!debouncedSearchQuery?.trim() && !!userId,
@@ -304,9 +303,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     if (!draftConditions.groupIds || draftConditions.groupIds.length === 0 || joinTypeinedGroupList.length === 0) {
       return true;
     }
-
-    console.log("use-auction-filters_draftConditions.groupIds", draftConditions.groupIds);
-    console.log("use-auction-filters_joinTypeinedGroupList", joinTypeinedGroupList);
 
     // すべてのグループIDが選択されているかチェック
     // draftConditions.groupIdsは、ユーザーが参加している全てのGroupが常に入っている
@@ -505,7 +501,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    */
   const handleSearchQueryEnter = useCallback(
     (searchQuery: string) => {
-      console.log("src/hooks/auction/listing/use-auction-filters.ts_handleSearchQueryEnter_Executing search for:", searchQuery);
       // サジェストをクリア
       setHighlightedIndex(-1);
       // 入力値も確定させる
@@ -527,7 +522,6 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    */
   const selectSuggestion = useCallback(
     (suggestionText: string) => {
-      console.log("src/hooks/auction/listing/use-auction-filters.ts_selectSuggestion_Suggestion selected:", suggestionText);
       // listingsConditions を更新して検索を実行
       handleSearchQueryEnter(suggestionText); // 検索時は1ページ目に戻る
     },
@@ -757,12 +751,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    * すべてのフィルターを適用するハンドラー
    */
   const applyAllFilters = useCallback(() => {
-    console.log("src/hooks/auction/listing/use-auction-filters.ts_applyAllFilters_start");
-    console.log("src/hooks/auction/listing/use-auction-filters.ts_applyAllFilters_draftConditions", draftConditions);
-
     // ソート情報を確認
     const sortInfo = draftConditions.sort && draftConditions.sort.length > 0 ? draftConditions.sort[0] : null;
-    console.log("src/hooks/auction/listing/use-auction-filters.ts_applyAllFilters_sortInfo", sortInfo);
 
     // 完全なコピーを作成して参照を切り替える
     const updatedConditions: AuctionListingsConditions = {
@@ -786,11 +776,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       page: draftConditions.page,
     };
 
-    console.log("src/hooks/auction/listing/use-auction-filters.ts_applyAllFilters_updatedConditions", updatedConditions);
-
     // 親コンポーネントの状態を更新
     setListingsConditionsAction(updatedConditions);
-    console.log("src/hooks/auction/listing/use-auction-filters.ts_applyAllFilters_applied");
     setShowFilters(false);
   }, [draftConditions, setListingsConditionsAction, setShowFilters]);
 

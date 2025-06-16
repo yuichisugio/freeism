@@ -20,8 +20,6 @@ export async function updateUserSettingToggle(
   isEnabled: boolean,
   column: "isEmailEnabled" | "isPushEnabled",
 ): Promise<{ success: boolean; data?: { id: string; userId: string; [column]: boolean }; error?: string }> {
-  console.log(userId, isEnabled, column);
-
   try {
     // ユーザー設定の更新
     const userSettings = await prisma.userSettings.update({

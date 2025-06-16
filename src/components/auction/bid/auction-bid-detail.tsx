@@ -35,10 +35,6 @@ import { BidHistory } from "./bid-history";
 export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/components/auction/bid/auction-bid-detail.tsx_AuctionBidDetail_render");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * useAuctionEventフックを使用してSSEからリアルタイムデータを取得
    */
@@ -74,8 +70,6 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
    * オークション詳細タブの内容
    */
   const renderDetailsTab = useCallback(() => {
-    console.log("src/components/auction/bid/auction-detail.tsx_renderDetailsTab_render");
-
     return (
       <div className="space-y-6">
         {/* 現在価格、開始価格、入札数を表示するカード */}

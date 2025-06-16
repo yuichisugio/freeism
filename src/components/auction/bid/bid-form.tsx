@@ -18,10 +18,6 @@ import { Gavel, Minus, Plus } from "lucide-react";
 export const BidForm = memo(function BidForm({ currentHighestBid, auctionId }: { currentHighestBid: number; auctionId: string }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/components/auction/bid/bid-form.tsx_BidForm_render");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   // 入札フォームのロジック（use-bid-actionsに移動済み）
   const { submitting, error, bidAmount, minBid, setBidAmount, incrementBid, decrementBid, onSubmit } = useBidActions(auctionId, currentHighestBid);
 

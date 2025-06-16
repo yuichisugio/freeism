@@ -22,13 +22,6 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ログ
-   */
-  console.log("getUserLatestBids_start_page:", page);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * ユーザーの全入札履歴を取得
    */
   const allBids = await prisma.bidHistory.findMany({
@@ -73,8 +66,6 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
     auctionEndTime: bid.auction.endTime,
   }));
 
-  console.log("getUserLatestBids_returnBidedAuctionPerPage:", returnBidedAuctionPerPage);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -111,13 +102,6 @@ export async function getUserBidHistoryCount(userId: string): Promise<number> {
  * @returns 落札したオークション履歴の配列、次のページ番号、総件数
  */
 export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: number, wonStatus?: string): Promise<WonAuctionItem[]> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ログ
-   */
-  console.log("getUserWonAuctions_start_page:", page, "wonStatus:", wonStatus);
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -178,7 +162,6 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
       },
     },
   });
-  console.log("getUserWonAuctions_wonAuctionsData:", wonAuctionsData);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -236,7 +219,6 @@ export async function getUserWonAuctionsCount(userId: string, wonStatus?: string
       },
     },
   });
-  console.log("getUserWonAuctionsCount_count:", count);
   return count;
 }
 
@@ -250,9 +232,6 @@ async function getUserCreatedAuctionsWhereCondition(
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
 ): Promise<Prisma.AuctionWhereInput> {
-  console.log("getUserCreatedAuctionsWhereCondition_start_filter:", filter);
-  console.log("getUserCreatedAuctionsWhereCondition_start_filterCondition:", filterCondition);
-
   // --- ロール条件の構築 ---
   const taskRoleConditions: Prisma.TaskWhereInput[] = [];
   if (filter.includes("creator")) taskRoleConditions.push({ creatorId: userId });
@@ -304,8 +283,6 @@ async function getUserCreatedAuctionsWhereCondition(
     if (orArr.length === 1) whereCondition = orArr[0];
     else if (orArr.length > 1) whereCondition.OR = orArr;
   }
-
-  console.dir(whereCondition, { depth: null });
 
   return whereCondition;
 }

@@ -29,7 +29,6 @@ type PaginationLinkProps = {
   React.ComponentProps<"a">;
 
 function PaginationLink({ className, isActive, size = "icon", ...props }: PaginationLinkProps) {
-  console.log("src/components/ui/Pagination.tsx_PaginationLink_start", { isActive });
   return (
     <a
       aria-current={isActive ? "page" : undefined}

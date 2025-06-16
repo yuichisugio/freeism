@@ -87,7 +87,6 @@ export const SetupForm = memo(function SetupForm() {
     refetchInterval: false,
     refetchIntervalInBackground: false,
   });
-  console.log("src/components/auth/setup-form.tsx_userSettings", userSettings);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

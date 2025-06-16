@@ -28,10 +28,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AuctionDetailPage({ params }: { params: Promise<{ auctionId: string }> }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("src/app/dashboard/auction/[auctionId]/page.tsx_AuctionDetailPage_start");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * キャッシュの有効期間を設定
    */

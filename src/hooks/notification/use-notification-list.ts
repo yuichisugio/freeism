@@ -122,7 +122,6 @@ export function useNotificationList(): NotificationManagerResult {
   } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string, string, string], number>({
     queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
     queryFn: async ({ pageParam }) => {
-      console.log(`src/hooks/notification/use-notification-list.ts_useInfiniteQuery_queryFn (page: ${pageParam})`);
       if (!userId) {
         console.warn("userId is not available for fetching notifications.");
         return { notifications: [], totalCount: 0, unreadCount: 0, readCount: 0 };
@@ -138,7 +137,6 @@ export function useNotificationList(): NotificationManagerResult {
         // auctionEventTypeはサーバー側で型アサーション済み
       }));
 
-      console.log(`[通知] Fetched page: ${pageParam}: items received = ${processedNotifications.length}`);
       return {
         notifications: processedNotifications,
         totalCount: result.totalCount,
@@ -218,14 +216,6 @@ export function useNotificationList(): NotificationManagerResult {
         readHasMore = currentLoadedReadCount < lastPageData.readCount;
         unReadHasMore = currentLoadedUnreadCount < lastPageData.unreadCount;
       }
-
-      console.log(
-        `[通知] useInfiniteQuery_select: currentLoadedReadCount: ${currentLoadedReadCount}, totalReadFromServer: ${lastPageData.readCount}`,
-      );
-      console.log(
-        `[通知] useInfiniteQuery_select: currentLoadedUnreadCount: ${currentLoadedUnreadCount}, totalUnreadFromServer: ${lastPageData.unreadCount}`,
-      );
-      console.log(`[通知] useInfiniteQuery_select: readHasMore: ${readHasMore}, unReadHasMore: ${unReadHasMore}`);
 
       return {
         pages: fetchedData.pages.map((page) => ({
@@ -327,7 +317,6 @@ export function useNotificationList(): NotificationManagerResult {
 
       updateNotificationStatus(updatesToSync)
         .then(() => {
-          console.log("[通知] アンマウント時のバッチ更新成功、キャッシュを直接更新します。", updatesToSync);
           queryClient.setQueriesData<InfiniteQueryData>({ queryKey: queryCacheKeys.Notification.userAllNotifications(userId) }, (oldData) => {
             if (!oldData?.pages) {
               // oldDataまたはoldData.pagesが存在しない場合は、何も変更せずに現在のキャッシュデータを返すか、
@@ -364,7 +353,7 @@ export function useNotificationList(): NotificationManagerResult {
           });
         })
         .catch((err) => {
-          console.error("[通知] アンマウント時のバッチ更新に失敗しました。", err);
+          console.error("アンマウント時のバッチ更新に失敗しました。", err);
         });
     };
   }, [userId, queryClient]);
@@ -373,7 +362,6 @@ export function useNotificationList(): NotificationManagerResult {
 
   /** すべて既読にする */
   const markAllAsRead = useCallback(() => {
-    console.log("[通知] すべて既読にする");
     if (!userId) return;
 
     setNotifications((prevNotifications) =>
@@ -393,7 +381,6 @@ export function useNotificationList(): NotificationManagerResult {
 
   /** フィルター変更 */
   const handleFilterChange = useCallback((filter: FilterType) => {
-    console.log(`[通知] フィルター変更: ${filter}`);
     setActiveFilter(filter);
   }, []);
 
@@ -401,7 +388,6 @@ export function useNotificationList(): NotificationManagerResult {
 
   /** オークションフィルター変更 */
   const handleAuctionFilterChange = useCallback((filter: AuctionFilterType) => {
-    console.log(`[通知] オークションフィルター変更: ${filter}`);
     setActiveAuctionFilter(filter);
   }, []);
 
@@ -409,7 +395,6 @@ export function useNotificationList(): NotificationManagerResult {
 
   /** 手動更新 */
   const handleManualRefresh = useCallback(async (): Promise<void> => {
-    console.log("[通知] 手動更新");
     await refetch();
     await queryClient.invalidateQueries({ queryKey: queryCacheKeys.Notification.hasUnreadNotifications(userId) });
   }, [refetch, queryClient, userId]);
@@ -419,12 +404,9 @@ export function useNotificationList(): NotificationManagerResult {
   /** 追加読み込み */
   const loadMoreNotifications = useCallback(async (): Promise<void> => {
     if (hasNextPage && !isFetchingNextPage) {
-      console.log(`[通知] 追加読み込み実行 for filter ${activeFilter}, auction ${activeAuctionFilter}`);
       await fetchNextPage();
-    } else {
-      console.log(`[通知] 追加読み込みスキップ: hasNextPage=${hasNextPage}, isFetchingNextPage=${isFetchingNextPage}`);
     }
-  }, [hasNextPage, isFetchingNextPage, activeFilter, activeAuctionFilter, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

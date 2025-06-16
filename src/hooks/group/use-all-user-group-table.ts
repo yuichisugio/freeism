@@ -150,10 +150,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
             itemPerPage: tableConditions.itemPerPage,
           }),
       });
-      console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_nextPage", nextPage);
-      console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_executed");
     }
-    console.log("src/hooks/group/use-all-user-group-table.ts_prefetchQuery_end");
   }, [data, tableConditions, isPlaceholderData, queryClient]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

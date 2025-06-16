@@ -118,7 +118,7 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
           form.setError("root", { message: result.error });
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         toast.error("エラーが発生しました");
       }
     },

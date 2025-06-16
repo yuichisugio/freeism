@@ -54,8 +54,6 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     },
   });
 
-  console.log("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", emailNotificationSettings);
-
   if (emailNotificationSettings.length === 0 || !emailNotificationSettings.some((u) => u.isEmailEnabled)) {
     return { success: true, message: "メール通知設定が見つかりません" };
   }
@@ -83,8 +81,6 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     //     email: true,
     //   },
     // });
-
-    // console.log("email-notification.ts_sendEmailNotification_recipientUserEmails", recipientUserEmails);
 
     // // 受信者リストの検証
     // if (!recipientUserEmails || recipientUserEmails.length === 0) {
@@ -145,8 +141,6 @@ export async function sendEmailNotification(params: NotificationParams): Promise
     //   subject: subjectEmail,
     //   react: reactEmail,
     // });
-
-    // console.log("email-notification.ts_sendEmailNotification_data", data);
 
     // if (error) {
     //   const errorMessage = `${error.name}: ${error.message}`;

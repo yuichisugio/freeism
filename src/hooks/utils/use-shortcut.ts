@@ -35,7 +35,6 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
    */
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      console.log("src/hooks/shortcut/use-shortcut.ts_handleKeyDown_start_render", event);
       // 現在フォーカスされている要素を取得
       const activeElement = document.activeElement;
       // 設定された各ショートカットについて処理を行う

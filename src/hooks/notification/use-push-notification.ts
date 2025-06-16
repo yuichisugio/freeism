@@ -317,8 +317,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
   const handleSubscriptionChange = useCallback(
     async (newSubscription: PushSubscription) => {
       try {
-        console.log("購読情報の変更を検出しました。更新します...");
-
         // 新しい購読情報をステートに設定
         dispatch({ type: "SET_SUBSCRIPTION", payload: newSubscription });
 
@@ -330,15 +328,12 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           throw new Error("有効な購読情報を整形できませんでした");
         }
 
-        console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_start");
         const result = await saveSubscription(subscriptionData);
-        console.log("use-push-notification.ts_handleSubscriptionChange_saveSubscription_end");
 
         if (!("error" in result)) {
           const updatedRecordId = await getRecordId(newSubscription.endpoint);
           dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId });
           recordIdRef.current = updatedRecordId;
-          console.log("購読情報の更新後、recordId を更新しました:", updatedRecordId);
         } else {
           console.error("購読情報のサーバー保存(更新)に失敗しました:", result.error);
         }
@@ -358,8 +353,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
   const initializeServiceWorker = useCallback(async () => {
     let messageHandler: ((event: MessageEvent) => void) | null = null;
     try {
-      console.log("initializeServiceWorker_start: Setting up listener.");
-
       // Service Worker の準備は useEffect で待つので、ここではリスナー設定のみ
       if (!navigator.serviceWorker) {
         console.error("initializeServiceWorker: navigator.serviceWorker is not available.");
@@ -372,9 +365,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       // メッセージングのためのイベントリスナーを設定
       messageHandler = (event: MessageEvent) => {
         const messageData = event.data as ServiceWorkerMessageEvent;
-        console.log("initializeServiceWorker_message_received", messageData); // 受信ログ
         if (messageData && messageData.type === "SUBSCRIPTION_CHANGED") {
-          console.log("initializeServiceWorker: SUBSCRIPTION_CHANGED message received.");
           if (messageData.newSubscription) {
             void handleSubscriptionChange(messageData.newSubscription);
           } else {
@@ -383,7 +374,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
         }
       };
       navigator.serviceWorker.addEventListener("message", messageHandler);
-      console.log("initializeServiceWorker_addEventListener_message");
     } catch (error) {
       console.error("initializeServiceWorker_error", error);
       dispatch({ type: "SET_ERROR", payload: error instanceof Error ? error : new Error(String(error)) });
@@ -393,7 +383,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     return () => {
       if (messageHandler && navigator.serviceWorker) {
         navigator.serviceWorker.removeEventListener("message", messageHandler);
-        console.log("initializeServiceWorker_removeEventListener_message");
       }
     };
   }, [handleSubscriptionChange]);
@@ -404,7 +393,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
   useEffect(() => {
     // 既に初期セットアップが完了していれば、userId 変更時のみDB同期を試みる
     if (isInitialSetupDoneRef.current && userIdRef.current && subscriptionState?.endpoint && deviceId) {
-      console.log("useEffect_re-run_for_userId_change: Attempting DB sync.");
       const syncExistingSubscription = async () => {
         try {
           let currentRecordId = recordIdRef.current; // Ref から最新の値を取得
@@ -429,7 +417,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
                 recordIdRef.current = updatedRecordId;
                 dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId });
               }
-              console.log("DB sync successful on userId change.");
             }
           }
         } catch (dbError) {
@@ -444,7 +431,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     // --- 以下は初回実行時または isInitialSetupDoneRef が false の場合のみ実行 ---
     if (isInitialSetupDoneRef.current) return; // 二重実行防止
 
-    console.log("use-push-notification.ts_usePushNotification_useEffect_start (Initial Setup)");
     dispatch({ type: "SET_IS_INITIALIZED", payload: false });
     dispatch({ type: "SET_ERROR", payload: null });
 
@@ -455,13 +441,11 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     dispatch({ type: "SET_PERMISSION", payload: initialPermission });
 
     if (!supported) {
-      console.log("Service Worker or Push API not supported.");
       dispatch({ type: "SET_IS_INITIALIZED", payload: true });
       isInitialSetupDoneRef.current = true; // ★ セットアップ完了（失敗含む）
       return;
     }
     if (initialPermission === "denied") {
-      console.log("Notification permission denied.");
       dispatch({ type: "SET_IS_INITIALIZED", payload: true });
       isInitialSetupDoneRef.current = true; // ★ セットアップ完了（失敗含む）
       return;
@@ -471,8 +455,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
 
     const init = async () => {
       try {
-        console.log("useEffect_init_start (Initial Setup)");
-
         // --- 1 & 2: デバイスID取得とService Worker準備 (並列実行) ---
         const [deviceIdResult, registrationResult] = await Promise.allSettled([getDeviceId(), navigator.serviceWorker.ready]);
 
@@ -482,7 +464,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           throw new Error("Failed to get deviceId");
         }
         const currentDeviceId = deviceIdResult.value;
-        console.log("useEffect_init_deviceId_fulfilled", currentDeviceId);
 
         if (registrationResult.status === "rejected") {
           console.error("Failed to get service worker registration:", registrationResult.reason);
@@ -490,11 +471,9 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
         }
         const registration = registrationResult.value;
         if (!registration) throw new Error("Service worker registration is null after check");
-        console.log("useEffect_init_serviceWorkerReady_fulfilled", registration);
 
         // --- 3: 既存の購読情報取得 ---
         const existingSubscription = await registration.pushManager.getSubscription();
-        console.log("useEffect_init_existingSubscription", existingSubscription?.endpoint);
 
         // --- 4 & 5: レコードID取得とDB同期 (userId があれば) ---
         let currentRecordId: string | null = null;
@@ -523,7 +502,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
 
         // --- 6: Service Worker リスナー初期化 ---
         cleanupListener = await initializeServiceWorker();
-        console.log("useEffect_init_initializeServiceWorker_done");
 
         // --- 7: ★★★ 状態を一括更新 ★★★ ---
         dispatch({
@@ -540,7 +518,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
         // Ref を state に合わせて更新
         deviceIdRef.current = currentDeviceId;
         recordIdRef.current = currentRecordId;
-        console.log("useEffect_init_dispatch_SET_INITIAL_DATA_complete");
 
         isInitialSetupDoneRef.current = true; // ★ 初期セットアップ完了
       } catch (initError) {
@@ -560,7 +537,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
         });
         isInitialSetupDoneRef.current = true; // ★ セットアップ完了（失敗含む）
       } finally {
-        console.log("useEffect_init_finished");
       }
     };
 
@@ -570,7 +546,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
 
     // クリーンアップ処理
     return () => {
-      console.log("use-push-notification.ts_usePushNotification_useEffect_cleanup");
       if (cleanupListener) {
         cleanupListener(); // Service Workerのリスナー等を解除
       }
@@ -586,7 +561,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
    * @returns {PushSubscription | null} 購読情報
    */
   const subscribe = useCallback(async () => {
-    console.log("subscribe_called", { isSupported, permissionState }); // 呼び出し時の状態ログ
     // ガード条件: サポート状況、初期化完了、サービスワーカー登録
     if (!isSupported) {
       dispatch({ type: "SET_ERROR", payload: new Error("Service WorkerまたはPush APIがサポートしていません。") });
@@ -617,13 +591,11 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       // 既存の購読を再確認 (最新の状態を取得)
       let sub = await registrationState.pushManager.getSubscription();
       if (sub) {
-        console.log("subscribe: Existing subscription found (no action needed).", sub.endpoint);
         return sub;
       }
 
       // 通知の許可を要求 (granted でなければ)
       if (currentPermission !== "granted") {
-        console.log("subscribe: Requesting notification permission...");
         if (typeof Notification === "undefined") {
           dispatch({ type: "SET_ERROR", payload: new Error("このブラウザでは通知機能がサポートされていません。") });
           return null;
@@ -636,7 +608,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           dispatch({ type: "SET_ERROR", payload: new Error("通知の許可が得られませんでした。") });
           return null;
         }
-        console.log("subscribe: Notification permission granted.");
       }
 
       // VAPID 公開鍵を取得
@@ -647,16 +618,13 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
       // プッシュサービスに購読
-      console.log("subscribe: Subscribing to push manager...");
       sub = await registrationState.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey,
       });
-      console.log("subscribe: Subscribed successfully:", sub.endpoint);
       dispatch({ type: "SET_SUBSCRIPTION", payload: sub });
 
       // ★★★ DBへの保存は useEffect で行うため、ここでは削除 ★★★
-      console.log("subscribe: Subscription successful. DB sync will be handled by useEffect.");
 
       return sub; // 新しく取得した購読情報を返す
     } catch (err) {
@@ -668,7 +636,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     }
     // isSupported, registrationState はガード条件として必要
     // permissionState は内部で Notification.permission を見るので依存不要かもしれないが、変更トリガーとして入れておく
-  }, [isSupported, registrationState, permissionState]);
+  }, [isSupported, registrationState]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -676,7 +644,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
    * 通知の購読を解除
    */
   const unsubscribe = useCallback(async () => {
-    console.log("unsubscribe_called");
     if (!registrationState) {
       console.warn("unsubscribe: No service worker registration found.");
       dispatch({ type: "SET_SUBSCRIPTION", payload: null }); // 登録がないなら購読もないはず
@@ -688,27 +655,20 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       const sub = await registrationState.pushManager.getSubscription();
 
       if (!sub) {
-        console.log("unsubscribe: No active subscription found to unsubscribe.");
         dispatch({ type: "SET_SUBSCRIPTION", payload: null }); // 購読がないことを state に反映
         return true;
       }
-      console.log("unsubscribe: Found subscription to unsubscribe:", sub.endpoint);
 
       // サーバーから購読情報を削除 (endpoint をキーに)
-      console.log("unsubscribe: Deleting subscription from DB...");
       await deleteSubscription(sub.endpoint);
-      console.log("unsubscribe: DB deletion attempted (errors ignored for now)."); // deleteSubscription のエラーハンドリングは要検討
 
       // プッシュサービスから購読を解除
-      console.log("unsubscribe: Unsubscribing from push service...");
       const result = await sub.unsubscribe();
-      console.log("unsubscribe: Push service unsubscribe result:", result);
 
       if (result) {
         dispatch({ type: "SET_SUBSCRIPTION", payload: null }); // 購読解除成功 -> state を null に
         dispatch({ type: "SET_RECORD_ID", payload: null }); // recordId も null に
         recordIdRef.current = null;
-        console.log("通知の購読を解除しました");
       } else {
         console.warn("unsubscribe: Failed to unsubscribe from push service.");
         // 解除失敗した場合でも、サーバーからは削除試行済み。state はどうするか？一旦そのままにするか？
@@ -862,12 +822,10 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     if (isInitialized && initialIsPushEnabled === true) {
       // 権限が拒否されている場合
       if (permissionState === "denied") {
-        console.log("権限が拒否されているため、DBを自動的にOFFに更新します");
         void syncPermissionToDatabase("denied");
       }
       // 権限がリセット（default）されていて、購読がない場合
       else if (permissionState === "default" && !subscriptionState) {
-        console.log("権限がリセットされているため、DBを自動的にOFFに更新します");
         void syncPermissionToDatabase("reset");
       }
     }
@@ -887,7 +845,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       if (initialIsPushEnabled === true) {
         // 権限が拒否されている場合
         if (currentPermission === "denied") {
-          console.log("フォーカス時に権限拒否を検出、DBを自動的にOFFに更新します");
           void syncPermissionToDatabase("denied");
         }
         // 権限がリセット（default）されている場合、購読状態を再確認してDB同期
@@ -899,7 +856,6 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
               try {
                 const currentSubscription = await registrationState.pushManager.getSubscription();
                 if (!currentSubscription) {
-                  console.log("フォーカス時に権限リセットを検出、DBを自動的にOFFに更新します");
                   void syncPermissionToDatabase("reset");
                 }
               } catch (error) {

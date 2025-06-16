@@ -173,7 +173,6 @@ export async function getCachedUserReviews(searchParams: ReviewSearchParams | nu
     const totalCount = await prisma.auctionReview.count({
       where: whereCondition,
     });
-    console.log("src/lib/actions/review-search/cache-review-search.ts_getCachedUserReviews_totalCount", totalCount);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -563,7 +562,6 @@ export async function getCachedMyReviews(searchParams: ReviewSearchParams | null
     const totalCount = await prisma.auctionReview.count({
       where: whereCondition,
     });
-    console.log("src/lib/actions/review-search/cache-review-search.ts_getCachedMyReviews_totalCount", totalCount);
 
     const reviewData: ReviewData[] = reviews.map((review) => ({
       id: review.id,
@@ -613,13 +611,6 @@ export async function getCachedMyReviews(searchParams: ReviewSearchParams | null
  */
 export async function getCachedAllReviews(searchParams: ReviewSearchParams | null): Promise<ReviewSearchResult> {
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * デバッグログ
-     */
-    console.log("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_searchParams", searchParams);
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
@@ -693,8 +684,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
       ];
     }
 
-    console.log("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_whereCondition", JSON.stringify(whereCondition, null, 2));
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
@@ -758,8 +747,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
       take: limit, // 取得する件数
     });
 
-    console.log("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_reviews_length", reviews.length);
-
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
@@ -768,7 +755,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
     const totalCount = await prisma.auctionReview.count({
       where: whereCondition,
     });
-    console.log("src/lib/actions/review-search/cache-review-search.ts_getCachedAllReviews_totalCount", totalCount);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

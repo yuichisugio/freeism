@@ -31,9 +31,6 @@ import { toast } from "sonner";
  * DataTableコンポーネントの内部関数
  */
 function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  console.log("src/components/share/share-table.tsx_start");
-
   /**
    * コンポーネントの引数
    */

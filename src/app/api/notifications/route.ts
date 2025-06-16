@@ -21,12 +21,11 @@ export async function POST(request: Request) {
 
     // 通知の作成
     const result = await sendGeneralNotification(data);
-    console.log("src/app/api/notifications/route.ts_POST_result", result);
 
     // 結果を返す
     return NextResponse.json(result);
   } catch (error) {
-    console.error("通知作成エラー:", error);
+    console.error("src/app/api/notifications/route.ts_POST_error:", error);
     return NextResponse.json({ success: false, error: "通知の作成中にエラーが発生しました" }, { status: 500 });
   }
 }

@@ -65,15 +65,6 @@ export function useCreatedDetail(auctionId: string) {
    */
   const auctionQueryEnabled = useMemo(() => {
     const enabled = sessionStatus === "authenticated" && !!userId && !!auctionId;
-    // デバッグログを追加して、各値と最終的なenabled状態を確認
-    console.log("[useCreatedDetail] auctionQueryEnabled check:", {
-      sessionStatus,
-      userId,
-      hasUserId: !!userId, // userIdが空文字列でないか
-      auctionId,
-      hasAuctionId: !!auctionId, // auctionIdが空文字列でないか
-      enabled, // 最終的な有効状態
-    });
     return enabled;
   }, [sessionStatus, userId, auctionId]);
 
@@ -89,8 +80,6 @@ export function useCreatedDetail(auctionId: string) {
   } = useQuery<AuctionHistoryCreatedDetail | null>({
     queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
     queryFn: async () => {
-      // queryFnが実行される直前にもログを追加
-      console.log("[useCreatedDetail] queryFn executing with:", { auctionId, userId });
       return await getAuctionHistoryCreatedDetail(auctionId);
     },
     enabled: auctionQueryEnabled,
@@ -142,7 +131,6 @@ export function useCreatedDetail(auctionId: string) {
     error: updateDeliveryMethodError,
   } = useMutation({
     mutationFn: (newDeliveryMethod: string) => {
-      console.log("[useCreatedDetail] handleUpdateDeliveryMethod", newDeliveryMethod);
       return updateDeliveryMethod(auction?.task.id ?? "", newDeliveryMethod, userId);
     },
     onSuccess: (_, newDeliveryMethod) => {

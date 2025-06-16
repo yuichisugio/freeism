@@ -72,7 +72,6 @@ export function useNotificationButton(): NotificationButtonReturn {
    */
   const queryClient = useQueryClient();
   useEffect(() => {
-    console.log(`[通知] useNotificationButton_useEffect_prefetchNotifications_start`);
     void queryClient.prefetchQuery({
       queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
       queryFn: async () => {
@@ -85,7 +84,6 @@ export function useNotificationButton(): NotificationButtonReturn {
           expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
         }));
 
-        console.log(`[通知] Fetched page: ${1}: items received = ${processedNotifications.length}`);
         const pageData: QueryFnReturnType = {
           notifications: processedNotifications,
           totalCount: result.totalCount,

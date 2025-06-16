@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 
 // エッジ環境で実行
 export const runtime = "edge";
-console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_runtime", process.env.NEXT_RUNTIME);
 
 // エンコーダーとデコーダー
 const encoder = new TextEncoder();
@@ -18,7 +17,6 @@ const encoder = new TextEncoder();
 async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
   const url = `${process.env.UPSTASH_REDIS_REST_URL}/subscribe/${encodeURIComponent(channel)}`;
   let attempt = 0;
-  console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_url", url);
 
   while (true) {
     try {
@@ -30,7 +28,6 @@ async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
         },
         next: { revalidate: 0 },
       });
-      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch", res.status, new Date().toISOString());
 
       if (!res.ok || !res.body) {
         console.warn("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_error", res.status, res.statusText);
@@ -45,7 +42,6 @@ async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
       while (true) {
         const { value, done } = await reader.read();
         if (done) {
-          console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_reader_done");
           break; // ストリームが終了したら内側のループを抜ける
         }
         if (!value) continue;
@@ -73,10 +69,8 @@ const createInitDataTransform = (auctionId: string) => {
         headers: { "x-internal-secret": process.env.FREEISM_APP_API_SECRET_KEY ?? "" },
         cache: "no-cache",
       });
-      console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createInitDataTransform_fetch");
       if (res.ok) {
         const data = await res.text();
-        console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_createInitDataTransform_enqueue", data);
         ctrl.enqueue(encoder.encode(`data: ${data}\n\n`));
       }
     },
@@ -96,7 +90,6 @@ const createInitDataTransform = (auctionId: string) => {
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ auctionId: string }> }) {
   const { auctionId } = await params;
-  console.log("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_GET_auctionId", auctionId);
   if (!auctionId) {
     return new Response(JSON.stringify({ error: "オークションIDが必要です" }), { status: 400 });
   }

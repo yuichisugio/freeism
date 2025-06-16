@@ -17,11 +17,6 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ログ
-    console.log("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_start");
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     const updatedAuctionRaw = await prisma.auction.findUnique({
       where: { id: auctionId },
       select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
@@ -47,7 +42,6 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
         };
       }),
     };
-    console.log("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_updatedAuction", updatedAuction);
     return updatedAuction;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -68,16 +62,7 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
  */
 export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
   try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // ログ
-    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_start");
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     const auction = await getCachedAuctionByAuctionId(auctionId);
-
-    console.log("src/lib/auction/action/auction-retrieve.ts_getAuctionByAuctionId_auction_success", auction);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

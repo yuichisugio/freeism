@@ -20,15 +20,12 @@ import { cachedGetAuctionListingsAndCount, cachedGetSearchSuggestions } from "@/
 export const getAuctionListingsAndCount = cache(
   async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
     try {
-      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_start");
-
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * キャッシュデータを取得
        */
       const cachedData = await cachedGetAuctionListingsAndCount({ listingsConditions, userId });
-      console.log("src/lib/auction/action/auction-listing.ts_getAuctionListingsAndCount_cachedData", cachedData);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

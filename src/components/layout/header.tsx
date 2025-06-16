@@ -23,13 +23,6 @@ export async function Header({ buttonDisplay = true }: { buttonDisplay: boolean 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * ログ出力
-   */
-  console.log("src/components/layout/header.tsx_Header_start");
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return (
     <header
       id="app-header"
