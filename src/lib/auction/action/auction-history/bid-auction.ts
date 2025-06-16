@@ -13,7 +13,20 @@ export async function getUserBidHistoriesWithCount(
   userId: string,
   itemPerPage: number,
 ): Promise<{ data: BidHistoryItem[]; count: number }> {
-  // データと件数を同時取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
+  if (!userId || !itemPerPage || !page) {
+    throw new Error("userId, itemPerPage, and page are required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データと件数を同時取得
+   */
   const [allBids, count] = await Promise.all([
     prisma.bidHistory.findMany({
       skip: (page - 1) * itemPerPage,
@@ -49,6 +62,20 @@ export async function getUserBidHistoriesWithCount(
       .then((distinctBids) => distinctBids.length),
   ]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データがない場合は空配列を返却
+   */
+  if (allBids.length === 0 || count === 0) {
+    return { data: [], count: 0 };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
   const returnBidedAuctionPerPage: BidHistoryItem[] = allBids.map((bid) => ({
     auctionId: bid.auctionId,
     bidStatus: bid.status,
@@ -60,5 +87,10 @@ export async function getUserBidHistoriesWithCount(
     auctionEndTime: bid.auction.endTime,
   }));
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
   return { data: returnBidedAuctionPerPage, count };
 }

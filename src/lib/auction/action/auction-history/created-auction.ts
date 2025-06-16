@@ -15,18 +15,40 @@ export async function getUserCreatedAuctionsWhereCondition(
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
 ): Promise<Prisma.AuctionWhereInput> {
-  // --- ロール条件の構築 ---
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
+  if (!userId || !filter || !filterCondition) {
+    throw new Error("userId, filter, and filterCondition are required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ロール条件の構築
+   */
   const taskRoleConditions: Prisma.TaskWhereInput[] = [];
   if (filter.includes("creator")) taskRoleConditions.push({ creatorId: userId });
   if (filter.includes("executor")) taskRoleConditions.push({ executors: { some: { userId: userId } } });
   if (filter.includes("reporter")) taskRoleConditions.push({ reporters: { some: { userId: userId } } });
-  // ロール条件が空なら全ロール対象
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ロール条件が空なら全ロール対象
+   */
   const roleCondition: Prisma.AuctionWhereInput | null =
     taskRoleConditions.length > 0
       ? { task: filterCondition === "and" ? { AND: taskRoleConditions } : { OR: taskRoleConditions } }
       : { task: { OR: [{ creatorId: userId }, { executors: { some: { userId: userId } } }, { reporters: { some: { userId: userId } } }] } };
 
-  // --- ステータス条件の構築 ---
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ステータス条件の構築
+   */
   const statusFilters: TaskStatus[] = [];
   if (filter.includes("active")) statusFilters.push(TaskStatus.AUCTION_ACTIVE);
   if (filter.includes("ended")) {
@@ -37,7 +59,11 @@ export async function getUserCreatedAuctionsWhereCondition(
     statusFilters.push(TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED);
   }
 
-  // ステータス条件
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ステータス条件
+   */
   const statusCondition: Prisma.AuctionWhereInput | null =
     statusFilters.length > 0
       ? {
@@ -49,7 +75,11 @@ export async function getUserCreatedAuctionsWhereCondition(
         }
       : null;
 
-  // --- AND/ORの組み立て ---
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * AND/ORの組み立て
+   */
   let whereCondition: Prisma.AuctionWhereInput = {};
   if (filterCondition === "and") {
     // AND検索: 両方条件があればANDでつなぐ
@@ -67,6 +97,11 @@ export async function getUserCreatedAuctionsWhereCondition(
     else if (orArr.length > 1) whereCondition.OR = orArr;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 条件を返却
+   */
   return whereCondition;
 }
 
@@ -82,10 +117,27 @@ export async function getUserCreatedAuctionsWithCount(
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
 ): Promise<{ data: CreatedAuctionItem[]; count: number }> {
-  // 条件を1回だけ作成
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
+  if (!userId || !itemPerPage || !page || !filter || !filterCondition) {
+    throw new Error("userId, itemPerPage, page, filter, and filterCondition are required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 条件を1回だけ作成
+   */
   const whereCondition = await getUserCreatedAuctionsWhereCondition(userId, filter, filterCondition);
 
-  // データと件数を同時取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データと件数を同時取得
+   */
   const [createdAuctionsData, count] = await Promise.all([
     prisma.auction.findMany({
       where: whereCondition,
@@ -113,6 +165,15 @@ export async function getUserCreatedAuctionsWithCount(
     }),
     prisma.auction.count({ where: whereCondition }),
   ]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データがない場合は空配列を返却
+   */
+  if (createdAuctionsData.length === 0 || count === 0) {
+    return { data: [], count: 0 };
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -145,5 +206,10 @@ export async function getUserCreatedAuctionsWithCount(
     };
   });
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
   return { data: returnCreatedAuctions, count };
 }

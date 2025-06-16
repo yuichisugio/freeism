@@ -15,7 +15,20 @@ export async function getUserWonAuctionsWithCount(
   itemPerPage: number,
   wonStatus?: string,
 ): Promise<{ data: WonAuctionItem[]; count: number }> {
-  // wonStatusに応じたstatus配列
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
+  if (!userId || !itemPerPage || !page) {
+    throw new Error("userId, itemPerPage, and page are required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * wonStatusに応じたstatus配列
+   */
   let statusIn: TaskStatus[] = [
     TaskStatus.AUCTION_ENDED,
     TaskStatus.SUPPLIER_DONE,
@@ -30,7 +43,11 @@ export async function getUserWonAuctionsWithCount(
     statusIn = [TaskStatus.PENDING, TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED, TaskStatus.SUPPLIER_DONE];
   }
 
-  // データと件数を同時取得
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データと件数を同時取得
+   */
   const [wonAuctionsData, count] = await Promise.all([
     prisma.auction.findMany({
       where: {
@@ -70,6 +87,11 @@ export async function getUserWonAuctionsWithCount(
     }),
   ]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
   const returnWonAuctions: WonAuctionItem[] = wonAuctionsData.map((auction) => ({
     auctionId: auction.id,
     currentHighestBid: auction.currentHighestBid,
@@ -82,5 +104,10 @@ export async function getUserWonAuctionsWithCount(
     rating: auction.reviews.length > 0 ? auction.reviews.reduce((acc, review) => acc + review.rating, 0) / auction.reviews.length : null,
   }));
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
   return { data: returnWonAuctions, count };
 }
