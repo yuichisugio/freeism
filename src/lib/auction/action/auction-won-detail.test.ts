@@ -1,709 +1,464 @@
-import type { Prisma } from "@prisma/client";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
-// 既存のPrismaモックセットアップを使用
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-// テストユーティリティのインポート
 import { auctionFactory, auctionReviewFactory, taskFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-// テスト対象の関数をインポート（モック設定後）
 import { getAuctionWonDetail } from "./auction-won-detail";
 
-// getAuthenticatedSessionUserIdのモック
-vi.mock("@/lib/utils", () => ({
-  getAuthenticatedSessionUserId: vi.fn(),
-  __esModule: true,
-}));
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// モック関数の型アサーション
-const mockGetAuthenticatedSessionUserId = getAuthenticatedSessionUserId as ReturnType<typeof vi.fn>;
-
-// Prismaクエリの戻り値の型定義
-type MockAuctionData = {
-  id: string;
-  endTime: Date;
-  startTime: Date;
-  currentHighestBid: number;
-  winnerId: string | null;
-  reviews: Array<{
-    id: string;
-    reviewerId: string;
-    rating: number;
-    comment: string | null;
-  }>;
-  task: {
-    id: string;
-    task: string;
-    detail: string | null;
-    status: TaskStatus;
-    imageUrl: string | null;
-    creatorId: string;
-    deliveryMethod: string | null;
-    creator: {
-      id: string;
-      image: string | null;
-      settings: {
-        username: string;
-      } | null;
-    } | null;
-    reporters: Array<{
-      user: {
-        id: string;
-        image: string | null;
-        settings: {
-          username: string;
-        } | null;
-      } | null;
-    }>;
-    executors: Array<{
-      user: {
-        id: string;
-        image: string | null;
-        settings: {
-          username: string;
-        } | null;
-      } | null;
-    }>;
-  };
-};
-
-// 各テスト前にモックをリセット
+/**
+ * 各テスト前にモックをリセット
+ */
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetAuthenticatedSessionUserId.mockReset();
 });
 
-// テストデータの定義
-const testAuctionId = "test-auction-id";
-const testUserId = "test-user-id";
-const testTaskId = "test-task-id";
-const testCreatorId = "test-creator-id";
-const testReporterId = "test-reporter-id";
-const testExecutorId = "test-executor-id";
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-const mockTask = taskFactory.build({
-  id: testTaskId,
+/**
+ * テストデータの定義（定数）
+ */
+const TEST_IDS = {
+  auctionId: "test-auction-id",
+  userId: "test-user-id",
+  taskId: "test-task-id",
+  creatorId: "test-creator-id",
+  reporterId: "test-reporter-id",
+  executorId: "test-executor-id",
+} as const;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ファクトリーを使用したベースモックデータ
+ */
+const baseMockTask = taskFactory.build({
+  id: TEST_IDS.taskId,
   task: "テストタスク",
   detail: "テストタスクの詳細",
   status: TaskStatus.TASK_COMPLETED,
   imageUrl: "https://example.com/image.jpg",
-  creatorId: testCreatorId,
+  creatorId: TEST_IDS.creatorId,
   deliveryMethod: "オンライン",
 });
 
-const mockAuctionReview = auctionReviewFactory.build({
-  auctionId: testAuctionId,
-  reviewerId: testUserId,
-  revieweeId: testCreatorId,
-  rating: 5,
-  comment: "素晴らしい取引でした",
-});
-
-const mockAuction = auctionFactory.build({
-  id: testAuctionId,
-  taskId: testTaskId,
+const baseMockAuction = auctionFactory.build({
+  id: TEST_IDS.auctionId,
+  taskId: TEST_IDS.taskId,
   currentHighestBid: 500,
-  winnerId: testUserId,
+  winnerId: TEST_IDS.userId,
   startTime: new Date("2024-01-01T10:00:00Z"),
   endTime: new Date("2024-01-02T10:00:00Z"),
 });
 
-describe("auction-won-detail", () => {
-  describe("getAuctionWonDetail", () => {
-    test("should return auction won detail successfully", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
+const baseMockReview = auctionReviewFactory.build({
+  auctionId: TEST_IDS.auctionId,
+  reviewerId: TEST_IDS.userId,
+  revieweeId: TEST_IDS.creatorId,
+  rating: 5,
+  comment: "素晴らしい取引でした",
+});
 
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: mockAuction.currentHighestBid,
-        winnerId: mockAuction.winnerId,
-        reviews: [mockAuctionReview],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: mockTask.detail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ヘルパー関数：基本的なオークションデータを作成
+ */
+const createBaseMockAuctionData = (overrides: Record<string, unknown> = {}) => ({
+  id: baseMockAuction.id,
+  endTime: baseMockAuction.endTime,
+  startTime: baseMockAuction.startTime,
+  currentHighestBid: baseMockAuction.currentHighestBid,
+  winnerId: baseMockAuction.winnerId,
+  reviews: [baseMockReview],
+  task: {
+    id: baseMockTask.id,
+    task: baseMockTask.task,
+    detail: baseMockTask.detail,
+    status: baseMockTask.status,
+    imageUrl: baseMockTask.imageUrl,
+    creatorId: baseMockTask.creatorId,
+    deliveryMethod: baseMockTask.deliveryMethod,
+    creator: {
+      id: TEST_IDS.creatorId,
+      image: "https://example.com/creator.jpg",
+      settings: {
+        username: "テストユーザー",
+      },
+    },
+    reporters: [
+      {
+        user: {
+          id: TEST_IDS.reporterId,
+          image: "https://example.com/reporter.jpg",
+          settings: {
+            username: "レポーター",
+          },
+        },
+      },
+    ],
+    executors: [
+      {
+        user: {
+          id: TEST_IDS.executorId,
+          image: "https://example.com/executor.jpg",
+          settings: {
+            username: "実行者",
+          },
+        },
+      },
+    ],
+    ...overrides,
+  },
+});
+
+/**
+ * ヘルパー関数：Prismaクエリのアサーション用オブジェクト
+ */
+const getExpectedPrismaQuery = (auctionId: string, userId: string) => ({
+  where: {
+    id: auctionId,
+    winnerId: userId,
+  },
+  select: {
+    id: true,
+    endTime: true,
+    startTime: true,
+    currentHighestBid: true,
+    winnerId: true,
+    reviews: {
+      where: {
+        OR: [{ reviewerId: userId }, { revieweeId: userId }],
+      },
+      select: {
+        id: true,
+        reviewerId: true,
+        rating: true,
+        comment: true,
+      },
+    },
+    task: {
+      select: {
+        id: true,
+        task: true,
+        detail: true,
+        status: true,
+        imageUrl: true,
+        creatorId: true,
+        deliveryMethod: true,
+        creator: {
+          select: {
+            id: true,
+            image: true,
             settings: {
-              username: "テストユーザー",
+              select: {
+                username: true,
+              },
             },
           },
-          reporters: [
-            {
-              user: {
-                id: testReporterId,
-                image: "https://example.com/reporter.jpg",
-                settings: {
-                  username: "レポーター",
-                },
-              },
-            },
-          ],
-          executors: [
-            {
-              user: {
-                id: testExecutorId,
-                image: "https://example.com/executor.jpg",
-                settings: {
-                  username: "実行者",
-                },
-              },
-            },
-          ],
         },
-      };
+        reporters: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                image: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        executors: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                image: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+});
 
+/**
+ * ヘルパー関数：期待される結果オブジェクトを作成
+ */
+const createExpectedResult = (overrides: Record<string, unknown> = {}) => ({
+  auctionId: TEST_IDS.auctionId,
+  auctionEndTime: baseMockAuction.endTime,
+  auctionStartTime: baseMockAuction.startTime,
+  currentHighestBid: 500,
+  winnerId: TEST_IDS.userId,
+  reviews: [baseMockReview],
+  taskId: TEST_IDS.taskId,
+  taskName: "テストタスク",
+  taskDetail: "テストタスクの詳細",
+  taskStatus: TaskStatus.TASK_COMPLETED,
+  taskDeliveryMethod: "オンライン",
+  taskImageUrl: "https://example.com/image.jpg",
+  creator: {
+    creatorUserId: TEST_IDS.creatorId,
+    creatorAppUserName: "テストユーザー",
+    creatorUserImage: "https://example.com/creator.jpg",
+  },
+  reporters: [
+    {
+      reporterUserId: TEST_IDS.reporterId,
+      reporterAppUserName: "レポーター",
+      reporterUserImage: "https://example.com/reporter.jpg",
+    },
+  ],
+  executors: [
+    {
+      executorUserId: TEST_IDS.executorId,
+      executorAppUserName: "実行者",
+      executorUserImage: "https://example.com/executor.jpg",
+    },
+  ],
+  ...overrides,
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+describe("auction-won-detail_getAuctionWonDetail", () => {
+  describe("正常系", () => {
+    test("should return auction won detail successfully", async () => {
+      // Arrange
+      const mockAuctionData = createBaseMockAuctionData();
       prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
 
       // Act
-      const result = await getAuctionWonDetail(testAuctionId);
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
       expect(result).toStrictEqual({
-        auctionId: testAuctionId,
-        auctionEndTime: mockAuction.endTime,
-        auctionStartTime: mockAuction.startTime,
-        currentHighestBid: 500,
-        winnerId: testUserId,
-        reviews: [mockAuctionReview],
-        taskId: testTaskId,
-        taskName: "テストタスク",
-        taskDetail: "テストタスクの詳細",
-        taskStatus: TaskStatus.TASK_COMPLETED,
-        taskDeliveryMethod: "オンライン",
-        taskImageUrl: "https://example.com/image.jpg",
-        creator: {
-          creatorUserId: testCreatorId,
-          creatorAppUserName: "テストユーザー",
-          creatorUserImage: "https://example.com/creator.jpg",
-        },
-        reporters: [
-          {
-            reporterUserId: testReporterId,
-            reporterAppUserName: "レポーター",
-            reporterUserImage: "https://example.com/reporter.jpg",
-          },
-        ],
-        executors: [
-          {
-            executorUserId: testExecutorId,
-            executorAppUserName: "実行者",
-            executorUserImage: "https://example.com/executor.jpg",
-          },
-        ],
+        success: true,
+        message: "落札したオークションの詳細を取得しました",
+        auctionWonDetail: createExpectedResult(),
       });
-
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: testAuctionId,
-          winnerId: testUserId,
-        },
-        select: {
-          id: true,
-          endTime: true,
-          startTime: true,
-          currentHighestBid: true,
-          winnerId: true,
-          reviews: {
-            where: {
-              OR: [{ reviewerId: testUserId }, { revieweeId: testUserId }],
-            },
-            select: {
-              id: true,
-              reviewerId: true,
-              rating: true,
-              comment: true,
-            },
-          },
-          task: {
-            select: {
-              id: true,
-              task: true,
-              detail: true,
-              status: true,
-              imageUrl: true,
-              creatorId: true,
-              deliveryMethod: true,
-              creator: {
-                select: {
-                  id: true,
-                  image: true,
-                  settings: {
-                    select: {
-                      username: true,
-                    },
-                  },
-                },
-              },
-              reporters: {
-                select: {
-                  user: {
-                    select: {
-                      id: true,
-                      image: true,
-                      settings: {
-                        select: {
-                          username: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              executors: {
-                select: {
-                  user: {
-                    select: {
-                      id: true,
-                      image: true,
-                      settings: {
-                        select: {
-                          username: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
+      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId));
     });
 
     test("should handle missing creator settings with default values", async () => {
       // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: mockAuction.currentHighestBid,
-        winnerId: mockAuction.winnerId,
-        reviews: [],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: mockTask.detail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: null,
-            settings: null, // settingsがnull
-          },
-          reporters: [],
-          executors: [],
+      const mockAuctionData = createBaseMockAuctionData({
+        creator: {
+          id: TEST_IDS.creatorId,
+          image: null,
+          settings: null,
         },
-      };
-
+        reporters: [],
+        executors: [],
+      });
       prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
 
       // Act
-      const result = await getAuctionWonDetail(testAuctionId);
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.creator).toStrictEqual({
-        creatorUserId: testCreatorId,
+      expect(result.auctionWonDetail?.creator).toStrictEqual({
+        creatorUserId: TEST_IDS.creatorId,
         creatorAppUserName: "未設定",
         creatorUserImage: null,
       });
-      expect(result.reporters).toStrictEqual([]);
-      expect(result.executors).toStrictEqual([]);
+      expect(result.auctionWonDetail?.reporters).toStrictEqual([]);
+      expect(result.auctionWonDetail?.executors).toStrictEqual([]);
     });
 
     test("should handle missing reporter and executor user data with default values", async () => {
       // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: mockAuction.currentHighestBid,
-        winnerId: mockAuction.winnerId,
-        reviews: [],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: mockTask.detail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
-            settings: {
-              username: "テストユーザー",
+      const mockAuctionData = createBaseMockAuctionData({
+        reporters: [{ user: null }],
+        executors: [
+          {
+            user: {
+              id: TEST_IDS.executorId,
+              image: null,
+              settings: null,
             },
           },
-          reporters: [
-            {
-              user: null, // userがnull
-            },
-          ],
-          executors: [
-            {
-              user: {
-                id: testExecutorId,
-                image: null,
-                settings: null, // settingsがnull
-              },
-            },
-          ],
-        },
-      };
-
+        ],
+      });
       prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
 
       // Act
-      const result = await getAuctionWonDetail(testAuctionId);
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.reporters).toStrictEqual([
+      expect(result.auctionWonDetail?.reporters).toStrictEqual([
         {
-          reporterUserId: "未設定",
+          reporterUserId: "未登録ユーザー",
           reporterAppUserName: "未設定",
           reporterUserImage: null,
         },
       ]);
-      expect(result.executors).toStrictEqual([
+      expect(result.auctionWonDetail?.executors).toStrictEqual([
         {
-          executorUserId: testExecutorId,
+          executorUserId: TEST_IDS.executorId,
           executorAppUserName: "未設定",
           executorUserImage: null,
         },
       ]);
     });
 
-    test("should throw error when auction is not found", async () => {
+    test("should handle missing reporter and executor user data with default values(null)", async () => {
       // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(getAuctionWonDetail(testAuctionId)).rejects.toThrow("落札したオークションが見つかりません");
-
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: testAuctionId,
-          winnerId: testUserId,
-        },
-        select: expect.any(Object) as unknown as Prisma.AuctionSelect,
+      const mockAuctionData = createBaseMockAuctionData({
+        reporters: [{ user: null }],
+        executors: [{ user: null }],
       });
-    });
-
-    test("should throw error when user is not authenticated", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証が必要です"));
-
-      // Act & Assert
-      await expect(getAuctionWonDetail(testAuctionId)).rejects.toThrow("認証が必要です");
-
-      expect(prismaMock.auction.findUnique).not.toHaveBeenCalled();
-    });
-
-    test("should handle database error", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auction.findUnique.mockRejectedValue(new Error("Database connection error"));
-
-      // Act & Assert
-      await expect(getAuctionWonDetail(testAuctionId)).rejects.toThrow("Database connection error");
-    });
-
-    test("should handle empty auctionId", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(getAuctionWonDetail("")).rejects.toThrow("落札したオークションが見つかりません");
-
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: "",
-          winnerId: testUserId,
-        },
-        select: expect.any(Object) as unknown as Prisma.AuctionSelect,
-      });
-    });
-
-    test("should handle null values in task data", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: mockAuction.currentHighestBid,
-        winnerId: mockAuction.winnerId,
-        reviews: [],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: null, // detailがnull
-          status: mockTask.status,
-          imageUrl: null, // imageUrlがnull
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
-            settings: {
-              username: "テストユーザー",
-            },
-          },
-          reporters: [],
-          executors: [],
-        },
-      };
-
       prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
 
       // Act
-      const result = await getAuctionWonDetail(testAuctionId);
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.taskDetail).toBe(null);
-      expect(result.taskImageUrl).toBe(null);
+      expect(result.auctionWonDetail?.reporters).toStrictEqual([
+        {
+          reporterUserId: "未登録ユーザー",
+          reporterAppUserName: "未設定",
+          reporterUserImage: null,
+        },
+      ]);
+      expect(result.auctionWonDetail?.executors).toStrictEqual([
+        {
+          executorUserId: "未登録ユーザー",
+          executorAppUserName: "未設定",
+          executorUserImage: null,
+        },
+      ]);
     });
 
     test("should handle multiple reviews", async () => {
       // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
       const mockReview1 = auctionReviewFactory.build({
-        auctionId: testAuctionId,
-        reviewerId: testUserId,
-        revieweeId: testCreatorId,
+        auctionId: TEST_IDS.auctionId,
+        reviewerId: TEST_IDS.userId,
+        revieweeId: TEST_IDS.creatorId,
         rating: 5,
         comment: "素晴らしい取引でした",
       });
-
       const mockReview2 = auctionReviewFactory.build({
-        auctionId: testAuctionId,
-        reviewerId: testCreatorId,
-        revieweeId: testUserId,
+        auctionId: TEST_IDS.auctionId,
+        reviewerId: TEST_IDS.creatorId,
+        revieweeId: TEST_IDS.userId,
         rating: 4,
         comment: "良い落札者でした",
       });
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: mockAuction.currentHighestBid,
-        winnerId: mockAuction.winnerId,
-        reviews: [mockReview1, mockReview2],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: mockTask.detail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
-            settings: {
-              username: "テストユーザー",
-            },
-          },
-          reporters: [],
-          executors: [],
-        },
-      };
-
+      const mockAuctionData = createBaseMockAuctionData();
+      mockAuctionData.reviews = [mockReview1, mockReview2];
       prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
 
       // Act
-      const result = await getAuctionWonDetail(testAuctionId);
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.reviews).toHaveLength(2);
-      expect(result.reviews).toStrictEqual([mockReview1, mockReview2]);
+      expect(result.auctionWonDetail?.reviews).toHaveLength(2);
+      expect(result.auctionWonDetail?.reviews).toStrictEqual([mockReview1, mockReview2]);
     });
 
-    test("should handle zero bid amount", async () => {
+    test("should handle null values in task data", async () => {
       // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: 0, // 0円の入札
-        winnerId: mockAuction.winnerId,
-        reviews: [],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: mockTask.detail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
-            settings: {
-              username: "テストユーザー",
-            },
-          },
-          reporters: [],
-          executors: [],
-        },
-      };
-
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-      // Act
-      const result = await getAuctionWonDetail(testAuctionId);
-
-      // Assert
-      expect(result.currentHighestBid).toBe(0);
-    });
-  });
-
-  // 境界値テスト
-  describe("boundary value tests", () => {
-    test("should handle very large bid amount", async () => {
-      // Arrange
-      const largeBidAmount = 999999999;
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: largeBidAmount,
-        winnerId: mockAuction.winnerId,
-        reviews: [],
-        task: {
-          id: mockTask.id,
-          task: mockTask.task,
-          detail: mockTask.detail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
-            settings: {
-              username: "テストユーザー",
-            },
-          },
-          reporters: [],
-          executors: [],
-        },
-      };
-
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-      // Act
-      const result = await getAuctionWonDetail(testAuctionId);
-
-      // Assert
-      expect(result.currentHighestBid).toBe(largeBidAmount);
-    });
-
-    test("should handle very long task name and detail", async () => {
-      // Arrange
-      const longTaskName = "a".repeat(1000);
-      const longTaskDetail = "b".repeat(5000);
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-
-      const mockAuctionData: MockAuctionData = {
-        id: mockAuction.id,
-        endTime: mockAuction.endTime,
-        startTime: mockAuction.startTime,
-        currentHighestBid: mockAuction.currentHighestBid,
-        winnerId: mockAuction.winnerId,
-        reviews: [],
-        task: {
-          id: mockTask.id,
-          task: longTaskName,
-          detail: longTaskDetail,
-          status: mockTask.status,
-          imageUrl: mockTask.imageUrl,
-          creatorId: mockTask.creatorId,
-          deliveryMethod: mockTask.deliveryMethod,
-          creator: {
-            id: testCreatorId,
-            image: "https://example.com/creator.jpg",
-            settings: {
-              username: "テストユーザー",
-            },
-          },
-          reporters: [],
-          executors: [],
-        },
-      };
-
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-
-      // Act
-      const result = await getAuctionWonDetail(testAuctionId);
-
-      // Assert
-      expect(result.taskName).toBe(longTaskName);
-      expect(result.taskDetail).toBe(longTaskDetail);
-    });
-  });
-
-  // 異常系テスト（不正な引数）
-  describe("invalid input tests", () => {
-    test("should handle undefined auctionId", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(getAuctionWonDetail(undefined as unknown as string)).rejects.toThrow("落札したオークションが見つかりません");
-    });
-
-    test("should handle null auctionId", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(getAuctionWonDetail(null as unknown as string)).rejects.toThrow("落札したオークションが見つかりません");
-    });
-
-    test("should handle invalid auctionId format", async () => {
-      // Arrange
-      const invalidAuctionId = "invalid-auction-id-format-!@#$%";
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(getAuctionWonDetail(invalidAuctionId)).rejects.toThrow("落札したオークションが見つかりません");
-
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: invalidAuctionId,
-          winnerId: testUserId,
-        },
-        select: expect.any(Object) as unknown as object,
+      const mockAuctionData = createBaseMockAuctionData({
+        detail: null,
+        imageUrl: null,
       });
+      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+
+      // Act
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
+
+      // Assert
+      expect(result.auctionWonDetail?.taskDetail).toBe(null);
+      expect(result.auctionWonDetail?.taskImageUrl).toBe(null);
+    });
+
+    test("should return success when auction is not found", async () => {
+      // Arrange
+      prismaMock.auction.findUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "落札したオークションが見つかりません",
+        auctionWonDetail: null,
+      });
+      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId));
+    });
+  });
+
+  describe("異常系", () => {
+    test.each([
+      ["", TEST_IDS.userId],
+      [TEST_IDS.auctionId, ""],
+    ])("should return error when parameters are invalid", async (auctionId, userId) => {
+      // Act
+      const result = await getAuctionWonDetail(auctionId, userId);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: false,
+        message: "オークションIDまたはユーザーIDが無効です",
+        auctionWonDetail: null,
+      });
+    });
+
+    test("should handle database error", async () => {
+      // Arrange
+      prismaMock.auction.findUnique.mockRejectedValue(new Error("Database connection error"));
+
+      // Act
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: false,
+        message: "Database connection error",
+        auctionWonDetail: null,
+      });
+    });
+
+    test("should handle database error(null)", async () => {
+      // Arrange
+      prismaMock.auction.findUnique.mockRejectedValue(null);
+
+      // Act
+      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: false,
+        message: "不明なエラーが発生しました",
+        auctionWonDetail: null,
+      });
+    });
+
+    test("should handle empty auctionId", async () => {
+      // Act
+      const result = await getAuctionWonDetail("", TEST_IDS.userId);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: false,
+        message: "オークションIDまたはユーザーIDが無効です",
+        auctionWonDetail: null,
+      });
+      // 空のauctionIdの場合、バリデーションでエラーになるためPrismaは呼ばれない
+      expect(prismaMock.auction.findUnique).not.toHaveBeenCalled();
     });
   });
 });
