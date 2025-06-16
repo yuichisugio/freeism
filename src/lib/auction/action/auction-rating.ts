@@ -53,13 +53,19 @@ export async function createAuctionReview(
     throw new Error("レビューポジションは必須です");
   }
 
+  // if (!rating)は0を偽値として扱うため、評価0が無効になるので、nullやundefinedを明示的に指定してチェックする
+  if (rating === null || rating === undefined) {
+    throw new Error("評価は必須です");
+  }
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 評価が0から5の間であることを確認する
+   * 評価が0から5の間の「整数」であることを確認する
+   * Number.isInteger(rating)は、ratingが整数であるかどうかを確認する関数
    */
-  if (rating < 0 || rating > 5) {
-    throw new Error("評価は0から5の間で指定してください");
+  if (rating < 0 || 5 < rating || !Number.isInteger(rating)) {
+    throw new Error("評価は0から5の間の整数で指定してください");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -54,9 +54,6 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
    */
   const { mutate: createAuctionReviewMutation, isPending: isSubmittingReview } = useMutation({
     mutationFn: async (params: { rating: number; comment: string }) => {
-      if (!user.auctionId || !user.userId) {
-        throw new Error("オークションIDまたはユーザーIDが無効です。");
-      }
       return createAuctionReview(user.auctionId, user.userId, params.rating, params.comment, reviewPosition);
     },
     onSuccess: () => {
@@ -68,8 +65,8 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       setHasReviewed(true);
     },
     onError: (error: Error) => {
-      console.error("評価の送信に失敗しました", error);
-      toast.error("評価の送信に失敗しました: " + error.message);
+      console.error("評価の送信に失敗しました：", error.message);
+      toast.error("評価の送信に失敗しました");
     },
   });
 
@@ -87,12 +84,8 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       toast.error("評価を選択してください");
       return;
     }
-    if (!user.auctionId || !user.userId) {
-      toast.error("オークション情報または作成者情報が不足しています。");
-      return;
-    }
     createAuctionReviewMutation({ rating, comment });
-  }, [user.auctionId, user.userId, comment, rating, createAuctionReviewMutation]);
+  }, [user.userId, comment, rating, createAuctionReviewMutation]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
