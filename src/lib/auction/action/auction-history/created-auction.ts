@@ -10,7 +10,7 @@ import { TaskStatus } from "@prisma/client";
 /**
  * 出品したオークション履歴の条件を設定
  */
-async function getUserCreatedAuctionsWhereCondition(
+export async function getUserCreatedAuctionsWhereCondition(
   userId: string,
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
@@ -146,41 +146,4 @@ export async function getUserCreatedAuctionsWithCount(
   });
 
   return { data: returnCreatedAuctions, count };
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 出品履歴の件数を取得
- * @param userId ユーザーID
- * @param filter フィルター
- * @returns 出品履歴の件数
- */
-export async function getUserCreatedAuctionsCount(
-  userId: string,
-  filter: AuctionCreatedTabFilter[],
-  filterCondition: FilterCondition,
-): Promise<number> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 条件を設定
-   */
-  const whereCondition = await getUserCreatedAuctionsWhereCondition(userId, filter, filterCondition);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品履歴の件数を取得
-   */
-  const count = await prisma.auction.count({
-    where: whereCondition,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 件数を返却
-   */
-  return count;
 }

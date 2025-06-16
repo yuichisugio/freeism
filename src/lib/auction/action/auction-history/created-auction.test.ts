@@ -3,141 +3,24 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { getUserCreatedAuctionsCount, getUserCreatedAuctionsWithCount } from "./created-auction";
+import { getUserCreatedAuctionsWithCount } from "./created-auction";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-describe("auction-history", () => {
-  const testUserId = "test-user-id";
-  const testPage = 1;
-  const testItemPerPage = 10;
+const testUserId = "test-user-id";
+const testPage = 1;
+const testItemPerPage = 10;
 
-  beforeEach(() => {
-    // コンソールログをモック化（テスト出力をクリーンに保つ）
-    vi.spyOn(console, "log").mockImplementation(() => {
-      // テスト中のコンソール出力を抑制
-    });
+beforeEach(() => {
+  // コンソールログをモック化（テスト出力をクリーンに保つ）
+  vi.spyOn(console, "log").mockImplementation(() => {
+    // テスト中のコンソール出力を抑制
   });
+});
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("getUserCreatedAuctionsCount", () => {
-    test("should return correct count of created auctions", async () => {
-      // Arrange
-      prismaMock.auction.count.mockResolvedValue(7);
-
-      // Act
-      const result = await getUserCreatedAuctionsCount(testUserId, [], "and");
-
-      // Assert
-      expect(result).toBe(7);
-      expect(prismaMock.auction.count).toHaveBeenCalledWith({
-        where: {
-          task: {
-            OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
-          },
-        },
-      });
-    });
-
-    test("should handle filter conditions correctly", async () => {
-      // Arrange
-      prismaMock.auction.count.mockResolvedValue(3);
-      const filters: AuctionCreatedTabFilter[] = ["creator", "active"];
-
-      // Act
-      await getUserCreatedAuctionsCount(testUserId, filters, "or");
-
-      // Assert
-      expect(prismaMock.auction.count).toHaveBeenCalledWith({
-        where: {
-          OR: [
-            {
-              task: {
-                OR: [{ creatorId: testUserId }],
-              },
-            },
-            {
-              task: {
-                status: {
-                  in: [TaskStatus.AUCTION_ACTIVE],
-                },
-              },
-            },
-          ],
-        },
-      });
-    });
-
-    test("should handle multiple filter conditions with AND logic", async () => {
-      // Arrange
-      prismaMock.auction.count.mockResolvedValue(2);
-      const filters: AuctionCreatedTabFilter[] = ["creator", "executor", "pending", "supplier_done"];
-
-      // Act
-      await getUserCreatedAuctionsCount(testUserId, filters, "and");
-
-      // Assert
-      expect(prismaMock.auction.count).toHaveBeenCalledTimes(1);
-      const callArgs = prismaMock.auction.count.mock.calls[0]?.[0];
-      expect(callArgs).toBeDefined();
-
-      if (callArgs?.where && "AND" in callArgs.where) {
-        const andConditions = callArgs.where.AND as Array<Record<string, unknown>>;
-        expect(andConditions).toHaveLength(2);
-      }
-    });
-
-    test("should handle single role filter condition", async () => {
-      // Arrange
-      prismaMock.auction.count.mockResolvedValue(1);
-      const filters: AuctionCreatedTabFilter[] = ["executor"];
-
-      // Act
-      await getUserCreatedAuctionsCount(testUserId, filters, "and");
-
-      // Assert
-      expect(prismaMock.auction.count).toHaveBeenCalledWith({
-        where: {
-          task: {
-            AND: [{ executors: { some: { userId: testUserId } } }],
-          },
-        },
-      });
-    });
-
-    test("should handle single status filter condition", async () => {
-      // Arrange
-      prismaMock.auction.count.mockResolvedValue(1);
-      const filters: AuctionCreatedTabFilter[] = ["pending"];
-
-      // Act
-      await getUserCreatedAuctionsCount(testUserId, filters, "and");
-
-      // Assert
-      expect(prismaMock.auction.count).toHaveBeenCalledWith({
-        where: {
-          AND: [
-            {
-              task: {
-                OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
-              },
-            },
-            {
-              task: {
-                status: {
-                  in: [TaskStatus.PENDING],
-                },
-              },
-            },
-          ],
-        },
-      });
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+describe("created-auction", () => {
   describe("getUserCreatedAuctionsWithCount", () => {
     test("should return created auctions with count successfully", async () => {
       // Arrange
