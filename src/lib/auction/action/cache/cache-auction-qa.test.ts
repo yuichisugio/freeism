@@ -2,925 +2,557 @@ import type { AuctionMessage, AuctionPersonInfo } from "@/hooks/auction/bid/use-
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-// テスト対象の関数をインポート
 import { getCachedAuctionMessageContents, getCachedAuctionSellerInfo } from "./cache-auction-qa";
 
-// Next.jsのキャッシュ機能をモック
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * Next.jsのキャッシュ機能をモック
+ */
 vi.mock("next/cache", () => ({
   unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 
-// 各テスト前にモックをリセット
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 各テスト前にモックをリセット
+ */
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// テストデータの定義
-const testAuctionId = "test-auction-id";
-const testUserId = "test-user-id";
-const testMessageId = "test-message-id";
-const testCreatorId = "test-creator-id";
-const testReporterId = "test-reporter-id";
-const testExecutorId = "test-executor-id";
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 共通のテストデータ
-const testAuctionEndDate = new Date("2024-12-31T23:59:59Z");
+const VALID_AUCTION_ID = "test-auction-id";
+const VALID_USER_ID = "test-user-id";
+const VALID_MESSAGE_ID = "test-message-id";
+const VALID_CREATOR_ID = "test-creator-id";
+const VALID_REPORTER_ID = "test-reporter-id";
+const VALID_EXECUTOR_ID = "test-executor-id";
+const VALID_AUCTION_END_DATE = new Date("2024-12-31T23:59:59Z");
 
-// Prismaクエリ結果のモックデータ
-const mockPrismaMessage = {
-  id: testMessageId,
+// テスト用モックデータの型定義
+type MockPrismaMessage = {
+  id: string;
+  message: string;
+  createdAt: Date;
+  sender: {
+    id: string;
+    image: string;
+    settings: {
+      username?: string;
+    } | null;
+  };
+};
+
+// テスト用モックデータファクトリー
+const createMockPrismaMessage = (overrides: Partial<MockPrismaMessage> = {}): MockPrismaMessage => ({
+  id: VALID_MESSAGE_ID,
   message: "テストメッセージ",
   createdAt: new Date("2024-01-01T12:00:00Z"),
   sender: {
-    id: testUserId,
+    id: VALID_USER_ID,
     image: "https://example.com/user.jpg",
     settings: {
       username: "テストユーザー名",
     },
   },
-};
+  ...overrides,
+});
 
-const mockFormattedMessage: AuctionMessage = {
-  messageId: testMessageId,
+const createMockFormattedMessage = (overrides: Partial<AuctionMessage> = {}): AuctionMessage => ({
+  messageId: VALID_MESSAGE_ID,
   messageContent: "テストメッセージ",
   createdAt: new Date("2024-01-01T12:00:00Z"),
   person: {
     sender: {
-      id: testUserId,
+      id: VALID_USER_ID,
       appUserName: "テストユーザー名",
       image: "https://example.com/user.jpg",
     },
   },
-};
+  ...overrides,
+});
 
-// Prismaクエリ結果のモックオークション情報
-const mockPrismaAuctionInfo = {
+const createMockPrismaAuctionInfo = (overrides = {}) => ({
   task: {
-    creatorId: testCreatorId,
+    creatorId: VALID_CREATOR_ID,
     creator: {
-      id: testCreatorId,
+      id: VALID_CREATOR_ID,
     },
     reporters: [
       {
         user: {
-          id: testReporterId,
+          id: VALID_REPORTER_ID,
         },
       },
     ],
     executors: [
       {
         user: {
-          id: testExecutorId,
+          id: VALID_EXECUTOR_ID,
         },
       },
     ],
   },
-};
+  ...overrides,
+});
 
-const mockFormattedAuctionPersonInfo: AuctionPersonInfo = {
+const createMockFormattedAuctionPersonInfo = (): AuctionPersonInfo => ({
   creator: {
-    id: testCreatorId,
+    id: VALID_CREATOR_ID,
   },
   reporters: [
     {
-      id: testReporterId,
+      id: VALID_REPORTER_ID,
     },
   ],
   executors: [
     {
-      id: testExecutorId,
+      id: VALID_EXECUTOR_ID,
     },
   ],
-};
+});
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 基本のモックデータ
+ */
+const mockPrismaMessage = createMockPrismaMessage();
+const mockFormattedMessage = createMockFormattedMessage();
+const mockPrismaAuctionInfo = createMockPrismaAuctionInfo();
+const mockFormattedAuctionPersonInfo = createMockFormattedAuctionPersonInfo();
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テスト
+ */
 describe("cache-auction-qa", () => {
   describe("getCachedAuctionMessageContents", () => {
-    test("should return messages successfully when isDisplayAfterEnd is false", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      prismaMock.auctionMessage.findMany.mockResolvedValue([mockPrismaMessage] as unknown as Awaited<
-        ReturnType<typeof prismaMock.auctionMessage.findMany>
-      >);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [mockFormattedMessage],
-        error: "",
+    describe("異常系", () => {
+      describe("パラメータ検証", () => {
+        test.each([
+          {
+            description: "auctionId が空文字列の場合",
+            auctionId: "",
+            isDisplayAfterEnd: false,
+            auctionEndDate: VALID_AUCTION_END_DATE,
+          },
+          {
+            description: "auctionId が null の場合",
+            auctionId: null as unknown as string,
+            isDisplayAfterEnd: false,
+            auctionEndDate: VALID_AUCTION_END_DATE,
+          },
+          {
+            description: "auctionId が undefined の場合",
+            auctionId: undefined as unknown as string,
+            isDisplayAfterEnd: false,
+            auctionEndDate: VALID_AUCTION_END_DATE,
+          },
+          {
+            description: "isDisplayAfterEnd が boolean でない場合",
+            auctionId: VALID_AUCTION_ID,
+            isDisplayAfterEnd: "true" as unknown as boolean,
+            auctionEndDate: VALID_AUCTION_END_DATE,
+          },
+          {
+            description: "auctionEndDate が無効な日付の場合",
+            auctionId: VALID_AUCTION_ID,
+            isDisplayAfterEnd: false,
+            auctionEndDate: new Date("invalid-date"),
+          },
+          {
+            description: "auctionEndDate が null の場合",
+            auctionId: VALID_AUCTION_ID,
+            isDisplayAfterEnd: false,
+            auctionEndDate: null as unknown as Date,
+          },
+        ])("should throw error when $description", async ({ auctionId, isDisplayAfterEnd, auctionEndDate }) => {
+          // Act & Assert
+          await expect(getCachedAuctionMessageContents(auctionId, isDisplayAfterEnd, auctionEndDate)).rejects.toThrow("パラメータが不正です");
+        });
       });
 
-      expect(prismaMock.auctionMessage.findMany).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          createdAt: { lte: new Date(testAuctionEndDate) },
+      describe("データベースエラー", () => {
+        test("should propagate database error", async () => {
+          // Arrange
+          const mockError = new Error("Database connection error");
+          prismaMock.auctionMessage.findMany.mockRejectedValue(mockError);
+
+          // Act & Assert
+          await expect(getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE)).rejects.toThrow(mockError);
+        });
+      });
+    });
+
+    describe("正常系", () => {
+      test.each([
+        {
+          description: "isDisplayAfterEnd が false の場合",
+          isDisplayAfterEnd: false,
+          expectedCondition: { lte: new Date(VALID_AUCTION_END_DATE) },
         },
-        select: {
-          id: true,
-          message: true,
-          createdAt: true,
-          sender: {
-            select: {
-              settings: {
-                select: {
-                  username: true,
+        {
+          description: "isDisplayAfterEnd が true の場合",
+          isDisplayAfterEnd: true,
+          expectedCondition: { gte: new Date(VALID_AUCTION_END_DATE) },
+        },
+      ])("should return messages successfully when $description", async ({ isDisplayAfterEnd, expectedCondition }) => {
+        // Arrange
+        prismaMock.auctionMessage.findMany.mockResolvedValue([mockPrismaMessage] as unknown as Awaited<
+          ReturnType<typeof prismaMock.auctionMessage.findMany>
+        >);
+
+        // Act
+        const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, isDisplayAfterEnd, VALID_AUCTION_END_DATE);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          messages: [mockFormattedMessage],
+          error: "",
+        });
+
+        expect(prismaMock.auctionMessage.findMany).toHaveBeenCalledWith({
+          where: {
+            auctionId: VALID_AUCTION_ID,
+            createdAt: expectedCondition,
+          },
+          select: {
+            id: true,
+            message: true,
+            createdAt: true,
+            sender: {
+              select: {
+                settings: {
+                  select: {
+                    username: true,
+                  },
                 },
+                id: true,
+                image: true,
               },
-              id: true,
-              image: true,
             },
           },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-    });
-
-    test("should return messages successfully when isDisplayAfterEnd is true", async () => {
-      // Arrange
-      const isDisplayAfterEnd = true;
-      prismaMock.auctionMessage.findMany.mockResolvedValue([mockPrismaMessage] as unknown as Awaited<
-        ReturnType<typeof prismaMock.auctionMessage.findMany>
-      >);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [mockFormattedMessage],
-        error: "",
+          orderBy: {
+            createdAt: "asc",
+          },
+        });
       });
 
-      expect(prismaMock.auctionMessage.findMany).toHaveBeenCalledWith({
-        where: {
-          auctionId: testAuctionId,
-          createdAt: { gte: new Date(testAuctionEndDate) },
+      test("should handle empty messages array", async () => {
+        // Arrange
+        prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
+
+        // Act
+        const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          messages: [],
+          error: "",
+        });
+      });
+
+      test("should handle multiple messages", async () => {
+        // Arrange
+        const mockMessage2 = createMockPrismaMessage({
+          id: "message-2",
+          message: "テストメッセージ2",
+          createdAt: new Date("2024-01-02T12:00:00Z"),
+        });
+
+        const mockFormattedMessage2 = createMockFormattedMessage({
+          messageId: "message-2",
+          messageContent: "テストメッセージ2",
+          createdAt: new Date("2024-01-02T12:00:00Z"),
+        });
+
+        prismaMock.auctionMessage.findMany.mockResolvedValue([mockPrismaMessage, mockMessage2] as unknown as Awaited<
+          ReturnType<typeof prismaMock.auctionMessage.findMany>
+        >);
+
+        // Act
+        const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          messages: [mockFormattedMessage, mockFormattedMessage2],
+          error: "",
+        });
+      });
+
+      test.each([
+        {
+          description: "settings が null の場合",
+          senderSettings: null,
+          expectedUsername: "未設定",
         },
-        select: {
-          id: true,
-          message: true,
-          createdAt: true,
+        {
+          description: "username が undefined の場合",
+          senderSettings: { username: undefined },
+          expectedUsername: "未設定",
+        },
+      ])("should handle message with $description", async ({ senderSettings, expectedUsername }) => {
+        // Arrange
+        const mockMessageWithNullUsername = createMockPrismaMessage({
           sender: {
-            select: {
-              settings: {
-                select: {
-                  username: true,
-                },
-              },
-              id: true,
-              image: true,
+            ...mockPrismaMessage.sender,
+            settings: senderSettings,
+          },
+        });
+
+        const mockFormattedMessageWithDefaultUsername = createMockFormattedMessage({
+          person: {
+            sender: {
+              id: VALID_USER_ID,
+              appUserName: expectedUsername,
+              image: "https://example.com/user.jpg",
             },
           },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-    });
+        });
 
-    test("should handle empty messages array", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
+        prismaMock.auctionMessage.findMany.mockResolvedValue([mockMessageWithNullUsername] as unknown as Awaited<
+          ReturnType<typeof prismaMock.auctionMessage.findMany>
+        >);
 
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
+        // Act
+        const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE);
 
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [],
-        error: "",
-      });
-    });
-
-    test("should handle null messages result", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      prismaMock.auctionMessage.findMany.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージが見つかりません",
-        messages: [],
-      });
-    });
-
-    test("should handle multiple messages", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      const mockMessage2 = {
-        ...mockPrismaMessage,
-        id: "message-2",
-        message: "テストメッセージ2",
-        createdAt: new Date("2024-01-02T12:00:00Z"),
-      };
-
-      const mockFormattedMessage2: AuctionMessage = {
-        messageId: "message-2",
-        messageContent: "テストメッセージ2",
-        createdAt: new Date("2024-01-02T12:00:00Z"),
-        person: {
-          sender: {
-            id: testUserId,
-            appUserName: "テストユーザー名",
-            image: "https://example.com/user.jpg",
-          },
-        },
-      };
-
-      prismaMock.auctionMessage.findMany.mockResolvedValue([mockPrismaMessage, mockMessage2] as unknown as Awaited<
-        ReturnType<typeof prismaMock.auctionMessage.findMany>
-      >);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [mockFormattedMessage, mockFormattedMessage2],
-        error: "",
-      });
-    });
-
-    test("should handle message with null username", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      const mockMessageWithNullUsername = {
-        ...mockPrismaMessage,
-        sender: {
-          ...mockPrismaMessage.sender,
-          settings: null,
-        },
-      };
-
-      const mockFormattedMessageWithDefaultUsername: AuctionMessage = {
-        messageId: testMessageId,
-        messageContent: "テストメッセージ",
-        createdAt: new Date("2024-01-01T12:00:00Z"),
-        person: {
-          sender: {
-            id: testUserId,
-            appUserName: "未設定",
-            image: "https://example.com/user.jpg",
-          },
-        },
-      };
-
-      prismaMock.auctionMessage.findMany.mockResolvedValue([mockMessageWithNullUsername] as unknown as Awaited<
-        ReturnType<typeof prismaMock.auctionMessage.findMany>
-      >);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [mockFormattedMessageWithDefaultUsername],
-        error: "",
-      });
-    });
-
-    test("should handle message with undefined username", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      const mockMessageWithUndefinedUsername = {
-        ...mockPrismaMessage,
-        sender: {
-          ...mockPrismaMessage.sender,
-          settings: {
-            username: undefined,
-          },
-        },
-      };
-
-      const mockFormattedMessageWithDefaultUsername: AuctionMessage = {
-        messageId: testMessageId,
-        messageContent: "テストメッセージ",
-        createdAt: new Date("2024-01-01T12:00:00Z"),
-        person: {
-          sender: {
-            id: testUserId,
-            appUserName: "未設定",
-            image: "https://example.com/user.jpg",
-          },
-        },
-      };
-
-      prismaMock.auctionMessage.findMany.mockResolvedValue([mockMessageWithUndefinedUsername] as unknown as Awaited<
-        ReturnType<typeof prismaMock.auctionMessage.findMany>
-      >);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [mockFormattedMessageWithDefaultUsername],
-        error: "",
-      });
-    });
-
-    test("should propagate database error", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      const mockError = new Error("Database connection error");
-      prismaMock.auctionMessage.findMany.mockRejectedValue(mockError);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージの取得に失敗しました",
-        messages: [],
-      });
-    });
-
-    test("should handle empty auctionId", async () => {
-      // Arrange
-      const emptyAuctionId = "";
-      const isDisplayAfterEnd = false;
-      prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(emptyAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [],
-        error: "",
-      });
-
-      expect(prismaMock.auctionMessage.findMany).toHaveBeenCalledWith({
-        where: {
-          auctionId: emptyAuctionId,
-          createdAt: { lte: new Date(testAuctionEndDate) },
-        },
-        select: {
-          id: true,
-          message: true,
-          createdAt: true,
-          sender: {
-            select: {
-              settings: {
-                select: {
-                  username: true,
-                },
-              },
-              id: true,
-              image: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-    });
-
-    test("should handle null auctionId", async () => {
-      // Arrange
-      const nullAuctionId = null as unknown as string;
-      const isDisplayAfterEnd = false;
-      prismaMock.auctionMessage.findMany.mockRejectedValue(new Error("Invalid auctionId"));
-
-      // Act
-      const result = await getCachedAuctionMessageContents(nullAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージの取得に失敗しました",
-        messages: [],
-      });
-    });
-
-    test("should handle undefined auctionId", async () => {
-      // Arrange
-      const undefinedAuctionId = undefined as unknown as string;
-      const isDisplayAfterEnd = false;
-      prismaMock.auctionMessage.findMany.mockRejectedValue(new Error("Invalid auctionId"));
-
-      // Act
-      const result = await getCachedAuctionMessageContents(undefinedAuctionId, isDisplayAfterEnd, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージの取得に失敗しました",
-        messages: [],
-      });
-    });
-
-    test("should handle invalid date", async () => {
-      // Arrange
-      const isDisplayAfterEnd = false;
-      const invalidDate = new Date("invalid-date");
-      prismaMock.auctionMessage.findMany.mockRejectedValue(new Error("Invalid date"));
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, isDisplayAfterEnd, invalidDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージの取得に失敗しました",
-        messages: [],
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          messages: [mockFormattedMessageWithDefaultUsername],
+          error: "",
+        });
       });
     });
   });
 
   describe("getCachedAuctionSellerInfo", () => {
-    test("should return auction seller info successfully", async () => {
-      // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(mockPrismaAuctionInfo as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+    describe("正常系", () => {
+      test("should return auction seller info successfully", async () => {
+        // Arrange
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockPrismaAuctionInfo as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
+        // Act
+        const result = await getCachedAuctionSellerInfo(VALID_AUCTION_ID);
 
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        auctionPersonInfo: mockFormattedAuctionPersonInfo,
-        error: "",
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          auctionPersonInfo: mockFormattedAuctionPersonInfo,
+          error: "",
+        });
+
+        expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
+          where: {
+            id: VALID_AUCTION_ID,
+          },
+          select: {
+            task: {
+              select: {
+                creatorId: true,
+                creator: {
+                  select: {
+                    id: true,
+                  },
+                },
+                reporters: {
+                  select: {
+                    user: {
+                      select: {
+                        id: true,
+                      },
+                    },
+                  },
+                },
+                executors: {
+                  select: {
+                    user: {
+                      select: {
+                        id: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
       });
 
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: testAuctionId,
-        },
-        select: {
+      test("should handle auction with null task", async () => {
+        // Arrange
+        const mockAuctionWithNullTask = createMockPrismaAuctionInfo({ task: null });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionWithNullTask as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionSellerInfo(VALID_AUCTION_ID);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          auctionPersonInfo: {
+            creator: {
+              id: undefined,
+            },
+            reporters: undefined,
+            executors: undefined,
+          },
+          error: "",
+        });
+      });
+
+      test("should handle auction with empty reporters and executors", async () => {
+        // Arrange
+        const mockAuctionWithEmptyArrays = createMockPrismaAuctionInfo({
           task: {
-            select: {
-              creatorId: true,
-              creator: {
-                select: {
-                  id: true,
-                },
-              },
-              reporters: {
-                select: {
-                  user: {
-                    select: {
-                      id: true,
-                    },
-                  },
-                },
-              },
-              executors: {
-                select: {
-                  user: {
-                    select: {
-                      id: true,
-                    },
-                  },
-                },
-              },
+            creatorId: VALID_CREATOR_ID,
+            creator: {
+              id: VALID_CREATOR_ID,
             },
+            reporters: [],
+            executors: [],
           },
-        },
-      });
-    });
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionWithEmptyArrays as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-    test("should handle auction not found", async () => {
-      // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(null);
+        // Act
+        const result = await getCachedAuctionSellerInfo(VALID_AUCTION_ID);
 
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "オークションが見つかりません",
-        auctionPersonInfo: null,
-      });
-    });
-
-    test("should handle auction with null task", async () => {
-      // Arrange
-      const mockAuctionWithNullTask = {
-        task: null,
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockAuctionWithNullTask as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        auctionPersonInfo: {
-          creator: {
-            id: undefined,
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          auctionPersonInfo: {
+            creator: {
+              id: VALID_CREATOR_ID,
+            },
+            reporters: [],
+            executors: [],
           },
-          reporters: undefined,
-          executors: undefined,
-        },
-        error: "",
-      });
-    });
-
-    test("should handle auction with empty reporters and executors", async () => {
-      // Arrange
-      const mockAuctionWithEmptyArrays = {
-        task: {
-          creatorId: testCreatorId,
-          creator: {
-            id: testCreatorId,
-          },
-          reporters: [],
-          executors: [],
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockAuctionWithEmptyArrays as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        auctionPersonInfo: {
-          creator: {
-            id: testCreatorId,
-          },
-          reporters: [],
-          executors: [],
-        },
-        error: "",
-      });
-    });
-
-    test("should handle reporters and executors with null user", async () => {
-      // Arrange
-      const mockAuctionWithNullUsers = {
-        task: {
-          creatorId: testCreatorId,
-          creator: {
-            id: testCreatorId,
-          },
-          reporters: [
-            {
-              user: null,
-            },
-          ],
-          executors: [
-            {
-              user: null,
-            },
-          ],
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockAuctionWithNullUsers as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        auctionPersonInfo: {
-          creator: {
-            id: testCreatorId,
-          },
-          reporters: [
-            {
-              id: null,
-            },
-          ],
-          executors: [
-            {
-              id: null,
-            },
-          ],
-        },
-        error: "",
-      });
-    });
-
-    test("should handle multiple reporters and executors", async () => {
-      // Arrange
-      const mockAuctionWithMultipleUsers = {
-        task: {
-          creatorId: testCreatorId,
-          creator: {
-            id: testCreatorId,
-          },
-          reporters: [
-            {
-              user: {
-                id: "reporter-1",
-              },
-            },
-            {
-              user: {
-                id: "reporter-2",
-              },
-            },
-          ],
-          executors: [
-            {
-              user: {
-                id: "executor-1",
-              },
-            },
-            {
-              user: {
-                id: "executor-2",
-              },
-            },
-          ],
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockAuctionWithMultipleUsers as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        auctionPersonInfo: {
-          creator: {
-            id: testCreatorId,
-          },
-          reporters: [
-            {
-              id: "reporter-1",
-            },
-            {
-              id: "reporter-2",
-            },
-          ],
-          executors: [
-            {
-              id: "executor-1",
-            },
-            {
-              id: "executor-2",
-            },
-          ],
-        },
-        error: "",
-      });
-    });
-
-    test("should propagate database error", async () => {
-      // Arrange
-      const mockError = new Error("Database connection error");
-      prismaMock.auction.findUnique.mockRejectedValue(mockError);
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "出品者情報の取得に失敗しました",
-        auctionPersonInfo: null,
-      });
-    });
-
-    test("should handle empty auctionId", async () => {
-      // Arrange
-      const emptyAuctionId = "";
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(emptyAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "オークションが見つかりません",
-        auctionPersonInfo: null,
+          error: "",
+        });
       });
 
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: emptyAuctionId,
-        },
-        select: {
+      test("should handle reporters and executors with null user", async () => {
+        // Arrange
+        const mockAuctionWithNullUsers = createMockPrismaAuctionInfo({
           task: {
-            select: {
-              creatorId: true,
-              creator: {
-                select: {
-                  id: true,
-                },
-              },
-              reporters: {
-                select: {
-                  user: {
-                    select: {
-                      id: true,
-                    },
-                  },
-                },
-              },
-              executors: {
-                select: {
-                  user: {
-                    select: {
-                      id: true,
-                    },
-                  },
-                },
-              },
+            creatorId: VALID_CREATOR_ID,
+            creator: {
+              id: VALID_CREATOR_ID,
             },
+            reporters: [{ user: null }],
+            executors: [{ user: null }],
           },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionWithNullUsers as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionSellerInfo(VALID_AUCTION_ID);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          auctionPersonInfo: {
+            creator: {
+              id: VALID_CREATOR_ID,
+            },
+            reporters: [{ id: null }],
+            executors: [{ id: null }],
+          },
+          error: "",
+        });
+      });
+
+      test("should handle multiple reporters and executors", async () => {
+        // Arrange
+        const mockAuctionWithMultipleUsers = createMockPrismaAuctionInfo({
+          task: {
+            creatorId: VALID_CREATOR_ID,
+            creator: {
+              id: VALID_CREATOR_ID,
+            },
+            reporters: [{ user: { id: "reporter-1" } }, { user: { id: "reporter-2" } }],
+            executors: [{ user: { id: "executor-1" } }, { user: { id: "executor-2" } }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionWithMultipleUsers as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionSellerInfo(VALID_AUCTION_ID);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: true,
+          auctionPersonInfo: {
+            creator: {
+              id: VALID_CREATOR_ID,
+            },
+            reporters: [{ id: "reporter-1" }, { id: "reporter-2" }],
+            executors: [{ id: "executor-1" }, { id: "executor-2" }],
+          },
+          error: "",
+        });
+      });
+    });
+
+    describe("異常系", () => {
+      test.each([
+        {
+          description: "auctionId が空文字列の場合",
+          auctionId: "",
+          expectedError: "パラメータが不正です",
         },
+        {
+          description: "auctionId が null の場合",
+          auctionId: null as unknown as string,
+          expectedError: "パラメータが不正です",
+        },
+        {
+          description: "auctionId が undefined の場合",
+          auctionId: undefined as unknown as string,
+          expectedError: "パラメータが不正です",
+        },
+      ])("should throw error when $description", async ({ auctionId, expectedError }) => {
+        // Act & Assert
+        await expect(getCachedAuctionSellerInfo(auctionId)).rejects.toThrow(expectedError);
       });
-    });
 
-    test("should handle null auctionId", async () => {
-      // Arrange
-      const nullAuctionId = null as unknown as string;
-      prismaMock.auction.findUnique.mockRejectedValue(new Error("Invalid auctionId"));
+      test("should throw error when auction not found", async () => {
+        // Arrange
+        prismaMock.auction.findUnique.mockResolvedValue(null);
 
-      // Act
-      const result = await getCachedAuctionSellerInfo(nullAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "出品者情報の取得に失敗しました",
-        auctionPersonInfo: null,
+        // Act & Assert
+        await expect(getCachedAuctionSellerInfo(VALID_AUCTION_ID)).rejects.toThrow("オークションが見つかりません");
       });
-    });
 
-    test("should handle undefined auctionId", async () => {
-      // Arrange
-      const undefinedAuctionId = undefined as unknown as string;
-      prismaMock.auction.findUnique.mockRejectedValue(new Error("Invalid auctionId"));
+      test("should propagate database error", async () => {
+        // Arrange
+        const mockError = new Error("Database connection error");
+        prismaMock.auction.findUnique.mockRejectedValue(mockError);
 
-      // Act
-      const result = await getCachedAuctionSellerInfo(undefinedAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "出品者情報の取得に失敗しました",
-        auctionPersonInfo: null,
-      });
-    });
-  });
-
-  // 境界値テスト
-  describe("boundary value tests", () => {
-    test("should handle very long auctionId", async () => {
-      // Arrange
-      const longAuctionId = "a".repeat(1000);
-      prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(longAuctionId, false, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [],
-        error: "",
-      });
-    });
-
-    test("should handle special characters in auctionId", async () => {
-      // Arrange
-      const specialAuctionId = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(specialAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "オークションが見つかりません",
-        auctionPersonInfo: null,
-      });
-    });
-
-    test("should handle very old date", async () => {
-      // Arrange
-      const veryOldDate = new Date("1900-01-01T00:00:00Z");
-      prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, false, veryOldDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [],
-        error: "",
-      });
-    });
-
-    test("should handle very future date", async () => {
-      // Arrange
-      const veryFutureDate = new Date("2100-12-31T23:59:59Z");
-      prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, true, veryFutureDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [],
-        error: "",
-      });
-    });
-  });
-
-  // 異常系テスト（不正な引数）
-  describe("invalid input tests", () => {
-    test("should handle non-string auctionId in getCachedAuctionMessageContents", async () => {
-      // Arrange
-      const nonStringAuctionId = 123 as unknown as string;
-      prismaMock.auctionMessage.findMany.mockRejectedValue(new Error("AuctionId must be string"));
-
-      // Act
-      const result = await getCachedAuctionMessageContents(nonStringAuctionId, false, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージの取得に失敗しました",
-        messages: [],
-      });
-    });
-
-    test("should handle non-string auctionId in getCachedAuctionSellerInfo", async () => {
-      // Arrange
-      const nonStringAuctionId = 123 as unknown as string;
-      prismaMock.auction.findUnique.mockRejectedValue(new Error("AuctionId must be string"));
-
-      // Act
-      const result = await getCachedAuctionSellerInfo(nonStringAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "出品者情報の取得に失敗しました",
-        auctionPersonInfo: null,
-      });
-    });
-
-    test("should handle non-boolean isDisplayAfterEnd", async () => {
-      // Arrange
-      const nonBooleanFlag = "true" as unknown as boolean;
-      prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, nonBooleanFlag, testAuctionEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: true,
-        messages: [],
-        error: "",
-      });
-    });
-
-    test("should handle non-date auctionEndDate", async () => {
-      // Arrange
-      const nonDateEndDate = "2024-12-31" as unknown as Date;
-      prismaMock.auctionMessage.findMany.mockRejectedValue(new Error("Invalid date"));
-
-      // Act
-      const result = await getCachedAuctionMessageContents(testAuctionId, false, nonDateEndDate);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メッセージの取得に失敗しました",
-        messages: [],
+        // Act & Assert
+        await expect(getCachedAuctionSellerInfo(VALID_AUCTION_ID)).rejects.toThrow(mockError);
       });
     });
   });

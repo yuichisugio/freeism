@@ -48,69 +48,53 @@ export async function getCachedAuctionMessageContents(
   /**
    * メッセージを取得
    */
-  try {
-    const messages = await prisma.auctionMessage.findMany({
-      where: whereCondition,
-      select: {
-        id: true,
-        message: true,
-        createdAt: true,
-        sender: {
-          select: {
-            settings: {
-              select: {
-                username: true,
-              },
+  const messages = await prisma.auctionMessage.findMany({
+    where: whereCondition,
+    select: {
+      id: true,
+      message: true,
+      createdAt: true,
+      sender: {
+        select: {
+          settings: {
+            select: {
+              username: true,
             },
-            id: true,
-            image: true,
           },
+          id: true,
+          image: true,
         },
       },
-      orderBy: {
-        createdAt: "asc",
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * メッセージを整形
+   */
+  const formattedMessages = messages.map((message) => ({
+    messageId: message.id,
+    messageContent: message.message,
+    createdAt: message.createdAt,
+    person: {
+      sender: {
+        id: message.sender.id,
+        appUserName: message.sender.settings?.username ?? "未設定",
+        image: message.sender.image,
       },
-    });
+    },
+  }));
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * メッセージが見つからない場合
-     */
-    if (!messages) {
-      return { success: false, error: "メッセージが見つかりません", messages: [] };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * メッセージを整形
-     */
-    const formattedMessages = messages.map((message) => ({
-      messageId: message.id,
-      messageContent: message.message,
-      createdAt: message.createdAt,
-      person: {
-        sender: {
-          id: message.sender.id,
-          appUserName: message.sender.settings?.username ?? "未設定",
-          image: message.sender.image,
-        },
-      },
-    }));
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 成功
-     */
-    return { success: true, messages: formattedMessages, error: "" };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("メッセージ取得エラー:", error);
-    return { success: false, error: `${error instanceof Error ? error.message : "不明なエラー"}`, messages: [] };
-  }
+  /**
+   * 成功
+   */
+  return { success: true, messages: formattedMessages, error: "" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -129,82 +113,79 @@ export async function getCachedAuctionSellerInfo(
     throw new Error("パラメータが不正です");
   }
 
-  try {
-    /**
-     * オークション情報を取得
-     */
-    const auctionPersonInfo = await prisma.auction.findUnique({
-      where: {
-        id: auctionId,
-      },
-      select: {
-        task: {
-          select: {
-            creatorId: true,
-            creator: {
-              select: {
-                id: true,
-              },
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オークション情報を取得
+   */
+  const auctionPersonInfo = await prisma.auction.findUnique({
+    where: {
+      id: auctionId,
+    },
+    select: {
+      task: {
+        select: {
+          creatorId: true,
+          creator: {
+            select: {
+              id: true,
             },
-            reporters: {
-              select: {
-                user: {
-                  select: {
-                    id: true,
-                  },
+          },
+          reporters: {
+            select: {
+              user: {
+                select: {
+                  id: true,
                 },
               },
             },
-            executors: {
-              select: {
-                user: {
-                  select: {
-                    id: true,
-                  },
+          },
+          executors: {
+            select: {
+              user: {
+                select: {
+                  id: true,
                 },
               },
             },
           },
         },
       },
-    });
+    },
+  });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * オークションが見つからない場合
-     */
-    if (!auctionPersonInfo) {
-      throw new Error("オークションが見つかりません");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 出品者情報を整形
-     */
-    const formattedAuctionPersonInfo = {
-      creator: {
-        id: auctionPersonInfo.task?.creatorId,
-      },
-      reporters: auctionPersonInfo.task?.reporters.map((reporter) => ({
-        id: reporter.user?.id ?? null,
-      })),
-      executors: auctionPersonInfo.task?.executors.map((executor) => ({
-        id: executor.user?.id ?? null,
-      })),
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 成功
-     */
-    return { success: true, auctionPersonInfo: formattedAuctionPersonInfo, error: "" };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("出品者情報取得エラー:", error);
-    return { success: false, error: `${error instanceof Error ? error.message : "不明なエラー"}`, auctionPersonInfo: null };
+  /**
+   * オークションが見つからない場合
+   */
+  if (!auctionPersonInfo) {
+    throw new Error("オークションが見つかりません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品者情報を整形
+   */
+  const formattedAuctionPersonInfo = {
+    creator: {
+      id: auctionPersonInfo.task?.creatorId,
+    },
+    reporters: auctionPersonInfo.task?.reporters.map((reporter) => ({
+      id: reporter.user?.id ?? null,
+    })),
+    executors: auctionPersonInfo.task?.executors.map((executor) => ({
+      id: executor.user?.id ?? null,
+    })),
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 成功
+   */
+  return { success: true, auctionPersonInfo: formattedAuctionPersonInfo, error: "" };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 }
