@@ -19,6 +19,32 @@ export type GetAuctionListingsParams = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * オークション一覧を取得する関数の引数の型
+ */
+type ExecutorJsonItem = {
+  id: string | null;
+  rating: number | null;
+  userId: string | null;
+  userImage: string | null;
+  userSettingsUsername: string | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション一覧を取得する関数の引数の型
+ */
+type ExecutorJsonItemFromDB = {
+  id: string | null;
+  user_id: string | null;
+  user_image: string | null;
+  username: string | null;
+  rating: number | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * Raw クエリの戻り値の型を定義
  */
 type RawAuctionData = {
@@ -213,6 +239,7 @@ export const cachedGetAuctionListingsAndCount = cache(
 
       /**
        * 残り時間
+       * 1時間(= 60 * 60 * 1000)単位
        */
       const nowForRemainingTime = new Date();
       if (minRemainingTime !== null && minRemainingTime !== undefined) {
@@ -228,31 +255,25 @@ export const cachedGetAuctionListingsAndCount = cache(
 
       /**
        * グループID (URLパラメータで指定された場合)
+       * フィルターで選択したグループIDのGroupに参加しているか確認して、参加している場合はwhereに追加
+       * else内で、ユーザーは指定されたグループに参加していないので、そのグループのオークションを見る権限がないので、表示するオークションは0件にしている
        */
       if (groupIds && groupIds.length > 0) {
         const allowedGroupIds = userGroupIds.filter((id) => groupIds.includes(id));
         if (allowedGroupIds.length > 0) {
           whereClauses.push(Prisma.sql`a."group_id" = ANY(${allowedGroupIds}::text[])`);
         } else {
-          whereClauses.push(Prisma.sql`1 = 0`); // 条件に合うグループがない場合は結果を0件にする
+          return { listings: [], count: 0 };
         }
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * ユーザーが参加可能なグループがなく、かつ特定のグループID指定で絞り込まれた結果、表示できるオークションがない場合
-       */
-      if (whereClauses.some((c) => c.sql === "1 = 0")) {
-        return { listings: [], count: 0 };
-      }
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      /**
        * オークション一覧取得ロジック
+       * searchQuery は上で展開済みのため、ここでは使用しない
        */
-      const { sort, page } = listingsConditions; // searchQuery は上で展開済み
+      const { sort, page } = listingsConditions;
 
       let ftsSelectSQL: Prisma.Sql = Prisma.empty;
       let ftsOrderBySQL: Prisma.Sql = Prisma.empty;
@@ -260,20 +281,38 @@ export const cachedGetAuctionListingsAndCount = cache(
       let ftsHighlightTaskSQL: Prisma.Sql = Prisma.empty;
       let ftsHighlightDetailSQL: Prisma.Sql = Prisma.empty;
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 全文検索
+       */
+      // searchQueryとkeywordsがある場合
       if (searchQuery && keywords.length > 0) {
+        // スコアを取得するために、pgroonga_scoreを使用する
         ftsSelectSQL = Prisma.sql`, pgroonga_score(t.tableoid, t.ctid) as score`;
-        // keywords は上で buildRawQueryComponents 相当のロジックで生成済み
+        // ハイライトするために、pgroonga_query_extract_keywordsを使用する
         highlightParamsSQL = Prisma.sql`pgroonga_query_extract_keywords(${keywords.join(" OR ")})`;
+        // ハイライトするために、pgroonga_highlight_htmlを使用する
         ftsHighlightTaskSQL = Prisma.sql`, pgroonga_highlight_html(t.task, ${highlightParamsSQL}) as task_highlighted`;
+        // ハイライトするために、pgroonga_highlight_htmlを使用する
         ftsHighlightDetailSQL = Prisma.sql`, pgroonga_highlight_html(t.detail, ${highlightParamsSQL}) as detail_highlighted`;
+        // スコアでソートする
         ftsOrderBySQL = Prisma.sql`score DESC`;
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * ソート
+       */
       let orderBySql: Prisma.Sql = Prisma.empty;
+      // 全文検索がない場合は、作成日時の降順にソート。全文検索がある場合は、スコアでソートする
       const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`"created_at" DESC`;
 
+      // sortの指定がある場合
       if (sort && sort.length > 0) {
         const primarySort = sort[0];
+        // asc の場合は、NULLS LAST
         const directionSql = primarySort.direction === "asc" ? Prisma.sql`ASC NULLS LAST` : Prisma.sql`DESC NULLS LAST`;
         switch (primarySort.field) {
           case "relevance":
@@ -299,51 +338,69 @@ export const cachedGetAuctionListingsAndCount = cache(
         orderBySql = defaultSort;
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 入札数でソートする場合
+       */
       let bidsCountSelectForSort: Prisma.Sql = Prisma.empty;
+      // 入札数でソートする場合は、入札数を取得するために、BidHistoryテーブルをJOINする
       if (sort && sort.length > 0 && sort[0].field === "bids") {
         bidsCountSelectForSort = Prisma.sql`, (SELECT COUNT(*) FROM "BidHistory" bh_sort WHERE bh_sort."auction_id" = a.id) as bids_count_intermediate`;
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * ページネーション
+       */
       const pageNumber = page ?? 1;
       const skip = (pageNumber - 1) * AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
       const take = AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE;
 
-      const finalWhereClauseForListings: Prisma.Sql = Prisma.join(
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 最終的なWHERE句を作成
+       */
+      // 全文検索がある場合は、ftsConditionを追加
+      // それ以外は、whereClausesをそのまま使う
+      const finalWhere: Prisma.Sql = Prisma.join(
         [ftsCondition, ...whereClauses].filter((s) => s !== Prisma.empty),
         " AND ",
       );
-      // whereClauses に "1 = 0" が含まれる場合、finalWhereClauseForListings が空にならないように、
-      // かつ、WHERE 1 = 0 のような形にする必要がある。
-      // ただし、最初の userGroupIds.length === 0 や groupIds の絞り込みで "1 = 0" が whereClauses に入った場合、
-      // この関数は早期リターンしているので、ここに来る時点では "1 = 0" のみで構成されることは基本的にはないはず。
-      // ただし、他の条件とANDで組み合わさる場合、その "1 = 0" は有効。
-      // filterで除外してしまうと、そのフィルタリングが効かなくなる。
-      // 意図としては、`1=0` が含まれていたら、最終的なWHERE句もそれを反映してほしい。
-      // 最初の早期リターンで `whereClauses.some(c => c.sql === "1 = 0")` をチェックしているので、
-      // ここで `finalWhereClauseForListings` を作る際には `1 = 0` が含まれていても問題ないはず。
-      // それが他の有効な条件と AND で結合されれば、結果として0件になる。
-      // むしろ、filterで除外すると、その0件にすべき条件が消えてしまう。
-      // よって、filter条件は Prisma.empty のみで良い。
 
-      const orderByClauseForListings = orderBySql !== Prisma.empty ? Prisma.sql`ORDER BY ${orderBySql}` : Prisma.empty;
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      /**
+       * 最終的なORDER BY句
+       */
+      // ソートの指定がある場合は、orderBySqlを使用する
+      // それ以外は、空のSQLを返却する
+      const finalOrderBy = orderBySql !== Prisma.empty ? Prisma.sql`ORDER BY ${orderBySql}` : Prisma.empty;
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション一覧取得SQL
+       */
       const listingsSql: Prisma.Sql = Prisma.sql`
         WITH "FilteredAuctionsCTE" AS (
           SELECT
-            a.id,
-            a."task_id",
-            a."created_at",
-            a."end_time",
-            a."current_highest_bid"
+            a."id",
+            a."task_id"
             ${bidsCountSelectForSort}
             ${ftsSelectSQL}
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
-          ${finalWhereClauseForListings !== Prisma.empty ? Prisma.sql`WHERE ${finalWhereClauseForListings}` : Prisma.empty}
-          ${orderByClauseForListings}
+          ${finalWhere !== Prisma.empty ? Prisma.sql`WHERE ${finalWhere}` : Prisma.empty}
+          ${finalOrderBy}
         ),
         "PaginatedAuctionsCTE" AS (
-          SELECT id,current_highest_bid,created_at,end_time,task_id ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty}
+          SELECT
+            "id",
+            "task_id"
+            ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty}
           FROM "FilteredAuctionsCTE"
           LIMIT ${take} OFFSET ${skip}
         ),
@@ -380,21 +437,21 @@ export const cachedGetAuctionListingsAndCount = cache(
           GROUP BY te."task_id"
         )
         SELECT
-            a.id as "id",
+            a."id" as "id",
             a."current_highest_bid" as "current_highest_bid",
             a."end_time" as "end_time",
             a."start_time" as "start_time",
-            t.status as "status",
+            t."status" as "status",
             a."created_at" as "created_at",
-            t.task as "task",
-            t.detail as "detail",
+            t."task" as "task",
+            t."detail" as "detail",
             t."image_url" as "image_url",
-            t.category as "category",
-            g.id as "group_id",
-            g.name as "group_name",
-            COALESCE(bc.bids_count, 0) as "bids_count",
-            COALESCE(wc.is_watched, FALSE) as "is_watched",
-            ex.executors_json
+            t."category" as "category",
+            g."id" as "group_id",
+            g."name" as "group_name",
+            COALESCE(bc."bids_count", 0) as "bids_count",
+            COALESCE(wc."is_watched", FALSE) as "is_watched",
+            ex."executors_json"
             ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, p.score as score` : Prisma.empty}
             ${ftsHighlightTaskSQL}
             ${ftsHighlightDetailSQL}
@@ -405,51 +462,40 @@ export const cachedGetAuctionListingsAndCount = cache(
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ${orderByClauseForListings}
+        ${finalOrderBy}
       `;
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション一覧取得
+       */
       const auctionsData: RawAuctionData[] = await prisma.$queryRaw(listingsSql);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション一覧のデータを整形
+       */
+      // オークション一覧のデータをAuctionCard型に変換
       const items: AuctionListingResult = auctionsData.map<AuctionCard>((auction: RawAuctionData): AuctionCard => {
-        type ExecutorJsonItem = {
-          id: string | null;
-          rating: number | null;
-          userId: string | null;
-          userImage: string | null;
-          userSettingsUsername: string | null;
-        };
+        // オークションの実行者のデータを取得
         let taskExecutors: ExecutorJsonItem[] = [];
+        // オークションの実行者のデータがある場合は、ExecutorJsonItem型に変換
         if (auction.executors_json && typeof auction.executors_json === "string") {
           try {
+            // オークションの実行者のデータをJSON.parseでパースして、unknown型に変換
             const parsedExecutorsUnknown: unknown = JSON.parse(auction.executors_json);
+            // パースしたデータが配列かどうかをチェック
             if (Array.isArray(parsedExecutorsUnknown)) {
+              // パースしたデータをunknown型の配列に変換
               const parsedExecutors = parsedExecutorsUnknown as unknown[];
-              type ExecutorJsonItemFromDB = {
-                id: string | null;
-                user_id: string | null;
-                user_image: string | null;
-                username: string | null;
-                rating: number | null;
-              };
-              const isExecutorObjectFromDB = (obj: unknown): obj is ExecutorJsonItemFromDB => {
-                if (typeof obj !== "object" || obj === null) {
-                  return false;
-                }
-                const potentialExec = obj as Record<string, unknown>;
-                return (
-                  "id" in potentialExec &&
-                  (typeof potentialExec.id === "string" || potentialExec.id === null) &&
-                  "user_id" in potentialExec &&
-                  (typeof potentialExec.user_id === "string" || potentialExec.user_id === null) &&
-                  "user_image" in potentialExec &&
-                  (typeof potentialExec.user_image === "string" || potentialExec.user_image === null) &&
-                  "username" in potentialExec &&
-                  (typeof potentialExec.username === "string" || potentialExec.username === null) &&
-                  "rating" in potentialExec &&
-                  (typeof potentialExec.rating === "number" || potentialExec.rating === null)
-                );
-              };
+              // パースしたデータをExecutorJsonItem型に変換
               taskExecutors = parsedExecutors
                 .map((exec: unknown): ExecutorJsonItem | null => {
+                  // パースしたデータがExecutorJsonItemFromDB型かどうかをチェック
                   if (isExecutorObjectFromDB(exec)) {
+                    // ExecutorJsonItemFromDB型の場合は、ExecutorJsonItem型に変換
                     return {
                       id: exec.id,
                       rating: exec.rating,
@@ -458,15 +504,20 @@ export const cachedGetAuctionListingsAndCount = cache(
                       userSettingsUsername: exec.username ?? "未設定",
                     };
                   }
+                  // ExecutorJsonItemFromDB型でない場合は、nullを返却
                   return null;
                 })
+                // nullを除外して、ExecutorJsonItem型の配列に変換
                 .filter((exec): exec is ExecutorJsonItem => exec !== null);
             }
           } catch (e) {
+            // パースに失敗した場合は、エラーを出力
             console.error("Failed to parse taskExecutors_json", e, auction.executors_json);
             taskExecutors = [];
           }
         }
+
+        // AuctionCard型に変換。taskExecutorsはAuctionCard["executors_json"]型に変換
         return {
           id: auction.id,
           current_highest_bid: auction.current_highest_bid,
@@ -488,30 +539,52 @@ export const cachedGetAuctionListingsAndCount = cache(
         } as AuctionCard;
       });
 
-      // ---------------------------------------------------------------------------------
-      // オークション件数取得ロジック (cachedGetAuctionCount から抜粋・調整)
-      // ---------------------------------------------------------------------------------
-      // whereClauses と ftsCondition は関数の先頭で buildRawQueryComponents 相当のロジックで生成済み
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      const finalWhereClausesForCount: Prisma.Sql[] = [];
+      /**
+       * オークション件数取得ロジック
+       */
+      // countの場合は、ftsConditionがある場合はftsConditionをそのまま使う
+      const finalWhereForCount: Prisma.Sql[] = [];
       if (ftsCondition && ftsCondition !== Prisma.empty) {
-        finalWhereClausesForCount.push(ftsCondition);
+        finalWhereForCount.push(ftsCondition);
       }
-      // ここでも "1 = 0" を除外しないようにする。早期リターンで対応済みのため。
-      finalWhereClausesForCount.push(...whereClauses.filter((c) => c !== Prisma.empty));
+      // それ以外は、whereClausesをそのまま使う
+      finalWhereForCount.push(...whereClauses.filter((c) => c !== Prisma.empty));
 
-      const needsTaskJoinForCount = finalWhereClausesForCount.some((c) => c.sql.includes("t.") || c === ftsCondition);
-      const joinClauseForCount = needsTaskJoinForCount ? Prisma.sql`JOIN "Task" t ON a."task_id" = t.id` : Prisma.empty;
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      /**
+       * オークション件数取得SQL
+       */
+      const needsTaskJoinForCount = finalWhereForCount.some((c) => c.sql.includes("t.") || c === ftsCondition);
+      const finalJoinForCount = needsTaskJoinForCount ? Prisma.sql`JOIN "Task" t ON a."task_id" = t.id` : Prisma.empty;
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション件数取得SQL
+       */
       const countSql = Prisma.sql`
         SELECT COUNT(*)::bigint as count
         FROM "Auction" a
-        ${joinClauseForCount}
-        ${finalWhereClausesForCount.length > 0 ? Prisma.sql`WHERE ${Prisma.join(finalWhereClausesForCount, " AND ")}` : Prisma.empty}
+        ${finalJoinForCount}
+        ${finalWhereForCount.length > 0 ? Prisma.sql`WHERE ${Prisma.join(finalWhereForCount, " AND ")}` : Prisma.empty}
       `;
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション件数取得
+       */
       const countResult = await prisma.$queryRaw<{ count: bigint }[]>(countSql);
       const count = Number(countResult?.[0]?.count ?? BigInt(0));
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション一覧と件数を返却
+       */
       return { listings: items, count };
     } catch (error) {
       console.error("src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_error", error);
@@ -519,3 +592,39 @@ export const cachedGetAuctionListingsAndCount = cache(
     }
   },
 );
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * オークション一覧を取得する関数の引数の型
+ * @param obj - オブジェクト
+ * @returns オブジェクトがExecutorJsonItemFromDB型かどうか
+ */
+function isExecutorObjectFromDB(obj: unknown): obj is ExecutorJsonItemFromDB {
+  // オブジェクトでない場合は、falseを返却
+  if (typeof obj !== "object" || obj === null) {
+    return false;
+  }
+  // オブジェクトの場合は、id, user_id, user_image, username, ratingがあるかどうかをチェック。ある場合はtrueを返却
+  const potentialExec = obj as Record<string, unknown>;
+
+  const result =
+    // idがあるかどうかをチェック。ある場合は、stringかnullかどうかをチェック
+    "id" in potentialExec &&
+    (typeof potentialExec.id === "string" || potentialExec.id === null) &&
+    // user_idがあるかどうかをチェック。ある場合は、stringかnullかどうかをチェック
+    "user_id" in potentialExec &&
+    (typeof potentialExec.user_id === "string" || potentialExec.user_id === null) &&
+    // user_imageがあるかどうかをチェック。ある場合は、stringかnullかどうかをチェック
+    "user_image" in potentialExec &&
+    (typeof potentialExec.user_image === "string" || potentialExec.user_image === null) &&
+    // usernameがあるかどうかをチェック。ある場合は、stringかnullかどうかをチェック
+    "username" in potentialExec &&
+    (typeof potentialExec.username === "string" || potentialExec.username === null) &&
+    // ratingがあるかどうかをチェック。ある場合は、numberかnullかどうかをチェック
+    "rating" in potentialExec &&
+    (typeof potentialExec.rating === "number" || potentialExec.rating === null);
+
+  // オブジェクトがExecutorJsonItemFromDB型かどうかを返却。ある場合はtrueを返却
+  return result;
+}
