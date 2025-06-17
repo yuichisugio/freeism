@@ -155,9 +155,9 @@ export const AuctionHistory = memo(function AuctionHistory() {
     activeTab,
     currentPage,
     itemPerPage,
-    bidHistoryData,
-    wonHistoryData,
-    createdHistoryData,
+    bidHistoryResult,
+    wonHistoryResult,
+    createdHistoryResult,
     currentDataCount,
     isLoadingCurrentTab,
     filter,
@@ -335,7 +335,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
 
         <TabsContent value="bids" forceMount={activeTab === "bids" ? undefined : true} hidden={activeTab !== "bids"}>
           {/* 入札履歴（重複なしのオークション単位での履歴を表示） */}
-          <HistoryGrid items={bidHistoryData} renderItem={renderBidItem} emptyMessage="入札履歴はありません" loading={isLoadingCurrentTab} />
+          <HistoryGrid items={bidHistoryResult ?? []} renderItem={renderBidItem} emptyMessage="入札履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
 
         <TabsContent value="won" forceMount={activeTab === "won" ? undefined : true} hidden={activeTab !== "won"}>
@@ -374,7 +374,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
               報告タスク未完了
             </Label>
           </div>
-          <HistoryGrid items={wonHistoryData} renderItem={renderWonItem} emptyMessage="落札履歴はありません" loading={isLoadingCurrentTab} />
+          <HistoryGrid items={wonHistoryResult ?? []} renderItem={renderWonItem} emptyMessage="落札履歴はありません" loading={isLoadingCurrentTab} />
         </TabsContent>
 
         <TabsContent value="created" forceMount={activeTab === "created" ? undefined : true} hidden={activeTab !== "created"}>
@@ -415,7 +415,12 @@ export const AuctionHistory = memo(function AuctionHistory() {
               </div>
             </div>
           </div>
-          <HistoryGrid items={createdHistoryData} renderItem={renderCreatedItem} emptyMessage="出品履歴はありません" loading={isLoadingCurrentTab} />
+          <HistoryGrid
+            items={createdHistoryResult ?? []}
+            renderItem={renderCreatedItem}
+            emptyMessage="出品履歴はありません"
+            loading={isLoadingCurrentTab}
+          />
         </TabsContent>
       </Tabs>
 

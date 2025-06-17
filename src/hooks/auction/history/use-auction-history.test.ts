@@ -241,9 +241,9 @@ describe("useAuctionHistory", () => {
       expect(result.current.filter).toStrictEqual([]);
       expect(result.current.filterCondition).toBe("and");
       expect(result.current.wonStatus).toBe("all");
-      expect(result.current.bidHistoryData).toStrictEqual([]);
-      expect(result.current.wonHistoryData).toStrictEqual([]);
-      expect(result.current.createdHistoryData).toStrictEqual([]);
+      expect(result.current.bidHistoryResult).toStrictEqual([]);
+      expect(result.current.wonHistoryResult).toStrictEqual([]);
+      expect(result.current.createdHistoryResult).toStrictEqual([]);
       expect(result.current.currentDataCount).toBe(0);
       expect(result.current.isLoadingCurrentTab).toBe(false);
       expect(result.current.userId).toBe(testUserId);
@@ -337,7 +337,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryData).toStrictEqual(testBidHistoryData);
+        expect(result.current.bidHistoryResult).toStrictEqual(testBidHistoryData);
         expect(result.current.currentDataCount).toBe(10);
         expect(result.current.isLoadingCurrentTab).toBe(false);
       });
@@ -362,7 +362,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryData).toStrictEqual([]);
+        expect(result.current.bidHistoryResult).toStrictEqual([]);
         expect(result.current.currentDataCount).toBe(0);
       });
 
@@ -384,7 +384,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryData).toStrictEqual([]);
+        expect(result.current.bidHistoryResult).toStrictEqual([]);
         expect(result.current.currentDataCount).toBe(0);
       });
 
@@ -431,7 +431,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryData[0].currentHighestBid).toBe(0);
+        expect(result.current.bidHistoryResult?.[0]?.currentHighestBid).toBe(0);
         expect(result.current.currentDataCount).toBe(1);
       });
     });
@@ -471,7 +471,7 @@ describe("useAuctionHistory", () => {
 
         // Assert
         expect(result.current.activeTab).toBe("won");
-        expect(result.current.wonHistoryData).toStrictEqual(testWonHistoryData);
+        expect(result.current.wonHistoryResult).toStrictEqual(testWonHistoryData);
         expect(result.current.currentDataCount).toBe(5);
       });
 
@@ -509,7 +509,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.wonHistoryData[0].rating).toBeNull();
+        expect(result.current.wonHistoryResult?.[0]?.rating).toBeNull();
       });
     });
 
@@ -548,7 +548,7 @@ describe("useAuctionHistory", () => {
 
         // Assert
         expect(result.current.activeTab).toBe("created");
-        expect(result.current.createdHistoryData).toStrictEqual(testCreatedHistoryData);
+        expect(result.current.createdHistoryResult).toStrictEqual(testCreatedHistoryData);
         expect(result.current.currentDataCount).toBe(8);
       });
 
@@ -587,8 +587,8 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.createdHistoryData[0].winnerId).toBeNull();
-        expect(result.current.createdHistoryData[0].winnerName).toBeNull();
+        expect(result.current.createdHistoryResult?.[0]?.winnerId).toBeNull();
+        expect(result.current.createdHistoryResult?.[0]?.winnerName).toBeNull();
       });
     });
 
@@ -612,7 +612,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryData).toStrictEqual([]);
+        expect(result.current.bidHistoryResult).toStrictEqual([]);
         expect(result.current.currentDataCount).toBe(0);
         expect(result.current.isLoadingCurrentTab).toBe(false);
       });
@@ -636,7 +636,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryData).toStrictEqual([]);
+        expect(result.current.bidHistoryResult).toStrictEqual([]);
         expect(result.current.currentDataCount).toBe(0);
       });
     });
