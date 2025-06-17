@@ -6,9 +6,88 @@ import { getUserBidHistories, getUserBidHistoriesCount } from "./bid-auction";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-const testUserId = "test-user-id";
-const testPage = 1;
-const testItemPerPage = 10;
+/**
+ * テスト用定数
+ */
+const TEST_CONSTANTS = {
+  userId: "test-user-id",
+  page: 1,
+  itemPerPage: 10,
+} as const;
+
+/**
+ * テストデータファクトリー
+ */
+const createMockBidHistory = (
+  overrides: Partial<{
+    auctionId: string;
+    status: BidStatus;
+    currentHighestBid: number;
+    createdAt: Date;
+    endTime: Date;
+    taskId: string;
+    taskName: string;
+    taskStatus: TaskStatus;
+  }> = {},
+) => ({
+  auctionId: overrides.auctionId ?? "auction-1",
+  status: overrides.status ?? BidStatus.BIDDING,
+  auction: {
+    currentHighestBid: overrides.currentHighestBid ?? 1000,
+    createdAt: overrides.createdAt ?? new Date("2024-01-01"),
+    endTime: overrides.endTime ?? new Date("2024-01-02"),
+    task: {
+      id: overrides.taskId ?? "task-1",
+      task: overrides.taskName ?? "Test Task",
+      status: overrides.taskStatus ?? TaskStatus.AUCTION_ACTIVE,
+    },
+  },
+});
+
+/**
+ * 期待される結果データを生成
+ */
+const createExpectedResult = (bidHistory: ReturnType<typeof createMockBidHistory>) => ({
+  auctionId: bidHistory.auctionId,
+  bidStatus: bidHistory.status,
+  lastBidAt: bidHistory.auction.createdAt,
+  taskId: bidHistory.auction.task.id,
+  taskName: bidHistory.auction.task.task,
+  taskStatus: bidHistory.auction.task.status,
+  currentHighestBid: bidHistory.auction.currentHighestBid,
+  auctionEndTime: bidHistory.auction.endTime,
+});
+
+/**
+ * 共通のPrismaクエリ期待値アサーション
+ */
+const expectPrismaFindManyCall = (page: number, userId: string, itemPerPage: number) => {
+  expect(prismaMock.bidHistory.findMany).toHaveBeenCalledWith({
+    skip: (page - 1) * itemPerPage,
+    take: itemPerPage,
+    where: { userId },
+    distinct: ["auctionId"],
+    orderBy: { createdAt: "desc" },
+    select: {
+      auctionId: true,
+      status: true,
+      auction: {
+        select: {
+          currentHighestBid: true,
+          createdAt: true,
+          endTime: true,
+          task: {
+            select: {
+              id: true,
+              task: true,
+              status: true,
+            },
+          },
+        },
+      },
+    },
+  });
+};
 
 beforeEach(() => {
   // コンソールログをモック化（テスト出力をクリーンに保つ）
@@ -21,532 +100,164 @@ beforeEach(() => {
 
 describe("bid-auction", () => {
   describe("getUserBidHistories", () => {
-    test("should return bid histories successfully", async () => {
-      // Arrange
-      const mockBidHistories = [
-        {
-          auctionId: "auction-1",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: 1000,
-            createdAt: new Date("2024-01-01"),
-            endTime: new Date("2024-01-02"),
-            task: {
-              id: "task-1",
-              task: "Test Task 1",
-              status: TaskStatus.AUCTION_ACTIVE,
-            },
-          },
-        },
-      ];
+    describe("正常系", () => {
+      test("should return single bid history successfully", async () => {
+        // Arrange
+        const mockBidHistory = createMockBidHistory();
+        prismaMock.bidHistory.findMany.mockResolvedValue([mockBidHistory] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
 
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+        // Act
+        const result = await getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
 
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result).toHaveLength(1);
-      expect(result[0]).toStrictEqual({
-        auctionId: "auction-1",
-        bidStatus: BidStatus.BIDDING,
-        lastBidAt: new Date("2024-01-01"),
-        taskId: "task-1",
-        taskName: "Test Task 1",
-        taskStatus: TaskStatus.AUCTION_ACTIVE,
-        currentHighestBid: 1000,
-        auctionEndTime: new Date("2024-01-02"),
+        // Assert
+        expect(result).toHaveLength(1);
+        expect(result[0]).toStrictEqual(createExpectedResult(mockBidHistory));
+        expectPrismaFindManyCall(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
       });
 
-      expect(prismaMock.bidHistory.findMany).toHaveBeenCalledWith({
-        skip: (testPage - 1) * testItemPerPage,
-        take: testItemPerPage,
-        where: { userId: testUserId },
-        distinct: ["auctionId"],
-        orderBy: { createdAt: "desc" },
-        select: {
-          auctionId: true,
-          status: true,
-          auction: {
-            select: {
-              currentHighestBid: true,
-              createdAt: true,
-              endTime: true,
-              task: {
-                select: {
-                  id: true,
-                  task: true,
-                  status: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    });
-
-    test("should return empty array when no bid histories", async () => {
-      // Arrange
-      prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-    });
-
-    test("should handle multiple bid histories correctly", async () => {
-      // Arrange
-      const mockBidHistories = [
-        {
-          auctionId: "auction-1",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: 1000,
-            createdAt: new Date("2024-01-01"),
-            endTime: new Date("2024-01-02"),
-            task: {
-              id: "task-1",
-              task: "Test Task 1",
-              status: TaskStatus.AUCTION_ACTIVE,
-            },
-          },
-        },
-        {
-          auctionId: "auction-2",
-          status: BidStatus.LOST,
-          auction: {
+      test("should return multiple bid histories correctly", async () => {
+        // Arrange
+        const mockBidHistories = [
+          createMockBidHistory({
+            auctionId: "auction-1",
+            status: BidStatus.BIDDING,
+            taskStatus: TaskStatus.AUCTION_ACTIVE,
+          }),
+          createMockBidHistory({
+            auctionId: "auction-2",
+            status: BidStatus.LOST,
             currentHighestBid: 2000,
             createdAt: new Date("2024-01-03"),
             endTime: new Date("2024-01-04"),
-            task: {
-              id: "task-2",
-              task: "Test Task 2",
-              status: TaskStatus.AUCTION_ENDED,
-            },
-          },
-        },
-      ];
+            taskId: "task-2",
+            taskName: "Test Task 2",
+            taskStatus: TaskStatus.AUCTION_ENDED,
+          }),
+        ];
+        prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
 
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+        // Act
+        const result = await getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
 
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toStrictEqual({
-        auctionId: "auction-1",
-        bidStatus: BidStatus.BIDDING,
-        lastBidAt: new Date("2024-01-01"),
-        taskId: "task-1",
-        taskName: "Test Task 1",
-        taskStatus: TaskStatus.AUCTION_ACTIVE,
-        currentHighestBid: 1000,
-        auctionEndTime: new Date("2024-01-02"),
+        // Assert
+        expect(result).toHaveLength(2);
+        expect(result[0]).toStrictEqual(createExpectedResult(mockBidHistories[0]));
+        expect(result[1]).toStrictEqual(createExpectedResult(mockBidHistories[1]));
       });
-      expect(result[1]).toStrictEqual({
-        auctionId: "auction-2",
-        bidStatus: BidStatus.LOST,
-        lastBidAt: new Date("2024-01-03"),
-        taskId: "task-2",
-        taskName: "Test Task 2",
-        taskStatus: TaskStatus.AUCTION_ENDED,
-        currentHighestBid: 2000,
-        auctionEndTime: new Date("2024-01-04"),
+
+      test("should return empty array when no bid histories", async () => {
+        // Arrange
+        prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+
+        // Act
+        const result = await getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
+
+        // Assert
+        expect(result).toStrictEqual([]);
       });
     });
 
-    // パラメータ検証のテスト
-    test("should throw error when userId is missing", async () => {
-      // Act & Assert
-      await expect(getUserBidHistories(testPage, "", testItemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
+    describe("異常系", () => {
+      test.each([
+        { params: [TEST_CONSTANTS.page, "", TEST_CONSTANTS.itemPerPage], description: "userId is empty" },
+        { params: [TEST_CONSTANTS.page, TEST_CONSTANTS.userId, 0], description: "itemPerPage is 0" },
+        { params: [0, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage], description: "page is 0" },
+      ])("should throw error when $description", async ({ params }) => {
+        // Act & Assert
+        await expect(getUserBidHistories(...(params as [number, string, number]))).rejects.toThrow("userId, itemPerPage, and page are required");
+      });
 
-    test("should throw error when itemPerPage is missing", async () => {
-      // Act & Assert
-      await expect(getUserBidHistories(testPage, testUserId, 0)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
+      test.each([
+        { page: 1, itemPerPage: 10, expectedSkip: 0, description: "page 1" },
+        { page: 2, itemPerPage: 10, expectedSkip: 10, description: "page 2" },
+        { page: 3, itemPerPage: 10, expectedSkip: 20, description: "page 3" },
+        { page: 1, itemPerPage: 5, expectedSkip: 0, description: "page 1 with itemPerPage 5" },
+        { page: 2, itemPerPage: 7, expectedSkip: 7, description: "page 2 with itemPerPage 7" },
+        { page: 3, itemPerPage: 1, expectedSkip: 2, description: "page 3 with itemPerPage 1" },
+      ])("should handle $description correctly", async ({ page, itemPerPage, expectedSkip }) => {
+        // Arrange
+        prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
 
-    test("should throw error when page is missing", async () => {
-      // Act & Assert
-      await expect(getUserBidHistories(0, testUserId, testItemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
+        // Act
+        await getUserBidHistories(page, TEST_CONSTANTS.userId, itemPerPage);
 
-    // 境界値テスト
-    test("should handle page 1 correctly", async () => {
-      // Arrange
-      prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      await getUserBidHistories(1, testUserId, testItemPerPage);
-
-      // Assert
-      expect(prismaMock.bidHistory.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skip: 0, // (1 - 1) * 10 = 0
-          take: testItemPerPage,
-        }),
-      );
-    });
-
-    test("should handle page 2 correctly", async () => {
-      // Arrange
-      prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      await getUserBidHistories(2, testUserId, testItemPerPage);
-
-      // Assert
-      expect(prismaMock.bidHistory.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skip: 10, // (2 - 1) * 10 = 10
-          take: testItemPerPage,
-        }),
-      );
-    });
-
-    test("should handle different itemPerPage values", async () => {
-      // Arrange
-      const customItemPerPage = 5;
-      prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      await getUserBidHistories(testPage, testUserId, customItemPerPage);
-
-      // Assert
-      expect(prismaMock.bidHistory.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: customItemPerPage,
-        }),
-      );
-    });
-
-    // データベースエラーのテスト
-    test("should handle database error", async () => {
-      // Arrange
-      const databaseError = new Error("Database connection failed");
-      prismaMock.bidHistory.findMany.mockRejectedValue(databaseError);
-
-      // Act & Assert
-      await expect(getUserBidHistories(testPage, testUserId, testItemPerPage)).rejects.toThrow("Database connection failed");
-    });
-
-    test("should handle different bid status values", async () => {
-      // Arrange
-      const mockBidHistories = [
-        {
-          auctionId: "auction-won",
-          status: BidStatus.WON,
-          auction: {
-            currentHighestBid: 1500,
-            createdAt: new Date("2024-01-05"),
-            endTime: new Date("2024-01-06"),
-            task: {
-              id: "task-won",
-              task: "Won Task",
-              status: TaskStatus.AUCTION_ENDED,
-            },
-          },
-        },
-        {
-          auctionId: "auction-lost",
-          status: BidStatus.LOST,
-          auction: {
-            currentHighestBid: 2000,
-            createdAt: new Date("2024-01-07"),
-            endTime: new Date("2024-01-08"),
-            task: {
-              id: "task-lost",
-              task: "Lost Task",
-              status: TaskStatus.AUCTION_ENDED,
-            },
-          },
-        },
-      ];
-
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0].bidStatus).toBe(BidStatus.WON);
-      expect(result[1].bidStatus).toBe(BidStatus.LOST);
-    });
-
-    test("should handle different task status values", async () => {
-      // Arrange
-      const mockBidHistories = [
-        {
-          auctionId: "auction-pending",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: 800,
-            createdAt: new Date("2024-01-09"),
-            endTime: new Date("2024-01-10"),
-            task: {
-              id: "task-pending",
-              task: "Pending Task",
-              status: TaskStatus.PENDING,
-            },
-          },
-        },
-        {
-          auctionId: "auction-canceled",
-          status: BidStatus.LOST,
-          auction: {
-            currentHighestBid: 1200,
-            createdAt: new Date("2024-01-11"),
-            endTime: new Date("2024-01-12"),
-            task: {
-              id: "task-canceled",
-              task: "Canceled Task",
-              status: TaskStatus.AUCTION_CANCELED,
-            },
-          },
-        },
-      ];
-
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0].taskStatus).toBe(TaskStatus.PENDING);
-      expect(result[1].taskStatus).toBe(TaskStatus.AUCTION_CANCELED);
-    });
-
-    test("should handle zero currentHighestBid correctly", async () => {
-      // Arrange
-      const mockBidHistories = [
-        {
-          auctionId: "auction-zero-bid",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: 0,
-            createdAt: new Date("2024-01-13"),
-            endTime: new Date("2024-01-14"),
-            task: {
-              id: "task-zero-bid",
-              task: "Zero Bid Task",
-              status: TaskStatus.AUCTION_ACTIVE,
-            },
-          },
-        },
-      ];
-
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result[0].currentHighestBid).toBe(0);
-    });
-
-    test("should handle very large bid amounts", async () => {
-      // Arrange
-      const largeBidAmount = 999999999;
-      const mockBidHistories = [
-        {
-          auctionId: "auction-large-bid",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: largeBidAmount,
-            createdAt: new Date("2024-01-15"),
-            endTime: new Date("2024-01-16"),
-            task: {
-              id: "task-large-bid",
-              task: "Large Bid Task",
-              status: TaskStatus.AUCTION_ACTIVE,
-            },
-          },
-        },
-      ];
-
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result[0].currentHighestBid).toBe(largeBidAmount);
-    });
-
-    test("should handle special characters in task names", async () => {
-      // Arrange
-      const specialTaskName = "Test Task with 特殊文字 & symbols @#$%";
-      const mockBidHistories = [
-        {
-          auctionId: "auction-special-chars",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: 1000,
-            createdAt: new Date("2024-01-17"),
-            endTime: new Date("2024-01-18"),
-            task: {
-              id: "task-special-chars",
-              task: specialTaskName,
-              status: TaskStatus.AUCTION_ACTIVE,
-            },
-          },
-        },
-      ];
-
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result[0].taskName).toBe(specialTaskName);
-    });
-
-    test("should handle date edge cases", async () => {
-      // Arrange
-      const futureDate = new Date("2030-01-01");
-      const pastDate = new Date("2020-01-01");
-      const mockBidHistories = [
-        {
-          auctionId: "auction-date-edge",
-          status: BidStatus.BIDDING,
-          auction: {
-            currentHighestBid: 1000,
-            createdAt: pastDate,
-            endTime: futureDate,
-            task: {
-              id: "task-date-edge",
-              task: "Date Edge Task",
-              status: TaskStatus.AUCTION_ACTIVE,
-            },
-          },
-        },
-      ];
-
-      prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
-
-      // Act
-      const result = await getUserBidHistories(testPage, testUserId, testItemPerPage);
-
-      // Assert
-      expect(result[0].lastBidAt).toStrictEqual(pastDate);
-      expect(result[0].auctionEndTime).toStrictEqual(futureDate);
+        // Assert
+        expect(prismaMock.bidHistory.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            skip: expectedSkip,
+            take: itemPerPage,
+          }),
+        );
+      });
     });
   });
 
+  test("should handle database error", async () => {
+    // Arrange
+    const databaseError = new Error("Database connection failed");
+    prismaMock.bidHistory.findMany.mockRejectedValue(databaseError);
+
+    // Act & Assert
+    await expect(getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage)).rejects.toThrow(
+      "Database connection failed",
+    );
+  });
+
   describe("getUserBidHistoriesCount", () => {
-    test("should return count of bid histories successfully", async () => {
-      // Arrange
-      const mockCountResult = [{ count: BigInt(5) }];
-      prismaMock.$queryRaw.mockResolvedValue(mockCountResult);
+    describe("正常系", () => {
+      test.each([
+        { count: 0, description: "no bid histories" },
+        { count: 1, description: "single bid history" },
+        { count: 5, description: "multiple bid histories" },
+        { count: 999, description: "large count" },
+        { count: Number.MAX_SAFE_INTEGER, description: "maximum safe integer" },
+      ])("should return count correctly when $description", async ({ count }) => {
+        // Arrange
+        prismaMock.$queryRaw.mockResolvedValue([{ count: BigInt(count) }]);
 
-      // Act
-      const result = await getUserBidHistoriesCount(testUserId);
+        // Act
+        const result = await getUserBidHistoriesCount(TEST_CONSTANTS.userId);
 
-      // Assert
-      expect(result).toBe(5);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledWith(expect.anything(), testUserId);
+        // Assert
+        expect(result).toBe(count);
+        expect(prismaMock.$queryRaw).toHaveBeenCalledWith(expect.anything(), TEST_CONSTANTS.userId);
+      });
     });
 
-    test("should return 0 when no bid histories", async () => {
-      // Arrange
-      const mockCountResult = [{ count: BigInt(0) }];
-      prismaMock.$queryRaw.mockResolvedValue(mockCountResult);
+    describe("異常系", () => {
+      test.each([
+        { userId: "", description: "empty string" },
+        { userId: null as unknown as string, description: "null" },
+        { userId: undefined as unknown as string, description: "undefined" },
+      ])("should throw error when userId is $description", async ({ userId }) => {
+        // Act & Assert
+        await expect(getUserBidHistoriesCount(userId)).rejects.toThrow("userId is required");
+      });
 
-      // Act
-      const result = await getUserBidHistoriesCount(testUserId);
+      test("should handle database error", async () => {
+        // Arrange
+        const databaseError = new Error("Database query failed");
+        prismaMock.$queryRaw.mockRejectedValue(databaseError);
 
-      // Assert
-      expect(result).toBe(0);
-    });
+        // Act & Assert
+        await expect(getUserBidHistoriesCount(TEST_CONSTANTS.userId)).rejects.toThrow("Database query failed");
+      });
 
-    test("should handle large count values correctly", async () => {
-      // Arrange
-      const mockCountResult = [{ count: BigInt(999) }];
-      prismaMock.$queryRaw.mockResolvedValue(mockCountResult);
+      test("should handle empty query result", async () => {
+        // Arrange
+        prismaMock.$queryRaw.mockResolvedValue([]);
 
-      // Act
-      const result = await getUserBidHistoriesCount(testUserId);
+        // Act & Assert
+        await expect(getUserBidHistoriesCount(TEST_CONSTANTS.userId)).rejects.toThrow("Invalid query result");
+      });
 
-      // Assert
-      expect(result).toBe(999);
-    });
+      test("should handle malformed query result", async () => {
+        // Arrange
+        prismaMock.$queryRaw.mockResolvedValue([{ wrongField: BigInt(5) }]);
 
-    // パラメータ検証のテスト
-    test("should throw error when userId is missing", async () => {
-      // Act & Assert
-      await expect(getUserBidHistoriesCount("")).rejects.toThrow("userId is required");
-    });
-
-    test("should throw error when userId is null", async () => {
-      // Act & Assert
-      await expect(getUserBidHistoriesCount(null as unknown as string)).rejects.toThrow("userId is required");
-    });
-
-    test("should throw error when userId is undefined", async () => {
-      // Act & Assert
-      await expect(getUserBidHistoriesCount(undefined as unknown as string)).rejects.toThrow("userId is required");
-    });
-
-    // データベースエラーのテスト
-    test("should handle database error", async () => {
-      // Arrange
-      const databaseError = new Error("Database query failed");
-      prismaMock.$queryRaw.mockRejectedValue(databaseError);
-
-      // Act & Assert
-      await expect(getUserBidHistoriesCount(testUserId)).rejects.toThrow("Database query failed");
-    });
-
-    // 境界値テスト
-    test("should handle very large count values", async () => {
-      // Arrange
-      const mockCountResult = [{ count: BigInt(Number.MAX_SAFE_INTEGER) }];
-      prismaMock.$queryRaw.mockResolvedValue(mockCountResult);
-
-      // Act
-      const result = await getUserBidHistoriesCount(testUserId);
-
-      // Assert
-      expect(result).toBe(Number.MAX_SAFE_INTEGER);
-    });
-
-    test("should handle count value of 1", async () => {
-      // Arrange
-      const mockCountResult = [{ count: BigInt(1) }];
-      prismaMock.$queryRaw.mockResolvedValue(mockCountResult);
-
-      // Act
-      const result = await getUserBidHistoriesCount(testUserId);
-
-      // Assert
-      expect(result).toBe(1);
-    });
-
-    test("should handle empty query result", async () => {
-      // Arrange
-      prismaMock.$queryRaw.mockResolvedValue([]);
-
-      // Act & Assert
-      // 現在の実装では空の配列の場合、TypeError: Cannot read property 'count' of undefinedが発生する
-      await expect(getUserBidHistoriesCount(testUserId)).rejects.toThrow();
-    });
-
-    test("should handle malformed query result", async () => {
-      // Arrange
-      prismaMock.$queryRaw.mockResolvedValue([{ wrongField: BigInt(5) }]);
-
-      // Act
-      const result = await getUserBidHistoriesCount(testUserId);
-
-      // Assert
-      // 現在の実装では count フィールドが存在しない場合、Number(undefined) で NaN が返される
-      expect(result).toBeNaN();
+        // Act & Assert
+        await expect(getUserBidHistoriesCount(TEST_CONSTANTS.userId)).rejects.toThrow("Invalid query result");
+      });
     });
   });
 });

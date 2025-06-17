@@ -115,6 +115,17 @@ export async function getUserBidHistoriesCount(userId: string): Promise<number> 
     FROM "bidHistory"
     WHERE "userId" = ${userId}
   `;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データがない場合はエラーを返却
+   * - !result[0]?.countと記載すると、0でもエラーになるため、明示的にundefinedかnullを指定
+   * 単体テストで実装が変わったことを検知するために、↓のif文を入れる
+   */
+  if (!Array.isArray(result) || result[0]?.count === undefined || result[0]?.count === null) {
+    throw new Error("Invalid query result");
+  }
   const count = Number(result[0].count);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -122,7 +133,7 @@ export async function getUserBidHistoriesCount(userId: string): Promise<number> 
   /**
    * データがない場合は空配列を返却
    */
-  if (count === 0) {
+  if (!count || count === 0) {
     return 0;
   }
 

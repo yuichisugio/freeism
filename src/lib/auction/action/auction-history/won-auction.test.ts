@@ -1,14 +1,58 @@
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { ReviewPosition, TaskStatus } from "@prisma/client";
+import { Factory } from "fishery";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getUserWonAuctions, getUserWonAuctionsCount, getUserWonAuctionsWhereCondition } from "./won-auction";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+// テスト用の定数
 const testUserId = "test-user-id";
 const testPage = 1;
 const testItemPerPage = 10;
+
+// デフォルトStatusの配列（テストで使用）
+const DEFAULT_STATUS_ARRAY = [
+  TaskStatus.AUCTION_ENDED,
+  TaskStatus.SUPPLIER_DONE,
+  TaskStatus.POINTS_DEPOSITED,
+  TaskStatus.TASK_COMPLETED,
+  TaskStatus.FIXED_EVALUATED,
+  TaskStatus.POINTS_AWARDED,
+];
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// テスト用ファクトリー
+const mockAuctionDataFactory = Factory.define<{
+  id: string;
+  endTime: Date;
+  currentHighestBid: number;
+  createdAt: Date;
+  task: {
+    id: string;
+    task: string;
+    status: TaskStatus;
+    deliveryMethod: string;
+  };
+  reviews: Array<{ rating: number }>;
+}>(({ sequence, params }) => ({
+  id: params.id ?? `auction-${sequence}`,
+  endTime: params.endTime ?? new Date("2024-01-02"),
+  currentHighestBid: params.currentHighestBid ?? 1500,
+  createdAt: params.createdAt ?? new Date("2024-01-01"),
+  task: {
+    id: `task-${sequence}`,
+    task: "Test Won Task 1",
+    status: TaskStatus.AUCTION_ENDED,
+    deliveryMethod: "online",
+    ...params.task,
+  },
+  reviews: params.reviews ?? [],
+}));
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 beforeEach(() => {
   // コンソールログをモック化（テスト出力をクリーンに保つ）
@@ -21,24 +65,20 @@ beforeEach(() => {
 
 describe("won-auction", () => {
   describe("getUserWonAuctionsWhereCondition", () => {
-    test("should return default status array when wonStatus is not specified", async () => {
+    // デフォルトStatusを返すケースのParameterized Test
+    test.each([
+      { case: "undefined", wonStatus: undefined },
+      { case: "invalid value", wonStatus: "invalid-status" },
+      { case: "empty string", wonStatus: "" },
+    ])("should return default status array when wonStatus is $case", async ({ wonStatus }) => {
       // Act
-      const result = await getUserWonAuctionsWhereCondition(testUserId);
+      const result = await getUserWonAuctionsWhereCondition(testUserId, wonStatus);
 
       // Assert
       expect(result).toStrictEqual({
         winnerId: testUserId,
         task: {
-          status: {
-            in: [
-              TaskStatus.AUCTION_ENDED,
-              TaskStatus.SUPPLIER_DONE,
-              TaskStatus.POINTS_DEPOSITED,
-              TaskStatus.TASK_COMPLETED,
-              TaskStatus.FIXED_EVALUATED,
-              TaskStatus.POINTS_AWARDED,
-            ],
-          },
+          status: { in: DEFAULT_STATUS_ARRAY },
         },
       });
     });
@@ -72,69 +112,15 @@ describe("won-auction", () => {
         },
       });
     });
-
-    test("should return default status array when wonStatus is invalid value", async () => {
-      // Act
-      const result = await getUserWonAuctionsWhereCondition(testUserId, "invalid-status");
-
-      // Assert
-      expect(result).toStrictEqual({
-        winnerId: testUserId,
-        task: {
-          status: {
-            in: [
-              TaskStatus.AUCTION_ENDED,
-              TaskStatus.SUPPLIER_DONE,
-              TaskStatus.POINTS_DEPOSITED,
-              TaskStatus.TASK_COMPLETED,
-              TaskStatus.FIXED_EVALUATED,
-              TaskStatus.POINTS_AWARDED,
-            ],
-          },
-        },
-      });
-    });
-
-    test("should handle empty string wonStatus", async () => {
-      // Act
-      const result = await getUserWonAuctionsWhereCondition(testUserId, "");
-
-      // Assert
-      expect(result).toStrictEqual({
-        winnerId: testUserId,
-        task: {
-          status: {
-            in: [
-              TaskStatus.AUCTION_ENDED,
-              TaskStatus.SUPPLIER_DONE,
-              TaskStatus.POINTS_DEPOSITED,
-              TaskStatus.TASK_COMPLETED,
-              TaskStatus.FIXED_EVALUATED,
-              TaskStatus.POINTS_AWARDED,
-            ],
-          },
-        },
-      });
-    });
   });
 
   describe("getUserWonAuctions", () => {
     test("should return won auctions successfully with rating calculation", async () => {
       // Arrange
       const mockWonAuctions = [
-        {
-          id: "auction-1",
-          endTime: new Date("2024-01-02"),
-          currentHighestBid: 1500,
-          createdAt: new Date("2024-01-01"),
-          task: {
-            id: "task-1",
-            task: "Test Won Task 1",
-            status: TaskStatus.AUCTION_ENDED,
-            deliveryMethod: "online",
-          },
+        mockAuctionDataFactory.build({
           reviews: [{ rating: 4 }, { rating: 5 }],
-        },
+        }),
       ];
 
       prismaMock.auction.findMany.mockResolvedValue(mockWonAuctions as never);
@@ -145,32 +131,21 @@ describe("won-auction", () => {
       // Assert
       expect(result).toHaveLength(1);
       expect(result[0]).toStrictEqual({
-        auctionId: "auction-1",
-        currentHighestBid: 1500,
-        auctionEndTime: new Date("2024-01-02"),
-        auctionCreatedAt: new Date("2024-01-01"),
-        taskId: "task-1",
-        taskName: "Test Won Task 1",
-        taskStatus: TaskStatus.AUCTION_ENDED,
-        deliveryMethod: "online",
+        auctionId: mockWonAuctions[0].id,
+        currentHighestBid: mockWonAuctions[0].currentHighestBid,
+        auctionEndTime: mockWonAuctions[0].endTime,
+        auctionCreatedAt: mockWonAuctions[0].createdAt,
+        taskId: mockWonAuctions[0].task.id,
+        taskName: mockWonAuctions[0].task.task,
+        taskStatus: mockWonAuctions[0].task.status,
+        deliveryMethod: mockWonAuctions[0].task.deliveryMethod,
         rating: 4.5, // (4 + 5) / 2
       });
 
       expect(prismaMock.auction.findMany).toHaveBeenCalledWith({
         where: {
           winnerId: testUserId,
-          task: {
-            status: {
-              in: [
-                TaskStatus.AUCTION_ENDED,
-                TaskStatus.SUPPLIER_DONE,
-                TaskStatus.POINTS_DEPOSITED,
-                TaskStatus.TASK_COMPLETED,
-                TaskStatus.FIXED_EVALUATED,
-                TaskStatus.POINTS_AWARDED,
-              ],
-            },
-          },
+          task: { status: { in: DEFAULT_STATUS_ARRAY } },
         },
         orderBy: { endTime: "desc" },
         skip: 0,
@@ -201,22 +176,7 @@ describe("won-auction", () => {
 
     test("should return won auctions with null rating when no reviews", async () => {
       // Arrange
-      const mockWonAuctions = [
-        {
-          id: "auction-1",
-          endTime: new Date("2024-01-02"),
-          currentHighestBid: 1500,
-          createdAt: new Date("2024-01-01"),
-          task: {
-            id: "task-1",
-            task: "Test Won Task 1",
-            status: TaskStatus.AUCTION_ENDED,
-            deliveryMethod: "online",
-          },
-          reviews: [],
-        },
-      ];
-
+      const mockWonAuctions = [mockAuctionDataFactory.build({ reviews: [] })];
       prismaMock.auction.findMany.mockResolvedValue(mockWonAuctions as never);
 
       // Act
@@ -277,29 +237,16 @@ describe("won-auction", () => {
       );
     });
 
-    test("should throw error when userId is empty", async () => {
+    // エラーケースのParameterized Test
+    test.each([
+      { case: "userId is empty", page: testPage, userId: "", itemPerPage: testItemPerPage },
+      { case: "userId is undefined", page: testPage, userId: undefined as never, itemPerPage: testItemPerPage },
+      { case: "itemPerPage is 0", page: testPage, userId: testUserId, itemPerPage: 0 },
+      { case: "page is 0", page: 0, userId: testUserId, itemPerPage: testItemPerPage },
+      { case: "all required parameters are missing", page: 0, userId: "", itemPerPage: 0 },
+    ])("should throw error when $case", async ({ page, userId, itemPerPage }) => {
       // Act & Assert
-      await expect(getUserWonAuctions(testPage, "", testItemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
-
-    test("should throw error when userId is undefined", async () => {
-      // Act & Assert
-      await expect(getUserWonAuctions(testPage, undefined as never, testItemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
-
-    test("should throw error when itemPerPage is 0", async () => {
-      // Act & Assert
-      await expect(getUserWonAuctions(testPage, testUserId, 0)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
-
-    test("should throw error when page is 0", async () => {
-      // Act & Assert
-      await expect(getUserWonAuctions(0, testUserId, testItemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
-    });
-
-    test("should throw error when all required parameters are missing", async () => {
-      // Act & Assert
-      await expect(getUserWonAuctions(0, "", 0)).rejects.toThrow("userId, itemPerPage, and page are required");
+      await expect(getUserWonAuctions(page, userId, itemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
     });
   });
 
@@ -316,18 +263,7 @@ describe("won-auction", () => {
       expect(prismaMock.auction.count).toHaveBeenCalledWith({
         where: {
           winnerId: testUserId,
-          task: {
-            status: {
-              in: [
-                TaskStatus.AUCTION_ENDED,
-                TaskStatus.SUPPLIER_DONE,
-                TaskStatus.POINTS_DEPOSITED,
-                TaskStatus.TASK_COMPLETED,
-                TaskStatus.FIXED_EVALUATED,
-                TaskStatus.POINTS_AWARDED,
-              ],
-            },
-          },
+          task: { status: { in: DEFAULT_STATUS_ARRAY } },
         },
       });
     });
@@ -343,61 +279,50 @@ describe("won-auction", () => {
       expect(result).toBe(0);
     });
 
-    test("should handle wonStatus filter correctly", async () => {
+    test.each([
+      {
+        case: "completed status filter",
+        wonStatus: "completed",
+        expectedCount: 3,
+        expectedStatusArray: [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
+      },
+      {
+        case: "incomplete status filter",
+        wonStatus: "incomplete",
+        expectedCount: 2,
+        expectedStatusArray: [
+          TaskStatus.PENDING,
+          TaskStatus.AUCTION_ACTIVE,
+          TaskStatus.AUCTION_ENDED,
+          TaskStatus.POINTS_DEPOSITED,
+          TaskStatus.SUPPLIER_DONE,
+        ],
+      },
+    ])("should handle $case correctly", async ({ wonStatus, expectedCount, expectedStatusArray }) => {
       // Arrange
-      prismaMock.auction.count.mockResolvedValue(3);
+      prismaMock.auction.count.mockResolvedValue(expectedCount);
 
       // Act
-      const result = await getUserWonAuctionsCount(testUserId, "completed");
+      const result = await getUserWonAuctionsCount(testUserId, wonStatus);
 
       // Assert
-      expect(result).toBe(3);
+      expect(result).toBe(expectedCount);
       expect(prismaMock.auction.count).toHaveBeenCalledWith({
         where: {
           winnerId: testUserId,
-          task: {
-            status: {
-              in: [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
-            },
-          },
+          task: { status: { in: expectedStatusArray } },
         },
       });
     });
 
-    test("should handle incomplete wonStatus filter", async () => {
-      // Arrange
-      prismaMock.auction.count.mockResolvedValue(2);
-
-      // Act
-      const result = await getUserWonAuctionsCount(testUserId, "incomplete");
-
-      // Assert
-      expect(result).toBe(2);
-      expect(prismaMock.auction.count).toHaveBeenCalledWith({
-        where: {
-          winnerId: testUserId,
-          task: {
-            status: {
-              in: [TaskStatus.PENDING, TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED, TaskStatus.SUPPLIER_DONE],
-            },
-          },
-        },
-      });
-    });
-
-    test("should throw error when userId is empty", async () => {
+    // エラーケースのParameterized Test
+    test.each([
+      { case: "userId is empty", userId: "" },
+      { case: "userId is undefined", userId: undefined as never },
+      { case: "userId is null", userId: null as never },
+    ])("should throw error when $case", async ({ userId }) => {
       // Act & Assert
-      await expect(getUserWonAuctionsCount("")).rejects.toThrow("userId is required");
-    });
-
-    test("should throw error when userId is undefined", async () => {
-      // Act & Assert
-      await expect(getUserWonAuctionsCount(undefined as never)).rejects.toThrow("userId is required");
-    });
-
-    test("should throw error when userId is null", async () => {
-      // Act & Assert
-      await expect(getUserWonAuctionsCount(null as never)).rejects.toThrow("userId is required");
+      await expect(getUserWonAuctionsCount(userId)).rejects.toThrow("userId is required");
     });
   });
 });
