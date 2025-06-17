@@ -1,3 +1,4 @@
+import type { AuctionWithDetails } from "@/types/auction-types";
 import type { Prisma } from "@prisma/client";
 import { getCachedAuctionByAuctionId } from "@/lib/auction/action/cache/cache-auction-retrieve";
 import { getAuctionUpdateSelect } from "@/lib/constants";
@@ -379,7 +380,7 @@ describe("auction-retrieve", () => {
 
       test.each(["", null, undefined])("should return null for invalid auctionId values", async (invalidId) => {
         // Arrange
-        mockGetCachedAuctionByAuctionId.mockResolvedValue(null);
+        mockGetCachedAuctionByAuctionId.mockResolvedValue(null as unknown as AuctionWithDetails);
 
         // Act
         const result = await getAuctionByAuctionId(invalidId as unknown as string);

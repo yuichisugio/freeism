@@ -194,6 +194,7 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
     queryFn: () => getDisplayUserInfo(auctionId, reviewPosition),
     staleTime: Infinity,
     gcTime: Infinity,
+    enabled: !!auctionId && !!reviewPosition,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

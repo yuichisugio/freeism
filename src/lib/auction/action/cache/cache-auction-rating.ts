@@ -25,7 +25,7 @@ type Role = "creator" | "reporter" | "executor" | "winner";
 /**
  * ユーザー情報のオブジェクト
  */
-type UserRole = { role: Role; user: UserWithSettings };
+type UserRoleAndUserId = { role: Role; user: UserWithSettings };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -45,8 +45,10 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
 
   /**
    * バリデーション
+   * ReviewPosition型かどうかもチェック
    */
-  if (!auctionId || !reviewPosition) {
+  if (!auctionId || !reviewPosition || !Object.values(ReviewPosition).includes(reviewPosition)) {
+    console.error("src/lib/auction/action/cache/cache-auction-rating.ts_getCachedDisplayUserInfo_error_invalid_auctionId_or_reviewPosition");
     throw new Error("Invalid auctionId or reviewPosition");
   }
 
@@ -55,8 +57,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   /**
    * 0. 取得するデータのselect条件
    */
-  // 共通のユーザー選択条件
-  const userSelectCondition = {
+  const userSelectCondition: Prisma.UserSelect = {
     id: true,
     image: true,
     settings: { select: { username: true } },
@@ -128,7 +129,8 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   /**
    * 3. Creator, Reporter, ExecutorのユーザーIDリストを作成
    */
-  const users: UserRole[] = [];
+  // roleとuserIdを要素ごとに持つ配列を作成
+  const userRoleAndUserIdList: UserRoleAndUserId[] = [];
 
   if (reviewPosition === ReviewPosition.BUYER_TO_SELLER) {
     const task = auction?.task as Partial<{
@@ -137,13 +139,13 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
       executors: { user: UserWithSettings | null }[];
     }>;
     if (task?.creator) {
-      users.push({ role: "creator", user: task.creator });
+      userRoleAndUserIdList.push({ role: "creator", user: task.creator });
     }
     task?.reporters?.forEach((r) => {
-      if (r.user) users.push({ role: "reporter", user: r.user });
+      if (r.user) userRoleAndUserIdList.push({ role: "reporter", user: r.user });
     });
     task?.executors?.forEach((e) => {
-      if (e.user) users.push({ role: "executor", user: e.user });
+      if (e.user) userRoleAndUserIdList.push({ role: "executor", user: e.user });
     });
   }
 
@@ -152,21 +154,22 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
   /**
    * 4. 重複排除（同じユーザーが複数ロールを持つ場合）
    */
-  const userMap = new Map<string, { roles: Set<Role>; user: UserWithSettings }>();
+  // userIdをキーにして、第二引数に、rolesキーとuser情報のキーがあるオブジェクト
+  const nonDuplicateUserMap = new Map<string, { roles: Set<Role>; user: UserWithSettings }>();
 
   // BUYER_TO_SELLER の場合は Creator, Reporter, Executorを取得
   if (reviewPosition === ReviewPosition.BUYER_TO_SELLER) {
-    users.forEach(({ role, user }) => {
-      // userIdがまだない場合は、userIdをキーにして、rolesとして、空のsetを追加して、userを追加
-      if (!userMap.has(user.id)) userMap.set(user.id, { roles: new Set<Role>(), user });
+    userRoleAndUserIdList.forEach(({ role, user }) => {
+      // userIdがnonDuplicateUserMapに未登録の場合は、userIdをキーにして、rolesとして、空のsetを追加して、userを追加
+      if (!nonDuplicateUserMap.has(user.id)) nonDuplicateUserMap.set(user.id, { roles: new Set<Role>(), user });
       // userIdがすでにある場合は、rolesにroleを追加
-      userMap.get(user.id)!.roles.add(role);
+      nonDuplicateUserMap.get(user.id)!.roles.add(role);
     });
   }
 
   // SELLER_TO_BUYER の場合は winner のみ
   if (reviewPosition === ReviewPosition.SELLER_TO_BUYER && auction?.winner) {
-    userMap.set(auction.winner.id, { roles: new Set<Role>(["winner"]), user: auction.winner });
+    nonDuplicateUserMap.set(auction.winner.id, { roles: new Set<Role>(["winner"]), user: auction.winner });
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -175,7 +178,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
    * 5. 各ユーザーごとに平均rating・hasReviewedを取得
    */
   // .keys()でuserIdのみの配列を作成
-  const userIds = Array.from(userMap.keys());
+  const userIds = Array.from(nonDuplicateUserMap.keys());
   // 表示するユーザーがいない場合（reviewPositionがSELLER_TO_BUYERの場合は、まだ落札者がいない場合）は空配列を返す
   if (userIds.length === 0) return [];
 
@@ -221,7 +224,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
    * 8. DisplayUserInfo型で返却
    */
   const returnValue = userIds.map((uid) => {
-    const { user, roles } = userMap.get(uid)!;
+    const { user, roles } = nonDuplicateUserMap.get(uid)!;
     return {
       userId: user.id,
       appUserName: (user.settings as { username: string } | null)?.username ?? "未設定",
@@ -229,7 +232,7 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
       creatorId: roles.has("creator") ? user.id : null,
       reporterId: roles.has("reporter") ? user.id : null,
       executorId: roles.has("executor") ? user.id : null,
-      rating: ratingMap.get(uid) ?? 0,
+      rating: ratingMap.get(uid)!,
       ratingCount: reviews.filter((r) => r.revieweeId === uid).length,
       hasReviewed: reviewedSet.has(uid),
       auctionId,
