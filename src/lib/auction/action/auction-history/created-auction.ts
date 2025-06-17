@@ -18,7 +18,7 @@ export async function getUserCreatedAuctionsWhereCondition(
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * パラメータが不足している場合はエラーを返却
+   * パラメータの型と値の検証
    */
   if (!userId || !filter || !filterCondition) {
     throw new Error("userId, filter, and filterCondition are required");

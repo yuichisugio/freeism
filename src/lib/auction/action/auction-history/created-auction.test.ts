@@ -2,7 +2,7 @@ import type { AuctionCreatedTabFilter, FilterCondition } from "@/types/auction-t
 import type { Prisma } from "@prisma/client";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 
 import { getUserCreatedAuctions, getUserCreatedAuctionsCount, getUserCreatedAuctionsWhereCondition } from "./created-auction";
 
@@ -122,49 +122,62 @@ const createStatusCondition = (statusFilters: TaskStatus[]) => ({
   },
 });
 
-beforeEach(() => {
-  // コンソールログをモック化（テスト出力をクリーンに保つ）
-  vi.spyOn(console, "log").mockImplementation(() => {
-    // テスト中のコンソール出力を抑制
-  });
-});
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("created-auction", () => {
   describe("getUserCreatedAuctionsWhereCondition", () => {
-    describe("パラメータ検証", () => {
-      test("should throw error when userId is missing", async () => {
-        await expect(getUserCreatedAuctionsWhereCondition("", [], "and")).rejects.toThrow(ERROR_MESSAGES.WHERE_CONDITION);
-      });
-
-      test("should throw error when filter is null", async () => {
+    describe("異常系", () => {
+      test.each([
+        { userId: "", filter: "creator", filterCondition: "and", description: "userId is empty" },
+        { userId: null, filter: "creator", filterCondition: "and", description: "userId is null" },
+        { userId: undefined, filter: "creator", filterCondition: "and", description: "userId is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: null, filterCondition: "and", description: "filter is null" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: undefined, filterCondition: "and", description: "filter is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: ["creator"], filterCondition: "", description: "filterCondition is empty" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: ["creator"], filterCondition: null, description: "filterCondition is null" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: ["creator"], filterCondition: undefined, description: "filterCondition is undefined" },
+      ])("should throw error when $description", async ({ userId, filter, filterCondition }) => {
         await expect(
-          getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, null as unknown as AuctionCreatedTabFilter[], "and"),
+          getUserCreatedAuctionsWhereCondition(
+            userId as unknown as string,
+            filter as unknown as AuctionCreatedTabFilter[],
+            filterCondition as unknown as FilterCondition,
+          ),
         ).rejects.toThrow(ERROR_MESSAGES.WHERE_CONDITION);
-      });
-
-      test("should throw error when filterCondition is null", async () => {
-        await expect(getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, [], null as unknown as FilterCondition)).rejects.toThrow(
-          ERROR_MESSAGES.WHERE_CONDITION,
-        );
       });
     });
 
-    describe("フィルター条件の組み立て", () => {
-      test("should return default role condition when filter is empty", async () => {
-        const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, [], "and");
-        expect(result).toStrictEqual(createDefaultRoleCondition(TEST_CONSTANTS.USER_ID));
-      });
-
+    describe("正常系", () => {
       describe("ロールフィルター", () => {
-        const roleTestCases = [
+        test.each([
           {
-            description: "creator filter with AND condition",
+            description: "no filter parameter to default role condition",
+            filters: [] as AuctionCreatedTabFilter[],
+            condition: "and" as FilterCondition,
+            expected: {
+              task: {
+                OR: [
+                  { creatorId: TEST_CONSTANTS.USER_ID },
+                  { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                  { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                ],
+              },
+            },
+          },
+          {
+            description: "single role filter with AND condition",
             filters: ["creator"] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
               task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] },
+            },
+          },
+          {
+            description: "single role filter with OR condition",
+            filters: ["creator"] as AuctionCreatedTabFilter[],
+            condition: "or" as FilterCondition,
+            expected: {
+              task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] },
             },
           },
           {
@@ -187,136 +200,164 @@ describe("created-auction", () => {
               },
             },
           },
-        ];
-
-        roleTestCases.forEach(({ description, filters, condition, expected }) => {
-          test(`should handle ${String(description)}`, async () => {
-            const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, filters, condition);
-            expect(result).toStrictEqual(expected);
-          });
+        ])("should handle $description", async ({ filters, condition, expected }) => {
+          const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, filters, condition);
+          expect(result).toStrictEqual(expected);
         });
       });
 
       describe("ステータスフィルター", () => {
-        const statusTestCases = [
+        test.each([
           {
-            status: "active" as AuctionCreatedTabFilter,
+            description: "active status filter",
+            status: ["active"] as AuctionCreatedTabFilter[],
             expectedStatuses: [TaskStatus.AUCTION_ACTIVE],
           },
           {
-            status: "ended" as AuctionCreatedTabFilter,
+            description: "ended status filter",
+            status: ["ended"] as AuctionCreatedTabFilter[],
             expectedStatuses: [TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED],
           },
           {
-            status: "pending" as AuctionCreatedTabFilter,
+            description: "pending status filter",
+            status: ["pending"] as AuctionCreatedTabFilter[],
             expectedStatuses: [TaskStatus.PENDING],
           },
           {
-            status: "supplier_done" as AuctionCreatedTabFilter,
+            description: "supplier_done status filter",
+            status: ["supplier_done"] as AuctionCreatedTabFilter[],
             expectedStatuses: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
           },
-        ];
-
-        statusTestCases.forEach(({ status, expectedStatuses }) => {
-          test(`should handle ${String(status)} status filter`, async () => {
-            const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, [status], "and");
-            expect(result).toStrictEqual({
-              AND: [createDefaultRoleCondition(TEST_CONSTANTS.USER_ID), createStatusCondition(expectedStatuses)],
-            });
+          {
+            description: "multiple status filters with AND condition",
+            status: ["active", "ended"] as AuctionCreatedTabFilter[],
+            expectedStatuses: [TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED],
+          },
+          {
+            description: "multiple status filters with OR condition",
+            status: ["active", "ended"] as AuctionCreatedTabFilter[],
+            expectedStatuses: [TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED],
+          },
+          {
+            description: "all status filters combined",
+            status: ["active", "ended", "pending", "supplier_done"] as AuctionCreatedTabFilter[],
+            expectedStatuses: [
+              TaskStatus.AUCTION_ACTIVE,
+              TaskStatus.AUCTION_ENDED,
+              TaskStatus.POINTS_DEPOSITED,
+              TaskStatus.PENDING,
+              TaskStatus.SUPPLIER_DONE,
+              TaskStatus.TASK_COMPLETED,
+              TaskStatus.FIXED_EVALUATED,
+              TaskStatus.POINTS_AWARDED,
+            ],
+          },
+        ])("should handle $description", async ({ status, expectedStatuses }) => {
+          const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, status, "and");
+          expect(result).toStrictEqual({
+            AND: [createDefaultRoleCondition(TEST_CONSTANTS.USER_ID), createStatusCondition(expectedStatuses)],
           });
         });
       });
 
-      describe("複合フィルター条件", () => {
-        test("should handle multiple status filters", async () => {
-          const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, ["active", "ended"], "and");
-          expect(result).toStrictEqual({
-            AND: [
-              createDefaultRoleCondition(TEST_CONSTANTS.USER_ID),
-              createStatusCondition([TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED]),
-            ],
-          });
-        });
-
-        test("should handle role and status filters with OR condition", async () => {
-          const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, ["creator", "active"], "or");
-          expect(result).toStrictEqual({
-            OR: [{ task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] } }, createStatusCondition([TaskStatus.AUCTION_ACTIVE])],
-          });
-        });
-
-        test("should handle all filter types", async () => {
-          const result = await getUserCreatedAuctionsWhereCondition(
-            TEST_CONSTANTS.USER_ID,
-            ["creator", "executor", "reporter", "active", "ended", "pending", "supplier_done"],
-            "and",
-          );
-          expect(result).toStrictEqual({
-            AND: [
-              {
-                task: {
-                  AND: [
-                    { creatorId: TEST_CONSTANTS.USER_ID },
-                    { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                    { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                  ],
+      describe("ロールとステータスの複合フィルター条件", () => {
+        test.each([
+          {
+            description: "role and status filters with AND condition",
+            filters: ["creator", "active"] as AuctionCreatedTabFilter[],
+            condition: "and" as FilterCondition,
+            expected: {
+              AND: [{ task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] } }, createStatusCondition([TaskStatus.AUCTION_ACTIVE])],
+            },
+          },
+          {
+            description: "role and status filters with OR condition",
+            filters: ["creator", "active"] as AuctionCreatedTabFilter[],
+            condition: "or" as FilterCondition,
+            expected: {
+              OR: [{ task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] } }, createStatusCondition([TaskStatus.AUCTION_ACTIVE])],
+            },
+          },
+          {
+            description: "multiple roles and statuses with AND condition",
+            filters: ["creator", "executor", "reporter", "active", "ended", "pending", "supplier_done"] as AuctionCreatedTabFilter[],
+            condition: "and" as FilterCondition,
+            expected: {
+              AND: [
+                {
+                  task: {
+                    AND: [
+                      { creatorId: TEST_CONSTANTS.USER_ID },
+                      { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                      { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                    ],
+                  },
                 },
-              },
-              createStatusCondition([
-                TaskStatus.AUCTION_ACTIVE,
-                TaskStatus.AUCTION_ENDED,
-                TaskStatus.POINTS_DEPOSITED,
-                TaskStatus.PENDING,
-                TaskStatus.SUPPLIER_DONE,
-                TaskStatus.TASK_COMPLETED,
-                TaskStatus.FIXED_EVALUATED,
-                TaskStatus.POINTS_AWARDED,
-              ]),
-            ],
-          });
+                createStatusCondition([
+                  TaskStatus.AUCTION_ACTIVE,
+                  TaskStatus.AUCTION_ENDED,
+                  TaskStatus.POINTS_DEPOSITED,
+                  TaskStatus.PENDING,
+                  TaskStatus.SUPPLIER_DONE,
+                  TaskStatus.TASK_COMPLETED,
+                  TaskStatus.FIXED_EVALUATED,
+                  TaskStatus.POINTS_AWARDED,
+                ]),
+              ],
+            },
+          },
+        ])("should handle $description", async ({ filters, condition, expected }) => {
+          const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, filters, condition);
+          expect(result).toStrictEqual(expected);
         });
       });
     });
   });
 
   describe("getUserCreatedAuctions", () => {
-    describe("パラメータ検証", () => {
-      test("should throw error when userId is missing", async () => {
-        await expect(getUserCreatedAuctions(TEST_CONSTANTS.PAGE, "", TEST_CONSTANTS.ITEM_PER_PAGE, [], "and")).rejects.toThrow(
-          ERROR_MESSAGES.AUCTIONS,
-        );
-      });
-
-      test("should throw error when itemPerPage is 0", async () => {
-        await expect(getUserCreatedAuctions(TEST_CONSTANTS.PAGE, TEST_CONSTANTS.USER_ID, 0, [], "and")).rejects.toThrow(ERROR_MESSAGES.AUCTIONS);
-      });
-
-      test("should throw error when page is 0", async () => {
-        await expect(getUserCreatedAuctions(0, TEST_CONSTANTS.USER_ID, TEST_CONSTANTS.ITEM_PER_PAGE, [], "and")).rejects.toThrow(
-          ERROR_MESSAGES.AUCTIONS,
-        );
-      });
-
-      test("should throw error when filter is null", async () => {
+    describe("異常系", () => {
+      test.each([
+        { userId: "", itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "userId is empty" },
+        { userId: null, itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "userId is null" },
+        { userId: undefined, itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "userId is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "itemPerPage is 0" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: null, page: 1, filter: [], filterCondition: "and", description: "itemPerPage is null" },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: undefined,
+          page: 1,
+          filter: [],
+          filterCondition: "and",
+          description: "itemPerPage is undefined",
+        },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 0, filter: [], filterCondition: "and", description: "page is 0" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: null, filter: [], filterCondition: "and", description: "page is null" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: undefined, filter: [], filterCondition: "and", description: "page is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: null, filterCondition: "and", description: "filter is null" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: undefined, filterCondition: "and", description: "filter is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: [], filterCondition: null, description: "filterCondition is null" },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: 1,
+          filter: [],
+          filterCondition: undefined,
+          description: "filterCondition is undefined",
+        },
+      ])("should throw error when $description", async ({ userId, itemPerPage, page, filter, filterCondition }) => {
         await expect(
           getUserCreatedAuctions(
-            TEST_CONSTANTS.PAGE,
-            TEST_CONSTANTS.USER_ID,
-            TEST_CONSTANTS.ITEM_PER_PAGE,
-            null as unknown as AuctionCreatedTabFilter[],
-            "and",
+            page as unknown as number,
+            userId as unknown as string,
+            itemPerPage as unknown as number,
+            filter as unknown as AuctionCreatedTabFilter[],
+            filterCondition as unknown as FilterCondition,
           ),
-        ).rejects.toThrow(ERROR_MESSAGES.AUCTIONS);
-      });
-
-      test("should throw error when filterCondition is null", async () => {
-        await expect(
-          getUserCreatedAuctions(TEST_CONSTANTS.PAGE, TEST_CONSTANTS.USER_ID, TEST_CONSTANTS.ITEM_PER_PAGE, [], null as unknown as FilterCondition),
         ).rejects.toThrow(ERROR_MESSAGES.AUCTIONS);
       });
     });
 
-    describe("データ取得と整形", () => {
+    describe("正常系", () => {
       test("should return empty array when no auctions found", async () => {
         prismaMock.auction.findMany.mockResolvedValue([]);
 
@@ -404,16 +445,20 @@ describe("created-auction", () => {
         });
       });
 
-      test("should handle pagination parameters correctly", async () => {
+      test.each([
+        { page: 1, itemPerPage: 5, skip: 0, take: 5, description: "page is 1" },
+        { page: 5, itemPerPage: 5, skip: 20, take: 5, description: "page is 2" },
+        { page: 3, itemPerPage: 10, skip: 20, take: 10, description: "page is 3" },
+      ])("should handle pagination parameters correctly", async ({ page, itemPerPage, skip, take }) => {
         prismaMock.auction.findMany.mockResolvedValue([]);
 
-        await getUserCreatedAuctions(2, TEST_CONSTANTS.USER_ID, 5, [], "and");
+        await getUserCreatedAuctions(page, TEST_CONSTANTS.USER_ID, itemPerPage, [], "and");
 
         expect(prismaMock.auction.findMany).toHaveBeenCalledWith({
           where: expect.any(Object) as Prisma.AuctionWhereInput,
           orderBy: { createdAt: "desc" },
-          skip: 5, // (page - 1) * itemPerPage = (2 - 1) * 5
-          take: 5,
+          skip,
+          take,
           select: expect.any(Object) as Prisma.AuctionSelect,
         });
       });
@@ -421,38 +466,36 @@ describe("created-auction", () => {
   });
 
   describe("getUserCreatedAuctionsCount", () => {
-    describe("パラメータ検証", () => {
-      test("should throw error when userId is missing", async () => {
-        await expect(getUserCreatedAuctionsCount("", [], "and")).rejects.toThrow(ERROR_MESSAGES.COUNT);
-      });
-
-      test("should throw error when filter is null", async () => {
-        await expect(getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, null as unknown as AuctionCreatedTabFilter[], "and")).rejects.toThrow(
-          ERROR_MESSAGES.COUNT,
-        );
-      });
-
-      test("should throw error when filterCondition is null", async () => {
-        await expect(getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, [], null as unknown as FilterCondition)).rejects.toThrow(
-          ERROR_MESSAGES.COUNT,
-        );
+    describe("異常系", () => {
+      test.each([
+        { userId: "", filter: [], filterCondition: "and", description: "userId is empty" },
+        { userId: null, filter: [], filterCondition: "and", description: "userId is null" },
+        { userId: undefined, filter: [], filterCondition: "and", description: "userId is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: null, filterCondition: "and", description: "filter is null" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: undefined, filterCondition: "and", description: "filter is undefined" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: [], filterCondition: null, description: "filterCondition is null" },
+        { userId: TEST_CONSTANTS.USER_ID, filter: [], filterCondition: undefined, description: "filterCondition is undefined" },
+      ])("should throw error when $description", async ({ userId, filter, filterCondition }) => {
+        await expect(
+          getUserCreatedAuctionsCount(
+            userId as unknown as string,
+            filter as unknown as AuctionCreatedTabFilter[],
+            filterCondition as unknown as FilterCondition,
+          ),
+        ).rejects.toThrow(ERROR_MESSAGES.COUNT);
       });
     });
 
-    describe("件数取得", () => {
-      const countTestCases = [
+    describe("正常系", () => {
+      test.each([
         { count: 0, description: "no auctions found" },
         { count: 15, description: "auctions exist" },
-      ];
+      ])("should return $count when $description", async ({ count }) => {
+        prismaMock.auction.count.mockResolvedValue(count as unknown as number);
 
-      countTestCases.forEach(({ count, description }) => {
-        test(`should return ${String(count)} when ${String(description)}`, async () => {
-          prismaMock.auction.count.mockResolvedValue(count);
+        const result = await getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, [], "and");
 
-          const result = await getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, [], "and");
-
-          expect(result).toBe(count);
-        });
+        expect(result).toBe(count);
       });
 
       describe("フィルター条件での件数取得", () => {
