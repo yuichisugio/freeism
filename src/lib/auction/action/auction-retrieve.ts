@@ -87,7 +87,7 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
  * @param auctionId オークションID
  * @returns オークション情報
  */
-export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails | null> {
+export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails> {
   return await getCachedAuctionByAuctionId(auctionId);
 }
 
