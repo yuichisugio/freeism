@@ -52,9 +52,7 @@ type RawAuctionData = {
 export const cachedGetAuctionListingsAndCount = cache(
   async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
     try {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-      // buildRawQueryComponents のロジックをここに展開
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * 引数を分解 (buildRawQueryComponents より)
@@ -62,12 +60,16 @@ export const cachedGetAuctionListingsAndCount = cache(
       const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, statusConditionJoinType, searchQuery } =
         listingsConditions;
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       /**
        * パラメータとWHERE句を初期化 (buildRawQueryComponents より)
        */
       const whereClauses: Prisma.Sql[] = [];
       let ftsCondition: Prisma.Sql = Prisma.empty;
       const keywords: string[] = [];
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * ユーザーが参加しているグループIDを取得 (buildRawQueryComponents より)
@@ -78,6 +80,8 @@ export const cachedGetAuctionListingsAndCount = cache(
       });
       const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       /**
        * ユーザーが参加しているグループがない場合 (buildRawQueryComponents より)
        */
@@ -86,6 +90,8 @@ export const cachedGetAuctionListingsAndCount = cache(
         // この関数自体が早期リターンするため、以降の処理はスキップされる
         return { listings: [], count: 0 };
       }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * 全文検索条件 (searchQuery がある場合) (buildRawQueryComponents より)
@@ -99,10 +105,14 @@ export const cachedGetAuctionListingsAndCount = cache(
         keywords.push(...searchQuery.trim().split(/\s+/).filter(Boolean));
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       /**
        * 基本的なWHERE条件 (buildRawQueryComponents より)
        */
       whereClauses.push(Prisma.sql`a."group_id" = ANY(${userGroupIds}::text[])`);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * カテゴリー (buildRawQueryComponents より)
@@ -114,6 +124,8 @@ export const cachedGetAuctionListingsAndCount = cache(
           whereClauses.push(Prisma.sql`(${Prisma.join(catClauses, " OR ")})`);
         }
       }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * ステータス (buildRawQueryComponents より)
@@ -178,6 +190,8 @@ export const cachedGetAuctionListingsAndCount = cache(
         }
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       /**
        * 入札額 (buildRawQueryComponents より)
        */
@@ -187,6 +201,8 @@ export const cachedGetAuctionListingsAndCount = cache(
       if (maxBid !== null && maxBid !== undefined && maxBid !== 0) {
         whereClauses.push(Prisma.sql`a."current_highest_bid" <= ${maxBid}`);
       }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * 残り時間 (buildRawQueryComponents より)
@@ -201,6 +217,8 @@ export const cachedGetAuctionListingsAndCount = cache(
         whereClauses.push(Prisma.sql`a."end_time" <= ${maxEndTime}`);
       }
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
       /**
        * グループID (URLパラメータで指定された場合) (buildRawQueryComponents より)
        */
@@ -213,17 +231,20 @@ export const cachedGetAuctionListingsAndCount = cache(
         }
       }
 
-      // ユーザーが参加可能なグループがなく、かつ特定のグループID指定で絞り込まれた結果、表示できるオークションがない場合
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * ユーザーが参加可能なグループがなく、かつ特定のグループID指定で絞り込まれた結果、表示できるオークションがない場合
+       */
       if (whereClauses.some((c) => c.sql === "1 = 0")) {
         return { listings: [], count: 0 };
       }
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-      // buildRawQueryComponents のロジック展開終了
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // ---------------------------------------------------------------------------------
-      // オークション一覧取得ロジック (cachedGetAuctionListings から抜粋・調整)
-      // ---------------------------------------------------------------------------------
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * オークション一覧取得ロジック (cachedGetAuctionListings から抜粋・調整)
+       */
       const { sort, page } = listingsConditions; // searchQuery は上で展開済み
 
       let ftsSelectSQL: Prisma.Sql = Prisma.empty;

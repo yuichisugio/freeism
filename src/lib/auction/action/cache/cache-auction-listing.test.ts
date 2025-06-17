@@ -5,20 +5,31 @@ import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { GetAuctionListingsParams } from "./cache-auction-listing";
-// テスト対象の関数をインポート
 import { cachedGetAuctionListingsAndCount } from "./cache-auction-listing";
 
-// 各テスト前にモックをリセット
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 各テスト前にモックをリセット
+ */
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// テストデータの定義
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テストデータの定義
+ */
 const testUserId = "test-user-id";
 const testGroupId = "test-group-id";
 const testAuctionId = "test-auction-id";
 
-// 共通のテストデータ
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通のテストデータ
+ */
 const mockListingsConditions: AuctionListingsConditions = {
   categories: ["プログラミング"],
   status: ["not_ended"],
@@ -33,472 +44,522 @@ const mockListingsConditions: AuctionListingsConditions = {
   page: 1,
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通のモックデータを生成するヘルパー関数
+ */
+const createMockRawAuctionData = (overrides = {}) => ({
+  id: testAuctionId,
+  current_highest_bid: 500,
+  end_time: new Date("2024-12-31T23:59:59Z"),
+  start_time: new Date("2024-01-01T00:00:00Z"),
+  status: TaskStatus.PENDING,
+  created_at: new Date("2024-01-01T00:00:00Z"),
+  task: "テストタスク",
+  detail: "テストタスクの詳細",
+  image_url: "https://example.com/image.jpg",
+  category: "プログラミング",
+  group_id: testGroupId,
+  group_name: "テストグループ",
+  bids_count: BigInt(5),
+  is_watched: false,
+  executors_json: JSON.stringify([
+    {
+      id: "executor-1",
+      user_id: "executor-user-1",
+      user_image: "https://example.com/executor.jpg",
+      username: "実行者1",
+      rating: 4.5,
+    },
+  ]),
+  score: 0.95,
+  task_highlighted: "<mark>テスト</mark>タスク",
+  detail_highlighted: "<mark>テスト</mark>タスクの詳細",
+  _dummy: false,
+  ...overrides,
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通のパラメータを生成するヘルパー関数
+ */
+const createMockParams = (conditionsOverrides = {}, userId = testUserId): GetAuctionListingsParams => ({
+  listingsConditions: { ...mockListingsConditions, ...conditionsOverrides },
+  userId,
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 共通のモックセットアップを行うヘルパー関数
+ */
+const setupMockWithGroupMembership = (groupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })]) => {
+  prismaMock.groupMembership.findMany.mockResolvedValue(groupMemberships);
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 成功ケースの共通モックセットアップ
+ */
+const setupSuccessfulMocks = (auctionData = [createMockRawAuctionData()], count = BigInt(1)) => {
+  const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+  const mockCountResult = [{ count }];
+
+  setupMockWithGroupMembership(mockGroupMemberships);
+  prismaMock.$queryRaw
+    .mockResolvedValueOnce(auctionData) // listings query
+    .mockResolvedValueOnce(mockCountResult); // count query
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * パラメータ化テスト用のテストケース配列を生成するヘルパー
+ */
+const createParameterizedTestCases = <T>(testCases: Array<{ name: string; input: T; expected?: unknown }>) => testCases;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テスト実装
+ */
 describe("cache-auction-listing", () => {
   describe("cachedGetAuctionListingsAndCount", () => {
-    test("should return auction listings and count successfully", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
+    describe("正常系テスト", () => {
+      test("should return auction listings and count successfully", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        setupSuccessfulMocks();
 
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockRawAuctionData = [
-        {
-          id: testAuctionId,
-          current_highest_bid: 500,
-          end_time: new Date("2024-12-31T23:59:59Z"),
-          start_time: new Date("2024-01-01T00:00:00Z"),
-          status: TaskStatus.PENDING,
-          created_at: new Date("2024-01-01T00:00:00Z"),
-          task: "テストタスク",
-          detail: "テストタスクの詳細",
-          image_url: "https://example.com/image.jpg",
-          category: "プログラミング",
-          group_id: testGroupId,
-          group_name: "テストグループ",
-          bids_count: BigInt(5),
-          is_watched: false,
-          executors_json: JSON.stringify([
-            {
-              id: "executor-1",
-              user_id: "executor-user-1",
-              user_image: "https://example.com/executor.jpg",
-              username: "実行者1",
-              rating: 4.5,
-            },
-          ]),
-          score: 0.95,
-          task_highlighted: "<mark>テスト</mark>タスク",
-          detail_highlighted: "<mark>テスト</mark>タスクの詳細",
-          _dummy: false,
-        },
-      ];
-      const mockCountResult = [{ count: BigInt(1) }];
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockRawAuctionData) // listings query
-        .mockResolvedValueOnce(mockCountResult); // count query
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toHaveLength(1);
-      expect(result.count).toBe(1);
-      expect(result.listings[0].id).toBe(testAuctionId);
-      expect(result.listings[0].bids_count).toBe(5);
-      expect(result.listings[0].is_watched).toBe(false);
-      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-        where: { userId: testUserId },
-        select: { groupId: true },
+        // Assert
+        expect(result.listings).toHaveLength(1);
+        expect(result.count).toBe(1);
+        expect(result.listings[0].id).toBe(testAuctionId);
+        expect(result.listings[0].bids_count).toBe(5);
+        expect(result.listings[0].is_watched).toBe(false);
+        expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
+          where: { userId: testUserId },
+          select: { groupId: true },
+        });
+        expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
       });
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
 
-    test("should return empty results when user has no group memberships", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
+      test("should handle empty auction data", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        setupSuccessfulMocks([], BigInt(0));
 
-      prismaMock.groupMembership.findMany.mockResolvedValue([]);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-        where: { userId: testUserId },
-        select: { groupId: true },
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
       });
-      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+
+      test("should handle large count value", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        const maxCount = Number.MAX_SAFE_INTEGER;
+        setupSuccessfulMocks([], BigInt(maxCount));
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(maxCount);
+      });
     });
 
-    test("should handle empty auction data", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
+    describe("グループメンバーシップ関連テスト", () => {
+      test("should return empty results when user has no group memberships", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        setupMockWithGroupMembership([]);
 
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce([]) // empty listings
-        .mockResolvedValueOnce(mockCountResult); // count query
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+        expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
+          where: { userId: testUserId },
+          select: { groupId: true },
+        });
+        expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+      });
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
+      test("should return empty when specified groupIds are not accessible to user", async () => {
+        // Arrange
+        const inaccessibleGroupId = "inaccessible-group-id";
+        const mockParams = createMockParams({ groupIds: [inaccessibleGroupId] });
+        const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+        setupMockWithGroupMembership(mockGroupMemberships);
 
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert - Early return due to no accessible groups
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+        expect(prismaMock.$queryRaw).not.toHaveBeenCalled(); // Should not reach query execution
+      });
+
+      test("should handle mixed accessible and inaccessible groupIds", async () => {
+        // Arrange
+        const inaccessibleGroupId = "inaccessible-group-id";
+        const mockParams = createMockParams({ groupIds: [testGroupId, inaccessibleGroupId] });
+        setupSuccessfulMocks([], BigInt(0));
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert - Should only filter by accessible groups
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+        expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2); // Should reach query execution
+      });
     });
 
-    test("should handle null executors_json", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockRawAuctionData = [
+    describe("executors_json処理テスト", () => {
+      const executorsJsonTestCases = createParameterizedTestCases([
         {
-          id: testAuctionId,
-          current_highest_bid: 500,
-          end_time: new Date("2024-12-31T23:59:59Z"),
-          start_time: new Date("2024-01-01T00:00:00Z"),
-          status: TaskStatus.PENDING,
-          created_at: new Date("2024-01-01T00:00:00Z"),
-          task: "テストタスク",
-          detail: "テストタスクの詳細",
-          image_url: "https://example.com/image.jpg",
-          category: "プログラミング",
-          group_id: testGroupId,
-          group_name: "テストグループ",
-          bids_count: BigInt(0),
-          is_watched: false,
-          executors_json: null,
-          score: null,
-          task_highlighted: null,
-          detail_highlighted: null,
-          _dummy: false,
+          name: "should handle null executors_json",
+          input: { executors_json: null },
         },
-      ];
-      const mockCountResult = [{ count: BigInt(1) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce(mockRawAuctionData).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toHaveLength(1);
-      expect(result.listings[0].executors_json).toStrictEqual([]);
-    });
-
-    test("should handle invalid JSON in executors_json", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockRawAuctionData = [
         {
-          id: testAuctionId,
-          current_highest_bid: 500,
-          end_time: new Date("2024-12-31T23:59:59Z"),
-          start_time: new Date("2024-01-01T00:00:00Z"),
-          status: TaskStatus.PENDING,
-          created_at: new Date("2024-01-01T00:00:00Z"),
-          task: "テストタスク",
+          name: "should handle invalid JSON in executors_json",
+          input: { executors_json: "invalid json" },
+        },
+        {
+          name: "should handle executors_json with non-array data",
+          input: { executors_json: JSON.stringify({ notArray: "data" }) },
+        },
+      ]);
+
+      test.each(executorsJsonTestCases)("$name", async ({ input }) => {
+        // Arrange
+        const mockParams = createMockParams();
+        const mockData = createMockRawAuctionData({
+          ...input,
           detail: null,
           image_url: null,
           category: null,
-          group_id: testGroupId,
-          group_name: "テストグループ",
           bids_count: null,
           is_watched: null,
-          executors_json: "invalid json",
           score: null,
           task_highlighted: null,
           detail_highlighted: null,
-          _dummy: false,
+        });
+        setupSuccessfulMocks([mockData], BigInt(1));
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(1);
+        expect(result.listings[0].executors_json).toStrictEqual([]);
+      });
+
+      test("should handle executors_json with missing fields", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        const mockData = createMockRawAuctionData({
+          executors_json: JSON.stringify([
+            {
+              id: "executor-1",
+              user_id: null, // Missing user_id
+              user_image: null,
+              username: null,
+              rating: null,
+            },
+            {
+              // Missing required fields completely
+              incomplete: "data",
+            },
+          ]),
+          detail: null,
+          image_url: null,
+          category: null,
+          bids_count: null,
+          is_watched: null,
+          score: null,
+          task_highlighted: null,
+          detail_highlighted: null,
+        });
+        setupSuccessfulMocks([mockData], BigInt(1));
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(1);
+        expect(Array.isArray(result.listings[0].executors_json)).toBe(true);
+        if (Array.isArray(result.listings[0].executors_json)) {
+          expect(result.listings[0].executors_json).toHaveLength(1); // Only valid executor should be included
+          expect(result.listings[0].executors_json[0].userSettingsUsername).toBe("未設定");
+        }
+      });
+
+      test("should handle executors_json with correct username fallback", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        const mockData = createMockRawAuctionData({
+          executors_json: JSON.stringify([
+            {
+              id: "executor-1",
+              user_id: "user-1",
+              user_image: "https://example.com/user.jpg",
+              username: "実行者1", // Has username
+              rating: 4.5,
+            },
+            {
+              id: "executor-2",
+              user_id: "user-2",
+              user_image: null,
+              username: null, // No username - should fallback to "未設定"
+              rating: null,
+            },
+          ]),
+          detail: null,
+          image_url: null,
+          category: null,
+          bids_count: null,
+          is_watched: null,
+          score: null,
+          task_highlighted: null,
+          detail_highlighted: null,
+        });
+        setupSuccessfulMocks([mockData], BigInt(1));
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(1);
+        expect(Array.isArray(result.listings[0].executors_json)).toBe(true);
+        if (Array.isArray(result.listings[0].executors_json)) {
+          expect(result.listings[0].executors_json).toHaveLength(2);
+          expect(result.listings[0].executors_json[0].userSettingsUsername).toBe("実行者1");
+          expect(result.listings[0].executors_json[1].userSettingsUsername).toBe("未設定");
+        }
+      });
+    });
+
+    describe("全文検索（FTS）テスト", () => {
+      test("should handle search query with FTS highlighting", async () => {
+        // Arrange
+        const mockParams = createMockParams({
+          searchQuery: "プログラミング JavaScript",
+          sort: [{ field: "relevance", direction: "desc" }],
+        });
+        const mockData = createMockRawAuctionData({
+          task: "プログラミングタスク",
+          detail: "JavaScript開発",
+          image_url: null,
+          category: "プログラミング",
+          bids_count: BigInt(0),
+          is_watched: false,
+          executors_json: null,
+          score: 0.95,
+          task_highlighted: "<mark>プログラミング</mark>タスク",
+          detail_highlighted: "<mark>JavaScript</mark>開発",
+        });
+        setupSuccessfulMocks([mockData], BigInt(1));
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(1);
+        expect(result.listings[0].task_highlighted).toBe("<mark>プログラミング</mark>タスク");
+        expect(result.listings[0].detail_highlighted).toBe("<mark>JavaScript</mark>開発");
+        expect(result.listings[0].score).toBe(0.95);
+      });
+
+      const searchQueryTestCases = createParameterizedTestCases([
+        {
+          name: "should handle empty search query",
+          input: { searchQuery: "" },
         },
-      ];
-      const mockCountResult = [{ count: BigInt(1) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce(mockRawAuctionData).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toHaveLength(1);
-      expect(result.listings[0].executors_json).toStrictEqual([]);
-    });
-
-    test("should handle database error gracefully", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      prismaMock.groupMembership.findMany.mockRejectedValue(new Error("Database connection error"));
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle null listingsConditions", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: null as unknown as AuctionListingsConditions,
-        userId: testUserId,
-      };
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle undefined userId", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: undefined as unknown as string,
-      };
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle large count value", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(999999) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.count).toBe(999999);
-    });
-
-    test("should handle different status conditions", async () => {
-      // Arrange
-      const mockParamsWithDifferentStatus: GetAuctionListingsParams = {
-        listingsConditions: {
-          ...mockListingsConditions,
-          status: ["ended", "watchlist", "bidded"],
-          statusConditionJoinType: "AND",
+        {
+          name: "should handle search query with whitespace normalization",
+          input: { searchQuery: "  プログラミング   JavaScript  " },
         },
-        userId: testUserId,
-      };
+      ]);
 
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
+      test.each(searchQueryTestCases)("$name", async ({ input }) => {
+        // Arrange
+        const mockParams = createMockParams(input);
+        setupSuccessfulMocks([], BigInt(0));
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParamsWithDifferentStatus);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+      });
     });
 
-    test("should handle null categories filter", async () => {
-      // Arrange
-      const mockParamsWithNullCategories: GetAuctionListingsParams = {
-        listingsConditions: {
-          ...mockListingsConditions,
-          categories: null,
+    describe("フィルタリング機能テスト", () => {
+      const filterTestCases = createParameterizedTestCases([
+        {
+          name: "should handle different status conditions",
+          input: {
+            status: ["ended", "watchlist", "bidded"],
+            statusConditionJoinType: "AND" as const,
+          },
         },
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParamsWithNullCategories);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle bid amount filters", async () => {
-      // Arrange
-      const mockParamsWithBidFilters: GetAuctionListingsParams = {
-        listingsConditions: {
-          ...mockListingsConditions,
-          minBid: 0,
-          maxBid: 0,
+        {
+          name: "should handle null categories filter",
+          input: { categories: null },
         },
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParamsWithBidFilters);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle remaining time filters", async () => {
-      // Arrange
-      const mockParamsWithTimeFilters: GetAuctionListingsParams = {
-        listingsConditions: {
-          ...mockListingsConditions,
-          minRemainingTime: 0,
-          maxRemainingTime: 0,
+        {
+          name: "should handle bid amount filters",
+          input: { minBid: 0, maxBid: 0 },
         },
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParamsWithTimeFilters);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle different sort options", async () => {
-      // Arrange
-      const mockParamsWithSort: GetAuctionListingsParams = {
-        listingsConditions: {
-          ...mockListingsConditions,
-          sort: [{ field: "price", direction: "asc" }],
+        {
+          name: "should handle remaining time filters",
+          input: { minRemainingTime: 0, maxRemainingTime: 0 },
         },
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParamsWithSort);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle pagination", async () => {
-      // Arrange
-      const mockParamsWithPagination: GetAuctionListingsParams = {
-        listingsConditions: {
-          ...mockListingsConditions,
-          page: 2,
+        {
+          name: "should handle different sort options",
+          input: { sort: [{ field: "price" as const, direction: "asc" as const }] },
         },
-        userId: testUserId,
-      };
+        {
+          name: "should handle pagination",
+          input: { page: 2 },
+        },
+      ]);
 
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const mockCountResult = [{ count: BigInt(0) }];
+      test.each(filterTestCases)("$name", async ({ input }) => {
+        // Arrange
+        const mockParams = createMockParams(input);
+        setupSuccessfulMocks([], BigInt(0));
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParamsWithPagination);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
-    });
-  });
-
-  // 境界値テスト
-  describe("boundary value tests", () => {
-    test("should handle maximum integer count", async () => {
-      // Arrange
-      const mockParams: GetAuctionListingsParams = {
-        listingsConditions: mockListingsConditions,
-        userId: testUserId,
-      };
-
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-      const maxCount = Number.MAX_SAFE_INTEGER;
-      const mockCountResult = [{ count: BigInt(maxCount) }];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(mockCountResult);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(mockParams);
-
-      // Assert
-      expect(result.count).toBe(maxCount);
-    });
-  });
-
-  // 異常系テスト（不正な引数）
-  describe("invalid input tests", () => {
-    test("should handle malformed listingsConditions object", async () => {
-      // Arrange
-      const malformedParams = {
-        listingsConditions: { invalidField: "invalid" } as unknown as AuctionListingsConditions,
-        userId: testUserId,
-      };
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(malformedParams);
-
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+      });
     });
 
-    test("should handle non-string userId parameter in cachedGetAuctionListingsAndCount", async () => {
-      // Arrange
-      const malformedParams = {
-        listingsConditions: mockListingsConditions,
-        userId: 123 as unknown as string,
-      };
+    describe("異常系・エラーハンドリングテスト", () => {
+      test("should handle database error gracefully", async () => {
+        // Arrange
+        const mockParams = createMockParams();
+        prismaMock.groupMembership.findMany.mockRejectedValue(new Error("Database connection error"));
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(malformedParams);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
 
-      // Assert
-      expect(result.listings).toStrictEqual([]);
-      expect(result.count).toBe(0);
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+      });
+
+      const invalidInputTestCases = createParameterizedTestCases([
+        {
+          name: "should handle null listingsConditions",
+          input: { listingsConditions: null as unknown as AuctionListingsConditions, userId: testUserId },
+        },
+        {
+          name: "should handle undefined userId",
+          input: { listingsConditions: mockListingsConditions, userId: undefined as unknown as string },
+        },
+        {
+          name: "should handle malformed listingsConditions object",
+          input: { listingsConditions: { invalidField: "invalid" } as unknown as AuctionListingsConditions, userId: testUserId },
+        },
+        {
+          name: "should handle non-string userId parameter",
+          input: { listingsConditions: mockListingsConditions, userId: 123 as unknown as string },
+        },
+      ]);
+
+      test.each(invalidInputTestCases)("$name", async ({ input }) => {
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(input as GetAuctionListingsParams);
+
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+      });
+
+      const prismaErrorTestCases = createParameterizedTestCases([
+        {
+          name: "should handle $queryRaw error on listings query",
+          input: {
+            setupMock: () => {
+              const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+              setupMockWithGroupMembership(mockGroupMemberships);
+              prismaMock.$queryRaw
+                .mockRejectedValueOnce(new Error("Database query failed")) // Listings query fails
+                .mockResolvedValueOnce([{ count: BigInt(0) }]); // Count query succeeds
+            },
+          },
+        },
+        {
+          name: "should handle $queryRaw error on count query",
+          input: {
+            setupMock: () => {
+              const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+              setupMockWithGroupMembership(mockGroupMemberships);
+              prismaMock.$queryRaw
+                .mockResolvedValueOnce([]) // Listings query succeeds
+                .mockRejectedValueOnce(new Error("Count query failed")); // Count query fails
+            },
+          },
+        },
+        {
+          name: "should handle invalid count result structure",
+          input: {
+            setupMock: () => {
+              const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+              setupMockWithGroupMembership(mockGroupMemberships);
+              prismaMock.$queryRaw
+                .mockResolvedValueOnce([]) // Listings query
+                .mockResolvedValueOnce([]); // Empty count result
+            },
+          },
+        },
+        {
+          name: "should handle undefined count result",
+          input: {
+            setupMock: () => {
+              const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+              setupMockWithGroupMembership(mockGroupMemberships);
+              prismaMock.$queryRaw
+                .mockResolvedValueOnce([]) // Listings query
+                .mockResolvedValueOnce(undefined); // Undefined count result
+            },
+          },
+        },
+      ]);
+
+      test.each(prismaErrorTestCases)("$name", async ({ input }) => {
+        // Arrange
+        const mockParams = createMockParams();
+        input.setupMock();
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toStrictEqual([]);
+        expect(result.count).toBe(0);
+      });
     });
   });
 });

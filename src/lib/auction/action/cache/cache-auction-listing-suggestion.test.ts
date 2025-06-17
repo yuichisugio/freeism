@@ -1,4 +1,4 @@
-import type { AuctionListingsConditions, Suggestion } from "@/types/auction-types";
+import type { Suggestion } from "@/types/auction-types";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -15,23 +15,8 @@ beforeEach(() => {
 const testUserId = "test-user-id";
 const testGroupId = "test-group-id";
 const testTaskId = "test-task-id";
-const testAuctionId = "test-auction-id";
 
 // 共通のテストデータ
-const mockListingsConditions: AuctionListingsConditions = {
-  categories: ["プログラミング"],
-  status: ["not_ended"],
-  statusConditionJoinType: "OR",
-  minBid: 100,
-  maxBid: 1000,
-  minRemainingTime: 1,
-  maxRemainingTime: 24,
-  groupIds: [testGroupId],
-  searchQuery: "テスト",
-  sort: [{ field: "newest", direction: "desc" }],
-  page: 1,
-};
-
 const mockSuggestion: Suggestion = {
   id: testTaskId,
   text: "テストタスク",
@@ -39,15 +24,25 @@ const mockSuggestion: Suggestion = {
   score: 0.95,
 };
 
-describe("cache-auction-listing", () => {
-  describe("cachedGetSearchSuggestions", () => {
+// ヘルパー関数：正常なグループメンバーシップのモックセットアップ
+const setupValidGroupMembership = () => {
+  const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+  prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
+  return mockGroupMemberships;
+};
+
+// ヘルパー関数：空のグループメンバーシップのモックセットアップ
+const setupEmptyGroupMembership = () => {
+  prismaMock.groupMembership.findMany.mockResolvedValue([]);
+};
+
+describe("cachedGetSearchSuggestions", () => {
+  describe("正常系", () => {
     test("should return search suggestions successfully", async () => {
       // Arrange
       const query = "テスト";
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+      setupValidGroupMembership();
       const mockSuggestions = [mockSuggestion];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
       prismaMock.$queryRaw.mockResolvedValue(mockSuggestions);
 
       // Act
@@ -62,81 +57,10 @@ describe("cache-auction-listing", () => {
       expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
     });
 
-    test("should return empty array when query is empty", async () => {
-      // Arrange
-      const query = "";
-
-      // Act
-      const result = await cachedGetSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(prismaMock.groupMembership.findMany).not.toHaveBeenCalled();
-      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
-    });
-
-    test("should return empty array when query is only whitespace", async () => {
-      // Arrange
-      const query = "   ";
-
-      // Act
-      const result = await cachedGetSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(prismaMock.groupMembership.findMany).not.toHaveBeenCalled();
-      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
-    });
-
-    test("should return empty array when query length is less than 1", async () => {
-      // Arrange
-      const query = "";
-
-      // Act
-      const result = await cachedGetSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-    });
-
-    test("should return empty array when user has no group memberships", async () => {
-      // Arrange
-      const query = "テスト";
-      prismaMock.groupMembership.findMany.mockResolvedValue([]);
-
-      // Act
-      const result = await cachedGetSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-        where: { userId: testUserId },
-        select: { groupId: true },
-      });
-      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
-    });
-
-    test("should handle database error gracefully", async () => {
-      // Arrange
-      const query = "テスト";
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockRejectedValue(new Error("Database connection error"));
-
-      // Act
-      const result = await cachedGetSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(prismaMock.groupMembership.findMany).toHaveBeenCalled();
-      expect(prismaMock.$queryRaw).toHaveBeenCalled();
-    });
-
     test("should handle multiple suggestions", async () => {
       // Arrange
       const query = "テスト";
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+      setupValidGroupMembership();
       const multipleSuggestions: Suggestion[] = [
         {
           id: "task-1",
@@ -151,8 +75,6 @@ describe("cache-auction-listing", () => {
           score: 0.85,
         },
       ];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
       prismaMock.$queryRaw.mockResolvedValue(multipleSuggestions);
 
       // Act
@@ -163,12 +85,132 @@ describe("cache-auction-listing", () => {
       expect(result).toHaveLength(2);
     });
 
-    test("should handle special characters in query", async () => {
+    test.each([
+      { description: "zero score", score: 0 },
+      { description: "maximum score", score: 1.0 },
+    ])("should handle $description in suggestions", async ({ score }) => {
       // Arrange
-      const query = "!@#$%^&*()";
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
+      const query = "テスト";
+      setupValidGroupMembership();
+      const suggestionWithScore: Suggestion[] = [
+        {
+          id: "task-1",
+          text: "テストタスク",
+          highlighted: score > 0 ? "<mark>テスト</mark>タスク" : "テストタスク",
+          score,
+        },
+      ];
+      prismaMock.$queryRaw.mockResolvedValue(suggestionWithScore);
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
+      // Act
+      const result = await cachedGetSearchSuggestions(query, testUserId);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].score).toBe(score);
+      expect(prismaMock.groupMembership.findMany).toHaveBeenCalled();
+      expect(prismaMock.$queryRaw).toHaveBeenCalled();
+    });
+  });
+
+  describe("異常系", () => {
+    test("should handle database error gracefully", async () => {
+      // Arrange
+      const query = "テスト";
+      setupValidGroupMembership();
+      prismaMock.$queryRaw.mockRejectedValue(new Error("Database connection error"));
+
+      // Act
+      const result = await cachedGetSearchSuggestions(query, testUserId);
+
+      // Assert
+      expect(result).toStrictEqual([]);
+      expect(prismaMock.groupMembership.findMany).toHaveBeenCalled();
+      expect(prismaMock.$queryRaw).toHaveBeenCalled();
+    });
+
+    test("should handle non-string query parameter", async () => {
+      // Arrange
+      const nonStringQuery = 123 as unknown as string;
+
+      // Act & Assert
+      // 非文字列のqueryに対してtrim()を呼び出すとエラーが発生することを確認
+      await expect(cachedGetSearchSuggestions(nonStringQuery, testUserId)).rejects.toThrow("query.trim is not a function");
+    });
+
+    test("should handle non-string userId parameter", async () => {
+      // Arrange
+      const query = "テスト";
+      const nonStringUserId = 123 as unknown as string;
+
+      // 非文字列のuserIdでもgroupMembership.findManyが呼ばれることを想定
+      prismaMock.groupMembership.findMany.mockResolvedValue([]);
+
+      // Act
+      const result = await cachedGetSearchSuggestions(query, nonStringUserId);
+
+      // Assert
+      expect(result).toStrictEqual([]);
+      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
+        where: { userId: nonStringUserId },
+        select: { groupId: true },
+      });
+      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("境界値テスト", () => {
+    test.each([
+      { description: "empty string", query: "" },
+      { description: "whitespace only", query: "   " },
+      { description: "null", query: null },
+      { description: "undefined", query: undefined },
+    ])("should return empty array when query is $description", async ({ query }) => {
+      // Act
+      const result = await cachedGetSearchSuggestions(query!, testUserId);
+
+      // Assert
+      expect(result).toStrictEqual([]);
+      expect(prismaMock.groupMembership.findMany).not.toHaveBeenCalled();
+      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    test("should return empty array when userId is empty string", async () => {
+      // Arrange
+      const query = "テスト";
+      const emptyUserId = "";
+
+      // Act
+      const result = await cachedGetSearchSuggestions(query, emptyUserId);
+
+      // Assert
+      expect(result).toStrictEqual([]);
+      expect(prismaMock.groupMembership.findMany).not.toHaveBeenCalled();
+      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    test.each([
+      { description: "null userId", userId: null },
+      { description: "undefined userId", userId: undefined },
+    ])("should return empty array when $description", async ({ userId }) => {
+      // Arrange
+      const query = "テスト";
+
+      // Act
+      const result = await cachedGetSearchSuggestions(query, userId!);
+
+      // Assert
+      expect(result).toStrictEqual([]);
+      expect(prismaMock.groupMembership.findMany).not.toHaveBeenCalled();
+      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    test.each([
+      { description: "special characters", query: "!@#$%^&*()" },
+      { description: "very long string", query: "a".repeat(1000) },
+    ])("should handle $description in query", async ({ query }) => {
+      // Arrange
+      setupValidGroupMembership();
       prismaMock.$queryRaw.mockResolvedValue([]);
 
       // Act
@@ -176,115 +218,28 @@ describe("cache-auction-listing", () => {
 
       // Assert
       expect(result).toStrictEqual([]);
+      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
+        where: { userId: testUserId },
+        select: { groupId: true },
+      });
+      expect(prismaMock.$queryRaw).toHaveBeenCalled();
     });
 
-    test("should handle very long query string", async () => {
+    test("should return empty array when user has no group memberships", async () => {
       // Arrange
-      const longQuery = "a".repeat(1000);
-      const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-
-      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-      prismaMock.$queryRaw.mockResolvedValue([]);
-
-      // Act
-      const result = await cachedGetSearchSuggestions(longQuery, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-    });
-
-    test("should handle null query", async () => {
-      // Arrange
-      const query = null as unknown as string;
+      const query = "テスト";
+      setupEmptyGroupMembership();
 
       // Act
       const result = await cachedGetSearchSuggestions(query, testUserId);
 
       // Assert
       expect(result).toStrictEqual([]);
-    });
-
-    test("should handle undefined query", async () => {
-      // Arrange
-      const query = undefined as unknown as string;
-
-      // Act
-      const result = await cachedGetSearchSuggestions(query, testUserId);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-    });
-  });
-  test("should handle zero score in suggestions", async () => {
-    // Arrange
-    const query = "テスト";
-    const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-    const zeroScoreSuggestions: Suggestion[] = [
-      {
-        id: "task-1",
-        text: "テストタスク",
-        highlighted: "テストタスク",
-        score: 0,
-      },
-    ];
-
-    prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-    prismaMock.$queryRaw.mockResolvedValue(zeroScoreSuggestions);
-
-    // Act
-    const result = await cachedGetSearchSuggestions(query, testUserId);
-
-    // Assert
-    expect(result[0].score).toBe(0);
-  });
-
-  test("should handle maximum score in suggestions", async () => {
-    // Arrange
-    const query = "テスト";
-    const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-    const maxScoreSuggestions: Suggestion[] = [
-      {
-        id: "task-1",
-        text: "テストタスク",
-        highlighted: "<mark>テスト</mark>タスク",
-        score: 1.0,
-      },
-    ];
-
-    prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-    prismaMock.$queryRaw.mockResolvedValue(maxScoreSuggestions);
-
-    // Act
-    const result = await cachedGetSearchSuggestions(query, testUserId);
-
-    // Assert
-    expect(result[0].score).toBe(1.0);
-  });
-  test("should handle non-string query parameter", async () => {
-    // Arrange
-    const nonStringQuery = 123 as unknown as string;
-
-    // Act & Assert
-    // 非文字列のqueryに対してtrim()を呼び出すとエラーが発生することを確認
-    await expect(cachedGetSearchSuggestions(nonStringQuery, testUserId)).rejects.toThrow("query.trim is not a function");
-  });
-
-  test("should handle non-string userId parameter in cachedGetSearchSuggestions", async () => {
-    // Arrange
-    const query = "テスト";
-    const nonStringUserId = 123 as unknown as string;
-
-    // 非文字列のuserIdでもgroupMembership.findManyが呼ばれることを想定
-    prismaMock.groupMembership.findMany.mockResolvedValue([]);
-
-    // Act
-    const result = await cachedGetSearchSuggestions(query, nonStringUserId);
-
-    // Assert
-    expect(result).toStrictEqual([]);
-    expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-      where: { userId: nonStringUserId },
-      select: { groupId: true },
+      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
+        where: { userId: testUserId },
+        select: { groupId: true },
+      });
+      expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
     });
   });
 });

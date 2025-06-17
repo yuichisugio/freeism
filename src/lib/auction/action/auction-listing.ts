@@ -7,7 +7,8 @@
 import type { GetAuctionListingsParams } from "@/lib/auction/action/cache/cache-auction-listing";
 import type { AuctionListingResult, Suggestion } from "@/types/auction-types";
 import { cache } from "react";
-import { cachedGetAuctionListingsAndCount, cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing";
+import { cachedGetAuctionListingsAndCount } from "@/lib/auction/action/cache/cache-auction-listing";
+import { cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing-suggestion";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

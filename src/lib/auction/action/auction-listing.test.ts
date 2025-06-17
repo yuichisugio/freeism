@@ -23,7 +23,9 @@ vi.mock("@/lib/auction/action/cache/cache-auction-listing", () => ({
 const mockCachedGetAuctionListingsAndCount = vi.mocked(
   (await import("@/lib/auction/action/cache/cache-auction-listing")).cachedGetAuctionListingsAndCount,
 );
-const mockCachedGetSearchSuggestions = vi.mocked((await import("@/lib/auction/action/cache/cache-auction-listing")).cachedGetSearchSuggestions);
+const mockCachedGetSearchSuggestions = vi.mocked(
+  (await import("@/lib/auction/action/cache/cache-auction-listing-suggestion")).cachedGetSearchSuggestions,
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

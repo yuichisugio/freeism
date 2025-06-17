@@ -11,13 +11,13 @@ import { prisma } from "@/lib/prisma";
  * @param auctionId 出品商品のID
  * @returns 出品商品の詳細
  */
-export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): Promise<AuctionHistoryCreatedDetail | null> {
+export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): Promise<AuctionHistoryCreatedDetail> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 出品商品のIDが存在しない場合はnullを返却
    */
-  if (!auctionId) return null;
+  if (!auctionId) throw new Error("auctionId is required");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -89,7 +89,7 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   /**
    * 出品商品の詳細を返却
    */
-  if (!auction) return null;
+  if (!auction) throw new Error("auction not found");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
