@@ -108,15 +108,21 @@ export async function getUserCreatedAuctionsWhereCondition(
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * ユーザーの出品したオークション履歴と件数を同時に取得
+ * ユーザーの出品したオークション履歴を取得
+ * @param page ページ番号
+ * @param userId ユーザーID
+ * @param itemPerPage 1ページあたりのアイテム数
+ * @param filter フィルター条件
+ * @param filterCondition フィルター条件のAND/OR
+ * @returns 出品したオークション履歴
  */
-export async function getUserCreatedAuctionsWithCount(
+export async function getUserCreatedAuctions(
   page = 1,
   userId: string,
   itemPerPage: number,
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
-): Promise<{ data: CreatedAuctionItem[]; count: number }> {
+): Promise<CreatedAuctionItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -129,50 +135,47 @@ export async function getUserCreatedAuctionsWithCount(
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 条件を1回だけ作成
+   * 条件を作成
    */
   const whereCondition = await getUserCreatedAuctionsWhereCondition(userId, filter, filterCondition);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * データと件数を同時取得
+   * データを取得
    */
-  const [createdAuctionsData, count] = await Promise.all([
-    prisma.auction.findMany({
-      where: whereCondition,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * itemPerPage,
-      take: itemPerPage,
-      select: {
-        id: true,
-        createdAt: true,
-        currentHighestBid: true,
-        endTime: true,
-        task: {
-          select: {
-            id: true,
-            task: true,
-            status: true,
-            deliveryMethod: true,
-            creator: { select: { id: true } },
-            executors: { select: { userId: true } },
-            reporters: { select: { userId: true } },
-          },
+  const createdAuctionsData = await prisma.auction.findMany({
+    where: whereCondition,
+    orderBy: { createdAt: "desc" },
+    skip: (page - 1) * itemPerPage,
+    take: itemPerPage,
+    select: {
+      id: true,
+      createdAt: true,
+      currentHighestBid: true,
+      endTime: true,
+      task: {
+        select: {
+          id: true,
+          task: true,
+          status: true,
+          deliveryMethod: true,
+          creator: { select: { id: true } },
+          executors: { select: { userId: true } },
+          reporters: { select: { userId: true } },
         },
-        winner: { select: { id: true, name: true } },
       },
-    }),
-    prisma.auction.count({ where: whereCondition }),
-  ]);
+      winner: { select: { id: true, name: true } },
+    },
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * データがない場合は空配列を返却
    */
-  if (createdAuctionsData.length === 0 || count === 0) {
-    return { data: [], count: 0 };
+  if (createdAuctionsData.length === 0) {
+    return [];
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -211,5 +214,60 @@ export async function getUserCreatedAuctionsWithCount(
   /**
    * データを返却
    */
-  return { data: returnCreatedAuctions, count };
+  return returnCreatedAuctions;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザーの出品したオークションの件数を取得
+ * getUserCreatedAuctions内で↓の処理は入れない。ページを跨ぐごとに全体の件数を取得しなくないため
+ * @param userId ユーザーID
+ * @param filter フィルター条件
+ * @param filterCondition フィルター条件のAND/OR
+ * @returns 出品したオークションの件数
+ */
+export async function getUserCreatedAuctionsCount(
+  userId: string,
+  filter: AuctionCreatedTabFilter[],
+  filterCondition: FilterCondition,
+): Promise<number> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
+  if (!userId || !filter || !filterCondition) {
+    throw new Error("userId, filter, and filterCondition are required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 条件を作成
+   */
+  const whereCondition = await getUserCreatedAuctionsWhereCondition(userId, filter, filterCondition);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データの件数を取得
+   */
+  const count = await prisma.auction.count({ where: whereCondition });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データがない場合は0を返却
+   */
+  if (count === 0) {
+    return 0;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
+  return count;
 }

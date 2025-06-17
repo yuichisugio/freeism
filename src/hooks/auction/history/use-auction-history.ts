@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getUserBidHistoriesWithCount } from "@/lib/auction/action/auction-history/bid-auction";
-import { getUserCreatedAuctionsWithCount } from "@/lib/auction/action/auction-history/created-auction";
-import { getUserWonAuctionsWithCount } from "@/lib/auction/action/auction-history/won-auction";
+import { getUserBidHistories, getUserBidHistoriesCount } from "@/lib/auction/action/auction-history/bid-auction";
+import { getUserCreatedAuctions, getUserCreatedAuctionsCount } from "@/lib/auction/action/auction-history/created-auction";
+import { getUserWonAuctions, getUserWonAuctionsCount } from "@/lib/auction/action/auction-history/won-auction";
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import {
@@ -80,48 +80,84 @@ export function useAuctionHistory() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 入札履歴を取得＋件数
+   * 入札したオークションの履歴を取得
    */
-  const { data: bidHistoryResult, isPending: isLoadingBids } = useQuery<{ data: BidHistoryItem[]; count: number }>({
+  const { data: bidHistoryResult, isPending: isLoadingBidHistories } = useQuery<BidHistoryItem[]>({
     queryKey: queryCacheKeys.auction.historyBids(userId!, currentPage, itemPerPage),
-    queryFn: () => getUserBidHistoriesWithCount(currentPage, userId!, itemPerPage),
+    queryFn: () => getUserBidHistories(currentPage, userId!, itemPerPage),
     enabled: !!userId && activeTab === "bids",
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,
   });
-  const bidHistoryData = useMemo(() => bidHistoryResult?.data ?? [], [bidHistoryResult]);
-  const bidHistoryCount = useMemo(() => bidHistoryResult?.count ?? 0, [bidHistoryResult]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 落札履歴を取得＋件数
+   * 入札したオークションの件数を取得
+   * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
    */
-  const { data: wonHistoryResult, isPending: isLoadingWon } = useQuery<{ data: WonAuctionItem[]; count: number }>({
+  const { data: bidHistoryCount, isPending: isLoadingBidHistoriesCount } = useQuery<number>({
+    queryKey: queryCacheKeys.auction.historyBidsCount(userId!),
+    queryFn: () => getUserBidHistoriesCount(userId!),
+    enabled: !!userId && activeTab === "bids",
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 落札履歴を取得
+   */
+  const { data: wonHistoryResult, isPending: isLoadingWon } = useQuery<WonAuctionItem[]>({
     queryKey: queryCacheKeys.auction.historyWon(userId!, currentPage, itemPerPage, wonStatus),
-    queryFn: () => getUserWonAuctionsWithCount(currentPage, userId!, itemPerPage, wonStatus),
+    queryFn: () => getUserWonAuctions(currentPage, userId!, itemPerPage, wonStatus),
     enabled: !!userId && activeTab === "won",
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,
   });
-  const wonHistoryData = useMemo(() => wonHistoryResult?.data ?? [], [wonHistoryResult]);
-  const wonAuctionsCount = useMemo(() => wonHistoryResult?.count ?? 0, [wonHistoryResult]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 出品履歴を取得＋件数
+   * 落札履歴の件数を取得
+   * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
    */
-  const { data: createdHistoryResult, isPending: isLoadingCreated } = useQuery<{ data: CreatedAuctionItem[]; count: number }>({
+  const { data: wonHistoryCount, isPending: isLoadingWonCount } = useQuery<number>({
+    queryKey: queryCacheKeys.auction.historyWonCount(userId!, wonStatus),
+    queryFn: () => getUserWonAuctionsCount(userId!, wonStatus),
+    enabled: !!userId && activeTab === "won",
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品履歴を取得
+   */
+  const { data: createdHistoryResult, isPending: isLoadingCreated } = useQuery<CreatedAuctionItem[]>({
     queryKey: queryCacheKeys.auction.historyCreated(userId!, currentPage, itemPerPage, filter, filterCondition),
-    queryFn: () => getUserCreatedAuctionsWithCount(currentPage, userId!, itemPerPage, filter, filterCondition),
+    queryFn: () => getUserCreatedAuctions(currentPage, userId!, itemPerPage, filter, filterCondition),
     enabled: !!userId && activeTab === "created",
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
   });
-  const createdHistoryData = useMemo(() => createdHistoryResult?.data ?? [], [createdHistoryResult]);
-  const createdAuctionsCount = useMemo(() => createdHistoryResult?.count ?? 0, [createdHistoryResult]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 出品履歴の件数を取得
+   * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
+   */
+  const { data: createdHistoryCount, isPending: isLoadingCreatedCount } = useQuery<number>({
+    queryKey: queryCacheKeys.auction.historyCreatedCount(userId!, filter, filterCondition),
+    queryFn: () => getUserCreatedAuctionsCount(userId!, filter, filterCondition),
+    enabled: !!userId && activeTab === "created",
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -156,29 +192,29 @@ export function useAuctionHistory() {
       case "bids":
         void prefetchLogic(
           bidHistoryCount,
-          !!bidHistoryData && bidHistoryData.length > 0,
+          !!bidHistoryResult && bidHistoryResult.length > 0,
           queryCacheKeys.auction.historyBids,
-          getUserBidHistoriesWithCount,
+          getUserBidHistories,
           [userId, nextPage, itemPerPage] as [string, number, number],
           [nextPage, userId, itemPerPage] as [number, string, number],
         );
         break;
       case "won":
         void prefetchLogic(
-          wonAuctionsCount,
-          !!wonHistoryData && wonHistoryData.length > 0,
+          wonHistoryCount,
+          !!wonHistoryResult && wonHistoryResult.length > 0,
           queryCacheKeys.auction.historyWon,
-          getUserWonAuctionsWithCount,
+          getUserWonAuctions,
           [userId, nextPage, itemPerPage, wonStatus] as [string, number, number, string],
           [nextPage, userId, itemPerPage, wonStatus] as [number, string, number, string],
         );
         break;
       case "created":
         void prefetchLogic(
-          createdAuctionsCount,
-          !!createdHistoryData && createdHistoryData.length > 0,
+          createdHistoryCount,
+          !!createdHistoryResult && createdHistoryResult.length > 0,
           queryCacheKeys.auction.historyCreated,
-          getUserCreatedAuctionsWithCount,
+          getUserCreatedAuctions,
           [userId, nextPage, itemPerPage, filter, filterCondition] as [string, number, number, AuctionCreatedTabFilter[], FilterCondition],
           [nextPage, userId, itemPerPage, filter, filterCondition] as [number, string, number, AuctionCreatedTabFilter[], FilterCondition],
         );
@@ -192,12 +228,12 @@ export function useAuctionHistory() {
     itemPerPage,
     userId,
     queryClient,
-    bidHistoryData,
+    bidHistoryResult,
     bidHistoryCount,
-    wonHistoryData,
-    wonAuctionsCount,
-    createdHistoryData,
-    createdAuctionsCount,
+    wonHistoryResult,
+    wonHistoryCount,
+    createdHistoryResult,
+    createdHistoryCount,
     filter,
     filterCondition,
     wonStatus,
@@ -213,13 +249,13 @@ export function useAuctionHistory() {
       case "bids":
         return bidHistoryCount ?? 0;
       case "won":
-        return wonAuctionsCount ?? 0;
+        return wonHistoryCount ?? 0;
       case "created":
-        return createdAuctionsCount ?? 0;
+        return createdHistoryCount ?? 0;
       default:
         return 0;
     }
-  }, [activeTab, bidHistoryCount, wonAuctionsCount, createdAuctionsCount]);
+  }, [activeTab, bidHistoryCount, wonHistoryCount, createdHistoryCount]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -230,15 +266,24 @@ export function useAuctionHistory() {
     if (!userId) return false;
     switch (activeTab) {
       case "bids":
-        return isLoadingBids;
+        return isLoadingBidHistories || isLoadingBidHistoriesCount;
       case "won":
-        return isLoadingWon;
+        return isLoadingWon || isLoadingWonCount;
       case "created":
-        return isLoadingCreated;
+        return isLoadingCreated || isLoadingCreatedCount;
       default:
         return false;
     }
-  }, [activeTab, isLoadingBids, isLoadingWon, isLoadingCreated, userId]);
+  }, [
+    activeTab,
+    isLoadingBidHistories,
+    isLoadingBidHistoriesCount,
+    isLoadingWon,
+    isLoadingWonCount,
+    isLoadingCreated,
+    isLoadingCreatedCount,
+    userId,
+  ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -353,9 +398,9 @@ export function useAuctionHistory() {
     filter,
     filterCondition,
     wonStatus,
-    bidHistoryData,
-    wonHistoryData,
-    createdHistoryData,
+    bidHistoryResult,
+    wonHistoryResult,
+    createdHistoryResult,
     currentDataCount,
     isLoadingCurrentTab,
     userId,

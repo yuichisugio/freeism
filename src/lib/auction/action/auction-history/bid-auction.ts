@@ -7,12 +7,12 @@ import { type BidHistoryItem } from "@/types/auction-types";
 
 /**
  * ユーザーの入札履歴と件数を同時に取得
+ * @param page ページ番号
+ * @param userId ユーザーID
+ * @param itemPerPage 1ページあたりのアイテム数
+ * @returns 入札履歴
  */
-export async function getUserBidHistoriesWithCount(
-  page = 1,
-  userId: string,
-  itemPerPage: number,
-): Promise<{ data: BidHistoryItem[]; count: number }> {
+export async function getUserBidHistories(page = 1, userId: string, itemPerPage: number): Promise<BidHistoryItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -27,48 +27,39 @@ export async function getUserBidHistoriesWithCount(
   /**
    * データと件数を同時取得
    */
-  const [allBids, count] = await Promise.all([
-    prisma.bidHistory.findMany({
-      skip: (page - 1) * itemPerPage,
-      take: itemPerPage,
-      where: { userId: userId },
-      distinct: ["auctionId"],
-      orderBy: { createdAt: "desc" },
-      select: {
-        auctionId: true,
-        status: true,
-        auction: {
-          select: {
-            currentHighestBid: true,
-            createdAt: true,
-            endTime: true,
-            task: {
-              select: {
-                id: true,
-                task: true,
-                status: true,
-              },
+  const allBids = await prisma.bidHistory.findMany({
+    skip: (page - 1) * itemPerPage,
+    take: itemPerPage,
+    where: { userId: userId },
+    distinct: ["auctionId"],
+    orderBy: { createdAt: "desc" },
+    select: {
+      auctionId: true,
+      status: true,
+      auction: {
+        select: {
+          currentHighestBid: true,
+          createdAt: true,
+          endTime: true,
+          task: {
+            select: {
+              id: true,
+              task: true,
+              status: true,
             },
           },
         },
       },
-    }),
-    prisma.bidHistory
-      .findMany({
-        where: { userId: userId },
-        distinct: ["auctionId"],
-        select: { auctionId: true },
-      })
-      .then((distinctBids) => distinctBids.length),
-  ]);
+    },
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * データがない場合は空配列を返却
    */
-  if (allBids.length === 0 || count === 0) {
-    return { data: [], count: 0 };
+  if (allBids.length === 0) {
+    return [];
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -92,5 +83,53 @@ export async function getUserBidHistoriesWithCount(
   /**
    * データを返却
    */
-  return { data: returnBidedAuctionPerPage, count };
+  return returnBidedAuctionPerPage;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ユーザーの入札したオークションの件数を取得
+ * getUserBidHistories内で↓の処理は入れない。ページを跨ぐごとに全体の件数を取得しなくないため
+ * @param userId ユーザーID
+ * @returns 入札したオークションの件数
+ */
+export async function getUserBidHistoriesCount(userId: string): Promise<number> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
+  if (!userId) {
+    throw new Error("userId is required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データの件数を取得
+   * prismaのcountメソッドはdistinctが使えないため、生SQLを使用
+   */
+  const result = await prisma.$queryRaw<[{ count: bigint }]>`
+    SELECT COUNT(DISTINCT "auctionId") as count
+    FROM "bidHistory"
+    WHERE "userId" = ${userId}
+  `;
+  const count = Number(result[0].count);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データがない場合は空配列を返却
+   */
+  if (count === 0) {
+    return 0;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * データを返却
+   */
+  return count;
 }

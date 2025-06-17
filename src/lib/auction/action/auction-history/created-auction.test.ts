@@ -1,9 +1,10 @@
-import type { AuctionCreatedTabFilter } from "@/types/auction-types";
+import type { AuctionCreatedTabFilter, FilterCondition } from "@/types/auction-types";
+import type { Prisma } from "@prisma/client";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { getUserCreatedAuctionsWithCount } from "./created-auction";
+import { getUserCreatedAuctions, getUserCreatedAuctionsCount, getUserCreatedAuctionsWhereCondition } from "./created-auction";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -21,10 +22,295 @@ beforeEach(() => {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("created-auction", () => {
-  describe("getUserCreatedAuctionsWithCount", () => {
-    test("should return created auctions with count successfully", async () => {
+  describe("getUserCreatedAuctionsWhereCondition", () => {
+    test("should throw error when userId is missing", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctionsWhereCondition("", [], "and")).rejects.toThrow("userId, filter, and filterCondition are required");
+    });
+
+    test("should throw error when filter is null", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctionsWhereCondition(testUserId, null as unknown as AuctionCreatedTabFilter[], "and")).rejects.toThrow(
+        "userId, filter, and filterCondition are required",
+      );
+    });
+
+    test("should throw error when filterCondition is null", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctionsWhereCondition(testUserId, [], null as unknown as FilterCondition)).rejects.toThrow(
+        "userId, filter, and filterCondition are required",
+      );
+    });
+
+    test("should return default role condition when filter is empty", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, [], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        task: {
+          OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+        },
+      });
+    });
+
+    test("should handle creator filter with AND condition", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["creator"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        task: { AND: [{ creatorId: testUserId }] },
+      });
+    });
+
+    test("should handle multiple role filters with AND condition", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["creator", "executor"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        task: {
+          AND: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }],
+        },
+      });
+    });
+
+    test("should handle multiple role filters with OR condition", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["creator", "executor"], "or");
+
+      // Assert
+      expect(result).toStrictEqual({
+        task: {
+          OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }],
+        },
+      });
+    });
+
+    test("should handle status filter active", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["active"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        AND: [
+          {
+            task: {
+              OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+            },
+          },
+          {
+            task: {
+              status: {
+                in: [TaskStatus.AUCTION_ACTIVE],
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    test("should handle status filter ended", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["ended"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        AND: [
+          {
+            task: {
+              OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+            },
+          },
+          {
+            task: {
+              status: {
+                in: [TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED],
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    test("should handle status filter pending", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["pending"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        AND: [
+          {
+            task: {
+              OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+            },
+          },
+          {
+            task: {
+              status: {
+                in: [TaskStatus.PENDING],
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    test("should handle status filter supplier_done", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["supplier_done"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        AND: [
+          {
+            task: {
+              OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+            },
+          },
+          {
+            task: {
+              status: {
+                in: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    test("should handle multiple status filters", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["active", "ended"], "and");
+
+      // Assert
+      expect(result).toStrictEqual({
+        AND: [
+          {
+            task: {
+              OR: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+            },
+          },
+          {
+            task: {
+              status: {
+                in: [TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED],
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    test("should handle role and status filters with OR condition", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(testUserId, ["creator", "active"], "or");
+
+      // Assert
+      expect(result).toStrictEqual({
+        OR: [
+          {
+            task: { OR: [{ creatorId: testUserId }] },
+          },
+          {
+            task: {
+              status: {
+                in: [TaskStatus.AUCTION_ACTIVE],
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    test("should handle all filter types", async () => {
+      // Act
+      const result = await getUserCreatedAuctionsWhereCondition(
+        testUserId,
+        ["creator", "executor", "reporter", "active", "ended", "pending", "supplier_done"],
+        "and",
+      );
+
+      // Assert
+      expect(result).toStrictEqual({
+        AND: [
+          {
+            task: {
+              AND: [{ creatorId: testUserId }, { executors: { some: { userId: testUserId } } }, { reporters: { some: { userId: testUserId } } }],
+            },
+          },
+          {
+            task: {
+              status: {
+                in: [
+                  TaskStatus.AUCTION_ACTIVE,
+                  TaskStatus.AUCTION_ENDED,
+                  TaskStatus.POINTS_DEPOSITED,
+                  TaskStatus.PENDING,
+                  TaskStatus.SUPPLIER_DONE,
+                  TaskStatus.TASK_COMPLETED,
+                  TaskStatus.FIXED_EVALUATED,
+                  TaskStatus.POINTS_AWARDED,
+                ],
+              },
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe("getUserCreatedAuctions", () => {
+    test("should throw error when userId is missing", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctions(testPage, "", testItemPerPage, [], "and")).rejects.toThrow(
+        "userId, itemPerPage, page, filter, and filterCondition are required",
+      );
+    });
+
+    test("should throw error when itemPerPage is 0", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctions(testPage, testUserId, 0, [], "and")).rejects.toThrow(
+        "userId, itemPerPage, page, filter, and filterCondition are required",
+      );
+    });
+
+    test("should throw error when page is 0", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctions(0, testUserId, testItemPerPage, [], "and")).rejects.toThrow(
+        "userId, itemPerPage, page, filter, and filterCondition are required",
+      );
+    });
+
+    test("should throw error when filter is null", async () => {
+      // Act & Assert
+      await expect(
+        getUserCreatedAuctions(testPage, testUserId, testItemPerPage, null as unknown as AuctionCreatedTabFilter[], "and"),
+      ).rejects.toThrow("userId, itemPerPage, page, filter, and filterCondition are required");
+    });
+
+    test("should throw error when filterCondition is null", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctions(testPage, testUserId, testItemPerPage, [], null as unknown as FilterCondition)).rejects.toThrow(
+        "userId, itemPerPage, page, filter, and filterCondition are required",
+      );
+    });
+
+    test("should return empty array when no auctions found", async () => {
       // Arrange
-      const mockCreatedAuctions = [
+      prismaMock.auction.findMany.mockResolvedValue([]);
+
+      // Act
+      const result = await getUserCreatedAuctions(testPage, testUserId, testItemPerPage, [], "and");
+
+      // Assert
+      expect(result).toStrictEqual([]);
+    });
+
+    test("should return formatted auction data successfully", async () => {
+      // Arrange
+      const mockAuctionData = [
         {
           id: "auction-1",
           currentHighestBid: 2000,
@@ -32,7 +318,7 @@ describe("created-auction", () => {
           createdAt: new Date("2024-01-01"),
           task: {
             id: "task-1",
-            task: "Test Created Task 1",
+            task: "Test Task 1",
             status: TaskStatus.AUCTION_ACTIVE,
             deliveryMethod: "online",
             creator: { id: testUserId },
@@ -46,23 +332,21 @@ describe("created-auction", () => {
         },
       ];
 
-      prismaMock.auction.findMany.mockResolvedValue(mockCreatedAuctions as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-      prismaMock.auction.count.mockResolvedValue(5);
+      prismaMock.auction.findMany.mockResolvedValue(mockAuctionData as never);
 
       // Act
-      const result = await getUserCreatedAuctionsWithCount(testPage, testUserId, testItemPerPage, [], "and");
+      const result = await getUserCreatedAuctions(testPage, testUserId, testItemPerPage, [], "and");
 
       // Assert
-      expect(result.data).toHaveLength(1);
-      expect(result.count).toBe(5);
-      expect(result.data[0]).toStrictEqual({
+      expect(result).toHaveLength(1);
+      expect(result[0]).toStrictEqual({
         auctionId: "auction-1",
         currentHighestBid: 2000,
         auctionEndTime: new Date("2024-01-03"),
-        taskStatus: TaskStatus.AUCTION_ACTIVE,
         auctionCreatedAt: new Date("2024-01-01"),
         taskId: "task-1",
-        taskName: "Test Created Task 1",
+        taskName: "Test Task 1",
+        taskStatus: TaskStatus.AUCTION_ACTIVE,
         deliveryMethod: "online",
         winnerId: "winner-1",
         winnerName: "Winner Name",
@@ -73,56 +357,173 @@ describe("created-auction", () => {
       });
     });
 
-    test("should return empty data and zero count when no created auctions", async () => {
+    test("should handle auction with no winner", async () => {
       // Arrange
-      prismaMock.auction.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
-      prismaMock.auction.count.mockResolvedValue(0);
+      const mockAuctionData = [
+        {
+          id: "auction-1",
+          currentHighestBid: 1000,
+          endTime: new Date("2024-01-03"),
+          createdAt: new Date("2024-01-01"),
+          task: {
+            id: "task-1",
+            task: "Test Task 1",
+            status: TaskStatus.AUCTION_ACTIVE,
+            deliveryMethod: "online",
+            creator: { id: "other-user" },
+            executors: [],
+            reporters: [{ userId: testUserId }],
+          },
+          winner: null,
+        },
+      ];
+
+      prismaMock.auction.findMany.mockResolvedValue(mockAuctionData as never);
 
       // Act
-      const result = await getUserCreatedAuctionsWithCount(testPage, testUserId, testItemPerPage, [], "and");
+      const result = await getUserCreatedAuctions(testPage, testUserId, testItemPerPage, [], "and");
 
       // Assert
-      expect(result.data).toStrictEqual([]);
-      expect(result.count).toBe(0);
+      expect(result[0]).toStrictEqual({
+        auctionId: "auction-1",
+        currentHighestBid: 1000,
+        auctionEndTime: new Date("2024-01-03"),
+        auctionCreatedAt: new Date("2024-01-01"),
+        taskId: "task-1",
+        taskName: "Test Task 1",
+        taskStatus: TaskStatus.AUCTION_ACTIVE,
+        deliveryMethod: "online",
+        winnerId: null,
+        winnerName: null,
+        isCreator: false,
+        isExecutor: false,
+        isReporter: true,
+        taskRole: ["REPORTER"],
+      });
     });
 
-    test("should handle filter conditions in created auctions", async () => {
+    test("should handle multiple task roles correctly", async () => {
       // Arrange
-      const filters: AuctionCreatedTabFilter[] = ["ended"];
-      prismaMock.auction.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auction.findMany>>);
+      const mockAuctionData = [
+        {
+          id: "auction-1",
+          currentHighestBid: 1500,
+          endTime: new Date("2024-01-03"),
+          createdAt: new Date("2024-01-01"),
+          task: {
+            id: "task-1",
+            task: "Test Task 1",
+            status: TaskStatus.AUCTION_ACTIVE,
+            deliveryMethod: "online",
+            creator: { id: testUserId },
+            executors: [{ userId: testUserId }],
+            reporters: [{ userId: testUserId }],
+          },
+          winner: null,
+        },
+      ];
+
+      prismaMock.auction.findMany.mockResolvedValue(mockAuctionData as never);
+
+      // Act
+      const result = await getUserCreatedAuctions(testPage, testUserId, testItemPerPage, [], "and");
+
+      // Assert
+      expect(result[0].taskRole).toStrictEqual(["SUPPLIER", "EXECUTOR", "REPORTER"]);
+      expect(result[0].isCreator).toBe(true);
+      expect(result[0].isExecutor).toBe(true);
+      expect(result[0].isReporter).toBe(true);
+    });
+
+    test("should handle pagination parameters correctly", async () => {
+      // Arrange
+      prismaMock.auction.findMany.mockResolvedValue([]);
+
+      // Act
+      await getUserCreatedAuctions(2, testUserId, 5, [], "and");
+
+      // Assert
+      expect(prismaMock.auction.findMany).toHaveBeenCalledWith({
+        where: expect.any(Object) as Prisma.AuctionWhereInput,
+        orderBy: { createdAt: "desc" },
+        skip: 5, // (page - 1) * itemPerPage = (2 - 1) * 5
+        take: 5,
+        select: expect.any(Object) as Prisma.AuctionSelect,
+      });
+    });
+  });
+
+  describe("getUserCreatedAuctionsCount", () => {
+    test("should throw error when userId is missing", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctionsCount("", [], "and")).rejects.toThrow("userId, filter, and filterCondition are required");
+    });
+
+    test("should throw error when filter is null", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctionsCount(testUserId, null as unknown as AuctionCreatedTabFilter[], "and")).rejects.toThrow(
+        "userId, filter, and filterCondition are required",
+      );
+    });
+
+    test("should throw error when filterCondition is null", async () => {
+      // Act & Assert
+      await expect(getUserCreatedAuctionsCount(testUserId, [], null as unknown as FilterCondition)).rejects.toThrow(
+        "userId, filter, and filterCondition are required",
+      );
+    });
+
+    test("should return 0 when no auctions found", async () => {
+      // Arrange
       prismaMock.auction.count.mockResolvedValue(0);
 
       // Act
-      await getUserCreatedAuctionsWithCount(testPage, testUserId, testItemPerPage, filters, "and");
+      const result = await getUserCreatedAuctionsCount(testUserId, [], "and");
 
       // Assert
-      expect(prismaMock.auction.findMany).toHaveBeenCalledTimes(1);
-      const callArgs = prismaMock.auction.findMany.mock.calls[0]?.[0];
-      expect(callArgs).toBeDefined();
+      expect(result).toBe(0);
+    });
 
-      if (callArgs?.where && "AND" in callArgs.where) {
-        const andConditions = callArgs.where.AND as Array<Record<string, unknown>>;
-        expect(andConditions).toHaveLength(2);
+    test("should return correct count when auctions exist", async () => {
+      // Arrange
+      prismaMock.auction.count.mockResolvedValue(15);
 
-        // タスクロール条件の確認
-        const roleCondition = andConditions.find((condition) => "task" in condition && "OR" in (condition.task as Record<string, unknown>));
-        expect(roleCondition).toBeDefined();
+      // Act
+      const result = await getUserCreatedAuctionsCount(testUserId, [], "and");
 
-        // ステータス条件の確認
-        const statusCondition = andConditions.find((condition) => "task" in condition && "status" in (condition.task as Record<string, unknown>));
-        expect(statusCondition).toBeDefined();
+      // Assert
+      expect(result).toBe(15);
+    });
 
-        if (statusCondition && "task" in statusCondition) {
-          const taskCondition = statusCondition.task as Record<string, unknown>;
-          if ("status" in taskCondition) {
-            const statusObj = taskCondition.status as Record<string, unknown>;
-            if ("in" in statusObj) {
-              const statusArray = statusObj.in as TaskStatus[];
-              expect(statusArray).toContain(TaskStatus.AUCTION_ENDED);
-            }
-          }
-        }
-      }
+    test("should call prisma count with correct parameters", async () => {
+      // Arrange
+      prismaMock.auction.count.mockResolvedValue(10);
+
+      // Act
+      await getUserCreatedAuctionsCount(testUserId, ["active"], "and");
+
+      // Assert
+      expect(prismaMock.auction.count).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          AND: expect.any(Array) as Prisma.AuctionWhereInput[],
+        }) as Prisma.AuctionWhereInput,
+      });
+    });
+
+    test("should handle different filter conditions", async () => {
+      // Arrange
+      prismaMock.auction.count.mockResolvedValue(5);
+
+      // Act
+      const result = await getUserCreatedAuctionsCount(testUserId, ["creator", "ended"], "or");
+
+      // Assert
+      expect(result).toBe(5);
+      expect(prismaMock.auction.count).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          OR: expect.any(Array) as Prisma.AuctionWhereInput[],
+        }) as Prisma.AuctionWhereInput,
+      });
     });
   });
 });
