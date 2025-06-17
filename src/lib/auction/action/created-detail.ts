@@ -15,7 +15,7 @@ import { getCachedAuctionHistoryCreatedDetail } from "./cache/cache-auction-hist
  * @param auctionId 出品商品のID
  * @returns 出品商品の詳細
  */
-export async function getAuctionHistoryCreatedDetail(auctionId: string): Promise<AuctionHistoryCreatedDetail | null> {
+export async function getAuctionHistoryCreatedDetail(auctionId: string): Promise<AuctionHistoryCreatedDetail> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

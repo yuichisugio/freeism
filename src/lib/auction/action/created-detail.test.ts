@@ -102,15 +102,12 @@ describe("created-detail.ts", () => {
         expect(mockGetCachedAuctionHistoryCreatedDetail).toHaveBeenCalledWith(testAuction.id);
       });
 
-      test("should return null when auction does not exist", async () => {
+      test("should throw error when auction does not exist", async () => {
         // Arrange
-        mockGetCachedAuctionHistoryCreatedDetail.mockResolvedValue(null);
+        mockGetCachedAuctionHistoryCreatedDetail.mockRejectedValue(new Error("auction not found"));
 
-        // Act
-        const result = await getAuctionHistoryCreatedDetail("non-existent-id");
-
-        // Assert
-        expect(result).toBeNull();
+        // Act & Assert
+        await expect(getAuctionHistoryCreatedDetail("non-existent-id")).rejects.toThrow("auction not found");
         expect(mockGetCachedAuctionHistoryCreatedDetail).toHaveBeenCalledWith("non-existent-id");
       });
     });
@@ -125,15 +122,12 @@ describe("created-detail.ts", () => {
         await expect(getAuctionHistoryCreatedDetail(testAuction.id)).rejects.toThrow("Database error");
       });
 
-      test("should return null when auctionId is empty", async () => {
+      test("should throw error when auctionId is empty", async () => {
         // Arrange
-        mockGetCachedAuctionHistoryCreatedDetail.mockResolvedValue(null);
+        mockGetCachedAuctionHistoryCreatedDetail.mockRejectedValue(new Error("auctionId is required"));
 
-        // Act
-        const result = await getAuctionHistoryCreatedDetail("");
-
-        // Assert
-        expect(result).toBeNull();
+        // Act & Assert
+        await expect(getAuctionHistoryCreatedDetail("")).rejects.toThrow("auctionId is required");
         expect(mockGetCachedAuctionHistoryCreatedDetail).toHaveBeenCalledWith("");
       });
     });

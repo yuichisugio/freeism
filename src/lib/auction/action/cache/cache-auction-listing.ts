@@ -161,7 +161,7 @@ export const cachedGetAuctionListingsAndCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * ステータス
+       * ステータス (buildRawQueryComponents より)
        */
       if (status && status.length > 0) {
         const statusWhereClausesSql: Prisma.Sql[] = [];
@@ -191,12 +191,8 @@ export const cachedGetAuctionListingsAndCount = cache(
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.POINTS_DEPOSITED}`);
               break;
             case "not_ended":
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.AUCTION_ENDED} AND a."end_time" >= ${now})`);
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.SUPPLIER_DONE} AND a."end_time" >= ${now})`);
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.TASK_COMPLETED} AND a."end_time" >= ${now})`);
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.FIXED_EVALUATED} AND a."end_time" >= ${now})`);
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.POINTS_AWARDED} AND a."end_time" >= ${now})`);
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text != ${TaskStatus.POINTS_DEPOSITED} AND a."end_time" >= ${now})`);
+              // 終了していないオークション = 開始前または実行中のオークション
+              statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} OR t.status::text = ${TaskStatus.AUCTION_ACTIVE})`);
               break;
             case "not_started":
               statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} AND a."start_time" >= ${now})`);
@@ -307,7 +303,7 @@ export const cachedGetAuctionListingsAndCount = cache(
        */
       let orderBySql: Prisma.Sql = Prisma.empty;
       // 全文検索がない場合は、作成日時の降順にソート。全文検索がある場合は、スコアでソートする
-      const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`"created_at" DESC`;
+      const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`a."created_at" DESC`;
 
       // sortの指定がある場合
       if (sort && sort.length > 0) {
@@ -319,16 +315,16 @@ export const cachedGetAuctionListingsAndCount = cache(
             orderBySql = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : defaultSort;
             break;
           case "newest":
-            orderBySql = Prisma.sql`a."created_at" ${directionSql}`;
+            orderBySql = Prisma.sql`"created_at" ${directionSql}`;
             break;
           case "time_remaining":
-            orderBySql = Prisma.sql`a."end_time" ${directionSql}`;
+            orderBySql = Prisma.sql`"end_time" ${directionSql}`;
             break;
           case "bids":
             orderBySql = Prisma.sql`"bids_count_intermediate" ${directionSql}`;
             break;
           case "price":
-            orderBySql = Prisma.sql`a."current_highest_bid" ${directionSql}`;
+            orderBySql = Prisma.sql`"current_highest_bid" ${directionSql}`;
             break;
           default:
             orderBySql = defaultSort;
@@ -344,7 +340,6 @@ export const cachedGetAuctionListingsAndCount = cache(
        * 入札数でソートする場合
        */
       let bidsCountSelectForSort: Prisma.Sql = Prisma.empty;
-      // 入札数でソートする場合は、入札数を取得するために、BidHistoryテーブルをJOINする
       if (sort && sort.length > 0 && sort[0].field === "bids") {
         bidsCountSelectForSort = Prisma.sql`, (SELECT COUNT(*) FROM "BidHistory" bh_sort WHERE bh_sort."auction_id" = a.id) as bids_count_intermediate`;
       }
@@ -388,7 +383,10 @@ export const cachedGetAuctionListingsAndCount = cache(
         WITH "FilteredAuctionsCTE" AS (
           SELECT
             a."id",
-            a."task_id"
+            a."task_id",
+            a."created_at",
+            a."end_time",
+            a."current_highest_bid"
             ${bidsCountSelectForSort}
             ${ftsSelectSQL}
           FROM "Auction" a
@@ -399,7 +397,11 @@ export const cachedGetAuctionListingsAndCount = cache(
         "PaginatedAuctionsCTE" AS (
           SELECT
             "id",
-            "task_id"
+            "task_id",
+            "created_at",
+            "end_time",
+            "current_highest_bid"
+            ${sort && sort.length > 0 && sort[0].field === "bids" ? Prisma.sql`, bids_count_intermediate` : Prisma.empty}
             ${ftsSelectSQL !== Prisma.empty ? Prisma.sql`, score` : Prisma.empty}
           FROM "FilteredAuctionsCTE"
           LIMIT ${take} OFFSET ${skip}
