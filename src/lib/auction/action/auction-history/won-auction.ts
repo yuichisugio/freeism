@@ -16,6 +16,12 @@ import { ReviewPosition, TaskStatus } from "@prisma/client";
 export async function getUserWonAuctionsWhereCondition(userId: string, wonStatus?: string): Promise<Prisma.AuctionWhereInput> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  if (!userId) {
+    throw new Error("userId is required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * wonStatusに応じたstatus配列
    */
@@ -31,6 +37,17 @@ export async function getUserWonAuctionsWhereCondition(userId: string, wonStatus
     statusIn = [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
   } else if (wonStatus === "incomplete") {
     statusIn = [TaskStatus.PENDING, TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED, TaskStatus.SUPPLIER_DONE];
+  } else if (wonStatus === "all") {
+    statusIn = [
+      TaskStatus.PENDING,
+      TaskStatus.AUCTION_ACTIVE,
+      TaskStatus.AUCTION_ENDED,
+      TaskStatus.POINTS_DEPOSITED,
+      TaskStatus.SUPPLIER_DONE,
+      TaskStatus.TASK_COMPLETED,
+      TaskStatus.FIXED_EVALUATED,
+      TaskStatus.POINTS_AWARDED,
+    ];
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
