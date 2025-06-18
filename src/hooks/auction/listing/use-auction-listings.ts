@@ -1,6 +1,12 @@
 "use client";
 
-import type { AuctionFilterTypes, AuctionListingResult, AuctionListingsConditions, AuctionSortField, SortDirection } from "@/types/auction-types";
+import type {
+  AuctionFilterTypes,
+  AuctionListingResult,
+  AuctionListingsConditions,
+  AuctionSortField,
+  SortDirection,
+} from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
@@ -132,7 +138,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   const listingsConditions: AuctionListingsConditions = useMemo(() => {
     return {
       categories: params.category && params.category.length > 0 ? params.category : ["すべて"],
-      status: params.status && params.status.length > 0 ? (params.status as AuctionFilterTypes[]) : ["all"],
+      status: params.status && params.status.length > 0 ? params.status : ["all"],
       statusConditionJoinType: params.status_join_type === "OR" ? "OR" : "AND",
       minBid: params.min_bid ?? null,
       maxBid: params.max_bid ?? null,
@@ -140,7 +146,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       maxRemainingTime: params.max_remaining_time ?? null,
       groupIds: params.group_id && params.group_id.length > 0 ? params.group_id : null,
       searchQuery: params.q === undefined ? null : params.q,
-      sort: params.sort ? [{ field: params.sort as AuctionSortField, direction: (params.sort_direction as SortDirection) ?? "desc" }] : null,
+      sort: params.sort ? [{ field: params.sort, direction: params.sort_direction ?? "desc" }] : null,
       page: params.page ?? 1,
     };
   }, [params]);
@@ -155,7 +161,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       // ページ以外の条件が変わったらページを1に戻す
       const conditionsChanged =
         listingsConditions.searchQuery !== newListingsConditions.searchQuery ||
-        listingsConditions.statusConditionJoinType !== newListingsConditions.statusConditionJoinType ||
+        listingsConditions.joinType !== newListingsConditions.joinType ||
         listingsConditions.minBid !== newListingsConditions.minBid ||
         listingsConditions.maxBid !== newListingsConditions.maxBid ||
         listingsConditions.minRemainingTime !== newListingsConditions.minRemainingTime ||
@@ -178,25 +184,34 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
       // categories が変更されている場合のみ更新
       if (!arraysAreEqual(listingsConditions.categories, newListingsConditions.categories)) {
-        paramsToUpdate.category = arraysAreEqual(newListingsConditions.categories, ["すべて"]) ? null : newListingsConditions.categories;
+        paramsToUpdate.category = arraysAreEqual(newListingsConditions.categories, ["すべて"])
+          ? null
+          : newListingsConditions.categories;
       }
 
       // status が変更されている場合のみ更新
       if (!arraysAreEqual(listingsConditions.status, newListingsConditions.status)) {
-        paramsToUpdate.status = arraysAreEqual(newListingsConditions.status, ["all"]) ? null : newListingsConditions.status;
+        paramsToUpdate.status = arraysAreEqual(newListingsConditions.status, ["all"])
+          ? null
+          : newListingsConditions.status;
       }
 
       // status_join_type が変更されている場合のみ更新
-      if (listingsConditions.statusConditionJoinType !== newListingsConditions.statusConditionJoinType) {
+      if (listingsConditions.joinType !== newListingsConditions.joinType) {
         paramsToUpdate.status_join_type =
-          newListingsConditions.statusConditionJoinType === "AND" ? null : newListingsConditions.statusConditionJoinType;
+          newListingsConditions.joinType === "AND" ? null : newListingsConditions.joinType;
       }
 
       // sort が変更されている場合のみ更新
       if (!sortArraysAreEqual(listingsConditions.sort, newListingsConditions.sort)) {
-        paramsToUpdate.sort = newListingsConditions.sort && newListingsConditions.sort.length > 0 ? newListingsConditions.sort[0].field : null;
+        paramsToUpdate.sort =
+          newListingsConditions.sort && newListingsConditions.sort.length > 0
+            ? newListingsConditions.sort[0].field
+            : null;
         paramsToUpdate.sort_direction =
-          newListingsConditions.sort && newListingsConditions.sort.length > 0 && newListingsConditions.sort[0].direction !== "desc"
+          newListingsConditions.sort &&
+          newListingsConditions.sort.length > 0 &&
+          newListingsConditions.sort[0].direction !== "desc"
             ? newListingsConditions.sort[0].direction
             : null;
       }
@@ -255,7 +270,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
       // 次のページをprefetch
       void queryClient.prefetchQuery({
         queryKey: queryCacheKeys.auction.userAllListings(userId, { ...listingsConditions, page: nextPage }),
-        queryFn: async () => await getAuctionListingsAndCount({ listingsConditions: { ...listingsConditions, page: nextPage }, userId }),
+        queryFn: async () =>
+          await getAuctionListingsAndCount({ listingsConditions: { ...listingsConditions, page: nextPage }, userId }),
       });
     }
   }, [auctionListings, listingsConditions, isPlaceholderData, queryClient, isPending, userId]);

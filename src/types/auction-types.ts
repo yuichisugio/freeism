@@ -6,7 +6,15 @@ import type { AuctionReview, BidStatus, TaskStatus } from "@prisma/client";
 /**
  * フィルターの型
  */
-export type AuctionCreatedTabFilter = "creator" | "executor" | "reporter" | "ended" | "active" | "pending" | "all" | "supplier_done";
+export type AuctionCreatedTabFilter =
+  | "creator"
+  | "executor"
+  | "reporter"
+  | "ended"
+  | "active"
+  | "pending"
+  | "all"
+  | "supplier_done";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -82,7 +90,7 @@ export type UseAuctionFiltersProps = {
 export type AuctionListingsConditions = {
   categories: (typeof AUCTION_CONSTANTS.AUCTION_CATEGORIES)[number][] | null;
   status: AuctionFilterTypes[] | null;
-  statusConditionJoinType: "OR" | "AND"; // ステータス条件の結合タイプ（OR/AND）
+  joinType: JoinType; // ステータス条件の結合タイプ（OR/AND）
   minBid: number | null;
   maxBid: number | null;
   minRemainingTime: number | null;
@@ -96,23 +104,43 @@ export type AuctionListingsConditions = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * ステータス条件の結合タイプ
+ */
+export type JoinType = (typeof joinTypeArray)[number];
+export const joinTypeArray = ["OR", "AND"];
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * ステータスの型
  */
-export type AuctionFilterTypes = "all" | "watchlist" | "not_bidded" | "bidded" | "ended" | "not_ended" | "not_started" | "started";
+export type AuctionFilterTypes = (typeof auctionFilterArray)[number];
+export const auctionFilterArray = [
+  "all",
+  "watchlist",
+  "not_bidded",
+  "bidded",
+  "ended",
+  "not_ended",
+  "not_started",
+  "started",
+];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ソートField
  */
-export type AuctionSortField = "relevance" | "newest" | "time_remaining" | "bids" | "price" | "score";
+export type AuctionSortField = (typeof auctionSortFieldArray)[number];
+export const auctionSortFieldArray = ["relevance", "newest", "time_remaining", "bids", "price", "score"];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ソートDirection
  */
-export type SortDirection = "asc" | "desc";
+export type SortDirection = (typeof sortDirectionArray)[number];
+export const sortDirectionArray = ["asc", "desc"];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

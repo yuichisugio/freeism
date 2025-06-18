@@ -49,10 +49,12 @@ beforeEach(() => {
 /**
  * テストヘルパー関数：基本的なAuctionListingsConditionsを作成
  */
-const createBaseListingsConditions = (overrides: Partial<AuctionListingsConditions> = {}): AuctionListingsConditions => ({
+const createBaseListingsConditions = (
+  overrides: Partial<AuctionListingsConditions> = {},
+): AuctionListingsConditions => ({
   categories: null,
   status: ["all"],
-  statusConditionJoinType: "OR",
+  joinType: "OR",
   minBid: null,
   maxBid: null,
   minRemainingTime: null,
@@ -67,7 +69,10 @@ const createBaseListingsConditions = (overrides: Partial<AuctionListingsConditio
 /**
  * テストヘルパー関数：GetAuctionListingsParamsを作成
  */
-const createAuctionListingsParams = (listingsConditions: AuctionListingsConditions, userId: string = testUserId): GetAuctionListingsParams => ({
+const createAuctionListingsParams = (
+  listingsConditions: AuctionListingsConditions,
+  userId: string = testUserId,
+): GetAuctionListingsParams => ({
   listingsConditions,
   userId,
 });
@@ -174,7 +179,7 @@ describe("auction-listing", () => {
         const listingsConditions = createBaseListingsConditions({
           categories: ["プログラミング", "デザイン", "マーケティング"],
           status: ["not_ended", "started", "bidded"],
-          statusConditionJoinType: "AND",
+          joinType: "AND",
           minBid: 100,
           maxBid: 5000,
           minRemainingTime: 3600, // 1時間

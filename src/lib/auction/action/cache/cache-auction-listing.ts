@@ -4,6 +4,7 @@ import type { AuctionCard, AuctionListingResult, AuctionListingsConditions } fro
 import { cache } from "react";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
+import { auctionFilterArray, auctionSortFieldArray, joinTypeArray, sortDirectionArray } from "@/types/auction-types";
 import { Prisma, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -76,7 +77,10 @@ type RawAuctionData = {
  * "use cache"では、シリアライズできる情報のみキャッシュできるため、Prisma.sql``を返す関数はキャッシュできないので、一つにまとめている
  */
 export const cachedGetAuctionListingsAndCount = cache(
-  async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
+  async ({
+    listingsConditions,
+    userId,
+  }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
       console.log("cachedGetAuctionListingsAndCount");
@@ -91,8 +95,74 @@ export const cachedGetAuctionListingsAndCount = cache(
       /**
        * 引数を分解
        */
-      const { categories, status, minBid, maxBid, minRemainingTime, maxRemainingTime, groupIds, statusConditionJoinType, searchQuery } =
-        listingsConditions;
+      const {
+        categories,
+        status,
+        minBid,
+        maxBid,
+        minRemainingTime,
+        maxRemainingTime,
+        groupIds,
+        joinType,
+        searchQuery,
+        page,
+        sort,
+      } = listingsConditions;
+      console.log("listingsConditions", listingsConditions);
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * バリデーション
+       */
+      // ページ番号がある場合に、1以上か確認
+      if (page && page < 1) {
+        throw new Error("page must be greater than 0");
+      }
+
+      // ステータス条件の結合タイプがある場合に、joinTypeArrayに含まれているか確認
+      if (joinType && !joinTypeArray.includes(joinType)) {
+        throw new Error(`joinType must be ${joinTypeArray.join(", ")}`);
+      }
+
+      // カテゴリーがある場合に、AUCTION_CONSTANTS.AUCTION_CATEGORIESに含まれているか確認
+      if (categories && !categories.every((c) => AUCTION_CONSTANTS.AUCTION_CATEGORIES.includes(c))) {
+        throw new Error(`categories must be in ${AUCTION_CONSTANTS.AUCTION_CATEGORIES.join(", ")}`);
+      }
+
+      // ステータスがある場合に、AuctionFilterTypesに含まれているか確認
+      if (status && !status.every((s) => auctionFilterArray.includes(s))) {
+        throw new Error(`status must be in ${auctionFilterArray.join(", ")}`);
+      }
+
+      // 入札額がある場合に、0より大きいか確認
+      if ((minBid && minBid < 0) || (maxBid && maxBid < 0)) {
+        throw new Error("minBid and maxBid must be greater than 0");
+      }
+
+      // 残り時間がある場合に、0より大きいか確認
+      if ((minRemainingTime && minRemainingTime < 0) || (maxRemainingTime && maxRemainingTime < 0)) {
+        throw new Error("minRemainingTime and maxRemainingTime must be greater than 0");
+      }
+
+      // ソートがある場合
+      if (sort && sort.length > 0) {
+        // ソートフィールドがある場合に、auctionSortFieldArrayに含まれているか確認
+        if (!auctionSortFieldArray.includes(sort[0].field)) {
+          throw new Error(`sort must be ${auctionSortFieldArray.join(", ")}`);
+        }
+        // ソート方向がある場合に、sortDirectionArrayに含まれているか確認
+        if (!sortDirectionArray.includes(sort[0].direction)) {
+          throw new Error(`sort direction must be ${sortDirectionArray.join(", ")}`);
+        }
+      }
+
+      // グループIDがある場合、groupIdsが空か確認
+      if (groupIds && groupIds.length > 0) {
+        if ((typeof groupIds !== "string" && groupIds.length === 0) || typeof groupIds === "string") {
+          throw new Error("groupIds must be an array of strings or a string");
+        }
+      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -178,10 +248,14 @@ export const cachedGetAuctionListingsAndCount = cache(
               );
               break;
             case "not_bidded":
-              bidConditions.push(Prisma.sql`NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
+              bidConditions.push(
+                Prisma.sql`NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`,
+              );
               break;
             case "bidded":
-              bidConditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`);
+              bidConditions.push(
+                Prisma.sql`EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ${userId})`,
+              );
               break;
             case "ended":
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.AUCTION_ENDED}`);
@@ -197,15 +271,19 @@ export const cachedGetAuctionListingsAndCount = cache(
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.AUCTION_ACTIVE}`);
               break;
             case "not_started":
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} AND a."start_time" >= ${now})`);
+              statusWhereClausesSql.push(
+                Prisma.sql`(t.status::text = ${TaskStatus.PENDING} AND a."start_time" >= ${now})`,
+              );
               break;
             case "started":
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.AUCTION_ACTIVE} AND a."start_time" <= ${now})`);
+              statusWhereClausesSql.push(
+                Prisma.sql`(t.status::text = ${TaskStatus.AUCTION_ACTIVE} AND a."start_time" <= ${now})`,
+              );
               break;
           }
         });
 
-        const joinOperatorString = statusConditionJoinType === "AND" ? " AND " : " OR ";
+        const joinOperatorString = joinType === "AND" ? " AND " : " OR ";
         const combinedStatusConditions: Prisma.Sql[] = [];
         if (watchlistConditions.length > 0) {
           combinedStatusConditions.push(Prisma.sql`(${Prisma.join(watchlistConditions, joinOperatorString)})`);
@@ -272,8 +350,6 @@ export const cachedGetAuctionListingsAndCount = cache(
        * オークション一覧取得ロジック
        * searchQuery は上で展開済みのため、ここでは使用しない
        */
-      const { sort, page } = listingsConditions;
-
       let ftsSelectSQL: Prisma.Sql = Prisma.empty;
       let ftsOrderBySQL: Prisma.Sql = Prisma.empty;
       let highlightParamsSQL: Prisma.Sql = Prisma.empty;

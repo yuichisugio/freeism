@@ -34,7 +34,7 @@ Object.defineProperty(window, "scrollTo", {
 const auctionListingsConditionsFactory = Factory.define<AuctionListingsConditions>(({ params }) => ({
   categories: params.categories ?? null,
   status: params.status ?? null,
-  statusConditionJoinType: params.statusConditionJoinType ?? "AND",
+  joinType: params.joinType ?? "AND",
   minBid: params.minBid ?? null,
   maxBid: params.maxBid ?? null,
   minRemainingTime: params.minRemainingTime ?? null,
@@ -50,7 +50,9 @@ const auctionListingsConditionsFactory = Factory.define<AuctionListingsCondition
 /**
  * テストデータ作成ヘルパー関数
  */
-const createTestListingsConditions = (overrides: Partial<AuctionListingsConditions> = {}): AuctionListingsConditions => {
+const createTestListingsConditions = (
+  overrides: Partial<AuctionListingsConditions> = {},
+): AuctionListingsConditions => {
   return auctionListingsConditionsFactory.build(overrides);
 };
 

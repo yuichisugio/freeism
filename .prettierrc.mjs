@@ -5,7 +5,7 @@
 const config = {
   // 基本設定
   arrowParens: "always",
-  printWidth: 150,
+  printWidth: 120,
   singleQuote: false,
   semi: true,
   trailingComma: "all",

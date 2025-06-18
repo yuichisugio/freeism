@@ -28,7 +28,7 @@ vi.mock("@/hooks/auction/listing/use-auction-filters", () => ({
 const auctionListingsConditionsFactory = Factory.define<AuctionListingsConditions>(({ params }) => ({
   categories: params.categories ?? null,
   status: params.status ?? null,
-  statusConditionJoinType: params.statusConditionJoinType ?? "AND",
+  joinType: params.joinType ?? "AND",
   minBid: params.minBid ?? null,
   maxBid: params.maxBid ?? null,
   minRemainingTime: params.minRemainingTime ?? null,
@@ -45,7 +45,9 @@ const auctionListingsConditionsFactory = Factory.define<AuctionListingsCondition
  * テストデータ作成ヘルパー関数
  */
 
-const createTestListingsConditions = (overrides: Partial<AuctionListingsConditions> = {}): AuctionListingsConditions => {
+const createTestListingsConditions = (
+  overrides: Partial<AuctionListingsConditions> = {},
+): AuctionListingsConditions => {
   return auctionListingsConditionsFactory.build(overrides);
 };
 
@@ -136,7 +138,12 @@ describe("AuctionFilters", () => {
   describe("基本レンダリング", () => {
     test("should render with default state", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByPlaceholderText("商品名や説明文で検索...")).toBeInTheDocument();
@@ -147,7 +154,12 @@ describe("AuctionFilters", () => {
 
     test("should render category tabs", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert - カテゴリタブがレンダリングされることを確認
       AUCTION_CONSTANTS.AUCTION_CATEGORIES.forEach((category) => {
@@ -164,7 +176,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("3")).toBeInTheDocument(); // フィルターカウント
@@ -173,7 +190,12 @@ describe("AuctionFilters", () => {
 
     test("should not show reset button when no filters are active", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.queryByText("リセット")).not.toBeInTheDocument();
@@ -185,7 +207,12 @@ describe("AuctionFilters", () => {
   describe("検索機能", () => {
     test("should render search input with placeholder", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const searchInput = screen.getByPlaceholderText("商品名や説明文で検索...");
@@ -216,7 +243,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("テスト商品1")).toBeInTheDocument();
@@ -233,7 +265,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
@@ -263,7 +300,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const highlightedItem = screen.getByRole("option", { selected: true });
@@ -283,7 +325,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("フィルター設定")).toBeInTheDocument();
@@ -296,7 +343,12 @@ describe("AuctionFilters", () => {
 
     test("should not show filter panel when showFilters is false", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.queryByText("フィルター設定")).not.toBeInTheDocument();
@@ -312,7 +364,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const filterButton = screen.getByText("並び替え・フィルター");
       fireEvent.click(filterButton);
@@ -335,7 +392,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const categoryButton = screen.getByText("食品");
       fireEvent.click(categoryButton);
@@ -353,7 +415,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const selectedCategory = screen.getByText("食品");
@@ -362,7 +429,12 @@ describe("AuctionFilters", () => {
 
     test("should show unselected category with default styling", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const unselectedCategory = screen.getByText("コード");
@@ -383,7 +455,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const applyButton = screen.getByText("フィルターを適用");
       fireEvent.click(applyButton);
@@ -403,7 +480,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const resetButton = screen.getByText("リセット");
       fireEvent.click(resetButton);
@@ -425,7 +507,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("関連度順")).toBeInTheDocument();
@@ -444,7 +531,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("昇順")).toBeInTheDocument();
@@ -462,7 +554,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const ascButton = await screen.findByText("昇順");
       fireEvent.click(ascButton);
@@ -484,7 +581,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert - ステータスセクション内の特定の要素を確認
       expect(screen.getByText("ステータス")).toBeInTheDocument();
@@ -504,7 +606,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("OR条件")).toBeInTheDocument();
@@ -522,7 +629,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const orButton = screen.getByText("OR条件");
       fireEvent.click(orButton);
@@ -544,7 +656,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByLabelText("最小価格")).toBeInTheDocument();
@@ -560,7 +677,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("500P以下")).toBeInTheDocument();
@@ -579,7 +701,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const applyButton = screen.getByText("価格帯を適用");
       fireEvent.click(applyButton);
@@ -601,7 +728,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByLabelText("最小時間")).toBeInTheDocument();
@@ -617,7 +749,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert - プリセットボタンが存在することを確認
       const timePresetButtons = screen.getAllByText("1時間以内");
@@ -639,7 +776,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       const applyButton = screen.getByText("残り時間を適用");
       fireEvent.click(applyButton);
@@ -661,7 +803,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.getByText("カテゴリが読み込まれていません")).toBeInTheDocument();
@@ -679,7 +826,12 @@ describe("AuctionFilters", () => {
 
       // Act
       expect(() => {
-        render(<AuctionFilters listingsConditions={nullConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+        render(
+          <AuctionFilters
+            listingsConditions={nullConditions}
+            setListingsConditionsAction={mockSetListingsConditionsAction}
+          />,
+        );
       }).not.toThrow();
     });
 
@@ -698,7 +850,12 @@ describe("AuctionFilters", () => {
 
       // Act
       expect(() => {
-        render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+        render(
+          <AuctionFilters
+            listingsConditions={testListingsConditions}
+            setListingsConditionsAction={mockSetListingsConditionsAction}
+          />,
+        );
       }).not.toThrow();
     });
 
@@ -721,7 +878,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert - 大きな数値でもクラッシュしないことを確認
       expect(screen.getByText("価格帯")).toBeInTheDocument();
@@ -738,7 +900,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
@@ -763,7 +930,12 @@ describe("AuctionFilters", () => {
 
       // Act
       expect(() => {
-        render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+        render(
+          <AuctionFilters
+            listingsConditions={testListingsConditions}
+            setListingsConditionsAction={mockSetListingsConditionsAction}
+          />,
+        );
       }).not.toThrow();
     });
 
@@ -779,7 +951,12 @@ describe("AuctionFilters", () => {
 
       // Act
       expect(() => {
-        render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+        render(
+          <AuctionFilters
+            listingsConditions={testListingsConditions}
+            setListingsConditionsAction={mockSetListingsConditionsAction}
+          />,
+        );
       }).not.toThrow();
     });
   });
@@ -789,7 +966,12 @@ describe("AuctionFilters", () => {
   describe("アクセシビリティ", () => {
     test("should have proper ARIA attributes for search input", () => {
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const searchInput = screen.getByPlaceholderText("商品名や説明文で検索...");
@@ -816,7 +998,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const suggestionsList = screen.getByRole("listbox");
@@ -836,7 +1023,12 @@ describe("AuctionFilters", () => {
       );
 
       // Act
-      render(<AuctionFilters listingsConditions={testListingsConditions} setListingsConditionsAction={mockSetListingsConditionsAction} />);
+      render(
+        <AuctionFilters
+          listingsConditions={testListingsConditions}
+          setListingsConditionsAction={mockSetListingsConditionsAction}
+        />,
+      );
 
       // Assert
       const sortButtons = screen.getAllByRole("button").filter((button) => button.getAttribute("type") === "button");

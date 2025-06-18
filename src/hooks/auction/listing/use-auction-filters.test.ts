@@ -13,13 +13,15 @@ import { useAuctionFilters } from "./use-auction-filters";
 /**
  * ホイストされたモック関数の宣言
  */
-const { mockUseSession, mockGetSearchSuggestions, mockGetUserGroups, mockToastError, mockToastSuccess } = vi.hoisted(() => ({
-  mockUseSession: vi.fn(),
-  mockGetSearchSuggestions: vi.fn(),
-  mockGetUserGroups: vi.fn(),
-  mockToastError: vi.fn(),
-  mockToastSuccess: vi.fn(),
-}));
+const { mockUseSession, mockGetSearchSuggestions, mockGetUserGroups, mockToastError, mockToastSuccess } = vi.hoisted(
+  () => ({
+    mockUseSession: vi.fn(),
+    mockGetSearchSuggestions: vi.fn(),
+    mockGetUserGroups: vi.fn(),
+    mockToastError: vi.fn(),
+    mockToastSuccess: vi.fn(),
+  }),
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -56,19 +58,21 @@ vi.mock("sonner", () => ({
  */
 
 // セッションデータファクトリー
-const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(({ sequence, params }) => ({
-  user: {
-    id: params.user?.id ?? `user-${sequence}`,
-    email: params.user?.email ?? faker.internet.email(),
-    name: params.user?.name ?? faker.person.fullName(),
-  },
-}));
+const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(
+  ({ sequence, params }) => ({
+    user: {
+      id: params.user?.id ?? `user-${sequence}`,
+      email: params.user?.email ?? faker.internet.email(),
+      name: params.user?.name ?? faker.person.fullName(),
+    },
+  }),
+);
 
 // AuctionListingsConditionsファクトリー
 const auctionListingsConditionsFactory = Factory.define<AuctionListingsConditions>(({ params }) => ({
   categories: params.categories ?? null,
   status: params.status ?? null,
-  statusConditionJoinType: params.statusConditionJoinType ?? "AND",
+  joinType: params.joinType ?? "AND",
   minBid: params.minBid ?? null,
   maxBid: params.maxBid ?? null,
   minRemainingTime: params.minRemainingTime ?? null,
@@ -89,7 +93,9 @@ const createTestSession = (overrides: Partial<{ user: { id: string; email: strin
   return sessionFactory.build(overrides);
 };
 
-const createTestListingsConditions = (overrides: Partial<AuctionListingsConditions> = {}): AuctionListingsConditions => {
+const createTestListingsConditions = (
+  overrides: Partial<AuctionListingsConditions> = {},
+): AuctionListingsConditions => {
   return auctionListingsConditionsFactory.build(overrides);
 };
 
@@ -305,7 +311,7 @@ describe("useAuctionFilters", () => {
       });
 
       // Assert
-      expect(result.current.draftConditions.statusConditionJoinType).toBe("OR");
+      expect(result.current.draftConditions.joinType).toBe("OR");
     });
   });
 

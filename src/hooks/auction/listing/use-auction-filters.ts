@@ -84,7 +84,10 @@ type UseAuctionFiltersReturn = {
  * @param setListingsConditions フィルターの変更アクション
  * @returns フィルターの状態とハンドラー
  */
-export function useAuctionFilters({ listingsConditions, setListingsConditionsAction }: UseAuctionFiltersProps): UseAuctionFiltersReturn {
+export function useAuctionFilters({
+  listingsConditions,
+  setListingsConditionsAction,
+}: UseAuctionFiltersProps): UseAuctionFiltersReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -168,7 +171,10 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
 
   useEffect(() => {
     if (suggestionsError) {
-      console.error("src/hooks/auction/listing/use-auction-filters.ts_useQuery_Failed to fetch suggestions:", suggestionsError);
+      console.error(
+        "src/hooks/auction/listing/use-auction-filters.ts_useQuery_Failed to fetch suggestions:",
+        suggestionsError,
+      );
       setHighlightedIndex(-1);
     }
   }, [suggestionsError]);
@@ -214,7 +220,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       if (!draftConditions.status || !Array.isArray(draftConditions.status)) {
         return status === "all";
       }
-      return draftConditions.status.includes(status as AuctionFilterTypes);
+      return draftConditions.status.includes(status);
     },
     [draftConditions.status],
   );
@@ -325,7 +331,8 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       !(listingsConditions.categories.length === 1 && listingsConditions.categories[0] === "すべて")
     )
       count++;
-    if (listingsConditions.status && listingsConditions.status.length > 0 && listingsConditions.status[0] !== "all") count++;
+    if (listingsConditions.status && listingsConditions.status.length > 0 && listingsConditions.status[0] !== "all")
+      count++;
     if (listingsConditions.minBid !== null || listingsConditions.maxBid !== null) count++;
     if (listingsConditions.minRemainingTime !== null || listingsConditions.maxRemainingTime !== null) count++;
     if (listingsConditions.groupIds && listingsConditions.groupIds.length > 0) count++;
@@ -445,7 +452,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     (joinType: "OR" | "AND") => {
       setDraftConditions({
         ...draftConditions,
-        statusConditionJoinType: joinType,
+        joinType: joinType,
       });
     },
     [draftConditions],
@@ -671,7 +678,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
       searchQuery: null,
       sort: null,
       page: 1,
-      statusConditionJoinType: "AND",
+      joinType: "AND",
     };
 
     setDraftConditions(initialConditions);
@@ -758,7 +765,7 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
     const updatedConditions: AuctionListingsConditions = {
       categories: draftConditions.categories ? [...draftConditions.categories] : null,
       status: draftConditions.status ? [...draftConditions.status] : null,
-      statusConditionJoinType: draftConditions.statusConditionJoinType,
+      joinType: draftConditions.joinType,
       minBid: draftConditions.minBid,
       maxBid: draftConditions.maxBid,
       minRemainingTime: draftConditions.minRemainingTime,
@@ -787,9 +794,13 @@ export function useAuctionFilters({ listingsConditions, setListingsConditionsAct
    * ソート方向をトグルするハンドラー
    */
   const handleSortDirectionToggle = useCallback(() => {
-    const currentField = Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0 ? draftConditions.sort[0].field : "newest";
+    const currentField =
+      Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0 ? draftConditions.sort[0].field : "newest";
 
-    const currentDirection = Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0 ? draftConditions.sort[0].direction : "asc";
+    const currentDirection =
+      Array.isArray(draftConditions.sort) && draftConditions.sort.length > 0
+        ? draftConditions.sort[0].direction
+        : "asc";
 
     const newDirection = currentDirection === "asc" ? "desc" : "asc";
 

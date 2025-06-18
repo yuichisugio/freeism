@@ -73,7 +73,7 @@ const auctionCardFactory = Factory.define<AuctionCard>(({ sequence, params }) =>
 const auctionListingsConditionsFactory = Factory.define<AuctionListingsConditions>(({ params }) => ({
   categories: params.categories ?? ["すべて"],
   status: params.status ?? ["all"],
-  statusConditionJoinType: params.statusConditionJoinType ?? "AND",
+  joinType: params.joinType ?? "AND",
   minBid: params.minBid ?? null,
   maxBid: params.maxBid ?? null,
   minRemainingTime: params.minRemainingTime ?? null,
@@ -93,7 +93,9 @@ const createTestAuctionCard = (overrides: Partial<AuctionCard> = {}): AuctionCar
   return auctionCardFactory.build(overrides);
 };
 
-const createTestListingsConditions = (overrides: Partial<AuctionListingsConditions> = {}): AuctionListingsConditions => {
+const createTestListingsConditions = (
+  overrides: Partial<AuctionListingsConditions> = {},
+): AuctionListingsConditions => {
   return auctionListingsConditionsFactory.build(overrides);
 };
 
@@ -231,7 +233,9 @@ describe("AuctionListings", () => {
 
     test("should handle large number of auction items", () => {
       // Arrange
-      const mockAuctions = Array.from({ length: 10 }, (_, i) => createTestAuctionCard({ id: `auction-${i}`, task: `オークション${i + 1}` }));
+      const mockAuctions = Array.from({ length: 10 }, (_, i) =>
+        createTestAuctionCard({ id: `auction-${i}`, task: `オークション${i + 1}` }),
+      );
       const mockConditions = createTestListingsConditions();
 
       useAuctionListings.mockReturnValue({

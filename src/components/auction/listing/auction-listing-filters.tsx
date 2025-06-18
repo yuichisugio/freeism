@@ -136,7 +136,12 @@ type PresetButtonsProps = {
 /**
  * プリセットボタングリッドコンポーネント
  */
-const PresetButtons = memo(function PresetButtons({ presets, onSelectPreset, cols, hoverColors }: PresetButtonsProps): JSX.Element {
+const PresetButtons = memo(function PresetButtons({
+  presets,
+  onSelectPreset,
+  cols,
+  hoverColors,
+}: PresetButtonsProps): JSX.Element {
   return (
     <div className={`grid grid-cols-${cols} gap-2`}>
       {presets.map((preset) => (
@@ -271,7 +276,10 @@ const RangeInputFields = memo(function RangeInputFields({
  * @param listingsConditions フィルター
  * @param setListingsConditions フィルター変更アクション
  */
-export const AuctionFilters = memo(function AuctionFilters({ listingsConditions, setListingsConditionsAction }: AuctionFiltersProps): JSX.Element {
+export const AuctionFilters = memo(function AuctionFilters({
+  listingsConditions,
+  setListingsConditionsAction,
+}: AuctionFiltersProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -524,7 +532,12 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
         </div>
 
         {/* フィルター適用ボタン */}
-        <Button variant="default" size="sm" onClick={applyAllFilters} className="rounded-md bg-blue-600 text-white hover:bg-blue-700">
+        <Button
+          variant="default"
+          size="sm"
+          onClick={applyAllFilters}
+          className="rounded-md bg-blue-600 text-white hover:bg-blue-700"
+        >
           フィルターを適用
         </Button>
       </div>
@@ -549,7 +562,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         type="button"
                         onClick={() => handleSortDirectionToggle()}
                         className={`flex flex-1 items-center justify-center gap-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
-                          getSortDirection() === "asc" ? "bg-blue-100 text-gray-900 shadow-sm" : "bg-transparent text-gray-900 hover:bg-blue-50"
+                          getSortDirection() === "asc"
+                            ? "bg-blue-100 text-gray-900 shadow-sm"
+                            : "bg-transparent text-gray-900 hover:bg-blue-50"
                         }`}
                       >
                         <ArrowUp className="h-3.5 w-3.5" />
@@ -559,7 +574,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         type="button"
                         onClick={() => handleSortDirectionToggle()}
                         className={`flex flex-1 items-center justify-center gap-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
-                          getSortDirection() === "desc" ? "bg-blue-100 text-gray-900 shadow-sm" : "bg-transparent text-gray-900 hover:bg-blue-50"
+                          getSortDirection() === "desc"
+                            ? "bg-blue-100 text-gray-900 shadow-sm"
+                            : "bg-transparent text-gray-900 hover:bg-blue-50"
                         }`}
                       >
                         <ArrowDown className="h-3.5 w-3.5" />
@@ -567,7 +584,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                       </button>
                     </div>
                     <p className="mt-2 text-xs text-gray-500">
-                      {getSortDirection() === "asc" ? "価格や終了時間などを小さい順に表示" : "価格や終了時間などを大きい順に表示"}
+                      {getSortDirection() === "asc"
+                        ? "価格や終了時間などを小さい順に表示"
+                        : "価格や終了時間などを大きい順に表示"}
                     </p>
                   </div>
                   <Separator className="mb-3" />
@@ -582,7 +601,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         )}
                         onClick={() =>
                           handleSortChange({
-                            field: option.value as AuctionSortField,
+                            field: option.value,
                             direction: getSortDirection() ?? "asc",
                           })
                         }
@@ -593,7 +612,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                             <div
                               className={cn(
                                 "flex h-8 w-8 items-center justify-center rounded-full",
-                                getSortField() === option.value ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500",
+                                getSortField() === option.value
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-500",
                               )}
                             >
                               {option.icon}
@@ -619,7 +640,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         type="button"
                         onClick={() => handleStatusJoinTypeChange("OR")}
                         className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
-                          (draftConditions.statusConditionJoinType ?? "AND") === "OR"
+                          (draftConditions.joinType ?? "AND") === "OR"
                             ? "bg-green-100 text-gray-900 shadow-sm"
                             : "bg-transparent text-gray-900 hover:bg-green-50"
                         }`}
@@ -630,7 +651,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                         type="button"
                         onClick={() => handleStatusJoinTypeChange("AND")}
                         className={`flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all ${
-                          (draftConditions.statusConditionJoinType ?? "AND") === "AND"
+                          (draftConditions.joinType ?? "AND") === "AND"
                             ? "bg-green-100 text-gray-900 shadow-sm"
                             : "bg-transparent text-gray-900 hover:bg-green-50"
                         }`}
@@ -639,7 +660,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                       </button>
                     </div>
                     <p className="mt-2 text-xs text-gray-500">
-                      {(draftConditions.statusConditionJoinType ?? "AND") === "OR"
+                      {(draftConditions.joinType ?? "AND") === "OR"
                         ? "いずれかの条件に一致するアイテムを表示"
                         : "すべての条件に一致するアイテムを表示"}
                     </p>
@@ -654,7 +675,7 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                           "hover:border-opacity-80 mb-2 flex w-full cursor-pointer items-center rounded-md border p-3 text-left transition-all",
                           isStatusSelected(option.value) ? "border-green-500 bg-green-50 shadow-sm" : "border-gray-200",
                         )}
-                        onClick={() => handleStatusSelect(option.value as AuctionFilterTypes)}
+                        onClick={() => handleStatusSelect(option.value)}
                         aria-pressed={isStatusSelected(option.value)}
                         type="button"
                       >
@@ -663,7 +684,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                             <div
                               className={cn(
                                 "flex h-8 w-8 items-center justify-center rounded-full",
-                                isStatusSelected(option.value) ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500",
+                                isStatusSelected(option.value)
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-gray-100 text-gray-500",
                               )}
                             >
                               {option.icon}
@@ -689,8 +712,9 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                       >
                         {areAllGroupsSelected
                           ? "すべてのグループ"
-                          : (joinTypeinedGroupList.find((group) => group.id && draftConditions.groupIds?.includes(group.id))?.name ??
-                            "グループを選択")}
+                          : (joinTypeinedGroupList.find(
+                              (group) => group.id && draftConditions.groupIds?.includes(group.id),
+                            )?.name ?? "グループを選択")}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
@@ -706,9 +730,14 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                                 handleGroupSelect(null);
                                 setOpenGroupCombobox(false);
                               }}
-                              className={cn("transition-colors duration-150 hover:bg-purple-50", isGroupSelected(null) && "bg-purple-50")}
+                              className={cn(
+                                "transition-colors duration-150 hover:bg-purple-50",
+                                isGroupSelected(null) && "bg-purple-50",
+                              )}
                             >
-                              <Check className={cn("mr-2 h-4 w-4", isGroupSelected(null) ? "opacity-100" : "opacity-0")} />
+                              <Check
+                                className={cn("mr-2 h-4 w-4", isGroupSelected(null) ? "opacity-100" : "opacity-0")}
+                              />
                               すべてのグループ
                             </CommandItem>
                             {/* グループIDでユニークにフィルタリング */}
@@ -720,9 +749,17 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                                   handleGroupSelect(group.id);
                                   setOpenGroupCombobox(false);
                                 }}
-                                className={cn("transition-colors duration-150 hover:bg-purple-50", isGroupSelected(group.id) && "bg-purple-50")}
+                                className={cn(
+                                  "transition-colors duration-150 hover:bg-purple-50",
+                                  isGroupSelected(group.id) && "bg-purple-50",
+                                )}
                               >
-                                <Check className={cn("mr-2 h-4 w-4", isGroupSelected(group.id) ? "opacity-100" : "opacity-0")} />
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    isGroupSelected(group.id) ? "opacity-100" : "opacity-0",
+                                  )}
+                                />
                                 {group.name}
                               </CommandItem>
                             ))}
@@ -769,7 +806,12 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                       hoverColors="hover:border-amber-200 hover:bg-amber-50"
                     />
 
-                    <Button type="button" size="sm" onClick={handleTimeRangeApply} className="w-full bg-amber-500 text-white hover:bg-amber-600">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleTimeRangeApply}
+                      className="w-full bg-amber-500 text-white hover:bg-amber-600"
+                    >
                       残り時間を適用
                     </Button>
                   </div>
@@ -814,7 +856,12 @@ export const AuctionFilters = memo(function AuctionFilters({ listingsConditions,
                       hoverColors="hover:border-red-200 hover:bg-red-50"
                     />
 
-                    <Button type="button" size="sm" onClick={handlePriceRangeApply} className="w-full bg-red-500 text-white hover:bg-red-600">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handlePriceRangeApply}
+                      className="w-full bg-red-500 text-white hover:bg-red-600"
+                    >
                       価格帯を適用
                     </Button>
                   </div>
