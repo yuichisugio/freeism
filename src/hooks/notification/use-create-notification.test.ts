@@ -158,7 +158,9 @@ describe("useCreateNotification", () => {
       if (
         typedOptions.queryKey &&
         Array.isArray(typedOptions.queryKey) &&
-        typedOptions.queryKey.some((key: unknown) => typeof key === "string" && key.includes("prepareCreateNotificationForm"))
+        typedOptions.queryKey.some(
+          (key: unknown) => typeof key === "string" && key.includes("prepareCreateNotificationForm"),
+        )
       ) {
         return {
           ...baseResult,

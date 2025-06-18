@@ -24,7 +24,8 @@
 - **保守性・可読性の向上:**
   - 通知の種類を `AuctionEventType` として明確に定義し、イベントタイプに基づいて通知内容を決定する。
   - 通知メッセージの取得ロジックを `getAuctionNotificationMessage` 関数に分離する。
-  - 通知送信処理を `sendAuctionNotification` 関数に集約し、内部で各通知方法（アプリ内、メール、プッシュ）の送信関数を呼び出す。
+  - 通知送信処理を `sendAuctionNotification`
+    関数に集約し、内部で各通知方法（アプリ内、メール、プッシュ）の送信関数を呼び出す。
   - ページネーションを実装
 - **柔軟性:**
   - `sendAuctionNotification` 関数の引数で、通知を送信する方法（アプリ内、メール、プッシュ）を選択できるようにする。
@@ -98,11 +99,11 @@
 - **処理内容:**
   1. `AuctionNotification` テーブルを検索する。
   2. 各通知レコードについて、以下の条件で削除対象か判断する:
-     - `eventType` が `NEW_BID_ON_OWN_ITEM`, `OUTBID`, `QUESTION_RECEIVED` のいずれかで、関連する `Auction` の `status` が `ENDED` または `CANCELED`
-       になっている場合 (オークション終了時に削除)。
+     - `eventType` が `NEW_BID_ON_OWN_ITEM`, `OUTBID`, `QUESTION_RECEIVED` のいずれかで、関連する `Auction` の `status`
+       が `ENDED` または `CANCELED` になっている場合 (オークション終了時に削除)。
      - `eventType` が上記以外で、`createdAt` から1ヶ月以上経過している場合 (通知送信から1ヶ月後に削除)。
-     - **(代替案)** `expiresAt` カラムを追加し、削除予定日時を保存。`expiresAt` が現在時刻を過ぎているレコードを削除する (`calculateExpiryDate`
-       関数の実装例参照)。
+     - **(代替案)** `expiresAt` カラムを追加し、削除予定日時を保存。`expiresAt`
+       が現在時刻を過ぎているレコードを削除する (`calculateExpiryDate` 関数の実装例参照)。
   3. 削除対象のレコードを `DELETE` 文で削除する。
   4. 処理結果（削除件数など）をログに出力する。
 

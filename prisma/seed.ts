@@ -1,7 +1,15 @@
 import type { BidHistory, NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 import type { JsonValue } from "@prisma/client/runtime/library";
 import { faker } from "@faker-js/faker/locale/ja";
-import { AuctionEventType, BidStatus, NotificationTargetType, Prisma, PrismaClient, ReviewPosition, TaskStatus } from "@prisma/client";
+import {
+  AuctionEventType,
+  BidStatus,
+  NotificationTargetType,
+  Prisma,
+  PrismaClient,
+  ReviewPosition,
+  TaskStatus,
+} from "@prisma/client";
 
 /**
  * 乱数シードを設定
@@ -434,7 +442,13 @@ async function createVerificationTokens(count: number) {
  */
 async function createGroups(users: SeedUser[]) {
   const groups = [];
-  const evaluationMethods: EvaluationMethod[] = ["360度評価", "相互評価", "目標達成度", "KPI評価", "コンピテンシー評価"];
+  const evaluationMethods: EvaluationMethod[] = [
+    "360度評価",
+    "相互評価",
+    "目標達成度",
+    "KPI評価",
+    "コンピテンシー評価",
+  ];
 
   // グループの数はSEED_CONFIGから取得
   const groupsCount = SEED_CONFIG.GROUPS_COUNT;
@@ -444,18 +458,22 @@ async function createGroups(users: SeedUser[]) {
   const otherUsers = users.filter((user) => !PRESERVED_USER_IDS.includes(user.id));
 
   // 作成者リストを作成 (保持ユーザーを優先し、不足分は他のユーザーからランダムに補充)
-  const creators = [...preservedUsers, ...faker.helpers.shuffle(otherUsers).slice(0, Math.max(0, groupsCount - preservedUsers.length))].slice(
-    0,
-    groupsCount,
-  ); // グループ数に合わせて作成者数を調整
+  const creators = [
+    ...preservedUsers,
+    ...faker.helpers.shuffle(otherUsers).slice(0, Math.max(0, groupsCount - preservedUsers.length)),
+  ].slice(0, groupsCount); // グループ数に合わせて作成者数を調整
 
   // 作成者が不足している場合は警告（通常は発生しないはず）
   if (creators.length < groupsCount) {
-    console.warn(`グループ作成者数が不足しています (${creators.length}/${groupsCount})。一部グループは他のユーザーによって作成されます。`);
+    console.warn(
+      `グループ作成者数が不足しています (${creators.length}/${groupsCount})。一部グループは他のユーザーによって作成されます。`,
+    );
     // 不足分を他のユーザーから補充（重複しないように）
     const remainingCreatorsNeeded = groupsCount - creators.length;
     const existingCreatorIds = new Set(creators.map((c) => c.id));
-    const additionalCreators = faker.helpers.shuffle(otherUsers.filter((u) => !existingCreatorIds.has(u.id))).slice(0, remainingCreatorsNeeded);
+    const additionalCreators = faker.helpers
+      .shuffle(otherUsers.filter((u) => !existingCreatorIds.has(u.id)))
+      .slice(0, remainingCreatorsNeeded);
     creators.push(...additionalCreators);
   }
 
@@ -472,7 +490,10 @@ async function createGroups(users: SeedUser[]) {
         name: `${faker.company.name()} グループ ${i + 1}`,
         goal: faker.company.catchPhrase(),
         evaluationMethod: faker.helpers.arrayElement(evaluationMethods),
-        maxParticipants: faker.number.int({ min: SEED_CONFIG.MIN_MEMBERS_PER_GROUP, max: SEED_CONFIG.MAX_MEMBERS_PER_GROUP * 2 }),
+        maxParticipants: faker.number.int({
+          min: SEED_CONFIG.MIN_MEMBERS_PER_GROUP,
+          max: SEED_CONFIG.MAX_MEMBERS_PER_GROUP * 2,
+        }),
         depositPeriod: depositPeriod,
         createdBy: creatorUser.id,
         isBlackList: {},
@@ -484,7 +505,12 @@ async function createGroups(users: SeedUser[]) {
   console.log(`${groups.length}件のグループを作成しました`);
 
   // グループメンバーシップを作成
-  const groupMemberships = await createGroupMemberships(groups, users, SEED_CONFIG.MIN_MEMBERS_PER_GROUP, SEED_CONFIG.MAX_MEMBERS_PER_GROUP);
+  const groupMemberships = await createGroupMemberships(
+    groups,
+    users,
+    SEED_CONFIG.MIN_MEMBERS_PER_GROUP,
+    SEED_CONFIG.MAX_MEMBERS_PER_GROUP,
+  );
 
   return { groups, groupMemberships };
 }
@@ -497,7 +523,12 @@ async function createGroups(users: SeedUser[]) {
  * @param maxMembersPerGroup グループごとの最大メンバー数
  * @returns 生成されたグループメンバーシップの配列
  */
-async function createGroupMemberships(groups: SeedGroup[], users: SeedUser[], minMembersPerGroup: number, maxMembersPerGroup: number) {
+async function createGroupMemberships(
+  groups: SeedGroup[],
+  users: SeedUser[],
+  minMembersPerGroup: number,
+  maxMembersPerGroup: number,
+) {
   const memberships = [];
   const membershipSet = new Set<string>(); // 重複チェック用
   const preservedUserIds = new Set(PRESERVED_USER_IDS);
@@ -614,7 +645,11 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
   const otherUsers = users.filter((user) => !preservedUserIds.has(user.id)); // 追加: 保持ユーザー以外のリスト
 
   // TaskStatusの完了系ステータスリスト
-  const completedStatuses: TaskStatus[] = [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
+  const completedStatuses: TaskStatus[] = [
+    TaskStatus.TASK_COMPLETED,
+    TaskStatus.FIXED_EVALUATED,
+    TaskStatus.POINTS_AWARDED,
+  ];
   // タスクが完了ステータスになる確率
   // const TASK_COMPLETED_PROBABILITY = 0.3; // SEED_CONFIGから取得するように変更
 
@@ -654,7 +689,9 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
       }
     } else {
       // 2. それ以降は、選択されたグループのメンバーからランダムに作成者を選ぶ
-      const potentialCreatorsInGroup = users.filter((u) => groupMemberships.some((m) => m.groupId === groupId && m.userId === u.id));
+      const potentialCreatorsInGroup = users.filter((u) =>
+        groupMemberships.some((m) => m.groupId === groupId && m.userId === u.id),
+      );
       if (potentialCreatorsInGroup.length > 0) {
         // グループメンバーの中から、保持ユーザーを優先的に選ぶ確率 (例: 30%)
         const PRESERVED_CREATOR_PROBABILITY = 0.3;
@@ -664,7 +701,9 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
         } else {
           // 保持ユーザーを選ばない場合、または保持ユーザーがいない場合は、他のメンバーからランダムに選ぶ
           const otherCreatorsInGroup = potentialCreatorsInGroup.filter((u) => !preservedUserIds.has(u.id));
-          creator = faker.helpers.arrayElement(otherCreatorsInGroup.length > 0 ? otherCreatorsInGroup : potentialCreatorsInGroup); // 他のメンバーがいなければ保持ユーザー含む全体から
+          creator = faker.helpers.arrayElement(
+            otherCreatorsInGroup.length > 0 ? otherCreatorsInGroup : potentialCreatorsInGroup,
+          ); // 他のメンバーがいなければ保持ユーザー含む全体から
         }
       } else {
         // グループにメンバーがいない場合（通常ありえない）、全ユーザーからランダムに選ぶ
@@ -725,7 +764,13 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
           info = `プルリクエスト: https://github.com/${orgName}/${repoName}/pull/${prNumber}`;
           break;
         case "achievement":
-          const metric = faker.helpers.arrayElement(["パフォーマンス", "ユーザー数", "処理速度", "コード品質", "テストカバレッジ"]);
+          const metric = faker.helpers.arrayElement([
+            "パフォーマンス",
+            "ユーザー数",
+            "処理速度",
+            "コード品質",
+            "テストカバレッジ",
+          ]);
           const improvement = faker.number.int({ min: 5, max: 95 });
           info = `${metric}が${improvement}%向上しました。詳細: ${faker.internet.url()}`;
           break;
@@ -740,7 +785,10 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
     const executorsCount = faker.number.int({ min: SEED_CONFIG.TASK_EXECUTOR_MIN, max: SEED_CONFIG.TASK_EXECUTOR_MAX });
 
     // --- getParticipants 関数の定義 (createTasks 内に移動) ---
-    const getParticipants = (participantCount: number, includePreservedProbability: number): { name: string | null; userId?: string | null }[] => {
+    const getParticipants = (
+      participantCount: number,
+      includePreservedProbability: number,
+    ): { name: string | null; userId?: string | null }[] => {
       const participants: { name: string | null; userId?: string | null }[] = [];
       const assignedUserIds = new Set<string>(); // 重複割り当てを防ぐ
 
@@ -829,7 +877,10 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
     let fixedSubmitterUser = null;
     if (faker.datatype.boolean(SEED_CONFIG.TASK_FIXED_SUBMITTER_PROBABILITY)) {
       // const PRESERVED_SUBMITTER_PROBABILITY = 0.2; // SEED_CONFIGから取得するように変更
-      if (preservedUsers.length > 0 && faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_TASK_SUBMITTER_PROBABILITY)) {
+      if (
+        preservedUsers.length > 0 &&
+        faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_TASK_SUBMITTER_PROBABILITY)
+      ) {
         fixedSubmitterUser = faker.helpers.arrayElement(preservedUsers);
       } else {
         fixedSubmitterUser = faker.helpers.arrayElement(otherUsers.length > 0 ? otherUsers : users); // 他のユーザーがいなければ全体から
@@ -883,7 +934,11 @@ async function createAnalytics(tasks: SeedTask[], users: SeedUser[]) {
   const preservedUserIds = new Set(PRESERVED_USER_IDS); // 追加
 
   // 完了したタスクのみ分析対象とする
-  const completedStatuses: TaskStatus[] = [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
+  const completedStatuses: TaskStatus[] = [
+    TaskStatus.TASK_COMPLETED,
+    TaskStatus.FIXED_EVALUATED,
+    TaskStatus.POINTS_AWARDED,
+  ];
   const completedTasks = tasks.filter((task) => completedStatuses.includes(task.status as TaskStatus));
 
   console.log(`${completedTasks.length}件の完了タスクから分析データを作成します`);
@@ -904,10 +959,15 @@ async function createAnalytics(tasks: SeedTask[], users: SeedUser[]) {
       let evaluatorUser: SeedUser | null = null;
 
       if (potentialEvaluators.length > 0) {
-        if (preservedEvaluators.length > 0 && faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_ANALYTICS_EVALUATOR_PROBABILITY)) {
+        if (
+          preservedEvaluators.length > 0 &&
+          faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_ANALYTICS_EVALUATOR_PROBABILITY)
+        ) {
           evaluatorUser = faker.helpers.arrayElement(preservedEvaluators);
         } else {
-          evaluatorUser = faker.helpers.arrayElement(otherEvaluators.length > 0 ? otherEvaluators : potentialEvaluators);
+          evaluatorUser = faker.helpers.arrayElement(
+            otherEvaluators.length > 0 ? otherEvaluators : potentialEvaluators,
+          );
         }
       } else {
         // タスク作成者しかいない場合（通常ありえない）
@@ -1004,7 +1064,10 @@ async function createNotifications(
 
         // const PRESERVED_SENDER_PROBABILITY = 0.2; // SEED_CONFIGから取得するように変更
         if (potentialSenders.length > 0) {
-          if (preservedSenders.length > 0 && faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_NOTIFICATION_SENDER_PROBABILITY)) {
+          if (
+            preservedSenders.length > 0 &&
+            faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_NOTIFICATION_SENDER_PROBABILITY)
+          ) {
             senderUser = faker.helpers.arrayElement(preservedSenders);
           } else {
             senderUser = faker.helpers.arrayElement(otherSenders.length > 0 ? otherSenders : potentialSenders);
@@ -1021,20 +1084,32 @@ async function createNotifications(
         case "USER":
           title = faker.helpers.arrayElement(["アカウント情報更新", "プロフィール確認", "個人設定変更"]);
           // 送信者がいる場合はメッセージに含める
-          message = senderUser ? `${senderUser.name}さんからのお知らせ: ${faker.lorem.sentence()}` : faker.lorem.sentence();
+          message = senderUser
+            ? `${senderUser.name}さんからのお知らせ: ${faker.lorem.sentence()}`
+            : faker.lorem.sentence();
           actionUrl = `/dashboard/profile/${recipientUser.id}`; // 受信者のプロフィールへのリンク
           break;
         case "GROUP":
           // 受信者が所属するグループ、または送信者が所属するグループからランダムに選択
           const relevantGroups = groups.filter((g) =>
-            groupMemberships.some((m) => m.groupId === g.id && (m.userId === recipientUser.id || (senderUserId && m.userId === senderUserId))),
+            groupMemberships.some(
+              (m) =>
+                m.groupId === g.id && (m.userId === recipientUser.id || (senderUserId && m.userId === senderUserId)),
+            ),
           );
           const randomGroup =
-            relevantGroups.length > 0 ? faker.helpers.arrayElement(relevantGroups) : groups.length > 0 ? faker.helpers.arrayElement(groups) : null;
+            relevantGroups.length > 0
+              ? faker.helpers.arrayElement(relevantGroups)
+              : groups.length > 0
+                ? faker.helpers.arrayElement(groups)
+                : null;
 
           if (randomGroup) {
             groupId = randomGroup.id;
-            title = faker.helpers.arrayElement([`「${randomGroup.name}」の新着情報`, `「${randomGroup.name}」からのお知らせ`]);
+            title = faker.helpers.arrayElement([
+              `「${randomGroup.name}」の新着情報`,
+              `「${randomGroup.name}」からのお知らせ`,
+            ]);
             message = senderUser
               ? `${senderUser.name}さんがグループ「${randomGroup.name}」で投稿しました: ${faker.lorem.paragraph()}`
               : `グループ「${randomGroup.name}」のお知らせ: ${faker.lorem.paragraph()}`;
@@ -1048,17 +1123,29 @@ async function createNotifications(
           // 受信者または送信者に関連するタスクを選択
           const relevantTasks = tasks.filter((t) => {
             const isCreator = t.creatorId === recipientUser.id || (senderUserId && t.creatorId === senderUserId);
-            const isReporter = t.reporters?.some((r) => r.userId === recipientUser.id || (senderUserId && r.userId === senderUserId));
-            const isExecutor = t.executors?.some((e) => e.userId === recipientUser.id || (senderUserId && e.userId === senderUserId));
+            const isReporter = t.reporters?.some(
+              (r) => r.userId === recipientUser.id || (senderUserId && r.userId === senderUserId),
+            );
+            const isExecutor = t.executors?.some(
+              (e) => e.userId === recipientUser.id || (senderUserId && e.userId === senderUserId),
+            );
             return Boolean(isCreator) || Boolean(isReporter) || Boolean(isExecutor); // Boolean() でラップ
           });
           const randomTask =
-            relevantTasks.length > 0 ? faker.helpers.arrayElement(relevantTasks) : tasks.length > 0 ? faker.helpers.arrayElement(tasks) : null;
+            relevantTasks.length > 0
+              ? faker.helpers.arrayElement(relevantTasks)
+              : tasks.length > 0
+                ? faker.helpers.arrayElement(tasks)
+                : null;
 
           if (randomTask?.id) {
             taskId = randomTask.id;
             groupId = randomTask.groupId ?? null;
-            title = faker.helpers.arrayElement([`タスク「${randomTask.task.substring(0, 15)}...」更新`, `タスク期限通知`, `タスク評価完了`]);
+            title = faker.helpers.arrayElement([
+              `タスク「${randomTask.task.substring(0, 15)}...」更新`,
+              `タスク期限通知`,
+              `タスク評価完了`,
+            ]);
             message = senderUser
               ? `${senderUser.name}さんがタスク「${randomTask.task.substring(0, 15)}...」を更新しました。`
               : `タスク「${randomTask.task.substring(0, 15)}...」に関するお知らせです。`;
@@ -1144,9 +1231,14 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
   // 報酬タスクが少ない場合は、追加の報酬タスクを作成 (SEED_CONFIG の最小数まで)
   const minRewardTasks = SEED_CONFIG.MIN_REWARD_TASKS_FOR_AUCTION;
   if (rewardTasks.length < minRewardTasks) {
-    console.log(`報酬タスクが少ないため(${rewardTasks.length}件)、NON_REWARDタスクから最大${minRewardTasks - rewardTasks.length}件を変換します`);
+    console.log(
+      `報酬タスクが少ないため(${rewardTasks.length}件)、NON_REWARDタスクから最大${minRewardTasks - rewardTasks.length}件を変換します`,
+    );
     const nonRewardTasks = tasks.filter((task) => task.contributionType === "NON_REWARD");
-    const tasksToConvert = faker.helpers.arrayElements(nonRewardTasks, Math.min(nonRewardTasks.length, minRewardTasks - rewardTasks.length));
+    const tasksToConvert = faker.helpers.arrayElements(
+      nonRewardTasks,
+      Math.min(nonRewardTasks.length, minRewardTasks - rewardTasks.length),
+    );
 
     for (const task of tasksToConvert) {
       const category = task.category ?? "その他";
@@ -1178,7 +1270,10 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
     });
     const endTime = new Date(startTime.getTime() + endTimeOffset);
 
-    const initialPrice = faker.number.int({ min: SEED_CONFIG.AUCTION_INITIAL_PRICE_MIN, max: SEED_CONFIG.AUCTION_INITIAL_PRICE_MAX });
+    const initialPrice = faker.number.int({
+      min: SEED_CONFIG.AUCTION_INITIAL_PRICE_MIN,
+      max: SEED_CONFIG.AUCTION_INITIAL_PRICE_MAX,
+    });
 
     let status: TaskStatus;
     if (startTime > now) {
@@ -1201,7 +1296,10 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
         const hasBids = faker.datatype.boolean(SEED_CONFIG.AUCTION_HAS_BIDS_PROBABILITY);
         if (hasBids) {
           let highestBidder = null;
-          if (preservedBidders.length > 0 && faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_AUCTION_HIGHEST_BIDDER_PROBABILITY)) {
+          if (
+            preservedBidders.length > 0 &&
+            faker.datatype.boolean(SEED_CONFIG.PRESERVED_USER_AS_AUCTION_HIGHEST_BIDDER_PROBABILITY)
+          ) {
             highestBidder = faker.helpers.arrayElement(preservedBidders);
           } else {
             highestBidder = faker.helpers.arrayElement(otherBidders.length > 0 ? otherBidders : potentialBidders);
@@ -1211,7 +1309,10 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
           const bidIncrease =
             initialPrice *
             (SEED_CONFIG.AUCTION_BID_INCREASE_MIN_PERCENT +
-              faker.number.float({ min: 0, max: SEED_CONFIG.AUCTION_BID_INCREASE_MAX_PERCENT - SEED_CONFIG.AUCTION_BID_INCREASE_MIN_PERCENT }));
+              faker.number.float({
+                min: 0,
+                max: SEED_CONFIG.AUCTION_BID_INCREASE_MAX_PERCENT - SEED_CONFIG.AUCTION_BID_INCREASE_MIN_PERCENT,
+              }));
           currentHighestBid = Math.floor(initialPrice + bidIncrease);
         }
       }
@@ -1240,10 +1341,16 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
 
     // 延長制限回数と時間を設定（延長機能が有効な場合のみ有意味な値、無効でもデフォルト値を設定）
     const extensionLimitCount = isExtension
-      ? faker.number.int({ min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MIN, max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MAX })
+      ? faker.number.int({
+          min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MIN,
+          max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_COUNT_MAX,
+        })
       : 3; // デフォルト値
     const extensionTimeLimit = isExtension
-      ? faker.number.int({ min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MIN, max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MAX })
+      ? faker.number.int({
+          min: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MIN,
+          max: SEED_CONFIG.AUCTION_EXTENSION_LIMIT_TIME_MAX,
+        })
       : 10; // デフォルト値
 
     // 延長機能が有効な場合、実際に延長が発生したかをシミュレート
@@ -1369,7 +1476,10 @@ async function createBidHistories(auctions: SeedAuction[], users: SeedUser[]) {
       const bidIncrease =
         currentBid *
         (SEED_CONFIG.BID_INCREASE_MIN_PERCENT +
-          faker.number.float({ min: 0, max: SEED_CONFIG.BID_INCREASE_MAX_PERCENT - SEED_CONFIG.BID_INCREASE_MIN_PERCENT }));
+          faker.number.float({
+            min: 0,
+            max: SEED_CONFIG.BID_INCREASE_MAX_PERCENT - SEED_CONFIG.BID_INCREASE_MIN_PERCENT,
+          }));
       currentBid = Math.max(initialPrice + 1, currentBid + 1, Math.floor(currentBid + bidIncrease));
 
       const isAutoBid = faker.datatype.boolean(SEED_CONFIG.BID_IS_AUTOBID_PROBABILITY);
@@ -1545,7 +1655,12 @@ async function createSellerNotification(auction: SeedAuction, eventType: string)
 }
 
 // オークション終了時の通知作成を別関数に分離
-async function createAuctionEndNotifications(auction: SeedAuction, winnerFound: boolean, winnerId: string | null, sortedBids: BidHistory[]) {
+async function createAuctionEndNotifications(
+  auction: SeedAuction,
+  winnerFound: boolean,
+  winnerId: string | null,
+  sortedBids: BidHistory[],
+) {
   const taskSeller = await prisma.task.findUnique({
     where: { id: auction.taskId },
     select: { creatorId: true },
@@ -1699,7 +1814,10 @@ async function createAutoBids(auctions: SeedAuction[], users: SeedUser[]) {
     if (potentialUsers.length === 0) continue;
 
     // 自動入札設定を持つユーザー数（指定範囲）
-    const autoBidUserCount = faker.number.int({ min: SEED_CONFIG.AUTOBIDS_PER_AUCTION_MIN, max: SEED_CONFIG.AUTOBIDS_PER_AUCTION_MAX });
+    const autoBidUserCount = faker.number.int({
+      min: SEED_CONFIG.AUTOBIDS_PER_AUCTION_MIN,
+      max: SEED_CONFIG.AUTOBIDS_PER_AUCTION_MAX,
+    });
     if (autoBidUserCount === 0) continue;
 
     // ランダムにユーザーを選択（保持ユーザーを優先）
@@ -1714,10 +1832,16 @@ async function createAutoBids(auctions: SeedAuction[], users: SeedUser[]) {
       const maxBidAmount = Math.floor(
         auction.currentHighestBid *
           (SEED_CONFIG.AUTOBID_MAX_INCREASE_MIN_PERCENT +
-            faker.number.float({ min: 0, max: SEED_CONFIG.AUTOBID_MAX_INCREASE_MAX_PERCENT - SEED_CONFIG.AUTOBID_MAX_INCREASE_MIN_PERCENT })),
+            faker.number.float({
+              min: 0,
+              max: SEED_CONFIG.AUTOBID_MAX_INCREASE_MAX_PERCENT - SEED_CONFIG.AUTOBID_MAX_INCREASE_MIN_PERCENT,
+            })),
       );
       // 入札単位は指定範囲でランダム
-      const bidIncrement = faker.number.int({ min: SEED_CONFIG.AUTOBID_INCREMENT_MIN, max: SEED_CONFIG.AUTOBID_INCREMENT_MAX });
+      const bidIncrement = faker.number.int({
+        min: SEED_CONFIG.AUTOBID_INCREMENT_MIN,
+        max: SEED_CONFIG.AUTOBID_INCREMENT_MAX,
+      });
 
       try {
         const autoBid = await prisma.autoBid.create({
@@ -1849,7 +1973,11 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
         const hasBid = auction.bidHistories && auction.bidHistories.length > 0;
         if (!hasBid) {
           // possibleEventTypes = possibleEventTypes.filter(t => !([AuctionEventType.OUTBID, AuctionEventType.AUCTION_LOST, AuctionEventType.AUTO_BID_LIMIT_REACHED] as const).includes(t));
-          const excludedTypes: AuctionEventType[] = [AuctionEventType.OUTBID, AuctionEventType.AUCTION_LOST, AuctionEventType.AUTO_BID_LIMIT_REACHED]; // 型を明示
+          const excludedTypes: AuctionEventType[] = [
+            AuctionEventType.OUTBID,
+            AuctionEventType.AUCTION_LOST,
+            AuctionEventType.AUTO_BID_LIMIT_REACHED,
+          ]; // 型を明示
           possibleEventTypes = possibleEventTypes.filter((t) => !excludedTypes.some((excluded) => excluded === t)); // some を使用して書き換え
         }
         // Lost していない場合は AUCTION_LOST を除外
@@ -1870,12 +1998,17 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
         const createdAt = faker.date.recent({ days: 7 });
         const expiresAt = faker.date.future({ refDate: createdAt });
 
-        const taskInfo = auction.task ? { task: auction.task.task, deliveryMethod: auction.task.deliveryMethod, groupId: auction.groupId } : null;
+        const taskInfo = auction.task
+          ? { task: auction.task.task, deliveryMethod: auction.task.deliveryMethod, groupId: auction.groupId }
+          : null;
 
         let pointReturnDate = null;
         if (notificationType === AuctionEventType.POINT_RETURNED && auction.status === TaskStatus.AUCTION_ENDED) {
           // AuctionEventTypeを使用
-          const group = await prisma.group.findUnique({ where: { id: auction.groupId }, select: { depositPeriod: true } });
+          const group = await prisma.group.findUnique({
+            where: { id: auction.groupId },
+            select: { depositPeriod: true },
+          });
           if (group) {
             pointReturnDate = new Date(auction.endTime);
             pointReturnDate.setDate(pointReturnDate.getDate() + group.depositPeriod);
@@ -1892,7 +2025,10 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           const title = generateNotificationTitle(notificationType); // AuctionEventTypeが解決されれば問題ない
           const message = generateNotificationMessage(notificationType, auction, taskInfo, pointReturnDate); // AuctionEventTypeが解決されれば問題ない
           const senderUserId = null; // システム通知
-          const targetType = recipientUser.id === sellerId ? NotificationTargetType.AUCTION_SELLER : NotificationTargetType.AUCTION_BIDDER;
+          const targetType =
+            recipientUser.id === sellerId
+              ? NotificationTargetType.AUCTION_SELLER
+              : NotificationTargetType.AUCTION_BIDDER;
 
           const notification = await prisma.notification.create({
             data: {
@@ -1914,7 +2050,10 @@ async function createAuctionNotifications(auctions: SeedAuction[], users: SeedUs
           });
           notifications.push(notification);
         } catch (error) {
-          console.error(`オークション通知作成エラー (タイプ: ${notificationType}, 受信者: ${recipientUser.id}):`, error);
+          console.error(
+            `オークション通知作成エラー (タイプ: ${notificationType}, 受信者: ${recipientUser.id}):`,
+            error,
+          );
         }
       }
     }
@@ -2016,7 +2155,9 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
   const reviews = [];
 
   // 終了したオークションのみを対象
-  const endedAuctions = auctions.filter((auction) => auction.status === TaskStatus.AUCTION_ENDED && auction.winnerId !== null);
+  const endedAuctions = auctions.filter(
+    (auction) => auction.status === TaskStatus.AUCTION_ENDED && auction.winnerId !== null,
+  );
 
   // 完了証明URLのパターン
   const proofUrlPatterns = [
@@ -2061,7 +2202,10 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
           auction: { connect: { id: auction.id } },
           reviewer: { connect: { id: task.creatorId } },
           reviewee: { connect: { id: auction.winnerId! } }, // winnerIdが確実に存在することを型アサーションで保証
-          rating: faker.number.int({ min: SEED_CONFIG.AUCTION_SELLER_REVIEW_RATING_MIN, max: SEED_CONFIG.AUCTION_SELLER_REVIEW_RATING_MAX }), // 売り手からは比較的高評価
+          rating: faker.number.int({
+            min: SEED_CONFIG.AUCTION_SELLER_REVIEW_RATING_MIN,
+            max: SEED_CONFIG.AUCTION_SELLER_REVIEW_RATING_MAX,
+          }), // 売り手からは比較的高評価
           comment: faker.helpers.arrayElement(sellerReviewComments),
           completionProofUrl,
           // isSellerReview: true, // isSellerReview: true から変更
@@ -2100,7 +2244,10 @@ async function createAuctionReviews(auctions: SeedAuction[]) {
             auction: { connect: { id: auction.id } },
             reviewer: { connect: { id: auction.winnerId! } }, // winnerIdが確実に存在することを型アサーションで保証
             reviewee: { connect: { id: task.creatorId } },
-            rating: faker.number.int({ min: SEED_CONFIG.AUCTION_BUYER_REVIEW_RATING_MIN, max: SEED_CONFIG.AUCTION_BUYER_REVIEW_RATING_MAX }), // 買い手からの評価は若干ばらつきがある
+            rating: faker.number.int({
+              min: SEED_CONFIG.AUCTION_BUYER_REVIEW_RATING_MIN,
+              max: SEED_CONFIG.AUCTION_BUYER_REVIEW_RATING_MAX,
+            }), // 買い手からの評価は若干ばらつきがある
             comment: faker.helpers.arrayElement(buyerReviewComments),
             completionProofUrl,
             // isSellerReview: false, // isSellerReview: false から変更
@@ -2141,7 +2288,10 @@ async function createTaskWatchLists(auctions: SeedAuction[], users: SeedUser[]) 
 
     if (potentialWatchers.length === 0) continue;
 
-    const watcherCount = faker.number.int({ min: SEED_CONFIG.WATCHLISTS_PER_AUCTION_MIN, max: SEED_CONFIG.WATCHLISTS_PER_AUCTION_MAX });
+    const watcherCount = faker.number.int({
+      min: SEED_CONFIG.WATCHLISTS_PER_AUCTION_MIN,
+      max: SEED_CONFIG.WATCHLISTS_PER_AUCTION_MAX,
+    });
     if (watcherCount === 0) continue;
 
     // ウォッチするユーザーを選択 (保持ユーザーを優先、例: 60%の確率)
@@ -2234,11 +2384,16 @@ async function createGroupPoints(users: SeedUser[], auctions: SeedAuction[]) {
       }
 
       // 基本のポイント残高と合計ポイント
-      let balance = faker.number.int({ min: SEED_CONFIG.GROUP_POINTS_INITIAL_MIN, max: SEED_CONFIG.GROUP_POINTS_INITIAL_MAX });
+      let balance = faker.number.int({
+        min: SEED_CONFIG.GROUP_POINTS_INITIAL_MIN,
+        max: SEED_CONFIG.GROUP_POINTS_INITIAL_MAX,
+      });
       const fixedTotalPoints = balance;
 
       // ユーザーが落札者であるオークションを取得
-      const wonAuctions = auctions.filter((auction) => auction.winnerId === user.id && auction.status === TaskStatus.AUCTION_ENDED);
+      const wonAuctions = auctions.filter(
+        (auction) => auction.winnerId === user.id && auction.status === TaskStatus.AUCTION_ENDED,
+      );
 
       // オークションの落札情報からポイント残高を調整
       for (const auction of wonAuctions) {
@@ -2287,7 +2442,9 @@ async function createAuctionMessages(auctions: SeedAuction[], users: SeedUser[])
   const messages = [];
   const preservedUserIds = new Set(PRESERVED_USER_IDS); // 追加
 
-  const targetAuctions = auctions.filter((auction) => auction.status === TaskStatus.AUCTION_ACTIVE || auction.status === TaskStatus.AUCTION_ENDED);
+  const targetAuctions = auctions.filter(
+    (auction) => auction.status === TaskStatus.AUCTION_ACTIVE || auction.status === TaskStatus.AUCTION_ENDED,
+  );
 
   for (const auction of targetAuctions) {
     const task = await prisma.task.findUnique({

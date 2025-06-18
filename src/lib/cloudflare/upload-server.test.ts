@@ -5,25 +5,32 @@ import { ImageMimeType } from "./upload-constants";
 import { generateSignedUploadUrl } from "./upload-server";
 
 // ホイストされたモック関数の宣言
-const { mockEnv, mockLogger, mockR2Client, mockCreateR2Client, mockGetR2BucketName, mockGetR2PublicUrl, mockGetSignedUrl, mockUuidv4 } = vi.hoisted(
-  () => ({
-    mockEnv: {
-      ENABLE_IMAGE_UPLOAD: "true",
-    },
-    mockLogger: {
-      warn: vi.fn(),
-      error: vi.fn(),
-    },
-    mockR2Client: {
-      send: vi.fn(),
-    },
-    mockCreateR2Client: vi.fn(),
-    mockGetR2BucketName: vi.fn(),
-    mockGetR2PublicUrl: vi.fn(),
-    mockGetSignedUrl: vi.fn(),
-    mockUuidv4: vi.fn(),
-  }),
-);
+const {
+  mockEnv,
+  mockLogger,
+  mockR2Client,
+  mockCreateR2Client,
+  mockGetR2BucketName,
+  mockGetR2PublicUrl,
+  mockGetSignedUrl,
+  mockUuidv4,
+} = vi.hoisted(() => ({
+  mockEnv: {
+    ENABLE_IMAGE_UPLOAD: "true",
+  },
+  mockLogger: {
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+  mockR2Client: {
+    send: vi.fn(),
+  },
+  mockCreateR2Client: vi.fn(),
+  mockGetR2BucketName: vi.fn(),
+  mockGetR2PublicUrl: vi.fn(),
+  mockGetSignedUrl: vi.fn(),
+  mockUuidv4: vi.fn(),
+}));
 
 // envのモック
 vi.mock("@/env", () => ({
@@ -128,7 +135,9 @@ describe("upload-server.ts", () => {
       const result = await generateSignedUploadUrl(ImageMimeType.JPEG);
 
       expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith("R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません");
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません",
+      );
     });
 
     test("should return null when bucket name is null", async () => {
@@ -137,7 +146,9 @@ describe("upload-server.ts", () => {
       const result = await generateSignedUploadUrl(ImageMimeType.JPEG);
 
       expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith("R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません");
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません",
+      );
     });
 
     test("should return null when bucket name is empty string", async () => {
@@ -146,7 +157,9 @@ describe("upload-server.ts", () => {
       const result = await generateSignedUploadUrl(ImageMimeType.JPEG);
 
       expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith("R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません");
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "R2クライアントまたはバケット名が設定されていないため、署名付きURLを生成できません",
+      );
     });
 
     test("should return null for unsupported MIME type", async () => {
@@ -221,7 +234,17 @@ describe("upload-server.ts", () => {
     });
 
     test("should handle invalid MIME type formats", async () => {
-      const invalidMimeTypes = ["", "text/plain", "application/pdf", "video/mp4", "audio/mp3", "image/", "image", null, undefined];
+      const invalidMimeTypes = [
+        "",
+        "text/plain",
+        "application/pdf",
+        "video/mp4",
+        "audio/mp3",
+        "image/",
+        "image",
+        null,
+        undefined,
+      ];
 
       for (const invalidMimeType of invalidMimeTypes) {
         vi.clearAllMocks();

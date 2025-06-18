@@ -193,7 +193,9 @@ describe("useCsvUpload", () => {
     });
 
     test("should maintain upload type when modal reopens", () => {
-      const { result, rerender } = renderHook((props: UseCsvUploadOptions) => useCsvUpload(props), { initialProps: defaultProps });
+      const { result, rerender } = renderHook((props: UseCsvUploadOptions) => useCsvUpload(props), {
+        initialProps: defaultProps,
+      });
 
       act(() => {
         result.current.setUploadType("FIXED_CONTRIBUTION");
@@ -495,7 +497,9 @@ describe("useCsvUpload", () => {
    */
   describe("モーダルクローズ時の状態リセット", () => {
     test("should reset state when modal closes", () => {
-      const { result, rerender } = renderHook((props: UseCsvUploadOptions) => useCsvUpload(props), { initialProps: defaultProps });
+      const { result, rerender } = renderHook((props: UseCsvUploadOptions) => useCsvUpload(props), {
+        initialProps: defaultProps,
+      });
 
       // モーダルを閉じる
       rerender({ ...defaultProps, isOpen: false });
@@ -505,7 +509,9 @@ describe("useCsvUpload", () => {
     });
 
     test("should maintain other state when modal closes", () => {
-      const { result, rerender } = renderHook((props: UseCsvUploadOptions) => useCsvUpload(props), { initialProps: defaultProps });
+      const { result, rerender } = renderHook((props: UseCsvUploadOptions) => useCsvUpload(props), {
+        initialProps: defaultProps,
+      });
 
       act(() => {
         result.current.setUploadType("CONTRIBUTION_EVALUATION");

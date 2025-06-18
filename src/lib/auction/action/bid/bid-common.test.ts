@@ -1,7 +1,12 @@
 import type { UpdateAuctionWithDetails } from "@/types/auction-types";
 import type { Prisma } from "@prisma/client";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType, TaskStatus } from "@prisma/client";
+import {
+  NotificationSendMethod,
+  NotificationSendTiming,
+  AuctionEventType as PrismaAuctionEventType,
+  TaskStatus,
+} from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { AuctionValidationData, ValidateAuctionResult } from "../bid-validation";
@@ -65,8 +70,12 @@ vi.mock("./extend-auction-time", () => ({
 /**
  * モック関数の型定義
  */
-const mockSendAuctionNotification = vi.mocked(await import("@/lib/actions/notification/auction-notification")).sendAuctionNotification;
-const mockSendEventToAuctionSubscribers = vi.mocked(await import("../server-sent-events-broadcast")).sendEventToAuctionSubscribers;
+const mockSendAuctionNotification = vi.mocked(
+  await import("@/lib/actions/notification/auction-notification"),
+).sendAuctionNotification;
+const mockSendEventToAuctionSubscribers = vi.mocked(
+  await import("../server-sent-events-broadcast"),
+).sendEventToAuctionSubscribers;
 const mockProcessAutoBid = vi.mocked(await import("../auto-bid/auto-bid")).executeAutoBid;
 const mockValidateAuction = vi.mocked(await import("../bid-validation")).validateAuction;
 const mockProcessAuctionExtension = vi.mocked(await import("./extend-auction-time")).processAuctionExtension;
@@ -286,7 +295,10 @@ describe("bid-common.test.ts", () => {
         test("should handle auction extension error when processAuctionExtension returns failure", async () => {
           // モックの設定
           setupValidationSuccessMock();
-          setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID, false, undefined, { success: false, message: "延長条件を満たしていません" });
+          setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID, false, undefined, {
+            success: false,
+            message: "延長条件を満たしていません",
+          });
 
           // テスト実行
           const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);
@@ -388,7 +400,9 @@ describe("bid-common.test.ts", () => {
           prismaMock.$transaction.mockImplementation(async (callback) => {
             const mockTx = {
               auction: {
-                findUnique: vi.fn().mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID }),
+                findUnique: vi
+                  .fn()
+                  .mockResolvedValueOnce({ version: 1, currentHighestBidderId: TEST_CONSTANTS.OTHER_USER_ID }),
                 update: vi.fn().mockResolvedValue(null), // updateがnullを返す
               },
               bidHistory: {
@@ -539,38 +553,44 @@ describe("bid-common.test.ts", () => {
           expectedMessage: `${TEST_CONSTANTS.BID_AMOUNT}ポイントで自動入札しました`,
           shouldCallProcessAutoBid: false,
         },
-      ])("should execute $description successfully", async ({ isAutoBid, expectedMessage, shouldCallProcessAutoBid }) => {
-        // モックの設定
-        setupValidationSuccessMock();
-        setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID);
+      ])(
+        "should execute $description successfully",
+        async ({ isAutoBid, expectedMessage, shouldCallProcessAutoBid }) => {
+          // モックの設定
+          setupValidationSuccessMock();
+          setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID);
 
-        // テスト実行
-        const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT, isAutoBid);
+          // テスト実行
+          const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT, isAutoBid);
 
-        // 検証
-        expect(result).toStrictEqual({
-          success: true,
-          message: expectedMessage,
-        });
+          // 検証
+          expect(result).toStrictEqual({
+            success: true,
+            message: expectedMessage,
+          });
 
-        // 共通の検証
-        expect(mockValidateAuction).toHaveBeenCalledWith(TEST_CONSTANTS.AUCTION_ID, {
-          checkSelfListing: null,
-          checkEndTime: null,
-          checkCurrentBid: null,
-          currentBid: TEST_CONSTANTS.BID_AMOUNT,
-          requireActive: null,
-          executeBid: true,
-        });
-        expect(mockSendEventToAuctionSubscribers).toHaveBeenCalledWith(TEST_CONSTANTS.AUCTION_ID, expect.any(Object) as UpdateAuctionWithDetails);
+          // 共通の検証
+          expect(mockValidateAuction).toHaveBeenCalledWith(TEST_CONSTANTS.AUCTION_ID, {
+            checkSelfListing: null,
+            checkEndTime: null,
+            checkCurrentBid: null,
+            currentBid: TEST_CONSTANTS.BID_AMOUNT,
+            requireActive: null,
+            executeBid: true,
+          });
+          expect(mockSendEventToAuctionSubscribers).toHaveBeenCalledWith(
+            TEST_CONSTANTS.AUCTION_ID,
+            expect.any(Object) as UpdateAuctionWithDetails,
+          );
 
-        // 自動入札処理の呼び出し確認
-        if (shouldCallProcessAutoBid) {
-          expect(mockProcessAutoBid).toHaveBeenCalled();
-        } else {
-          expect(mockProcessAutoBid).not.toHaveBeenCalled();
-        }
-      });
+          // 自動入札処理の呼び出し確認
+          if (shouldCallProcessAutoBid) {
+            expect(mockProcessAutoBid).toHaveBeenCalled();
+          } else {
+            expect(mockProcessAutoBid).not.toHaveBeenCalled();
+          }
+        },
+      );
 
       // パラメータ化テスト：境界値
       test.each([
@@ -604,7 +624,10 @@ describe("bid-common.test.ts", () => {
       test("should successfully call processAuctionExtension and handle success result", async () => {
         // モックの設定
         setupValidationSuccessMock();
-        setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID, false, undefined, { success: true, message: "オークションが10分延長されました" });
+        setupTransactionMock(TEST_CONSTANTS.OTHER_USER_ID, false, undefined, {
+          success: true,
+          message: "オークションが10分延長されました",
+        });
 
         // テスト実行
         const result = await executeBid(TEST_CONSTANTS.AUCTION_ID, TEST_CONSTANTS.BID_AMOUNT);

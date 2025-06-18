@@ -42,7 +42,15 @@ vi.mock("lucide-react", () => ({
 // UIコンポーネントのモック
 vi.mock("@/components/ui/alert-dialog", () => ({
   AlertDialog: ({ children }: { children: React.ReactNode }) => <div data-testid="alert-dialog">{children}</div>,
-  AlertDialogAction: ({ children, onClick, ...props }: { children: React.ReactNode; onClick?: () => void; [key: string]: unknown }) => (
+  AlertDialogAction: ({
+    children,
+    onClick,
+    ...props
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    [key: string]: unknown;
+  }) => (
     <button data-testid="alert-dialog-action" onClick={onClick} {...props}>
       {children}
     </button>
@@ -52,11 +60,27 @@ vi.mock("@/components/ui/alert-dialog", () => ({
       {children}
     </button>
   ),
-  AlertDialogContent: ({ children }: { children: React.ReactNode }) => <div data-testid="alert-dialog-content">{children}</div>,
-  AlertDialogFooter: ({ children }: { children: React.ReactNode }) => <div data-testid="alert-dialog-footer">{children}</div>,
-  AlertDialogHeader: ({ children }: { children: React.ReactNode }) => <div data-testid="alert-dialog-header">{children}</div>,
-  AlertDialogTitle: ({ children }: { children: React.ReactNode }) => <div data-testid="alert-dialog-title">{children}</div>,
-  AlertDialogTrigger: ({ children, asChild: _asChild, ...props }: { children: React.ReactNode; asChild?: boolean; [key: string]: unknown }) => (
+  AlertDialogContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="alert-dialog-content">{children}</div>
+  ),
+  AlertDialogFooter: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="alert-dialog-footer">{children}</div>
+  ),
+  AlertDialogHeader: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="alert-dialog-header">{children}</div>
+  ),
+  AlertDialogTitle: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="alert-dialog-title">{children}</div>
+  ),
+  AlertDialogTrigger: ({
+    children,
+    asChild: _asChild,
+    ...props
+  }: {
+    children: React.ReactNode;
+    asChild?: boolean;
+    [key: string]: unknown;
+  }) => (
     <div data-testid="alert-dialog-trigger" {...props}>
       {children}
     </div>
@@ -64,7 +88,15 @@ vi.mock("@/components/ui/alert-dialog", () => ({
 }));
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, ...props }: { children: React.ReactNode; onClick?: () => void; [key: string]: unknown }) => (
+  Button: ({
+    children,
+    onClick,
+    ...props
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    [key: string]: unknown;
+  }) => (
     <button data-testid="button" onClick={onClick} {...props}>
       {children}
     </button>
@@ -245,7 +277,9 @@ describe("Sidebar", () => {
 
       // Group一覧リンクは選択されていない状態になる
       const newGroupListLinks = screen.getAllByRole("link", { name: /group一覧/i });
-      const newActualGroupListLink = newGroupListLinks.find((link) => link.getAttribute("href") === "/dashboard/group-list");
+      const newActualGroupListLink = newGroupListLinks.find(
+        (link) => link.getAttribute("href") === "/dashboard/group-list",
+      );
       expect(newActualGroupListLink).toHaveClass("text-gray-900");
     });
   });
@@ -281,9 +315,15 @@ describe("Sidebar", () => {
       expect(screen.getByRole("link", { name: /通知作成/i })).toHaveAttribute("href", "/dashboard/create-notification");
       expect(screen.getByRole("link", { name: /task作成/i })).toHaveAttribute("href", "/dashboard/create-task");
       expect(screen.getByRole("link", { name: /レビュー検索/i })).toHaveAttribute("href", "/dashboard/review-search");
-      expect(screen.getByRole("link", { name: /github api変換/i })).toHaveAttribute("href", "/dashboard/github-api-conversion");
+      expect(screen.getByRole("link", { name: /github api変換/i })).toHaveAttribute(
+        "href",
+        "/dashboard/github-api-conversion",
+      );
       expect(screen.getByRole("link", { name: /商品一覧/i })).toHaveAttribute("href", "/dashboard/auction");
-      expect(screen.getByRole("link", { name: /入札・落札履歴/i })).toHaveAttribute("href", "/dashboard/auction/history");
+      expect(screen.getByRole("link", { name: /入札・落札履歴/i })).toHaveAttribute(
+        "href",
+        "/dashboard/auction/history",
+      );
       expect(screen.getByRole("link", { name: /参加group一覧/i })).toHaveAttribute("href", "/dashboard/my-group");
       expect(screen.getByRole("link", { name: /task一覧/i })).toHaveAttribute("href", "/dashboard/my-task");
 

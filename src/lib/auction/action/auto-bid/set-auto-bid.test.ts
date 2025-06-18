@@ -293,16 +293,19 @@ describe("setAutoBid", () => {
         bidIncrement: 10,
         expectedMessage: "入札単位・上限入札額は1以上の整数で設定してください",
       },
-    ])("should return error for invalid parameters - $description", async ({ maxBidAmount, bidIncrement, expectedMessage }) => {
-      // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+    ])(
+      "should return error for invalid parameters - $description",
+      async ({ maxBidAmount, bidIncrement, expectedMessage }) => {
+        // Arrange
+        mockValidateAuction.mockResolvedValue(mockValidationSuccess);
 
-      // Act
-      const result = await setAutoBid(testAuctionId, maxBidAmount, bidIncrement);
+        // Act
+        const result = await setAutoBid(testAuctionId, maxBidAmount, bidIncrement);
 
-      // Assert
-      expect(result).toStrictEqual(createExpectedErrorResponse(expectedMessage));
-    });
+        // Assert
+        expect(result).toStrictEqual(createExpectedErrorResponse(expectedMessage));
+      },
+    );
 
     test.each([
       {

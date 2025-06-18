@@ -112,7 +112,15 @@ describe("OfflinePage", () => {
 
       // Assert
       const container = screen.getByText("オフラインです").parentElement;
-      expect(container).toHaveClass("flex", "min-h-screen", "flex-col", "items-center", "justify-center", "p-4", "text-center");
+      expect(container).toHaveClass(
+        "flex",
+        "min-h-screen",
+        "flex-col",
+        "items-center",
+        "justify-center",
+        "p-4",
+        "text-center",
+      );
     });
 
     test("should apply correct CSS classes to title element", async () => {

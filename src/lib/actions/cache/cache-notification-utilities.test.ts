@@ -8,7 +8,10 @@ import { AuctionEventType, NotificationTargetType, Prisma } from "@prisma/client
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { RawNotificationFromDB } from "./cache-notification-utilities";
-import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "./cache-notification-utilities";
+import {
+  cachedGetNotificationsAndUnreadCount,
+  cachedGetUnreadNotificationsCount,
+} from "./cache-notification-utilities";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -35,7 +38,9 @@ function createMockRawNotificationFromDB(overrides: Partial<RawNotificationFromD
     id: overrides.hasOwnProperty("id") ? overrides.id : "notification-1",
     title: overrides.hasOwnProperty("title") ? overrides.title : "テスト通知",
     message: overrides.hasOwnProperty("message") ? overrides.message : "テストメッセージ",
-    NotificationTargetType: overrides.hasOwnProperty("NotificationTargetType") ? overrides.NotificationTargetType : NotificationTargetType.USER,
+    NotificationTargetType: overrides.hasOwnProperty("NotificationTargetType")
+      ? overrides.NotificationTargetType
+      : NotificationTargetType.USER,
     isRead: overrides.hasOwnProperty("isRead") ? overrides.isRead : false,
     sentAt: overrides.hasOwnProperty("sentAt") ? overrides.sentAt : new Date("2024-01-01T00:00:00Z"),
     readAt: overrides.hasOwnProperty("readAt") ? overrides.readAt : null,
@@ -657,7 +662,9 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const page = 1;
       const limit = 10000;
 
-      const mockNotifications = Array.from({ length: 100 }, (_, i) => createMockRawNotificationFromDB({ id: `notification-${i}` }));
+      const mockNotifications = Array.from({ length: 100 }, (_, i) =>
+        createMockRawNotificationFromDB({ id: `notification-${i}` }),
+      );
       const mockUnreadCount = [{ count: BigInt(100) }];
       const mockTotalCount = [{ count: BigInt(100) }];
 
@@ -728,7 +735,12 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
     test("should handle all NotificationTargetType values", async () => {
       // Arrange
       const userId = "user-1";
-      const targetTypes = [NotificationTargetType.USER, NotificationTargetType.GROUP, NotificationTargetType.TASK, NotificationTargetType.SYSTEM];
+      const targetTypes = [
+        NotificationTargetType.USER,
+        NotificationTargetType.GROUP,
+        NotificationTargetType.TASK,
+        NotificationTargetType.SYSTEM,
+      ];
 
       for (const targetType of targetTypes) {
         const mockNotifications = [createMockRawNotificationFromDB({ NotificationTargetType: targetType })];
@@ -842,7 +854,9 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const page = 5;
       const limit = 50;
 
-      const mockNotifications = Array.from({ length: 50 }, (_, i) => createMockRawNotificationFromDB({ id: `notification-${200 + i}` }));
+      const mockNotifications = Array.from({ length: 50 }, (_, i) =>
+        createMockRawNotificationFromDB({ id: `notification-${200 + i}` }),
+      );
       const mockUnreadCount = [{ count: BigInt(150) }];
       const mockTotalCount = [{ count: BigInt(500) }];
 
@@ -876,7 +890,10 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         .mockResolvedValue(mockTotalCount); // 総カウント
 
       // Act - 同時実行
-      const [result1, result2] = await Promise.all([cachedGetNotificationsAndUnreadCount(userId), cachedGetNotificationsAndUnreadCount(userId)]);
+      const [result1, result2] = await Promise.all([
+        cachedGetNotificationsAndUnreadCount(userId),
+        cachedGetNotificationsAndUnreadCount(userId),
+      ]);
 
       // Assert
       expect(result1).toStrictEqual(result2);

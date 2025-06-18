@@ -94,7 +94,9 @@ describe("bid-common.test.ts", () => {
         test("should return error when auction is not found", async () => {
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -143,7 +145,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -187,7 +191,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -236,7 +242,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -280,7 +288,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -329,7 +339,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -373,7 +385,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {
@@ -422,7 +436,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行（現在の最高入札額と同額で入札）
           const result = await validateAuction(mockAuctionId, {
@@ -466,7 +482,9 @@ describe("bid-common.test.ts", () => {
 
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+          prismaMock.auction.findUnique.mockResolvedValue(
+            mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+          );
 
           // テスト実行（現在の最高入札額と同額で入札）
           const result = await validateAuction(mockAuctionId, {
@@ -519,7 +537,9 @@ describe("bid-common.test.ts", () => {
 
         // モックの設定
         mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // テスト実行
         const result = await validateAuction(mockAuctionId, {
@@ -567,7 +587,9 @@ describe("bid-common.test.ts", () => {
 
         // モックの設定
         mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // テスト実行
         const result = await validateAuction(mockAuctionId, {
@@ -647,7 +669,9 @@ describe("bid-common.test.ts", () => {
 
         // モックの設定
         mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // テスト実行（現在の最高入札額が0の場合）
         const result = await validateAuction(mockAuctionId, {

@@ -6,7 +6,6 @@ import { joinGroup } from "@/lib/actions/group";
 import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
-import { type SortDirection } from "@/types/auction-types";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
@@ -67,7 +66,8 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   const tableConditions = useMemo(
     () => ({
-      sort: sortField && sortDirection ? { field: sortField as keyof AllUserGroupTable, direction: sortDirection as SortDirection } : null,
+      sort:
+        sortField && sortDirection ? { field: sortField as keyof AllUserGroupTable, direction: sortDirection } : null,
       page,
       searchQuery,
       isJoined: isJoined as "all" | "isJoined" | "notJoined",

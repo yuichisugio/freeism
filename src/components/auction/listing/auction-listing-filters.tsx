@@ -1,6 +1,5 @@
 "use client";
 
-import type { AuctionSortField } from "@/types/auction-types";
 import type { ReactNode } from "react";
 import { memo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { useAuctionFilters } from "@/hooks/auction/listing/use-auction-filters";
 import { cn, formatTimeDisplay } from "@/lib/utils";
-import { type AuctionFiltersProps, type AuctionFilterTypes } from "@/types/auction-types";
+import { type AuctionFiltersProps } from "@/types/auction-types";
 import {
   ArrowDown,
   ArrowDownCircle,

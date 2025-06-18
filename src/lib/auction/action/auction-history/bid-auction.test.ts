@@ -104,10 +104,16 @@ describe("bid-auction", () => {
       test("should return single bid history successfully", async () => {
         // Arrange
         const mockBidHistory = createMockBidHistory();
-        prismaMock.bidHistory.findMany.mockResolvedValue([mockBidHistory] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+        prismaMock.bidHistory.findMany.mockResolvedValue([mockBidHistory] as unknown as Awaited<
+          ReturnType<typeof prismaMock.bidHistory.findMany>
+        >);
 
         // Act
-        const result = await getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
+        const result = await getUserBidHistories(
+          TEST_CONSTANTS.page,
+          TEST_CONSTANTS.userId,
+          TEST_CONSTANTS.itemPerPage,
+        );
 
         // Assert
         expect(result).toHaveLength(1);
@@ -134,10 +140,16 @@ describe("bid-auction", () => {
             taskStatus: TaskStatus.AUCTION_ENDED,
           }),
         ];
-        prismaMock.bidHistory.findMany.mockResolvedValue(mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+        prismaMock.bidHistory.findMany.mockResolvedValue(
+          mockBidHistories as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>,
+        );
 
         // Act
-        const result = await getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
+        const result = await getUserBidHistories(
+          TEST_CONSTANTS.page,
+          TEST_CONSTANTS.userId,
+          TEST_CONSTANTS.itemPerPage,
+        );
 
         // Assert
         expect(result).toHaveLength(2);
@@ -147,10 +159,16 @@ describe("bid-auction", () => {
 
       test("should return empty array when no bid histories", async () => {
         // Arrange
-        prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+        prismaMock.bidHistory.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>,
+        );
 
         // Act
-        const result = await getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
+        const result = await getUserBidHistories(
+          TEST_CONSTANTS.page,
+          TEST_CONSTANTS.userId,
+          TEST_CONSTANTS.itemPerPage,
+        );
 
         // Assert
         expect(result).toStrictEqual([]);
@@ -164,7 +182,9 @@ describe("bid-auction", () => {
         { params: [0, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage], description: "page is 0" },
       ])("should throw error when $description", async ({ params }) => {
         // Act & Assert
-        await expect(getUserBidHistories(...(params as [number, string, number]))).rejects.toThrow("userId, itemPerPage, and page are required");
+        await expect(getUserBidHistories(...(params as [number, string, number]))).rejects.toThrow(
+          "userId, itemPerPage, and page are required",
+        );
       });
 
       test.each([
@@ -176,7 +196,9 @@ describe("bid-auction", () => {
         { page: 3, itemPerPage: 1, expectedSkip: 2, description: "page 3 with itemPerPage 1" },
       ])("should handle $description correctly", async ({ page, itemPerPage, expectedSkip }) => {
         // Arrange
-        prismaMock.bidHistory.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>);
+        prismaMock.bidHistory.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>,
+        );
 
         // Act
         await getUserBidHistories(page, TEST_CONSTANTS.userId, itemPerPage);
@@ -198,9 +220,9 @@ describe("bid-auction", () => {
     prismaMock.bidHistory.findMany.mockRejectedValue(databaseError);
 
     // Act & Assert
-    await expect(getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage)).rejects.toThrow(
-      "Database connection failed",
-    );
+    await expect(
+      getUserBidHistories(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage),
+    ).rejects.toThrow("Database connection failed");
   });
 
   describe("getUserBidHistoriesCount", () => {

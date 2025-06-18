@@ -4,7 +4,13 @@ import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
 import type { Prisma } from "@prisma/client";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { auctionFactory, groupFactory, taskFactory, userFactory, userSettingsFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  auctionFactory,
+  groupFactory,
+  taskFactory,
+  userFactory,
+  userSettingsFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { contributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -102,7 +108,9 @@ describe("getMyTaskData", () => {
         },
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>;
 
-      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
       prismaMock.task.count.mockResolvedValue(1);
 
       // Act
@@ -139,7 +147,11 @@ describe("getMyTaskData", () => {
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
         },
         select: expect.any(Object) as unknown as Prisma.TaskSelect,
         orderBy: { createdAt: "desc" },
@@ -148,7 +160,11 @@ describe("getMyTaskData", () => {
       });
       expect(prismaMock.task.count).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
         },
       });
     });
@@ -202,7 +218,9 @@ describe("getMyTaskData", () => {
         auction: null,
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>;
 
-      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
       prismaMock.task.count.mockResolvedValue(1);
 
       // Act
@@ -236,7 +254,11 @@ describe("getMyTaskData", () => {
       // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
           task: {
             contains: "検索クエリ",
             mode: "insensitive",
@@ -265,7 +287,11 @@ describe("getMyTaskData", () => {
       // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
           status: TaskStatus.PENDING,
         },
         select: expect.any(Object) as unknown as Prisma.TaskSelect,
@@ -291,7 +317,11 @@ describe("getMyTaskData", () => {
       // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
           contributionType: contributionType.REWARD,
         },
         select: expect.any(Object) as unknown as Prisma.TaskSelect,
@@ -319,7 +349,11 @@ describe("getMyTaskData", () => {
       // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
           task: {
             contains: "テスト",
             mode: "insensitive",
@@ -588,7 +622,9 @@ describe("getMyTaskData", () => {
         auction: null,
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>;
 
-      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
       prismaMock.task.count.mockResolvedValue(1);
 
       // Act
@@ -672,7 +708,9 @@ describe("getMyTaskData", () => {
         auction: null,
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>;
 
-      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
       prismaMock.task.count.mockResolvedValue(1);
 
       // Act
@@ -846,7 +884,11 @@ describe("getMyTaskData", () => {
       // Assert - 空文字列の場合は検索条件が追加されない
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
           // task条件は追加されない
         },
         select: expect.any(Object) as unknown as Prisma.TaskSelect,
@@ -873,7 +915,11 @@ describe("getMyTaskData", () => {
       // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
           task: {
             contains: longSearchQuery,
             mode: "insensitive",
@@ -905,7 +951,11 @@ describe("getMyTaskData", () => {
         // Assert
         expect(prismaMock.task.findMany).toHaveBeenCalledWith({
           where: {
-            OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+            OR: [
+              { creatorId: testUser.id },
+              { reporters: { some: { userId: testUser.id } } },
+              { executors: { some: { userId: testUser.id } } },
+            ],
             status: status,
           },
           select: expect.any(Object) as unknown as Prisma.TaskSelect,
@@ -935,7 +985,11 @@ describe("getMyTaskData", () => {
         // Assert
         expect(prismaMock.task.findMany).toHaveBeenCalledWith({
           where: {
-            OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+            OR: [
+              { creatorId: testUser.id },
+              { reporters: { some: { userId: testUser.id } } },
+              { executors: { some: { userId: testUser.id } } },
+            ],
             contributionType: type,
           },
           select: expect.any(Object) as unknown as Prisma.TaskSelect,
@@ -970,7 +1024,11 @@ describe("getMyTaskData", () => {
       // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ creatorId: testUser.id }, { reporters: { some: { userId: testUser.id } } }, { executors: { some: { userId: testUser.id } } }],
+          OR: [
+            { creatorId: testUser.id },
+            { reporters: { some: { userId: testUser.id } } },
+            { executors: { some: { userId: testUser.id } } },
+          ],
         },
         select: expect.any(Object) as unknown as Prisma.TaskSelect,
         orderBy: { createdAt: "desc" },

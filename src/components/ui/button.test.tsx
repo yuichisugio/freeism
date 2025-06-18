@@ -132,7 +132,14 @@ describe("Button", () => {
 
   test("should support all HTML button attributes", () => {
     render(
-      <Button type="submit" form="test-form" name="test-button" value="test-value" aria-label="Test button" data-testid="test-button">
+      <Button
+        type="submit"
+        form="test-form"
+        name="test-button"
+        value="test-value"
+        aria-label="Test button"
+        data-testid="test-button"
+      >
         Submit
       </Button>,
     );

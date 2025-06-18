@@ -30,7 +30,10 @@ export const FormLayout = memo(function FormLayout<TFieldValues extends FieldVal
 }: FormLayoutProps<TFieldValues>): JSX.Element {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={`${className} opacity-100 transition-opacity duration-300`}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={`${className} opacity-100 transition-opacity duration-300`}
+      >
         {children}
         {form.formState.errors.root && (
           <div className="rounded-md border border-red-100 bg-red-50 p-3 text-center text-sm text-red-500 shadow-sm">
@@ -61,7 +64,12 @@ export const FormLayout = memo(function FormLayout<TFieldValues extends FieldVal
           </div>
           {showCancelButton && onCancel && (
             <div className="transition-transform hover:translate-y-[-2px] active:translate-y-[1px]">
-              <Button type="button" variant="outline" onClick={onCancel} className="transition-all duration-300 hover:bg-gray-100">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                className="transition-all duration-300 hover:bg-gray-100"
+              >
                 キャンセル
               </Button>
             </div>

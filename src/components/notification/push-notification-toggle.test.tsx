@@ -170,7 +170,9 @@ describe("WebPushNotificationToggle", () => {
 
       // Assert
       expect(
-        screen.getByText("ブラウザの通知設定が「拒否」されています。プッシュ通知を有効にするには、ブラウザの設定を変更してください。"),
+        screen.getByText(
+          "ブラウザの通知設定が「拒否」されています。プッシュ通知を有効にするには、ブラウザの設定を変更してください。",
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -305,9 +307,13 @@ describe("WebPushNotificationToggle", () => {
       );
 
       // Assert - ヘルプテキストが表示される
-      expect(screen.getByText("プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。")).toBeInTheDocument();
       expect(
-        screen.getByText("アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。"),
+        screen.getByText("プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。",
+        ),
       ).toBeInTheDocument();
     });
 

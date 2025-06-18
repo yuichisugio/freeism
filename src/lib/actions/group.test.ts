@@ -4,7 +4,15 @@ import { createInvalidGroupData, groupFactory, groupMembershipFactory } from "@/
 import { type GroupMembership } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { checkGroupExistByName, createGroup, deleteGroup, getGroupMembers, joinGroup, removeMember, updateGroup } from "./group";
+import {
+  checkGroupExistByName,
+  createGroup,
+  deleteGroup,
+  getGroupMembers,
+  joinGroup,
+  removeMember,
+  updateGroup,
+} from "./group";
 
 /**
  * モック設定
@@ -619,7 +627,9 @@ describe("getGroupMembers", () => {
       },
     ];
 
-    prismaMock.groupMembership.findMany.mockResolvedValue(mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>);
+    prismaMock.groupMembership.findMany.mockResolvedValue(
+      mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+    );
 
     // Act
     const result = await getGroupMembers(testGroupId);
@@ -689,7 +699,9 @@ describe("getGroupMembers", () => {
       },
     ];
 
-    prismaMock.groupMembership.findMany.mockResolvedValue(mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>);
+    prismaMock.groupMembership.findMany.mockResolvedValue(
+      mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+    );
 
     // Act
     const result = await getGroupMembers(testGroupId);

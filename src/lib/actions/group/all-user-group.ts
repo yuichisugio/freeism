@@ -198,7 +198,11 @@ async function getAllUserGroups(
  * ユーザーの参加しているグループ一覧の総数を取得する関数
  * @returns ユーザーの参加しているグループ一覧の総数
  */
-export async function getAllUserGroupsCount(searchQuery: string, isJoined: "isJoined" | "notJoined" | "all", userId: string) {
+export async function getAllUserGroupsCount(
+  searchQuery: string,
+  isJoined: "isJoined" | "notJoined" | "all",
+  userId: string,
+) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

@@ -18,13 +18,15 @@ vi.mock("@/lib/auction/action/auction-retrieve", () => ({
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: vi.fn().mockImplementation((data: unknown, options?: { status?: number; headers?: Record<string, string> }) => {
-      return {
-        json: () => Promise.resolve(data),
-        status: options?.status ?? 200,
-        headers: options?.headers ?? {},
-      } as unknown as Response;
-    }),
+    json: vi
+      .fn()
+      .mockImplementation((data: unknown, options?: { status?: number; headers?: Record<string, string> }) => {
+        return {
+          json: () => Promise.resolve(data),
+          status: options?.status ?? 200,
+          headers: options?.headers ?? {},
+        } as unknown as Response;
+      }),
   },
 }));
 

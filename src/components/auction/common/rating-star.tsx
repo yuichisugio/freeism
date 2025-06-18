@@ -24,7 +24,12 @@ type RatingDisplayProps = {
  * @param readonly 読み取り専用
  * @param onChange 評価変更時のコールバック
  */
-export const RatingStar = memo(function RatingStar({ rating = 0, size = 20, readonly = true, onChange }: RatingDisplayProps) {
+export const RatingStar = memo(function RatingStar({
+  rating = 0,
+  size = 20,
+  readonly = true,
+  onChange,
+}: RatingDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

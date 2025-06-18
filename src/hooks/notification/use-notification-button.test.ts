@@ -4,7 +4,10 @@
  * モック関数のインポート
  */
 import type { QueryClient, QueryFunctionContext, UseQueryOptions } from "@tanstack/react-query";
-import { getNotificationsAndUnreadCount, getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
+import {
+  getNotificationsAndUnreadCount,
+  getUnreadNotificationsCount,
+} from "@/lib/actions/notification/notification-utilities";
 import { AllTheProviders, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useSession } from "next-auth/react";

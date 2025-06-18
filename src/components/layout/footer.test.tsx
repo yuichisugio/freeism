@@ -113,7 +113,14 @@ describe("Footer", () => {
 
       const legalHeading = screen.getByRole("heading", { name: "Legal" });
       expect(legalHeading).toBeInTheDocument();
-      expect(legalHeading).toHaveClass("mb-3", "text-lg", "font-semibold", "text-blue-900", "sm:mb-4", "dark:text-blue-100");
+      expect(legalHeading).toHaveClass(
+        "mb-3",
+        "text-lg",
+        "font-semibold",
+        "text-blue-900",
+        "sm:mb-4",
+        "dark:text-blue-100",
+      );
     });
 
     test("should render terms of service link", async () => {
@@ -141,13 +148,22 @@ describe("Footer", () => {
 
       const aboutHeading = screen.getByRole("heading", { name: "About" });
       expect(aboutHeading).toBeInTheDocument();
-      expect(aboutHeading).toHaveClass("mb-3", "text-lg", "font-semibold", "text-blue-900", "sm:mb-4", "dark:text-blue-100");
+      expect(aboutHeading).toHaveClass(
+        "mb-3",
+        "text-lg",
+        "font-semibold",
+        "text-blue-900",
+        "sm:mb-4",
+        "dark:text-blue-100",
+      );
     });
 
     test("should render Twitter link with correct attributes", async () => {
       render(await Footer());
 
-      const twitterLinks = screen.getAllByRole("link").filter((link) => link.getAttribute("href") === "https://x.com/sugi_sugi_329");
+      const twitterLinks = screen
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("href") === "https://x.com/sugi_sugi_329");
 
       expect(twitterLinks).toHaveLength(1);
       const twitterLink = twitterLinks[0];
@@ -158,7 +174,9 @@ describe("Footer", () => {
     test("should render GitHub link with correct attributes", async () => {
       render(await Footer());
 
-      const githubLinks = screen.getAllByRole("link").filter((link) => link.getAttribute("href") === "https://github.com/yuichisugio");
+      const githubLinks = screen
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("href") === "https://github.com/yuichisugio");
 
       expect(githubLinks).toHaveLength(1);
       const githubLink = githubLinks[0];
@@ -199,7 +217,15 @@ describe("Footer", () => {
       render(await Footer());
 
       const gridContainer = screen.getByRole("contentinfo").querySelector(".grid");
-      expect(gridContainer).toHaveClass("grid", "grid-cols-1", "gap-8", "text-center", "sm:grid-cols-2", "sm:gap-40", "sm:text-left");
+      expect(gridContainer).toHaveClass(
+        "grid",
+        "grid-cols-1",
+        "gap-8",
+        "text-center",
+        "sm:grid-cols-2",
+        "sm:gap-40",
+        "sm:text-left",
+      );
     });
 
     test("should apply responsive classes to Legal links", async () => {

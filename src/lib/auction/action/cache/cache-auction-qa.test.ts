@@ -175,7 +175,9 @@ describe("cache-auction-qa", () => {
           },
         ])("should throw error when $description", async ({ auctionId, isDisplayAfterEnd, auctionEndDate }) => {
           // Act & Assert
-          await expect(getCachedAuctionMessageContents(auctionId, isDisplayAfterEnd, auctionEndDate)).rejects.toThrow("パラメータが不正です");
+          await expect(getCachedAuctionMessageContents(auctionId, isDisplayAfterEnd, auctionEndDate)).rejects.toThrow(
+            "パラメータが不正です",
+          );
         });
       });
 
@@ -186,7 +188,9 @@ describe("cache-auction-qa", () => {
           prismaMock.auctionMessage.findMany.mockRejectedValue(mockError);
 
           // Act & Assert
-          await expect(getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE)).rejects.toThrow(mockError);
+          await expect(
+            getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE),
+          ).rejects.toThrow(mockError);
         });
       });
     });
@@ -210,7 +214,11 @@ describe("cache-auction-qa", () => {
         >);
 
         // Act
-        const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, isDisplayAfterEnd, VALID_AUCTION_END_DATE);
+        const result = await getCachedAuctionMessageContents(
+          VALID_AUCTION_ID,
+          isDisplayAfterEnd,
+          VALID_AUCTION_END_DATE,
+        );
 
         // Assert
         expect(result).toStrictEqual({
@@ -248,7 +256,9 @@ describe("cache-auction-qa", () => {
 
       test("should handle empty messages array", async () => {
         // Arrange
-        prismaMock.auctionMessage.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>);
+        prismaMock.auctionMessage.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>,
+        );
 
         // Act
         const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE);

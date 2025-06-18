@@ -63,7 +63,11 @@ const createMockDisplayUserInfo = (overrides: Partial<DisplayUserInfo> = {}): Di
     ...overrides,
   }) as DisplayUserInfo;
 
-const createSuccessfulReviewTest = async (reviewPosition: ReviewPosition, rating: number, comment: string | null = "テストコメント") => {
+const createSuccessfulReviewTest = async (
+  reviewPosition: ReviewPosition,
+  rating: number,
+  comment: string | null = "テストコメント",
+) => {
   const expectedReview = auctionReviewFactory.build({
     auctionId: TEST_AUCTION_ID,
     reviewerId: TEST_USER_ID,
@@ -117,14 +121,17 @@ describe("getDisplayUserInfo", () => {
   });
 
   describe("異常系", () => {
-    test.each(["キャッシュエラー", "Database connection failed"])("should handle getCachedDisplayUserInfo errors", async (errorMessage) => {
-      mockGetCachedDisplayUserInfo.mockRejectedValue(new Error(errorMessage));
+    test.each(["キャッシュエラー", "Database connection failed"])(
+      "should handle getCachedDisplayUserInfo errors",
+      async (errorMessage) => {
+        mockGetCachedDisplayUserInfo.mockRejectedValue(new Error(errorMessage));
 
-      // Act & Assert
-      await expect(getDisplayUserInfo(TEST_AUCTION_ID, ReviewPosition.SELLER_TO_BUYER)).rejects.toThrow(errorMessage);
-      expect(mockGetCachedDisplayUserInfo).toHaveBeenCalledWith(TEST_AUCTION_ID, ReviewPosition.SELLER_TO_BUYER);
-      expect(mockRevalidateTag).not.toHaveBeenCalled();
-    });
+        // Act & Assert
+        await expect(getDisplayUserInfo(TEST_AUCTION_ID, ReviewPosition.SELLER_TO_BUYER)).rejects.toThrow(errorMessage);
+        expect(mockGetCachedDisplayUserInfo).toHaveBeenCalledWith(TEST_AUCTION_ID, ReviewPosition.SELLER_TO_BUYER);
+        expect(mockRevalidateTag).not.toHaveBeenCalled();
+      },
+    );
   });
 });
 
@@ -263,12 +270,17 @@ describe("createAuctionReview", () => {
           position: undefined!,
           error: "レビューポジションは必須です",
         },
-      ])("should throw validation errors for invalid inputs", async ({ auctionId, revieweeId, rating, comment, position, error }) => {
-        await expect(createAuctionReview(auctionId, revieweeId, rating, comment, position as ReviewPosition)).rejects.toThrow(error);
-        expect(mockGetAuthenticatedSessionUserId).not.toHaveBeenCalled();
-        expect(prismaMock.auctionReview.create).not.toHaveBeenCalled();
-        expect(mockRevalidateTag).not.toHaveBeenCalled();
-      });
+      ])(
+        "should throw validation errors for invalid inputs",
+        async ({ auctionId, revieweeId, rating, comment, position, error }) => {
+          await expect(
+            createAuctionReview(auctionId, revieweeId, rating, comment, position as ReviewPosition),
+          ).rejects.toThrow(error);
+          expect(mockGetAuthenticatedSessionUserId).not.toHaveBeenCalled();
+          expect(prismaMock.auctionReview.create).not.toHaveBeenCalled();
+          expect(mockRevalidateTag).not.toHaveBeenCalled();
+        },
+      );
     });
   });
 
@@ -300,7 +312,9 @@ describe("createAuctionReview", () => {
       // getAuthenticatedSessionUserId失敗時
       mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
 
-      await expect(createAuctionReview(TEST_AUCTION_ID, TEST_REVIEWEE_ID, 5, "テスト", ReviewPosition.SELLER_TO_BUYER)).rejects.toThrow("認証エラー");
+      await expect(
+        createAuctionReview(TEST_AUCTION_ID, TEST_REVIEWEE_ID, 5, "テスト", ReviewPosition.SELLER_TO_BUYER),
+      ).rejects.toThrow("認証エラー");
 
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(prismaMock.auctionReview.create).not.toHaveBeenCalled();
@@ -312,9 +326,9 @@ describe("createAuctionReview", () => {
       mockGetAuthenticatedSessionUserId.mockResolvedValue(TEST_USER_ID);
       prismaMock.auctionReview.create.mockRejectedValue(new Error("Database error"));
 
-      await expect(createAuctionReview(TEST_AUCTION_ID, TEST_REVIEWEE_ID, 5, "テスト", ReviewPosition.BUYER_TO_SELLER)).rejects.toThrow(
-        "Database error",
-      );
+      await expect(
+        createAuctionReview(TEST_AUCTION_ID, TEST_REVIEWEE_ID, 5, "テスト", ReviewPosition.BUYER_TO_SELLER),
+      ).rejects.toThrow("Database error");
 
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(prismaMock.auctionReview.create).toHaveBeenCalledOnce();
@@ -327,7 +341,10 @@ describe("createAuctionReview", () => {
       const databaseErrors = [
         { error: new Error("データベースエラー"), description: "一般的なデータベースエラー" },
         { error: new Error("Unique constraint failed"), description: "一意制約違反" },
-        { error: new Error("Foreign key constraint failed on the field: `auctionId`"), description: "外部キー制約違反" },
+        {
+          error: new Error("Foreign key constraint failed on the field: `auctionId`"),
+          description: "外部キー制約違反",
+        },
         { error: new Error("Argument `rating` is missing"), description: "必須フィールド不足" },
       ];
 
@@ -336,9 +353,9 @@ describe("createAuctionReview", () => {
       for (const { error } of databaseErrors) {
         prismaMock.auctionReview.create.mockRejectedValue(error);
 
-        await expect(createAuctionReview(TEST_AUCTION_ID, TEST_REVIEWEE_ID, 5, "テスト", ReviewPosition.SELLER_TO_BUYER)).rejects.toThrow(
-          error.message,
-        );
+        await expect(
+          createAuctionReview(TEST_AUCTION_ID, TEST_REVIEWEE_ID, 5, "テスト", ReviewPosition.SELLER_TO_BUYER),
+        ).rejects.toThrow(error.message);
 
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
         expect(prismaMock.auctionReview.create).toHaveBeenCalledOnce();

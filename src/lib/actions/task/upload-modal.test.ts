@@ -3,7 +3,13 @@ import { revalidatePath } from "next/cache";
 // モジュールのインポート
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { groupFactory, groupMembershipFactory, groupPointFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  groupFactory,
+  groupMembershipFactory,
+  groupPointFactory,
+  taskFactory,
+  userFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { contributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -265,7 +271,9 @@ describe("upload-modal", () => {
     test("should update fixed evaluations successfully for app owner", async () => {
       // Arrange
       const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      const tasks = validEvaluationData.map((data) => taskFactory.build({ id: data.id, status: TaskStatus.TASK_COMPLETED }));
+      const tasks = validEvaluationData.map((data) =>
+        taskFactory.build({ id: data.id, status: TaskStatus.TASK_COMPLETED }),
+      );
 
       prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
       prismaMock.groupMembership.findFirst.mockResolvedValue(null);
@@ -279,7 +287,10 @@ describe("upload-modal", () => {
             }),
             update: vi.fn().mockImplementation(({ where }: { where: { id: string } }) => {
               const task = tasks.find((t) => t.id === where.id);
-              return Promise.resolve({ id: task ? (task as unknown as { id: string }).id : undefined, status: "POINTS_AWARDED" });
+              return Promise.resolve({
+                id: task ? (task as unknown as { id: string }).id : undefined,
+                status: "POINTS_AWARDED",
+              });
             }),
             findUnique: vi.fn().mockImplementation(() => {
               return Promise.resolve({
@@ -363,7 +374,9 @@ describe("upload-modal", () => {
 
     test("should handle missing task ID", async () => {
       // Arrange
-      const invalidData = [{ id: "", fixedContributionPoint: "100", fixedEvaluatorId: "evaluator-1", fixedEvaluationLogic: "自動評価" }];
+      const invalidData = [
+        { id: "", fixedContributionPoint: "100", fixedEvaluatorId: "evaluator-1", fixedEvaluationLogic: "自動評価" },
+      ];
       const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
 
       prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
@@ -777,7 +790,9 @@ describe("upload-modal", () => {
         group: { id: testGroupId },
       };
 
-      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+      prismaMock.task.findUnique.mockResolvedValue(
+        task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+      );
       mockCheckIsOwner.mockResolvedValue({ success: false });
 
       // Act
@@ -798,7 +813,9 @@ describe("upload-modal", () => {
         group: { id: testGroupId },
       };
 
-      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+      prismaMock.task.findUnique.mockResolvedValue(
+        task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+      );
 
       // Act
       const result = await bulkUpdateTaskStatuses([{ taskId: "task-1", status: TaskStatus.PENDING }]);
@@ -818,7 +835,9 @@ describe("upload-modal", () => {
         group: { id: testGroupId },
       };
 
-      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+      prismaMock.task.findUnique.mockResolvedValue(
+        task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+      );
       prismaMock.task.update.mockResolvedValue({
         id: "task-1",
         task: "テストタスク",
@@ -894,7 +913,9 @@ describe("upload-modal", () => {
         group: { id: testGroupId },
       };
 
-      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+      prismaMock.task.findUnique.mockResolvedValue(
+        task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+      );
       prismaMock.task.update.mockResolvedValue({
         id: "task-1",
         task: "テストタスク",
@@ -945,7 +966,9 @@ describe("upload-modal", () => {
         group: { id: testGroupId },
       };
 
-      prismaMock.task.findUnique.mockResolvedValue(task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+      prismaMock.task.findUnique.mockResolvedValue(
+        task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+      );
       prismaMock.task.update.mockRejectedValue(new Error("Database update error"));
 
       // Act

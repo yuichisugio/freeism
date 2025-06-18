@@ -1,4 +1,9 @@
-import type { AuctionCreatedTabFilter, BidHistoryItem, CreatedAuctionItem, WonAuctionItem } from "@/types/auction-types";
+import type {
+  AuctionCreatedTabFilter,
+  BidHistoryItem,
+  CreatedAuctionItem,
+  WonAuctionItem,
+} from "@/types/auction-types";
 import { faker } from "@faker-js/faker";
 import { BidStatus, TaskStatus } from "@prisma/client";
 import { render, screen } from "@testing-library/react";
@@ -219,7 +224,9 @@ describe("AuctionHistory", () => {
 
       // Act
       render(<AuctionHistory />);
-      const historyCard = screen.getByText(testBidHistoryData[0].taskName).closest('[role="button"], div[class*="cursor-pointer"]');
+      const historyCard = screen
+        .getByText(testBidHistoryData[0].taskName)
+        .closest('[role="button"], div[class*="cursor-pointer"]');
       if (historyCard) {
         await user.click(historyCard);
       }

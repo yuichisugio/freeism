@@ -110,7 +110,11 @@ export type UseTaskEditModalReturn = {
 /**
  * useTaskEditModal関数
  */
-export function useTaskEditModal({ taskId, onOpenChangeAction, onTaskUpdated }: UseTaskEditModalProps): UseTaskEditModalReturn {
+export function useTaskEditModal({
+  taskId,
+  onOpenChangeAction,
+  onTaskUpdated,
+}: UseTaskEditModalProps): UseTaskEditModalReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

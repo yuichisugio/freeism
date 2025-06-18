@@ -14,7 +14,9 @@ import type { NotificationParams } from "./email-notification";
  * @param {NotificationParams} notificationParams 通知データ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendInAppNotification(notificationParams: NotificationParams): Promise<{ success: boolean; error?: string }> {
+export async function sendInAppNotification(
+  notificationParams: NotificationParams,
+): Promise<{ success: boolean; error?: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -62,7 +64,8 @@ export async function sendInAppNotification(notificationParams: NotificationPara
         title: notificationParams.title,
         message: notificationParams.message,
         targetType: notificationParams.targetType,
-        sendTimingType: notificationParams.sendTiming === "SCHEDULED" ? NotificationSendTiming.SCHEDULED : NotificationSendTiming.NOW,
+        sendTimingType:
+          notificationParams.sendTiming === "SCHEDULED" ? NotificationSendTiming.SCHEDULED : NotificationSendTiming.NOW,
         sendScheduledDate: notificationParams.sendTiming === "SCHEDULED" ? notificationParams.sendScheduledDate : null,
         sentAt: notificationParams.sendTiming === "NOW" ? new Date() : null, // 即時送信の場合は現在時刻、予約送信の場合はnull
         expiresAt: notificationParams.expiresAt ?? undefined,

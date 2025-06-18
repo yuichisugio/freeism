@@ -185,7 +185,9 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockRejectedValueOnce(new Error("送信エラー")).mockResolvedValueOnce({ success: true });
+      vi.mocked(sendGeneralNotification)
+        .mockRejectedValueOnce(new Error("送信エラー"))
+        .mockResolvedValueOnce({ success: true });
 
       // テスト実行
       const result = await sendScheduledNotifications();

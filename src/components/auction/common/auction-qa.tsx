@@ -118,14 +118,21 @@ export const AuctionQA = memo(function AuctionQA({
               <MessageSquare className="h-8 w-8 text-indigo-400" />
             </div>
             <p className="font-medium text-slate-600">質問はまだありません</p>
-            <p className="mt-2 text-sm text-slate-500">{isSeller ? "質問に回答しましょう" : "最初の質問をしてみましょう"}</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {isSeller ? "質問に回答しましょう" : "最初の質問をしてみましょう"}
+            </p>
           </div>
         ) : (
           // メッセージがある場合
           <AnimatePresence>
             {messages.map((msg: AuctionMessage) => {
               const senderId = msg.person?.sender?.id ?? "unknown";
-              const { name, image, sellerTypes, isOwnMessage, isSellerMessage } = getSenderInfo(senderId, auctionPersonInfo, msg, currentUserId);
+              const { name, image, sellerTypes, isOwnMessage, isSellerMessage } = getSenderInfo(
+                senderId,
+                auctionPersonInfo,
+                msg,
+                currentUserId,
+              );
               return (
                 <motion.div
                   key={msg.messageId}
@@ -133,13 +140,19 @@ export const AuctionQA = memo(function AuctionQA({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={cn("flex w-full flex-col rounded-lg px-3 py-1", isOwnMessage ? "items-end" : "items-start")}
+                  className={cn(
+                    "flex w-full flex-col rounded-lg px-3 py-1",
+                    isOwnMessage ? "items-end" : "items-start",
+                  )}
                 >
                   <div className="mb-1 flex items-center gap-2">
                     <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
                       <AvatarImage src={image ?? ""} />
                       <AvatarFallback
-                        className={cn("text-xs font-bold", isSellerMessage ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600")}
+                        className={cn(
+                          "text-xs font-bold",
+                          isSellerMessage ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600",
+                        )}
                       >
                         {name?.charAt(0) ?? "?"}
                       </AvatarFallback>
@@ -160,7 +173,9 @@ export const AuctionQA = memo(function AuctionQA({
                           {(() => {
                             if (sellerTypes.length === 0) return "出品者";
                             const typeLabels = sellerTypes
-                              .map((type) => (type === "creator" ? "作成者" : type === "reporter" ? "報告者" : "実行者"))
+                              .map((type) =>
+                                type === "creator" ? "作成者" : type === "reporter" ? "報告者" : "実行者",
+                              )
                               .join("・");
                             return `出品者（${typeLabels}）`;
                           })()}
@@ -191,7 +206,9 @@ export const AuctionQA = memo(function AuctionQA({
                       {/* メッセージ内容 */}
                       <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.messageContent}</p>
                       {/* メッセージの作成日時 */}
-                      <p className={cn("mt-0.5 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}>
+                      <p
+                        className={cn("mt-0.5 text-right text-xs", isOwnMessage ? "text-indigo-100" : "text-slate-500")}
+                      >
                         {formatRelativeTime(new Date(msg.createdAt))}
                       </p>
                     </div>
@@ -240,7 +257,11 @@ export const AuctionQA = memo(function AuctionQA({
                   disabled={submitting}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-indigo-700"
                 >
-                  {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <SendHorizonal className="mr-1 h-4 w-4" />}
+                  {submitting ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <SendHorizonal className="mr-1 h-4 w-4" />
+                  )}
                   送信
                 </Button>
               </div>

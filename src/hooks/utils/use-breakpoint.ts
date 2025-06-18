@@ -9,7 +9,9 @@ import { useEffect, useState } from "react";
  * @returns {boolean} ブレークポイントの状態
  */
 export const useBreakpoint = (): { isSmUp: boolean } => {
-  const [isSmUp, setIsSmUp] = useState<boolean>(() => (typeof window !== "undefined" ? window.matchMedia("(min-width: 640px)").matches : false));
+  const [isSmUp, setIsSmUp] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 640px)").matches : false,
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 640px)");

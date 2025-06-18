@@ -395,11 +395,14 @@ export const createInvalidUserData = () => userFactory.build({ email: undefined 
 export const createInvalidAccountData = () => accountFactory.build({ type: undefined, provider: undefined });
 export const createInvalidSessionData = () => sessionFactory.build({ sessionToken: undefined, userId: undefined });
 export const createInvalidGroupData = () => groupFactory.build({ name: undefined, goal: undefined });
-export const createInvalidTaskData = () => taskFactory.build({ task: undefined, groupId: undefined, creatorId: undefined });
+export const createInvalidTaskData = () =>
+  taskFactory.build({ task: undefined, groupId: undefined, creatorId: undefined });
 export const createInvalidAuctionData = () =>
   auctionFactory.build({ startTime: undefined, endTime: undefined, groupId: undefined, taskId: undefined });
-export const createInvalidBidHistoryData = () => bidHistoryFactory.build({ amount: undefined, auctionId: undefined, userId: undefined });
-export const createInvalidNotificationData = () => notificationFactory.build({ title: undefined, message: undefined, targetType: undefined });
+export const createInvalidBidHistoryData = () =>
+  bidHistoryFactory.build({ amount: undefined, auctionId: undefined, userId: undefined });
+export const createInvalidNotificationData = () =>
+  notificationFactory.build({ title: undefined, message: undefined, targetType: undefined });
 
 /**
  * GroupDetailTask型のファクトリー（テスト用）

@@ -58,7 +58,9 @@ describe("HeroSection", () => {
       render(await HeroSection());
 
       // Assert
-      const description = screen.getByText("Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。");
+      const description = screen.getByText(
+        "Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。",
+      );
       expect(description).toBeInTheDocument();
     });
 
@@ -100,7 +102,10 @@ describe("HeroSection", () => {
       // Assert
       const detailButton = screen.getByRole("link", { name: "詳細" });
       expect(detailButton).toBeInTheDocument();
-      expect(detailButton).toHaveAttribute("href", "https://docs.google.com/document/d/1ksGHN6jWdwoMZ59-EX3g_CFXY3J3D7Qes4-TluqX7qU/edit?tab=t.0");
+      expect(detailButton).toHaveAttribute(
+        "href",
+        "https://docs.google.com/document/d/1ksGHN6jWdwoMZ59-EX3g_CFXY3J3D7Qes4-TluqX7qU/edit?tab=t.0",
+      );
       expect(detailButton).toHaveAttribute("target", "_blank");
       expect(detailButton).toHaveAttribute("rel", "noopener noreferrer");
     });
@@ -232,7 +237,9 @@ describe("HeroSection", () => {
       render(await HeroSection());
 
       // Assert
-      const description = screen.getByText("Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。");
+      const description = screen.getByText(
+        "Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。",
+      );
       expect(description).toHaveClass("text-base", "sm:text-lg", "md:text-xl");
     });
 
@@ -275,7 +282,9 @@ describe("HeroSection", () => {
       render(await HeroSection());
 
       // Assert
-      const description = screen.getByText("Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。");
+      const description = screen.getByText(
+        "Freeism-Appは、資本主義に変わる経済の仕組みを提案し、体験できるWebサービスです。",
+      );
       expect(description).toHaveClass("dark:text-neutral-400");
     });
 

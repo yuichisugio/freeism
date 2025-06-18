@@ -167,7 +167,10 @@ export async function checkIsOwner(
  * @param userId - 権限を付与するユーザーのID
  * @returns 処理結果を含むオブジェクト
  */
-export async function grantOwnerPermission(groupId: string, userId: string): Promise<{ success: boolean; error?: string }> {
+export async function grantOwnerPermission(
+  groupId: string,
+  userId: string,
+): Promise<{ success: boolean; error?: string }> {
   try {
     // 操作者がグループオーナーかチェック
     const isOwner = await checkIsOwner(userId, groupId);

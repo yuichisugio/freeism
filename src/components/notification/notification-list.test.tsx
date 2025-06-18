@@ -74,7 +74,9 @@ const notificationFactory = Factory.define<NotificationData>(({ sequence, params
  */
 
 // デフォルトのuseNotificationListの戻り値を作成
-const createDefaultNotificationManagerResult = (overrides: Partial<NotificationManagerResult> = {}): NotificationManagerResult => ({
+const createDefaultNotificationManagerResult = (
+  overrides: Partial<NotificationManagerResult> = {},
+): NotificationManagerResult => ({
   notifications: [],
   isLoading: false,
   isLoadingMore: false,

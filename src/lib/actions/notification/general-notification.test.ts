@@ -41,7 +41,9 @@ const mockSendPushNotification = vi.mocked(sendPushNotification);
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // テストデータのファクトリー関数
-function createValidGeneralNotificationParams(overrides: Partial<GeneralNotificationParams> = {}): GeneralNotificationParams {
+function createValidGeneralNotificationParams(
+  overrides: Partial<GeneralNotificationParams> = {},
+): GeneralNotificationParams {
   return {
     title: "テスト通知",
     message: "テストメッセージ",
@@ -548,7 +550,12 @@ describe("sendGeneralNotification", () => {
   describe("引数パターンテスト", () => {
     test("should handle all NotificationTargetType values", async () => {
       // Arrange & Act & Assert
-      const targetTypes = [NotificationTargetType.USER, NotificationTargetType.GROUP, NotificationTargetType.TASK, NotificationTargetType.SYSTEM];
+      const targetTypes = [
+        NotificationTargetType.USER,
+        NotificationTargetType.GROUP,
+        NotificationTargetType.TASK,
+        NotificationTargetType.SYSTEM,
+      ];
 
       for (const targetType of targetTypes) {
         const params = createValidGeneralNotificationParams({
@@ -745,7 +752,10 @@ describe("sendGeneralNotification", () => {
       const params2 = createValidGeneralNotificationParams({ title: "通知2" });
 
       // Act
-      const [result1, result2] = await Promise.all([sendGeneralNotification(params1), sendGeneralNotification(params2)]);
+      const [result1, result2] = await Promise.all([
+        sendGeneralNotification(params1),
+        sendGeneralNotification(params2),
+      ]);
 
       // Assert
       expect(result1).toStrictEqual({ success: true });

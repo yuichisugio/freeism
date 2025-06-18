@@ -238,7 +238,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
     test("should return auction won detail successfully", async () => {
       // Arrange
       const mockAuctionData = createBaseMockAuctionData();
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
@@ -249,7 +251,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
         message: "落札したオークションの詳細を取得しました",
         auctionWonDetail: createExpectedResult(),
       });
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId));
+      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(
+        getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId),
+      );
     });
 
     test("should handle missing creator settings with default values", async () => {
@@ -263,7 +267,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
         reporters: [],
         executors: [],
       });
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
@@ -292,7 +298,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
           },
         ],
       });
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
@@ -320,7 +328,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
         reporters: [{ user: null }],
         executors: [{ user: null }],
       });
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
@@ -360,7 +370,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       });
       const mockAuctionData = createBaseMockAuctionData();
       mockAuctionData.reviews = [mockReview1, mockReview2];
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
@@ -376,7 +388,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
         detail: null,
         imageUrl: null,
       });
-      prismaMock.auction.findUnique.mockResolvedValue(mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
@@ -397,7 +411,9 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
         message: "落札したオークションが見つかりません",
         auctionWonDetail: null,
       });
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId));
+      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(
+        getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId),
+      );
     });
   });
 

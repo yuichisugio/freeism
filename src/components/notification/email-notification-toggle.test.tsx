@@ -89,7 +89,9 @@ describe("EmailNotificationToggle", () => {
       expect(screen.getByText("メール通知設定")).toBeInTheDocument();
       expect(screen.getByText("メール通知の受信設定を管理します")).toBeInTheDocument();
       expect(screen.getByRole("switch")).toBeInTheDocument();
-      expect(screen.getByText("メール通知を有効にすると、メールでの通知を受け取ることができます。")).toBeInTheDocument();
+      expect(
+        screen.getByText("メール通知を有効にすると、メールでの通知を受け取ることができます。"),
+      ).toBeInTheDocument();
     });
 
     test("should display correct toggle state when isEmailEnabled is false", () => {

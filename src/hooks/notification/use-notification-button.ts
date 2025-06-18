@@ -4,7 +4,10 @@ import type { NotificationData } from "@/lib/actions/cache/cache-notification-ut
 import type { QueryFnReturnType } from "@/types/notifications-types";
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
-import { getNotificationsAndUnreadCount, getUnreadNotificationsCount } from "@/lib/actions/notification/notification-utilities";
+import {
+  getNotificationsAndUnreadCount,
+  getUnreadNotificationsCount,
+} from "@/lib/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

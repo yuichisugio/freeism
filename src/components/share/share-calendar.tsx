@@ -27,7 +27,9 @@ type DateFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldV
   showTimeInput?: boolean; // Option to show time input
 };
 
-export function DateField<TFieldValues extends FieldValues, TName extends Path<TFieldValues>>(props: DateFieldProps<TFieldValues, TName>) {
+export function DateField<TFieldValues extends FieldValues, TName extends Path<TFieldValues>>(
+  props: DateFieldProps<TFieldValues, TName>,
+) {
   const {
     control,
     name,
@@ -137,7 +139,10 @@ export function DateField<TFieldValues extends FieldValues, TName extends Path<T
               onChange={handleInputChange}
               onBlur={handleInputBlur}
               placeholder={placeholder}
-              className={cn("w-full rounded-md border-gray-300 pr-10 shadow-sm transition-all hover:bg-gray-50", !value && "text-muted-foreground")}
+              className={cn(
+                "w-full rounded-md border-gray-300 pr-10 shadow-sm transition-all hover:bg-gray-50",
+                !value && "text-muted-foreground",
+              )}
             />
           </FormControl>
           <PopoverTrigger asChild>

@@ -27,7 +27,13 @@ type NavigationButtonProps = {
  * @param className - 追加のCSSクラス
  * @returns ナビゲーションボタン
  */
-export function NavigationButton({ href, children, variant = "outline", size = "lg", className = "" }: NavigationButtonProps) {
+export function NavigationButton({
+  href,
+  children,
+  variant = "outline",
+  size = "lg",
+  className = "",
+}: NavigationButtonProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const router = useRouter();

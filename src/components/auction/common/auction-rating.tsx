@@ -58,8 +58,12 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
     },
     onSuccess: () => {
       toast.success("評価を送信しました");
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId) });
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition) });
+      void queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition),
+      });
       setRating(0);
       setComment("");
       setHasReviewed(true);
@@ -125,7 +129,12 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
               <RatingStar rating={rating} size={28} readonly={false} onChange={setRating} />
             </div>
           </div>
-          <Textarea placeholder="コメントを入力（任意）" value={comment} onChange={(e) => setComment(e.target.value)} className="h-24" />
+          <Textarea
+            placeholder="コメントを入力（任意）"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="h-24"
+          />
           <Button
             className="w-full"
             onClick={() => void handleReviewSubmit()}
@@ -176,7 +185,8 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
   /**
    * レビューの向き
    */
-  const reviewPosition: ReviewPosition = text === "出品画面" ? ReviewPosition.SELLER_TO_BUYER : ReviewPosition.BUYER_TO_SELLER;
+  const reviewPosition: ReviewPosition =
+    text === "出品画面" ? ReviewPosition.SELLER_TO_BUYER : ReviewPosition.BUYER_TO_SELLER;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -228,7 +238,10 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
                 </button>
                 <div className="flex h-5 items-center justify-center">
                   {user.hasReviewed && (
-                    <CheckCircle className="mt-1 h-4 w-4 rounded-full bg-green-100 text-green-500" data-testid="check-circle-icon" />
+                    <CheckCircle
+                      className="mt-1 h-4 w-4 rounded-full bg-green-100 text-green-500"
+                      data-testid="check-circle-icon"
+                    />
                   )}
                 </div>
               </div>
@@ -262,7 +275,9 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
               <>
                 <button
                   type="button"
-                  onClick={() => setCurrentIndex((prev) => (prev - 1 + displayUserInfo.length) % displayUserInfo.length)}
+                  onClick={() =>
+                    setCurrentIndex((prev) => (prev - 1 + displayUserInfo.length) % displayUserInfo.length)
+                  }
                   className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full border bg-white p-2 shadow"
                   aria-label="前へ"
                 >

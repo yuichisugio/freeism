@@ -68,8 +68,12 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
     mutationFn: () => serverToggleWatchlist(auctionId, userId, isWatchlistedQueryData ?? false),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: queryCacheKeys.watchlist.userAuction(userId, auctionId) });
-      const previousWatchlist = queryClient.getQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId));
-      queryClient.setQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId), (old) => (old === true ? false : true));
+      const previousWatchlist = queryClient.getQueryData<boolean | null>(
+        queryCacheKeys.watchlist.userAuction(userId, auctionId),
+      );
+      queryClient.setQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId), (old) =>
+        old === true ? false : true,
+      );
       queryClient.getQueryData<boolean | null>(queryCacheKeys.watchlist.userAuction(userId, auctionId));
       return { previousWatchlist };
     },
@@ -81,7 +85,11 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
         toast.success("ウォッチリストから削除しました");
       }
     },
-    onError: (_error: Error, _variables: void, context: { previousWatchlist: boolean | null | undefined } | undefined) => {
+    onError: (
+      _error: Error,
+      _variables: void,
+      context: { previousWatchlist: boolean | null | undefined } | undefined,
+    ) => {
       toast.error("ウォッチリストの更新中にエラーが発生しました");
       if (context?.previousWatchlist !== undefined) {
         queryClient.setQueryData(queryCacheKeys.watchlist.userAuction(userId, auctionId), context.previousWatchlist);

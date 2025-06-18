@@ -1,6 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { groupFactory, groupMembershipFactory, groupPointFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  groupFactory,
+  groupMembershipFactory,
+  groupPointFactory,
+  userFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getUserJoinGroup, getUserJoinGroupAndCount, getUserJoinGroupCount, leaveGroup } from "./my-group";

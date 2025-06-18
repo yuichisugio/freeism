@@ -219,7 +219,14 @@ describe("TermsPage", () => {
       // Assert
       const proseContainer = screen.getByRole("main").querySelector(".prose");
       expect(proseContainer).toBeInTheDocument();
-      expect(proseContainer).toHaveClass("prose", "prose-blue", "mx-auto", "max-w-none", "space-y-6", "text-neutral-700");
+      expect(proseContainer).toHaveClass(
+        "prose",
+        "prose-blue",
+        "mx-auto",
+        "max-w-none",
+        "space-y-6",
+        "text-neutral-700",
+      );
     });
 
     test("should render sections with correct structure", async () => {

@@ -18,7 +18,9 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
    * オークションIDが指定されていない場合はエラーを返す
    */
   if (!auctionId) {
-    console.error("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error_auctionId_not_specified");
+    console.error(
+      "src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error_auctionId_not_specified",
+    );
     throw new Error("オークションIDが指定されていません");
   }
 
@@ -126,7 +128,9 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
    * オークション情報が見つからない場合はエラーを返す
    */
   if (!auctionRaw) {
-    console.error("src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error_auction_not_found");
+    console.error(
+      "src/lib/auction/action/cache/cache-auction-retrieve.ts_getCachedAuctionByAuctionId_error_auction_not_found",
+    );
     throw new Error("オークション情報が見つかりません");
   }
 

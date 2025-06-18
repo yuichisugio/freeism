@@ -76,7 +76,9 @@ describe("task.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         prismaMock.task.delete.mockResolvedValue(testTask);
 
         // Act
@@ -131,7 +133,9 @@ describe("task.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         prismaMock.task.delete.mockResolvedValue(testTask);
 
         // Act
@@ -198,7 +202,9 @@ describe("task.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await deleteTask(testTask.id);
@@ -226,7 +232,9 @@ describe("task.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await deleteTask(testTask.id);
@@ -254,7 +262,9 @@ describe("task.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await deleteTask(testTask.id);
@@ -351,7 +361,9 @@ describe("task.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         mockCheckIsOwner.mockResolvedValue({ success: true });
         prismaMock.task.update.mockResolvedValue(testTask);
 
@@ -389,7 +401,9 @@ describe("task.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         mockCheckIsOwner.mockResolvedValue({ success: true });
         prismaMock.task.update.mockResolvedValue(testTask);
 
@@ -433,7 +447,9 @@ describe("task.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act - FIXED_EVALUATED
         const result1 = await updateTaskStatus(testTask.id, TaskStatus.FIXED_EVALUATED);
@@ -468,7 +484,9 @@ describe("task.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         mockCheckIsOwner.mockResolvedValue({
           success: false,
           error: "権限がありません",
@@ -554,7 +572,9 @@ describe("task.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         mockCheckIsOwner.mockResolvedValue({ success: true });
         prismaMock.task.update.mockResolvedValue(testTask);
 
@@ -581,7 +601,9 @@ describe("task.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.task.findUnique.mockResolvedValue(taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
         mockCheckIsOwner.mockResolvedValue({ success: true });
         prismaMock.task.update.mockResolvedValue(testTask);
 

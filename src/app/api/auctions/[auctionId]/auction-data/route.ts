@@ -63,7 +63,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
   } catch (error) {
-    console.error(`src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_error: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      `src/app/api/auctions/[auctionId]/auction-data/route.ts_GET_error: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return NextResponse.json({ error: "エラーが発生しました" }, { status: 500 });
   }
 }

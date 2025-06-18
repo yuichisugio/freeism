@@ -209,7 +209,8 @@ export async function createTask(data: CreateTaskParams) {
       /**
        * isExtensionの値を適切に変換
        */
-      const isExtension = typeof data.isExtension === "string" ? data.isExtension === "true" : Boolean(data.isExtension);
+      const isExtension =
+        typeof data.isExtension === "string" ? data.isExtension === "true" : Boolean(data.isExtension);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

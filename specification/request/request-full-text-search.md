@@ -17,7 +17,8 @@
   - ハイライト検索
     - `pgroonga_highlight_html`でハイライト表示
   - パフォーマンスを最適化するために、検索パターンに応じたINDEXを作成
-  - Next.jsのApp RouterではReact Server Componentsを使用して効率的なキャッシュを行う。Next.js version15の 'use cache'を使用する
+  - Next.jsのApp RouterではReact Server Componentsを使用して効率的なキャッシュを行う。Next.js version15の 'use
+    cache'を使用する
   - 検索結果のみをサーバー側で全文検索で検索して、検索結果をstateに保持して、それ以降はクライアント側でフィルターする方法で実装
     - ファセット検索（絞り込み検索）を実装するが、カテゴリーや価格の絞り込みはstate内で行う
   - 大文字・小文字・ひらがな・カタカナの表記揺れに対応するために、正規化を行う

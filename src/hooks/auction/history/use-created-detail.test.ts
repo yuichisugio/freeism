@@ -15,15 +15,21 @@ import { useCreatedDetail } from "./use-created-detail";
  */
 
 // ホイストされたモック関数の宣言
-const { mockSetTab, mockGetAuctionHistoryCreatedDetail, mockCompleteTaskDelivery, mockUpdateDeliveryMethod, mockToastSuccess, mockToastError } =
-  vi.hoisted(() => ({
-    mockSetTab: vi.fn(),
-    mockGetAuctionHistoryCreatedDetail: vi.fn(),
-    mockCompleteTaskDelivery: vi.fn(),
-    mockUpdateDeliveryMethod: vi.fn(),
-    mockToastSuccess: vi.fn(),
-    mockToastError: vi.fn(),
-  }));
+const {
+  mockSetTab,
+  mockGetAuctionHistoryCreatedDetail,
+  mockCompleteTaskDelivery,
+  mockUpdateDeliveryMethod,
+  mockToastSuccess,
+  mockToastError,
+} = vi.hoisted(() => ({
+  mockSetTab: vi.fn(),
+  mockGetAuctionHistoryCreatedDetail: vi.fn(),
+  mockCompleteTaskDelivery: vi.fn(),
+  mockUpdateDeliveryMethod: vi.fn(),
+  mockToastSuccess: vi.fn(),
+  mockToastError: vi.fn(),
+}));
 
 // nuqsのモック
 vi.mock("nuqs", () => ({

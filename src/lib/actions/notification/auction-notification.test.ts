@@ -1,4 +1,9 @@
-import { AuctionEventType, NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";
+import {
+  AuctionEventType,
+  NotificationSendMethod,
+  NotificationSendTiming,
+  NotificationTargetType,
+} from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { AuctionNotificationParams } from "./auction-notification";

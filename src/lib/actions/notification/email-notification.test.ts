@@ -82,7 +82,9 @@ describe("sendEmailNotification", () => {
 
     test("should return success with message when no email notification settings found", async () => {
       // モックの設定 - 空の配列
-      prismaMock.userSettings.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
+      prismaMock.userSettings.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
+      );
 
       // 関数を実行
       const result = await sendEmailNotification(baseNotificationParams);
@@ -266,7 +268,9 @@ describe("sendEmailNotification", () => {
       };
 
       // モックの設定
-      prismaMock.userSettings.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
+      prismaMock.userSettings.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
+      );
 
       // 関数を実行
       const result = await sendEmailNotification(emptyRecipientsParams);
@@ -553,7 +557,10 @@ describe("sendEmailNotification", () => {
       await sendEmailNotification(baseNotificationParams);
 
       // コンソールログの呼び出しを検証
-      expect(console.log).toHaveBeenCalledWith("email-notification.ts_sendEmailNotification_isEmailNotificationEnabled", userSettingsFromDb);
+      expect(console.log).toHaveBeenCalledWith(
+        "email-notification.ts_sendEmailNotification_isEmailNotificationEnabled",
+        userSettingsFromDb,
+      );
     });
   });
 
@@ -568,7 +575,12 @@ describe("sendEmailNotification", () => {
       };
 
       // モックの設定 - 一部有効、一部無効
-      const userSettingsFromDb = [{ isEmailEnabled: true }, { isEmailEnabled: false }, { isEmailEnabled: true }, { isEmailEnabled: false }];
+      const userSettingsFromDb = [
+        { isEmailEnabled: true },
+        { isEmailEnabled: false },
+        { isEmailEnabled: true },
+        { isEmailEnabled: false },
+      ];
       prismaMock.userSettings.findMany.mockResolvedValue(
         userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
       );

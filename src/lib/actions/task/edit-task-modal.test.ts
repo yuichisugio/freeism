@@ -3,7 +3,13 @@ import { revalidatePath } from "next/cache";
 import { checkIsOwner } from "@/lib/actions/permission";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { auctionFactory, bidHistoryFactory, groupFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  auctionFactory,
+  bidHistoryFactory,
+  groupFactory,
+  taskFactory,
+  userFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { contributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -92,16 +98,34 @@ describe("edit-task-modal.ts", () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           creator: { id: testUser1.id, name: testUser1.name },
-          reporters: [{ id: "reporter-1", name: "報告者1", userId: testUser1.id, user: { id: testUser1.id, name: testUser1.name } }],
-          executors: [{ id: "executor-1", name: "実行者1", userId: testUser2.id, user: { id: testUser2.id, name: testUser2.name } }],
+          reporters: [
+            {
+              id: "reporter-1",
+              name: "報告者1",
+              userId: testUser1.id,
+              user: { id: testUser1.id, name: testUser1.name },
+            },
+          ],
+          executors: [
+            {
+              id: "executor-1",
+              name: "実行者1",
+              userId: testUser2.id,
+              user: { id: testUser2.id, name: testUser2.name },
+            },
+          ],
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: true });
         prismaMock.taskReporter.deleteMany.mockResolvedValue({ count: 0 });
         prismaMock.taskExecutor.deleteMany.mockResolvedValue({ count: 0 });
-        prismaMock.task.update.mockResolvedValue(mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        prismaMock.task.update.mockResolvedValue(
+          mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
+        );
         prismaMock.auction.findUnique.mockResolvedValue(null);
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
@@ -161,9 +185,13 @@ describe("edit-task-modal.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.update.mockResolvedValue(mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        prismaMock.task.update.mockResolvedValue(
+          mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
+        );
         prismaMock.auction.findUnique.mockResolvedValue(null);
         prismaMock.auction.create.mockResolvedValue({
           id: "auction-1",
@@ -238,14 +266,20 @@ describe("edit-task-modal.ts", () => {
         const existingAuction = auctionFactory.build({ id: "auction-1", taskId: testTask.id });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.update.mockResolvedValue(mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        prismaMock.task.update.mockResolvedValue(
+          mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
+        );
         prismaMock.auction.findUnique.mockResolvedValue({ id: existingAuction.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.auction.findUnique>
         >);
         prismaMock.bidHistory.findFirst.mockResolvedValue(null);
-        prismaMock.auction.delete.mockResolvedValue(existingAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.delete>>);
+        prismaMock.auction.delete.mockResolvedValue(
+          existingAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.delete>>,
+        );
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
         });
@@ -295,13 +329,19 @@ describe("edit-task-modal.ts", () => {
         const existingBid = bidHistoryFactory.build({ auctionId: existingAuction.id });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.update.mockResolvedValue(mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        prismaMock.task.update.mockResolvedValue(
+          mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
+        );
         prismaMock.auction.findUnique.mockResolvedValue({ id: existingAuction.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.auction.findUnique>
         >);
-        prismaMock.bidHistory.findFirst.mockResolvedValue(existingBid as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findFirst>>);
+        prismaMock.bidHistory.findFirst.mockResolvedValue(
+          existingBid as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findFirst>>,
+        );
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
         });
@@ -318,7 +358,9 @@ describe("edit-task-modal.ts", () => {
           where: { auctionId: existingAuction.id },
         });
         expect(prismaMock.auction.delete).not.toHaveBeenCalled();
-        expect(consoleSpy).toHaveBeenCalledWith(`タスク ${testTask.id} は入札があるため、オークションは削除されませんでした`);
+        expect(consoleSpy).toHaveBeenCalledWith(
+          `タスク ${testTask.id} は入札があるため、オークションは削除されませんでした`,
+        );
 
         consoleSpy.mockRestore();
       });
@@ -351,9 +393,13 @@ describe("edit-task-modal.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: true });
-        prismaMock.task.update.mockResolvedValue(mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
+        prismaMock.task.update.mockResolvedValue(
+          mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
+        );
         prismaMock.auction.findUnique.mockResolvedValue(null);
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
@@ -383,7 +429,9 @@ describe("edit-task-modal.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          null as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await updateTaskAction(taskId, updateData);
@@ -410,7 +458,9 @@ describe("edit-task-modal.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: false, error: "権限がありません" });
 
         // Act
@@ -459,7 +509,9 @@ describe("edit-task-modal.ts", () => {
         };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser1.id);
-        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findUnique>
+        >);
         mockCheckIsOwner.mockResolvedValue({ success: true });
         prismaMock.$transaction.mockRejectedValue(new Error("データベースエラー"));
 
@@ -551,7 +603,9 @@ describe("edit-task-modal.ts", () => {
           },
         };
 
-        prismaMock.task.findUnique.mockResolvedValue(mockTaskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          mockTaskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await getTaskById(testTask.id);
@@ -674,7 +728,9 @@ describe("edit-task-modal.ts", () => {
           auction: null,
         };
 
-        prismaMock.task.findUnique.mockResolvedValue(mockTaskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          mockTaskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await getTaskById(testTask.id);
@@ -691,7 +747,9 @@ describe("edit-task-modal.ts", () => {
       test("should return error when task not found", async () => {
         // Arrange
         const taskId = "non-existent-task";
-        prismaMock.task.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          null as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await getTaskById(taskId);
@@ -723,7 +781,9 @@ describe("edit-task-modal.ts", () => {
       test("should handle empty string taskId", async () => {
         // Arrange
         const taskId = "";
-        prismaMock.task.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>);
+        prismaMock.task.findUnique.mockResolvedValue(
+          null as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
+        );
 
         // Act
         const result = await getTaskById(taskId);

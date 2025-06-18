@@ -25,7 +25,16 @@ describe("NoResult", () => {
 
       // ルートコンテナ要素（最初のdiv）のクラスを確認
       const rootContainer = container.firstChild as HTMLElement;
-      expect(rootContainer).toHaveClass("flex", "h-full", "w-full", "flex-col", "items-center", "justify-center", "gap-4", "py-8");
+      expect(rootContainer).toHaveClass(
+        "flex",
+        "h-full",
+        "w-full",
+        "flex-col",
+        "items-center",
+        "justify-center",
+        "gap-4",
+        "py-8",
+      );
     });
 
     it("should render with custom className applied", () => {
@@ -38,7 +47,16 @@ describe("NoResult", () => {
       const rootContainer = container.firstChild as HTMLElement;
       expect(rootContainer).toHaveClass("bg-red-100", "custom-class");
       // デフォルトクラスも保持されることを確認
-      expect(rootContainer).toHaveClass("flex", "h-full", "w-full", "flex-col", "items-center", "justify-center", "gap-4", "py-8");
+      expect(rootContainer).toHaveClass(
+        "flex",
+        "h-full",
+        "w-full",
+        "flex-col",
+        "items-center",
+        "justify-center",
+        "gap-4",
+        "py-8",
+      );
     });
 
     it("should render FileX icon", () => {
@@ -94,7 +112,16 @@ describe("NoResult", () => {
 
       // undefinedのclassNameでも正常にレンダリングされることを確認
       const rootContainer = container.firstChild as HTMLElement;
-      expect(rootContainer).toHaveClass("flex", "h-full", "w-full", "flex-col", "items-center", "justify-center", "gap-4", "py-8");
+      expect(rootContainer).toHaveClass(
+        "flex",
+        "h-full",
+        "w-full",
+        "flex-col",
+        "items-center",
+        "justify-center",
+        "gap-4",
+        "py-8",
+      );
     });
 
     it("should render with empty string className", () => {
@@ -104,7 +131,16 @@ describe("NoResult", () => {
 
       // 空文字のclassNameでも正常にレンダリングされることを確認
       const rootContainer = container.firstChild as HTMLElement;
-      expect(rootContainer).toHaveClass("flex", "h-full", "w-full", "flex-col", "items-center", "justify-center", "gap-4", "py-8");
+      expect(rootContainer).toHaveClass(
+        "flex",
+        "h-full",
+        "w-full",
+        "flex-col",
+        "items-center",
+        "justify-center",
+        "gap-4",
+        "py-8",
+      );
     });
 
     it("should render with whitespace-only message", () => {
@@ -279,7 +315,16 @@ describe("NoResult", () => {
       const rootContainer = container.firstChild as HTMLElement;
 
       // デフォルトクラスが保持されることを確認
-      expect(rootContainer).toHaveClass("flex", "h-full", "w-full", "flex-col", "items-center", "justify-center", "gap-4", "py-8");
+      expect(rootContainer).toHaveClass(
+        "flex",
+        "h-full",
+        "w-full",
+        "flex-col",
+        "items-center",
+        "justify-center",
+        "gap-4",
+        "py-8",
+      );
 
       // カスタムクラスが追加されることを確認
       expect(rootContainer).toHaveClass("border-2", "border-red-500");

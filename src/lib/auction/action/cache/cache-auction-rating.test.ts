@@ -194,9 +194,9 @@ describe("getCachedDisplayUserInfo", () => {
       },
     ])("should throw error when invalid input parameters", async ({ auctionId, reviewPosition, expectedError }) => {
       // Act
-      await expect(getCachedDisplayUserInfo(auctionId as unknown as string, reviewPosition as unknown as ReviewPosition)).rejects.toThrow(
-        expectedError,
-      );
+      await expect(
+        getCachedDisplayUserInfo(auctionId as unknown as string, reviewPosition as unknown as ReviewPosition),
+      ).rejects.toThrow(expectedError);
     });
   });
 
@@ -228,7 +228,9 @@ describe("getCachedDisplayUserInfo", () => {
           }),
         );
 
-        vi.mocked(prismaMock.auctionReview.findMany).mockResolvedValueOnce(allReviews).mockResolvedValueOnce(thisAuctionReviews);
+        vi.mocked(prismaMock.auctionReview.findMany)
+          .mockResolvedValueOnce(allReviews)
+          .mockResolvedValueOnce(thisAuctionReviews);
 
         // Act
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
@@ -519,33 +521,38 @@ describe("getCachedDisplayUserInfo", () => {
           expectedRating: 0,
           expectedCount: 0,
         },
-      ])("should calculate rating correctly with various scenarios", async ({ reviews, expectedRating, expectedCount }) => {
-        // Arrange
-        const { auctionId, winnerId } = createBasicMockData();
-        const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
+      ])(
+        "should calculate rating correctly with various scenarios",
+        async ({ reviews, expectedRating, expectedCount }) => {
+          // Arrange
+          const { auctionId, winnerId } = createBasicMockData();
+          const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
 
-        vi.mocked(prismaMock.auction.findUnique).mockResolvedValue(createSellerToBuyerMockAuction(auctionId, winnerId));
+          vi.mocked(prismaMock.auction.findUnique).mockResolvedValue(
+            createSellerToBuyerMockAuction(auctionId, winnerId),
+          );
 
-        const allReviews = reviews.map((r, index) =>
-          auctionReviewFactory.build({
-            revieweeId: winnerId,
-            rating: r.rating,
-            auctionId: `other-auction-${index}`,
-          }),
-        );
+          const allReviews = reviews.map((r, index) =>
+            auctionReviewFactory.build({
+              revieweeId: winnerId,
+              rating: r.rating,
+              auctionId: `other-auction-${index}`,
+            }),
+          );
 
-        vi.mocked(prismaMock.auctionReview.findMany).mockResolvedValueOnce(allReviews).mockResolvedValueOnce([]);
+          vi.mocked(prismaMock.auctionReview.findMany).mockResolvedValueOnce(allReviews).mockResolvedValueOnce([]);
 
-        // Act
-        const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
+          // Act
+          const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
-        // Assert
-        expect(result).toHaveLength(1);
-        expect(result[0].rating).toBe(expectedRating);
-        expect(result[0].ratingCount).toBe(expectedCount);
-        expect(Number.isInteger(result[0].rating)).toBe(true);
-        expect(result[0].rating).toBeGreaterThanOrEqual(0);
-      });
+          // Assert
+          expect(result).toHaveLength(1);
+          expect(result[0].rating).toBe(expectedRating);
+          expect(result[0].ratingCount).toBe(expectedCount);
+          expect(Number.isInteger(result[0].rating)).toBe(true);
+          expect(result[0].rating).toBeGreaterThanOrEqual(0);
+        },
+      );
     });
   });
 
@@ -588,7 +595,9 @@ describe("getCachedDisplayUserInfo", () => {
       for (const testCase of testCases) {
         vi.clearAllMocks();
 
-        vi.mocked(prismaMock.auction.findUnique).mockResolvedValue(testCase.mockData as Awaited<ReturnType<typeof prisma.auction.findUnique>>);
+        vi.mocked(prismaMock.auction.findUnique).mockResolvedValue(
+          testCase.mockData as Awaited<ReturnType<typeof prisma.auction.findUnique>>,
+        );
 
         // Act
         const result = await getCachedDisplayUserInfo(auctionId, testCase.reviewPosition);
@@ -659,7 +668,9 @@ describe("getCachedDisplayUserInfo", () => {
       const { auctionId, winnerId } = createBasicMockData();
       const reviewPosition = ReviewPosition.SELLER_TO_BUYER;
 
-      vi.mocked(prismaMock.auction.findUnique).mockResolvedValue(createSellerToBuyerMockAuction(auctionId, winnerId, winnerData));
+      vi.mocked(prismaMock.auction.findUnique).mockResolvedValue(
+        createSellerToBuyerMockAuction(auctionId, winnerId, winnerData),
+      );
 
       vi.mocked(prismaMock.auctionReview.findMany).mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 

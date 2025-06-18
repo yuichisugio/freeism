@@ -156,7 +156,12 @@ export type UseExportDataModalReturn = {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-export function useExportDataModal({ isOpen, onCloseAction, groupId, groupName }: UseExportDataModalProps): UseExportDataModalReturn {
+export function useExportDataModal({
+  isOpen,
+  onCloseAction,
+  groupId,
+  groupName,
+}: UseExportDataModalProps): UseExportDataModalReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -287,7 +292,9 @@ export function useExportDataModal({ isOpen, onCloseAction, groupId, groupName }
               const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
               saveAs(blob, filename);
 
-              toast.success(`タスクデータを正常にエクスポートしました${state.exportPurpose === "ANALYSIS" ? "（分析用、完了済みタスクのみ）" : ""}`);
+              toast.success(
+                `タスクデータを正常にエクスポートしました${state.exportPurpose === "ANALYSIS" ? "（分析用、完了済みタスクのみ）" : ""}`,
+              );
               onCloseAction(false); // モーダルを閉じる
             }
           } else if (state.exportType === "ANALYTICS") {

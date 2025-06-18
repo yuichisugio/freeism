@@ -228,7 +228,13 @@ describe("getGroupById", () => {
     test("should correctly pass through members array", async () => {
       // テストデータの準備（複数のメンバー）
       const mockGroupId = "test-group-members-mapping";
-      const mockMembers = [{ userId: "user-001" }, { userId: "user-002" }, { userId: "user-003" }, { userId: "user-004" }, { userId: "user-005" }];
+      const mockMembers = [
+        { userId: "user-001" },
+        { userId: "user-002" },
+        { userId: "user-003" },
+        { userId: "user-004" },
+        { userId: "user-005" },
+      ];
 
       const expectedGroup: Group = {
         id: mockGroupId,

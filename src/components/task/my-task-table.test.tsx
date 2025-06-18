@@ -40,11 +40,23 @@ vi.mock("@/components/share/share-loading", () => ({
 
 // Buttonコンポーネントのモック
 vi.mock("@/components/ui/button", () => ({
-  Button: vi.fn(({ children, onClick, className, size }: { children: React.ReactNode; onClick?: () => void; className?: string; size?: string }) => (
-    <button onClick={onClick} className={className} data-size={size} data-testid="button">
-      {children}
-    </button>
-  )),
+  Button: vi.fn(
+    ({
+      children,
+      onClick,
+      className,
+      size,
+    }: {
+      children: React.ReactNode;
+      onClick?: () => void;
+      className?: string;
+      size?: string;
+    }) => (
+      <button onClick={onClick} className={className} data-size={size} data-testid="button">
+        {children}
+      </button>
+    ),
+  ),
 }));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

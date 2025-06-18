@@ -126,18 +126,21 @@ describe("sendEventToAuctionSubscribers", () => {
       await sendEventToAuctionSubscribers(auctionId, testData);
 
       // Assert
-      expect(mockFetch).toHaveBeenCalledWith("https://test.upstash.com/publish/auction%3Aauction-with-special-chars!%40%23%24%25%3Aevents", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer test-token",
-          Accept: "text/event-stream",
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://test.upstash.com/publish/auction%3Aauction-with-special-chars!%40%23%24%25%3Aevents",
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer test-token",
+            Accept: "text/event-stream",
+          },
+          body: JSON.stringify({
+            data: testData,
+            timestamp: 1234567890000,
+          }),
+          cache: "no-cache",
         },
-        body: JSON.stringify({
-          data: testData,
-          timestamp: 1234567890000,
-        }),
-        cache: "no-cache",
-      });
+      );
     });
 
     test("should handle null currentHighestBidderId", async () => {
@@ -171,7 +174,9 @@ describe("sendEventToAuctionSubscribers", () => {
       const testData = createTestUpdateAuctionData();
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("auctionId must be a non-empty string");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "auctionId must be a non-empty string",
+      );
     });
 
     test("should throw error when auctionId is not a string", async () => {
@@ -180,7 +185,9 @@ describe("sendEventToAuctionSubscribers", () => {
       const testData = createTestUpdateAuctionData();
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("auctionId must be a non-empty string");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "auctionId must be a non-empty string",
+      );
     });
 
     test("should throw error when data is null", async () => {
@@ -211,7 +218,9 @@ describe("sendEventToAuctionSubscribers", () => {
       const testData = createTestUpdateAuctionData({ id: auctionId });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("UPSTASH_REDIS_REST_URL environment variable is required");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "UPSTASH_REDIS_REST_URL environment variable is required",
+      );
     });
 
     test("should throw error when UPSTASH_REDIS_REST_TOKEN is missing", async () => {
@@ -222,7 +231,9 @@ describe("sendEventToAuctionSubscribers", () => {
       const testData = createTestUpdateAuctionData({ id: auctionId });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("UPSTASH_REDIS_REST_TOKEN environment variable is required");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "UPSTASH_REDIS_REST_TOKEN environment variable is required",
+      );
     });
 
     test("should throw error when both environment variables are missing", async () => {
@@ -232,7 +243,9 @@ describe("sendEventToAuctionSubscribers", () => {
       const testData = createTestUpdateAuctionData({ id: auctionId });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("UPSTASH_REDIS_REST_URL environment variable is required");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "UPSTASH_REDIS_REST_URL environment variable is required",
+      );
     });
   });
 
@@ -272,7 +285,9 @@ describe("sendEventToAuctionSubscribers", () => {
       });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("currentHighestBid must be a non-negative number");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "currentHighestBid must be a non-negative number",
+      );
     });
 
     test("should throw error when status is missing", async () => {
@@ -309,7 +324,9 @@ describe("sendEventToAuctionSubscribers", () => {
       });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionTotalCount must be a non-negative integer");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "extensionTotalCount must be a non-negative integer",
+      );
     });
 
     test("should throw error when extensionTotalCount is not an integer", async () => {
@@ -321,7 +338,9 @@ describe("sendEventToAuctionSubscribers", () => {
       });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionTotalCount must be a non-negative integer");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "extensionTotalCount must be a non-negative integer",
+      );
     });
 
     test("should throw error when extensionLimitCount is negative", async () => {
@@ -333,7 +352,9 @@ describe("sendEventToAuctionSubscribers", () => {
       });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionLimitCount must be a non-negative integer");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "extensionLimitCount must be a non-negative integer",
+      );
     });
 
     test("should throw error when extensionTime is negative", async () => {
@@ -345,7 +366,9 @@ describe("sendEventToAuctionSubscribers", () => {
       });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("extensionTime must be a non-negative number");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "extensionTime must be a non-negative number",
+      );
     });
 
     test("should throw error when remainingTimeForExtension is negative", async () => {
@@ -357,7 +380,9 @@ describe("sendEventToAuctionSubscribers", () => {
       });
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("remainingTimeForExtension must be a non-negative number");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "remainingTimeForExtension must be a non-negative number",
+      );
     });
   });
 
@@ -384,7 +409,9 @@ describe("sendEventToAuctionSubscribers", () => {
       } as Response);
 
       // Act & Assert
-      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("HTTP Error: 500 Internal Server Error");
+      await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
+        "HTTP Error: 500 Internal Server Error",
+      );
     });
 
     test("should throw error when Redis returns 404 status", async () => {
@@ -569,7 +596,10 @@ describe("sendEventToAuctionSubscribers", () => {
       const requestInit = callArgs[1] as RequestInit;
       expect(requestInit.body).toBeDefined();
 
-      const requestBody = JSON.parse(requestInit.body as string) as { data: UpdateAuctionWithDetails; timestamp: number };
+      const requestBody = JSON.parse(requestInit.body as string) as {
+        data: UpdateAuctionWithDetails;
+        timestamp: number;
+      };
 
       // データ構造の確認
       expect(requestBody).toHaveProperty("data");

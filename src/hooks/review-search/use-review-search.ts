@@ -1,8 +1,18 @@
 "use client";
 
-import type { EditableReviewData, ReviewSearchParams, SearchSuggestion } from "@/components/review-search/review-search";
+import type {
+  EditableReviewData,
+  ReviewSearchParams,
+  SearchSuggestion,
+} from "@/components/review-search/review-search";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getAllReviews, getMyReviews, getSearchSuggestions, getUserReviews, updateReview } from "@/lib/actions/review-search/review-search";
+import {
+  getAllReviews,
+  getMyReviews,
+  getSearchSuggestions,
+  getUserReviews,
+  updateReview,
+} from "@/lib/actions/review-search/review-search";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";

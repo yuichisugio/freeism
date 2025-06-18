@@ -11,7 +11,11 @@ import { prisma } from "@/lib/prisma";
  * @param isWatchlisted ウォッチリストの状態
  * @returns ウォッチリストの状態
  */
-export async function serverToggleWatchlist(auctionId: string, userId: string, isWatchlisted: boolean): Promise<boolean> {
+export async function serverToggleWatchlist(
+  auctionId: string,
+  userId: string,
+  isWatchlisted: boolean,
+): Promise<boolean> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

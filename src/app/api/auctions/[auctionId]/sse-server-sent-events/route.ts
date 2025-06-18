@@ -30,7 +30,11 @@ async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
       });
 
       if (!res.ok || !res.body) {
-        console.warn("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_error", res.status, res.statusText);
+        console.warn(
+          "src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_error",
+          res.status,
+          res.statusText,
+        );
         const wait = Math.min(2 ** attempt * 1_000, 30_000);
         await new Promise((r) => setTimeout(r, wait));
         attempt++;
@@ -48,7 +52,10 @@ async function* upstashSubscribe(channel: string): AsyncIterable<Uint8Array> {
         yield value;
       }
     } catch (error) {
-      console.warn("src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_reconnect", error);
+      console.warn(
+        "src/app/api/auctions/[auctionId]/sse-server-sent-events/route.ts_upstashSubscribe_fetch_reconnect",
+        error,
+      );
       continue;
     }
   }

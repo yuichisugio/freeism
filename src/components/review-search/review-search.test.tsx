@@ -31,9 +31,23 @@ vi.mock("@/hooks/review-search/use-review-suggest", () => ({
 // RatingStarコンポーネントのモック
 vi.mock("@/components/auction/common/rating-star", () => ({
   RatingStar: vi.fn(
-    ({ rating, readonly, onChange, size }: { rating?: number; readonly?: boolean; onChange?: (rating: number) => void; size?: number }) => (
+    ({
+      rating,
+      readonly,
+      onChange,
+      size,
+    }: {
+      rating?: number;
+      readonly?: boolean;
+      onChange?: (rating: number) => void;
+      size?: number;
+    }) => (
       <div data-testid="rating-star" data-rating={rating} data-readonly={readonly} data-size={size}>
-        {readonly ? <span>Rating: {rating}</span> : <button onClick={() => onChange?.(rating ? rating + 1 : 1)}>Change Rating</button>}
+        {readonly ? (
+          <span>Rating: {rating}</span>
+        ) : (
+          <button onClick={() => onChange?.(rating ? rating + 1 : 1)}>Change Rating</button>
+        )}
       </div>
     ),
   ),
@@ -153,7 +167,9 @@ describe("ReviewPagination", () => {
 
   describe("省略記号の表示", () => {
     test("should show ellipsis when there are many pages", () => {
-      const { container } = render(<ReviewPagination currentPage={5} totalPages={15} onPageChange={mockOnPageChange} />);
+      const { container } = render(
+        <ReviewPagination currentPage={5} totalPages={15} onPageChange={mockOnPageChange} />,
+      );
 
       // 省略記号（MoreHorizontal）が表示されることを確認
       // MoreHorizontalアイコンはspanタグ内に表示される
@@ -242,7 +258,9 @@ describe("ReviewSearchForm", () => {
       render(<ReviewSearchForm {...mockProps} />);
 
       // 検索入力フィールドが表示されることを確認
-      const searchInput = screen.getByPlaceholderText("検索キーワードを入力してください（ユーザー名、コメント、グループ名、タスク名等）");
+      const searchInput = screen.getByPlaceholderText(
+        "検索キーワードを入力してください（ユーザー名、コメント、グループ名、タスク名等）",
+      );
       expect(searchInput).toBeInTheDocument();
 
       // 検索ボタンが表示されることを確認
@@ -268,7 +286,9 @@ describe("ReviewSearchForm", () => {
     test("should call onSearchQueryChange when input value changes", () => {
       render(<ReviewSearchForm {...mockProps} />);
 
-      const searchInput = screen.getByPlaceholderText("検索キーワードを入力してください（ユーザー名、コメント、グループ名、タスク名等）");
+      const searchInput = screen.getByPlaceholderText(
+        "検索キーワードを入力してください（ユーザー名、コメント、グループ名、タスク名等）",
+      );
       fireEvent.change(searchInput, { target: { value: "new query" } });
 
       expect(mockProps.onSearchQueryChange).toHaveBeenCalledWith("new query");
@@ -308,7 +328,9 @@ describe("ReviewSearchForm", () => {
 
       // クリアボタンが存在することを確認（Xアイコンを含むボタン）
       const buttons = screen.getAllByRole("button");
-      const clearButton = buttons.find((button) => (button as HTMLButtonElement).type === "button" && button.textContent === "");
+      const clearButton = buttons.find(
+        (button) => (button as HTMLButtonElement).type === "button" && button.textContent === "",
+      );
       expect(clearButton).toBeInTheDocument();
     });
 
@@ -382,7 +404,9 @@ describe("ReviewSearchForm", () => {
     test("should handle empty suggestion query", () => {
       render(<ReviewSearchForm {...mockProps} suggestionQuery="" />);
 
-      const searchInput = screen.getByPlaceholderText("検索キーワードを入力してください（ユーザー名、コメント、グループ名、タスク名等）");
+      const searchInput = screen.getByPlaceholderText(
+        "検索キーワードを入力してください（ユーザー名、コメント、グループ名、タスク名等）",
+      );
       expect(searchInput).toHaveValue("");
     });
 
@@ -470,7 +494,9 @@ describe("ReviewCard", () => {
       expect(screen.getByText("とても良いサービスでした。また利用したいと思います。")).toBeInTheDocument();
 
       // タスク情報が表示されることを確認
-      expect(screen.getByText(/タスク: Webサイトのデザインを作成してください。レスポンシブ対応で、モダンなUIを希望します。/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/タスク: Webサイトのデザインを作成してください。レスポンシブ対応で、モダンなUIを希望します。/),
+      ).toBeInTheDocument();
 
       // グループ情報が表示されることを確認
       expect(screen.getByText("グループ: テストグループ")).toBeInTheDocument();

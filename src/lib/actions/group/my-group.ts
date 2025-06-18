@@ -27,7 +27,13 @@ type getUserJoinGroupAndCountProps = {
  * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
  * @returns グループ一覧
  */
-export async function getUserJoinGroupAndCount({ page, sortField, sortDirection, searchQuery, itemPerPage }: getUserJoinGroupAndCountProps) {
+export async function getUserJoinGroupAndCount({
+  page,
+  sortField,
+  sortDirection,
+  searchQuery,
+  itemPerPage,
+}: getUserJoinGroupAndCountProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

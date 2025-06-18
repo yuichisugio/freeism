@@ -191,7 +191,11 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
     /**
      * 変更不可のステータスチェック
      */
-    const immutableStatuses: TaskStatus[] = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED, TaskStatus.ARCHIVED];
+    const immutableStatuses: TaskStatus[] = [
+      TaskStatus.FIXED_EVALUATED,
+      TaskStatus.POINTS_AWARDED,
+      TaskStatus.ARCHIVED,
+    ];
     if (immutableStatuses.includes(newStatus)) {
       return { error: "このステータスのタスクは変更できません" };
     }

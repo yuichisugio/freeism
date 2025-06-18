@@ -16,7 +16,17 @@ vi.mock("next/cache", () => ({
 
 // Next.js Linkのモック
 vi.mock("next/link", () => ({
-  default: ({ children, href, className, ...props }: { children: React.ReactNode; href: string; className?: string; [key: string]: unknown }) => (
+  default: ({
+    children,
+    href,
+    className,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    className?: string;
+    [key: string]: unknown;
+  }) => (
     <a data-testid="link" href={href} className={className} {...props}>
       {children}
     </a>

@@ -193,7 +193,7 @@ describe("useAuctionListings", () => {
       const newConditions = {
         categories: ["開発"],
         status: ["not_bidded" as AuctionFilterTypes],
-        statusConditionJoinType: "OR" as const,
+        joinType: "OR" as const,
         minBid: 100,
         maxBid: 1000,
         minRemainingTime: null,
@@ -232,7 +232,7 @@ describe("useAuctionListings", () => {
       const newConditions = {
         categories: ["すべて"],
         status: ["all" as AuctionFilterTypes],
-        statusConditionJoinType: "AND" as const,
+        joinType: "AND" as const,
         minBid: null,
         maxBid: null,
         minRemainingTime: null,
@@ -265,7 +265,7 @@ describe("useAuctionListings", () => {
       const newConditions = {
         categories: ["すべて"],
         status: ["all" as AuctionFilterTypes],
-        statusConditionJoinType: "AND" as const,
+        joinType: "AND" as const,
         minBid: null,
         maxBid: null,
         minRemainingTime: null,
@@ -298,7 +298,7 @@ describe("useAuctionListings", () => {
       const newConditions = {
         categories: null,
         status: null,
-        statusConditionJoinType: "AND" as const,
+        joinType: "AND" as const,
         minBid: null,
         maxBid: null,
         minRemainingTime: null,

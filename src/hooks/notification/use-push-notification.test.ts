@@ -344,7 +344,9 @@ describe("usePushNotification", () => {
 
     test("should handle existing subscription", async () => {
       // Arrange
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
 
       const { result } = await renderHookAndWaitForInitialization();
 
@@ -432,7 +434,9 @@ describe("usePushNotification", () => {
   describe("購読解除機能", () => {
     test("should unsubscribe successfully", async () => {
       // Arrange
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
 
       const { result } = await renderHookAndWaitForInitialization();
 
@@ -470,7 +474,9 @@ describe("usePushNotification", () => {
     test("should handle unsubscribe error", async () => {
       // Arrange
       const unsubscribeError = new Error("Unsubscribe failed");
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
       vi.mocked(mockPushSubscriptionObject.unsubscribe).mockRejectedValue(unsubscribeError);
 
       const { result } = await renderHookAndWaitForInitialization();
@@ -569,7 +575,9 @@ describe("usePushNotification", () => {
       // Arrange
       const deleteError = new Error("Delete failed");
       mockDeleteSubscription.mockRejectedValue(deleteError);
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
 
       const { result } = await renderHookAndWaitForInitialization();
 
@@ -789,7 +797,9 @@ describe("usePushNotification", () => {
   describe("購読情報の同期", () => {
     test("should sync subscription on initialization", async () => {
       // Arrange
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
 
       // Act & Assert
       const { result } = await renderHookAndWaitForInitialization();
@@ -901,7 +911,9 @@ describe("usePushNotification", () => {
       expect(result.current.subscriptionState).toBe(mockPushSubscriptionObject);
 
       // Act 3: 購読解除
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
       let unsubscribeResult = false;
       await act(async () => {
         unsubscribeResult = await result.current.unsubscribe();
@@ -942,7 +954,9 @@ describe("usePushNotification", () => {
         await result.current.subscribe();
       });
 
-      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(mockPushSubscriptionObject);
+      vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
+        mockPushSubscriptionObject,
+      );
       await act(async () => {
         await result.current.unsubscribe();
       });

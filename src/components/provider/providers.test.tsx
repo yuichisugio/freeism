@@ -66,7 +66,9 @@ const {
     ),
   );
 
-  const MockNuqsAdapter = vi.fn(({ children }: { children: React.ReactNode }) => <div data-testid="nuqs-adapter">{children}</div>);
+  const MockNuqsAdapter = vi.fn(({ children }: { children: React.ReactNode }) => (
+    <div data-testid="nuqs-adapter">{children}</div>
+  ));
 
   const MockToaster = vi.fn(() => <div data-testid="toaster" />);
 

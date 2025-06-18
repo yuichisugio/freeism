@@ -34,14 +34,18 @@ vi.mock("@/lib/utils", () => ({
  * UIコンポーネントのモック
  */
 vi.mock("@/components/ui/form", () => ({
-  Form: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => <form {...props}>{children}</form>,
+  Form: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+    <form {...props}>{children}</form>
+  ),
   FormField: ({
     name,
     render,
   }: {
     control?: unknown;
     name: string;
-    render: (props: { field: { value: string; onChange: () => void; onBlur: () => void; name: string } }) => React.ReactNode;
+    render: (props: {
+      field: { value: string; onChange: () => void; onBlur: () => void; name: string };
+    }) => React.ReactNode;
   }) => {
     const fieldProps = {
       field: {
@@ -59,7 +63,9 @@ vi.mock("@/components/ui/form", () => ({
 }));
 
 vi.mock("@/components/ui/textarea", () => ({
-  Textarea: ({ placeholder, ...props }: { placeholder?: string; [key: string]: unknown }) => <textarea placeholder={placeholder} {...props} />,
+  Textarea: ({ placeholder, ...props }: { placeholder?: string; [key: string]: unknown }) => (
+    <textarea placeholder={placeholder} {...props} />
+  ),
 }));
 
 /**

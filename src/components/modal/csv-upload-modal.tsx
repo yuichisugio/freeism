@@ -116,7 +116,10 @@ const GlobalDropZoneOverlay = memo(function GlobalDropZoneOverlay({ isVisible }:
           animate={{ scale: 1, y: 0 }}
           transition={{ type: "spring", damping: 20 }}
         >
-          <motion.div animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity, repeatType: "loop" }}>
+          <motion.div
+            animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity, repeatType: "loop" }}
+          >
             <Cloud className="mb-4 h-20 w-20 text-blue-500" />
           </motion.div>
           <h2 className="mb-2 text-2xl font-bold text-blue-500">ファイルをドロップして追加</h2>
@@ -131,7 +134,13 @@ const GlobalDropZoneOverlay = memo(function GlobalDropZoneOverlay({ isVisible }:
 /**
  * アップロードタイプのラジオボタン
  */
-const UploadTypeRadio = memo(function UploadTypeRadio({ type, info, isSelected, canUse, onSelect }: UploadTypeRadioProps) {
+const UploadTypeRadio = memo(function UploadTypeRadio({
+  type,
+  info,
+  isSelected,
+  canUse,
+  onSelect,
+}: UploadTypeRadioProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const handleSelect = useCallback(() => {
@@ -204,7 +213,13 @@ const FileList = memo(function FileList({ files, isUploading, onRemoveFile, onRe
     >
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium text-gray-700">選択されたファイル</h4>
-        <Button variant="ghost" size="sm" onClick={onRemoveAll} disabled={isUploading} className="text-xs text-gray-500 hover:text-red-500">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRemoveAll}
+          disabled={isUploading}
+          className="text-xs text-gray-500 hover:text-red-500"
+        >
           すべて削除
         </Button>
       </div>
@@ -232,7 +247,12 @@ const FileList = memo(function FileList({ files, isUploading, onRemoveFile, onRe
 /**
  * ファイルアップロードエリア
  */
-const FileUploadArea = memo(function FileUploadArea({ isUploading, uploadProgress, dropzoneProps, renderFileFormatInfo }: FileUploadAreaProps) {
+const FileUploadArea = memo(function FileUploadArea({
+  isUploading,
+  uploadProgress,
+  dropzoneProps,
+  renderFileFormatInfo,
+}: FileUploadAreaProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { getRootProps, getInputProps, isDragActive } = dropzoneProps;
@@ -272,7 +292,10 @@ const FileUploadArea = memo(function FileUploadArea({ isUploading, uploadProgres
               : {}
           }
         >
-          <motion.div animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}>
+          <motion.div
+            animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}
+          >
             <Cloud className="mb-3 h-10 w-10 text-gray-400" />
           </motion.div>
           <p className="mb-2 font-medium text-gray-700">クリックまたはドラッグ&ドロップでアップロード</p>
@@ -317,7 +340,11 @@ const ActionButtons = memo(function ActionButtons({ isUploading, canUpload, onCa
         キャンセル
       </Button>
       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button onClick={onUpload} disabled={!canUpload} className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}>
+        <Button
+          onClick={onUpload}
+          disabled={!canUpload}
+          className={cn("relative min-w-[120px] bg-blue-600 text-white hover:bg-blue-700")}
+        >
           {isUploading ? (
             <>
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
@@ -426,7 +453,12 @@ export const CsvUploadModal = memo(function CsvUploadModal({ isOpen, onCloseActi
             {/* 選択されたファイル一覧 */}
             <AnimatePresence>
               {currentFiles.length > 0 && (
-                <FileList files={currentFiles} isUploading={isUploading} onRemoveFile={handleRemoveFile} onRemoveAll={handleRemoveAll} />
+                <FileList
+                  files={currentFiles}
+                  isUploading={isUploading}
+                  onRemoveFile={handleRemoveFile}
+                  onRemoveAll={handleRemoveAll}
+                />
               )}
             </AnimatePresence>
 

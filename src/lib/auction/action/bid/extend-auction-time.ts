@@ -36,7 +36,9 @@ export type ProcessAuctionExtensionResult = {
  * @param params 延長処理のパラメータ
  * @returns 延長処理の結果
  */
-export async function processAuctionExtension(params: ProcessAuctionExtensionParams): Promise<ProcessAuctionExtensionResult> {
+export async function processAuctionExtension(
+  params: ProcessAuctionExtensionParams,
+): Promise<ProcessAuctionExtensionResult> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   const { auctionId, auction, tx } = params;
 

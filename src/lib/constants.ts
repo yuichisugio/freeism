@@ -104,7 +104,18 @@ export const AUCTION_CONSTANTS = {
   DEFAULT_AUCTION_IMAGE_URL: "/images/default-auction-image.png",
 
   // オークションカテゴリ
-  AUCTION_CATEGORIES: ["すべて", "食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"],
+  AUCTION_CATEGORIES: [
+    "すべて",
+    "食品",
+    "コード",
+    "本",
+    "デザイン",
+    "開発",
+    "マーケティング",
+    "ライティング",
+    "事務作業",
+    "その他",
+  ],
 
   // 自動入札の最小間隔（分）
   AUTO_BID_MIN_INTERVAL_MINUTES: 10,

@@ -7,7 +7,13 @@ import {
   taskFactory,
   userFactory,
 } from "@/test/test-utils/test-utils-prisma-orm";
-import { AuctionEventType, BidStatus, NotificationSendMethod, NotificationSendTiming, TaskStatus } from "@prisma/client";
+import {
+  AuctionEventType,
+  BidStatus,
+  NotificationSendMethod,
+  NotificationSendTiming,
+  TaskStatus,
+} from "@prisma/client";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { PrismaTransaction } from "./update-auction-status-to-completed";
@@ -165,7 +171,12 @@ const setupPrismaMockForBids = (taskWithRelations: TaskWithRelations, groupPoint
 /**
  * 通知送信の検証
  */
-const expectNotificationSent = (auctionId: string, eventType: AuctionEventType, taskName: string, recipientIds: string[]) => {
+const expectNotificationSent = (
+  auctionId: string,
+  eventType: AuctionEventType,
+  taskName: string,
+  recipientIds: string[],
+) => {
   expect(mockSendAuctionNotification).toHaveBeenCalledWith({
     auctionId,
     auctionEventType: eventType,
@@ -340,10 +351,23 @@ describe("update-auction-status-to-completed", () => {
       const { seller, group } = createTestData();
       const user2 = userFactory.build();
 
-      const { task: task1, auction: auction1 } = createTaskWithAuction(seller, group, new Date(Date.now() - 3600000), "テストタスク1");
-      const { task: task2, auction: auction2 } = createTaskWithAuction(user2, group, new Date(Date.now() - 3600000), "テストタスク2");
+      const { task: task1, auction: auction1 } = createTaskWithAuction(
+        seller,
+        group,
+        new Date(Date.now() - 3600000),
+        "テストタスク1",
+      );
+      const { task: task2, auction: auction2 } = createTaskWithAuction(
+        user2,
+        group,
+        new Date(Date.now() - 3600000),
+        "テストタスク2",
+      );
 
-      const tasksWithRelations = [createTaskWithNoBids(task1, auction1, group), createTaskWithNoBids(task2, auction2, group)];
+      const tasksWithRelations = [
+        createTaskWithNoBids(task1, auction1, group),
+        createTaskWithNoBids(task2, auction2, group),
+      ];
 
       vi.mocked(prismaMock.task.findMany).mockResolvedValue(tasksWithRelations as any);
 
@@ -351,7 +375,10 @@ describe("update-auction-status-to-completed", () => {
         const mockTx = {
           task: {
             update: vi.fn().mockResolvedValue({}),
-            findUnique: vi.fn().mockResolvedValueOnce({ creatorId: seller.id }).mockResolvedValueOnce({ creatorId: user2.id }),
+            findUnique: vi
+              .fn()
+              .mockResolvedValueOnce({ creatorId: seller.id })
+              .mockResolvedValueOnce({ creatorId: user2.id }),
           },
         };
         return await callback(mockTx as unknown as PrismaTransaction);
@@ -420,7 +447,10 @@ describe("update-auction-status-to-completed", () => {
       const result = await updateAuctionStatusToCompleted();
 
       expect(result).toBe(0);
-      expect(mockConsoleError).toHaveBeenCalledWith(`オークション(ID: ${task.id})の処理中にエラーが発生:`, transactionError);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        `オークション(ID: ${task.id})の処理中にエラーが発生:`,
+        transactionError,
+      );
     });
 
     test("should handle notification sending failure", async () => {

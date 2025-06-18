@@ -258,7 +258,9 @@ describe("useGroupDetailTable", () => {
   describe("正常系", () => {
     test("should initialize with default values", () => {
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(false);
@@ -316,7 +318,9 @@ describe("useGroupDetailTable", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.tasks).toStrictEqual(testTasks);
@@ -326,7 +330,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle table conditions changes correctly", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const newConditions = createTestTableConditions({
         page: 2,
@@ -379,7 +385,9 @@ describe("useGroupDetailTable", () => {
         setQueriesData: vi.fn(),
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act
       await waitFor(async () => {
@@ -401,7 +409,9 @@ describe("useGroupDetailTable", () => {
 
     test("should open and close task edit modal correctly", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const testTask = createTestGroupDetailTask({ id: "test-task-id" });
 
@@ -426,7 +436,9 @@ describe("useGroupDetailTable", () => {
 
     test("should reset filters correctly", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act
       act(() => {
@@ -442,7 +454,9 @@ describe("useGroupDetailTable", () => {
 
     test("should reset sort correctly", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act
       act(() => {
@@ -466,7 +480,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: ["other-user"],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(true);
@@ -481,7 +497,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: ["other-user"],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(true);
@@ -496,7 +514,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: [testUserId],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(true);
@@ -511,7 +531,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: ["other-user"],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(false);
@@ -526,7 +548,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: [testUserId],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(false);
@@ -540,7 +564,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: ["other-user"],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canEditTask(testTask)).toBe(true);
@@ -554,7 +580,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: [testUserId],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canEditTask(testTask)).toBe(false);
@@ -581,7 +609,9 @@ describe("useGroupDetailTable", () => {
         };
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act
       await waitFor(async () => {
@@ -634,7 +664,9 @@ describe("useGroupDetailTable", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(true);
@@ -654,7 +686,9 @@ describe("useGroupDetailTable", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(true);
@@ -685,7 +719,9 @@ describe("useGroupDetailTable", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(true);
@@ -698,7 +734,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: [],
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(false);
@@ -719,7 +757,9 @@ describe("useGroupDetailTable", () => {
         mutate: vi.fn(),
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
       const nullTaskId = null as unknown as string;
 
       // Act
@@ -747,7 +787,9 @@ describe("useGroupDetailTable", () => {
         mutate: vi.fn(),
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
       const undefinedTaskId = undefined as unknown as string;
 
       // Act
@@ -765,7 +807,9 @@ describe("useGroupDetailTable", () => {
   describe("境界値テスト", () => {
     test("should handle very long search query", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const longSearchQuery = "a".repeat(1000);
       const conditionsWithLongQuery = createTestTableConditions({ searchQuery: longSearchQuery });
@@ -781,7 +825,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle itemPerPage of 1", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const conditionsWithMinItems = createTestTableConditions({ itemPerPage: 1 });
 
@@ -796,7 +842,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle very large itemPerPage", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const conditionsWithLargeItems = createTestTableConditions({ itemPerPage: 10000 });
 
@@ -811,7 +859,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle page number 0", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const conditionsWithZeroPage = createTestTableConditions({ page: 0 });
 
@@ -826,7 +876,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle very large page number", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const conditionsWithLargePage = createTestTableConditions({ page: 999999 });
 
@@ -841,7 +893,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle null values in table conditions", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const conditionsWithNulls = createTestTableConditions({
         searchQuery: null,
@@ -860,7 +914,9 @@ describe("useGroupDetailTable", () => {
 
     test("should handle empty string search query", () => {
       // Arrange
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       const conditionsWithEmptyQuery = createTestTableConditions({ searchQuery: "" });
 
@@ -880,7 +936,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: null,
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(false);
@@ -894,7 +952,9 @@ describe("useGroupDetailTable", () => {
         taskExecutorUserIds: undefined as unknown as string[] | null,
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: false }), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       expect(result.current.canDeleteTask(testTask)).toBe(false);
@@ -911,7 +971,9 @@ describe("useGroupDetailTable", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert - フックは動作するが、権限チェックで制限される
       expect(result.current.isLoading).toBe(false);
@@ -931,7 +993,9 @@ describe("useGroupDetailTable", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert - フックは動作するが、権限チェックで制限される
       expect(result.current.isLoading).toBe(false);
@@ -954,7 +1018,9 @@ describe("useGroupDetailTable", () => {
         setQueriesData: vi.fn(),
       });
 
-      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useGroupDetailTable({ groupId: testGroupId, isOwner: true }), {
+        wrapper: AllTheProviders,
+      });
 
       // 先にモーダルを開く
       const testTask = createTestGroupDetailTask({ id: "test-task-id" });

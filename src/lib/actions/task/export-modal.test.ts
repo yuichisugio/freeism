@@ -52,7 +52,9 @@ describe("exportGroupTask", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       // 関数実行
       const result = await exportGroupTask(groupId);
@@ -144,7 +146,9 @@ describe("exportGroupTask", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       // 関数実行
       await exportGroupTask(groupId, startDate, endDate);
@@ -185,7 +189,9 @@ describe("exportGroupTask", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       // 関数実行
       await exportGroupTask(groupId, undefined, undefined, true);
@@ -223,7 +229,9 @@ describe("exportGroupTask", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       // 関数実行
       const result = await exportGroupTask(groupId);
@@ -276,7 +284,9 @@ describe("exportGroupTask", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       // 関数実行
       const result = await exportGroupTask(groupId);
@@ -301,7 +311,9 @@ describe("exportGroupTask", () => {
       prismaMock.task.findMany.mockResolvedValue([]);
 
       // 関数実行と検証
-      await expect(exportGroupTask(groupId)).rejects.toThrow("グループのTask情報のエクスポート中にエラーが発生しました");
+      await expect(exportGroupTask(groupId)).rejects.toThrow(
+        "グループのTask情報のエクスポート中にエラーが発生しました",
+      );
     });
 
     test("should throw error when tasks is null", async () => {
@@ -309,10 +321,14 @@ describe("exportGroupTask", () => {
       const groupId = "test-group-id";
 
       // Prismaモックの設定 - nullを返す
-      prismaMock.task.findMany.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+      );
 
       // 関数実行と検証
-      await expect(exportGroupTask(groupId)).rejects.toThrow("グループのTask情報のエクスポート中にエラーが発生しました");
+      await expect(exportGroupTask(groupId)).rejects.toThrow(
+        "グループのTask情報のエクスポート中にエラーが発生しました",
+      );
     });
 
     test("should throw error when database error occurs", async () => {
@@ -323,7 +339,9 @@ describe("exportGroupTask", () => {
       prismaMock.task.findMany.mockRejectedValue(new Error("Database connection error"));
 
       // 関数実行と検証
-      await expect(exportGroupTask(groupId)).rejects.toThrow("グループのTask情報のエクスポート中にエラーが発生しました");
+      await expect(exportGroupTask(groupId)).rejects.toThrow(
+        "グループのTask情報のエクスポート中にエラーが発生しました",
+      );
     });
   });
 
@@ -338,7 +356,9 @@ describe("exportGroupTask", () => {
       const groupId = "";
       prismaMock.task.findMany.mockResolvedValue([]);
 
-      await expect(exportGroupTask(groupId)).rejects.toThrow("グループのTask情報のエクスポート中にエラーが発生しました");
+      await expect(exportGroupTask(groupId)).rejects.toThrow(
+        "グループのTask情報のエクスポート中にエラーが発生しました",
+      );
     });
 
     test("should handle startDate only", async () => {
@@ -361,7 +381,9 @@ describe("exportGroupTask", () => {
         updatedAt: new Date("2024-01-15"),
       };
 
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       await exportGroupTask(groupId, startDate);
 
@@ -399,7 +421,9 @@ describe("exportGroupTask", () => {
         updatedAt: new Date("2024-01-15"),
       };
 
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
 
       await exportGroupTask(groupId, undefined, endDate);
 
@@ -461,10 +485,16 @@ describe("exportGroupAnalytics", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(1);
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
-      prismaMock.user.findMany.mockResolvedValue([mockEvaluator] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
+      prismaMock.user.findMany.mockResolvedValue([mockEvaluator] as unknown as Awaited<
+        ReturnType<typeof prismaMock.user.findMany>
+      >);
 
       // 関数実行
       const result = await exportGroupAnalytics(groupId);
@@ -506,7 +536,9 @@ describe("exportGroupAnalytics", () => {
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(400); // 400件のタスク
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
@@ -536,7 +568,9 @@ describe("exportGroupAnalytics", () => {
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(0);
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
@@ -569,7 +603,9 @@ describe("exportGroupAnalytics", () => {
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(0);
       prismaMock.task.findMany.mockResolvedValue([]);
       prismaMock.user.findMany.mockResolvedValue([]);
@@ -608,9 +644,13 @@ describe("exportGroupAnalytics", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(1);
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
 
       // 関数実行
@@ -644,9 +684,13 @@ describe("exportGroupAnalytics", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(1);
-      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.task.findMany.mockResolvedValue([mockTask] as unknown as Awaited<
+        ReturnType<typeof prismaMock.task.findMany>
+      >);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
 
       // 関数実行
@@ -668,7 +712,9 @@ describe("exportGroupAnalytics", () => {
       const groupId = "non-existent-group";
 
       // Prismaモックの設定 - グループが見つからない
-      prismaMock.group.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await exportGroupAnalytics(groupId);
@@ -717,7 +763,9 @@ describe("exportGroupAnalytics", () => {
       const page = 0;
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(0);
       prismaMock.task.findMany.mockResolvedValue([]);
       prismaMock.user.findMany.mockResolvedValue([]);
@@ -739,7 +787,9 @@ describe("exportGroupAnalytics", () => {
       const page = 1000;
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(0);
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
@@ -760,7 +810,9 @@ describe("exportGroupAnalytics", () => {
       const groupId = "test-group-id";
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(200);
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
@@ -776,7 +828,9 @@ describe("exportGroupAnalytics", () => {
       const groupId = "test-group-id";
       const mockGroup = { id: groupId, name: "テストグループ", goal: "目標", evaluationMethod: "評価方法" };
 
-      prismaMock.group.findUnique.mockResolvedValue(mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
       prismaMock.task.count.mockResolvedValue(201);
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
       prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);

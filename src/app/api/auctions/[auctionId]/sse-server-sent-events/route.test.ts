@@ -191,7 +191,9 @@ describe("SSE Server-Sent Events API Route", () => {
       const reader = response.body!.getReader();
 
       // タイムアウト付きで1つのチャンクを読み取り
-      const timeout = new Promise<{ value: Uint8Array; done: boolean }>((_, reject) => setTimeout(() => reject(new Error("Test timeout")), 1000));
+      const timeout = new Promise<{ value: Uint8Array; done: boolean }>((_, reject) =>
+        setTimeout(() => reject(new Error("Test timeout")), 1000),
+      );
 
       try {
         const chunk = await Promise.race([reader.read(), timeout]);

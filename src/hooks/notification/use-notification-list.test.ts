@@ -1,5 +1,8 @@
 import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
-import { getNotificationsAndUnreadCount, updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
+import {
+  getNotificationsAndUnreadCount,
+  updateNotificationStatus,
+} from "@/lib/actions/notification/notification-utilities";
 import { mockUseSession } from "@/test/setup/setup";
 import { AllTheProviders, mockUseInfiniteQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { faker } from "@faker-js/faker";
@@ -81,7 +84,12 @@ const notificationFactory = Factory.define<NotificationData>(({ sequence, params
 
 // 特定パターンの通知データ作成
 const createTestNotifications = () => ({
-  unread: notificationFactory.build({ id: "notification-1", title: "未読通知1", isRead: false, auctionEventType: null }),
+  unread: notificationFactory.build({
+    id: "notification-1",
+    title: "未読通知1",
+    isRead: false,
+    auctionEventType: null,
+  }),
   read: notificationFactory.build({ id: "notification-2", title: "既読通知1", isRead: true, auctionEventType: null }),
   auction: notificationFactory.build({
     id: "notification-3",
@@ -121,7 +129,10 @@ const createSpecialContentNotifications = () => [
 
 // 境界値テスト用データ作成
 const createBoundaryTestData = () => [
-  { name: "null notifications", data: { notifications: [] as NotificationData[], totalCount: 0, unreadCount: 0, readCount: 0 } },
+  {
+    name: "null notifications",
+    data: { notifications: [] as NotificationData[], totalCount: 0, unreadCount: 0, readCount: 0 },
+  },
   { name: "negative unread count", data: { notifications: [], totalCount: 3, unreadCount: -1, readCount: 4 } },
   { name: "zero notification count", data: { notifications: [], totalCount: 0, unreadCount: 0, readCount: 0 } },
 ];
@@ -408,7 +419,8 @@ describe("useNotificationList", () => {
         filter: "unread" as const,
         auctionFilter: "auction-only" as const,
         expectedLength: 1,
-        validation: (notifications: NotificationData[]) => notifications.every((n) => !n.isRead && n.auctionEventType !== null),
+        validation: (notifications: NotificationData[]) =>
+          notifications.every((n) => !n.isRead && n.auctionEventType !== null),
       },
     ])("should filter $name", async ({ filter, auctionFilter, expectedLength, validation }) => {
       await testFilterBehavior(filter, auctionFilter, expectedLength, validation);

@@ -58,12 +58,15 @@
   - Place both the /app and /components folders under a /src directory. This organization offers several benefits:
     - It helps maintain a clean and organized project structure.
     - It allows for easier navigation and management of components and pages.
-    - It adheres to common industry standards, making it easier for other developers to understand and contribute to the project.
-    - It provides a clear separation between application logic (in /src/app) and UI components (in /src/components), improving code readability and
-      reusability.
-    - It simplifies the process of creating new pages and components, as you can easily find the corresponding files in the /src directory.
+    - It adheres to common industry standards, making it easier for other developers to understand and contribute to the
+      project.
+    - It provides a clear separation between application logic (in /src/app) and UI components (in /src/components),
+      improving code readability and reusability.
+    - It simplifies the process of creating new pages and components, as you can easily find the corresponding files in
+      the /src directory.
     - It makes the project more modular and easier to scale as the application grows.
-    - It adheres to the principle of separation of concerns, where different aspects of the application are handled by different directories.
+    - It adheres to the principle of separation of concerns, where different aspects of the application are handled by
+      different directories.
 
 ## Components Organization
 
@@ -77,14 +80,17 @@ By Feature: For larger applications, group components related to specific featur
 
 For example:
 
-/src/components ├── /ui │ ├── /Button │ ├── /Modal │ └── /Card ├── /forms │ ├── /TextField │ └── /Select └── /layout ├── /Navbar └── /Footer
+/src/components ├── /ui │ ├── /Button │ ├── /Modal │ └── /Card ├── /forms │ ├── /TextField │ └── /Select └── /layout ├──
+/Navbar └── /Footer
 
-- Private Components: For components used only within specific pages, you can create a \_components folder within the relevant /app subdirectory.
+- Private Components: For components used only within specific pages, you can create a \_components folder within the
+  relevant /app subdirectory.
 
-- Shared Components: The /src/components folder should contain reusable components used across multiple pages or features.
+- Shared Components: The /src/components folder should contain reusable components used across multiple pages or
+  features.
 
-- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has its own folder containing
-  components, hooks, and utilities specific to that feature.
+- Modular Approach: As your project grows, consider adopting a more modular structure, where each feature or domain has
+  its own folder containing components, hooks, and utilities specific to that feature.
 
 - "params should be awaitedのエラーが出ないようにparamsをawaitしてください。例：const { id } = await params; "
 - "paramsもPromiseで受け取ってください。例：{ params: Promise<{ id: string }> }"

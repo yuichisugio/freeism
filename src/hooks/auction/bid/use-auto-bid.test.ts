@@ -83,7 +83,10 @@ describe("useAutoBid", () => {
   describe("初期化", () => {
     test("should initialize with correct default values", () => {
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.autoBidSettings).toBeNull();
@@ -106,7 +109,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.autoBidSettings).toBeNull();
@@ -138,7 +144,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       await waitFor(() => {
@@ -167,7 +176,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       await waitFor(() => {
@@ -186,7 +198,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.loading).toBe(true);
@@ -198,7 +213,10 @@ describe("useAutoBid", () => {
   describe("入力値の更新", () => {
     test("should update maxBidAmount", () => {
       // Arrange
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       act(() => {
@@ -211,7 +229,10 @@ describe("useAutoBid", () => {
 
     test("should update bidIncrement", () => {
       // Arrange
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       act(() => {
@@ -238,7 +259,10 @@ describe("useAutoBid", () => {
         error: null,
       });
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // 入札額を設定
       act(() => {
@@ -263,7 +287,10 @@ describe("useAutoBid", () => {
       // Arrange
       const mockEvent = { preventDefault: vi.fn() } as unknown as React.FormEvent;
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // 現在の最高入札額以下に設定
       act(() => {
@@ -290,7 +317,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.loading).toBe(true);
@@ -307,7 +337,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.error).toBe("設定エラー");
@@ -333,7 +366,10 @@ describe("useAutoBid", () => {
           error: null,
         });
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       let cancelResult: boolean;
@@ -361,7 +397,10 @@ describe("useAutoBid", () => {
           error: null,
         });
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       let cancelResult: boolean;
@@ -389,7 +428,10 @@ describe("useAutoBid", () => {
           error: null,
         });
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       let cancelResult: boolean;
@@ -418,7 +460,10 @@ describe("useAutoBid", () => {
         });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.loading).toBe(true);
@@ -432,7 +477,10 @@ describe("useAutoBid", () => {
       // Arrange
       const mockEvent = { preventDefault: vi.fn() } as unknown as React.FormEvent;
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // 現在の最高入札額と同じ値に設定
       act(() => {
@@ -453,7 +501,10 @@ describe("useAutoBid", () => {
       // Arrange
       const mockEvent = { preventDefault: vi.fn() } as unknown as React.FormEvent;
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // 現在の最高入札額より1高い値に設定
       act(() => {
@@ -477,7 +528,10 @@ describe("useAutoBid", () => {
       // Arrange
       const largeBidAmount = 999999999;
 
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       act(() => {
@@ -490,7 +544,10 @@ describe("useAutoBid", () => {
 
     test("should handle zero bid increment", () => {
       // Arrange
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       act(() => {
@@ -503,7 +560,10 @@ describe("useAutoBid", () => {
 
     test("should handle negative bid increment", () => {
       // Arrange
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Act
       act(() => {
@@ -520,7 +580,9 @@ describe("useAutoBid", () => {
   describe("異常系テスト", () => {
     test("should handle empty auctionId", () => {
       // Arrange & Act
-      const { result } = renderHook(() => useAutoBid("", testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAutoBid("", testCurrentHighestBid, testCurrentHighestBidderId), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.autoBidSettings).toBeNull();
@@ -530,7 +592,9 @@ describe("useAutoBid", () => {
 
     test("should handle null currentHighestBidderId", () => {
       // Arrange & Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, null), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, null), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.autoBidSettings).toBeNull();
@@ -540,7 +604,9 @@ describe("useAutoBid", () => {
 
     test("should handle zero currentHighestBid", () => {
       // Arrange & Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, 0, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAutoBid(testAuctionId, 0, testCurrentHighestBidderId), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.maxBidAmount).toBe(1); // 0 + 1
@@ -548,7 +614,9 @@ describe("useAutoBid", () => {
 
     test("should handle negative currentHighestBid", () => {
       // Arrange & Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, -100, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAutoBid(testAuctionId, -100, testCurrentHighestBidderId), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.maxBidAmount).toBe(-99); // -100 + 1
@@ -564,7 +632,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.autoBidSettings).toBeNull();
@@ -585,7 +656,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.autoBidSettings).toBeNull();
@@ -602,7 +676,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.error).toBe("クエリエラー");
@@ -623,7 +700,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       await waitFor(() => {
@@ -648,7 +728,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       await waitFor(() => {
@@ -681,7 +764,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.error).toBe("クエリエラー");
@@ -705,7 +791,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       expect(result.current.error).toBe("ミューテーションエラー");
@@ -733,7 +822,10 @@ describe("useAutoBid", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId), { wrapper: AllTheProviders });
+      const { result } = renderHook(
+        () => useAutoBid(testAuctionId, testCurrentHighestBid, testCurrentHighestBidderId),
+        { wrapper: AllTheProviders },
+      );
 
       // Assert
       await waitFor(() => {

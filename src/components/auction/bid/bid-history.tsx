@@ -15,7 +15,11 @@ import { Activity, AlertCircle, HandCoins } from "lucide-react";
  * @param initialBids 初期の入札履歴
  * @returns 入札履歴
  */
-export const BidHistory = memo(function BidHistory({ initialBids = [] }: { initialBids: AuctionWithDetails["bidHistories"] }) {
+export const BidHistory = memo(function BidHistory({
+  initialBids = [],
+}: {
+  initialBids: AuctionWithDetails["bidHistories"];
+}) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

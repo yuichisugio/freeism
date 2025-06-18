@@ -13,37 +13,41 @@ import { Prisma } from "@prisma/client";
  * @param limit 取得件数
  * @returns オークション検索提案
  */
-export const cachedGetSearchSuggestions = cache(async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const cachedGetSearchSuggestions = cache(
+  async (query: string, userId: string, limit = 10): Promise<Suggestion[]> => {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * クエリがない場合は空配列を返す
-   */
-  if (!query || query.trim().length < 1 || !userId) {
-    return [];
-  }
+    /**
+     * クエリがない場合は空配列を返す
+     */
+    if (!query || query.trim().length < 1 || !userId) {
+      return [];
+    }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * ユーザーが所属するグループのIDを取得
-   */
-  const userGroupMemberships = await prisma.groupMembership.findMany({ where: { userId }, select: { groupId: true } });
-  const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
-  if (userGroupIds.length === 0) {
-    return [];
-  }
+    /**
+     * ユーザーが所属するグループのIDを取得
+     */
+    const userGroupMemberships = await prisma.groupMembership.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    const userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
+    if (userGroupIds.length === 0) {
+      return [];
+    }
 
-  const normalizedQuery = query.trim().replace(/\s+/g, " OR ");
+    const normalizedQuery = query.trim().replace(/\s+/g, " OR ");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * SQL クエリの組み立て
-   * pgroonga の前方一致 (&^) を使用
-   */
-  try {
-    const sql = Prisma.sql`
+    /**
+     * SQL クエリの組み立て
+     * pgroonga の前方一致 (&^) を使用
+     */
+    try {
+      const sql = Prisma.sql`
         SELECT
           t.id,
           t.task as text,
@@ -64,31 +68,32 @@ export const cachedGetSearchSuggestions = cache(async (query: string, userId: st
           ${limit}
       `;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * Rawクエリ実行
-     */
-    const suggestions: Suggestion[] = await prisma.$queryRaw<Suggestion[]>(sql);
+      /**
+       * Rawクエリ実行
+       */
+      const suggestions: Suggestion[] = await prisma.$queryRaw<Suggestion[]>(sql);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * コンソール
-     */
+      /**
+       * コンソール
+       */
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * 結果の整形
-     */
-    return suggestions;
+      /**
+       * 結果の整形
+       */
+      return suggestions;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_error", error);
-    return [];
-  }
-});
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    } catch (error) {
+      console.error("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_error", error);
+      return [];
+    }
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

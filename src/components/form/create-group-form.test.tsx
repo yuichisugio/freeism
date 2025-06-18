@@ -24,7 +24,17 @@ const mockCreateGroup = vi.mocked(createGroup);
  * CustomFormFieldコンポーネントのモック
  */
 vi.mock("@/components/share/form/form-field", () => ({
-  CustomFormField: ({ name, label, placeholder, type }: { name: string; label: string; placeholder?: string; type?: string }) => (
+  CustomFormField: ({
+    name,
+    label,
+    placeholder,
+    type,
+  }: {
+    name: string;
+    label: string;
+    placeholder?: string;
+    type?: string;
+  }) => (
     <div data-testid={`form-field-${name}`}>
       <label htmlFor={name}>{label}</label>
       <input id={name} name={name} placeholder={placeholder} type={type} data-testid={`input-${name}`} />

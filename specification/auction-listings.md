@@ -284,7 +284,13 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
    ```tsx
    {
-     isPending ? <LoadingIndicator /> : auctions.length > 0 ? <AuctionGrid items={auctions} /> : <EmptyState onReset={handleResetFilters} />;
+     isPending ? (
+       <LoadingIndicator />
+     ) : auctions.length > 0 ? (
+       <AuctionGrid items={auctions} />
+     ) : (
+       <EmptyState onReset={handleResetFilters} />
+     );
    }
    ```
 

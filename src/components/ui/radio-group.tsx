@@ -21,7 +21,10 @@ function RadioGroupItem({ className, ...props }: React.ComponentProps<typeof Rad
       )}
       {...props}
     >
-      <RadioGroupPrimitive.Indicator data-slot="radio-group-indicator" className="relative flex items-center justify-center">
+      <RadioGroupPrimitive.Indicator
+        data-slot="radio-group-indicator"
+        className="relative flex items-center justify-center"
+      >
         <Check strokeWidth={5} className="h-3 w-3 text-white" />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>

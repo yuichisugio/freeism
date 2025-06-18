@@ -186,7 +186,8 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
         currentPage: tableConditions.page,
         onPageChange: (page: number) => changeTableConditions({ ...tableConditions, page }),
         itemPerPage: tableConditions.itemPerPage,
-        onItemPerPageChange: (itemPerPage: number) => changeTableConditions({ ...tableConditions, itemPerPage, page: 1 }),
+        onItemPerPageChange: (itemPerPage: number) =>
+          changeTableConditions({ ...tableConditions, itemPerPage, page: 1 }),
       },
       sort: {
         onSortChange: (field) =>
@@ -203,7 +204,8 @@ export const MyGroupTableComponent = memo(function MyGroupTableComponent(): JSX.
           {
             filterType: "input",
             filterText: tableConditions.searchQuery ?? "",
-            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, searchQuery: value, page: 1 }),
+            onFilterChange: (value: string) =>
+              changeTableConditions({ ...tableConditions, searchQuery: value, page: 1 }),
             placeholder: "グループ名で絞り込み...",
             radioOptions: null,
           },

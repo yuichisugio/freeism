@@ -172,7 +172,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
+        error:
+          "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
       });
 
       // 空文字列の場合はPrismaが呼ばれない
@@ -353,7 +354,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
+        error:
+          "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
       });
 
       expect(prismaMock.task.update).not.toHaveBeenCalled();
@@ -365,7 +367,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
+        error:
+          "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
       });
 
       expect(prismaMock.task.update).not.toHaveBeenCalled();

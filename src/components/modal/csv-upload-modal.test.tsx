@@ -31,7 +31,8 @@ vi.mock("@/hooks/modal/use-csv-upload", () => ({
     FIXED_CONTRIBUTION: {
       title: "FIXした分析結果",
       description: "分析結果を一括で登録します。",
-      requiredFields: "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluatorId（評価者ID）, fixedEvaluationLogic（評価ロジック）",
+      requiredFields:
+        "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluatorId（評価者ID）, fixedEvaluationLogic（評価ロジック）",
       example: "clrqz3kp20000n4og9xq9d6mt,100,clrq0001,ロジックの説明",
     },
     TASK_STATUS: {
@@ -51,7 +52,9 @@ vi.mock("@/hooks/modal/use-csv-upload", () => ({
 // Framer Motionのモック
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode }) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));

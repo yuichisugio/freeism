@@ -138,7 +138,9 @@ describe("GroupDetailSkeleton", () => {
 
       // Assert
       // テーブルコンテナのスタイリングを確認
-      const tableContainers = container.querySelectorAll(".rounded-lg.border.border-blue-100.bg-white\\/80.backdrop-blur-sm");
+      const tableContainers = container.querySelectorAll(
+        ".rounded-lg.border.border-blue-100.bg-white\\/80.backdrop-blur-sm",
+      );
       expect(tableContainers).toHaveLength(2);
 
       // テーブルヘッダーのスタイリングを確認

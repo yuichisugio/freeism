@@ -38,7 +38,9 @@ export type NotificationParams = {
  * @param {NotificationParams} params 通知のパラメータ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendEmailNotification(params: NotificationParams): Promise<{ success: boolean; error?: string; message?: string }> {
+export async function sendEmailNotification(
+  params: NotificationParams,
+): Promise<{ success: boolean; error?: string; message?: string }> {
   // Server Actions としてマーク
   "use server";
 

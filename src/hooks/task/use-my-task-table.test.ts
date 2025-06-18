@@ -587,13 +587,15 @@ describe("useMyTaskTable", () => {
       const mockMutateAsync = vi.fn().mockResolvedValue({ success: false, error: "権限がありません" });
 
       mockUseMutation.mockReturnValue({
-        mutateAsync: vi.fn().mockImplementation(async (taskId: string): Promise<{ success: boolean; error?: string }> => {
-          const result = (await mockMutateAsync(taskId)) as { success: boolean; error?: string };
-          // 失敗レスポンスでもonSuccessが呼ばれる（APIレベルでは成功）
-          mockToastSuccess("タスクを削除しました");
-          mockRefresh();
-          return result;
-        }),
+        mutateAsync: vi
+          .fn()
+          .mockImplementation(async (taskId: string): Promise<{ success: boolean; error?: string }> => {
+            const result = (await mockMutateAsync(taskId)) as { success: boolean; error?: string };
+            // 失敗レスポンスでもonSuccessが呼ばれる（APIレベルでは成功）
+            mockToastSuccess("タスクを削除しました");
+            mockRefresh();
+            return result;
+          }),
         isPending: false,
         isLoading: false,
         isError: false,

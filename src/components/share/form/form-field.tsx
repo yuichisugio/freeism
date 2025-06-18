@@ -9,7 +9,14 @@ import { type Control, type ControllerRenderProps, type FieldValues, type Path }
 
 import { Button } from "../../ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../ui/command";
-import { FormControl, FormDescription, FormItem, FormLabel, FormMessage, FormField as RHFFormField } from "../../ui/form";
+import {
+  FormControl,
+  FormDescription,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormField as RHFFormField,
+} from "../../ui/form";
 import { Input } from "../../ui/input";
 import { RadioGroup, RadioGroupItem } from "../../ui/radio-group";
 import { Switch } from "../../ui/switch";
@@ -57,7 +64,10 @@ export type FormFieldBaseProps<TFieldValues extends FieldValues, TName extends P
 /**
  * 入力フィールドのプロパティ
  */
-export type InputFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
+export type InputFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<
+  TFieldValues,
+  TName
+> & {
   type: "text" | "email" | "password" | "number" | "tel" | "url" | "date" | "time" | "datetime-local";
   placeholder?: string;
   min?: number;
@@ -69,7 +79,10 @@ export type InputFieldProps<TFieldValues extends FieldValues, TName extends Path
 /**
  * テキストエリアのプロパティ
  */
-export type TextareaFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
+export type TextareaFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<
+  TFieldValues,
+  TName
+> & {
   placeholder?: string;
 };
 
@@ -78,7 +91,10 @@ export type TextareaFieldProps<TFieldValues extends FieldValues, TName extends P
 /**
  * ラジオグループのプロパティ
  */
-export type RadioFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
+export type RadioFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<
+  TFieldValues,
+  TName
+> & {
   options: RadioOption[];
   className?: string;
 };
@@ -88,7 +104,10 @@ export type RadioFieldProps<TFieldValues extends FieldValues, TName extends Path
 /**
  * コンボボックスのプロパティ
  */
-export type ComboBoxFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
+export type ComboBoxFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<
+  TFieldValues,
+  TName
+> & {
   options: ComboBoxOption[];
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -105,7 +124,10 @@ export type ComboBoxFieldProps<TFieldValues extends FieldValues, TName extends P
 /**
  * カレンダーフィールドのプロパティ
  */
-export type CalendarFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
+export type CalendarFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<
+  TFieldValues,
+  TName
+> & {
   placeholder?: string;
   buttonText?: string;
   locale?: Locale;
@@ -118,7 +140,10 @@ export type CalendarFieldProps<TFieldValues extends FieldValues, TName extends P
 /**
  * Switchフィールドのプロパティ
  */
-export type SwitchFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<TFieldValues, TName> & {
+export type SwitchFieldProps<TFieldValues extends FieldValues, TName extends Path<TFieldValues>> = FormFieldBaseProps<
+  TFieldValues,
+  TName
+> & {
   // Switchフィールド特有のプロパティがあれば追加
 };
 
@@ -161,7 +186,11 @@ const FieldLayout = memo(function FieldLayout({
             <div className="transition-all hover:opacity-95">{children}</div>
           </FormControl>
         </div>
-        {description && <FormDescription className="form-description-custom mt-2 text-sm text-gray-500">{description}</FormDescription>}
+        {description && (
+          <FormDescription className="form-description-custom mt-2 text-sm text-gray-500">
+            {description}
+          </FormDescription>
+        )}
         <div className="mt-2">
           <FormMessage className="form-message-custom text-sm" />
         </div>
@@ -229,7 +258,9 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                     // 数値の場合は数値型に変換して設定
                     const numValue = Number(value);
                     field.onChange(
-                      !isNaN(numValue) && typeof formProps.options.find((opt: RadioOption) => String(opt.value) === String(value))?.value === "number"
+                      !isNaN(numValue) &&
+                        typeof formProps.options.find((opt: RadioOption) => String(opt.value) === String(value))
+                          ?.value === "number"
                         ? numValue
                         : value,
                     );
@@ -254,13 +285,20 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                               className={`h-2.5 w-2.5 rounded-full bg-blue-500 ${String(field.value) === String(option.value) ? "opacity-100" : "opacity-0"} transition-opacity`}
                             ></div>
                           </div>
-                          <span className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}>
+                          <span
+                            className={`font-medium ${String(field.value) === String(option.value) ? "text-blue-700" : "text-gray-600"}`}
+                          >
                             {option.label}
                           </span>
                         </div>
                         {String(field.value) === String(option.value) && (
                           <div className="text-blue-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
                               <path
                                 fillRule="evenodd"
                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -312,7 +350,9 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
                     type="button"
                   >
                     {field.value
-                      ? (formProps.options.find((item: ComboBoxOption) => item[valueProperty] === field.value)?.[labelProperty] ?? placeholder)
+                      ? (formProps.options.find((item: ComboBoxOption) => item[valueProperty] === field.value)?.[
+                          labelProperty
+                        ] ?? placeholder)
                       : placeholder}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -356,7 +396,12 @@ export function CustomFormField<TFieldValues extends FieldValues, TName extends 
           return (
             <FieldLayout label={formProps.label} description={formProps.description} extraChildren={formProps.children}>
               <div className="flex items-center">
-                <Switch id={field.name.toString()} checked={field.value} onCheckedChange={field.onChange} className="focus:ring-blue-500" />
+                <Switch
+                  id={field.name.toString()}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="focus:ring-blue-500"
+                />
               </div>
             </FieldLayout>
           );

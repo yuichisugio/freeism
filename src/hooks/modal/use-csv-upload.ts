@@ -201,7 +201,8 @@ export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   FIXED_CONTRIBUTION: {
     title: "FIXした分析結果",
     description: "分析結果を一括で登録します。",
-    requiredFields: "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluatorId（評価者ID）, fixedEvaluationLogic（評価ロジック）",
+    requiredFields:
+      "id（タスクID）, fixedContributionPoint（ポイント）, fixedEvaluatorId（評価者ID）, fixedEvaluationLogic（評価ロジック）",
     optionalFields: "fixedEvaluationDate（評価日, YYYY-MM-DD形式）",
     note: "ステータスが「タスク完了(TASK_COMPLETED)」のタスクのみが対象です",
     example: "clrqz3kp20000n4og9xq9d6mt,100,clrq0001,ロジックの説明,2023-04-01",
@@ -447,7 +448,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
     const handleDragLeave = (e: DragEvent) => {
       preventDefault(e);
       // DOMのDragEventキャスト不要
-      if (e.relatedTarget === null || e.relatedTarget === document.body || e.relatedTarget === document.documentElement) {
+      if (
+        e.relatedTarget === null ||
+        e.relatedTarget === document.body ||
+        e.relatedTarget === document.documentElement
+      ) {
         setIsFileOver(false);
       }
     };
@@ -704,7 +709,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             });
 
             if (missingColumnsList.length > 0) {
-              errors.push(`「${file.name}」の「${index + 1}行目」で以下の項目が未入力です: ${missingColumnsList.join(", ")}`);
+              errors.push(
+                `「${file.name}」の「${index + 1}行目」で以下の項目が未入力です: ${missingColumnsList.join(", ")}`,
+              );
             }
 
             return errors;
@@ -716,7 +723,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             allFilesData.push({ file, data });
           }
         } catch (error) {
-          allValidationErrors.push(`「${file.name}」のパースに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+          allValidationErrors.push(
+            `「${file.name}」のパースに失敗しました: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       }
 
@@ -786,9 +795,15 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             };
 
             // 失敗データの処理
-            if (fixedResponse.failedData && Array.isArray(fixedResponse.failedData) && fixedResponse.failedData.length > 0) {
+            if (
+              fixedResponse.failedData &&
+              Array.isArray(fixedResponse.failedData) &&
+              fixedResponse.failedData.length > 0
+            ) {
               exportFailedData(fixedResponse.failedData);
-              toast.info(`${fixedResponse.failedData.length}件のデータが登録できませんでした。CSVファイルをダウンロードして確認してください。`);
+              toast.info(
+                `${fixedResponse.failedData.length}件のデータが登録できませんでした。CSVファイルをダウンロードして確認してください。`,
+              );
             }
           } catch (error) {
             result = {
@@ -810,9 +825,15 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             };
 
             // 失敗データの処理
-            if (statusResponse.failedData && Array.isArray(statusResponse.failedData) && statusResponse.failedData.length > 0) {
+            if (
+              statusResponse.failedData &&
+              Array.isArray(statusResponse.failedData) &&
+              statusResponse.failedData.length > 0
+            ) {
               exportFailedData(statusResponse.failedData);
-              toast.info(`${statusResponse.failedData.length}件のデータが更新できませんでした。CSVファイルをダウンロードして確認してください。`);
+              toast.info(
+                `${statusResponse.failedData.length}件のデータが更新できませんでした。CSVファイルをダウンロードして確認してください。`,
+              );
             }
           } catch (error) {
             result = {
@@ -897,7 +918,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
         "div",
         { className: "text-sm text-gray-700" },
         React.createElement("p", { className: "mb-1 font-medium" }, "CSVファイルの形式:"),
-        React.createElement("p", null, "以下のカラムをCSVファイルに含めてください。最初の行はヘッダー行として使用してください。"),
+        React.createElement(
+          "p",
+          null,
+          "以下のカラムをCSVファイルに含めてください。最初の行はヘッダー行として使用してください。",
+        ),
       ),
 
       // テーブル形式で表示
@@ -1000,7 +1025,9 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
               React.createElement("span", { className: "font-medium" }, field.key),
               ": ",
               field.description,
-              index < requiredFields.length ? React.createElement("span", { className: "ml-1 text-red-500" }, "（必須）") : null,
+              index < requiredFields.length
+                ? React.createElement("span", { className: "ml-1 text-red-500" }, "（必須）")
+                : null,
             ),
           ),
         ),

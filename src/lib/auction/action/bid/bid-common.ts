@@ -3,7 +3,12 @@
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
-import { BidStatus, NotificationSendMethod, NotificationSendTiming, AuctionEventType as PrismaAuctionEventType } from "@prisma/client";
+import {
+  BidStatus,
+  NotificationSendMethod,
+  NotificationSendTiming,
+  AuctionEventType as PrismaAuctionEventType,
+} from "@prisma/client";
 import { toast } from "sonner";
 
 import type { UpdateAuctionWithDetails } from "../../../../types/auction-types";
@@ -49,7 +54,12 @@ type BidHistorySelect = {
  * @param autoBidUserId 自動入札で入札する場合の、自動入札の最高入札額の設定者のユーザーID（自動入札の場合は必須）
  * @returns 入札処理の結果
  */
-export async function executeBid(auctionId: string, amount: number, isAutoBid = false, autoBidUserId?: string): Promise<ExecuteBidReturn> {
+export async function executeBid(
+  auctionId: string,
+  amount: number,
+  isAutoBid = false,
+  autoBidUserId?: string,
+): Promise<ExecuteBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -218,7 +228,9 @@ export async function executeBid(auctionId: string, amount: number, isAutoBid = 
           amount: history.amount,
           createdAt: history.createdAt,
           isAutoBid: history.isAutoBid,
-          user: history.user?.settings?.username ? { settings: { username: history.user.settings.username } } : { settings: null },
+          user: history.user?.settings?.username
+            ? { settings: { username: history.user.settings.username } }
+            : { settings: null },
         })),
       };
 

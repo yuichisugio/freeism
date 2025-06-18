@@ -21,7 +21,9 @@ const TEST_EXTENSION_LIMIT_COUNT = 3;
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // オークションデータを作成するヘルパー関数
-const createAuctionData = (overrides: Partial<ProcessAuctionExtensionParams["auction"]> = {}): ProcessAuctionExtensionParams["auction"] => ({
+const createAuctionData = (
+  overrides: Partial<ProcessAuctionExtensionParams["auction"]> = {},
+): ProcessAuctionExtensionParams["auction"] => ({
   isExtension: true,
   extensionTotalCount: 0,
   extensionLimitCount: TEST_EXTENSION_LIMIT_COUNT,
@@ -34,7 +36,9 @@ const createAuctionData = (overrides: Partial<ProcessAuctionExtensionParams["auc
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // パラメータを作成するヘルパー関数
-const createProcessAuctionExtensionParams = (overrides: Partial<ProcessAuctionExtensionParams> = {}): ProcessAuctionExtensionParams => ({
+const createProcessAuctionExtensionParams = (
+  overrides: Partial<ProcessAuctionExtensionParams> = {},
+): ProcessAuctionExtensionParams => ({
   auctionId: TEST_AUCTION_ID,
   auction: createAuctionData(),
   tx: prismaMock as ProcessAuctionExtensionParams["tx"],

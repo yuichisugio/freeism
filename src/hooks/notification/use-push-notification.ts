@@ -150,7 +150,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * @param deviceId - デバイスID（オプション）
  * @returns サーバーに送信する購読情報
  */
-function formatSubscriptionForServer(subscription: PushSubscription | null, recordId?: string, deviceId?: string): SaveSubscriptionParams | null {
+function formatSubscriptionForServer(
+  subscription: PushSubscription | null,
+  recordId?: string,
+  deviceId?: string,
+): SaveSubscriptionParams | null {
   // 購読情報がない場合はnullを返す
   if (!subscription) {
     return null;
@@ -196,7 +200,17 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
 
   // useReducer フックを使用
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { isInitialized, isSupported, permissionState, registrationState, subscriptionState, recordId, deviceId, error, isEnabled } = state;
+  const {
+    isInitialized,
+    isSupported,
+    permissionState,
+    registrationState,
+    subscriptionState,
+    recordId,
+    deviceId,
+    error,
+    isEnabled,
+  } = state;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -323,7 +337,11 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
         // 購読情報を整形 (現在の recordId と deviceId を Ref から取得)
         const currentRecordId = recordIdRef.current;
         const currentDeviceId = deviceIdRef.current;
-        const subscriptionData = formatSubscriptionForServer(newSubscription, currentRecordId ?? undefined, currentDeviceId ?? undefined);
+        const subscriptionData = formatSubscriptionForServer(
+          newSubscription,
+          currentRecordId ?? undefined,
+          currentDeviceId ?? undefined,
+        );
         if (!subscriptionData) {
           throw new Error("有効な購読情報を整形できませんでした");
         }
@@ -403,7 +421,11 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
             dispatch({ type: "SET_RECORD_ID", payload: currentRecordId }); // State も更新
           }
 
-          const subscriptionData = formatSubscriptionForServer(subscriptionState, currentRecordId ?? undefined, deviceId);
+          const subscriptionData = formatSubscriptionForServer(
+            subscriptionState,
+            currentRecordId ?? undefined,
+            deviceId,
+          );
           if (subscriptionData) {
             const result = await saveSubscription(subscriptionData);
             if ("error" in result) {
@@ -435,7 +457,11 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     dispatch({ type: "SET_ERROR", payload: null });
 
     // 1. Service Workerサポートと通知許可を確認
-    const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+    const supported =
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window &&
+      "Notification" in window;
     dispatch({ type: "SET_SUPPORTED", payload: supported });
     const initialPermission = supported && typeof Notification !== "undefined" ? Notification.permission : "default";
     dispatch({ type: "SET_PERMISSION", payload: initialPermission });
@@ -456,7 +482,10 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
     const init = async () => {
       try {
         // --- 1 & 2: デバイスID取得とService Worker準備 (並列実行) ---
-        const [deviceIdResult, registrationResult] = await Promise.allSettled([getDeviceId(), navigator.serviceWorker.ready]);
+        const [deviceIdResult, registrationResult] = await Promise.allSettled([
+          getDeviceId(),
+          navigator.serviceWorker.ready,
+        ]);
 
         // --- 結果の処理 & エラーハンドリング ---
         if (deviceIdResult.status === "rejected") {
@@ -482,7 +511,11 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           // ★ userIdRef を使用
           try {
             currentRecordId ??= await getRecordId(existingSubscription.endpoint);
-            const subscriptionData = formatSubscriptionForServer(existingSubscription, currentRecordId ?? undefined, currentDeviceId);
+            const subscriptionData = formatSubscriptionForServer(
+              existingSubscription,
+              currentRecordId ?? undefined,
+              currentDeviceId,
+            );
             if (subscriptionData) {
               const result = await saveSubscription(subscriptionData);
               if ("error" in result) {

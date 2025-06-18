@@ -31,7 +31,8 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
    */
   const queryClient = useQueryClient();
   const { mutate, variables, isPending } = useMutation({
-    mutationFn: async (isEmailEnabled: boolean) => await updateUserSettingToggle(userId, isEmailEnabled, "isEmailEnabled"),
+    mutationFn: async (isEmailEnabled: boolean) =>
+      await updateUserSettingToggle(userId, isEmailEnabled, "isEmailEnabled"),
     onSuccess: () => {
       toast.success("メール通知設定を更新しました。");
     },
@@ -98,7 +99,9 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
           <Switch id="email-notification-toggle" checked={displayValue} onCheckedChange={mutate} disabled={isPending} />
           <Label htmlFor="email-notification-toggle">{getLabelText()}</Label>
         </div>
-        <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">メール通知を有効にすると、メールでの通知を受け取ることができます。</p>
+        <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
+          メール通知を有効にすると、メールでの通知を受け取ることができます。
+        </p>
         {process.env.NEXT_PUBLIC_IS_RESEND_ENABLED === "false" && (
           <p className="mt-2 text-sm text-red-500 dark:text-red-500">メール通知は後ほど開発予定です。</p>
         )}

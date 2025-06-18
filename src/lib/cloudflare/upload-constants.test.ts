@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { isR2Enabled } from "./r2-client-config";
-import { ACCEPTED_IMAGE_TYPES, ImageExtension, ImageMimeType, isImageUploadEnabled, logger, MAX_FILE_SIZE } from "./upload-constants";
+import {
+  ACCEPTED_IMAGE_TYPES,
+  ImageExtension,
+  ImageMimeType,
+  isImageUploadEnabled,
+  logger,
+  MAX_FILE_SIZE,
+} from "./upload-constants";
 
 // isR2Enabledのモック
 vi.mock("./r2-client-config", () => ({

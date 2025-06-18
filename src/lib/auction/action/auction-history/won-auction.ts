@@ -13,7 +13,10 @@ import { ReviewPosition, TaskStatus } from "@prisma/client";
  * @param wonStatus ステータスフィルター
  * @returns Where条件
  */
-export async function getUserWonAuctionsWhereCondition(userId: string, wonStatus?: string): Promise<Prisma.AuctionWhereInput> {
+export async function getUserWonAuctionsWhereCondition(
+  userId: string,
+  wonStatus?: string,
+): Promise<Prisma.AuctionWhereInput> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   if (!userId) {
@@ -36,7 +39,13 @@ export async function getUserWonAuctionsWhereCondition(userId: string, wonStatus
   if (wonStatus === "completed") {
     statusIn = [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
   } else if (wonStatus === "incomplete") {
-    statusIn = [TaskStatus.PENDING, TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED, TaskStatus.SUPPLIER_DONE];
+    statusIn = [
+      TaskStatus.PENDING,
+      TaskStatus.AUCTION_ACTIVE,
+      TaskStatus.AUCTION_ENDED,
+      TaskStatus.POINTS_DEPOSITED,
+      TaskStatus.SUPPLIER_DONE,
+    ];
   } else if (wonStatus === "all") {
     statusIn = [
       TaskStatus.PENDING,
@@ -71,7 +80,12 @@ export async function getUserWonAuctionsWhereCondition(userId: string, wonStatus
  * @param wonStatus ステータスフィルター
  * @returns 落札履歴
  */
-export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: number, wonStatus?: string): Promise<WonAuctionItem[]> {
+export async function getUserWonAuctions(
+  page = 1,
+  userId: string,
+  itemPerPage: number,
+  wonStatus?: string,
+): Promise<WonAuctionItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -144,7 +158,10 @@ export async function getUserWonAuctions(page = 1, userId: string, itemPerPage: 
     taskName: auction.task.task,
     taskStatus: auction.task.status,
     deliveryMethod: auction.task.deliveryMethod,
-    rating: auction.reviews.length > 0 ? auction.reviews.reduce((acc, review) => acc + review.rating, 0) / auction.reviews.length : null,
+    rating:
+      auction.reviews.length > 0
+        ? auction.reviews.reduce((acc, review) => acc + review.rating, 0) / auction.reviews.length
+        : null,
   }));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

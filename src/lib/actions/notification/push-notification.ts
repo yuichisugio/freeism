@@ -61,7 +61,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     }
 
     // 設定画面で受信拒否しているユーザーを除外したuserIdのリストを作成
-    const recipientUserIds = isPushNotificationEnabled.filter((user) => user.isPushEnabled === true).map((user) => user.userId);
+    const recipientUserIds = isPushNotificationEnabled
+      .filter((user) => user.isPushEnabled === true)
+      .map((user) => user.userId);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -126,7 +128,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     // デバイスごとに1つのサブスクリプションにのみ通知を送信
     for (const deviceSubscriptions of deviceGroups.values()) {
       // デバイスごとに最新のサブスクリプションを使用（最新 = 最後に更新されたもの）
-      const sortedSubscriptions = deviceSubscriptions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      const sortedSubscriptions = deviceSubscriptions.sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      );
 
       const subscription = sortedSubscriptions[0];
       noDuplicationTargetSubscriptions.push(subscription);
@@ -162,14 +166,21 @@ export async function sendPushNotification(params: NotificationParams): Promise<
           return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           const typedError = error as { statusCode?: number; body?: string };
-          console.error(`sendPushNotification_Notification sent failed to ${subscription.endpoint}:`, typedError.statusCode, typedError.body);
+          console.error(
+            `sendPushNotification_Notification sent failed to ${subscription.endpoint}:`,
+            typedError.statusCode,
+            typedError.body,
+          );
 
           // エラーの種類に応じて処理（購読が無効になっている場合はDBから削除）
           // 404 Not Found, 410 Gone は購読が無効と判断
           if (typedError.statusCode === 404 || typedError.statusCode === 410) {
             // deleteSubscriptionを呼び出す (エラーハンドリングはdeleteSubscription内で行う)
             await deleteSubscription(subscription.endpoint).catch((delErr) => {
-              console.error(`sendPushNotification_Failed to delete subscription ${subscription.endpoint} after send error:`, delErr);
+              console.error(
+                `sendPushNotification_Failed to delete subscription ${subscription.endpoint} after send error:`,
+                delErr,
+              );
             });
             // 送信自体は失敗としてマーク
             return {
@@ -193,7 +204,8 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // 結果の集計
     const fulfilledResults = results.filter(
-      (result): result is PromiseFulfilledResult<{ success: boolean; endpoint: string; error?: string }> => result.status === "fulfilled",
+      (result): result is PromiseFulfilledResult<{ success: boolean; endpoint: string; error?: string }> =>
+        result.status === "fulfilled",
     );
     const successCount = fulfilledResults.filter((result) => result.value.success).length;
     const failedCount = fulfilledResults.length - successCount;

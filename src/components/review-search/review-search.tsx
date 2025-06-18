@@ -11,7 +11,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useReviewSearch } from "@/hooks/review-search/use-review-search";
 import { useReviewSuggest } from "@/hooks/review-search/use-review-suggest";
-import { Calendar, ChevronLeft, ChevronRight, Edit, Hash, MoreHorizontal, Package, Save, Search, Star, Users, X } from "lucide-react";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  Hash,
+  MoreHorizontal,
+  Package,
+  Save,
+  Search,
+  Star,
+  Users,
+  X,
+} from "lucide-react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -225,7 +238,11 @@ export const ReviewSearchForm = memo(function ReviewSearchForm({
  * 大量のレビューデータを複数ページに分けて表示する際に使用
  * 現在のページ周辺のページ番号を表示し、効率的なナビゲーションを提供
  */
-export const ReviewPagination = memo(function ReviewPagination({ currentPage, totalPages, onPageChange }: ReviewPaginationProps) {
+export const ReviewPagination = memo(function ReviewPagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: ReviewPaginationProps) {
   // 表示する最大ページ番号ボタン数
   const maxVisiblePages = 7;
 
@@ -408,7 +425,10 @@ export const EditableReviewCard = memo(function EditableReviewCard({
               ) : (
                 <div className="flex items-center">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`h-4 w-4 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                    />
                   ))}
                   <span className="ml-2 font-medium">{review.rating}.0</span>
                 </div>
@@ -426,14 +446,23 @@ export const EditableReviewCard = memo(function EditableReviewCard({
                 <Calendar className="h-4 w-4" />
                 <span>
                   {review.createdAt.toLocaleDateString("ja-JP")}
-                  {isUpdated && <span className="ml-2 text-xs text-blue-600">(更新: {review.updatedAt.toLocaleDateString("ja-JP")})</span>}
+                  {isUpdated && (
+                    <span className="ml-2 text-xs text-blue-600">
+                      (更新: {review.updatedAt.toLocaleDateString("ja-JP")})
+                    </span>
+                  )}
                 </span>
               </div>
 
               {/* 編集ボタン */}
               {review.isEditing ? (
                 <div className="flex gap-1">
-                  <Button size="sm" onClick={handleSave} disabled={isUpdating} className="h-8 w-8 bg-green-600 p-0 text-white hover:bg-green-700">
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={isUpdating}
+                    className="h-8 w-8 bg-green-600 p-0 text-white hover:bg-green-700"
+                  >
                     <Save className="h-4 w-4" />
                   </Button>
                   <Button
@@ -520,7 +549,13 @@ export const EditableReviewCard = memo(function EditableReviewCard({
 /**
  * 個別レビューを表示するカードコンポーネント
  */
-export const ReviewCard = memo(function ReviewCard({ review, showReviewer = false }: { review: ReviewData; showReviewer?: boolean }) {
+export const ReviewCard = memo(function ReviewCard({
+  review,
+  showReviewer = false,
+}: {
+  review: ReviewData;
+  showReviewer?: boolean;
+}) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -544,7 +579,10 @@ export const ReviewCard = memo(function ReviewCard({ review, showReviewer = fals
               {/* 星評価表示 */}
               <div className="flex items-center">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`h-4 w-4 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                  />
                 ))}
               </div>
               <span className="font-medium">{review.rating}.0</span>
@@ -559,7 +597,11 @@ export const ReviewCard = memo(function ReviewCard({ review, showReviewer = fals
               <Calendar className="h-4 w-4" />
               <span>
                 {review.createdAt.toLocaleDateString("ja-JP")}
-                {isUpdated && <span className="ml-2 text-xs text-blue-600">(更新: {review.updatedAt.toLocaleDateString("ja-JP")})</span>}
+                {isUpdated && (
+                  <span className="ml-2 text-xs text-blue-600">
+                    (更新: {review.updatedAt.toLocaleDateString("ja-JP")})
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -771,7 +813,8 @@ export const ReviewSearch = memo(function ReviewSearch() {
             あなたが書いたレビューを編集できます。評価やコメントを変更することができます。
             <br />
             <span className="text-amber-600">
-              ※ データは15分間隔でキャッシュされており、他のユーザーからの最新の変更が反映されるまで最大15分かかる場合があります。
+              ※
+              データは15分間隔でキャッシュされており、他のユーザーからの最新の変更が反映されるまで最大15分かかる場合があります。
             </span>
           </div>
           {renderReviewList()}
@@ -784,7 +827,9 @@ export const ReviewSearch = memo(function ReviewSearch() {
       </Tabs>
 
       {/* ページネーション */}
-      {totalPages > 1 && <ReviewPagination currentPage={searchParams.page ?? 1} totalPages={totalPages} onPageChange={changePage} />}
+      {totalPages > 1 && (
+        <ReviewPagination currentPage={searchParams.page ?? 1} totalPages={totalPages} onPageChange={changePage} />
+      )}
     </div>
   );
 });

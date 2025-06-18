@@ -36,7 +36,15 @@ vi.mock("@/components/share/form/form-field", () => ({
 }));
 
 vi.mock("@/components/share/form/form-layout", () => ({
-  FormLayout: ({ children, onSubmit, submitLabel }: { children: React.ReactNode; onSubmit: () => void; submitLabel: string }) => (
+  FormLayout: ({
+    children,
+    onSubmit,
+    submitLabel,
+  }: {
+    children: React.ReactNode;
+    onSubmit: () => void;
+    submitLabel: string;
+  }) => (
     <form onSubmit={onSubmit} data-testid="form-layout">
       {children}
       <button type="submit">{submitLabel}</button>
@@ -117,7 +125,9 @@ describe("EditGroupForm", () => {
     renderWithProviders(<EditGroupForm group={mockGroup} />);
 
     await waitFor(() => {
-      expect(screen.getByText("グループオーナー権限がないため、グループ情報を編集する権限がありません")).toBeInTheDocument();
+      expect(
+        screen.getByText("グループオーナー権限がないため、グループ情報を編集する権限がありません"),
+      ).toBeInTheDocument();
       expect(screen.getByText("閉じる")).toBeInTheDocument();
     });
   });
@@ -166,7 +176,9 @@ describe("EditGroupForm", () => {
 
     // ローディング中は権限エラーメッセージが表示される
     await waitFor(() => {
-      expect(screen.getByText("グループオーナー権限がないため、グループ情報を編集する権限がありません")).toBeInTheDocument();
+      expect(
+        screen.getByText("グループオーナー権限がないため、グループ情報を編集する権限がありません"),
+      ).toBeInTheDocument();
     });
   });
 });

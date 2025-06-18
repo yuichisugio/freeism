@@ -15,7 +15,11 @@ import { executeAutoBid } from "./auto-bid";
  * @param bidIncrement 自動入札の入札単位
  * @returns 処理結果
  */
-export async function setAutoBid(auctionId: string, maxBidAmount: number, bidIncrement: number): Promise<ExecuteAutoBidReturn> {
+export async function setAutoBid(
+  auctionId: string,
+  maxBidAmount: number,
+  bidIncrement: number,
+): Promise<ExecuteAutoBidReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

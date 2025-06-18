@@ -15,11 +15,20 @@ import { Gavel, Minus, Plus } from "lucide-react";
  * @param auctionId オークションID
  * @returns 入札フォーム
  */
-export const BidForm = memo(function BidForm({ currentHighestBid, auctionId }: { currentHighestBid: number; auctionId: string }) {
+export const BidForm = memo(function BidForm({
+  currentHighestBid,
+  auctionId,
+}: {
+  currentHighestBid: number;
+  auctionId: string;
+}) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 入札フォームのロジック（use-bid-actionsに移動済み）
-  const { submitting, error, bidAmount, minBid, setBidAmount, incrementBid, decrementBid, onSubmit } = useBidActions(auctionId, currentHighestBid);
+  const { submitting, error, bidAmount, minBid, setBidAmount, incrementBid, decrementBid, onSubmit } = useBidActions(
+    auctionId,
+    currentHighestBid,
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -68,11 +77,20 @@ export const BidForm = memo(function BidForm({ currentHighestBid, auctionId }: {
                   required
                   className="h-12 text-center text-lg font-bold"
                 />
-                <span className="text-muted-foreground absolute inset-y-0 right-3 flex items-center pr-7 text-sm">pt</span>
+                <span className="text-muted-foreground absolute inset-y-0 right-3 flex items-center pr-7 text-sm">
+                  pt
+                </span>
               </div>
 
               {/* インクリメントボタン */}
-              <Button type="button" variant="outline" size="icon" id="increment-bid" onClick={incrementBid} className="h-10 w-10 rounded-full">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                id="increment-bid"
+                onClick={incrementBid}
+                className="h-10 w-10 rounded-full"
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -104,10 +122,14 @@ export const BidForm = memo(function BidForm({ currentHighestBid, auctionId }: {
           </Button>
 
           {/* 最低入札額より低い場合のメッセージ */}
-          {currentHighestBid >= bidAmount && <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>}
+          {currentHighestBid >= bidAmount && (
+            <p className="text-center text-xs text-amber-600">最低入札額より高いポイントを入力してください</p>
+          )}
 
           {/* 説明文 */}
-          <p className="text-muted-foreground mt-2 text-center text-xs">入札すると、すぐに有効な入札として記録されます</p>
+          <p className="text-muted-foreground mt-2 text-center text-xs">
+            入札すると、すぐに有効な入札として記録されます
+          </p>
         </CardFooter>
       </form>
     </Card>

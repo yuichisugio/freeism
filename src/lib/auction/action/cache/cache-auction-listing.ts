@@ -157,10 +157,10 @@ export const cachedGetAuctionListingsAndCount = cache(
         }
       }
 
-      // グループIDがある場合、groupIdsが空か確認
-      if (groupIds && groupIds.length > 0) {
-        if ((typeof groupIds !== "string" && groupIds.length === 0) || typeof groupIds === "string") {
-          throw new Error("groupIds must be an array of strings or a string");
+      // グループIDがある場合、groupIdsが配列であることを確認
+      if (groupIds !== null && groupIds !== undefined) {
+        if (!Array.isArray(groupIds)) {
+          throw new Error("groupIds must be an array of strings");
         }
       }
 

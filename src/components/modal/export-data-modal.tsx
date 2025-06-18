@@ -44,7 +44,12 @@ type ExportDataModalProps = UseExportDataModalProps;
  * @param {ExportDataModalProps} props - モーダルのプロパティ
  * @returns {React.ReactNode} - モーダルのコンポーネント
  */
-export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAction, groupId, groupName }: ExportDataModalProps) {
+export const ExportDataModal = memo(function ExportDataModal({
+  isOpen,
+  onCloseAction,
+  groupId,
+  groupName,
+}: ExportDataModalProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   const { state, updateState, dateUtils, exportFunctions, navigationFunctions } = useExportDataModal({
@@ -144,7 +149,11 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         onClick={() => updateState({ exportType: "TASK" })}
       >
         <div className="flex items-start">
-          <RadioGroupItem value="TASK" id="task" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
+          <RadioGroupItem
+            value="TASK"
+            id="task"
+            className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500"
+          />
           <div className="flex-1">
             <div className="flex items-center">
               <div
@@ -181,7 +190,11 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         onClick={() => updateState({ exportType: "ANALYTICS" })}
       >
         <div className="flex items-start">
-          <RadioGroupItem value="ANALYTICS" id="analytics" className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500" />
+          <RadioGroupItem
+            value="ANALYTICS"
+            id="analytics"
+            className="absolute mt-1 mr-4 opacity-0 data-[state=checked]:text-blue-500"
+          />
           <div className="flex-1">
             <div className="flex items-center">
               <div
@@ -227,7 +240,9 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
             className="text-sm leading-none font-medium text-purple-800 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             <p>FIX済みの分析結果のみエクスポート</p>
-            <p className="mt-1 text-xs text-purple-600">ステータスが「POINTS_AWARDED」のタスクのみエクスポートされます</p>
+            <p className="mt-1 text-xs text-purple-600">
+              ステータスが「POINTS_AWARDED」のタスクのみエクスポートされます
+            </p>
           </label>
         </div>
       </div>
@@ -236,7 +251,17 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
 
   // サブコンポーネント: エクスポート目的カード
   const ExportPurposeCard = useCallback(
-    ({ value, label, description, icon }: { value: ExportPurpose; label: string; description: string; icon: "eye" | "chart" }) => (
+    ({
+      value,
+      label,
+      description,
+      icon,
+    }: {
+      value: ExportPurpose;
+      label: string;
+      description: string;
+      icon: "eye" | "chart";
+    }) => (
       <motion.div
         variants={ANIMATION_VARIANTS.card}
         animate={state.exportPurpose === value ? "selected" : "unselected"}
@@ -277,7 +302,10 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
           <h3 className="text-lg font-semibold text-gray-900">エクスポートするデータを選択</h3>
           <p className="text-muted-foreground text-sm">どのデータをエクスポートしますか？</p>
         </div>
-        <RadioGroup value={state.exportType} onValueChange={(value) => updateState({ exportType: value as ExportType })}>
+        <RadioGroup
+          value={state.exportType}
+          onValueChange={(value) => updateState({ exportType: value as ExportType })}
+        >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <TaskDataCard />
             <AnalyticsDataCard />
@@ -294,7 +322,10 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
               <h3 className="text-lg font-semibold text-gray-900">エクスポートの目的を選択</h3>
               <p className="text-muted-foreground text-sm">どのような目的でエクスポートしますか？</p>
             </div>
-            <RadioGroup value={state.exportPurpose} onValueChange={(value) => updateState({ exportPurpose: value as ExportPurpose })}>
+            <RadioGroup
+              value={state.exportPurpose}
+              onValueChange={(value) => updateState({ exportPurpose: value as ExportPurpose })}
+            >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <ExportPurposeCard
                   value="ANALYSIS"
@@ -302,14 +333,27 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
                   description="データ分析用にTASK_COMPLETEDステータスのタスクのみをエクスポートします"
                   icon="chart"
                 />
-                <ExportPurposeCard value="VIEWING" label="閲覧用" description="全てのステータスのタスクをエクスポートします" icon="eye" />
+                <ExportPurposeCard
+                  value="VIEWING"
+                  label="閲覧用"
+                  description="全てのステータスのタスクをエクスポートします"
+                  icon="eye"
+                />
               </div>
             </RadioGroup>
           </div>
         )}
       </div>
     ),
-    [state.exportType, state.exportPurpose, updateState, TaskDataCard, AnalyticsDataCard, AnalyticsFilterOptions, ExportPurposeCard],
+    [
+      state.exportType,
+      state.exportPurpose,
+      updateState,
+      TaskDataCard,
+      AnalyticsDataCard,
+      AnalyticsFilterOptions,
+      ExportPurposeCard,
+    ],
   );
 
   // サブコンポーネント: 日付選択
@@ -348,7 +392,12 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
               {date ? format(date, "yyyy年MM月dd日", { locale: ja }) : "日付を選択"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto rounded-lg border p-0 shadow-lg" align="center" side="bottom" sideOffset={5}>
+          <PopoverContent
+            className="w-auto rounded-lg border p-0 shadow-lg"
+            align="center"
+            side="bottom"
+            sideOffset={5}
+          >
             <Calendar
               mode="single"
               selected={date}
@@ -465,7 +514,9 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
             <p className="font-medium">
               選択されたページ: {state.page}ページ目 ({(state.page - 1) * 200 + 1}〜{state.page * 200}件)
             </p>
-            <p className="mt-1">エクスポートされたデータは評価者ごとに分割され、ZIPファイルとしてダウンロードされます。</p>
+            <p className="mt-1">
+              エクスポートされたデータは評価者ごとに分割され、ZIPファイルとしてダウンロードされます。
+            </p>
             {state.onlyFixed && (
               <p className="mt-2 border-t border-purple-200 pt-2 font-medium text-purple-700">
                 FIX済みの分析結果のみ（ステータス「POINTS_AWARDED」）がエクスポートされます。
@@ -493,7 +544,9 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         <div className="space-y-4">
           <div className="mb-6 text-center">
             <h3 className="text-lg font-semibold text-gray-900">ページを指定</h3>
-            <p className="text-sm text-gray-500">データは1ページあたり200件ずつ表示されます。取得したいデータのページを選択してください。</p>
+            <p className="text-sm text-gray-500">
+              データは1ページあたり200件ずつ表示されます。取得したいデータのページを選択してください。
+            </p>
           </div>
 
           <div className="mx-auto max-w-md pt-2">
@@ -578,13 +631,25 @@ export const ExportDataModal = memo(function ExportDataModal({ isOpen, onCloseAc
         </div>
       </div>
     ),
-    [state.step, state.exportType, state.exportPurpose, state.isExporting, state.startDate, state.endDate, navigationFunctions, exportFunctions],
+    [
+      state.step,
+      state.exportType,
+      state.exportPurpose,
+      state.isExporting,
+      state.startDate,
+      state.endDate,
+      navigationFunctions,
+      exportFunctions,
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
       {/* カレンダーを常にした表示にするために、translate-y-[-40vh]で、モーダルごと少し上に表示 */}
-      <DialogContent className="max-h-[95vh] rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]" closeButton={false}>
+      <DialogContent
+        className="max-h-[95vh] rounded-xl border-none bg-white p-0 shadow-xl sm:max-w-[600px]"
+        closeButton={false}
+      >
         <div className="flex h-full max-h-[95vh] flex-col overflow-hidden rounded-xl">
           <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
             <button

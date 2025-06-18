@@ -154,8 +154,14 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
       {isRewardType && (
         <div className="space-y-2" role="group" aria-label="報酬画像">
           <p className="form-label-custom text-base font-medium text-gray-700">報酬画像</p>
-          <p className="form-description-custom text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
-          <ImageUploadArea onImageUploaded={handleImageUploaded} onImageRemoved={handleImageRemoved} initialImageUrl={typedGetValues("imageUrl")} />
+          <p className="form-description-custom text-sm text-gray-500">
+            報酬として提供する商品・サービスの画像をアップロードしてください
+          </p>
+          <ImageUploadArea
+            onImageUploaded={handleImageUploaded}
+            onImageRemoved={handleImageRemoved}
+            initialImageUrl={typedGetValues("imageUrl")}
+          />
         </div>
       )}
 
@@ -259,7 +265,11 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
             value={nonRegisteredExecutor}
             onChange={(e) => setNonRegisteredExecutor(e.target.value)}
           />
-          <button type="button" className="rounded-md bg-blue-500 px-4 py-2 text-white" onClick={() => addExecutor(undefined, nonRegisteredExecutor)}>
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 text-white"
+            onClick={() => addExecutor(undefined, nonRegisteredExecutor)}
+          >
             追加
           </button>
         </div>

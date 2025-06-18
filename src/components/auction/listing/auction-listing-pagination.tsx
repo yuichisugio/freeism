@@ -47,7 +47,10 @@ export const AuctionPagination = memo(function AuctionPagination({
   /**
    * totalAuctionsCount を使って totalPages を計算
    */
-  const totalPages = useMemo(() => Math.ceil(totalAuctionsCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE), [totalAuctionsCount]);
+  const totalPages = useMemo(
+    () => Math.ceil(totalAuctionsCount / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE),
+    [totalAuctionsCount],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -55,7 +58,8 @@ export const AuctionPagination = memo(function AuctionPagination({
    * ページネーションのボタンの基礎クラス
    */
   const baseButtonClass = useMemo(
-    () => "hover:bg-black/5 bg-background flex h-10 w-10 items-center justify-center rounded-md border sm:w-auto sm:min-w-10 sm:px-3",
+    () =>
+      "hover:bg-black/5 bg-background flex h-10 w-10 items-center justify-center rounded-md border sm:w-auto sm:min-w-10 sm:px-3",
     [],
   );
 
@@ -97,7 +101,11 @@ export const AuctionPagination = memo(function AuctionPagination({
               {/* 最初のページボタン */}
               {!isFirstPage && (
                 <PaginationItem>
-                  <PaginationLink className={cn(baseButtonClass)} onClick={() => handlePageChange(1)} aria-label="Go to first page">
+                  <PaginationLink
+                    className={cn(baseButtonClass)}
+                    onClick={() => handlePageChange(1)}
+                    aria-label="Go to first page"
+                  >
                     <ChevronsLeftIcon className="size-4" />
                     <span className="hidden sm:ml-1 sm:inline">最初</span>
                   </PaginationLink>
@@ -132,7 +140,10 @@ export const AuctionPagination = memo(function AuctionPagination({
                     <PaginationLink
                       aria-current={isActive ? "page" : undefined}
                       onClick={() => handlePageChange(page)}
-                      className={cn(baseButtonClass, isActive ? "bg-primary cursor-not-allowed bg-blue-100" : "hover:bg-black/10")}
+                      className={cn(
+                        baseButtonClass,
+                        isActive ? "bg-primary cursor-not-allowed bg-blue-100" : "hover:bg-black/10",
+                      )}
                     >
                       {page}
                     </PaginationLink>
@@ -154,7 +165,11 @@ export const AuctionPagination = memo(function AuctionPagination({
               {/* 最後のページボタン */}
               {!isLastPage && (
                 <PaginationItem>
-                  <PaginationLink className={cn(baseButtonClass)} onClick={() => handlePageChange(totalPages)} aria-label="Go to last page">
+                  <PaginationLink
+                    className={cn(baseButtonClass)}
+                    onClick={() => handlePageChange(totalPages)}
+                    aria-label="Go to last page"
+                  >
                     <span className="hidden sm:mr-1 sm:inline">最後</span>
                     <ChevronsRightIcon className="size-4" />
                   </PaginationLink>

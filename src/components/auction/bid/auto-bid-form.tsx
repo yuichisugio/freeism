@@ -31,7 +31,11 @@ type AutoBidFormProps = {
  * @param currentHighestBidderId 現在の最高入札者ID
  * @returns 自動入札フォーム
  */
-export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighestBid, currentHighestBidderId }: AutoBidFormProps): JSX.Element {
+export const AutoBidForm = memo(function AutoBidForm({
+  auctionId,
+  currentHighestBid,
+  currentHighestBidderId,
+}: AutoBidFormProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 自動入札のカスタムフック
@@ -101,7 +105,9 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
             自動入札
           </CardTitle>
         </div>
-        <CardDescription>あなたの代わりに自動的に入札します。最高入札額より設定上限額が低い場合は、設定は自動的に削除されます。</CardDescription>
+        <CardDescription>
+          あなたの代わりに自動的に入札します。最高入札額より設定上限額が低い場合は、設定は自動的に削除されます。
+        </CardDescription>
       </CardHeader>
 
       {/* 自動入札フォームのコンテンツ */}
@@ -140,7 +146,9 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
                   required
                   className="h-10"
                 />
-                {maxBidAmount <= currentHighestBid && <p className="text-xs text-red-500">最大入札額は現在の最高入札額より大きい必要があります</p>}
+                {maxBidAmount <= currentHighestBid && (
+                  <p className="text-xs text-red-500">最大入札額は現在の最高入札額より大きい必要があります</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -152,7 +160,9 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
                         <HelpCircle className="text-muted-foreground h-4 w-4" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="w-60 text-xs">他のユーザーの入札を上回るために加算するポイント数です。 最小は1ポイントです。</p>
+                        <p className="w-60 text-xs">
+                          他のユーザーの入札を上回るために加算するポイント数です。 最小は1ポイントです。
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -178,7 +188,9 @@ export const AutoBidForm = memo(function AutoBidForm({ auctionId, currentHighest
                 </div>
               </div>
 
-              {error && <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-800">{error}</div>}
+              {error && (
+                <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-800">{error}</div>
+              )}
             </div>
           </CardContent>
 

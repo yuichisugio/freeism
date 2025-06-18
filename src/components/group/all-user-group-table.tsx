@@ -203,7 +203,8 @@ export const AllUserGroupTableComponent = memo(function AllUserGroupTableCompone
           {
             filterType: "radio",
             filterText: tableConditions.isJoined,
-            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, isJoined: value as "isJoined" | "notJoined" | "all" }),
+            onFilterChange: (value: string) =>
+              changeTableConditions({ ...tableConditions, isJoined: value as "isJoined" | "notJoined" | "all" }),
             placeholder: "グループ参加状態で絞り込み...",
             radioOptions: [
               { value: "isJoined", label: "グループ参加中" },

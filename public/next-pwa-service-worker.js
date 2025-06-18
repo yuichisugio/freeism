@@ -78,38 +78,98 @@ define(["./workbox-e9849328"], function (e) {
         { url: "/_next/static/chunks/9537-7263ab2c99b94c1f.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
         { url: "/_next/static/chunks/9642-2f0b7d7c1f367573.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
         { url: "/_next/static/chunks/app/_not-found/page-c742c7b9d2e8488d.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/api/%5B...nextauth%5D/route-3b17e6afb101cb7f.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/api/auctions/%5BauctionId%5D/auction-data/route-c2c32ab50f268df8.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
+        {
+          url: "/_next/static/chunks/app/api/%5B...nextauth%5D/route-3b17e6afb101cb7f.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/api/auctions/%5BauctionId%5D/auction-data/route-c2c32ab50f268df8.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
         {
           url: "/_next/static/chunks/app/api/auctions/%5BauctionId%5D/sse-server-sent-events/route-9c8a96bb9c10898d.js",
           revision: "x8MU_De4xwL4GwsHDMxNc",
         },
-        { url: "/_next/static/chunks/app/api/auctions/%5BauctionId%5D/watchlist/route-0f915f78b36cd2b8.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/api/notifications/route-c9a9843da8ec3ef2.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/api/push-notification/subscription-update/route-c48026a413789348.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/api/upload/get-signed-url/route-a69e44e6a01e2b2f.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
+        {
+          url: "/_next/static/chunks/app/api/auctions/%5BauctionId%5D/watchlist/route-0f915f78b36cd2b8.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/api/notifications/route-c9a9843da8ec3ef2.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/api/push-notification/subscription-update/route-c48026a413789348.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/api/upload/get-signed-url/route-a69e44e6a01e2b2f.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
         { url: "/_next/static/chunks/app/api/upload/route-932534ce02754ee3.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
         { url: "/_next/static/chunks/app/auth/signin/page-79dcde976c0fd0b9.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/auction/%5BauctionId%5D/page-056d7076132847b3.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
+        {
+          url: "/_next/static/chunks/app/dashboard/auction/%5BauctionId%5D/page-056d7076132847b3.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
         {
           url: "/_next/static/chunks/app/dashboard/auction/created-detail/%5BauctionId%5D/page-ff85f66a707f80ed.js",
           revision: "x8MU_De4xwL4GwsHDMxNc",
         },
-        { url: "/_next/static/chunks/app/dashboard/auction/history/page-42c0510cec201c74.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/auction/page-906e86afe67f8313.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/auction/won-detail/%5BauctionId%5D/page-10f2d8ee1ad5eb7d.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/create-group/page-d6d514a9ddc5b706.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/create-notification/page-cee6e02202ebdf1a.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/create-task/page-9ac6019df059b1ee.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/github-api-conversion/page-c1d588c315e85ea4.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/group-list/page-72e8275c42cc419a.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/group/%5Bid%5D/page-1ab30d2ae67082b0.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
+        {
+          url: "/_next/static/chunks/app/dashboard/auction/history/page-42c0510cec201c74.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/auction/page-906e86afe67f8313.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/auction/won-detail/%5BauctionId%5D/page-10f2d8ee1ad5eb7d.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/create-group/page-d6d514a9ddc5b706.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/create-notification/page-cee6e02202ebdf1a.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/create-task/page-9ac6019df059b1ee.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/github-api-conversion/page-c1d588c315e85ea4.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/group-list/page-72e8275c42cc419a.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/group/%5Bid%5D/page-1ab30d2ae67082b0.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
         { url: "/_next/static/chunks/app/dashboard/layout-74efedcedf1348bc.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
         { url: "/_next/static/chunks/app/dashboard/loading-4bfee6237fe740c7.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/my-group/page-4a05d415bc56c456.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/my-task/page-377c146a466cef1e.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/review-search/page-5c97d39f03638301.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
-        { url: "/_next/static/chunks/app/dashboard/settings/page-0eb7c3fb988dfe22.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
+        {
+          url: "/_next/static/chunks/app/dashboard/my-group/page-4a05d415bc56c456.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/my-task/page-377c146a466cef1e.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/review-search/page-5c97d39f03638301.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
+        {
+          url: "/_next/static/chunks/app/dashboard/settings/page-0eb7c3fb988dfe22.js",
+          revision: "x8MU_De4xwL4GwsHDMxNc",
+        },
         { url: "/_next/static/chunks/app/layout-0685129d37664ac4.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
         { url: "/_next/static/chunks/app/loading-733aa35db14375e8.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
         { url: "/_next/static/chunks/app/not-found-08dffe93e5c04ece.js", revision: "x8MU_De4xwL4GwsHDMxNc" },
@@ -149,7 +209,9 @@ define(["./workbox-e9849328"], function (e) {
         plugins: [
           {
             cacheWillUpdate: async ({ request: e, response: s, event: c, state: a }) =>
-              s && "opaqueredirect" === s.type ? new Response(s.body, { status: 200, statusText: "OK", headers: s.headers }) : s,
+              s && "opaqueredirect" === s.type
+                ? new Response(s.body, { status: 200, statusText: "OK", headers: s.headers })
+                : s,
           },
         ],
       }),
@@ -157,7 +219,10 @@ define(["./workbox-e9849328"], function (e) {
     ),
     e.registerRoute(
       /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
-      new e.CacheFirst({ cacheName: "google-fonts-webfonts", plugins: [new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 31536e3 })] }),
+      new e.CacheFirst({
+        cacheName: "google-fonts-webfonts",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 31536e3 })],
+      }),
       "GET",
     ),
     e.registerRoute(
@@ -170,17 +235,26 @@ define(["./workbox-e9849328"], function (e) {
     ),
     e.registerRoute(
       /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-      new e.StaleWhileRevalidate({ cacheName: "static-font-assets", plugins: [new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 604800 })] }),
+      new e.StaleWhileRevalidate({
+        cacheName: "static-font-assets",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 604800 })],
+      }),
       "GET",
     ),
     e.registerRoute(
       /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-      new e.StaleWhileRevalidate({ cacheName: "static-image-assets", plugins: [new e.ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 86400 })] }),
+      new e.StaleWhileRevalidate({
+        cacheName: "static-image-assets",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 86400 })],
+      }),
       "GET",
     ),
     e.registerRoute(
       /\/_next\/image\?url=.+$/i,
-      new e.StaleWhileRevalidate({ cacheName: "next-image", plugins: [new e.ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 86400 })] }),
+      new e.StaleWhileRevalidate({
+        cacheName: "next-image",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 86400 })],
+      }),
       "GET",
     ),
     e.registerRoute(
@@ -201,22 +275,34 @@ define(["./workbox-e9849328"], function (e) {
     ),
     e.registerRoute(
       /\.(?:js)$/i,
-      new e.StaleWhileRevalidate({ cacheName: "static-js-assets", plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })] }),
+      new e.StaleWhileRevalidate({
+        cacheName: "static-js-assets",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })],
+      }),
       "GET",
     ),
     e.registerRoute(
       /\.(?:css|less)$/i,
-      new e.StaleWhileRevalidate({ cacheName: "static-style-assets", plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })] }),
+      new e.StaleWhileRevalidate({
+        cacheName: "static-style-assets",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })],
+      }),
       "GET",
     ),
     e.registerRoute(
       /\/_next\/data\/.+\/.+\.json$/i,
-      new e.StaleWhileRevalidate({ cacheName: "next-data", plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })] }),
+      new e.StaleWhileRevalidate({
+        cacheName: "next-data",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })],
+      }),
       "GET",
     ),
     e.registerRoute(
       /\.(?:json|xml|csv)$/i,
-      new e.NetworkFirst({ cacheName: "static-data-assets", plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })] }),
+      new e.NetworkFirst({
+        cacheName: "static-data-assets",
+        plugins: [new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 })],
+      }),
       "GET",
     ),
     e.registerRoute(

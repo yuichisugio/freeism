@@ -196,7 +196,9 @@ const NotificationItem = memo(function NotificationItem({
    */
   const backgroundClass = useMemo(
     function backgroundClass() {
-      return notification.isRead ? "bg-white dark:bg-gray-800" : "bg-white dark:bg-gray-800/10 shadow-sm border-green-400";
+      return notification.isRead
+        ? "bg-white dark:bg-gray-800"
+        : "bg-white dark:bg-gray-800/10 shadow-sm border-green-400";
     },
     [notification.isRead],
   );
@@ -289,12 +291,19 @@ const NotificationItem = memo(function NotificationItem({
                 {notification.auctionEventType && (
                   <span className="ml-2 flex items-center truncate rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
                     <ShoppingCart className="mr-1 inline-block h-3 w-3 flex-shrink-0" />
-                    <span className="leading-none">オークション: {formatAuctionEventType(notification.auctionEventType)}</span>
+                    <span className="leading-none">
+                      オークション: {formatAuctionEventType(notification.auctionEventType)}
+                    </span>
                   </span>
                 )}
               </div>
               <div className="mt-2">
-                <p className={cn("text-sm text-gray-700 dark:text-gray-300", isExpanded ? "whitespace-pre-wrap" : "truncate")}>
+                <p
+                  className={cn(
+                    "text-sm text-gray-700 dark:text-gray-300",
+                    isExpanded ? "whitespace-pre-wrap" : "truncate",
+                  )}
+                >
                   {notification.message}
                 </p>
               </div>
@@ -576,7 +585,12 @@ const Notifications = memo(function Notifications({
           )}
         </>
       ) : (
-        <NotificationsEmpty hasMore={currentHasMore} onLoadMore={loadMoreNotifications} isLoadingMore={isLoadingMore} activeFilter={activeFilter} />
+        <NotificationsEmpty
+          hasMore={currentHasMore}
+          onLoadMore={loadMoreNotifications}
+          isLoadingMore={isLoadingMore}
+          activeFilter={activeFilter}
+        />
       )}
     </div>
   );
@@ -702,7 +716,10 @@ export const NotificationList = memo(function NotificationList() {
             </div>
 
             {/* オークションフィルター */}
-            <AuctionFilterControl activeAuctionFilter={activeAuctionFilter} onAuctionFilterChange={handleAuctionFilterChange} />
+            <AuctionFilterControl
+              activeAuctionFilter={activeAuctionFilter}
+              onAuctionFilterChange={handleAuctionFilterChange}
+            />
           </div>
 
           {/* 全て既読ボタン */}

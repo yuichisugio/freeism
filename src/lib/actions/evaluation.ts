@@ -53,7 +53,10 @@ type EvaluationResult =
  * @param groupId - グループID
  * @returns 処理結果を含むオブジェクト
  */
-export async function bulkCreateEvaluations(rawData: EvaluationImportData[], groupId: string): Promise<EvaluationResult> {
+export async function bulkCreateEvaluations(
+  rawData: EvaluationImportData[],
+  groupId: string,
+): Promise<EvaluationResult> {
   try {
     // 認証セッションを取得
     const userId = await getAuthenticatedSessionUserId();
@@ -88,7 +91,9 @@ export async function bulkCreateEvaluations(rawData: EvaluationImportData[], gro
     });
 
     // 検証エラーがあれば中断
-    const validationErrors = validationResults.filter((result): result is { success: false; error: string; rowIndex: number } => !result.success);
+    const validationErrors = validationResults.filter(
+      (result): result is { success: false; error: string; rowIndex: number } => !result.success,
+    );
 
     if (validationErrors.length > 0) {
       const errorMessages = validationErrors.map((e) => e.error);

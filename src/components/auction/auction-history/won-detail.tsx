@@ -113,20 +113,29 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                     <CardTitle className="text-2xl">{auction.taskName}</CardTitle>
                     <CardDescription className="flex items-center gap-2">
                       <TaskStatusBadge status={auction.taskStatus} />
-                      <span className="text-sm">落札日: {format(new Date(auction.auctionEndTime), "yyyy年MM月dd日", { locale: ja })}</span>
+                      <span className="text-sm">
+                        落札日: {format(new Date(auction.auctionEndTime), "yyyy年MM月dd日", { locale: ja })}
+                      </span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {auction.taskImageUrl && (
                       <div className="relative mb-6 h-64 w-full">
-                        <Image src={auction.taskImageUrl} alt={auction.taskName} fill className="rounded-lg object-contain" />
+                        <Image
+                          src={auction.taskImageUrl}
+                          alt={auction.taskName}
+                          fill
+                          className="rounded-lg object-contain"
+                        />
                       </div>
                     )}
 
                     <div className="space-y-4">
                       <div>
                         <h3 className="mb-2 text-lg font-medium">商品説明</h3>
-                        <p className="whitespace-pre-wrap text-gray-700">{auction.taskDetail ?? "商品詳細はありません"}</p>
+                        <p className="whitespace-pre-wrap text-gray-700">
+                          {auction.taskDetail ?? "商品詳細はありません"}
+                        </p>
                       </div>
 
                       <div>
@@ -152,7 +161,11 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                             <p className="text-sm text-gray-500">ポイント返還日</p>
                             <p className="font-medium">
                               {format(
-                                new Date(new Date(auction.auctionEndTime).setMonth(new Date(auction.auctionEndTime).getMonth() + 2)),
+                                new Date(
+                                  new Date(auction.auctionEndTime).setMonth(
+                                    new Date(auction.auctionEndTime).getMonth() + 2,
+                                  ),
+                                ),
                                 "yyyy年MM月dd日",
                                 {
                                   locale: ja,
@@ -190,7 +203,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>商品受け取りの完了</AlertDialogTitle>
-                          <AlertDialogDescription>商品を受け取り、取引を完了しますか？この操作は取り消せません。</AlertDialogDescription>
+                          <AlertDialogDescription>
+                            商品を受け取り、取引を完了しますか？この操作は取り消せません。
+                          </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>キャンセル</AlertDialogCancel>
@@ -227,7 +242,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                   </div>
                   <div>
                     <p className="font-medium">オークション終了・落札</p>
-                    <p className="text-sm text-gray-500">{format(new Date(auction.auctionEndTime), "yyyy年MM月dd日 HH:mm", { locale: ja })}</p>
+                    <p className="text-sm text-gray-500">
+                      {format(new Date(auction.auctionEndTime), "yyyy年MM月dd日 HH:mm", { locale: ja })}
+                    </p>
                   </div>
                 </div>
 
@@ -241,7 +258,9 @@ export const AuctionWonDetail = memo(function AuctionWonDetail({ auctionId }: { 
                     <p className="font-medium">ポイント返還予定日</p>
                     <p className="text-sm text-gray-500">
                       {format(
-                        new Date(new Date(auction.auctionEndTime).setMonth(new Date(auction.auctionEndTime).getMonth() + 2)),
+                        new Date(
+                          new Date(auction.auctionEndTime).setMonth(new Date(auction.auctionEndTime).getMonth() + 2),
+                        ),
                         "yyyy年MM月dd日",
                         {
                           locale: ja,

@@ -406,7 +406,10 @@ return (
             animate={{ scale: 1, y: 0 }}
             transition={{ type: "spring", damping: 20 }}
           >
-            <motion.div animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity, repeatType: "loop" }}>
+            <motion.div
+              animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }}
+              transition={{ duration: 3, repeat: Infinity, repeatType: "loop" }}
+            >
               <ImageIcon className="mb-4 h-20 w-20 text-blue-500" />
             </motion.div>
             <h2 className="mb-2 text-2xl font-bold text-blue-500">画像をドロップしてアップロード</h2>
@@ -474,7 +477,11 @@ return (
                 : {}
             }
           >
-            {isUploading ? <Loader2 className="mb-3 h-10 w-10 animate-spin text-blue-500" /> : <Upload className="mb-3 h-10 w-10 text-gray-400" />}
+            {isUploading ? (
+              <Loader2 className="mb-3 h-10 w-10 animate-spin text-blue-500" />
+            ) : (
+              <Upload className="mb-3 h-10 w-10 text-gray-400" />
+            )}
             <p className="mb-2 font-medium text-gray-700">クリックまたはドラッグ&ドロップ</p>
             <p className="text-sm text-gray-500">JPEG, PNG, WebP, GIF (最大5MB)</p>
           </motion.div>

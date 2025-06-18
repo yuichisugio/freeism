@@ -37,7 +37,9 @@ vi.mock("@/lib/actions/permission", () => ({
  * モック関数の型定義
  */
 const mockGetAuthenticatedSessionUserId = vi.mocked((await import("@/lib/utils")).getAuthenticatedSessionUserId);
-const mockGetCachedAuctionHistoryCreatedDetail = vi.mocked((await import("./cache/cache-auction-history")).getCachedAuctionHistoryCreatedDetail);
+const mockGetCachedAuctionHistoryCreatedDetail = vi.mocked(
+  (await import("./cache/cache-auction-history")).getCachedAuctionHistoryCreatedDetail,
+);
 const mockRevalidateTag = vi.mocked((await import("next/cache")).revalidateTag);
 const mockCheckIsOwner = vi.mocked((await import("@/lib/actions/permission")).checkIsOwner);
 
@@ -182,22 +184,30 @@ describe("created-detail.ts", () => {
     describe("異常系", () => {
       test("should throw error when taskId is missing", async () => {
         // Act & Assert
-        await expect(updateDeliveryMethod("", "新しい提供方法", testUser.id)).rejects.toThrow("タスクID、提供方法、ユーザーIDが必要です");
+        await expect(updateDeliveryMethod("", "新しい提供方法", testUser.id)).rejects.toThrow(
+          "タスクID、提供方法、ユーザーIDが必要です",
+        );
       });
 
       test("should throw error when deliveryMethod is missing", async () => {
         // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "", testUser.id)).rejects.toThrow("タスクID、提供方法、ユーザーIDが必要です");
+        await expect(updateDeliveryMethod(testTask.id, "", testUser.id)).rejects.toThrow(
+          "タスクID、提供方法、ユーザーIDが必要です",
+        );
       });
 
       test("should throw error when userId is missing", async () => {
         // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", "")).rejects.toThrow("タスクID、提供方法、ユーザーIDが必要です");
+        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", "")).rejects.toThrow(
+          "タスクID、提供方法、ユーザーIDが必要です",
+        );
       });
 
       test("should throw error when deliveryMethod is only whitespace", async () => {
         // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "   ", testUser.id)).rejects.toThrow("提供方法を入力してください");
+        await expect(updateDeliveryMethod(testTask.id, "   ", testUser.id)).rejects.toThrow(
+          "提供方法を入力してください",
+        );
       });
 
       test("should throw error when user has no permission with error message", async () => {
@@ -205,7 +215,9 @@ describe("created-detail.ts", () => {
         mockCheckIsOwner.mockResolvedValue({ success: false, error: "権限がありません" });
 
         // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow("権限がありません");
+        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
+          "権限がありません",
+        );
         expect(prismaMock.task.update).not.toHaveBeenCalled();
       });
 
@@ -214,7 +226,9 @@ describe("created-detail.ts", () => {
         mockCheckIsOwner.mockResolvedValue({ success: false });
 
         // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow("このタスクを編集する権限がありません");
+        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
+          "このタスクを編集する権限がありません",
+        );
       });
 
       test("should throw error when task.update fails", async () => {
@@ -277,7 +291,9 @@ describe("created-detail.ts", () => {
         mockCheckIsOwner.mockResolvedValue({ success: false });
 
         // Act & Assert
-        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("このタスクを編集する権限がありません");
+        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow(
+          "このタスクを編集する権限がありません",
+        );
       });
 
       test("should throw error when task.update fails", async () => {

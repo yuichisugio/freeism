@@ -1,4 +1,10 @@
-import type { AuctionCreatedTabFilter, BidHistoryItem, CreatedAuctionItem, FilterCondition, WonAuctionItem } from "@/types/auction-types";
+import type {
+  AuctionCreatedTabFilter,
+  BidHistoryItem,
+  CreatedAuctionItem,
+  FilterCondition,
+  WonAuctionItem,
+} from "@/types/auction-types";
 import { AllTheProviders, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { faker } from "@faker-js/faker";
 import { BidStatus, TaskStatus } from "@prisma/client";
@@ -142,13 +148,15 @@ const createdAuctionItemFactory = Factory.define<CreatedAuctionItem>(({ sequence
 }));
 
 // セッションデータファクトリー
-const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(({ sequence, params }) => ({
-  user: {
-    id: params.user?.id ?? `user-${sequence}`,
-    email: params.user?.email ?? faker.internet.email(),
-    name: params.user?.name ?? faker.person.fullName(),
-  },
-}));
+const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(
+  ({ sequence, params }) => ({
+    user: {
+      id: params.user?.id ?? `user-${sequence}`,
+      email: params.user?.email ?? faker.internet.email(),
+      name: params.user?.name ?? faker.person.fullName(),
+    },
+  }),
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -247,7 +255,15 @@ describe("useAuctionHistory", () => {
       expect(result.current.currentDataCount).toBe(0);
       expect(result.current.isLoadingCurrentTab).toBe(false);
       expect(result.current.userId).toBe(testUserId);
-      expect(result.current.VALID_UI_FILTERS).toStrictEqual(["pending", "active", "ended", "supplier_done", "creator", "executor", "reporter"]);
+      expect(result.current.VALID_UI_FILTERS).toStrictEqual([
+        "pending",
+        "active",
+        "ended",
+        "supplier_done",
+        "creator",
+        "executor",
+        "reporter",
+      ]);
     });
 
     test("should return undefined userId when session is not available", () => {
@@ -915,7 +931,15 @@ describe("useAuctionHistory", () => {
 
       test("should handle all valid filter values", () => {
         // Arrange
-        const allFilters: AuctionCreatedTabFilter[] = ["pending", "active", "ended", "supplier_done", "creator", "executor", "reporter"];
+        const allFilters: AuctionCreatedTabFilter[] = [
+          "pending",
+          "active",
+          "ended",
+          "supplier_done",
+          "creator",
+          "executor",
+          "reporter",
+        ];
 
         // Act
         const { result } = renderHook(() => useAuctionHistory(), {

@@ -936,7 +936,9 @@ describe("ExportDataModal", () => {
       );
 
       // FIX済み情報が表示されることを確認
-      expect(screen.getByText("FIX済みの分析結果のみ（ステータス「POINTS_AWARDED」）がエクスポートされます。")).toBeInTheDocument();
+      expect(
+        screen.getByText("FIX済みの分析結果のみ（ステータス「POINTS_AWARDED」）がエクスポートされます。"),
+      ).toBeInTheDocument();
     });
   });
 

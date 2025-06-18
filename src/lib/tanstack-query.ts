@@ -15,8 +15,10 @@ export const queryCacheKeys = {
   Notification: {
     _root: ["notification"] as const,
     all: () => [...queryCacheKeys.Notification._root] as const,
-    userAllNotifications: (userId: string) => [...queryCacheKeys.Notification.all(), "userAllNotifications", "userId:", userId] as const,
-    hasUnreadNotifications: (userId: string) => [...queryCacheKeys.Notification.userAllNotifications(userId), "hasUnreadNotifications"] as const,
+    userAllNotifications: (userId: string) =>
+      [...queryCacheKeys.Notification.all(), "userAllNotifications", "userId:", userId] as const,
+    hasUnreadNotifications: (userId: string) =>
+      [...queryCacheKeys.Notification.userAllNotifications(userId), "hasUnreadNotifications"] as const,
     prepareCreateNotificationForm: (userId: string, isAppOwner: boolean, isGroupOwner: boolean) =>
       [
         ...queryCacheKeys.Notification.userAllNotifications(userId),
@@ -39,7 +41,8 @@ export const queryCacheKeys = {
     _root: ["watchlist"] as const,
     all: () => [...queryCacheKeys.watchlist._root] as const,
     userAll: (userId: string) => [...queryCacheKeys.watchlist.all(), userId] as const,
-    userAuction: (auctionId: string, userId: string) => [...queryCacheKeys.watchlist.userAll(userId), auctionId] as const,
+    userAuction: (auctionId: string, userId: string) =>
+      [...queryCacheKeys.watchlist.userAll(userId), auctionId] as const,
     update: (userId: string) => [...queryCacheKeys.watchlist.userAll(userId), "update"] as const,
   },
 
@@ -48,7 +51,8 @@ export const queryCacheKeys = {
     allListings: () => [...queryCacheKeys.auction._root, "allListings"] as const,
     userAllListings: (userId: string, listingsConditions: AuctionListingsConditions) =>
       [...queryCacheKeys.auction.allListings(), JSON.stringify(listingsConditions), userId] as const,
-    suggestions: (searchQuery: string, userId: string) => [...queryCacheKeys.auction._root, "suggestions", searchQuery, userId] as const,
+    suggestions: (searchQuery: string, userId: string) =>
+      [...queryCacheKeys.auction._root, "suggestions", searchQuery, userId] as const,
     messages: (auctionId: string, isDisplayAfterEnd: boolean, auctionEndDate: Date) =>
       [...queryCacheKeys.auction._root, "messages", auctionId, isDisplayAfterEnd, auctionEndDate] as const,
     detail: (auctionId: string) => [...queryCacheKeys.auction._root, "detail", auctionId] as const,
@@ -61,14 +65,31 @@ export const queryCacheKeys = {
     historyBidsCount: (userId: string) => [...queryCacheKeys.auction.history(), "bidsCount", userId] as const,
     historyWon: (userId: string, page: number, itemPerPage: number, wonStatus: string) =>
       [...queryCacheKeys.auction.history(), "won", userId, page, itemPerPage, wonStatus] as const,
-    historyWonCount: (userId: string, wonStatus: string) => [...queryCacheKeys.auction.history(), "wonCount", userId, wonStatus] as const,
-    historyCreated: (userId: string, page: number, itemPerPage: number, filter: AuctionCreatedTabFilter[], filterCondition: FilterCondition) =>
-      [...queryCacheKeys.auction.history(), "created", userId, page, itemPerPage, ...[...filter].sort(), filterCondition] as const,
+    historyWonCount: (userId: string, wonStatus: string) =>
+      [...queryCacheKeys.auction.history(), "wonCount", userId, wonStatus] as const,
+    historyCreated: (
+      userId: string,
+      page: number,
+      itemPerPage: number,
+      filter: AuctionCreatedTabFilter[],
+      filterCondition: FilterCondition,
+    ) =>
+      [
+        ...queryCacheKeys.auction.history(),
+        "created",
+        userId,
+        page,
+        itemPerPage,
+        ...[...filter].sort(),
+        filterCondition,
+      ] as const,
     historyCreatedCount: (userId: string, filter: AuctionCreatedTabFilter[], filterCondition: FilterCondition) =>
       [...queryCacheKeys.auction.history(), "createdCount", userId, ...[...filter].sort(), filterCondition] as const,
-    historyCreatedDetail: (userId: string, auctionId: string) => [...queryCacheKeys.auction.history(), "createdDetail", userId, auctionId] as const,
+    historyCreatedDetail: (userId: string, auctionId: string) =>
+      [...queryCacheKeys.auction.history(), "createdDetail", userId, auctionId] as const,
     winningRating: (winnerId: string) => [...queryCacheKeys.auction._root, "winningRating", winnerId] as const,
-    wonDetail: (auctionId: string, userId: string) => [...queryCacheKeys.auction._root, "wonDetail", auctionId, userId] as const,
+    wonDetail: (auctionId: string, userId: string) =>
+      [...queryCacheKeys.auction._root, "wonDetail", auctionId, userId] as const,
     displayUserInfo: (auctionId: string, reviewPosition: ReviewPosition) =>
       [...queryCacheKeys.auction._root, "displayUserInfo", auctionId, reviewPosition] as const,
   },
@@ -83,7 +104,8 @@ export const queryCacheKeys = {
     myGroupConditions: (tableConditions: TableConditions<MyGroupTable>) =>
       [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions)] as const,
     myTask: () => [...queryCacheKeys.table.all(), "myTask"] as const,
-    myTaskConditions: (tableConditions: MyTaskTableConditions) => [...queryCacheKeys.table.myTask(), JSON.stringify(tableConditions)] as const,
+    myTaskConditions: (tableConditions: MyTaskTableConditions) =>
+      [...queryCacheKeys.table.myTask(), JSON.stringify(tableConditions)] as const,
   },
 
   tasks: {
@@ -104,8 +126,10 @@ export const queryCacheKeys = {
   permission: {
     _root: ["permission"] as const,
     appOwner: (userId: string) => [...queryCacheKeys.permission._root, "appOwnerPermission", userId] as const,
-    groupPermission: (groupId: string) => [...queryCacheKeys.permission._root, "groupOwnerPermission", groupId] as const,
-    groupOwner: (groupId: string, userId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "owner", userId] as const,
+    groupPermission: (groupId: string) =>
+      [...queryCacheKeys.permission._root, "groupOwnerPermission", groupId] as const,
+    groupOwner: (groupId: string, userId: string) =>
+      [...queryCacheKeys.permission.groupPermission(groupId), "owner", userId] as const,
     oneGroupOwner: (userId: string) => [...queryCacheKeys.permission._root, "oneGroupOwner", userId] as const,
     members: (groupId: string) => [...queryCacheKeys.permission.groupPermission(groupId), "members"] as const,
   },
@@ -113,8 +137,10 @@ export const queryCacheKeys = {
   review: {
     _root: ["review"] as const,
     all: () => [...queryCacheKeys.review._root] as const,
-    allReviews: (searchParams: string, activeTab: string) => [...queryCacheKeys.review.all(), "allReviews", searchParams, activeTab] as const,
-    search: (searchParams: string, userId: string) => [...queryCacheKeys.review.all(), "search", searchParams, userId] as const,
+    allReviews: (searchParams: string, activeTab: string) =>
+      [...queryCacheKeys.review.all(), "allReviews", searchParams, activeTab] as const,
+    search: (searchParams: string, userId: string) =>
+      [...queryCacheKeys.review.all(), "search", searchParams, userId] as const,
     myReviews: (searchParams: string, userId: string, activeTab: string) =>
       [...queryCacheKeys.review.all(), "myReviews", searchParams, userId, activeTab] as const,
     userReviews: (searchParams: string, userId: string, activeTab: string) =>

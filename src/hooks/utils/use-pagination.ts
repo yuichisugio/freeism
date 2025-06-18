@@ -35,7 +35,11 @@ export type UsePaginationResult = {
  * @param {UsePaginationProps} props ページネーションフックのプロップ
  * @returns {UsePaginationResult} ページネーションフックの返り値
  */
-export function usePagination({ currentPage, totalPages, maxPageToShow = 10 }: UsePaginationProps): UsePaginationResult {
+export function usePagination({
+  currentPage,
+  totalPages,
+  maxPageToShow = 10,
+}: UsePaginationProps): UsePaginationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 表示するページ番号を生成

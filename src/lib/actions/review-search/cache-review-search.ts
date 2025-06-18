@@ -1,6 +1,11 @@
 "use cache";
 
-import type { ReviewData, ReviewSearchParams, ReviewSearchResult, SearchSuggestion } from "@/components/review-search/review-search";
+import type {
+  ReviewData,
+  ReviewSearchParams,
+  ReviewSearchResult,
+  SearchSuggestion,
+} from "@/components/review-search/review-search";
 import type { Prisma } from "@prisma/client";
 import { REVIEW_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +18,10 @@ import { prisma } from "@/lib/prisma";
  * @param searchParams - 検索パラメータ（オプション）
  * @returns レビューデータと統計情報
  */
-export async function getCachedUserReviews(searchParams: ReviewSearchParams | null, userId: string): Promise<ReviewSearchResult> {
+export async function getCachedUserReviews(
+  searchParams: ReviewSearchParams | null,
+  userId: string,
+): Promise<ReviewSearchResult> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -450,7 +458,10 @@ export async function getCachedSearchSuggestions(query: string): Promise<SearchS
  * @param searchParams - 検索パラメータ
  * @returns レビューデータと統計情報
  */
-export async function getCachedMyReviews(searchParams: ReviewSearchParams | null, userId: string): Promise<ReviewSearchResult> {
+export async function getCachedMyReviews(
+  searchParams: ReviewSearchParams | null,
+  userId: string,
+): Promise<ReviewSearchResult> {
   try {
     const page = searchParams?.page ?? 1;
     const limit = REVIEW_CONSTANTS.ITEMS_PER_PAGE;

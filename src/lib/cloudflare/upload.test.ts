@@ -318,7 +318,10 @@ describe("upload.ts", () => {
       const result = await getSignedUploadUrl("image/jpeg");
 
       expect(result).toBeNull();
-      expect(logger.error).toHaveBeenCalledWith("署名付きURLの取得中にエラーが発生しました", "署名付きURLの取得に失敗しました");
+      expect(logger.error).toHaveBeenCalledWith(
+        "署名付きURLの取得中にエラーが発生しました",
+        "署名付きURLの取得に失敗しました",
+      );
     });
 
     test("should return null when fetch throws an exception", async () => {

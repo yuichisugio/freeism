@@ -60,8 +60,8 @@ To run a single test file, use: `pnpm vitest path/to/test.file.test.ts`
 
 ### Application Structure
 
-This is a Next.js 15 application using the App Router pattern with a comprehensive auction/task management system. The application follows a
-domain-driven design with clear separation of concerns.
+This is a Next.js 15 application using the App Router pattern with a comprehensive auction/task management system. The
+application follows a domain-driven design with clear separation of concerns.
 
 ### Key Architectural Patterns
 

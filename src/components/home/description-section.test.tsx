@@ -286,7 +286,12 @@ describe("DescriptionSection", () => {
 
       // Assert
       const section = container.querySelector("section");
-      expect(section).toHaveClass("dark:border-blue-900", "dark:from-gray-950", "dark:via-blue-950", "dark:to-gray-950");
+      expect(section).toHaveClass(
+        "dark:border-blue-900",
+        "dark:from-gray-950",
+        "dark:via-blue-950",
+        "dark:to-gray-950",
+      );
     });
 
     test("should have dark mode classes for title", async () => {

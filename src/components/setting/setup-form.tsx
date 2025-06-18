@@ -75,7 +75,12 @@ export const SetupForm = memo(function SetupForm() {
   /**
    * ユーザー設定を取得
    */
-  const { data: userSettings, isLoading } = useQuery<UserSettings | null, Error, UserSettings | null, Readonly<[string, string]>>({
+  const { data: userSettings, isLoading } = useQuery<
+    UserSettings | null,
+    Error,
+    UserSettings | null,
+    Readonly<[string, string]>
+  >({
     queryKey: queryCacheKeys.userSettings.userAll(userId),
     queryFn: async (): Promise<UserSettings | null> => getUserSettings(userId),
     enabled: !!userId && isClient, // クライアントサイドでのみクエリを実行
@@ -96,8 +101,13 @@ export const SetupForm = memo(function SetupForm() {
   const { mutate, isPending, variables } = useMutation({
     mutationKey: queryCacheKeys.userSettings.update(userId),
     gcTime: Infinity,
-    mutationFn: (userSettings: SetupForm): Promise<{ success: boolean; error?: string }> => updateUserSetup(userSettings),
-    onError: (error: Error, _variables: SetupForm, context: { previousUserSettings: UserSettings | undefined } | undefined) => {
+    mutationFn: (userSettings: SetupForm): Promise<{ success: boolean; error?: string }> =>
+      updateUserSetup(userSettings),
+    onError: (
+      error: Error,
+      _variables: SetupForm,
+      context: { previousUserSettings: UserSettings | undefined } | undefined,
+    ) => {
       toast.error("ユーザー設定の更新に失敗しました");
       console.error("ユーザー設定の更新に失敗しました:", error);
       form.setError("root", { message: error.message });
@@ -178,7 +188,9 @@ export const SetupForm = memo(function SetupForm() {
           </div>
           <div>
             <dt className="form-label-custom">人生の目標</dt>
-            <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">{displayData.lifeGoal}</dd>
+            <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">
+              {displayData.lifeGoal}
+            </dd>
           </div>
           {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
           {!isPending &&
@@ -188,7 +200,9 @@ export const SetupForm = memo(function SetupForm() {
             displayData.updatedAt instanceof Date && (
               <div>
                 <dt className="form-label-custom">最終更新日</dt>
-                <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{new Date(displayData.updatedAt).toLocaleDateString("ja-JP")}</dd>
+                <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+                  {new Date(displayData.updatedAt).toLocaleDateString("ja-JP")}
+                </dd>
               </div>
             )}
         </dl>
@@ -215,7 +229,10 @@ export const SetupForm = memo(function SetupForm() {
 
       {/* プッシュ通知設定 */}
       <div className="mb-8">
-        <WebPushNotificationToggle isPushEnabled={isClient ? userSettings?.isPushEnabled : undefined} isLoading={!isClient || isLoading} />
+        <WebPushNotificationToggle
+          isPushEnabled={isClient ? userSettings?.isPushEnabled : undefined}
+          isLoading={!isClient || isLoading}
+        />
       </div>
 
       {/* メール通知設定 */}

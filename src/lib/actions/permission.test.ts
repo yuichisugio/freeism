@@ -2,10 +2,21 @@ import { revalidatePath } from "next/cache";
 // モック関数のインポート
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { groupFactory, groupMembershipFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  groupFactory,
+  groupMembershipFactory,
+  taskFactory,
+  userFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { checkGroupMembership, checkIsAppOwner, checkIsOwner, checkOneGroupOwner, grantOwnerPermission } from "./permission";
+import {
+  checkGroupMembership,
+  checkIsAppOwner,
+  checkIsOwner,
+  checkOneGroupOwner,
+  grantOwnerPermission,
+} from "./permission";
 
 // テストファイル内でモックを上書きして実際の実装を使用
 vi.mock("@/lib/actions/permission", async (importOriginal) => {

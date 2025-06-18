@@ -37,7 +37,11 @@ describe("middleware", () => {
   describe("config", () => {
     test("should have correct matcher configuration", async () => {
       const { config } = await import("./middleware");
-      expect(config.matcher).toEqual(["/dashboard/:path*", "/protected/user/:path*", "/((?!|_next|auth|favicon.ico).+)"]);
+      expect(config.matcher).toEqual([
+        "/dashboard/:path*",
+        "/protected/user/:path*",
+        "/((?!|_next|auth|favicon.ico).+)",
+      ]);
     });
   });
 

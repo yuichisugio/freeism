@@ -48,7 +48,9 @@ type MessageData = {
  * @param {AuctionNotificationParams} params 通知メッセージデータ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendAuctionNotification(params: AuctionNotificationParams): Promise<{ success: boolean; error?: string }> {
+export async function sendAuctionNotification(
+  params: AuctionNotificationParams,
+): Promise<{ success: boolean; error?: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -92,7 +94,10 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // push通知を送信
-    if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH) && notificationParams.sendTiming === "NOW") {
+    if (
+      notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH) &&
+      notificationParams.sendTiming === "NOW"
+    ) {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
         console.error("sendAuctionNotification_sendPushNotification_エラー:");
@@ -104,7 +109,10 @@ export async function sendAuctionNotification(params: AuctionNotificationParams)
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // メール通知を送信
-    if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL) && notificationParams.sendTiming === "NOW") {
+    if (
+      notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL) &&
+      notificationParams.sendTiming === "NOW"
+    ) {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
         console.error("sendAuctionNotification_sendEmailNotification_エラー:");

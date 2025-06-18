@@ -43,7 +43,18 @@ vi.mock("@/components/share/share-loading", () => ({
 // AUCTION_CONSTANTSのモック
 vi.mock("@/lib/constants", () => ({
   AUCTION_CONSTANTS: {
-    AUCTION_CATEGORIES: ["すべて", "食品", "コード", "本", "デザイン", "開発", "マーケティング", "ライティング", "事務作業", "その他"],
+    AUCTION_CATEGORIES: [
+      "すべて",
+      "食品",
+      "コード",
+      "本",
+      "デザイン",
+      "開発",
+      "マーケティング",
+      "ライティング",
+      "事務作業",
+      "その他",
+    ],
   },
 }));
 

@@ -180,7 +180,9 @@ describe("create-task-form.ts", () => {
           creatorId: testUser.id,
         });
 
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
@@ -235,7 +237,9 @@ describe("create-task-form.ts", () => {
           groupId: testGroup.id,
         });
 
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
         prismaMock.auction.create.mockResolvedValue(createdAuction);
 
@@ -269,7 +273,9 @@ describe("create-task-form.ts", () => {
         };
 
         const createdTask = taskFactory.build();
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
@@ -277,7 +283,9 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>).toHaveBeenCalledWith({
+        expect(
+          prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>,
+        ).toHaveBeenCalledWith({
           data: expect.objectContaining({
             reporters: {
               create: [{ userId: testUser.id }],
@@ -298,7 +306,9 @@ describe("create-task-form.ts", () => {
         };
 
         const createdTask = taskFactory.build();
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
@@ -306,7 +316,9 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>).toHaveBeenCalledWith({
+        expect(
+          prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>,
+        ).toHaveBeenCalledWith({
           data: expect.objectContaining({
             reporters: {
               create: [{ userId: testUser.id }],
@@ -330,7 +342,9 @@ describe("create-task-form.ts", () => {
           contributionType: contributionType.REWARD,
         });
 
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
         prismaMock.auction.create.mockResolvedValue(auctionFactory.build());
 
@@ -339,7 +353,9 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.auction.create as unknown as Awaited<ReturnType<typeof prismaMock.auction.create>>).toHaveBeenCalledWith({
+        expect(
+          prismaMock.auction.create as unknown as Awaited<ReturnType<typeof prismaMock.auction.create>>,
+        ).toHaveBeenCalledWith({
           data: expect.objectContaining({
             isExtension: false,
           }) as unknown as Prisma.AuctionCreateInput,
@@ -359,7 +375,9 @@ describe("create-task-form.ts", () => {
           contributionType: contributionType.REWARD,
         });
 
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
         prismaMock.auction.create.mockResolvedValue(auctionFactory.build());
 
@@ -368,7 +386,9 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.auction.create as unknown as Awaited<ReturnType<typeof prismaMock.auction.create>>).toHaveBeenCalledWith({
+        expect(
+          prismaMock.auction.create as unknown as Awaited<ReturnType<typeof prismaMock.auction.create>>,
+        ).toHaveBeenCalledWith({
           data: expect.objectContaining({
             startTime: expect.any(Date) as unknown as Date,
             endTime: expect.any(Date) as unknown as Date,
@@ -395,7 +415,9 @@ describe("create-task-form.ts", () => {
 
       test("should return error when getAuthenticatedSessionUserId fails", async () => {
         // Arrange
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
 
         // Act
@@ -409,7 +431,9 @@ describe("create-task-form.ts", () => {
 
       test("should return error when task creation fails", async () => {
         // Arrange
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockRejectedValue(new Error("データベースエラー"));
 
         // Act
@@ -433,7 +457,9 @@ describe("create-task-form.ts", () => {
           contributionType: contributionType.REWARD,
         });
 
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
         prismaMock.auction.create.mockRejectedValue(new Error("オークション作成エラー"));
 
@@ -458,7 +484,9 @@ describe("create-task-form.ts", () => {
         };
 
         const createdTask = taskFactory.build();
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
@@ -466,7 +494,9 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>).toHaveBeenCalledWith({
+        expect(
+          prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>,
+        ).toHaveBeenCalledWith({
           data: expect.objectContaining({
             task: minimalTaskData.task,
             groupId: minimalTaskData.groupId,
@@ -488,7 +518,9 @@ describe("create-task-form.ts", () => {
         };
 
         const createdTask = taskFactory.build();
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
@@ -496,7 +528,9 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>).toHaveBeenCalledWith({
+        expect(
+          prismaMock.task.create as unknown as Awaited<ReturnType<typeof prismaMock.task.create>>,
+        ).toHaveBeenCalledWith({
           data: expect.objectContaining({
             detail: "",
             reference: "",
@@ -519,7 +553,9 @@ describe("create-task-form.ts", () => {
         };
 
         const createdTask = taskFactory.build();
-        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act

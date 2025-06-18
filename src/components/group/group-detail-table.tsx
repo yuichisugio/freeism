@@ -28,7 +28,10 @@ type GroupDetailTableProps = {
  * @param tasks {Task[]} タスクデータ
  * @returns {JSX.Element} グループ詳細ページのコンポーネント
  */
-export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isOwner }: GroupDetailTableProps): JSX.Element {
+export const GroupDetailTable = memo(function GroupDetailTable({
+  groupId,
+  isOwner,
+}: GroupDetailTableProps): JSX.Element {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -158,7 +161,11 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isOwne
         cell: (row: GroupDetailTask) => {
           if (row.auctionId) {
             return (
-              <Button onClick={() => router.push(`/dashboard/auction/${row.auctionId}`)} className="button-default-custom" size="sm">
+              <Button
+                onClick={() => router.push(`/dashboard/auction/${row.auctionId}`)}
+                className="button-default-custom"
+                size="sm"
+              >
                 オークションに参加
               </Button>
             );
@@ -266,7 +273,8 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isOwne
           {
             filterType: "radio",
             filterText: tableConditions.contributionType ?? "ALL",
-            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
+            onFilterChange: (value: string) =>
+              changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
             placeholder: "タスクタイプで絞り込み...",
             radioOptions: [
               { value: "ALL", label: "全て" },
@@ -277,7 +285,8 @@ export const GroupDetailTable = memo(function GroupDetailTable({ groupId, isOwne
           {
             filterType: "radio",
             filterText: tableConditions.status ?? "ALL",
-            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, status: value as "ALL" | TaskStatus }),
+            onFilterChange: (value: string) =>
+              changeTableConditions({ ...tableConditions, status: value as "ALL" | TaskStatus }),
             placeholder: "ステータスで絞り込み...",
             radioOptions: [
               { value: "ALL", label: "全て" },

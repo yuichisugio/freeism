@@ -24,6 +24,12 @@
     "module": "Preserve",
     "allowJs": true
   },
-  "include": ["scripts/**/*.ts", "src/lib/prisma/**/*.ts", "src/lib/auction/**/*.ts", "src/lib/actions/**/*.ts", "src/prisma/client/**/*.ts"],
+  "include": [
+    "scripts/**/*.ts",
+    "src/lib/prisma/**/*.ts",
+    "src/lib/auction/**/*.ts",
+    "src/lib/actions/**/*.ts",
+    "src/prisma/client/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts", "src/app", "src/components", "src/hooks"]
 }

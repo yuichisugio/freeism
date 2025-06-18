@@ -6,14 +6,23 @@ import { fileURLToPath } from "node:url";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
 import { prisma } from "@/lib/prisma";
-import { AuctionEventType, BidStatus, NotificationSendMethod, NotificationSendTiming, TaskStatus } from "@prisma/client";
+import {
+  AuctionEventType,
+  BidStatus,
+  NotificationSendMethod,
+  NotificationSendTiming,
+  TaskStatus,
+} from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * Prismaトランザクションの型定義
  */
-export type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+export type PrismaTransaction = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -191,7 +200,10 @@ export async function updateAuctionStatusToCompleted(): Promise<number> {
  * @param task オークションオブジェクト
  * @returns 送信する通知データの配列
  */
-export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<NotificationData[]> {
+export async function handleAuctionWithNoBids(
+  tx: PrismaTransaction,
+  task: TaskWithRelations,
+): Promise<NotificationData[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithNoBids_start");
@@ -248,7 +260,10 @@ export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskW
  * @param task オークションオブジェクト
  * @returns 送信する通知データの配列
  */
-export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<NotificationData[]> {
+export async function handleAuctionWithBids(
+  tx: PrismaTransaction,
+  task: TaskWithRelations,
+): Promise<NotificationData[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithBids_start");
@@ -258,7 +273,9 @@ export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWit
   /**
    * 有効な入札（BIDDING状態）のみを抽出し、金額の降順で並べる
    */
-  const validBids = task.auction?.bidHistories?.filter((bid) => bid.status === BidStatus.BIDDING).sort((a, b) => b.amount - a.amount) ?? [];
+  const validBids =
+    task.auction?.bidHistories?.filter((bid) => bid.status === BidStatus.BIDDING).sort((a, b) => b.amount - a.amount) ??
+    [];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -68,13 +68,15 @@ const auctionCardFactory = Factory.define<AuctionCard>(({ sequence, params }) =>
 }));
 
 // セッションデータファクトリー
-const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(({ sequence, params }) => ({
-  user: {
-    id: params.user?.id ?? `user-${sequence}`,
-    email: params.user?.email ?? faker.internet.email(),
-    name: params.user?.name ?? faker.person.fullName(),
-  },
-}));
+const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(
+  ({ sequence, params }) => ({
+    user: {
+      id: params.user?.id ?? `user-${sequence}`,
+      email: params.user?.email ?? faker.internet.email(),
+      name: params.user?.name ?? faker.person.fullName(),
+    },
+  }),
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

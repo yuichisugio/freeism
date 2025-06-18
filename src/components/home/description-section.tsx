@@ -27,8 +27,12 @@ export async function DescriptionSection() {
         <div className="mx-auto max-w-sm overflow-hidden sm:max-w-2xl md:max-w-3xl lg:max-w-5xl">
           {/* セクションタイトル */}
           <div className="mb-8 text-center sm:mb-12">
-            <h2 className="mb-3 text-2xl font-bold text-blue-900 sm:mb-4 sm:text-3xl lg:text-4xl dark:text-blue-100">サービスの特徴</h2>
-            <p className="text-base text-neutral-600 sm:text-lg dark:text-neutral-400">Freeism-Appが提供する主な機能と特徴をご紹介します</p>
+            <h2 className="mb-3 text-2xl font-bold text-blue-900 sm:mb-4 sm:text-3xl lg:text-4xl dark:text-blue-100">
+              サービスの特徴
+            </h2>
+            <p className="text-base text-neutral-600 sm:text-lg dark:text-neutral-400">
+              Freeism-Appが提供する主な機能と特徴をご紹介します
+            </p>
           </div>
 
           {/* Googleドキュメントの埋め込み */}

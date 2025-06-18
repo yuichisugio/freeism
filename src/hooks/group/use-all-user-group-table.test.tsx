@@ -125,7 +125,9 @@ function createMockAllUserGroupTable(overrides: Partial<AllUserGroupTable> = {})
   };
 }
 
-function createMockTableConditions(overrides: Partial<TableConditions<AllUserGroupTable>> = {}): TableConditions<AllUserGroupTable> {
+function createMockTableConditions(
+  overrides: Partial<TableConditions<AllUserGroupTable>> = {},
+): TableConditions<AllUserGroupTable> {
   return {
     sort: { field: "createdAt" as keyof AllUserGroupTable, direction: "desc" },
     page: 1,

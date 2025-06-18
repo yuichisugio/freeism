@@ -103,7 +103,10 @@ export function useAuctionBidSSE(initialAuction: AuctionWithDetails): UseAuction
           };
         }
 
-        const newHistories = [...incomingHistories, ...prevHistories].slice(0, AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1);
+        const newHistories = [...incomingHistories, ...prevHistories].slice(
+          0,
+          AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1,
+        );
 
         return {
           // bidHistories 以外は全て auctionData で上書き

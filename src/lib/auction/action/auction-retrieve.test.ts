@@ -185,7 +185,9 @@ describe("auction-retrieve", () => {
       test("should return updated auction data when auction exists", async () => {
         // Arrange
         const mockAuctionRaw = createMockAuctionRaw();
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
@@ -248,7 +250,9 @@ describe("auction-retrieve", () => {
           ],
         });
 
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
@@ -261,24 +265,29 @@ describe("auction-retrieve", () => {
         expect(result?.bidHistories[1].isAutoBid).toBe(false);
       });
 
-      test.each([TaskStatus.PENDING, TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED])(
-        "should handle different task statuses",
-        async (status) => {
-          // Arrange
-          const mockAuctionRaw = createMockAuctionRaw({
-            task: { status },
-            bidHistories: [],
-          });
+      test.each([
+        TaskStatus.PENDING,
+        TaskStatus.AUCTION_ACTIVE,
+        TaskStatus.AUCTION_ENDED,
+        TaskStatus.SUPPLIER_DONE,
+        TaskStatus.TASK_COMPLETED,
+      ])("should handle different task statuses", async (status) => {
+        // Arrange
+        const mockAuctionRaw = createMockAuctionRaw({
+          task: { status },
+          bidHistories: [],
+        });
 
-          prismaMock.auction.findUnique.mockResolvedValue(mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-          // Act
-          const result = await getUpdatedAuctionByAuctionId(testAuctionId);
+        // Act
+        const result = await getUpdatedAuctionByAuctionId(testAuctionId);
 
-          // Assert
-          expect(result?.status).toBe(status);
-        },
-      );
+        // Assert
+        expect(result?.status).toBe(status);
+      });
 
       test("should handle large number of bid histories", async () => {
         // Arrange
@@ -299,7 +308,9 @@ describe("auction-retrieve", () => {
           bidHistories: largeBidHistories,
         });
 
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
@@ -328,7 +339,9 @@ describe("auction-retrieve", () => {
           ],
         });
 
-        prismaMock.auction.findUnique.mockResolvedValue(mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockAuctionRaw as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
@@ -341,7 +354,9 @@ describe("auction-retrieve", () => {
     describe("異常系・エラーハンドリング", () => {
       test.each(["", null, undefined])("should throw error when auctionId is empty or falsy", async (invalidId) => {
         // Act & Assert
-        await expect(getUpdatedAuctionByAuctionId(invalidId as unknown as string)).rejects.toThrow("オークションIDが指定されていません");
+        await expect(getUpdatedAuctionByAuctionId(invalidId as unknown as string)).rejects.toThrow(
+          "オークションIDが指定されていません",
+        );
       });
 
       test("should throw error when auction does not exist", async () => {

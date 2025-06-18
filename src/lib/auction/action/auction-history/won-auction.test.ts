@@ -82,11 +82,21 @@ describe("won-auction", () => {
       { case: "undefined", wonStatus: undefined as never, statusArray: DEFAULT_STATUS_ARRAY },
       { case: "null", wonStatus: null as never, statusArray: DEFAULT_STATUS_ARRAY },
       { case: "other-status", wonStatus: "other-status" as never, statusArray: DEFAULT_STATUS_ARRAY },
-      { case: "completed", wonStatus: "completed", statusArray: [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED] },
+      {
+        case: "completed",
+        wonStatus: "completed",
+        statusArray: [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
+      },
       {
         case: "incomplete",
         wonStatus: "incomplete",
-        statusArray: [TaskStatus.PENDING, TaskStatus.AUCTION_ACTIVE, TaskStatus.AUCTION_ENDED, TaskStatus.POINTS_DEPOSITED, TaskStatus.SUPPLIER_DONE],
+        statusArray: [
+          TaskStatus.PENDING,
+          TaskStatus.AUCTION_ACTIVE,
+          TaskStatus.AUCTION_ENDED,
+          TaskStatus.POINTS_DEPOSITED,
+          TaskStatus.SUPPLIER_DONE,
+        ],
       },
       {
         case: "all",
@@ -120,18 +130,50 @@ describe("won-auction", () => {
     describe("異常系", () => {
       test.each([
         { case: "userId is empty", page: CONSTANTS.testPage, userId: "", itemPerPage: CONSTANTS.testItemPerPage },
-        { case: "userId is undefined", page: CONSTANTS.testPage, userId: undefined as never, itemPerPage: CONSTANTS.testItemPerPage },
-        { case: "userId is null", page: CONSTANTS.testPage, userId: null as never, itemPerPage: CONSTANTS.testItemPerPage },
+        {
+          case: "userId is undefined",
+          page: CONSTANTS.testPage,
+          userId: undefined as never,
+          itemPerPage: CONSTANTS.testItemPerPage,
+        },
+        {
+          case: "userId is null",
+          page: CONSTANTS.testPage,
+          userId: null as never,
+          itemPerPage: CONSTANTS.testItemPerPage,
+        },
         { case: "itemPerPage is 0", page: CONSTANTS.testPage, userId: CONSTANTS.testUserId, itemPerPage: 0 },
-        { case: "itemPerPage is undefined", page: CONSTANTS.testPage, userId: CONSTANTS.testUserId, itemPerPage: undefined as never },
-        { case: "itemPerPage is null", page: CONSTANTS.testPage, userId: CONSTANTS.testUserId, itemPerPage: null as never },
+        {
+          case: "itemPerPage is undefined",
+          page: CONSTANTS.testPage,
+          userId: CONSTANTS.testUserId,
+          itemPerPage: undefined as never,
+        },
+        {
+          case: "itemPerPage is null",
+          page: CONSTANTS.testPage,
+          userId: CONSTANTS.testUserId,
+          itemPerPage: null as never,
+        },
         { case: "page is 0", page: 0, userId: CONSTANTS.testUserId, itemPerPage: CONSTANTS.testItemPerPage },
-        { case: "page is undefined", page: CONSTANTS.testPage, userId: CONSTANTS.testUserId, itemPerPage: CONSTANTS.testItemPerPage },
-        { case: "page is null", page: CONSTANTS.testPage, userId: CONSTANTS.testUserId, itemPerPage: CONSTANTS.testItemPerPage },
+        {
+          case: "page is undefined",
+          page: CONSTANTS.testPage,
+          userId: CONSTANTS.testUserId,
+          itemPerPage: CONSTANTS.testItemPerPage,
+        },
+        {
+          case: "page is null",
+          page: CONSTANTS.testPage,
+          userId: CONSTANTS.testUserId,
+          itemPerPage: CONSTANTS.testItemPerPage,
+        },
         { case: "all required parameters are missing", page: 0, userId: "", itemPerPage: 0 },
       ])("should throw error when $case", async ({ page, userId, itemPerPage }) => {
         // Act & Assert
-        await expect(getUserWonAuctions(page, userId, itemPerPage)).rejects.toThrow("userId, itemPerPage, and page are required");
+        await expect(getUserWonAuctions(page, userId, itemPerPage)).rejects.toThrow(
+          "userId, itemPerPage, and page are required",
+        );
       });
     });
 

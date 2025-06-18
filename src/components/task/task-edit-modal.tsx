@@ -107,7 +107,11 @@ export const TaskEditModal = memo(function TaskEditModal({
    */
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent ref={dialogContentRef} container={container} className="z-[10000] max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent
+        ref={dialogContentRef}
+        container={container}
+        className="z-[10000] max-h-[90vh] max-w-3xl overflow-y-auto"
+      >
         <DialogHeader>
           <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>
@@ -129,7 +133,9 @@ export const TaskEditModal = memo(function TaskEditModal({
             {isRewardType && (
               <div className="space-y-2" role="group" aria-label="報酬画像">
                 <p className="text-sm font-medium">報酬画像</p>
-                <p className="text-sm text-gray-500">報酬として提供する商品・サービスの画像をアップロードしてください</p>
+                <p className="text-sm text-gray-500">
+                  報酬として提供する商品・サービスの画像をアップロードしてください
+                </p>
                 <ImageUploadArea
                   onImageUploaded={handleImageUploaded}
                   onImageRemoved={handleImageRemoved}
@@ -202,7 +208,11 @@ export const TaskEditModal = memo(function TaskEditModal({
                 <Spinner />
               ) : users.length > 0 ? (
                 <div className="flex gap-2">
-                  <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addExecutor(e.target.value)} value="">
+                  <select
+                    className="flex-1 rounded-md border p-2"
+                    onChange={(e) => e.target.value && addExecutor(e.target.value)}
+                    value=""
+                  >
                     <option value="">登録済みユーザーから選択...</option>
                     {users.map((user: TaskParticipant, index: number) => (
                       <option key={`user-${index}`} value={user.appUserId ?? ""}>
@@ -243,11 +253,19 @@ export const TaskEditModal = memo(function TaskEditModal({
                   <h4 className="text-sm font-medium">選択された実行者:</h4>
                   <ul className="mt-1 space-y-1">
                     {executors.map((executor, index) => (
-                      <li key={`executor-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
+                      <li
+                        key={`executor-${index}`}
+                        className="flex items-center justify-between rounded bg-gray-100 px-3 py-1"
+                      >
                         <span>
                           {executor.appUserName ?? "名前なし"} {executor.appUserId ? "(登録済み)" : "(未登録)"}
                         </span>
-                        <Button type="button" variant="ghost" className="h-auto p-1 text-red-500" onClick={() => removeExecutor(index)}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-auto p-1 text-red-500"
+                          onClick={() => removeExecutor(index)}
+                        >
                           削除
                         </Button>
                       </li>
@@ -267,7 +285,11 @@ export const TaskEditModal = memo(function TaskEditModal({
                 <Spinner />
               ) : users.length > 0 ? (
                 <div className="flex gap-2">
-                  <select className="flex-1 rounded-md border p-2" onChange={(e) => e.target.value && addReporter(e.target.value)} value="">
+                  <select
+                    className="flex-1 rounded-md border p-2"
+                    onChange={(e) => e.target.value && addReporter(e.target.value)}
+                    value=""
+                  >
                     <option value="">登録済みユーザーから選択...</option>
                     {users.map((user: TaskParticipant, index: number) => (
                       <option key={`user-${index}`} value={user.appUserId ?? ""}>
@@ -308,11 +330,19 @@ export const TaskEditModal = memo(function TaskEditModal({
                   <h4 className="text-sm font-medium">選択された報告者:</h4>
                   <ul className="mt-1 space-y-1">
                     {reporters.map((reporter, index) => (
-                      <li key={`reporter-${index}`} className="flex items-center justify-between rounded bg-gray-100 px-3 py-1">
+                      <li
+                        key={`reporter-${index}`}
+                        className="flex items-center justify-between rounded bg-gray-100 px-3 py-1"
+                      >
                         <span>
                           {reporter.appUserName ?? "名前なし"} {reporter.appUserId ? "(登録済み)" : "(未登録)"}
                         </span>
-                        <Button type="button" variant="ghost" className="h-auto p-1 text-red-500" onClick={() => removeReporter(index)}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-auto p-1 text-red-500"
+                          onClick={() => removeReporter(index)}
+                        >
                           削除
                         </Button>
                       </li>

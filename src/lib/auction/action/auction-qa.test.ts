@@ -236,7 +236,11 @@ describe("auction-qa", () => {
       ])("should handle invalid parameters", async ({ auctionId, isDisplayAfterEnd, auctionEndDate }) => {
         // Act & Assert
         await expect(
-          getAuctionMessagesAndSellerInfo(auctionId as unknown as string, isDisplayAfterEnd as unknown as boolean, auctionEndDate as unknown as Date),
+          getAuctionMessagesAndSellerInfo(
+            auctionId as unknown as string,
+            isDisplayAfterEnd as unknown as boolean,
+            auctionEndDate as unknown as Date,
+          ),
         ).rejects.toThrow("メッセージの取得に失敗しました:");
       });
 
@@ -255,7 +259,9 @@ describe("auction-qa", () => {
         });
 
         // Act & Assert
-        await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow("メッセージの取得に失敗しました:");
+        await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
+          "メッセージの取得に失敗しました:",
+        );
       });
 
       test("should handle seller info cache failure", async () => {
@@ -273,7 +279,9 @@ describe("auction-qa", () => {
         });
 
         // Act & Assert
-        await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow("メッセージの取得に失敗しました:");
+        await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
+          "メッセージの取得に失敗しました:",
+        );
       });
 
       test("should handle both cache failures", async () => {
@@ -292,7 +300,9 @@ describe("auction-qa", () => {
         });
 
         // Act & Assert
-        await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow("メッセージの取得に失敗しました:");
+        await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
+          "メッセージの取得に失敗しました:",
+        );
       });
 
       test("should handle exception in cache functions", async () => {
@@ -355,7 +365,9 @@ describe("auction-qa", () => {
             senderId: testSenderId,
           },
         });
-        expect(mockSendAuctionNotification).toHaveBeenCalledWith(getExpectedNotificationParams(testMessage, testRecipientId));
+        expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+          getExpectedNotificationParams(testMessage, testRecipientId),
+        );
       });
 
       test("should skip notification for sender", async () => {
@@ -373,7 +385,9 @@ describe("auction-qa", () => {
         });
         // 送信者は通知を受け取らない
         expect(mockSendAuctionNotification).toHaveBeenCalledTimes(1);
-        expect(mockSendAuctionNotification).toHaveBeenCalledWith(getExpectedNotificationParams(testMessage, testRecipientId));
+        expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+          getExpectedNotificationParams(testMessage, testRecipientId),
+        );
       });
 
       test("should handle multiple recipients", async () => {
@@ -443,7 +457,9 @@ describe("auction-qa", () => {
 
         // Assert
         expect(result.success).toBe(true);
-        expect(mockSendAuctionNotification).toHaveBeenCalledWith(getExpectedNotificationParams(exactMessage, testRecipientId));
+        expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+          getExpectedNotificationParams(exactMessage, testRecipientId),
+        );
       });
     });
 
@@ -454,7 +470,9 @@ describe("auction-qa", () => {
         const recipientIds = [testRecipientId];
 
         // Act & Assert
-        await expect(sendAuctionMessage(testAuctionId, testMessage, recipientIds, testSenderId)).rejects.toThrow("Database connection error");
+        await expect(sendAuctionMessage(testAuctionId, testMessage, recipientIds, testSenderId)).rejects.toThrow(
+          "Database connection error",
+        );
 
         expect(mockSendAuctionNotification).not.toHaveBeenCalled();
       });
@@ -466,18 +484,62 @@ describe("auction-qa", () => {
         const recipientIds = [testRecipientId];
 
         // Act & Assert
-        await expect(sendAuctionMessage(testAuctionId, testMessage, recipientIds, testSenderId)).rejects.toThrow("Notification service error");
+        await expect(sendAuctionMessage(testAuctionId, testMessage, recipientIds, testSenderId)).rejects.toThrow(
+          "Notification service error",
+        );
       });
 
       // 不正な引数のテスト（統合）
       test.each([
-        { auctionId: null, message: testMessage, recipientIds: [testRecipientId], senderId: testSenderId, desc: "パラメータが不正です" },
-        { auctionId: testAuctionId, message: undefined, recipientIds: [testRecipientId], senderId: testSenderId, desc: "パラメータが不正です" },
-        { auctionId: testAuctionId, message: testMessage, recipientIds: undefined, senderId: testSenderId, desc: "パラメータが不正です" },
-        { auctionId: "", message: testMessage, recipientIds: [testRecipientId], senderId: testSenderId, desc: "パラメータが不正です" },
-        { auctionId: testAuctionId, message: testMessage, recipientIds: [], senderId: testSenderId, desc: "受信者が指定されていません" },
-        { auctionId: testAuctionId, message: "", recipientIds: [testRecipientId], senderId: testSenderId, desc: "メッセージが空です" },
-        { auctionId: testAuctionId, message: testMessage, recipientIds: [testRecipientId], senderId: undefined, desc: "パラメータが不正です" },
+        {
+          auctionId: null,
+          message: testMessage,
+          recipientIds: [testRecipientId],
+          senderId: testSenderId,
+          desc: "パラメータが不正です",
+        },
+        {
+          auctionId: testAuctionId,
+          message: undefined,
+          recipientIds: [testRecipientId],
+          senderId: testSenderId,
+          desc: "パラメータが不正です",
+        },
+        {
+          auctionId: testAuctionId,
+          message: testMessage,
+          recipientIds: undefined,
+          senderId: testSenderId,
+          desc: "パラメータが不正です",
+        },
+        {
+          auctionId: "",
+          message: testMessage,
+          recipientIds: [testRecipientId],
+          senderId: testSenderId,
+          desc: "パラメータが不正です",
+        },
+        {
+          auctionId: testAuctionId,
+          message: testMessage,
+          recipientIds: [],
+          senderId: testSenderId,
+          desc: "受信者が指定されていません",
+        },
+        {
+          auctionId: testAuctionId,
+          message: "",
+          recipientIds: [testRecipientId],
+          senderId: testSenderId,
+          desc: "メッセージが空です",
+        },
+        {
+          auctionId: testAuctionId,
+          message: testMessage,
+          recipientIds: [testRecipientId],
+          senderId: undefined,
+          desc: "パラメータが不正です",
+        },
       ])("should handle invalid parameters: $desc", async ({ auctionId, message, recipientIds, senderId, desc }) => {
         // Act & Assert
         await expect(

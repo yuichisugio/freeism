@@ -10,7 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuctionHistory } from "@/hooks/auction/history/use-auction-history";
-import { type AuctionCreatedTabFilter, type BidHistoryItem, type CreatedAuctionItem, type WonAuctionItem } from "@/types/auction-types";
+import {
+  type AuctionCreatedTabFilter,
+  type BidHistoryItem,
+  type CreatedAuctionItem,
+  type WonAuctionItem,
+} from "@/types/auction-types";
 import { formatDistanceToNow, isValid } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Award, Clock, Tag } from "lucide-react";
@@ -237,7 +242,9 @@ export const AuctionHistory = memo(function AuctionHistory() {
           timestamp={new Date(bid.lastBidAt)}
           timestampIcon={<Clock size={14} />}
           timestampText={
-            isValid(new Date(bid.lastBidAt)) ? `${formatDistanceToNow(new Date(bid.lastBidAt), { addSuffix: true, locale: ja })}に入札` : "日付不明"
+            isValid(new Date(bid.lastBidAt))
+              ? `${formatDistanceToNow(new Date(bid.lastBidAt), { addSuffix: true, locale: ja })}に入札`
+              : "日付不明"
           }
           amount={bid.currentHighestBid}
           amountLabel="入札額"
@@ -335,7 +342,12 @@ export const AuctionHistory = memo(function AuctionHistory() {
 
         <TabsContent value="bids" forceMount={activeTab === "bids" ? undefined : true} hidden={activeTab !== "bids"}>
           {/* 入札履歴（重複なしのオークション単位での履歴を表示） */}
-          <HistoryGrid items={bidHistoryResult ?? []} renderItem={renderBidItem} emptyMessage="入札履歴はありません" loading={isLoadingCurrentTab} />
+          <HistoryGrid
+            items={bidHistoryResult ?? []}
+            renderItem={renderBidItem}
+            emptyMessage="入札履歴はありません"
+            loading={isLoadingCurrentTab}
+          />
         </TabsContent>
 
         <TabsContent value="won" forceMount={activeTab === "won" ? undefined : true} hidden={activeTab !== "won"}>
@@ -374,10 +386,19 @@ export const AuctionHistory = memo(function AuctionHistory() {
               報告タスク未完了
             </Label>
           </div>
-          <HistoryGrid items={wonHistoryResult ?? []} renderItem={renderWonItem} emptyMessage="落札履歴はありません" loading={isLoadingCurrentTab} />
+          <HistoryGrid
+            items={wonHistoryResult ?? []}
+            renderItem={renderWonItem}
+            emptyMessage="落札履歴はありません"
+            loading={isLoadingCurrentTab}
+          />
         </TabsContent>
 
-        <TabsContent value="created" forceMount={activeTab === "created" ? undefined : true} hidden={activeTab !== "created"}>
+        <TabsContent
+          value="created"
+          forceMount={activeTab === "created" ? undefined : true}
+          hidden={activeTab !== "created"}
+        >
           <div className="mb-4 flex-col items-center border-b pb-4">
             <div className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-4">
               <p className="text-base font-semibold text-gray-700">フィルター</p>
@@ -398,11 +419,20 @@ export const AuctionHistory = memo(function AuctionHistory() {
               ))}
             </div>
             <div className="mt-3 flex items-center gap-x-4">
-              <Button variant="outline" size="sm" className="min-w-[72px]" onClick={handleClearFilters} disabled={filter.length === 0}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[72px]"
+                onClick={handleClearFilters}
+                disabled={filter.length === 0}
+              >
                 クリア
               </Button>
               <div className="flex items-center space-x-2">
-                <Label htmlFor="filter-condition-switch" className="inline-block w-[72px] text-center text-sm whitespace-nowrap">
+                <Label
+                  htmlFor="filter-condition-switch"
+                  className="inline-block w-[72px] text-center text-sm whitespace-nowrap"
+                >
                   {filterCondition === "and" ? "AND検索" : "OR検索"}
                 </Label>
                 <Switch

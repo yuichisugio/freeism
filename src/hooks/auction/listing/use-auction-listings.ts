@@ -1,7 +1,6 @@
 "use client";
 
 import type {
-  AuctionFilterTypes,
   AuctionListingResult,
   AuctionListingsConditions,
   AuctionSortField,
@@ -139,7 +138,7 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     return {
       categories: params.category && params.category.length > 0 ? params.category : ["すべて"],
       status: params.status && params.status.length > 0 ? params.status : ["all"],
-      statusConditionJoinType: params.status_join_type === "OR" ? "OR" : "AND",
+      joinType: params.status_join_type === "OR" ? "OR" : "AND",
       minBid: params.min_bid ?? null,
       maxBid: params.max_bid ?? null,
       minRemainingTime: params.min_remaining_time ?? null,

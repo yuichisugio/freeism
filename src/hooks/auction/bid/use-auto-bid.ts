@@ -53,7 +53,11 @@ export type UseAutoBidReturn = {
  * @param {string | null} currentHighestBidderId 現在の最高入札者ID
  * @returns {UseAutoBidReturn} 自動入札に関する状態と操作関数
  */
-export function useAutoBid(auctionId: string, currentHighestBid: number, currentHighestBidderId: string | null): UseAutoBidReturn {
+export function useAutoBid(
+  auctionId: string,
+  currentHighestBid: number,
+  currentHighestBidderId: string | null,
+): UseAutoBidReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -153,7 +157,9 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       if (result.success && result.autoBid) {
         toast.success(result.message || "自動入札を設定しました");
         // キャッシュを無効化して再フェッチをトリガー
-        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid) });
+        void queryClient.invalidateQueries({
+          queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid),
+        });
         // オークション詳細なども更新する場合
         void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.detail(auctionId) });
 
@@ -205,7 +211,9 @@ export function useAutoBid(auctionId: string, currentHighestBid: number, current
       if (result.success) {
         toast.success(result.message || "自動入札を取り消しました");
         // キャッシュを無効化して再フェッチをトリガー
-        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid) });
+        void queryClient.invalidateQueries({
+          queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid),
+        });
         // オークション詳細なども更新する場合
         void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.detail(auctionId) });
       } else {

@@ -4,7 +4,11 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 
-import { getUserCreatedAuctions, getUserCreatedAuctionsCount, getUserCreatedAuctionsWhereCondition } from "./created-auction";
+import {
+  getUserCreatedAuctions,
+  getUserCreatedAuctionsCount,
+  getUserCreatedAuctionsWhereCondition,
+} from "./created-auction";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -132,10 +136,30 @@ describe("created-auction", () => {
         { userId: null, filter: "creator", filterCondition: "and", description: "userId is null" },
         { userId: undefined, filter: "creator", filterCondition: "and", description: "userId is undefined" },
         { userId: TEST_CONSTANTS.USER_ID, filter: null, filterCondition: "and", description: "filter is null" },
-        { userId: TEST_CONSTANTS.USER_ID, filter: undefined, filterCondition: "and", description: "filter is undefined" },
-        { userId: TEST_CONSTANTS.USER_ID, filter: ["creator"], filterCondition: "", description: "filterCondition is empty" },
-        { userId: TEST_CONSTANTS.USER_ID, filter: ["creator"], filterCondition: null, description: "filterCondition is null" },
-        { userId: TEST_CONSTANTS.USER_ID, filter: ["creator"], filterCondition: undefined, description: "filterCondition is undefined" },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          filter: undefined,
+          filterCondition: "and",
+          description: "filter is undefined",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          filter: ["creator"],
+          filterCondition: "",
+          description: "filterCondition is empty",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          filter: ["creator"],
+          filterCondition: null,
+          description: "filterCondition is null",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          filter: ["creator"],
+          filterCondition: undefined,
+          description: "filterCondition is undefined",
+        },
       ])("should throw error when $description", async ({ userId, filter, filterCondition }) => {
         await expect(
           getUserCreatedAuctionsWhereCondition(
@@ -186,7 +210,10 @@ describe("created-auction", () => {
             condition: "and" as FilterCondition,
             expected: {
               task: {
-                AND: [{ creatorId: TEST_CONSTANTS.USER_ID }, { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } }],
+                AND: [
+                  { creatorId: TEST_CONSTANTS.USER_ID },
+                  { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                ],
               },
             },
           },
@@ -196,7 +223,10 @@ describe("created-auction", () => {
             condition: "or" as FilterCondition,
             expected: {
               task: {
-                OR: [{ creatorId: TEST_CONSTANTS.USER_ID }, { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } }],
+                OR: [
+                  { creatorId: TEST_CONSTANTS.USER_ID },
+                  { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                ],
               },
             },
           },
@@ -226,7 +256,12 @@ describe("created-auction", () => {
           {
             description: "supplier_done status filter",
             status: ["supplier_done"] as AuctionCreatedTabFilter[],
-            expectedStatuses: [TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
+            expectedStatuses: [
+              TaskStatus.SUPPLIER_DONE,
+              TaskStatus.TASK_COMPLETED,
+              TaskStatus.FIXED_EVALUATED,
+              TaskStatus.POINTS_AWARDED,
+            ],
           },
           {
             description: "multiple status filters with AND condition",
@@ -267,7 +302,10 @@ describe("created-auction", () => {
             filters: ["creator", "active"] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
-              AND: [{ task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] } }, createStatusCondition([TaskStatus.AUCTION_ACTIVE])],
+              AND: [
+                { task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] } },
+                createStatusCondition([TaskStatus.AUCTION_ACTIVE]),
+              ],
             },
           },
           {
@@ -275,12 +313,23 @@ describe("created-auction", () => {
             filters: ["creator", "active"] as AuctionCreatedTabFilter[],
             condition: "or" as FilterCondition,
             expected: {
-              OR: [{ task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] } }, createStatusCondition([TaskStatus.AUCTION_ACTIVE])],
+              OR: [
+                { task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] } },
+                createStatusCondition([TaskStatus.AUCTION_ACTIVE]),
+              ],
             },
           },
           {
             description: "multiple roles and statuses with AND condition",
-            filters: ["creator", "executor", "reporter", "active", "ended", "pending", "supplier_done"] as AuctionCreatedTabFilter[],
+            filters: [
+              "creator",
+              "executor",
+              "reporter",
+              "active",
+              "ended",
+              "pending",
+              "supplier_done",
+            ] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
               AND: [
@@ -319,9 +368,30 @@ describe("created-auction", () => {
       test.each([
         { userId: "", itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "userId is empty" },
         { userId: null, itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "userId is null" },
-        { userId: undefined, itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "userId is undefined" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: [], filterCondition: "and", description: "itemPerPage is 0" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: null, page: 1, filter: [], filterCondition: "and", description: "itemPerPage is null" },
+        {
+          userId: undefined,
+          itemPerPage: 0,
+          page: 1,
+          filter: [],
+          filterCondition: "and",
+          description: "userId is undefined",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: 1,
+          filter: [],
+          filterCondition: "and",
+          description: "itemPerPage is 0",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: null,
+          page: 1,
+          filter: [],
+          filterCondition: "and",
+          description: "itemPerPage is null",
+        },
         {
           userId: TEST_CONSTANTS.USER_ID,
           itemPerPage: undefined,
@@ -330,12 +400,54 @@ describe("created-auction", () => {
           filterCondition: "and",
           description: "itemPerPage is undefined",
         },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 0, filter: [], filterCondition: "and", description: "page is 0" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: null, filter: [], filterCondition: "and", description: "page is null" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: undefined, filter: [], filterCondition: "and", description: "page is undefined" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: null, filterCondition: "and", description: "filter is null" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: undefined, filterCondition: "and", description: "filter is undefined" },
-        { userId: TEST_CONSTANTS.USER_ID, itemPerPage: 0, page: 1, filter: [], filterCondition: null, description: "filterCondition is null" },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: 0,
+          filter: [],
+          filterCondition: "and",
+          description: "page is 0",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: null,
+          filter: [],
+          filterCondition: "and",
+          description: "page is null",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: undefined,
+          filter: [],
+          filterCondition: "and",
+          description: "page is undefined",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: 1,
+          filter: null,
+          filterCondition: "and",
+          description: "filter is null",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: 1,
+          filter: undefined,
+          filterCondition: "and",
+          description: "filter is undefined",
+        },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          itemPerPage: 0,
+          page: 1,
+          filter: [],
+          filterCondition: null,
+          description: "filterCondition is null",
+        },
         {
           userId: TEST_CONSTANTS.USER_ID,
           itemPerPage: 0,
@@ -361,7 +473,13 @@ describe("created-auction", () => {
       test("should return empty array when no auctions found", async () => {
         prismaMock.auction.findMany.mockResolvedValue([]);
 
-        const result = await getUserCreatedAuctions(TEST_CONSTANTS.PAGE, TEST_CONSTANTS.USER_ID, TEST_CONSTANTS.ITEM_PER_PAGE, [], "and");
+        const result = await getUserCreatedAuctions(
+          TEST_CONSTANTS.PAGE,
+          TEST_CONSTANTS.USER_ID,
+          TEST_CONSTANTS.ITEM_PER_PAGE,
+          [],
+          "and",
+        );
 
         expect(result).toStrictEqual([]);
       });
@@ -380,7 +498,13 @@ describe("created-auction", () => {
           });
           prismaMock.auction.findMany.mockResolvedValue([mockData] as never);
 
-          const result = await getUserCreatedAuctions(TEST_CONSTANTS.PAGE, TEST_CONSTANTS.USER_ID, TEST_CONSTANTS.ITEM_PER_PAGE, [], "and");
+          const result = await getUserCreatedAuctions(
+            TEST_CONSTANTS.PAGE,
+            TEST_CONSTANTS.USER_ID,
+            TEST_CONSTANTS.ITEM_PER_PAGE,
+            [],
+            "and",
+          );
 
           const expected = createExpectedAuctionData({
             auctionId: "auction-1",
@@ -408,7 +532,13 @@ describe("created-auction", () => {
           });
           prismaMock.auction.findMany.mockResolvedValue([mockData] as never);
 
-          const result = await getUserCreatedAuctions(TEST_CONSTANTS.PAGE, TEST_CONSTANTS.USER_ID, TEST_CONSTANTS.ITEM_PER_PAGE, [], "and");
+          const result = await getUserCreatedAuctions(
+            TEST_CONSTANTS.PAGE,
+            TEST_CONSTANTS.USER_ID,
+            TEST_CONSTANTS.ITEM_PER_PAGE,
+            [],
+            "and",
+          );
 
           const expected = createExpectedAuctionData({
             winnerId: null,
@@ -432,7 +562,13 @@ describe("created-auction", () => {
           });
           prismaMock.auction.findMany.mockResolvedValue([mockData] as never);
 
-          const result = await getUserCreatedAuctions(TEST_CONSTANTS.PAGE, TEST_CONSTANTS.USER_ID, TEST_CONSTANTS.ITEM_PER_PAGE, [], "and");
+          const result = await getUserCreatedAuctions(
+            TEST_CONSTANTS.PAGE,
+            TEST_CONSTANTS.USER_ID,
+            TEST_CONSTANTS.ITEM_PER_PAGE,
+            [],
+            "and",
+          );
 
           const expected = createExpectedAuctionData({
             taskRole: ["SUPPLIER", "EXECUTOR", "REPORTER"] as ("SUPPLIER" | "EXECUTOR" | "REPORTER")[],
@@ -472,9 +608,19 @@ describe("created-auction", () => {
         { userId: null, filter: [], filterCondition: "and", description: "userId is null" },
         { userId: undefined, filter: [], filterCondition: "and", description: "userId is undefined" },
         { userId: TEST_CONSTANTS.USER_ID, filter: null, filterCondition: "and", description: "filter is null" },
-        { userId: TEST_CONSTANTS.USER_ID, filter: undefined, filterCondition: "and", description: "filter is undefined" },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          filter: undefined,
+          filterCondition: "and",
+          description: "filter is undefined",
+        },
         { userId: TEST_CONSTANTS.USER_ID, filter: [], filterCondition: null, description: "filterCondition is null" },
-        { userId: TEST_CONSTANTS.USER_ID, filter: [], filterCondition: undefined, description: "filterCondition is undefined" },
+        {
+          userId: TEST_CONSTANTS.USER_ID,
+          filter: [],
+          filterCondition: undefined,
+          description: "filterCondition is undefined",
+        },
       ])("should throw error when $description", async ({ userId, filter, filterCondition }) => {
         await expect(
           getUserCreatedAuctionsCount(

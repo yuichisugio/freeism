@@ -173,7 +173,9 @@ describe("CreateNotificationForm", () => {
 
     // 権限なしメッセージの確認
     expect(screen.getByText("オーナー権限がありません")).toBeInTheDocument();
-    expect(screen.getByText("通知作成には、アプリオーナー権限またはいずれかのグループでグループオーナー権限が必要です。")).toBeInTheDocument();
+    expect(
+      screen.getByText("通知作成には、アプリオーナー権限またはいずれかのグループでグループオーナー権限が必要です。"),
+    ).toBeInTheDocument();
     expect(screen.getByText("ダッシュボードに戻る")).toBeInTheDocument();
   });
 

@@ -174,7 +174,9 @@ describe("cache-auction-history", () => {
   describe("getCachedAuctionHistoryCreatedDetail", () => {
     test("should return auction history detail successfully", async () => {
       // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(mockPrismaAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockPrismaAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -319,7 +321,9 @@ describe("cache-auction-history", () => {
         winner: null,
         winnerId: null,
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithNullWinner as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithNullWinner as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -338,7 +342,9 @@ describe("cache-auction-history", () => {
         ...mockPrismaAuctionData,
         bidHistories: [],
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithEmptyBids as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithEmptyBids as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -359,7 +365,9 @@ describe("cache-auction-history", () => {
           detail: null,
         },
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithNullDetail as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithNullDetail as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -383,7 +391,9 @@ describe("cache-auction-history", () => {
           imageUrl: null,
         },
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithNullImage as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithNullImage as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -615,7 +625,9 @@ describe("cache-auction-history", () => {
     test("should handle null auctionId parameter", async () => {
       // Arrange
       const nullAuctionId: string = null as unknown as string;
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(nullAuctionId);
@@ -638,7 +650,9 @@ describe("cache-auction-history", () => {
     test("should handle undefined auctionId parameter", async () => {
       // Arrange
       const undefinedAuctionId: string = undefined as unknown as string;
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(undefinedAuctionId);
@@ -661,7 +675,9 @@ describe("cache-auction-history", () => {
     test("should handle very long auctionId string", async () => {
       // Arrange
       const longAuctionId = "a".repeat(1000);
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(longAuctionId);
@@ -684,7 +700,9 @@ describe("cache-auction-history", () => {
     test("should handle special characters in auctionId", async () => {
       // Arrange
       const specialCharAuctionId = "!@#$%^&*()";
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(specialCharAuctionId);
@@ -706,7 +724,9 @@ describe("cache-auction-history", () => {
 
     test("should call cacheTag with correct parameter when auction is found", async () => {
       // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(mockPrismaAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockPrismaAuctionData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
       const { unstable_cacheTag } = await import("next/cache");
 
       // Act
@@ -718,7 +738,9 @@ describe("cache-auction-history", () => {
 
     test("should not call cacheTag when auction is not found", async () => {
       // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
       const { unstable_cacheTag } = await import("next/cache");
 
       // Act
@@ -737,7 +759,9 @@ describe("cache-auction-history", () => {
         ...mockPrismaAuctionData,
         currentHighestBid: 0,
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithZeroBid as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithZeroBid as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -753,7 +777,9 @@ describe("cache-auction-history", () => {
         ...mockPrismaAuctionData,
         currentHighestBid: maxBid,
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithMaxBid as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithMaxBid as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -770,7 +796,9 @@ describe("cache-auction-history", () => {
         startTime: pastDate,
         endTime: pastDate,
       };
-      prismaMock.auction.findUnique.mockResolvedValue(mockDataWithPastDates as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        mockDataWithPastDates as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(testAuctionId);
@@ -834,7 +862,9 @@ describe("cache-auction-history", () => {
     test("should handle non-string auctionId parameter", async () => {
       // Arrange
       const nonStringAuctionId: string = 123 as unknown as string;
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(nonStringAuctionId);
@@ -857,7 +887,9 @@ describe("cache-auction-history", () => {
     test("should handle boolean auctionId parameter", async () => {
       // Arrange
       const booleanAuctionId: string = true as unknown as string;
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(booleanAuctionId);
@@ -880,7 +912,9 @@ describe("cache-auction-history", () => {
     test("should handle object auctionId parameter", async () => {
       // Arrange
       const objectAuctionId: string = { id: "test" } as unknown as string;
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(objectAuctionId);
@@ -903,7 +937,9 @@ describe("cache-auction-history", () => {
     test("should handle array auctionId parameter", async () => {
       // Arrange
       const arrayAuctionId: string = ["test"] as unknown as string;
-      prismaMock.auction.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+      prismaMock.auction.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+      );
 
       // Act
       const result = await getCachedAuctionHistoryCreatedDetail(arrayAuctionId);

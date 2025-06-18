@@ -1,4 +1,17 @@
-import { Body, Column, Container, Head, Hr, Html, Img, Link, Preview, Row, Section, Text } from "@react-email/components";
+import {
+  Body,
+  Column,
+  Container,
+  Head,
+  Hr,
+  Html,
+  Img,
+  Link,
+  Preview,
+  Row,
+  Section,
+  Text,
+} from "@react-email/components";
 
 const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
 
@@ -24,7 +37,8 @@ export default function NotificationEmail({ title, message }: { title: string; m
           <Section>
             <Text style={cupomText}>
               {message}
-              <sup style={supStyle}>1</sup> <Link href="https://www.apple.com/apple-card/">Apply and use in minutes</Link>
+              <sup style={supStyle}>1</sup>{" "}
+              <Link href="https://www.apple.com/apple-card/">Apply and use in minutes</Link>
               <sup style={supStyle}>2</sup>
             </Text>
           </Section>
@@ -90,7 +104,13 @@ export default function NotificationEmail({ title, message }: { title: string; m
           <Section>
             <Row>
               <Column style={{ width: "64px" }}>
-                <Img src={`${baseUrl}/static/apple-hbo-max-icon.jpeg`} width="64" height="64" alt="HBO Max" style={productIcon} />
+                <Img
+                  src={`${baseUrl}/static/apple-hbo-max-icon.jpeg`}
+                  width="64"
+                  height="64"
+                  alt="HBO Max"
+                  style={productIcon}
+                />
               </Column>
               <Column style={{ paddingLeft: "22px" }}>
                 <Text style={productTitle}>HBO Max: Stream TV &amp; Movies</Text>
@@ -141,7 +161,13 @@ export default function NotificationEmail({ title, message }: { title: string; m
             <Row>
               <Column align="center" style={walletWrapper}>
                 <Link href="https://www.apple.com/" style={walletLink}>
-                  <Img src={`${baseUrl}/static/apple-wallet.png`} width="28" height="28" alt="Apple Wallet" style={walletImage} />
+                  <Img
+                    src={`${baseUrl}/static/apple-wallet.png`}
+                    width="28"
+                    height="28"
+                    alt="Apple Wallet"
+                    style={walletImage}
+                  />
                   <span style={walletLinkText}>Apply and use in minutes</span>
                 </Link>
               </Column>
@@ -149,19 +175,22 @@ export default function NotificationEmail({ title, message }: { title: string; m
           </Section>
           <Hr style={walletBottomLine} />
           <Text style={footerText}>
-            1. 3% savings is earned as Daily Cash and is transferred to your Apple Cash card when transactions post to your Apple Card account. If you
-            do not have an Apple Cash card, Daily Cash can be applied by you as a credit on your statement balance. 3% is the total amount of Daily
-            Cash earned for these purchases. See the Apple Card Customer Agreement for more details on Daily Cash and qualifying transactions.
+            1. 3% savings is earned as Daily Cash and is transferred to your Apple Cash card when transactions post to
+            your Apple Card account. If you do not have an Apple Cash card, Daily Cash can be applied by you as a credit
+            on your statement balance. 3% is the total amount of Daily Cash earned for these purchases. See the Apple
+            Card Customer Agreement for more details on Daily Cash and qualifying transactions.
           </Text>
           <Text style={footerText}>2. Subject to credit approval.</Text>
           <Text style={footerText}>
-            To access and use all the features of Apple Card, you must add Apple Card to Wallet on an iPhone or iPad with iOS or iPadOS 13.2 or later.
-            Update to the latest version of iOS or iPadOS by going to Settings &gt; General &gt; Software Update. Tap Download and Install.
+            To access and use all the features of Apple Card, you must add Apple Card to Wallet on an iPhone or iPad
+            with iOS or iPadOS 13.2 or later. Update to the latest version of iOS or iPadOS by going to Settings &gt;
+            General &gt; Software Update. Tap Download and Install.
           </Text>
           <Text style={footerText}>Available for qualifying applicants in the United States.</Text>
           <Text style={footerText}>Apple Card is issued by Goldman Sachs Bank USA, Salt Lake City Branch.</Text>
           <Text style={footerText}>
-            If you reside in the US territories, please call Goldman Sachs at 877-255-5923 with questions about Apple Card.
+            If you reside in the US territories, please call Goldman Sachs at 877-255-5923 with questions about Apple
+            Card.
           </Text>
           <Text style={footerTextCenter}>
             Privacy: We use a
@@ -178,14 +207,15 @@ export default function NotificationEmail({ title, message }: { title: string; m
             </Link>
           </Text>
           <Text style={footerTextCenter}>
-            Learn how to <Link href="https://www.apple.com/">manage your password preferences</Link> for iTunes, Apple Books, and App Store purchases.
+            Learn how to <Link href="https://www.apple.com/">manage your password preferences</Link> for iTunes, Apple
+            Books, and App Store purchases.
           </Text>
 
           <Text style={footerTextCenter}>
             {" "}
-            You have the option to stop receiving email receipts for your subscription renewals. If you have opted out, you can still view your
-            receipts in your account under Purchase History. To manage receipts or to opt in again, go to{" "}
-            <Link href="https://www.apple.com/">Account Settings.</Link>
+            You have the option to stop receiving email receipts for your subscription renewals. If you have opted out,
+            you can still view your receipts in your account under Purchase History. To manage receipts or to opt in
+            again, go to <Link href="https://www.apple.com/">Account Settings.</Link>
           </Text>
           <Section>
             <Row>
@@ -195,7 +225,8 @@ export default function NotificationEmail({ title, message }: { title: string; m
             </Row>
           </Section>
           <Text style={footerLinksWrapper}>
-            <Link href="https://www.apple.com/">Account Settings</Link> • <Link href="https://www.apple.com/">Terms of Sale</Link> •{" "}
+            <Link href="https://www.apple.com/">Account Settings</Link> •{" "}
+            <Link href="https://www.apple.com/">Terms of Sale</Link> •{" "}
             <Link href="https://www.apple.com/legal/privacy/">Privacy Policy </Link>
           </Text>
           <Text style={footerCopyright}>

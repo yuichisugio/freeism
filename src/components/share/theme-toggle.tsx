@@ -58,7 +58,13 @@ export function ThemeToggle() {
   };
 
   return (
-    <Button variant="outline" size="default" onClick={toggleTheme} className="button-outline-custom" aria-label="テーマ切り替え">
+    <Button
+      variant="outline"
+      size="default"
+      onClick={toggleTheme}
+      className="button-outline-custom"
+      aria-label="テーマ切り替え"
+    >
       <ThemeIcon />
     </Button>
   );

@@ -5,7 +5,10 @@ import type { QueryFnReturnType } from "@/types/notifications-types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { redirect } from "next/navigation";
-import { getNotificationsAndUnreadCount, updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
+import {
+  getNotificationsAndUnreadCount,
+  updateNotificationStatus,
+} from "@/lib/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -119,120 +122,122 @@ export function useNotificationList(): NotificationManagerResult {
     fetchNextPage,
     hasNextPage,
     refetch,
-  } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string, string, string], number>({
-    queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
-    queryFn: async ({ pageParam }) => {
-      if (!userId) {
-        console.warn("userId is not available for fetching notifications.");
-        return { notifications: [], totalCount: 0, unreadCount: 0, readCount: 0 };
-      }
-      const result = await getNotificationsAndUnreadCount(userId, pageParam, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
+  } = useInfiniteQuery<QueryFnReturnType, Error, SelectedResultType, readonly [string, string, string, string], number>(
+    {
+      queryKey: queryCacheKeys.Notification.userAllNotifications(userId),
+      queryFn: async ({ pageParam }) => {
+        if (!userId) {
+          console.warn("userId is not available for fetching notifications.");
+          return { notifications: [], totalCount: 0, unreadCount: 0, readCount: 0 };
+        }
+        const result = await getNotificationsAndUnreadCount(userId, pageParam, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
-      // 日付文字列をDateオブジェクトに変換する
-      const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
-        ...notification, // サーバーから来たnotificationは日付が文字列化されている
-        sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
-        readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
-        expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
-        // auctionEventTypeはサーバー側で型アサーション済み
-      }));
+        // 日付文字列をDateオブジェクトに変換する
+        const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
+          ...notification, // サーバーから来たnotificationは日付が文字列化されている
+          sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
+          readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
+          expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
+          // auctionEventTypeはサーバー側で型アサーション済み
+        }));
 
-      return {
-        notifications: processedNotifications,
-        totalCount: result.totalCount,
-        unreadCount: result.unreadCount,
-        readCount: result.readCount,
-      };
-    },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages, lastPageParam) => {
-      // allPages には今までのページデータ (QueryFnReturnType[]) が格納されている
-      // lastPage には最新のページデータ (QueryFnReturnType) が格納されている
-      // lastPage.readCount はAPIから返された全体の既読通知の総数
-      // lastPage.unreadCount はAPIから返された全体の未読通知の総数
+        return {
+          notifications: processedNotifications,
+          totalCount: result.totalCount,
+          unreadCount: result.unreadCount,
+          readCount: result.readCount,
+        };
+      },
+      initialPageParam: 1,
+      getNextPageParam: (lastPage, allPages, lastPageParam) => {
+        // allPages には今までのページデータ (QueryFnReturnType[]) が格納されている
+        // lastPage には最新のページデータ (QueryFnReturnType) が格納されている
+        // lastPage.readCount はAPIから返された全体の既読通知の総数
+        // lastPage.unreadCount はAPIから返された全体の未読通知の総数
 
-      // これまでに読み込まれた既読・未読の通知数を計算
-      let loadedReadCount = 0;
-      let loadedUnreadCount = 0;
-      allPages.forEach((page) => {
-        page.notifications.forEach((notification) => {
+        // これまでに読み込まれた既読・未読の通知数を計算
+        let loadedReadCount = 0;
+        let loadedUnreadCount = 0;
+        allPages.forEach((page) => {
+          page.notifications.forEach((notification) => {
+            if (notification.isRead) {
+              loadedReadCount++;
+            } else {
+              loadedUnreadCount++;
+            }
+          });
+        });
+
+        const hasMoreRead = loadedReadCount < lastPage.readCount;
+        const hasMoreUnread = loadedUnreadCount < lastPage.unreadCount;
+
+        if (hasMoreRead || hasMoreUnread) {
+          return lastPageParam + 1;
+        }
+        return undefined; // これ以上読み込むページがない場合は undefined を返す
+      },
+      select: (fetchedData: InfiniteData<QueryFnReturnType, number>): SelectedResultType => {
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // 取得したデータをフラット化 (この時点で日付は Date オブジェクトになっている)
+        const allFetchedNotifications = fetchedData.pages.flatMap((p) => p.notifications);
+
+        // 重複排除はサーバー側で実施済みのため、ここでは不要
+        // ソート処理
+        allFetchedNotifications.sort((a, b) => {
+          if (!a.sentAt && !b.sentAt) return 0;
+          if (!a.sentAt) return 1; // null or undefined sentAt should come after
+          if (!b.sentAt) return -1; // null or undefined sentAt should come after
+          return new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime();
+        });
+
+        const currentOverallUnreadCount = allFetchedNotifications.filter((n) => !n.isRead).length;
+
+        // readHasMore と unReadHasMore の計算
+        let currentLoadedReadCount = 0;
+        let currentLoadedUnreadCount = 0;
+        allFetchedNotifications.forEach((notification) => {
           if (notification.isRead) {
-            loadedReadCount++;
-          } else {
-            loadedUnreadCount++;
+            currentLoadedReadCount++;
+          } else if (!notification.isRead) {
+            currentLoadedUnreadCount++;
           }
         });
-      });
 
-      const hasMoreRead = loadedReadCount < lastPage.readCount;
-      const hasMoreUnread = loadedUnreadCount < lastPage.unreadCount;
+        // 最新の総数は、最後のページデータから取得
+        const lastPageData = fetchedData.pages[fetchedData.pages.length - 1];
+        let readHasMore = false;
+        let unReadHasMore = false;
 
-      if (hasMoreRead || hasMoreUnread) {
-        return lastPageParam + 1;
-      }
-      return undefined; // これ以上読み込むページがない場合は undefined を返す
-    },
-    select: (fetchedData: InfiniteData<QueryFnReturnType, number>): SelectedResultType => {
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      // 取得したデータをフラット化 (この時点で日付は Date オブジェクトになっている)
-      const allFetchedNotifications = fetchedData.pages.flatMap((p) => p.notifications);
-
-      // 重複排除はサーバー側で実施済みのため、ここでは不要
-      // ソート処理
-      allFetchedNotifications.sort((a, b) => {
-        if (!a.sentAt && !b.sentAt) return 0;
-        if (!a.sentAt) return 1; // null or undefined sentAt should come after
-        if (!b.sentAt) return -1; // null or undefined sentAt should come after
-        return new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime();
-      });
-
-      const currentOverallUnreadCount = allFetchedNotifications.filter((n) => !n.isRead).length;
-
-      // readHasMore と unReadHasMore の計算
-      let currentLoadedReadCount = 0;
-      let currentLoadedUnreadCount = 0;
-      allFetchedNotifications.forEach((notification) => {
-        if (notification.isRead) {
-          currentLoadedReadCount++;
-        } else if (!notification.isRead) {
-          currentLoadedUnreadCount++;
+        // 読み込まれた通知数が総数と一致したら、hasMoreをfalseにする。
+        // useInfiniteQueryは前回取得した値が入る。
+        // 全件取得後はuseInfiniteQuery実行後も未読/既読のそれぞれの件数の内容は変わらないが、setQueryDataでキャッシュを更新しているため、通知全権取得後は数がズレる。なので全件取得後はtotalCountと読み込まれた数が一致するかでhasMoreを判断する。
+        if (lastPageData.totalCount == currentLoadedReadCount + currentLoadedUnreadCount) {
+          readHasMore = false;
+          unReadHasMore = false;
+          // 総数と一致しない場合は、読み込みを継続
+        } else {
+          readHasMore = currentLoadedReadCount < lastPageData.readCount;
+          unReadHasMore = currentLoadedUnreadCount < lastPageData.unreadCount;
         }
-      });
 
-      // 最新の総数は、最後のページデータから取得
-      const lastPageData = fetchedData.pages[fetchedData.pages.length - 1];
-      let readHasMore = false;
-      let unReadHasMore = false;
-
-      // 読み込まれた通知数が総数と一致したら、hasMoreをfalseにする。
-      // useInfiniteQueryは前回取得した値が入る。
-      // 全件取得後はuseInfiniteQuery実行後も未読/既読のそれぞれの件数の内容は変わらないが、setQueryDataでキャッシュを更新しているため、通知全権取得後は数がズレる。なので全件取得後はtotalCountと読み込まれた数が一致するかでhasMoreを判断する。
-      if (lastPageData.totalCount == currentLoadedReadCount + currentLoadedUnreadCount) {
-        readHasMore = false;
-        unReadHasMore = false;
-        // 総数と一致しない場合は、読み込みを継続
-      } else {
-        readHasMore = currentLoadedReadCount < lastPageData.readCount;
-        unReadHasMore = currentLoadedUnreadCount < lastPageData.unreadCount;
-      }
-
-      return {
-        pages: fetchedData.pages.map((page) => ({
-          ...page,
-          notifications: page.notifications,
-        })),
-        pageParams: fetchedData.pageParams,
-        flatNotifications: allFetchedNotifications, // 日付が Date オブジェクトの通知リスト
-        overallUnreadCount: currentOverallUnreadCount, // 現在クライアントにロードされている通知の中での未読数
-        readHasMore,
-        unReadHasMore,
-      };
+        return {
+          pages: fetchedData.pages.map((page) => ({
+            ...page,
+            notifications: page.notifications,
+          })),
+          pageParams: fetchedData.pageParams,
+          flatNotifications: allFetchedNotifications, // 日付が Date オブジェクトの通知リスト
+          overallUnreadCount: currentOverallUnreadCount, // 現在クライアントにロードされている通知の中での未読数
+          readHasMore,
+          unReadHasMore,
+        };
+      },
+      staleTime: 1000 * 60 * 30,
+      gcTime: 1000 * 60 * 30,
+      enabled: !!userId,
     },
-    staleTime: 1000 * 60 * 30,
-    gcTime: 1000 * 60 * 30,
-    enabled: !!userId,
-  });
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -317,40 +322,46 @@ export function useNotificationList(): NotificationManagerResult {
 
       updateNotificationStatus(updatesToSync)
         .then(() => {
-          queryClient.setQueriesData<InfiniteQueryData>({ queryKey: queryCacheKeys.Notification.userAllNotifications(userId) }, (oldData) => {
-            if (!oldData?.pages) {
-              // oldDataまたはoldData.pagesが存在しない場合は、何も変更せずに現在のキャッシュデータを返すか、
-              // もしくは状況に応じて初期データ構造を返すなどの処理を行う。
-              // ここでは元のデータをそのまま返す。
-              return oldData;
-            }
+          queryClient.setQueriesData<InfiniteQueryData>(
+            { queryKey: queryCacheKeys.Notification.userAllNotifications(userId) },
+            (oldData) => {
+              if (!oldData?.pages) {
+                // oldDataまたはoldData.pagesが存在しない場合は、何も変更せずに現在のキャッシュデータを返すか、
+                // もしくは状況に応じて初期データ構造を返すなどの処理を行う。
+                // ここでは元のデータをそのまま返す。
+                return oldData;
+              }
 
-            // updatesToSync を Map 形式に変換して効率的に参照できるようにする
-            const updatesMap = new Map(updatesToSync.map((u) => [u.notificationId, u.isRead]));
+              // updatesToSync を Map 形式に変換して効率的に参照できるようにする
+              const updatesMap = new Map(updatesToSync.map((u) => [u.notificationId, u.isRead]));
 
-            const newPages = oldData.pages.map((page) => {
-              const newNotifications = page.notifications.map((n) => {
-                // pending.current ではなく、同期的に作成した updatesMap を使用して更新を判定
-                if (updatesMap.has(n.id)) {
-                  const newIsRead = updatesMap.get(n.id)!;
-                  return { ...n, isRead: newIsRead, readAt: newIsRead ? new Date() : null };
-                }
-                return n;
+              const newPages = oldData.pages.map((page) => {
+                const newNotifications = page.notifications.map((n) => {
+                  // pending.current ではなく、同期的に作成した updatesMap を使用して更新を判定
+                  if (updatesMap.has(n.id)) {
+                    const newIsRead = updatesMap.get(n.id)!;
+                    return { ...n, isRead: newIsRead, readAt: newIsRead ? new Date() : null };
+                  }
+                  return n;
+                });
+                return { ...page, notifications: newNotifications };
               });
-              return { ...page, notifications: newNotifications };
-            });
 
-            // 更新されたキャッシュ内の全通知から最新の未読総数を再計算
-            const allFinalNotifications = newPages.flatMap((p) => p.notifications);
-            const finalOverallUnreadCount = allFinalNotifications.filter((n) => !n.isRead).length;
+              // 更新されたキャッシュ内の全通知から最新の未読総数を再計算
+              const allFinalNotifications = newPages.flatMap((p) => p.notifications);
+              const finalOverallUnreadCount = allFinalNotifications.filter((n) => !n.isRead).length;
 
-            // グローバルな未読件数ステートを更新
-            setUnreadCount(finalOverallUnreadCount);
-            // hasUnreadNotifications クエリも更新
-            queryClient.setQueryData(queryCacheKeys.Notification.hasUnreadNotifications(userId), finalOverallUnreadCount > 0);
+              // グローバルな未読件数ステートを更新
+              setUnreadCount(finalOverallUnreadCount);
+              // hasUnreadNotifications クエリも更新
+              queryClient.setQueryData(
+                queryCacheKeys.Notification.hasUnreadNotifications(userId),
+                finalOverallUnreadCount > 0,
+              );
 
-            return { ...oldData, pages: newPages };
-          });
+              return { ...oldData, pages: newPages };
+            },
+          );
         })
         .catch((err) => {
           console.error("アンマウント時のバッチ更新に失敗しました。", err);

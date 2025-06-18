@@ -1,5 +1,11 @@
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { auctionFactory, bidHistoryFactory, groupFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  auctionFactory,
+  bidHistoryFactory,
+  groupFactory,
+  taskFactory,
+  userFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { BidStatus, NotificationSendMethod, NotificationSendTiming, PrismaClient, TaskStatus } from "@prisma/client";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -293,7 +299,9 @@ describe("returnAuctionDepositPoints", () => {
           },
         },
       });
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, task.task, "100", user.id));
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+        createExpectedNotificationParams(auction.id, task.task, "100", user.id),
+      );
     });
 
     test("should handle multiple eligible auctions", async () => {
@@ -353,7 +361,9 @@ describe("returnAuctionDepositPoints", () => {
       const result = await returnAuctionDepositPoints();
 
       expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, task.task, "0", user.id));
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+        createExpectedNotificationParams(auction.id, task.task, "0", user.id),
+      );
     });
 
     test("should handle empty auction list", async () => {
@@ -393,7 +403,9 @@ describe("returnAuctionDepositPoints", () => {
       const result = await returnAuctionDepositPoints();
 
       expect(result).toBe(0);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`オークションID: ${auction.id} には落札者のレコードがありません。スキップします。`);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        `オークションID: ${auction.id} には落札者のレコードがありません。スキップします。`,
+      );
       expect(mockSendAuctionNotification).not.toHaveBeenCalled();
     });
 
@@ -419,7 +431,9 @@ describe("returnAuctionDepositPoints", () => {
       const result = await returnAuctionDepositPoints();
 
       expect(result).toBe(0);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`オークションID: ${auction.id} の落札者の預けポイントがありません。スキップします。`);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        `オークションID: ${auction.id} の落札者の預けポイントがありません。スキップします。`,
+      );
       expect(mockSendAuctionNotification).not.toHaveBeenCalled();
     });
 
@@ -441,7 +455,9 @@ describe("returnAuctionDepositPoints", () => {
 
       setupPrismaTransactionMock({ groupPointUpdateCount: 0 });
 
-      await expect(returnAuctionDepositPoints()).rejects.toThrow(`ユーザーID: ${user.id} のグループポイントレコードが見つかりませんでした。`);
+      await expect(returnAuctionDepositPoints()).rejects.toThrow(
+        `ユーザーID: ${user.id} のグループポイントレコードが見つかりませんでした。`,
+      );
     });
 
     test("should throw error when task is not found", async () => {
@@ -470,7 +486,10 @@ describe("returnAuctionDepositPoints", () => {
       vi.mocked(prismaMock.auction.findMany).mockRejectedValue(new Error("Database connection failed"));
 
       await expect(returnAuctionDepositPoints()).rejects.toThrow("Database connection failed");
-      expect(mockConsoleError).toHaveBeenCalledWith("オークションポイント返還処理でエラーが発生しました:", expect.any(Error));
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        "オークションポイント返還処理でエラーが発生しました:",
+        expect.any(Error),
+      );
     });
 
     test("should handle notification sending failure", async () => {
@@ -596,7 +615,9 @@ describe("returnAuctionDepositPoints", () => {
       const result = await returnAuctionDepositPoints();
 
       expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, longTaskName, "100", user.id));
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+        createExpectedNotificationParams(auction.id, longTaskName, "100", user.id),
+      );
     });
   });
 
@@ -702,7 +723,9 @@ describe("returnAuctionDepositPoints", () => {
 
       // 最初の入札履歴のみが処理される
       expect(result).toBe(1);
-      expect(mockSendAuctionNotification).toHaveBeenCalledWith(createExpectedNotificationParams(auction.id, task.task, "100", user1.id));
+      expect(mockSendAuctionNotification).toHaveBeenCalledWith(
+        createExpectedNotificationParams(auction.id, task.task, "100", user1.id),
+      );
     });
   });
 });
@@ -726,7 +749,9 @@ describe("main", () => {
     await expect(main()).rejects.toThrow("process.exit called");
 
     expect(mockConsoleLog).toHaveBeenCalledWith("オークションのポイント返還処理を開始します...");
-    expect(mockConsoleLog).toHaveBeenCalledWith("処理が完了しました。0件のオークションのポイント返還処理を実行しました。");
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      "処理が完了しました。0件のオークションのポイント返還処理を実行しました。",
+    );
     expect(mockProcessExit).toHaveBeenCalledWith(0);
   });
 
@@ -767,7 +792,9 @@ describe("main", () => {
 
     await expect(main()).rejects.toThrow("process.exit called");
 
-    expect(mockConsoleLog).toHaveBeenCalledWith("処理が完了しました。2件のオークションのポイント返還処理を実行しました。");
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      "処理が完了しました。2件のオークションのポイント返還処理を実行しました。",
+    );
     expect(mockProcessExit).toHaveBeenCalledWith(0);
   });
 });

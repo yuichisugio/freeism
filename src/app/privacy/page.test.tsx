@@ -153,7 +153,9 @@ describe("PrivacyPage", () => {
       render(await PrivacyPage());
 
       // Assert
-      expect(screen.getByText(/Freeism-App（以下、「当サービス」といいます。）は、以下の個人情報を収集することがあります/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Freeism-App（以下、「当サービス」といいます。）は、以下の個人情報を収集することがあります/),
+      ).toBeInTheDocument();
       expect(screen.getByText(/当サービスは、収集した個人情報を以下の目的で利用します/)).toBeInTheDocument();
       expect(screen.getByText(/当サービスは、個人情報の漏洩、滅失、毀損等を防ぐため/)).toBeInTheDocument();
     });
@@ -233,7 +235,14 @@ describe("PrivacyPage", () => {
 
       // Assert
       const proseContainer = screen.getByRole("main").querySelector(".prose");
-      expect(proseContainer).toHaveClass("prose", "prose-blue", "mx-auto", "max-w-none", "space-y-6", "text-neutral-700");
+      expect(proseContainer).toHaveClass(
+        "prose",
+        "prose-blue",
+        "mx-auto",
+        "max-w-none",
+        "space-y-6",
+        "text-neutral-700",
+      );
     });
 
     test("should render all sections with proper structure", async () => {

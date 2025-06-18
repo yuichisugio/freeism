@@ -53,9 +53,15 @@ describe("prepareCreateNotificationForm", () => {
       const groupsFromDb = [testGroup, { id: "group-2", name: "グループ2" }];
       const tasksFromDb = [testTask, { id: "task-2", task: "タスク2" }];
 
-      prismaMock.user.findMany.mockResolvedValue(usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
-      prismaMock.group.findMany.mockResolvedValue(groupsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
-      prismaMock.task.findMany.mockResolvedValue(tasksFromDb as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
+      prismaMock.group.findMany.mockResolvedValue(
+        groupsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
+      prismaMock.task.findMany.mockResolvedValue(
+        tasksFromDb as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+      );
 
       // 関数を実行
       const result = await prepareCreateNotificationForm(true, false, testUserId);
@@ -113,8 +119,12 @@ describe("prepareCreateNotificationForm", () => {
         },
       ];
 
-      prismaMock.user.findMany.mockResolvedValue(usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
-      prismaMock.group.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
+      prismaMock.group.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
 
       // 関数を実行
@@ -134,8 +144,12 @@ describe("prepareCreateNotificationForm", () => {
         },
       ];
 
-      prismaMock.user.findMany.mockResolvedValue(usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
-      prismaMock.group.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
+      prismaMock.group.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
 
       // 関数を実行
@@ -155,8 +169,12 @@ describe("prepareCreateNotificationForm", () => {
         },
       ];
 
-      prismaMock.user.findMany.mockResolvedValue(usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
-      prismaMock.group.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
+      prismaMock.group.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
 
       // 関数を実行
@@ -284,7 +302,9 @@ describe("prepareCreateNotificationForm", () => {
       const groupsFromDb = [testGroup];
       const tasksFromDb = [testTask];
 
-      prismaMock.user.findMany.mockResolvedValue(usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
       prismaMock.group.findMany.mockResolvedValue(groupsFromDb);
       prismaMock.task.findMany.mockResolvedValue(tasksFromDb);
 
@@ -567,8 +587,12 @@ describe("prepareCreateNotificationForm", () => {
         settings: { username: `username${index}` },
       }));
 
-      prismaMock.user.findMany.mockResolvedValue(largeUserList as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
-      prismaMock.group.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        largeUserList as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
+      prismaMock.group.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
 
       // 関数を実行
@@ -590,8 +614,12 @@ describe("prepareCreateNotificationForm", () => {
         { id: "user-5", name: "ユーザー5", settings: { username: null } },
       ];
 
-      prismaMock.user.findMany.mockResolvedValue(mixedUserList as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
-      prismaMock.group.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue(
+        mixedUserList as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
+      prismaMock.group.findMany.mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
 
       // 関数を実行

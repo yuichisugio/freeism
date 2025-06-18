@@ -220,8 +220,16 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
         {/* 参加していないユーザー向けの参加ボタン */}
         {!isMember && (
           <div className="flex justify-center">
-            <Button onClick={() => handleJoinGroup(group.id)} disabled={isJoiningGroup} className="bg-green-600 text-white hover:bg-green-700">
-              {isJoiningGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+            <Button
+              onClick={() => handleJoinGroup(group.id)}
+              disabled={isJoiningGroup}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {isJoiningGroup ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <UserPlus className="mr-2 h-4 w-4" />
+              )}
               グループに参加する
             </Button>
           </div>
@@ -242,7 +250,11 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                   グループを編集
                 </Button>
 
-                <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={() => setIsUploadModalOpen(true)}>
+                <Button
+                  variant="outline"
+                  className="bg-white hover:bg-gray-50"
+                  onClick={() => setIsUploadModalOpen(true)}
+                >
                   <Upload />
                   CSVアップロード
                 </Button>
@@ -252,7 +264,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                   権限を付与
                 </Button>
 
-                <Button variant="outline" className="bg-white hover:bg-gray-50" onClick={handleOpenRemoveMemberDialog} disabled={isRemovingMember}>
+                <Button
+                  variant="outline"
+                  className="bg-white hover:bg-gray-50"
+                  onClick={handleOpenRemoveMemberDialog}
+                  disabled={isRemovingMember}
+                >
                   {isRemovingMember ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserMinus />}
                   メンバーを除名
                 </Button>
@@ -318,7 +335,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
               <div className="py-4">
                 <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={isComboboxOpen} className="w-full justify-between">
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isComboboxOpen}
+                      className="w-full justify-between"
+                    >
                       {selectedUserName ?? "ユーザーを選択"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -341,7 +363,9 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                                   setIsComboboxOpen(false);
                                 }}
                               >
-                                <Check className={`mr-2 h-4 w-4 ${selectedUserId === member.userId ? "opacity-100" : "opacity-0"}`} />
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${selectedUserId === member.userId ? "opacity-100" : "opacity-0"}`}
+                                />
                                 {member.appUserName}
                               </CommandItem>
                             ))}
@@ -355,7 +379,11 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
             <AlertDialogFooter>
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Button onClick={handleGrantPermission} disabled={!isOwner || !selectedUserId} className="button-default-custom">
+                <Button
+                  onClick={handleGrantPermission}
+                  disabled={!isOwner || !selectedUserId}
+                  className="button-default-custom"
+                >
                   権限を付与
                 </Button>
               </AlertDialogAction>
@@ -402,7 +430,12 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
               <div className="space-y-4 py-4">
                 <Popover open={isRemovalComboboxOpen} onOpenChange={setIsRemovalComboboxOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={isRemovalComboboxOpen} className="w-full justify-between">
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isRemovalComboboxOpen}
+                      className="w-full justify-between"
+                    >
                       {selectedMemberNameForRemoval ?? "メンバーを選択"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -425,7 +458,9 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                                   setIsRemovalComboboxOpen(false);
                                 }}
                               >
-                                <Check className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.userId ? "opacity-100" : "opacity-0"}`} />
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${selectedMemberForRemoval === member.userId ? "opacity-100" : "opacity-0"}`}
+                                />
                                 {member.appUserName}
                               </CommandItem>
                             ))}
@@ -435,7 +470,11 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                   </PopoverContent>
                 </Popover>
                 <div className="space-x-2">
-                  <Checkbox id="blacklist" checked={addToBlackList} onCheckedChange={(checked) => setAddToBlackList(checked === true)} />
+                  <Checkbox
+                    id="blacklist"
+                    checked={addToBlackList}
+                    onCheckedChange={(checked) => setAddToBlackList(checked === true)}
+                  />
                   <Label htmlFor="blacklist">ブラックリストに追加する</Label>
                 </div>
               </div>
@@ -444,7 +483,11 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
               <AlertDialogCancel>キャンセル</AlertDialogCancel>
               {isOwner && (
                 <AlertDialogAction asChild>
-                  <Button variant="destructive" onClick={handleRemoveMember} disabled={!selectedMemberForRemoval || isRemovingMember}>
+                  <Button
+                    variant="destructive"
+                    onClick={handleRemoveMember}
+                    disabled={!selectedMemberForRemoval || isRemovingMember}
+                  >
                     {isRemovingMember ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "除名する"}
                   </Button>
                 </AlertDialogAction>
@@ -471,7 +514,11 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
                   disabled={isLeavingGroup} // isLeavingGroup を使用
                   className="bg-red-500 hover:bg-red-600"
                 >
-                  {isLeavingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                  {isLeavingGroup ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogOut className="mr-2 h-4 w-4" />
+                  )}
                   脱退する
                 </Button>
               </AlertDialogAction>
@@ -485,10 +532,19 @@ export const GroupDetail = memo(function GroupDetail({ groupId }: GroupDetailPro
         </div>
 
         {/* データエクスポートモーダル */}
-        <ExportDataModal isOpen={isExportModalOpen} onCloseAction={() => setIsExportModalOpen(false)} groupId={group.id} groupName={group.name} />
+        <ExportDataModal
+          isOpen={isExportModalOpen}
+          onCloseAction={() => setIsExportModalOpen(false)}
+          groupId={group.id}
+          groupName={group.name}
+        />
 
         {/* CSVアップロードモーダル */}
-        <CsvUploadModal isOpen={isUploadModalOpen} groupId={group.id} onCloseAction={() => setIsUploadModalOpen(false)} />
+        <CsvUploadModal
+          isOpen={isUploadModalOpen}
+          groupId={group.id}
+          onCloseAction={() => setIsUploadModalOpen(false)}
+        />
       </div>
     </>
   );

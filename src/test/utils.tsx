@@ -33,7 +33,8 @@ function AllTheProviders({ children }: { children: React.ReactNode }) {
 }
 
 // カスタムレンダー関数
-const customRender = (ui: ReactElement, options?: Omit<RenderOptions, "wrapper">) => render(ui, { wrapper: AllTheProviders, ...options });
+const customRender = (ui: ReactElement, options?: Omit<RenderOptions, "wrapper">) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // テストユーティリティをエクスポート
 export * from "@testing-library/react";

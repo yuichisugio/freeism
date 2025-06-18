@@ -291,7 +291,9 @@ describe("cache-auction-retrieve", () => {
       test("should return auction details successfully", async () => {
         // Arrange
         const mockPrismaResult = createMockPrismaAuctionResult();
-        prismaMock.auction.findUnique.mockResolvedValue(mockPrismaResult as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockPrismaResult as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getCachedAuctionByAuctionId(CONSTANTS.testAuctionId);
@@ -358,7 +360,9 @@ describe("cache-auction-retrieve", () => {
       ])("should handle auction with $description", async ({ overrides, assertions }) => {
         // Arrange
         const mockPrismaResult = createMockPrismaAuctionResult(overrides);
-        prismaMock.auction.findUnique.mockResolvedValue(mockPrismaResult as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockPrismaResult as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getCachedAuctionByAuctionId(CONSTANTS.testAuctionId);
@@ -397,7 +401,9 @@ describe("cache-auction-retrieve", () => {
         const mockPrismaResult = createMockPrismaAuctionResult({
           bidHistories: multipleBidHistories,
         });
-        prismaMock.auction.findUnique.mockResolvedValue(mockPrismaResult as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockPrismaResult as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
         // Act
         const result = await getCachedAuctionByAuctionId(CONSTANTS.testAuctionId);
@@ -472,7 +478,9 @@ describe("cache-auction-retrieve", () => {
         },
       ])("should handle auctionId is $description", async ({ auctionId }) => {
         // Act & Assert
-        await expect(getCachedAuctionByAuctionId(auctionId as unknown as string)).rejects.toThrow("オークションIDが指定されていません");
+        await expect(getCachedAuctionByAuctionId(auctionId as unknown as string)).rejects.toThrow(
+          "オークションIDが指定されていません",
+        );
         expect(prismaMock.auction.findUnique).not.toHaveBeenCalled();
       });
 
@@ -481,7 +489,9 @@ describe("cache-auction-retrieve", () => {
         prismaMock.auction.findUnique.mockResolvedValue(null);
 
         // Act & Assert
-        await expect(getCachedAuctionByAuctionId(CONSTANTS.testAuctionId)).rejects.toThrow("オークション情報が見つかりません");
+        await expect(getCachedAuctionByAuctionId(CONSTANTS.testAuctionId)).rejects.toThrow(
+          "オークション情報が見つかりません",
+        );
         expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
           where: { id: CONSTANTS.testAuctionId },
           select: expectedSelectObject,

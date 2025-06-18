@@ -55,17 +55,37 @@ vi.mock("@/components/group/group-detail-table", () => ({
 }));
 
 vi.mock("@/components/modal/csv-upload-modal", () => ({
-  CsvUploadModal: vi.fn(({ isOpen, onCloseAction, groupId }: { isOpen: boolean; onCloseAction: (open: boolean) => void; groupId: string }) => (
-    <div data-testid="csv-upload-modal" style={{ display: isOpen ? "block" : "none" }}>
-      CSV Upload Modal - GroupId: {groupId}
-      <button onClick={() => onCloseAction(false)}>Close CSV Modal</button>
-    </div>
-  )),
+  CsvUploadModal: vi.fn(
+    ({
+      isOpen,
+      onCloseAction,
+      groupId,
+    }: {
+      isOpen: boolean;
+      onCloseAction: (open: boolean) => void;
+      groupId: string;
+    }) => (
+      <div data-testid="csv-upload-modal" style={{ display: isOpen ? "block" : "none" }}>
+        CSV Upload Modal - GroupId: {groupId}
+        <button onClick={() => onCloseAction(false)}>Close CSV Modal</button>
+      </div>
+    ),
+  ),
 }));
 
 vi.mock("@/components/modal/export-data-modal", () => ({
   ExportDataModal: vi.fn(
-    ({ isOpen, onCloseAction, groupId, groupName }: { isOpen: boolean; onCloseAction: () => void; groupId: string; groupName: string }) => (
+    ({
+      isOpen,
+      onCloseAction,
+      groupId,
+      groupName,
+    }: {
+      isOpen: boolean;
+      onCloseAction: () => void;
+      groupId: string;
+      groupName: string;
+    }) => (
       <div data-testid="export-data-modal" style={{ display: isOpen ? "block" : "none" }}>
         Export Data Modal - GroupId: {groupId}, GroupName: {groupName}
         <button onClick={() => onCloseAction()}>Close Export Modal</button>
@@ -93,13 +113,15 @@ const groupFactory = Factory.define<Group>(({ sequence, params }) => ({
 }));
 
 // セッションデータファクトリー
-const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(({ sequence, params }) => ({
-  user: {
-    id: params.user?.id ?? `user-${sequence}`,
-    email: params.user?.email ?? faker.internet.email(),
-    name: params.user?.name ?? faker.person.fullName(),
-  },
-}));
+const sessionFactory = Factory.define<{ user: { id: string; email: string; name: string } }>(
+  ({ sequence, params }) => ({
+    user: {
+      id: params.user?.id ?? `user-${sequence}`,
+      email: params.user?.email ?? faker.internet.email(),
+      name: params.user?.name ?? faker.person.fullName(),
+    },
+  }),
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -987,7 +1009,9 @@ describe("GroupDetail", () => {
       // Assert
       await waitFor(() => {
         expect(screen.getByText(`CSV Upload Modal - GroupId: ${testGroupId}`)).toBeInTheDocument();
-        expect(screen.getByText(`Export Data Modal - GroupId: ${testGroupId}, GroupName: Test Group Name`)).toBeInTheDocument();
+        expect(
+          screen.getByText(`Export Data Modal - GroupId: ${testGroupId}, GroupName: Test Group Name`),
+        ).toBeInTheDocument();
       });
     });
   });

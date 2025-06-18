@@ -124,7 +124,9 @@ if (append) {
   });
 
   // マップから配列に戻して、sentAtの降順でソート
-  const mergedNotifications = Array.from(existingNotificationsMap.values()).sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
+  const mergedNotifications = Array.from(existingNotificationsMap.values()).sort(
+    (a, b) => b.sentAt.getTime() - a.sentAt.getTime(),
+  );
 
   setNotifications(mergedNotifications);
   console.log(`[通知] 読み込み後の通知数: ${mergedNotifications.length} (重複排除後)`);
@@ -223,7 +225,8 @@ if (onUnreadStatusChangeAction) {
 
 ### 解説：
 
-- **未読カウントの初期値**: APIから返された`unreadCount`を基本値として使用します。値がない場合は0をデフォルト値とします。
+- **未読カウントの初期値**:
+  APIから返された`unreadCount`を基本値として使用します。値がない場合は0をデフォルト値とします。
 - **未読カウントの調整**:
   - 保留中の更新（`pendingUpdates`）をループして、ローカルでの変更を未読カウントに反映します。
   - 既存の通知を`find`メソッドで検索して、ローカルでの状態変更を確認します。

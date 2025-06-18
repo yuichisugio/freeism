@@ -68,7 +68,9 @@ const allUserGroupTableFactory = Factory.define<AllUserGroupTable>(({ sequence, 
 /**
  * テーブル条件のファクトリー関数
  */
-function createTableConditions(overrides: Partial<TableConditions<AllUserGroupTable>> = {}): TableConditions<AllUserGroupTable> {
+function createTableConditions(
+  overrides: Partial<TableConditions<AllUserGroupTable>> = {},
+): TableConditions<AllUserGroupTable> {
   return {
     sort: { field: "createdAt" as keyof AllUserGroupTable, direction: "desc" },
     page: 1,
@@ -320,7 +322,10 @@ describe("AllUserGroupTableComponent", () => {
 
     test("should handle groups with different isJoined values", () => {
       // Arrange
-      const mockGroups = [allUserGroupTableFactory.build({ isJoined: true }), allUserGroupTableFactory.build({ isJoined: false })];
+      const mockGroups = [
+        allUserGroupTableFactory.build({ isJoined: true }),
+        allUserGroupTableFactory.build({ isJoined: false }),
+      ];
       mockUseAllUserGroupTable.mockReturnValue(
         createMockUseAllUserGroupTableReturn({
           groups: mockGroups,

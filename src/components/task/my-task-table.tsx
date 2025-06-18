@@ -164,7 +164,11 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cell: (row: MyTaskTable) => {
           if (row.auctionId) {
             return (
-              <Button onClick={() => router.push(`/dashboard/auction/${row.auctionId}`)} className="button-default-custom" size="sm">
+              <Button
+                onClick={() => router.push(`/dashboard/auction/${row.auctionId}`)}
+                className="button-default-custom"
+                size="sm"
+              >
                 オークションに参加
               </Button>
             );
@@ -256,7 +260,10 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
     },
     sort: {
       onSortChange: (field: keyof MyTaskTable) => {
-        changeTableConditions({ ...tableConditions, sort: { field: field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" } });
+        changeTableConditions({
+          ...tableConditions,
+          sort: { field: field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
+        });
       },
       sortDirection: tableConditions.sort?.direction ?? "desc",
       sortField: tableConditions.sort?.field ?? "id",
@@ -273,7 +280,8 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         {
           filterType: "radio",
           filterText: tableConditions.contributionType ?? "ALL",
-          onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
+          onFilterChange: (value: string) =>
+            changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
           placeholder: "タスクタイプで絞り込み...",
           radioOptions: [
             { value: "ALL", label: "全て" },
@@ -284,7 +292,8 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         {
           filterType: "radio",
           filterText: tableConditions.taskStatus ?? "ALL",
-          onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, taskStatus: value as "ALL" | TaskStatus }),
+          onFilterChange: (value: string) =>
+            changeTableConditions({ ...tableConditions, taskStatus: value as "ALL" | TaskStatus }),
           placeholder: "ステータスで絞り込み...",
           radioOptions: [
             { value: "ALL", label: "全て" },

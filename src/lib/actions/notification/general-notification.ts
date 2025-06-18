@@ -41,7 +41,9 @@ export type GeneralNotificationParams = {
  * @param {GeneralNotificationParams} params 通知メッセージデータ
  * @returns {success: boolean, error?: string} 成功したかどうか
  */
-export async function sendGeneralNotification(params: GeneralNotificationParams): Promise<{ success: boolean; error?: string }> {
+export async function sendGeneralNotification(
+  params: GeneralNotificationParams,
+): Promise<{ success: boolean; error?: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

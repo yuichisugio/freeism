@@ -3,7 +3,11 @@
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { completeTaskDelivery, getAuctionHistoryCreatedDetail, updateDeliveryMethod } from "@/lib/auction/action/created-detail";
+import {
+  completeTaskDelivery,
+  getAuctionHistoryCreatedDetail,
+  updateDeliveryMethod,
+} from "@/lib/auction/action/created-detail";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -108,7 +112,9 @@ export function useCreatedDetail(auctionId: string) {
     onSuccess: (result) => {
       if (result.success) {
         toast.success("商品の提供を完了しました");
-        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId) });
+        void queryClient.invalidateQueries({
+          queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
+        });
         router.refresh();
       } else {
         toast.error(result.error ?? "商品の提供を完了に失敗しました");

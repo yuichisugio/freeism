@@ -35,7 +35,9 @@ export default async function NotFound() {
           {/* 404表示 */}
           <h1 className="mb-2 text-6xl font-bold text-blue-600 sm:text-7xl lg:text-9xl">404</h1>
           {/* エラータイトル */}
-          <h2 className="mb-3 text-xl font-bold text-neutral-900 sm:mb-4 sm:text-2xl lg:text-3xl">ページが見つかりません</h2>
+          <h2 className="mb-3 text-xl font-bold text-neutral-900 sm:mb-4 sm:text-2xl lg:text-3xl">
+            ページが見つかりません
+          </h2>
           {/* エラー説明 */}
           <p className="mb-6 text-sm text-neutral-600 sm:mb-8 sm:text-base lg:text-lg">
             お探しのページは削除されたか、URLが間違っている可能性があります。

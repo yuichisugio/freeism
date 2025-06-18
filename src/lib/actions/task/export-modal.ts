@@ -290,7 +290,9 @@ export async function exportGroupAnalytics(groupId: string, page = 1, onlyFixed 
     const groupedByEvaluator: Record<string, CsvDataItem[]> = {};
 
     tasks.forEach((task) => {
-      const evaluatorName = task.fixedEvaluatorId ? (evaluatorMap.get(task.fixedEvaluatorId) ?? "未割り当て") : "未割り当て";
+      const evaluatorName = task.fixedEvaluatorId
+        ? (evaluatorMap.get(task.fixedEvaluatorId) ?? "未割り当て")
+        : "未割り当て";
 
       // 報告者と実行者の名前を抽出
       const reporterNames = task.reporters

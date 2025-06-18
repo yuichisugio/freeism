@@ -344,9 +344,13 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
       try {
         // 時刻を00:00:00に設定
         const startTime =
-          data.contributionType === contributionType.REWARD && data.auctionStartTime ? getDateWithoutTime(data.auctionStartTime) : undefined;
+          data.contributionType === contributionType.REWARD && data.auctionStartTime
+            ? getDateWithoutTime(data.auctionStartTime)
+            : undefined;
         const endTime =
-          data.contributionType === contributionType.REWARD && data.auctionEndTime ? getDateWithoutTime(data.auctionEndTime) : undefined;
+          data.contributionType === contributionType.REWARD && data.auctionEndTime
+            ? getDateWithoutTime(data.auctionEndTime)
+            : undefined;
 
         // タスクを保存
         const result = await createTask({

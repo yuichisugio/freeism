@@ -20,7 +20,14 @@ type DropzoneConfig = {
 };
 
 // ホイストされたモック関数の宣言
-const { mockIsR2Enabled, mockGetSignedUploadUrl, mockToast, mockUseDropzone, mockURLCreateObjectURL, mockURLRevokeObjectURL } = vi.hoisted(() => ({
+const {
+  mockIsR2Enabled,
+  mockGetSignedUploadUrl,
+  mockToast,
+  mockUseDropzone,
+  mockURLCreateObjectURL,
+  mockURLRevokeObjectURL,
+} = vi.hoisted(() => ({
   mockIsR2Enabled: vi.fn(),
   mockGetSignedUploadUrl: vi.fn(),
   mockToast: {
@@ -73,7 +80,9 @@ vi.mock("../ui/progress", () => ({
 
 // framer-motionのモック
 vi.mock("framer-motion", () => ({
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <div data-testid="animate-presence">{children}</div>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="animate-presence">{children}</div>
+  ),
   motion: {
     div: ({ children, ...props }: React.HTMLProps<HTMLDivElement>) => (
       <div data-testid="motion-div" {...props}>
@@ -373,7 +382,9 @@ describe("ImageUploadArea", () => {
 
     test("should handle onDropRejected callback for file too large", () => {
       // Arrange
-      let capturedOnDropRejected: ((rejectedFiles: Array<{ file: File; errors: Array<{ code: string; message: string }> }>) => void) | undefined;
+      let capturedOnDropRejected:
+        | ((rejectedFiles: Array<{ file: File; errors: Array<{ code: string; message: string }> }>) => void)
+        | undefined;
 
       mockUseDropzone.mockImplementation((config: DropzoneConfig) => {
         capturedOnDropRejected = config.onDropRejected;
@@ -402,7 +413,9 @@ describe("ImageUploadArea", () => {
 
     test("should handle onDropRejected callback for invalid file type", () => {
       // Arrange
-      let capturedOnDropRejected: ((rejectedFiles: Array<{ file: File; errors: Array<{ code: string; message: string }> }>) => void) | undefined;
+      let capturedOnDropRejected:
+        | ((rejectedFiles: Array<{ file: File; errors: Array<{ code: string; message: string }> }>) => void)
+        | undefined;
 
       mockUseDropzone.mockImplementation((config: DropzoneConfig) => {
         capturedOnDropRejected = config.onDropRejected;
@@ -818,7 +831,10 @@ describe("ImageUploadArea", () => {
           preventDefault: vi.fn(),
           stopPropagation: vi.fn(),
           dataTransfer: {
-            files: [new File(["test"], "test.jpg", { type: "image/jpeg" }), new File(["test"], "test.txt", { type: "text/plain" })],
+            files: [
+              new File(["test"], "test.jpg", { type: "image/jpeg" }),
+              new File(["test"], "test.txt", { type: "text/plain" }),
+            ],
           },
           relatedTarget: null,
         } as unknown as DragEvent;

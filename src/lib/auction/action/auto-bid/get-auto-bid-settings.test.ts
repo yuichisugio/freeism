@@ -244,18 +244,21 @@ describe("getAutoBidByUserId", () => {
         currentHighestBid: -100,
         expectedMessage: "オークションIDが無効、または現在の最高入札額が負の値です",
       },
-    ])("should handle invalid auctionId or currentHighestBid", async ({ auctionId, currentHighestBid, expectedMessage }) => {
-      // Act
-      const result = await getAutoBidByUserId(auctionId, currentHighestBid);
-      expect(result).toStrictEqual({
-        success: false,
-        message: expectedMessage,
-        autoBid: null,
-      });
+    ])(
+      "should handle invalid auctionId or currentHighestBid",
+      async ({ auctionId, currentHighestBid, expectedMessage }) => {
+        // Act
+        const result = await getAutoBidByUserId(auctionId, currentHighestBid);
+        expect(result).toStrictEqual({
+          success: false,
+          message: expectedMessage,
+          autoBid: null,
+        });
 
-      // Assert
-      expect(prismaMock.autoBid.findFirst).not.toHaveBeenCalled();
-    });
+        // Assert
+        expect(prismaMock.autoBid.findFirst).not.toHaveBeenCalled();
+      },
+    );
 
     test("should handle currentHighestBid of 0 as valid", async () => {
       // Arrange

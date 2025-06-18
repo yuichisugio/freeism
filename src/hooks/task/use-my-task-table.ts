@@ -1,6 +1,6 @@
 "use client";
 
-import type { MyTaskTable, MyTaskTableConditions, SortDirection } from "@/types/group-types";
+import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { checkIsOwner } from "@/lib/actions/permission";
@@ -72,7 +72,10 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
   const [searchQuery, setSearchQuery] = useQueryState("q", { history: "push" });
   const [taskStatus, setTaskStatus] = useQueryState("task_status", { history: "push", defaultValue: "ALL" });
-  const [contributionType, setContributionType] = useQueryState("contribution_type", { history: "push", defaultValue: "ALL" });
+  const [contributionType, setContributionType] = useQueryState("contribution_type", {
+    history: "push",
+    defaultValue: "ALL",
+  });
   const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", {
     history: "push",
     defaultValue: TABLE_CONSTANTS.ITEMS_PER_PAGE,
@@ -87,7 +90,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    */
   const tableConditions = useMemo(
     () => ({
-      sort: sortField && sortDirection ? { field: sortField as keyof MyTaskTable, direction: sortDirection as SortDirection } : null,
+      sort: sortField && sortDirection ? { field: sortField as keyof MyTaskTable, direction: sortDirection } : null,
       page,
       searchQuery,
       taskStatus: taskStatus as "ALL" | TaskStatus,
@@ -146,7 +149,12 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
       const totalPages = Math.ceil((tasksResult?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
       if (currentPage < totalPages) {
         const nextPage = currentPage + 1;
-        void queryClient.prefetchQuery<TasksQueryResult, Error, TasksQueryResult, ReturnType<typeof queryCacheKeys.table.myTaskConditions>>({
+        void queryClient.prefetchQuery<
+          TasksQueryResult,
+          Error,
+          TasksQueryResult,
+          ReturnType<typeof queryCacheKeys.table.myTaskConditions>
+        >({
           queryKey: queryCacheKeys.table.myTaskConditions({ ...tableConditions, page: nextPage }),
           queryFn: async () => await getMyTaskData({ ...tableConditions, page: nextPage }),
         });

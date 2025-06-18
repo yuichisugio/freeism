@@ -106,7 +106,9 @@ export async function returnAuctionDepositPoints(): Promise<number> {
           throw new Error(`ユーザーID: ${winningBid.userId} のグループポイントレコードが見つかりませんでした。`);
         }
 
-        console.log(`オークションID: ${auction.id} の落札者(${winningBid.userId})に ${depositPointAmount} ポイントを返還しました。`);
+        console.log(
+          `オークションID: ${auction.id} の落札者(${winningBid.userId})に ${depositPointAmount} ポイントを返還しました。`,
+        );
 
         // タスクのタイトルを取得
         const task = await tx.task.findUnique({

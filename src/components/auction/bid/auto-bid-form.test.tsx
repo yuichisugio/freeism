@@ -29,7 +29,8 @@ vi.mock("@/hooks/auction/bid/use-auto-bid", () => ({
 // framer-motionのモック
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: { children: React.ReactNode }) => React.createElement("div", { ...props, "data-testid": "motion-div" }, children),
+    div: ({ children, ...props }: { children: React.ReactNode }) =>
+      React.createElement("div", { ...props, "data-testid": "motion-div" }, children),
   },
 }));
 
@@ -89,7 +90,9 @@ describe("AutoBidForm", () => {
       // Assert
       expect(screen.getByText("自動入札")).toBeInTheDocument();
       expect(
-        screen.getByText("あなたの代わりに自動的に入札します。最高入札額より設定上限額が低い場合は、設定は自動的に削除されます。"),
+        screen.getByText(
+          "あなたの代わりに自動的に入札します。最高入札額より設定上限額が低い場合は、設定は自動的に削除されます。",
+        ),
       ).toBeInTheDocument();
       expect(screen.getByLabelText("最大入札額")).toBeInTheDocument();
       expect(screen.getByLabelText("入札単位")).toBeInTheDocument();

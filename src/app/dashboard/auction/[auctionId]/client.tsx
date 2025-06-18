@@ -29,9 +29,12 @@ LoadingDisplay.displayName = "LoadingDisplay";
  * 動的インポートされたコンポーネント
  * Hydrationエラーを回避するため、loadingプロパティは使用せずSuspenseで包む
  */
-const AuctionDetailClient = dynamic(() => import("@/components/auction/bid/auction-bid-detail").then((mod) => ({ default: mod.AuctionBidDetail })), {
-  ssr: false,
-});
+const AuctionDetailClient = dynamic(
+  () => import("@/components/auction/bid/auction-bid-detail").then((mod) => ({ default: mod.AuctionBidDetail })),
+  {
+    ssr: false,
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

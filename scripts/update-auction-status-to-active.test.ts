@@ -157,7 +157,9 @@ describe("updateAuctionStatusToActive", () => {
 
     test("should handle null or undefined return from updateMany", async () => {
       // 異常な戻り値をシミュレート
-      prismaMock.task.updateMany.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.updateMany>>);
+      prismaMock.task.updateMany.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.task.updateMany>>,
+      );
 
       // テスト実行と検証
       await expect(updateAuctionStatusToActive()).rejects.toThrow();
@@ -193,7 +195,9 @@ describe("main", () => {
       // ログの検証
       expect(mockConsoleLog).toHaveBeenCalledWith("オークションのステータスを更新します...");
       expectSuccessLog(count);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`処理が完了しました。${count}件のオークションのステータスを更新しました。`);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        `処理が完了しました。${count}件のオークションのステータスを更新しました。`,
+      );
 
       // process.exitが正常終了コードで呼ばれることを確認
       expect(mockProcessExit).toHaveBeenCalledWith(0);

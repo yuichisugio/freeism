@@ -77,7 +77,9 @@ export const CreateNotificationForm = memo(function CreateNotificationForm() {
         </Link>
         <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
           <h1 className="mb-4 text-2xl font-bold text-red-700">オーナー権限がありません</h1>
-          <p className="text-red-600">通知作成には、アプリオーナー権限またはいずれかのグループでグループオーナー権限が必要です。</p>
+          <p className="text-red-600">
+            通知作成には、アプリオーナー権限またはいずれかのグループでグループオーナー権限が必要です。
+          </p>
         </div>
       </div>
     );
@@ -91,8 +93,16 @@ export const CreateNotificationForm = memo(function CreateNotificationForm() {
    */
   return (
     <div className="h-full">
-      <div className="text-muted-foreground mb-6 text-sm">{isAppOwner ? "アプリオーナー権限" : "グループオーナー権限"}で操作しています。</div>
-      <FormLayout form={typedForm} onSubmit={typedHandleSubmit} submitLabel="通知を作成" submittingLabel="作成中..." className="space-y-6">
+      <div className="text-muted-foreground mb-6 text-sm">
+        {isAppOwner ? "アプリオーナー権限" : "グループオーナー権限"}で操作しています。
+      </div>
+      <FormLayout
+        form={typedForm}
+        onSubmit={typedHandleSubmit}
+        submitLabel="通知を作成"
+        submittingLabel="作成中..."
+        className="space-y-6"
+      >
         <CustomFormField
           control={typedControl}
           name="title"

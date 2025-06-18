@@ -1,6 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import { auctionFactory, groupFactory, taskFactory, userFactory, userSettingsFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import {
+  auctionFactory,
+  groupFactory,
+  taskFactory,
+  userFactory,
+  userSettingsFactory,
+} from "@/test/test-utils/test-utils-prisma-orm";
 import { contributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -14,8 +20,16 @@ import { getGroupTaskAndCount } from "./group-detail-table";
 const testGroup = groupFactory.build({ id: "test-group-1" });
 const testUser1 = userFactory.build({ id: "test-user-1" });
 const testUser2 = userFactory.build({ id: "test-user-2" });
-const testUserSettings1 = userSettingsFactory.build({ id: "test-settings-1", userId: testUser1.id, username: "テストユーザー1" });
-const testUserSettings2 = userSettingsFactory.build({ id: "test-settings-2", userId: testUser2.id, username: "テストユーザー2" });
+const testUserSettings1 = userSettingsFactory.build({
+  id: "test-settings-1",
+  userId: testUser1.id,
+  username: "テストユーザー1",
+});
+const testUserSettings2 = userSettingsFactory.build({
+  id: "test-settings-2",
+  userId: testUser2.id,
+  username: "テストユーザー2",
+});
 const testAuction = auctionFactory.build({ id: "test-auction-1", groupId: testGroup.id, taskId: "test-task-1" });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -126,7 +140,9 @@ describe("group-detail-table.ts", () => {
           },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -201,7 +217,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -249,7 +267,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -292,7 +312,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -336,7 +358,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -374,7 +398,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(25);
 
         const params = {
@@ -419,7 +445,9 @@ describe("group-detail-table.ts", () => {
           executors: [{ user: { settings: { id: "executor-1", username: "実行者1" } } }],
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -463,7 +491,9 @@ describe("group-detail-table.ts", () => {
           ],
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -489,7 +519,9 @@ describe("group-detail-table.ts", () => {
 
       test("should handle empty results", async () => {
         // Arrange
-        prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
         prismaMock.task.count.mockResolvedValue(0);
 
         const params = {
@@ -525,7 +557,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -596,7 +630,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockRejectedValue(new Error("カウントクエリエラー"));
 
         const params = {
@@ -617,7 +653,9 @@ describe("group-detail-table.ts", () => {
       test("should throw error when tasks is null (edge case)", async () => {
         // Arrange
         // Prismaの型定義を無視してnullを返すケースをテスト
-        prismaMock.task.findMany.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue(
+          null as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
 
         const params = {
           groupId: testGroup.id,
@@ -668,7 +706,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -697,7 +737,9 @@ describe("group-detail-table.ts", () => {
 
       test("should handle very large page number", async () => {
         // Arrange
-        prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
         prismaMock.task.count.mockResolvedValue(0);
 
         const params = {
@@ -738,7 +780,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(100);
 
         const params = {
@@ -770,7 +814,9 @@ describe("group-detail-table.ts", () => {
 
       test("should handle very large itemPerPage", async () => {
         // Arrange
-        prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
         prismaMock.task.count.mockResolvedValue(0);
 
         const params = {
@@ -808,7 +854,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {
@@ -838,7 +886,9 @@ describe("group-detail-table.ts", () => {
       test("should handle very long search query", async () => {
         // Arrange
         const longSearchQuery = "a".repeat(1000);
-        prismaMock.task.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
         prismaMock.task.count.mockResolvedValue(0);
 
         const params = {
@@ -886,7 +936,9 @@ describe("group-detail-table.ts", () => {
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
-        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>);
+        prismaMock.task.findMany.mockResolvedValue([mockTaskData] as unknown as Awaited<
+          ReturnType<typeof prismaMock.task.findMany>
+        >);
         prismaMock.task.count.mockResolvedValue(1);
 
         const params = {

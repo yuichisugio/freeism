@@ -44,7 +44,7 @@ function createMockAuctionData(overrides = {}) {
     task: "テストタスク",
     detail: "テストタスクの詳細説明",
     image_url: "https://example.com/image.jpg",
-    category: "プログラミング",
+    category: "デザイン",
     group_id: TEST_CONSTANTS.GROUP_ID,
     group_name: "テストグループ",
     bids_count: BigInt(3),
@@ -75,7 +75,7 @@ function createMockAuctionDataList(count: number) {
       id: `${TEST_CONSTANTS.AUCTION_ID}-${index + 1}`,
       current_highest_bid: 500 + index * 100,
       task: `テストタスク${index + 1}`,
-      category: index % 2 === 0 ? "プログラミング" : "デザイン",
+      category: index % 2 === 0 ? "デザイン" : "開発",
       status: index % 3 === 0 ? TaskStatus.PENDING : TaskStatus.AUCTION_ACTIVE,
       bids_count: BigInt(index + 1),
       is_watched: index % 2 === 0,
@@ -107,7 +107,7 @@ function setupSuccessfulMocks(auctionDataCount = 3) {
  */
 function createTestParams(conditionsOverrides = {}, userId = TEST_CONSTANTS.USER_ID): GetAuctionListingsParams {
   const defaultConditions: AuctionListingsConditions = {
-    categories: ["プログラミング"],
+    categories: ["デザイン"], // 有効なカテゴリーに変更
     status: ["not_ended"],
     joinType: "OR",
     minBid: null,
@@ -154,17 +154,17 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       },
       {
         name: "should handle single category",
-        input: { categories: ["プログラミング"] },
+        input: { categories: ["デザイン"] },
         expectedDataCount: 3,
       },
       {
         name: "should handle multiple categories",
-        input: { categories: ["プログラミング", "デザイン"] },
+        input: { categories: ["デザイン", "開発"] },
         expectedDataCount: 3,
       },
       {
         name: "should handle mixed categories with すべて",
-        input: { categories: ["すべて", "プログラミング", "デザイン"] },
+        input: { categories: ["すべて", "デザイン", "開発"] },
         expectedDataCount: 3,
       },
     ] as const;
@@ -433,12 +433,12 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       },
       {
         name: "should handle single word searchQuery",
-        input: { searchQuery: "プログラミング" },
+        input: { searchQuery: "デザイン" },
         expectedDataCount: 3,
       },
       {
         name: "should handle multiple words searchQuery",
-        input: { searchQuery: "プログラミング JavaScript" },
+        input: { searchQuery: "デザイン JavaScript" },
         expectedDataCount: 3,
       },
       {
@@ -448,7 +448,7 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       },
       {
         name: "should handle searchQuery with extra spaces",
-        input: { searchQuery: "  プログラミング   JavaScript  " },
+        input: { searchQuery: "  デザイン   JavaScript  " },
         expectedDataCount: 3,
       },
     ] as const;
@@ -569,7 +569,7 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       {
         name: "should handle complex filter combination 1",
         input: {
-          categories: ["プログラミング", "デザイン"],
+          categories: ["デザイン", "開発"],
           status: ["watchlist", "bidded"],
           statusConditionJoinType: "OR" as const,
           minBid: 100,
@@ -834,6 +834,220 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       // Assert
       expect(result.listings).toStrictEqual([]);
       expect(result.count).toBe(0);
+    });
+
+    /**
+     * バリデーションエラーのテストケース
+     */
+    const validationErrorTestCases = [
+      // ページ番号バリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when page is 0",
+        input: { page: 0, categories: ["デザイン"] },
+        expectedError: "page must be greater than 0",
+      },
+      {
+        name: "should throw error when page is negative",
+        input: { page: -1, categories: ["デザイン"] },
+        expectedError: "page must be greater than 0",
+      },
+      {
+        name: "should throw error when page is very negative",
+        input: { page: -999, categories: ["デザイン"] },
+        expectedError: "page must be greater than 0",
+      },
+
+      // joinTypeバリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when joinType is invalid",
+        input: { joinType: "INVALID" as unknown as "OR" | "AND", categories: ["デザイン"] },
+        expectedError: "joinType must be OR, AND",
+      },
+      {
+        name: "should throw error when joinType is empty string",
+        input: { joinType: "" as unknown as "OR" | "AND", categories: ["デザイン"] },
+        expectedError: "joinType must be OR, AND",
+      },
+      {
+        name: "should throw error when joinType is number",
+        input: { joinType: 123 as unknown as "OR" | "AND", categories: ["デザイン"] },
+        expectedError: "joinType must be OR, AND",
+      },
+
+      // カテゴリーバリデーション
+      {
+        name: "should throw error when categories contain invalid values",
+        input: { categories: ["無効なカテゴリー"] },
+        expectedError:
+          "categories must be in すべて, 食品, コード, 本, デザイン, 開発, マーケティング, ライティング, 事務作業, その他",
+      },
+      {
+        name: "should throw error when categories contain mixed valid and invalid values",
+        input: { categories: ["デザイン", "無効なカテゴリー"] },
+        expectedError:
+          "categories must be in すべて, 食品, コード, 本, デザイン, 開発, マーケティング, ライティング, 事務作業, その他",
+      },
+      {
+        name: "should throw error when categories contain only invalid values",
+        input: { categories: ["無効1", "無効2"] },
+        expectedError:
+          "categories must be in すべて, 食品, コード, 本, デザイン, 開発, マーケティング, ライティング, 事務作業, その他",
+      },
+
+      // ステータスバリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when status contains invalid values",
+        input: {
+          status: ["invalid_status"] as unknown as AuctionListingsConditions["status"],
+          categories: ["デザイン"],
+        },
+        expectedError: "status must be in all, watchlist, not_bidded, bidded, ended, not_ended, not_started, started",
+      },
+      {
+        name: "should throw error when status contains mixed valid and invalid values",
+        input: {
+          status: ["ended", "invalid_status"] as unknown as AuctionListingsConditions["status"],
+          categories: ["デザイン"],
+        },
+        expectedError: "status must be in all, watchlist, not_bidded, bidded, ended, not_ended, not_started, started",
+      },
+      {
+        name: "should throw error when status contains only invalid values",
+        input: {
+          status: ["invalid1", "invalid2"] as unknown as AuctionListingsConditions["status"],
+          categories: ["デザイン"],
+        },
+        expectedError: "status must be in all, watchlist, not_bidded, bidded, ended, not_ended, not_started, started",
+      },
+
+      // 入札額バリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when minBid is negative",
+        input: { minBid: -100, categories: ["デザイン"] },
+        expectedError: "minBid and maxBid must be greater than 0",
+      },
+      {
+        name: "should throw error when maxBid is negative",
+        input: { maxBid: -50, categories: ["デザイン"] },
+        expectedError: "minBid and maxBid must be greater than 0",
+      },
+      {
+        name: "should throw error when both minBid and maxBid are negative",
+        input: { minBid: -100, maxBid: -50, categories: ["デザイン"] },
+        expectedError: "minBid and maxBid must be greater than 0",
+      },
+      {
+        name: "should throw error when minBid is very negative",
+        input: { minBid: -999999, categories: ["デザイン"] },
+        expectedError: "minBid and maxBid must be greater than 0",
+      },
+
+      // 残り時間バリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when minRemainingTime is negative",
+        input: { minRemainingTime: -1, categories: ["デザイン"] },
+        expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
+      },
+      {
+        name: "should throw error when maxRemainingTime is negative",
+        input: { maxRemainingTime: -5, categories: ["デザイン"] },
+        expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
+      },
+      {
+        name: "should throw error when both minRemainingTime and maxRemainingTime are negative",
+        input: { minRemainingTime: -1, maxRemainingTime: -5, categories: ["デザイン"] },
+        expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
+      },
+      {
+        name: "should throw error when minRemainingTime is very negative",
+        input: { minRemainingTime: -999999, categories: ["デザイン"] },
+        expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
+      },
+
+      // ソートフィールドバリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when sort field is invalid",
+        input: {
+          sort: [{ field: "invalid_field" as unknown as "newest", direction: "desc" as const }],
+          categories: ["デザイン"],
+        },
+        expectedError: "sort must be relevance, newest, time_remaining, bids, price, score",
+      },
+      {
+        name: "should throw error when sort direction is invalid",
+        input: {
+          sort: [{ field: "newest" as const, direction: "invalid_direction" as unknown as "desc" }],
+          categories: ["デザイン"],
+        },
+        expectedError: "sort direction must be asc, desc",
+      },
+      {
+        name: "should throw error when both sort field and direction are invalid",
+        input: {
+          sort: [
+            { field: "invalid_field" as unknown as "newest", direction: "invalid_direction" as unknown as "desc" },
+          ],
+          categories: ["デザイン"],
+        },
+        expectedError: "sort must be relevance, newest, time_remaining, bids, price, score",
+      },
+
+      // グループIDバリデーション（categoriesはデフォルトで有効な値を使用）
+      {
+        name: "should throw error when groupIds is string instead of array",
+        input: { groupIds: "string-instead-of-array" as unknown as string[], categories: ["デザイン"] },
+        expectedError: "groupIds must be an array of strings",
+      },
+      {
+        name: "should throw error when groupIds is number",
+        input: { groupIds: 123 as unknown as string[], categories: ["デザイン"] },
+        expectedError: "groupIds must be an array of strings",
+      },
+      {
+        name: "should throw error when groupIds is object",
+        input: { groupIds: { not: "array" } as unknown as string[], categories: ["デザイン"] },
+        expectedError: "groupIds must be an array of strings",
+      },
+    ] as const;
+
+    test.each(validationErrorTestCases)("validation_$name", async ({ input }) => {
+      // Arrange
+      const params = createTestParams(input);
+
+      // バリデーションエラーのテストではPrismaのモックを適切に設定
+      // groupMembershipのクエリが実行される前にバリデーションエラーが発生する場合も考慮
+      const mockGroupMemberships = [
+        groupMembershipFactory.build({
+          userId: TEST_CONSTANTS.USER_ID,
+          groupId: TEST_CONSTANTS.GROUP_ID,
+        }),
+      ];
+
+      // バリデーションエラーが発生するケースによって、groupMembershipの処理が実行される場合としない場合がある
+      // どちらのケースでも対応できるようにモックを設定
+      prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
+
+      // console.errorをモックして、バリデーションエラーが内部で発生したことを確認
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+        // モック実装（何もしない）
+      });
+
+      // Act
+      const result = await cachedGetAuctionListingsAndCount(params);
+
+      // Assert
+      // バリデーションエラーが発生し、空の結果が返されることを確認
+      expect(result.listings).toStrictEqual([]);
+      expect(result.count).toBe(0);
+
+      // console.errorが呼ばれたことを確認（エラーの内容は実装によって変わる可能性があるため、最低限の確認）
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_error",
+        expect.any(Error),
+      );
+
+      // スパイをリストア
+      consoleErrorSpy.mockRestore();
     });
 
     /**

@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getUserBidHistories, getUserBidHistoriesCount } from "@/lib/auction/action/auction-history/bid-auction";
-import { getUserCreatedAuctions, getUserCreatedAuctionsCount } from "@/lib/auction/action/auction-history/created-auction";
+import {
+  getUserCreatedAuctions,
+  getUserCreatedAuctionsCount,
+} from "@/lib/auction/action/auction-history/created-auction";
 import { getUserWonAuctions, getUserWonAuctionsCount } from "@/lib/auction/action/auction-history/won-auction";
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
@@ -50,7 +53,10 @@ export function useAuctionHistory() {
   );
   const activeTab = useMemo(() => params.tab ?? "bids", [params.tab]);
   const currentPage = useMemo(() => params.page ?? 1, [params.page]);
-  const itemPerPage = useMemo(() => params.itemPerPage ?? AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE, [params.itemPerPage]);
+  const itemPerPage = useMemo(
+    () => params.itemPerPage ?? AUCTION_HISTORY_CONSTANTS.ITEMS_PER_PAGE,
+    [params.itemPerPage],
+  );
   const filter = useMemo(() => (params.filter ?? []) as AuctionCreatedTabFilter[], [params.filter]);
   const filterCondition = useMemo(() => (params.condition ?? "and") as FilterCondition, [params.condition]);
   const wonStatus = useMemo(() => params.wonStatus ?? "all", [params.wonStatus]);
@@ -167,7 +173,12 @@ export function useAuctionHistory() {
   useEffect(() => {
     if (!userId) return;
 
-    const prefetchLogic = async <TQueryKey extends readonly unknown[], TData, TQueryKeyFnArgs extends unknown[], TFetchFnArgs extends unknown[]>(
+    const prefetchLogic = async <
+      TQueryKey extends readonly unknown[],
+      TData,
+      TQueryKeyFnArgs extends unknown[],
+      TFetchFnArgs extends unknown[],
+    >(
       count: number | undefined,
       dataExists: boolean,
       queryKeyFn: (...args: TQueryKeyFnArgs) => TQueryKey,
@@ -215,8 +226,20 @@ export function useAuctionHistory() {
           !!createdHistoryResult && createdHistoryResult.length > 0,
           queryCacheKeys.auction.historyCreated,
           getUserCreatedAuctions,
-          [userId, nextPage, itemPerPage, filter, filterCondition] as [string, number, number, AuctionCreatedTabFilter[], FilterCondition],
-          [nextPage, userId, itemPerPage, filter, filterCondition] as [number, string, number, AuctionCreatedTabFilter[], FilterCondition],
+          [userId, nextPage, itemPerPage, filter, filterCondition] as [
+            string,
+            number,
+            number,
+            AuctionCreatedTabFilter[],
+            FilterCondition,
+          ],
+          [nextPage, userId, itemPerPage, filter, filterCondition] as [
+            number,
+            string,
+            number,
+            AuctionCreatedTabFilter[],
+            FilterCondition,
+          ],
         );
         break;
       default:
@@ -291,8 +314,14 @@ export function useAuctionHistory() {
    * ナビゲーションを設定
    */
   const navigateToDetail = useCallback((path: string) => router.push(path), [router]);
-  const handleItemClick = useCallback((auctionId: string) => navigateToDetail(`/dashboard/auction/${auctionId}`), [navigateToDetail]);
-  const handleWonItemClick = useCallback((auctionId: string) => navigateToDetail(`/dashboard/auction/won-detail/${auctionId}`), [navigateToDetail]);
+  const handleItemClick = useCallback(
+    (auctionId: string) => navigateToDetail(`/dashboard/auction/${auctionId}`),
+    [navigateToDetail],
+  );
+  const handleWonItemClick = useCallback(
+    (auctionId: string) => navigateToDetail(`/dashboard/auction/won-detail/${auctionId}`),
+    [navigateToDetail],
+  );
   const handleCreatedItemClick = useCallback(
     (auctionId: string) => navigateToDetail(`/dashboard/auction/created-detail/${auctionId}`),
     [navigateToDetail],

@@ -135,7 +135,9 @@ describe("cachedGetSearchSuggestions", () => {
 
       // Act & Assert
       // 非文字列のqueryに対してtrim()を呼び出すとエラーが発生することを確認
-      await expect(cachedGetSearchSuggestions(nonStringQuery, testUserId)).rejects.toThrow("query.trim is not a function");
+      await expect(cachedGetSearchSuggestions(nonStringQuery, testUserId)).rejects.toThrow(
+        "query.trim is not a function",
+      );
     });
 
     test("should handle non-string userId parameter", async () => {

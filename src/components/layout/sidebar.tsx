@@ -184,7 +184,9 @@ export const Sidebar = memo(function Sidebar() {
                       onClick={() => setIsOpen(false)}
                       className={cn(
                         "my-1 flex items-center rounded-lg px-3 py-4 text-sm font-medium transition-colors hover:bg-blue-100 hover:text-blue-900 dark:hover:bg-blue-900 dark:hover:text-blue-100",
-                        pathname === item.href ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100" : "text-gray-900 dark:text-gray-200",
+                        pathname === item.href
+                          ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                          : "text-gray-900 dark:text-gray-200",
                       )}
                     >
                       <item.icon className="mr-2 h-4 w-4" />

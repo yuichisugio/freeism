@@ -1,10 +1,19 @@
-import type { ReviewSearchParams, ReviewSearchResult, SearchSuggestion } from "@/components/review-search/review-search";
+import type {
+  ReviewSearchParams,
+  ReviewSearchResult,
+  SearchSuggestion,
+} from "@/components/review-search/review-search";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { auctionReviewFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { getCachedAllReviews, getCachedMyReviews, getCachedSearchSuggestions, getCachedUserReviews } from "./cache-review-search";
+import {
+  getCachedAllReviews,
+  getCachedMyReviews,
+  getCachedSearchSuggestions,
+  getCachedUserReviews,
+} from "./cache-review-search";
 import { getAllReviews, getMyReviews, getSearchSuggestions, getUserReviews, updateReview } from "./review-search";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -605,7 +614,9 @@ describe("review-search", () => {
       prismaMock.auctionReview.findFirst.mockResolvedValue(null);
 
       // 関数を実行してエラーを検証
-      await expect(updateReview(undefined as unknown as string, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
+      await expect(updateReview(undefined as unknown as string, newRating, newComment)).rejects.toThrow(
+        "レビューの更新に失敗しました",
+      );
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
         where: {
@@ -622,7 +633,9 @@ describe("review-search", () => {
       prismaMock.auctionReview.findFirst.mockResolvedValue(null);
 
       // 関数を実行してエラーを検証
-      await expect(updateReview(null as unknown as string, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
+      await expect(updateReview(null as unknown as string, newRating, newComment)).rejects.toThrow(
+        "レビューの更新に失敗しました",
+      );
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
         where: {

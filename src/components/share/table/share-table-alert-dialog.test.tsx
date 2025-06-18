@@ -31,7 +31,9 @@ vi.mock("@radix-ui/react-alert-dialog", () => ({
       {children}
     </div>
   ),
-  Overlay: ({ className, ...props }: { className?: string }) => <div data-testid="alert-dialog-overlay" className={className} {...props} />,
+  Overlay: ({ className, ...props }: { className?: string }) => (
+    <div data-testid="alert-dialog-overlay" className={className} {...props} />
+  ),
   Content: ({ className, children, ...props }: { className?: string; children: React.ReactNode }) => (
     <div data-testid="alert-dialog-content" className={className} {...props}>
       {children}
@@ -114,7 +116,14 @@ describe("AlertDialog Components", () => {
 
       const overlay = screen.getByTestId("alert-dialog-overlay");
       expect(overlay).toBeInTheDocument();
-      expect(overlay).toHaveClass("data-[state=open]:animate-in", "data-[state=closed]:animate-out", "fixed", "inset-0", "z-50", "backdrop-blur-sm");
+      expect(overlay).toHaveClass(
+        "data-[state=open]:animate-in",
+        "data-[state=closed]:animate-out",
+        "fixed",
+        "inset-0",
+        "z-50",
+        "backdrop-blur-sm",
+      );
     });
 
     test("should merge custom className with default classes", () => {

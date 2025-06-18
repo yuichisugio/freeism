@@ -130,14 +130,21 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                   <CardContent>
                     {auction.task.imageUrl && (
                       <div className="relative mb-6 h-64 w-full">
-                        <Image src={auction.task.imageUrl} alt={auction.task.task} fill className="rounded-lg object-contain" />
+                        <Image
+                          src={auction.task.imageUrl}
+                          alt={auction.task.task}
+                          fill
+                          className="rounded-lg object-contain"
+                        />
                       </div>
                     )}
 
                     <div className="space-y-4">
                       <div>
                         <h3 className="mb-2 text-lg font-medium">商品説明</h3>
-                        <p className="whitespace-pre-wrap text-gray-700">{auction.task.detail ?? "商品詳細はありません"}</p>
+                        <p className="whitespace-pre-wrap text-gray-700">
+                          {auction.task.detail ?? "商品詳細はありません"}
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -159,7 +166,12 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                         <div className="mb-2 flex items-center justify-between">
                           <h3 className="text-lg font-medium">提供方法</h3>
                           {!isEditingDelivery && auction.task.status !== TaskStatus.SUPPLIER_DONE && (
-                            <Button variant="outline" size="sm" onClick={startEditingDelivery} disabled={!auction.task.id}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={startEditingDelivery}
+                              disabled={!auction.task.id}
+                            >
                               <Edit className="mr-1 h-4 w-4" /> 編集
                             </Button>
                           )}
@@ -203,7 +215,9 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>商品提供の完了</AlertDialogTitle>
-                            <AlertDialogDescription>商品の提供を完了しましたか？この操作は取り消せません。</AlertDialogDescription>
+                            <AlertDialogDescription>
+                              商品の提供を完了しましたか？この操作は取り消せません。
+                            </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>キャンセル</AlertDialogCancel>
@@ -282,7 +296,9 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                         </TableCell>
                         <TableCell>{bid.amount.toLocaleString()} ポイント</TableCell>
                         <TableCell>{bid.isAutoBid ? "自動入札" : "通常入札"}</TableCell>
-                        <TableCell className="text-right">{format(new Date(bid.createdAt), "yyyy/MM/dd HH:mm", { locale: ja })}</TableCell>
+                        <TableCell className="text-right">
+                          {format(new Date(bid.createdAt), "yyyy/MM/dd HH:mm", { locale: ja })}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

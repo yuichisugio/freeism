@@ -49,7 +49,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
         <CardContent>
           <div className="flex items-center space-x-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">{isLoading ? "設定を読み込み中..." : "プッシュ通知を初期化中..."}</span>
+            <span className="text-sm text-neutral-600 dark:text-neutral-400">
+              {isLoading ? "設定を読み込み中..." : "プッシュ通知を初期化中..."}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -80,7 +82,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
             {isUpdating && " (更新中...)"}
           </Label>
         </div>
-        <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。</p>
+        <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
+          プッシュ通知を有効にすると、アプリ内での通知を受け取ることができます。
+        </p>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
           アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。
         </p>
@@ -95,7 +99,9 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
             <p className="mt-1 text-sm text-yellow-700">
               プッシュ通知を有効にするには、ブラウザの設定で通知を許可してください。設定変更後、ページを再読み込みしてください。
             </p>
-            {initialIsPushEnabled && <p className="mt-1 text-sm text-yellow-700">設定は自動的にOFFに更新されました。</p>}
+            {initialIsPushEnabled && (
+              <p className="mt-1 text-sm text-yellow-700">設定は自動的にOFFに更新されました。</p>
+            )}
           </div>
         )}
         {/* ブラウザで通知がリセット（デフォルト）されている場合で、初期設定がONだった場合のアラート */}

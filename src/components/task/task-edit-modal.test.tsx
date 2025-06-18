@@ -42,7 +42,13 @@ vi.mock("@/components/share/form/form-field", () => ({
 
 // ImageUploadAreaコンポーネントのモック
 vi.mock("@/components/share/image-upload-area", () => ({
-  ImageUploadArea: ({ onImageUploaded, onImageRemoved }: { onImageUploaded?: (url: string) => void; onImageRemoved?: () => void }) => (
+  ImageUploadArea: ({
+    onImageUploaded,
+    onImageRemoved,
+  }: {
+    onImageUploaded?: (url: string) => void;
+    onImageRemoved?: () => void;
+  }) => (
     <div data-testid="image-upload-area">
       <button onClick={() => onImageUploaded?.("test-image-url")}>Upload Image</button>
       <button onClick={() => onImageRemoved?.()}>Remove Image</button>

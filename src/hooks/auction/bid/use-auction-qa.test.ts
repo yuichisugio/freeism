@@ -135,7 +135,9 @@ describe("useAuctionQA", () => {
   describe("基本的な機能", () => {
     test("should initialize with correct default values", () => {
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual(mockMessages);
@@ -204,19 +206,26 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toHaveLength(2);
       expect(result.current.messages[0].messageId).toBe("message-1");
       expect(result.current.messages[1].messageId).toBe("message-2");
-      expect(new Date(result.current.messages[0].createdAt).getTime()).toBeLessThan(new Date(result.current.messages[1].createdAt).getTime());
+      expect(new Date(result.current.messages[0].createdAt).getTime()).toBeLessThan(
+        new Date(result.current.messages[1].createdAt).getTime(),
+      );
     });
 
     test("should determine if current user is seller correctly", () => {
       // Arrange - 現在のユーザーが作成者の場合
       // まず現在のユーザーIDを取得
-      const { result: initialResult } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result: initialResult } = renderHook(
+        () => useAuctionQA(testAuctionId, false, false, testAuctionEndDate),
+        { wrapper: AllTheProviders },
+      );
 
       const actualUserId = initialResult.current.currentUserId;
 
@@ -244,7 +253,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isSeller).toBe(true);
@@ -267,7 +278,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual([]);
@@ -290,7 +303,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.loading).toBe(true);
@@ -316,7 +331,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual([]);
@@ -327,25 +344,7 @@ describe("useAuctionQA", () => {
   describe("無効な入力値のテスト", () => {
     test("should handle empty auctionId", () => {
       // Act
-      const { result } = renderHook(() => useAuctionQA("", false, false, testAuctionEndDate), { wrapper: AllTheProviders });
-
-      // Assert
-      expect(result.current.messages).toStrictEqual(mockMessages);
-      expect(result.current.auctionPersonInfo).toStrictEqual(mockSellerInfo);
-    });
-
-    test("should handle null auctionId", () => {
-      // Act
-      const { result } = renderHook(() => useAuctionQA(null as unknown as string, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
-
-      // Assert
-      expect(result.current.messages).toStrictEqual(mockMessages);
-      expect(result.current.auctionPersonInfo).toStrictEqual(mockSellerInfo);
-    });
-
-    test("should handle undefined auctionId", () => {
-      // Act
-      const { result } = renderHook(() => useAuctionQA(undefined as unknown as string, false, false, testAuctionEndDate), {
+      const { result } = renderHook(() => useAuctionQA("", false, false, testAuctionEndDate), {
         wrapper: AllTheProviders,
       });
 
@@ -354,9 +353,36 @@ describe("useAuctionQA", () => {
       expect(result.current.auctionPersonInfo).toStrictEqual(mockSellerInfo);
     });
 
+    test("should handle null auctionId", () => {
+      // Act
+      const { result } = renderHook(() => useAuctionQA(null as unknown as string, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
+
+      // Assert
+      expect(result.current.messages).toStrictEqual(mockMessages);
+      expect(result.current.auctionPersonInfo).toStrictEqual(mockSellerInfo);
+    });
+
+    test("should handle undefined auctionId", () => {
+      // Act
+      const { result } = renderHook(
+        () => useAuctionQA(undefined as unknown as string, false, false, testAuctionEndDate),
+        {
+          wrapper: AllTheProviders,
+        },
+      );
+
+      // Assert
+      expect(result.current.messages).toStrictEqual(mockMessages);
+      expect(result.current.auctionPersonInfo).toStrictEqual(mockSellerInfo);
+    });
+
     test("should handle invalid date", () => {
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, new Date("invalid")), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, new Date("invalid")), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual(mockMessages);
@@ -399,7 +425,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.auctionPersonInfo).toStrictEqual(sellerInfoWithAllRoles);
@@ -423,7 +451,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.auctionPersonInfo).toBeNull();
@@ -456,7 +486,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isSeller).toBe(false);
@@ -466,7 +498,9 @@ describe("useAuctionQA", () => {
   describe("getSenderInfo関数のテスト", () => {
     test("should return correct sender info for own message", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const currentUserId = result.current.currentUserId;
       const testMessage = {
@@ -494,7 +528,9 @@ describe("useAuctionQA", () => {
 
     test("should return correct sender info for creator message", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const creatorId = "creator-id";
       const currentUserId = result.current.currentUserId;
@@ -523,7 +559,9 @@ describe("useAuctionQA", () => {
 
     test("should return correct sender info for reporter message", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const reporterId = "reporter-id";
       const currentUserId = result.current.currentUserId;
@@ -552,7 +590,9 @@ describe("useAuctionQA", () => {
 
     test("should return correct sender info for executor message", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const executorId = "executor-id";
       const currentUserId = result.current.currentUserId;
@@ -581,7 +621,9 @@ describe("useAuctionQA", () => {
 
     test("should return correct sender info for unknown user", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const unknownUserId = "unknown-user-id";
       const currentUserId = result.current.currentUserId;
@@ -610,7 +652,9 @@ describe("useAuctionQA", () => {
 
     test("should handle null auctionPersonInfo", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const unknownUserId = "unknown-user-id";
       const currentUserId = result.current.currentUserId;
@@ -639,7 +683,9 @@ describe("useAuctionQA", () => {
 
     test("should handle message with null person", () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const unknownUserId = "unknown-user-id";
       const currentUserId = result.current.currentUserId;
@@ -668,7 +714,9 @@ describe("useAuctionQA", () => {
       const longAuctionId = "a".repeat(1000);
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(longAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(longAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual(mockMessages);
@@ -680,7 +728,9 @@ describe("useAuctionQA", () => {
       const veryOldDate = new Date("1900-01-01T00:00:00Z");
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, veryOldDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, veryOldDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual(mockMessages);
@@ -692,7 +742,9 @@ describe("useAuctionQA", () => {
       const futureDate = new Date("2100-01-01T00:00:00Z");
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, futureDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, futureDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toStrictEqual(mockMessages);
@@ -709,7 +761,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       // セッションがnullの場合、currentUserIdは空文字列になることを確認
@@ -725,7 +779,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       // セッションがnullの場合、currentUserIdは空文字列になることを確認
@@ -748,7 +804,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       // userオブジェクトにidがない場合、currentUserIdは空文字列になることを確認
@@ -771,7 +829,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const testMessageData = { message: "テストメッセージ" };
 
@@ -797,7 +857,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // フォームに値を設定
       act(() => {
@@ -832,7 +894,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const mockEvent = {
         key: "Enter",
@@ -862,7 +926,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       const mockEvent = {
         key: "a",
@@ -893,7 +959,9 @@ describe("useAuctionQA", () => {
         isRefetching: false,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Act
       act(() => {
@@ -908,7 +976,9 @@ describe("useAuctionQA", () => {
   describe("フォームバリデーションのテスト", () => {
     test("should validate empty message", async () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       await act(async () => {
@@ -928,7 +998,9 @@ describe("useAuctionQA", () => {
 
     test("should validate valid message", async () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       await act(async () => {
@@ -948,7 +1020,9 @@ describe("useAuctionQA", () => {
 
     test("should validate whitespace-only message", async () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       await act(async () => {
@@ -968,7 +1042,9 @@ describe("useAuctionQA", () => {
 
     test("should validate message with leading/trailing whitespace", async () => {
       // Arrange
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Act & Assert
       await act(async () => {
@@ -1001,7 +1077,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.submitting).toBe(true);
@@ -1021,7 +1099,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.submitting).toBe(false);
@@ -1043,7 +1123,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.isRefetching).toBe(true);
@@ -1053,7 +1135,10 @@ describe("useAuctionQA", () => {
   describe("複数の役割を持つユーザーのテスト", () => {
     test("should handle user with multiple seller roles", () => {
       // Arrange
-      const { result: initialResult } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result: initialResult } = renderHook(
+        () => useAuctionQA(testAuctionId, false, false, testAuctionEndDate),
+        { wrapper: AllTheProviders },
+      );
 
       const actualUserId = initialResult.current.currentUserId;
 
@@ -1098,9 +1183,16 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
-      const senderInfo = result.current.getSenderInfo(actualUserId, sellerInfoWithMultipleRoles, testMessage, actualUserId);
+      const senderInfo = result.current.getSenderInfo(
+        actualUserId,
+        sellerInfoWithMultipleRoles,
+        testMessage,
+        actualUserId,
+      );
 
       // Assert
       expect(result.current.isSeller).toBe(true);
@@ -1242,7 +1334,9 @@ describe("useAuctionQA", () => {
         },
       );
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // フォームのresetメソッドをモック
       result.current.form.reset = mockFormReset;
@@ -1282,18 +1376,20 @@ describe("useAuctionQA", () => {
 
       let onSuccessCallback: ((data: { success: boolean; message: unknown }) => void) | undefined;
 
-      mockUseMutation.mockImplementation((options: { onSuccess?: (data: { success: boolean; message: unknown }) => void }) => {
-        onSuccessCallback = options.onSuccess;
-        return {
-          mutateAsync: vi.fn(),
-          isPending: false,
-          isLoading: false,
-          isError: false,
-          error: null,
-          reset: vi.fn(),
-          data: undefined,
-        };
-      });
+      mockUseMutation.mockImplementation(
+        (options: { onSuccess?: (data: { success: boolean; message: unknown }) => void }) => {
+          onSuccessCallback = options.onSuccess;
+          return {
+            mutateAsync: vi.fn(),
+            isPending: false,
+            isLoading: false,
+            isError: false,
+            error: null,
+            reset: vi.fn(),
+            data: undefined,
+          };
+        },
+      );
 
       renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
 
@@ -1326,7 +1422,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // フォームのhandleSubmitをモック
       result.current.form.handleSubmit = vi.fn().mockReturnValue(mockHandleSubmit);
@@ -1364,7 +1462,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // フォームのhandleSubmitをモック
       result.current.form.handleSubmit = vi.fn().mockReturnValue(mockHandleSubmit);
@@ -1425,7 +1525,9 @@ describe("useAuctionQA", () => {
         data: undefined,
       });
 
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // messagesEndRefを手動で設定
       Object.defineProperty(result.current.messagesEndRef, "current", {
@@ -1473,7 +1575,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.loading).toBe(true);
@@ -1507,7 +1611,9 @@ describe("useAuctionQA", () => {
       });
 
       // Act
-      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), { wrapper: AllTheProviders });
+      const { result } = renderHook(() => useAuctionQA(testAuctionId, false, false, testAuctionEndDate), {
+        wrapper: AllTheProviders,
+      });
 
       // Assert
       expect(result.current.messages).toHaveLength(0);

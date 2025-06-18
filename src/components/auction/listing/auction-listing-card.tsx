@@ -73,7 +73,8 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
    * カスタムフックからロジックを取得
    */
   // card
-  const { isStarted, isEnded, isNew, isEndingSoon, setIsEnded, getStartMessage, prefetchAuctionDetails } = useAuctionCard({ auction });
+  const { isStarted, isEnded, isNew, isEndingSoon, setIsEnded, getStartMessage, prefetchAuctionDetails } =
+    useAuctionCard({ auction });
 
   // watchlist
   const { isLoading, toggleWatchlist, isWatchlisted } = useWatchlist(auction.id, auction.is_watched);
@@ -83,7 +84,10 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
   /**
    * タスクのタイトルにハイライトがあるかどうかを返す
    */
-  const hasHighlight = useMemo(() => auction.task_highlighted ?? auction.detail_highlighted, [auction.task_highlighted, auction.detail_highlighted]);
+  const hasHighlight = useMemo(
+    () => auction.task_highlighted ?? auction.detail_highlighted,
+    [auction.task_highlighted, auction.detail_highlighted],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -93,7 +97,11 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
       onMouseEnter={() => void prefetchAuctionDetails()}
     >
       {/* 新着バッジ（過去3日以内の出品） */}
-      {isNew && <div className="absolute top-0 left-0 z-10 rounded-br-lg bg-blue-500 px-2 py-1 text-xs font-semibold text-white">NEW</div>}
+      {isNew && (
+        <div className="absolute top-0 left-0 z-10 rounded-br-lg bg-blue-500 px-2 py-1 text-xs font-semibold text-white">
+          NEW
+        </div>
+      )}
 
       {/* ウォッチリストボタン - 絶対位置 */}
       <button
@@ -106,7 +114,12 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
         disabled={isLoading}
         aria-label={isWatchlisted ? "ウォッチリストから削除" : "ウォッチリストに追加"}
       >
-        <Heart className={cn("h-4 w-4 transition-colors", isWatchlisted ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300")} />
+        <Heart
+          className={cn(
+            "h-4 w-4 transition-colors",
+            isWatchlisted ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300",
+          )}
+        />
       </button>
 
       {/* オークション詳細ページへのリンク */}
@@ -169,7 +182,10 @@ export const AuctionCard = memo(function AuctionCard({ auction }: { auction: Auc
             dangerouslySetInnerHTML={{ __html: auction.task_highlighted ?? auction.task }}
           />
           {auction.detail_highlighted && (
-            <p className="line-clamp-1 text-xs text-gray-500" dangerouslySetInnerHTML={{ __html: auction.detail_highlighted }} />
+            <p
+              className="line-clamp-1 text-xs text-gray-500"
+              dangerouslySetInnerHTML={{ __html: auction.detail_highlighted }}
+            />
           )}
         </Link>
 

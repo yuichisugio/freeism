@@ -429,7 +429,9 @@ describe("watchlist", () => {
       const userId = null as unknown as string;
 
       // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>);
+      prismaMock.taskWatchList.findFirst.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>,
+      );
 
       // 実行
       const result = await serverIsAuctionWatched(auctionId, userId);
@@ -444,7 +446,9 @@ describe("watchlist", () => {
       const userId = undefined as unknown as string;
 
       // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>);
+      prismaMock.taskWatchList.findFirst.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>,
+      );
 
       // 実行
       const result = await serverIsAuctionWatched(auctionId, userId);
@@ -477,7 +481,9 @@ describe("watchlist", () => {
       const userId = "u".repeat(1000);
 
       // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>);
+      prismaMock.taskWatchList.findFirst.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>,
+      );
 
       // 実行
       const result = await serverIsAuctionWatched(auctionId, userId);
@@ -544,7 +550,10 @@ describe("watchlist", () => {
       prismaMock.taskWatchList.findFirst.mockResolvedValueOnce(watchlistItem1).mockResolvedValueOnce(null);
 
       // 実行 - 同時に2つの検索を実行
-      const [result1, result2] = await Promise.all([serverIsAuctionWatched(auctionId1, userId), serverIsAuctionWatched(auctionId2, userId)]);
+      const [result1, result2] = await Promise.all([
+        serverIsAuctionWatched(auctionId1, userId),
+        serverIsAuctionWatched(auctionId2, userId),
+      ]);
 
       // 検証
       expect(result1).toBe(true);

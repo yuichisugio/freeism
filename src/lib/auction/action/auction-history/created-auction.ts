@@ -42,7 +42,15 @@ export async function getUserCreatedAuctionsWhereCondition(
   const roleCondition: Prisma.AuctionWhereInput | null =
     taskRoleConditions.length > 0
       ? { task: filterCondition === "and" ? { AND: taskRoleConditions } : { OR: taskRoleConditions } }
-      : { task: { OR: [{ creatorId: userId }, { executors: { some: { userId: userId } } }, { reporters: { some: { userId: userId } } }] } };
+      : {
+          task: {
+            OR: [
+              { creatorId: userId },
+              { executors: { some: { userId: userId } } },
+              { reporters: { some: { userId: userId } } },
+            ],
+          },
+        };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -56,7 +64,12 @@ export async function getUserCreatedAuctionsWhereCondition(
   }
   if (filter.includes("pending")) statusFilters.push(TaskStatus.PENDING);
   if (filter.includes("supplier_done")) {
-    statusFilters.push(TaskStatus.SUPPLIER_DONE, TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED);
+    statusFilters.push(
+      TaskStatus.SUPPLIER_DONE,
+      TaskStatus.TASK_COMPLETED,
+      TaskStatus.FIXED_EVALUATED,
+      TaskStatus.POINTS_AWARDED,
+    );
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

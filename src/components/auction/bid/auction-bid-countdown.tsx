@@ -13,7 +13,10 @@ import { AlertTriangle, Clock } from "lucide-react";
  * @param formattedCountdown カウントダウンの表示形式
  * @returns カウントダウン表示
  */
-export const CountdownDisplay = memo(function CountdownDisplay({ countdownState, countdownAction }: CountdownDisplayProps) {
+export const CountdownDisplay = memo(function CountdownDisplay({
+  countdownState,
+  countdownAction,
+}: CountdownDisplayProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // オークション終了時の表示

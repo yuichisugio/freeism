@@ -293,7 +293,12 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
 
           if (taskWithUsers) {
             // 重複を排除したユーザーIDリストを作成
-            const userIds = [...new Set([...taskWithUsers.reporters.map((r) => r.userId!), ...taskWithUsers.executors.map((e) => e.userId!)])];
+            const userIds = [
+              ...new Set([
+                ...taskWithUsers.reporters.map((r) => r.userId!),
+                ...taskWithUsers.executors.map((e) => e.userId!),
+              ]),
+            ];
 
             // 各ユーザーのGroupPointを更新
             for (const userId of userIds) {
@@ -367,7 +372,14 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
 /**
  * 有効なステータスの配列
  */
-const validStatuses: TaskStatus[] = ["PENDING", "POINTS_DEPOSITED", "TASK_COMPLETED", "FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
+const validStatuses: TaskStatus[] = [
+  "PENDING",
+  "POINTS_DEPOSITED",
+  "TASK_COMPLETED",
+  "FIXED_EVALUATED",
+  "POINTS_AWARDED",
+  "ARCHIVED",
+];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -476,7 +488,11 @@ export async function bulkUpdateTaskStatuses(
         }
 
         // 変更不可のステータスチェック（特定のステータスからは変更不可）
-        const immutableStatuses: TaskStatus[] = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED, TaskStatus.ARCHIVED];
+        const immutableStatuses: TaskStatus[] = [
+          TaskStatus.FIXED_EVALUATED,
+          TaskStatus.POINTS_AWARDED,
+          TaskStatus.ARCHIVED,
+        ];
         if (immutableStatuses.includes(task.status)) {
           failedResults.push({ ...item, error: `このステータス(${task.status})のタスクは変更できません` });
           continue;

@@ -32,7 +32,10 @@ type UserRoleAndUserId = { role: Role; user: UserWithSettings };
 /**
  * auctionIdに紐づくTaskのCreator, Reporter, ExecutorごとにDisplayUserInfoを返す
  */
-export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition: ReviewPosition): Promise<DisplayUserInfo[]> {
+export async function getCachedDisplayUserInfo(
+  auctionId: string,
+  reviewPosition: ReviewPosition,
+): Promise<DisplayUserInfo[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -48,7 +51,9 @@ export async function getCachedDisplayUserInfo(auctionId: string, reviewPosition
    * ReviewPosition型かどうかもチェック
    */
   if (!auctionId || !reviewPosition || !Object.values(ReviewPosition).includes(reviewPosition)) {
-    console.error("src/lib/auction/action/cache/cache-auction-rating.ts_getCachedDisplayUserInfo_error_invalid_auctionId_or_reviewPosition");
+    console.error(
+      "src/lib/auction/action/cache/cache-auction-rating.ts_getCachedDisplayUserInfo_error_invalid_auctionId_or_reviewPosition",
+    );
     throw new Error("Invalid auctionId or reviewPosition");
   }
 

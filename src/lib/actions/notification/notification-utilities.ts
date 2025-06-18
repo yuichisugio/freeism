@@ -3,7 +3,10 @@
 import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
 import type { NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
-import { cachedGetNotificationsAndUnreadCount, cachedGetUnreadNotificationsCount } from "@/lib/actions/cache/cache-notification-utilities";
+import {
+  cachedGetNotificationsAndUnreadCount,
+  cachedGetUnreadNotificationsCount,
+} from "@/lib/actions/cache/cache-notification-utilities";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
@@ -42,7 +45,11 @@ export const getNotificationsAndUnreadCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       // 引数で渡された userId を使用
-      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
+      const { notifications, totalCount, unreadCount, readCount } = await cachedGetNotificationsAndUnreadCount(
+        userId,
+        page,
+        limit,
+      );
 
       return {
         notifications,
@@ -71,50 +78,52 @@ export const getNotificationsAndUnreadCount = cache(
  * @param updates 更新する通知IDと既読状態のペアの配列
  * @returns 成功したかどうか
  */
-export const updateNotificationStatus = cache(async (updates: Array<{ notificationId: string; isRead: boolean }>): Promise<{ success: boolean }> => {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const updateNotificationStatus = cache(
+  async (updates: Array<{ notificationId: string; isRead: boolean }>): Promise<{ success: boolean }> => {
+    try {
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    const userId = await getAuthenticatedSessionUserId();
+      const userId = await getAuthenticatedSessionUserId();
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // Prismaの$transactionを使用して、すべての更新をアトミックに実行
-    await prisma.$transaction(async (tx) => {
-      for (const update of updates) {
-        const { notificationId, isRead } = update;
-        // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
-        if (isRead) {
-          // 既読にする場合
-          const readAt = new Date().toISOString();
-          await tx.$executeRaw`
+      // Prismaの$transactionを使用して、すべての更新をアトミックに実行
+      await prisma.$transaction(async (tx) => {
+        for (const update of updates) {
+          const { notificationId, isRead } = update;
+          // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
+          if (isRead) {
+            // 既読にする場合
+            const readAt = new Date().toISOString();
+            await tx.$executeRaw`
             UPDATE "Notification"
             SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
             WHERE id = ${notificationId}
           `;
-        } else {
-          // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
-          await tx.$executeRaw`
+          } else {
+            // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
+            await tx.$executeRaw`
             UPDATE "Notification"
             SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
             WHERE id = ${notificationId}
           `;
+          }
         }
-      }
-    });
+      });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    return { success: true };
+      return { success: true };
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("通知状態更新エラー:", error);
-    return {
-      success: false,
-    };
-  }
-});
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    } catch (error) {
+      console.error("通知状態更新エラー:", error);
+      return {
+        success: false,
+      };
+    }
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -124,24 +133,26 @@ export const updateNotificationStatus = cache(async (updates: Array<{ notificati
  * @param includeTaskCondition タスク条件を含めるかどうか (デフォルト: true)
  * @returns Prisma.sqlでラップされたWHERE条件文
  */
-export const buildCommonNotificationWhereClause = cache(async (userId: string, includeTaskCondition = true): Promise<Prisma.Sql> => {
-  // ユーザーがアクセスできるグループID一覧を取得
-  const groupIds = await getUserAccessibleGroupIds(userId);
+export const buildCommonNotificationWhereClause = cache(
+  async (userId: string, includeTaskCondition = true): Promise<Prisma.Sql> => {
+    // ユーザーがアクセスできるグループID一覧を取得
+    const groupIds = await getUserAccessibleGroupIds(userId);
 
-  let taskIds: string[] | undefined;
-  if (includeTaskCondition) {
-    // グループに関連するタスクID一覧を取得 (必要な場合のみ)
-    taskIds = await getTaskIdsByGroupIds(groupIds);
-  }
+    let taskIds: string[] | undefined;
+    if (includeTaskCondition) {
+      // グループに関連するタスクID一覧を取得 (必要な場合のみ)
+      taskIds = await getTaskIdsByGroupIds(groupIds);
+    }
 
-  // 対象条件を構築
-  const targetCondition = await buildNotificationTargetCondition(userId, groupIds, taskIds);
-  // タイミング条件を構築
-  const timingCondition = Prisma.sql`((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
+    // 対象条件を構築
+    const targetCondition = await buildNotificationTargetCondition(userId, groupIds, taskIds);
+    // タイミング条件を構築
+    const timingCondition = Prisma.sql`((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
 
-  // 共通のWHERE句を結合して返す
-  return Prisma.sql`${targetCondition} AND ${timingCondition}`;
-});
+    // 共通のWHERE句を結合して返す
+    return Prisma.sql`${targetCondition} AND ${timingCondition}`;
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -195,18 +206,23 @@ const getTaskIdsByGroupIds = cache(async (groupIds: string[]): Promise<string[]>
  * @param taskIds タスクIDの配列 (オプション)
  * @returns Prisma.sqlでラップされたSQL条件文
  */
-export const buildNotificationTargetCondition = cache(async (userId: string, groupIds: string[], taskIds?: string[]): Promise<Prisma.Sql> => {
-  const taskCondition = taskIds && taskIds.length > 0 ? Prisma.sql`OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))` : Prisma.empty;
+export const buildNotificationTargetCondition = cache(
+  async (userId: string, groupIds: string[], taskIds?: string[]): Promise<Prisma.Sql> => {
+    const taskCondition =
+      taskIds && taskIds.length > 0
+        ? Prisma.sql`OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${taskIds}))`
+        : Prisma.empty;
 
-  // 対象タイプに関する条件のみを返す (タイミング条件は呼び出し元で追加)
-  // 全体を括弧で囲む
-  return Prisma.sql`(
+    // 対象タイプに関する条件のみを返す (タイミング条件は呼び出し元で追加)
+    // 全体を括弧で囲む
+    return Prisma.sql`(
     (n."target_type" = 'SYSTEM') OR
     (n."target_type" = 'USER' AND n."sender_user_id" = ${userId}) OR
     (n."target_type" = 'GROUP' AND n."group_id" = ANY(${groupIds}))
     ${taskCondition}
   )`;
-});
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -291,11 +307,15 @@ export const getNotificationTargetUserIds = cache(
           targetUserIds.push(task.creatorId);
 
           // タスク報告者を追加 (登録ユーザーのみ)
-          const reporterUserIds = task.reporters.filter((reporter) => reporter.userId).map((reporter) => reporter.userId!);
+          const reporterUserIds = task.reporters
+            .filter((reporter) => reporter.userId)
+            .map((reporter) => reporter.userId!);
           targetUserIds.push(...reporterUserIds);
 
           // タスク実行者を追加 (登録ユーザーのみ)
-          const executorUserIds = task.executors.filter((executor) => executor.userId).map((executor) => executor.userId!);
+          const executorUserIds = task.executors
+            .filter((executor) => executor.userId)
+            .map((executor) => executor.userId!);
           targetUserIds.push(...executorUserIds);
 
           // タスクが属するグループのメンバーも追加

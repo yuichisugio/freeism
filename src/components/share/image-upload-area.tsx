@@ -46,7 +46,15 @@ function processImageFile(file: File, callback: (file: File, objectUrl: string) 
 }
 
 // グローバルドロップゾーンのカスタムフック
-function useGlobalDropZone({ onFileDrop, isEnabled, disabled }: { onFileDrop: (file: File) => void; isEnabled: boolean; disabled: boolean }) {
+function useGlobalDropZone({
+  onFileDrop,
+  isEnabled,
+  disabled,
+}: {
+  onFileDrop: (file: File) => void;
+  isEnabled: boolean;
+  disabled: boolean;
+}) {
   const [isFileOver, setIsFileOver] = useState(false);
 
   useEffect(() => {
@@ -69,7 +77,11 @@ function useGlobalDropZone({ onFileDrop, isEnabled, disabled }: { onFileDrop: (f
 
     const handleDragLeave = (e: DragEvent) => {
       preventDefault(e);
-      if (e.relatedTarget === null || e.relatedTarget === document.body || e.relatedTarget === document.documentElement) {
+      if (
+        e.relatedTarget === null ||
+        e.relatedTarget === document.body ||
+        e.relatedTarget === document.documentElement
+      ) {
         setIsFileOver(false);
       }
     };
@@ -235,15 +247,21 @@ function useImageUpload({
   };
 }
 
-export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageUrl, disabled = false }: ImageUploadAreaProps) {
+export function ImageUploadArea({
+  onImageUploaded,
+  onImageRemoved,
+  initialImageUrl,
+  disabled = false,
+}: ImageUploadAreaProps) {
   // クライアントサイドで安全に環境変数チェック
   const isEnabled = isR2Enabled();
 
-  const { previewUrl, isUploading, uploadProgress, handleFileSelected, handleUpload, handleRemoveImage } = useImageUpload({
-    initialImageUrl,
-    onImageUploaded,
-    onImageRemoved,
-  });
+  const { previewUrl, isUploading, uploadProgress, handleFileSelected, handleUpload, handleRemoveImage } =
+    useImageUpload({
+      initialImageUrl,
+      onImageUploaded,
+      onImageRemoved,
+    });
 
   // ファイル選択時の処理
   const handleFilesSelected = useCallback(
@@ -341,7 +359,10 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
               animate={{ scale: 1, y: 0 }}
               transition={{ type: "spring", damping: 20 }}
             >
-              <motion.div animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity, repeatType: "loop" }}>
+              <motion.div
+                animate={{ y: [0, -10, 0], scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, repeatType: "loop" }}
+              >
                 <ImageIcon className="mb-4 h-20 w-20 text-blue-500" />
               </motion.div>
               <h2 className="mb-2 text-2xl font-bold text-blue-500">画像をドロップしてアップロード</h2>
@@ -420,7 +441,11 @@ export function ImageUploadArea({ onImageUploaded, onImageRemoved, initialImageU
                   : {}
               }
             >
-              {isUploading ? <Loader2 className="mb-3 h-10 w-10 animate-spin text-blue-500" /> : <Upload className="mb-3 h-10 w-10 text-gray-400" />}
+              {isUploading ? (
+                <Loader2 className="mb-3 h-10 w-10 animate-spin text-blue-500" />
+              ) : (
+                <Upload className="mb-3 h-10 w-10 text-gray-400" />
+              )}
               <p className="mb-2 font-medium text-gray-700">クリックまたはドラッグ&ドロップ</p>
               <p className="text-sm text-gray-500">JPEG, PNG, WebP, GIF (最大10MB)</p>
             </motion.div>

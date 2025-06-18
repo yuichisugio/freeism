@@ -122,7 +122,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ]);
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(2);
 
       // Act
@@ -221,7 +223,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ]);
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(1);
 
       // Act
@@ -273,7 +277,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ]);
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(1);
 
       // Act
@@ -316,7 +322,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ]);
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(1);
 
       // Act
@@ -358,7 +366,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ]);
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(1);
 
       // Act
@@ -397,7 +407,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ]);
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(10);
 
       // Act
@@ -434,7 +446,9 @@ describe("getAllUserGroupsAndCount", () => {
         },
       ];
 
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(1);
 
       // Act
@@ -470,7 +484,9 @@ describe("getAllUserGroupsAndCount", () => {
       // Arrange
       const props = createValidGetAllUserGroupsAndCountProps();
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockRejectedValue(new Error("Count query failed"));
 
       // Act & Assert
@@ -488,7 +504,9 @@ describe("getAllUserGroupsAndCount", () => {
       });
 
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(0);
 
       // Act
@@ -506,7 +524,9 @@ describe("getAllUserGroupsAndCount", () => {
       });
 
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(0);
 
       // Act
@@ -527,7 +547,9 @@ describe("getAllUserGroupsAndCount", () => {
       });
 
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(0);
 
       // Act
@@ -549,7 +571,9 @@ describe("getAllUserGroupsAndCount", () => {
       });
 
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(0);
 
       // Act
@@ -575,7 +599,9 @@ describe("getAllUserGroupsAndCount", () => {
       });
 
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(0);
 
       // Act
@@ -599,7 +625,9 @@ describe("getAllUserGroupsAndCount", () => {
       });
 
       const mockGroups = createGroupMockData([]);
-      prismaMock.group.findMany.mockResolvedValue(mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
       prismaMock.group.count.mockResolvedValue(0);
 
       // Act

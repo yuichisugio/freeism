@@ -135,13 +135,18 @@ export function useCreateNotification(): UseCreateNotificationReturn {
   /**
    * ユーザー一覧の取得
    */
-  const { data: { users, groups, tasks } = { users: [], groups: [], tasks: [] }, isPending: isLoadingUserTaskGroup } = useQuery({
-    queryKey: queryCacheKeys.Notification.prepareCreateNotificationForm(userId, isAppOwner.success, isGroupOwner.success),
-    queryFn: async () => await prepareCreateNotificationForm(isAppOwner.success, isGroupOwner.success, userId),
-    enabled: !!userId && !isLoadingAppOwner && !isLoadingGroupOwner,
-    staleTime: 1000 * 60 * 60 * 24, // 24時間
-    gcTime: 1000 * 60 * 60 * 24, // 24時間
-  });
+  const { data: { users, groups, tasks } = { users: [], groups: [], tasks: [] }, isPending: isLoadingUserTaskGroup } =
+    useQuery({
+      queryKey: queryCacheKeys.Notification.prepareCreateNotificationForm(
+        userId,
+        isAppOwner.success,
+        isGroupOwner.success,
+      ),
+      queryFn: async () => await prepareCreateNotificationForm(isAppOwner.success, isGroupOwner.success, userId),
+      enabled: !!userId && !isLoadingAppOwner && !isLoadingGroupOwner,
+      staleTime: 1000 * 60 * 60 * 24, // 24時間
+      gcTime: 1000 * 60 * 60 * 24, // 24時間
+    });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

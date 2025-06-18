@@ -215,7 +215,15 @@ describe("SignInPage", () => {
 
       // Assert
       const cardContainer = screen.getByRole("main").querySelector("div");
-      expect(cardContainer).toHaveClass("w-full", "max-w-md", "rounded-xl", "bg-white", "p-8", "shadow-lg", "dark:bg-gray-900");
+      expect(cardContainer).toHaveClass(
+        "w-full",
+        "max-w-md",
+        "rounded-xl",
+        "bg-white",
+        "p-8",
+        "shadow-lg",
+        "dark:bg-gray-900",
+      );
     });
 
     test("should apply correct CSS classes to content wrapper", async () => {

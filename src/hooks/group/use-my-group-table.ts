@@ -1,6 +1,5 @@
 "use client";
 
-import type { SortDirection } from "@/types/auction-types";
 import type { MyGroupTable, TableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo } from "react";
 import { getUserJoinGroupAndCount, leaveGroup } from "@/lib/actions/group/my-group";
@@ -55,7 +54,7 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
   // tableConditionsをuseMemoで生成
   const tableConditions = useMemo(
     () => ({
-      sort: sortField && sortDirection ? { field: sortField as keyof MyGroupTable, direction: sortDirection as SortDirection } : null,
+      sort: sortField && sortDirection ? { field: sortField as keyof MyGroupTable, direction: sortDirection } : null,
       page,
       searchQuery,
       itemPerPage,

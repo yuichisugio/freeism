@@ -39,7 +39,8 @@ vi.mock("@/hooks/auction/bid/use-watchlist", () => ({
 // フレーマーモーションのモック
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: { children: React.ReactNode }) => React.createElement("div", { ...props, "data-testid": "motion-div" }, children),
+    div: ({ children, ...props }: { children: React.ReactNode }) =>
+      React.createElement("div", { ...props, "data-testid": "motion-div" }, children),
     button: ({ children, ...props }: { children: React.ReactNode; onClick?: () => void }) =>
       React.createElement("button", { ...props, "data-testid": "motion-button" }, children),
   },
@@ -84,11 +85,21 @@ vi.mock("./bid-form", () => ({
 }));
 
 vi.mock("./bid-history", () => ({
-  BidHistory: ({ initialBids }: { initialBids: unknown[] }) => <div data-testid="bid-history">BidHistory - {initialBids.length} bids</div>,
+  BidHistory: ({ initialBids }: { initialBids: unknown[] }) => (
+    <div data-testid="bid-history">BidHistory - {initialBids.length} bids</div>
+  ),
 }));
 
 vi.mock("../common/auction-qa", () => ({
-  AuctionQA: ({ auctionId, isDisplayAfterEnd, isEnd }: { auctionId: string; isDisplayAfterEnd: boolean; isEnd: boolean }) => (
+  AuctionQA: ({
+    auctionId,
+    isDisplayAfterEnd,
+    isEnd,
+  }: {
+    auctionId: string;
+    isDisplayAfterEnd: boolean;
+    isEnd: boolean;
+  }) => (
     <div data-testid="auction-qa">
       AuctionQA - {auctionId} - {isDisplayAfterEnd.toString()} - {isEnd.toString()}
     </div>
@@ -958,7 +969,9 @@ describe("AuctionBidDetail", () => {
       // Assert
       expect(screen.getByTestId("bid-form")).toBeInTheDocument();
       // 修正: nullは文字列として"null"ではなく実際のnullなので、空文字列になります
-      expect(screen.getByText(new RegExp(`BidForm.*${auction.id}.*${auction.currentHighestBid}.*$`))).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`BidForm.*${auction.id}.*${auction.currentHighestBid}.*$`)),
+      ).toBeInTheDocument();
     });
 
     test("should handle empty bidHistories array", () => {

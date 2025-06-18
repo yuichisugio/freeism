@@ -14,7 +14,11 @@ import { getCachedAuctionMessageContents, getCachedAuctionSellerInfo } from "./c
  * @param auctionId オークションID
  * @returns メッセージリスト
  */
-export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDisplayAfterEnd: boolean, auctionEndDate: Date) {
+export async function getAuctionMessagesAndSellerInfo(
+  auctionId: string,
+  isDisplayAfterEnd: boolean,
+  auctionEndDate: Date,
+) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
@@ -41,7 +45,9 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDispl
      * キャッシュからメッセージを取得できなかった場合
      */
     if (!messages.success || !sellerInfo.success) {
-      throw new Error(messages.error && sellerInfo.error ? messages.error + sellerInfo.error : messages.error || sellerInfo.error);
+      throw new Error(
+        messages.error && sellerInfo.error ? messages.error + sellerInfo.error : messages.error || sellerInfo.error,
+      );
     }
 
     if (!sellerInfo.auctionPersonInfo) {
@@ -75,14 +81,26 @@ export async function getAuctionMessagesAndSellerInfo(auctionId: string, isDispl
  * @param recipientIds 受信者ID（出品者または「全体」）
  * @returns 作成されたメッセージ
  */
-export async function sendAuctionMessage(auctionId: string, message: string, recipientIds: string[], currentUserId: string) {
+export async function sendAuctionMessage(
+  auctionId: string,
+  message: string,
+  recipientIds: string[],
+  currentUserId: string,
+) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
     /**
      * バリデーション
      */
-    if (!auctionId || message === undefined || message === null || !recipientIds || !Array.isArray(recipientIds) || !currentUserId) {
+    if (
+      !auctionId ||
+      message === undefined ||
+      message === null ||
+      !recipientIds ||
+      !Array.isArray(recipientIds) ||
+      !currentUserId
+    ) {
       throw new Error("パラメータが不正です");
     }
 

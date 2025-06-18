@@ -37,7 +37,9 @@ export async function createR2Service() {
   }
 
   // R2接続に必要な環境変数が設定されているか確認
-  const areCredentialsConfigured = Boolean(env.CLOUDFLARE_R2_ACCESS_KEY_ID && env.CLOUDFLARE_R2_SECRET_ACCESS_KEY && env.CLOUDFLARE_ACCOUNT_ID);
+  const areCredentialsConfigured = Boolean(
+    env.CLOUDFLARE_R2_ACCESS_KEY_ID && env.CLOUDFLARE_R2_SECRET_ACCESS_KEY && env.CLOUDFLARE_ACCOUNT_ID,
+  );
 
   // バケット名とパブリックURLを取得
   const bucketName = env.CLOUDFLARE_R2_BUCKET ?? null;

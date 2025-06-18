@@ -65,7 +65,13 @@ type UseGroupDetailReturn = {
  * @param groupId {string} グループID
  * @returns {UseGroupDetailReturn} グループ詳細ページのフックの戻り値
  */
-export function useGroupManipulation({ isOwner, groupId }: { isOwner: boolean; groupId: string }): UseGroupDetailReturn {
+export function useGroupManipulation({
+  isOwner,
+  groupId,
+}: {
+  isOwner: boolean;
+  groupId: string;
+}): UseGroupDetailReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**

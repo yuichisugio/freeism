@@ -41,7 +41,11 @@ export async function getMyTaskData(tableConditions: MyTaskTableConditions): Pro
      * フィルター条件の構築
      */
     const whereConditions: Prisma.TaskWhereInput = {
-      OR: [{ creatorId: userId }, { reporters: { some: { userId: userId } } }, { executors: { some: { userId: userId } } }],
+      OR: [
+        { creatorId: userId },
+        { reporters: { some: { userId: userId } } },
+        { executors: { some: { userId: userId } } },
+      ],
     };
 
     // 検索条件
@@ -73,26 +77,28 @@ export async function getMyTaskData(tableConditions: MyTaskTableConditions): Pro
     // ソート条件
     if (sort) {
       const { field, direction } = sort;
+      const sortDirection = direction as Prisma.SortOrder;
+
       if (field === "taskName") {
-        orderBy = { task: direction };
+        orderBy = { task: sortDirection };
       } else if (field === "groupName") {
-        orderBy = { group: { name: direction } };
+        orderBy = { group: { name: sortDirection } };
       } else if (field === "taskStatus") {
-        orderBy = { status: direction };
+        orderBy = { status: sortDirection };
       } else if (field === "taskFixedContributionPoint") {
-        orderBy = { fixedContributionPoint: direction };
+        orderBy = { fixedContributionPoint: sortDirection };
       } else if (field === "taskFixedEvaluator") {
-        orderBy = { fixedEvaluator: { settings: { username: direction } } };
+        orderBy = { fixedEvaluator: { settings: { username: sortDirection } } };
       } else if (field === "taskFixedEvaluationLogic") {
-        orderBy = { fixedEvaluationLogic: direction };
+        orderBy = { fixedEvaluationLogic: sortDirection };
       } else if (field === "id") {
-        orderBy = { id: direction };
+        orderBy = { id: sortDirection };
       } else if (field === "taskCreatorName") {
         // taskCreatorName (MyTaskTable) -> creator.settings.username (Prisma)
-        orderBy = { creator: { settings: { username: direction } } };
+        orderBy = { creator: { settings: { username: sortDirection } } };
       } else if (field === "auctionId") {
         // auctionId (MyTaskTable) -> auction.id (Prisma)
-        orderBy = { createdAt: direction };
+        orderBy = { createdAt: sortDirection };
       }
     }
 
@@ -199,8 +205,14 @@ export async function getMyTaskData(tableConditions: MyTaskTableConditions): Pro
         .map((e) => e.user?.settings?.username)
         .filter((name): name is string => name != null && name !== "未設定")
         .join(", "),
-      reporters: task.reporters.map((r) => ({ appUserName: r.user?.settings?.username ?? null, appUserId: r.userId ?? null })),
-      executors: task.executors.map((e) => ({ appUserName: e.user?.settings?.username ?? null, appUserId: e.userId ?? null })),
+      reporters: task.reporters.map((r) => ({
+        appUserName: r.user?.settings?.username ?? null,
+        appUserId: r.userId ?? null,
+      })),
+      executors: task.executors.map((e) => ({
+        appUserName: e.user?.settings?.username ?? null,
+        appUserId: e.userId ?? null,
+      })),
       groupId: task.group.id,
       groupName: task.group.name,
       auctionId: task.auction?.id ?? null,

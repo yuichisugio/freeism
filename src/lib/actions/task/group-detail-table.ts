@@ -194,8 +194,12 @@ export async function getGroupTaskAndCount({
     const returnTasks: GroupDetailTask[] = tasks.map((task) => {
       const reporterIds = task.reporters.map((r) => r.user?.settings?.id).filter((id): id is string => id != null);
       const executorIds = task.executors.map((e) => e.user?.settings?.id).filter((id): id is string => id != null);
-      const reporterNames = task.reporters.map((r) => r.user?.settings?.username).filter((name): name is string => name != null && name !== "未設定");
-      const executorNames = task.executors.map((e) => e.user?.settings?.username).filter((name): name is string => name != null && name !== "未設定");
+      const reporterNames = task.reporters
+        .map((r) => r.user?.settings?.username)
+        .filter((name): name is string => name != null && name !== "未設定");
+      const executorNames = task.executors
+        .map((e) => e.user?.settings?.username)
+        .filter((name): name is string => name != null && name !== "未設定");
 
       return {
         id: task.id,

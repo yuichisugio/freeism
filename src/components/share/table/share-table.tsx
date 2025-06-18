@@ -105,7 +105,9 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   /**
    * タスクステータス管理フック
    */
-  const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(onDataChange ? (updatedData) => onDataChange(updatedData) : undefined);
+  const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(
+    onDataChange ? (updatedData) => onDataChange(updatedData) : undefined,
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -126,7 +128,10 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   return (
     <>
       {/* ラッパー開始  */}
-      <div ref={wrapperRef} className={cn(isFullScreen ? "flex h-screen w-screen flex-col overflow-auto bg-white" : "")}>
+      <div
+        ref={wrapperRef}
+        className={cn(isFullScreen ? "flex h-screen w-screen flex-col overflow-auto bg-white" : "")}
+      >
         {/* ---------- フィルターバー ---------- */}
         {filter && (
           <div className={cn(isFullScreen && "bg-white")}>
@@ -137,7 +142,10 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
         {/* 既存の tableContainerRef → div をそのまま配置 */}
         <div
           ref={tableContainerRef}
-          className={cn("w-full bg-white", isFullScreen ? "flex-1" : "rounded-lg border border-blue-100 backdrop-blur-sm")}
+          className={cn(
+            "w-full bg-white",
+            isFullScreen ? "flex-1" : "rounded-lg border border-blue-100 backdrop-blur-sm",
+          )}
         >
           <div
             className={cn(
@@ -176,7 +184,9 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                           )}
                         </button>
                       ) : (
-                        <span className="text-app inline-flex flex-nowrap items-center whitespace-nowrap">{column.header}</span>
+                        <span className="text-app inline-flex flex-nowrap items-center whitespace-nowrap">
+                          {column.header}
+                        </span>
                       )}
                     </th>
                   ))}
@@ -196,17 +206,24 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                     <tr key={rowIndex} className="border-b border-blue-50 hover:bg-blue-50/50">
                       {/* 列ごとにデータを作成(セルを作成) */}
                       {columns.map((column, colIndex) => (
-                        <td key={colIndex} className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600", column.cellClassName)}>
+                        <td
+                          key={colIndex}
+                          className={cn("px-5 py-3 text-sm whitespace-nowrap text-neutral-600", column.cellClassName)}
+                        >
                           {/* ステータスコンボボックスの場合 */}
                           {column.statusCombobox
                             ? (() => {
                                 const safeList = taskStatuses ?? [];
                                 const rowValue = String(row[column.key]);
-                                const selectedLabel = safeList.find((option) => option.value === rowValue)?.label ?? "ステータスを選択";
+                                const selectedLabel =
+                                  safeList.find((option) => option.value === rowValue)?.label ?? "ステータスを選択";
                                 const rowId = row.id;
 
                                 return (
-                                  <Popover open={openStatus === rowId} onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? rowId : null)}>
+                                  <Popover
+                                    open={openStatus === rowId}
+                                    onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? rowId : null)}
+                                  >
                                     <PopoverTrigger asChild>
                                       <Button variant="outline" role="combobox" className="mr-3">
                                         {selectedLabel}
@@ -233,7 +250,12 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                                     });
                                                 }}
                                               >
-                                                <Check className={cn("mr-2 h-4 w-4", rowValue === option.value ? "opacity-100" : "opacity-0")} />
+                                                <Check
+                                                  className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    rowValue === option.value ? "opacity-100" : "opacity-0",
+                                                  )}
+                                                />
                                                 {option.label}
                                               </CommandItem>
                                             ))}
@@ -257,7 +279,10 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                       size="sm"
                                       onClick={() => editTask.onEdit(row)}
                                       disabled={!canEdit}
-                                      className={cn("flex items-center gap-1", !canEdit && "cursor-not-allowed opacity-50")}
+                                      className={cn(
+                                        "flex items-center gap-1",
+                                        !canEdit && "cursor-not-allowed opacity-50",
+                                      )}
                                     >
                                       <Edit className="h-4 w-4" />
                                       編集
@@ -339,7 +364,12 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                       return (
                                         <AlertDialog key={modalIndex}>
                                           <AlertDialogTrigger asChild>
-                                            <Button variant="outline" size="sm" className={`${modal.triggerClassName}`} disabled={isDisabled}>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className={`${modal.triggerClassName}`}
+                                              disabled={isDisabled}
+                                            >
                                               {buttonText}
                                               {modal?.triggerIcon}
                                             </Button>
@@ -352,7 +382,11 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                             <AlertDialogFooter>
                                               <AlertDialogCancel>キャンセル</AlertDialogCancel>
                                               <AlertDialogAction asChild>
-                                                <Button onClick={() => modal.action(rowId)} className="button-default-custom" disabled={isDisabled}>
+                                                <Button
+                                                  onClick={() => modal.action(rowId)}
+                                                  className="button-default-custom"
+                                                  disabled={isDisabled}
+                                                >
                                                   {modal.actionLabel}
                                                 </Button>
                                               </AlertDialogAction>
@@ -411,4 +445,6 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
  * @param props - DataTableComponentProps
  * @returns JSX.Element
  */
-export const ShareTable = memo(ShareTableInner) as <T extends { id: string; isJoined?: boolean }>(props: DataTableComponentProps<T>) => JSX.Element;
+export const ShareTable = memo(ShareTableInner) as <T extends { id: string; isJoined?: boolean }>(
+  props: DataTableComponentProps<T>,
+) => JSX.Element;

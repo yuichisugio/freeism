@@ -43,7 +43,9 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
         if (
           config.disableOnInputs &&
           activeElement &&
-          (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || (activeElement as HTMLElement).isContentEditable) // contentEditableな要素も考慮
+          (activeElement.tagName === "INPUT" ||
+            activeElement.tagName === "TEXTAREA" ||
+            (activeElement as HTMLElement).isContentEditable) // contentEditableな要素も考慮
         ) {
           continue; // 次のショートカット設定へ
         }

@@ -48,7 +48,10 @@ export function AuctionHistoryPagination({ pagination }: { pagination: ShareTabl
    * ページネーションの条件
    */
   // TotalPageを計算
-  const calculatedTotalPages = useMemo(() => Math.ceil((totalRowCount ?? 0) / itemPerPage), [totalRowCount, itemPerPage]);
+  const calculatedTotalPages = useMemo(
+    () => Math.ceil((totalRowCount ?? 0) / itemPerPage),
+    [totalRowCount, itemPerPage],
+  );
   // ページネーションの条件
   const { totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     totalPages: calculatedTotalPages,

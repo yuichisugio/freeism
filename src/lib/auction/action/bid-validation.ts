@@ -266,7 +266,11 @@ export async function validateAuction(
     /**
      * 現在の最高入札額チェック
      */
-    if ((options.checkCurrentBid || options.executeBid) && options.currentBid !== null && auctionData.currentHighestBid >= options.currentBid) {
+    if (
+      (options.checkCurrentBid || options.executeBid) &&
+      options.currentBid !== null &&
+      auctionData.currentHighestBid >= options.currentBid
+    ) {
       return {
         success: false,
         message: `現在の最高入札額（${auctionData.currentHighestBid}ポイント）より高い額で入札してください`,

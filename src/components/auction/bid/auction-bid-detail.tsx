@@ -32,7 +32,11 @@ import { BidHistory } from "./bid-history";
  * @param initialAuction オークション情報
  * @returns オークション詳細ページ
  */
-export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction }: { initialAuction: AuctionWithDetails }) {
+export const AuctionBidDetail = memo(function AuctionBidDetail({
+  initialAuction,
+}: {
+  initialAuction: AuctionWithDetails;
+}) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -78,11 +82,15 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">現在価格</p>
-                <p className="mt-2 text-3xl font-bold text-blue-700">{formatCurrency(auction.currentHighestBid ?? 0)}</p>
+                <p className="mt-2 text-3xl font-bold text-blue-700">
+                  {formatCurrency(auction.currentHighestBid ?? 0)}
+                </p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">最低入札額</p>
-                <p className="mt-2 text-3xl font-bold text-green-700">{formatCurrency((auction.currentHighestBid ?? 0) + 1)}</p>
+                <p className="mt-2 text-3xl font-bold text-green-700">
+                  {formatCurrency((auction.currentHighestBid ?? 0) + 1)}
+                </p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center shadow-sm">
                 <p className="text-muted-foreground text-xs font-medium uppercase">入札数</p>
@@ -123,7 +131,12 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
 
         {/* 自分の出品していないオークションで、オークションがACTIVEで、オークションが終了していない場合は入札フォームを表示 */}
         {!isExecutor && isActive && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4"
+          >
             {/* 入札フォーム */}
             <BidForm currentHighestBid={auction.currentHighestBid} auctionId={auction.id} />
             {/* 自動入札フォーム */}
@@ -136,7 +149,14 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
         )}
       </div>
     );
-  }, [auction.currentHighestBid, auction.currentHighestBidderId, auction.id, auction.bidHistories.length, isActive, isExecutor]);
+  }, [
+    auction.currentHighestBid,
+    auction.currentHighestBidderId,
+    auction.id,
+    auction.bidHistories.length,
+    isActive,
+    isExecutor,
+  ]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -211,7 +231,9 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
               priority
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-500">画像がありません</div>
+            <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-500">
+              画像がありません
+            </div>
           )}
         </div>
 
@@ -320,7 +342,12 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
 
         <div className="relative">
           {activeTab === "details" && (
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
               <TabsContent value="details" className="mt-0">
                 {renderDetailsTab()}
               </TabsContent>
@@ -328,7 +355,12 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
           )}
 
           {activeTab === "bid-history" && (
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
               <TabsContent value="bid-history" className="mt-0">
                 {/* SSEで取得した入札履歴を渡す */}
                 {<BidHistory initialBids={auction.bidHistories} />}
@@ -337,7 +369,12 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
           )}
 
           {activeTab === "qa" && (
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
               <TabsContent value="qa" className="mt-0">
                 <AuctionQA
                   auctionId={auction.id}
@@ -358,7 +395,12 @@ export const AuctionBidDetail = memo(function AuctionBidDetail({ initialAuction 
           )}
 
           {activeTab === "shipping" && (
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
               <TabsContent value="shipping" className="mt-0">
                 {renderShippingTab()}
               </TabsContent>

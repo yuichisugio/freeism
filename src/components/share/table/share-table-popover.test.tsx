@@ -67,7 +67,13 @@ vi.mock("@radix-ui/react-popover", () => ({
         }
       });
       return (
-        <div data-testid="popover-content" data-align={align} data-side-offset={sideOffset} className={className} {...htmlProps}>
+        <div
+          data-testid="popover-content"
+          data-align={align}
+          data-side-offset={sideOffset}
+          className={className}
+          {...htmlProps}
+        >
           {children}
         </div>
       );

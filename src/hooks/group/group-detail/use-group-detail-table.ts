@@ -1,6 +1,5 @@
 "use client";
 
-import type { SortDirection } from "@/types/auction-types";
 import type { GroupDetailTableConditions, GroupDetailTask, TaskParticipant } from "@/types/group-types";
 import type { TaskStatus } from "@prisma/client";
 import type { UseQueryResult } from "@tanstack/react-query";
@@ -85,7 +84,10 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
   const [sortField, setSortField] = useQueryState("sort_field", { history: "push", defaultValue: "createdAt" });
   const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
   const [searchQuery, setSearchQuery] = useQueryState("q", { history: "push", clearOnDefault: true, defaultValue: "" });
-  const [contributionType, setContributionType] = useQueryState("contribution_type", { history: "push", defaultValue: "ALL" });
+  const [contributionType, setContributionType] = useQueryState("contribution_type", {
+    history: "push",
+    defaultValue: "ALL",
+  });
   const [status, setStatus] = useQueryState("status", { history: "push", defaultValue: "ALL" });
   const [itemPerPage, setItemPerPage] = useQueryState("item_per_page", {
     history: "push",
@@ -101,7 +103,7 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
    */
   const tableConditions = useMemo(
     () => ({
-      sort: sortField && sortDirection ? { field: sortField as keyof GroupDetailTask, direction: sortDirection as SortDirection } : null,
+      sort: sortField && sortDirection ? { field: sortField as keyof GroupDetailTask, direction: sortDirection } : null,
       page,
       isJoined: "all" as const,
       searchQuery,
@@ -159,7 +161,14 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
       itemPerPage,
     }),
     queryFn: async (): Promise<TasksQueryResult> => {
-      const { page, sort, searchQuery, contributionType: contributionTypeFilter, status: statusFilter, itemPerPage } = tableConditions;
+      const {
+        page,
+        sort,
+        searchQuery,
+        contributionType: contributionTypeFilter,
+        status: statusFilter,
+        itemPerPage,
+      } = tableConditions;
       return await getGroupTaskAndCount({
         groupId,
         page,
@@ -188,7 +197,13 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
       const totalPages = Math.ceil((tasksResult?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
       if (currentPage < totalPages) {
         const nextPage = currentPage + 1;
-        const { sort, searchQuery, contributionType: contributionTypeFilter, status: statusFilter, itemPerPage } = tableConditions;
+        const {
+          sort,
+          searchQuery,
+          contributionType: contributionTypeFilter,
+          status: statusFilter,
+          itemPerPage,
+        } = tableConditions;
         void queryClient.prefetchQuery<
           TasksQueryResult,
           Error,

@@ -32,7 +32,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
@@ -82,7 +84,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
@@ -122,7 +126,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
@@ -142,7 +148,9 @@ describe("getCachedGroupById", () => {
       const nonExistentGroupId = "non-existent-group-id";
 
       // Prismaモックの設定（グループが見つからない場合）
-      prismaMock.group.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行と検証
       await expect(getCachedGroupById(nonExistentGroupId)).rejects.toThrow("グループが見つかりません");
@@ -171,7 +179,9 @@ describe("getCachedGroupById", () => {
       const dbError = new Error("Database connection failed");
 
       // Prismaモックの設定（データベースエラー）
-      prismaMock.group.findUnique.mockRejectedValue(dbError as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockRejectedValue(
+        dbError as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行と検証
       await expect(getCachedGroupById(mockGroupId)).rejects.toThrow("Database connection failed");
@@ -189,7 +199,9 @@ describe("getCachedGroupById", () => {
       const emptyGroupId = "";
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行と検証
       await expect(getCachedGroupById(emptyGroupId)).rejects.toThrow("グループが見つかりません");
@@ -243,7 +255,9 @@ describe("getCachedGroupById", () => {
       const specialCharGroupId = "test-group-!@#$%^&*()_+-=[]{}|;:,.<>?";
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行と検証
       await expect(getCachedGroupById(specialCharGroupId)).rejects.toThrow("グループが見つかりません");
@@ -279,7 +293,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
@@ -307,7 +323,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
@@ -325,7 +343,13 @@ describe("getCachedGroupById", () => {
     test("should correctly map members array", async () => {
       // テストデータの準備（複数のメンバー）
       const mockGroupId = "test-group-members-mapping";
-      const mockMembers = [{ userId: "user-001" }, { userId: "user-002" }, { userId: "user-003" }, { userId: "user-004" }, { userId: "user-005" }];
+      const mockMembers = [
+        { userId: "user-001" },
+        { userId: "user-002" },
+        { userId: "user-003" },
+        { userId: "user-004" },
+        { userId: "user-005" },
+      ];
 
       const mockGroupData = {
         id: mockGroupId,
@@ -338,7 +362,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
@@ -371,7 +397,9 @@ describe("getCachedGroupById", () => {
       };
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
 
       // 関数実行
       const result = await getCachedGroupById(mockGroupId);
