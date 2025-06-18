@@ -79,6 +79,7 @@ export const cachedGetAuctionListingsAndCount = cache(
   async ({ listingsConditions, userId }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+      console.log("cachedGetAuctionListingsAndCount");
 
       /**
        * 引数がnullの場合はエラーを投げる
@@ -189,10 +190,11 @@ export const cachedGetAuctionListingsAndCount = cache(
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.FIXED_EVALUATED}`);
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.POINTS_AWARDED}`);
               statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.POINTS_DEPOSITED}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.ARCHIVED}`);
               break;
             case "not_ended":
-              // 終了していないオークション = 開始前または実行中のオークション
-              statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} OR t.status::text = ${TaskStatus.AUCTION_ACTIVE})`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.PENDING}`);
+              statusWhereClausesSql.push(Prisma.sql`t.status::text = ${TaskStatus.AUCTION_ACTIVE}`);
               break;
             case "not_started":
               statusWhereClausesSql.push(Prisma.sql`(t.status::text = ${TaskStatus.PENDING} AND a."start_time" >= ${now})`);
@@ -212,7 +214,8 @@ export const cachedGetAuctionListingsAndCount = cache(
           combinedStatusConditions.push(Prisma.sql`(${Prisma.join(bidConditions, joinOperatorString)})`);
         }
         if (statusWhereClausesSql.length > 0) {
-          combinedStatusConditions.push(Prisma.sql`(${Prisma.join(statusWhereClausesSql, joinOperatorString)})`);
+          // ステータス条件は常にORで結合する（1つのタスクが複数のステータスを同時に持つことはできないため）
+          combinedStatusConditions.push(Prisma.sql`(${Prisma.join(statusWhereClausesSql, " OR ")})`);
         }
         if (combinedStatusConditions.length > 0) {
           whereClauses.push(Prisma.sql`(${Prisma.join(combinedStatusConditions, " AND ")})`);
@@ -473,6 +476,8 @@ export const cachedGetAuctionListingsAndCount = cache(
        * オークション一覧取得
        */
       const auctionsData: RawAuctionData[] = await prisma.$queryRaw(listingsSql);
+      console.log("listingsSql", listingsSql);
+      console.log("auctionsData", auctionsData);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -57,6 +57,18 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 通知送信用のデータ型
+ */
+type NotificationData = {
+  taskId: string;
+  taskName: string;
+  eventType: AuctionEventType;
+  recipientUserId: string[];
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * オークションの完了処理を行う
  * endTimeが現在日時以前かつstatusがACTIVEまたはPENDINGのオークションを処理する
  * @returns 処理されたオークションの数
@@ -128,17 +140,32 @@ export async function updateAuctionStatusToCompleted(): Promise<number> {
     // 各オークションに対して処理
     for (const task of auctions) {
       try {
-        // トランザクションを開始
-        await prisma.$transaction(async (tx) => {
-          // 入札履歴があるかチェック
-          if (!task.auction || task.auction.bidHistories.length === 0) {
-            // 入札がない場合の処理
-            await handleAuctionWithNoBids(tx, task);
-          } else {
-            // 入札がある場合の処理
-            await handleAuctionWithBids(tx, task);
-          }
-        });
+        // 通知データを格納する配列
+        const notificationsToSend: NotificationData[] = [];
+
+        // トランザクションを開始（タイムアウト時間を15秒に設定）
+        await prisma.$transaction(
+          async (tx) => {
+            // 入札履歴があるかチェック
+            if (!task.auction || task.auction.bidHistories.length === 0) {
+              // 入札がない場合の処理
+              const notifications = await handleAuctionWithNoBids(tx, task);
+              notificationsToSend.push(...notifications);
+            } else {
+              // 入札がある場合の処理
+              const notifications = await handleAuctionWithBids(tx, task);
+              notificationsToSend.push(...notifications);
+            }
+          },
+          {
+            timeout: 15000, // 15秒のタイムアウト
+          },
+        );
+
+        // トランザクション完了後に通知を送信
+        for (const notificationData of notificationsToSend) {
+          await sendNotificationAsync(notificationData);
+        }
 
         processedCount++;
         console.log(`オークション(ID: ${task.id})の処理完了`);
@@ -162,8 +189,9 @@ export async function updateAuctionStatusToCompleted(): Promise<number> {
  * 入札がないオークションの処理
  * @param tx トランザクションオブジェクト
  * @param task オークションオブジェクト
+ * @returns 送信する通知データの配列
  */
-export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
+export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<NotificationData[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithNoBids_start");
@@ -183,41 +211,33 @@ export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskW
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション詳細ページのURL
+   * タスク作成者のIDを取得
    */
-  const actionUrl = `/auctions/${task.id}`;
+  const creatorId = await getTaskCreatorId(tx, task);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 出品者への通知（オークション終了）
+   * 送信する通知データを準備
    */
-  await sendNotification({
-    auctionId: task.id,
-    auctionEventType: AuctionEventType.ENDED,
-    text: {
-      first: task.task,
-      second: task.task,
+  const notifications: NotificationData[] = [
+    // 出品者への通知（オークション終了）
+    {
+      taskId: task.id,
+      taskName: task.task,
+      eventType: AuctionEventType.ENDED,
+      recipientUserId: creatorId,
     },
-    recipientUserId: await getTaskCreatorId(tx, task),
-    actionUrl: actionUrl,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品者への通知（落札者なし）
-   */
-  await sendNotification({
-    auctionId: task.id,
-    auctionEventType: AuctionEventType.NO_WINNER,
-    text: {
-      first: task.task,
-      second: task.task,
+    // 出品者への通知（落札者なし）
+    {
+      taskId: task.id,
+      taskName: task.task,
+      eventType: AuctionEventType.NO_WINNER,
+      recipientUserId: creatorId,
     },
-    recipientUserId: await getTaskCreatorId(tx, task),
-    actionUrl: actionUrl,
-  });
+  ];
+
+  return notifications;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -226,8 +246,9 @@ export async function handleAuctionWithNoBids(tx: PrismaTransaction, task: TaskW
  * 入札があるオークションの処理
  * @param tx トランザクションオブジェクト
  * @param task オークションオブジェクト
+ * @returns 送信する通知データの配列
  */
-export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<void> {
+export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWithRelations): Promise<NotificationData[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   console.log("src/scripts/update-auction-status-to-completed.ts_handleAuctionWithBids_start");
@@ -245,8 +266,7 @@ export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWit
    * 有効な入札がない場合は入札なしと同じ処理
    */
   if (validBids.length === 0) {
-    await handleAuctionWithNoBids(tx, task);
-    return;
+    return await handleAuctionWithNoBids(tx, task);
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -352,17 +372,16 @@ export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWit
             bidHistories: remainingBids,
           },
         };
-        await handleAuctionWithBids(tx, taskWithRemainingBids);
+        return await handleAuctionWithBids(tx, taskWithRemainingBids);
       }
-      return;
+      return [];
     } else {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
        * 有効な入札者がいなくなった場合
        */
-      await handleAuctionWithNoBids(tx, task);
-      return;
+      return await handleAuctionWithNoBids(tx, task);
     }
   }
 
@@ -403,7 +422,7 @@ export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWit
   /**
    * 他の入札ステータスをLOSTに更新（INSUFFICIENTを除く）
    */
-  if (!task.auction) return;
+  if (!task.auction) return [];
   await tx.bidHistory.updateMany({
     where: {
       auctionId: task.auction.id,
@@ -442,77 +461,56 @@ export async function handleAuctionWithBids(tx: PrismaTransaction, task: TaskWit
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * オークション詳細ページのURL
+   * タスク作成者のIDを取得
    */
-  const actionUrl = `/auctions/${task.id}`;
+  const creatorId = await getTaskCreatorId(tx, task);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 出品者への通知（オークション終了）
+   * 送信する通知データを準備
    */
-  await sendNotification({
-    auctionId: task.id,
-    auctionEventType: AuctionEventType.ENDED,
-    text: {
-      first: task.task,
-      second: task.task,
+  const notifications: NotificationData[] = [
+    // 出品者への通知（オークション終了）
+    {
+      taskId: task.id,
+      taskName: task.task,
+      eventType: AuctionEventType.ENDED,
+      recipientUserId: creatorId,
     },
-    recipientUserId: await getTaskCreatorId(tx, task),
-    actionUrl: actionUrl,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品者への通知（商品落札）
-   */
-  await sendNotification({
-    auctionId: task.id,
-    auctionEventType: AuctionEventType.ITEM_SOLD,
-    text: {
-      first: task.task,
-      second: task.task,
+    // 出品者への通知（商品落札）
+    {
+      taskId: task.id,
+      taskName: task.task,
+      eventType: AuctionEventType.ITEM_SOLD,
+      recipientUserId: creatorId,
     },
-    recipientUserId: await getTaskCreatorId(tx, task),
-    actionUrl: actionUrl,
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 落札者への通知
-   */
-  await sendNotification({
-    auctionId: task.id,
-    auctionEventType: AuctionEventType.AUCTION_WIN,
-    text: {
-      first: task.task,
-      second: task.task,
+    // 落札者への通知
+    {
+      taskId: task.id,
+      taskName: task.task,
+      eventType: AuctionEventType.AUCTION_WIN,
+      recipientUserId: [winnerUser.id],
     },
-    recipientUserId: [winnerUser.id],
-    actionUrl: actionUrl,
-  });
+  ];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 落札できなかった入札者への通知
+   * 落札できなかった入札者への通知を追加
    */
   for (const bid of validBids) {
     if (bid.id !== winnerBid.id && bid.status !== BidStatus.INSUFFICIENT) {
-      await sendNotification({
-        auctionId: task.id,
-        auctionEventType: AuctionEventType.AUCTION_LOST,
-        text: {
-          first: task.task,
-          second: task.task,
-        },
+      notifications.push({
+        taskId: task.id,
+        taskName: task.task,
+        eventType: AuctionEventType.AUCTION_LOST,
         recipientUserId: [bid.userId],
-        actionUrl: actionUrl,
       });
     }
   }
+
+  return notifications;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -535,42 +533,32 @@ async function getTaskCreatorId(tx: PrismaTransaction, task: TaskWithRelations):
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 通知パラメータ
+ * 通知を非同期で送信する
+ * @param notificationData 通知データ
  */
-type NotificationParams = {
-  auctionId: string;
-  auctionEventType: AuctionEventType;
-  text: {
-    first: string;
-    second: string;
-  };
-  recipientUserId: string[];
-  actionUrl?: string;
-};
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * auction-notification.tsのsendAuctionNotificationを使用して通知を送信する
- * @param params 通知パラメータ
- */
-async function sendNotification(params: NotificationParams): Promise<void> {
-  const { auctionId, auctionEventType, text, recipientUserId, actionUrl } = params;
+async function sendNotificationAsync(notificationData: NotificationData): Promise<void> {
+  const { taskId, taskName, eventType, recipientUserId } = notificationData;
 
   if (!recipientUserId || recipientUserId.length === 0) {
-    console.log(`通知送信をスキップします: 受信者IDがありません。イベントタイプ: ${auctionEventType}`);
+    console.log(`通知送信をスキップします: 受信者IDがありません。イベントタイプ: ${eventType}`);
     return;
   }
 
   try {
+    // オークション詳細ページのURL
+    const actionUrl = `/auctions/${taskId}`;
+
     // sendAuctionNotificationを呼び出し
     const notificationParams = {
-      text: text,
-      auctionEventType: auctionEventType,
-      auctionId: auctionId,
+      text: {
+        first: taskName,
+        second: taskName,
+      },
+      auctionEventType: eventType,
+      auctionId: taskId,
       recipientUserId: recipientUserId,
       sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-      actionUrl: actionUrl ?? null,
+      actionUrl: actionUrl,
       sendTiming: NotificationSendTiming.NOW,
       sendScheduledDate: null,
       expiresAt: null,
@@ -579,7 +567,7 @@ async function sendNotification(params: NotificationParams): Promise<void> {
     const result = await sendAuctionNotification(notificationParams);
 
     if (result.success) {
-      console.log(`通知を送信しました: イベントタイプ ${auctionEventType}, 受信者 ${recipientUserId.join(", ")}`);
+      console.log(`通知を送信しました: イベントタイプ ${eventType}, 受信者 ${recipientUserId.join(", ")}`);
     } else {
       console.error(`通知送信に失敗しました: ${result.error}`);
     }

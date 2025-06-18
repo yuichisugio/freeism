@@ -230,31 +230,19 @@ describe("getAutoBidByUserId", () => {
         description: "空文字のauctionId",
         auctionId: "",
         currentHighestBid: 100,
-        expectedMessage: "オークションIDまたは現在の最高入札額が無効です",
+        expectedMessage: "オークションIDが無効、または現在の最高入札額が負の値です",
       },
       {
         description: "nullのauctionId",
         auctionId: null as unknown as string,
         currentHighestBid: 100,
-        expectedMessage: "オークションIDまたは現在の最高入札額が無効です",
-      },
-      {
-        description: "0のcurrentHighestBid",
-        auctionId: testAuctionId,
-        currentHighestBid: 0,
-        expectedMessage: "オークションIDまたは現在の最高入札額が無効です",
-      },
-      {
-        description: "undefinedのcurrentHighestBid",
-        auctionId: testAuctionId,
-        currentHighestBid: undefined as unknown as number,
-        expectedMessage: "オークションIDまたは現在の最高入札額が無効です",
+        expectedMessage: "オークションIDが無効、または現在の最高入札額が負の値です",
       },
       {
         description: "負の値のcurrentHighestBid",
         auctionId: testAuctionId,
         currentHighestBid: -100,
-        expectedMessage: "オークションIDまたは現在の最高入札額が無効です",
+        expectedMessage: "オークションIDが無効、または現在の最高入札額が負の値です",
       },
     ])("should handle invalid auctionId or currentHighestBid", async ({ auctionId, currentHighestBid, expectedMessage }) => {
       // Act
@@ -267,6 +255,32 @@ describe("getAutoBidByUserId", () => {
 
       // Assert
       expect(prismaMock.autoBid.findFirst).not.toHaveBeenCalled();
+    });
+
+    test("should handle currentHighestBid of 0 as valid", async () => {
+      // Arrange
+      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      prismaMock.autoBid.findFirst.mockResolvedValue(null);
+
+      // Act
+      const result = await getAutoBidByUserId(testAuctionId, 0);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: true,
+        message: "自動入札設定が見つかりませんでした",
+        autoBid: null,
+      });
+      expect(prismaMock.autoBid.findFirst).toHaveBeenCalledWith({
+        where: {
+          auctionId: testAuctionId,
+          userId: testUserId,
+          isActive: true,
+          maxBidAmount: {
+            gt: 0,
+          },
+        },
+      });
     });
   });
 });

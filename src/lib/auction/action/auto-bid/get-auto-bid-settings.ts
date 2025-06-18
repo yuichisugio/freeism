@@ -10,6 +10,7 @@ import type { ExecuteAutoBidReturn } from "./auto-bid";
 /**
  * 自動入札設定を取得する
  * @param auctionId オークションID
+ * @param currentHighestBid 現在の最高入札額
  * @returns 処理結果
  */
 export async function getAutoBidByUserId(auctionId: string, currentHighestBid: number): Promise<ExecuteAutoBidReturn> {
@@ -19,8 +20,8 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     /**
      * 1. オークションIDと現在の最高入札額のバリデーション
      */
-    if (!auctionId || !currentHighestBid || currentHighestBid <= 0) {
-      throw new Error("オークションIDまたは現在の最高入札額が無効です");
+    if (!auctionId || currentHighestBid < 0) {
+      throw new Error("オークションIDが無効、または現在の最高入札額が負の値です");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

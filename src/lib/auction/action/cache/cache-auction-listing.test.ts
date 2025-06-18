@@ -104,9 +104,20 @@ const setupMockWithGroupMembership = (groupMemberships = [groupMembershipFactory
 /**
  * 成功ケースの共通モックセットアップ
  */
-const setupSuccessfulMocks = (auctionData = [createMockRawAuctionData()], count = BigInt(1)) => {
+const setupSuccessfulMocks = (
+  auctionData = [
+    createMockRawAuctionData({ id: `${testAuctionId}-1`, status: TaskStatus.PENDING }),
+    createMockRawAuctionData({ id: `${testAuctionId}-2`, status: TaskStatus.AUCTION_ACTIVE }),
+    createMockRawAuctionData({ id: `${testAuctionId}-3`, status: TaskStatus.POINTS_AWARDED }),
+    createMockRawAuctionData({ id: `${testAuctionId}-4`, status: TaskStatus.POINTS_DEPOSITED }),
+    createMockRawAuctionData({ id: `${testAuctionId}-5`, status: TaskStatus.ARCHIVED }),
+  ],
+  count?: bigint,
+) => {
+  // countが指定されていない場合は、auctionDataの長さをcountとして使用
+  const actualCount = count ?? BigInt(auctionData.length);
   const mockGroupMemberships = [groupMembershipFactory.build({ userId: testUserId, groupId: testGroupId })];
-  const mockCountResult = [{ count }];
+  const mockCountResult = [{ count: actualCount }];
 
   setupMockWithGroupMembership(mockGroupMemberships);
   prismaMock.$queryRaw
@@ -138,9 +149,9 @@ describe("cache-auction-listing", () => {
         const result = await cachedGetAuctionListingsAndCount(mockParams);
 
         // Assert
-        expect(result.listings).toHaveLength(1);
-        expect(result.count).toBe(1);
-        expect(result.listings[0].id).toBe(testAuctionId);
+        expect(result.listings).toHaveLength(5);
+        expect(result.count).toBe(5);
+        expect(result.listings[0].id).toBe(`${testAuctionId}-1`);
         expect(result.listings[0].bids_count).toBe(5);
         expect(result.listings[0].is_watched).toBe(false);
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
@@ -559,6 +570,108 @@ describe("cache-auction-listing", () => {
         // Assert
         expect(result.listings).toStrictEqual([]);
         expect(result.count).toBe(0);
+      });
+    });
+
+    describe("ステータスフィルターのテスト", () => {
+      // AND条件が渡されたとしても、endedでフィルターをする場合は、endedに該当するステータス(POINTS_AWARDED, POINTS_DEPOSITED, ARCHIVED)はORで結合されているかテストする
+      test("should handle 'ended' status filter correctly with AND conditions", async () => {
+        // Arrange
+        const mockParams = createMockParams({
+          status: ["ended"],
+          statusConditionJoinType: "and",
+          categories: [],
+          groupIds: [],
+          minBid: null,
+          maxBid: null,
+          minRemainingTime: null,
+          maxRemainingTime: null,
+          searchQuery: "",
+          sort: [],
+          page: 1,
+        });
+        setupSuccessfulMocks();
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(5);
+        expect(result.count).toBe(5);
+        expect(result.listings[0].status).toBe(TaskStatus.PENDING);
+        expect(result.listings[1].status).toBe(TaskStatus.AUCTION_ACTIVE);
+        expect(result.listings[2].status).toBe(TaskStatus.POINTS_AWARDED);
+        expect(result.listings[3].status).toBe(TaskStatus.POINTS_DEPOSITED);
+        expect(result.listings[4].status).toBe(TaskStatus.ARCHIVED);
+
+        // SQLクエリが正しく呼ばれているかチェック
+        expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
+      });
+
+      // AND条件が渡されたとしても、not_endedでフィルターをする場合は、not_endedに該当するステータス(PENDING, AUCTION_ACTIVE)はORで結合されているかテストする
+      test("should handle 'not_ended' status filter correctly with AND conditions", async () => {
+        // Arrange
+        const mockParams = createMockParams({
+          status: ["not_ended"],
+          statusConditionJoinType: "and",
+          categories: [],
+          groupIds: [],
+          minBid: null,
+          maxBid: null,
+          minRemainingTime: null,
+          maxRemainingTime: null,
+          searchQuery: "",
+          sort: [],
+          page: 1,
+        });
+        setupSuccessfulMocks();
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(5);
+        expect(result.count).toBe(5);
+        expect(result.listings[0].status).toBe(TaskStatus.PENDING);
+        expect(result.listings[1].status).toBe(TaskStatus.AUCTION_ACTIVE);
+        expect(result.listings[2].status).toBe(TaskStatus.POINTS_AWARDED);
+        expect(result.listings[3].status).toBe(TaskStatus.POINTS_DEPOSITED);
+        expect(result.listings[4].status).toBe(TaskStatus.ARCHIVED);
+
+        // SQLクエリが正しく呼ばれているかチェック
+        expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
+      });
+
+      // AND条件が渡されたとしても、endedとnot_endedでフィルターをする場合は、endedとnot_endedに該当するステータス(PENDING, AUCTION_ACTIVE, POINTS_AWARDED, POINTS_DEPOSITED, ARCHIVED)はORで結合されているかテストする
+      test("should handle multiple status return get data with OR conditions", async () => {
+        // Arrange
+        const mockParams = createMockParams({
+          status: ["ended", "not_ended"],
+          statusConditionJoinType: "and",
+          categories: [],
+          groupIds: [],
+          minBid: null,
+          maxBid: null,
+          minRemainingTime: null,
+          maxRemainingTime: null,
+          searchQuery: "",
+          sort: [],
+          page: 1,
+        });
+        setupSuccessfulMocks();
+
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(mockParams);
+
+        // Assert
+        expect(result.listings).toHaveLength(5);
+        expect(result.count).toBe(5);
+        expect(result.listings[0].status).toBe(TaskStatus.PENDING);
+        expect(result.listings[1].status).toBe(TaskStatus.AUCTION_ACTIVE);
+        expect(result.listings[2].status).toBe(TaskStatus.POINTS_AWARDED);
+        expect(result.listings[3].status).toBe(TaskStatus.POINTS_DEPOSITED);
+        expect(result.listings[4].status).toBe(TaskStatus.ARCHIVED);
+        expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
       });
     });
   });
