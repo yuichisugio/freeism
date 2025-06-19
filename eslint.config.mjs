@@ -88,6 +88,7 @@ const eslintConfig = [
       "**/layout.tsx",
       "**/not-found.tsx",
       "**/loading.tsx",
+      "**/error.tsx",
       "next.config.ts",
       "postcss.config.mjs",
       "tailwind.config.ts",
