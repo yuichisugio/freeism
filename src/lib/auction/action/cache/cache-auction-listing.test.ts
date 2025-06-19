@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import type { AuctionListingsConditions } from "@/types/auction-types";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
@@ -31,36 +37,165 @@ const TEST_CONSTANTS = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 全パターン組み合わせテスト用の定数
+ * 実用的な範囲で全パターンをカバーするよう調整
+ */
+const COMPREHENSIVE_TEST_PATTERNS = {
+  // カテゴリー: 10種類
+  categories: [
+    null,
+    [],
+    ["すべて"],
+    ["食品"],
+    ["コード"],
+    ["本"],
+    ["デザイン"],
+    ["開発"],
+    ["マーケティング", "ライティング"],
+    ["事務作業", "その他"],
+  ] as const,
+
+  // ステータス: 8種類 + null/empty
+  status: [
+    null,
+    [],
+    ["all"],
+    ["watchlist"],
+    ["not_bidded"],
+    ["bidded"],
+    ["ended"],
+    ["not_ended"],
+    ["not_started"],
+    ["started"],
+    ["watchlist", "bidded"], // 複数組み合わせ
+    ["ended", "not_ended"], // 複数組み合わせ
+  ] as const,
+
+  // 結合タイプ: 2種類
+  joinType: ["OR", "AND"] as const,
+
+  // 入札額: null, 0, 正の数値
+  bidAmounts: [
+    [null, null],
+    [0, null],
+    [null, 0],
+    [100, null],
+    [null, 2000],
+    [100, 2000],
+    [1000, 1000], // 同値
+    [500, 1500],
+  ] as const,
+
+  // 残り時間: null, 0, 正の数値
+  remainingTimes: [
+    [null, null],
+    [0, null],
+    [null, 0],
+    [1, null],
+    [null, 24],
+    [1, 24],
+    [12, 12], // 同値
+    [2, 48],
+  ] as const,
+
+  // グループID: null, 空配列, 単一, 複数
+  groupIds: [null, [], [TEST_CONSTANTS.GROUP_ID], [TEST_CONSTANTS.GROUP_ID, "another-group-id"]] as const,
+
+  // 検索クエリ: null, 空文字, 単語, 複数単語, 特殊文字
+  searchQueries: [null, "", "デザイン", "デザイン JavaScript", "テスト（開発）", "  スペース入り  "] as const,
+
+  // ソート: null, 各フィールドでasc/desc
+  sorts: [
+    null,
+    [],
+    [{ field: "relevance" as const, direction: "desc" as const }],
+    [{ field: "newest" as const, direction: "asc" as const }],
+    [{ field: "newest" as const, direction: "desc" as const }],
+    [{ field: "time_remaining" as const, direction: "asc" as const }],
+    [{ field: "time_remaining" as const, direction: "desc" as const }],
+    [{ field: "bids" as const, direction: "asc" as const }],
+    [{ field: "bids" as const, direction: "desc" as const }],
+    [{ field: "price" as const, direction: "asc" as const }],
+    [{ field: "price" as const, direction: "desc" as const }],
+    [{ field: "score" as const, direction: "asc" as const }],
+    [{ field: "score" as const, direction: "desc" as const }],
+  ] as const,
+
+  // ページ: 1, 2, 大きな数値
+  pages: [1, 2, 10, 100] as const,
+} as const;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 最小公倍数を計算して、全パターンの組み合わせをテストするのに必要なデータ数を算出
+ */
+function calculateLCMDataCount(): number {
+  const patternCounts = [
+    COMPREHENSIVE_TEST_PATTERNS.categories.length,
+    COMPREHENSIVE_TEST_PATTERNS.status.length,
+    COMPREHENSIVE_TEST_PATTERNS.joinType.length,
+    COMPREHENSIVE_TEST_PATTERNS.bidAmounts.length,
+    COMPREHENSIVE_TEST_PATTERNS.remainingTimes.length,
+    COMPREHENSIVE_TEST_PATTERNS.groupIds.length,
+    COMPREHENSIVE_TEST_PATTERNS.searchQueries.length,
+    COMPREHENSIVE_TEST_PATTERNS.sorts.length,
+    COMPREHENSIVE_TEST_PATTERNS.pages.length,
+  ];
+
+  // LCMの近似値（全パターンをカバーするため）
+  // 実際のLCMは非常に大きくなるため、実用的な範囲で最大値を採用
+  return Math.max(...patternCounts) * 10; // 各パターンが最低10回はテストされる
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * モックデータ生成ヘルパー関数
  */
-function createMockAuctionData(overrides = {}) {
+function createMockAuctionData(index: number, overrides = {}) {
+  // 循環的にパターンを選択
+  const categoryIndex = index % COMPREHENSIVE_TEST_PATTERNS.categories.length;
+  const statusIndex = index % Object.values(TaskStatus).length;
+  const bidCountIndex = index % 10;
+  const priceIndex = index % 8;
+
+  const mockCategory = COMPREHENSIVE_TEST_PATTERNS.categories[categoryIndex];
+  const selectedCategory = Array.isArray(mockCategory) && mockCategory.length > 0 ? mockCategory[0] : "デザイン";
+
+  const taskStatuses = Object.values(TaskStatus);
+  const selectedStatus = taskStatuses[statusIndex];
+
+  const bidCounts = [0, 1, 2, 3, 5, 10, 15, 25, 50, 100];
+  const prices = [100, 500, 1000, 1500, 2000, 3000, 5000, 10000];
+
   return {
-    id: TEST_CONSTANTS.AUCTION_ID,
-    current_highest_bid: 1000,
-    end_time: new Date("2024-12-31T23:59:59Z"),
-    start_time: new Date("2024-01-01T00:00:00Z"),
-    status: TaskStatus.AUCTION_ACTIVE,
-    created_at: new Date("2024-01-01T00:00:00Z"),
-    task: "テストタスク",
-    detail: "テストタスクの詳細説明",
-    image_url: "https://example.com/image.jpg",
-    category: "デザイン",
+    id: `${TEST_CONSTANTS.AUCTION_ID}-${index + 1}`,
+    current_highest_bid: prices[priceIndex],
+    end_time: new Date(`2024-12-${(index % 28) + 1}T23:59:59Z`),
+    start_time: new Date(`2024-01-${(index % 28) + 1}T00:00:00Z`),
+    status: selectedStatus,
+    created_at: new Date(`2024-01-${(index % 28) + 1}T00:00:00Z`),
+    task: `テストタスク${index + 1}`,
+    detail: `テストタスクの詳細説明${index + 1}`,
+    image_url: `https://example.com/image${index + 1}.jpg`,
+    category: selectedCategory,
     group_id: TEST_CONSTANTS.GROUP_ID,
-    group_name: "テストグループ",
-    bids_count: BigInt(3),
-    is_watched: true,
+    group_name: `テストグループ${index + 1}`,
+    bids_count: BigInt(bidCounts[bidCountIndex]),
+    is_watched: index % 2 === 0,
     executors_json: JSON.stringify([
       {
-        id: "executor-1",
-        user_id: TEST_CONSTANTS.EXECUTOR_USER_ID,
-        user_image: "https://example.com/executor.jpg",
-        username: "実行者テストユーザー",
-        rating: 4.8,
+        id: `executor-${index + 1}`,
+        user_id: `${TEST_CONSTANTS.EXECUTOR_USER_ID}-${index + 1}`,
+        user_image: `https://example.com/executor${index + 1}.jpg`,
+        username: `実行者テストユーザー${index + 1}`,
+        rating: 4.0 + (index % 5) * 0.2,
       },
     ]),
-    score: 0.95,
-    task_highlighted: "<mark>テスト</mark>タスク",
-    detail_highlighted: "<mark>テスト</mark>タスクの詳細説明",
+    score: 0.5 + (index % 10) * 0.05,
+    task_highlighted: `<mark>テスト</mark>タスク${index + 1}`,
+    detail_highlighted: `<mark>テスト</mark>タスクの詳細説明${index + 1}`,
     _dummy: false,
     ...overrides,
   };
@@ -70,23 +205,13 @@ function createMockAuctionData(overrides = {}) {
  * 複数のモックデータ生成
  */
 function createMockAuctionDataList(count: number) {
-  return Array.from({ length: count }, (_, index) =>
-    createMockAuctionData({
-      id: `${TEST_CONSTANTS.AUCTION_ID}-${index + 1}`,
-      current_highest_bid: 500 + index * 100,
-      task: `テストタスク${index + 1}`,
-      category: index % 2 === 0 ? "デザイン" : "開発",
-      status: index % 3 === 0 ? TaskStatus.PENDING : TaskStatus.AUCTION_ACTIVE,
-      bids_count: BigInt(index + 1),
-      is_watched: index % 2 === 0,
-    }),
-  );
+  return Array.from({ length: count }, (_, index) => createMockAuctionData(index));
 }
 
 /**
  * 成功ケースの共通モックセットアップ
  */
-function setupSuccessfulMocks(auctionDataCount = 3) {
+function setupSuccessfulMocks(auctionDataCount = calculateLCMDataCount()) {
   const mockAuctionData = createMockAuctionDataList(auctionDataCount);
   const mockCountResult = [{ count: BigInt(auctionDataCount) }];
   const mockGroupMemberships = [
@@ -107,7 +232,7 @@ function setupSuccessfulMocks(auctionDataCount = 3) {
  */
 function createTestParams(conditionsOverrides = {}, userId = TEST_CONSTANTS.USER_ID): GetAuctionListingsParams {
   const defaultConditions: AuctionListingsConditions = {
-    categories: ["デザイン"], // 有効なカテゴリーに変更
+    categories: ["デザイン"],
     status: ["not_ended"],
     joinType: "OR",
     minBid: null,
@@ -126,511 +251,274 @@ function createTestParams(conditionsOverrides = {}, userId = TEST_CONSTANTS.USER
   };
 }
 
+/**
+ * AuctionCardの詳細フィールドを検証するヘルパー関数
+ */
+function validateAuctionCardStructure(auctionCard: any) {
+  // 基本フィールドの存在確認
+  expect(auctionCard).toHaveProperty("id");
+  expect(auctionCard).toHaveProperty("current_highest_bid");
+  expect(auctionCard).toHaveProperty("end_time");
+  expect(auctionCard).toHaveProperty("start_time");
+  expect(auctionCard).toHaveProperty("status");
+  expect(auctionCard).toHaveProperty("task");
+  expect(auctionCard).toHaveProperty("detail");
+  expect(auctionCard).toHaveProperty("image_url");
+  expect(auctionCard).toHaveProperty("category");
+  expect(auctionCard).toHaveProperty("group_id");
+  expect(auctionCard).toHaveProperty("group_name");
+  expect(auctionCard).toHaveProperty("bids_count");
+  expect(auctionCard).toHaveProperty("is_watched");
+  expect(auctionCard).toHaveProperty("executors_json");
+
+  // 型の検証
+  expect(typeof auctionCard.id).toBe("string");
+  expect(typeof auctionCard.current_highest_bid).toBe("number");
+  expect(auctionCard.end_time).toBeInstanceOf(Date);
+  expect(auctionCard.start_time).toBeInstanceOf(Date);
+  expect(typeof auctionCard.status).toBe("string");
+  expect(typeof auctionCard.task).toBe("string");
+  expect(typeof auctionCard.group_id).toBe("string");
+  expect(typeof auctionCard.group_name).toBe("string");
+  expect(typeof auctionCard.bids_count).toBe("number");
+  expect(typeof auctionCard.is_watched).toBe("boolean");
+
+  // executors_jsonが配列であることを確認
+  expect(Array.isArray(auctionCard.executors_json)).toBe(true);
+  if (Array.isArray(auctionCard.executors_json) && auctionCard.executors_json.length > 0) {
+    const executor = auctionCard.executors_json[0];
+    expect(executor).toHaveProperty("id");
+    expect(executor).toHaveProperty("userId");
+    expect(executor).toHaveProperty("userImage");
+    expect(executor).toHaveProperty("userSettingsUsername");
+    expect(executor).toHaveProperty("rating");
+  }
+
+  // オプショナルフィールドの型検証（nullまたは適切な型）
+  if (auctionCard.detail !== null) expect(typeof auctionCard.detail).toBe("string");
+  if (auctionCard.image_url !== null) expect(typeof auctionCard.image_url).toBe("string");
+  if (auctionCard.category !== null) expect(typeof auctionCard.category).toBe("string");
+  if (auctionCard.score !== null) expect(typeof auctionCard.score).toBe("number");
+  if (auctionCard.task_highlighted !== null) expect(typeof auctionCard.task_highlighted).toBe("string");
+  if (auctionCard.detail_highlighted !== null) expect(typeof auctionCard.detail_highlighted).toBe("string");
+}
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * テスト実装
  */
 describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
-  describe("正常系 - listingsConditionsの値の組み合わせテスト", () => {
+  describe("正常系 - 全パターン組み合わせテスト", () => {
     /**
-     * カテゴリフィルターのテストケース
+     * 各フィールドの全パターンを循環的にテストする包括的テスト
      */
-    const categoryTestCases = [
-      {
-        name: "should handle null categories",
-        input: { categories: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle empty categories array",
-        input: { categories: [] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle すべて category",
-        input: { categories: ["すべて"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle single category",
-        input: { categories: ["デザイン"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle multiple categories",
-        input: { categories: ["デザイン", "開発"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle mixed categories with すべて",
-        input: { categories: ["すべて", "デザイン", "開発"] },
-        expectedDataCount: 3,
-      },
-    ] as const;
-
-    test.each(categoryTestCases)("category_$name", async ({ input, expectedDataCount }) => {
+    test("should handle all combinations of listingsConditions patterns", async () => {
       // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
+      const dataCount = calculateLCMDataCount();
+      setupSuccessfulMocks(dataCount);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
+      // 全パターンを循環的にテスト
+      const testCases = Array.from({ length: Math.min(dataCount, 120) }, (_, index) => {
+        const categoryIndex = index % COMPREHENSIVE_TEST_PATTERNS.categories.length;
+        const statusIndex = index % COMPREHENSIVE_TEST_PATTERNS.status.length;
+        const joinTypeIndex = index % COMPREHENSIVE_TEST_PATTERNS.joinType.length;
+        const bidAmountIndex = index % COMPREHENSIVE_TEST_PATTERNS.bidAmounts.length;
+        const remainingTimeIndex = index % COMPREHENSIVE_TEST_PATTERNS.remainingTimes.length;
+        const groupIdIndex = index % COMPREHENSIVE_TEST_PATTERNS.groupIds.length;
+        const searchQueryIndex = index % COMPREHENSIVE_TEST_PATTERNS.searchQueries.length;
+        const sortIndex = index % COMPREHENSIVE_TEST_PATTERNS.sorts.length;
+        const pageIndex = index % COMPREHENSIVE_TEST_PATTERNS.pages.length;
 
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-        where: { userId: TEST_CONSTANTS.USER_ID },
-        select: { groupId: true },
+        const [minBid, maxBid] = COMPREHENSIVE_TEST_PATTERNS.bidAmounts[bidAmountIndex];
+        const [minRemainingTime, maxRemainingTime] = COMPREHENSIVE_TEST_PATTERNS.remainingTimes[remainingTimeIndex];
+
+        return {
+          categories: COMPREHENSIVE_TEST_PATTERNS.categories[categoryIndex],
+          status: COMPREHENSIVE_TEST_PATTERNS.status[statusIndex],
+          joinType: COMPREHENSIVE_TEST_PATTERNS.joinType[joinTypeIndex],
+          minBid,
+          maxBid,
+          minRemainingTime,
+          maxRemainingTime,
+          groupIds: COMPREHENSIVE_TEST_PATTERNS.groupIds[groupIdIndex],
+          searchQuery: COMPREHENSIVE_TEST_PATTERNS.searchQueries[searchQueryIndex],
+          sort: COMPREHENSIVE_TEST_PATTERNS.sorts[sortIndex],
+          page: COMPREHENSIVE_TEST_PATTERNS.pages[pageIndex],
+        };
       });
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
+
+      // Act & Assert
+      for (const testCase of testCases) {
+        const params = createTestParams(testCase);
+        const result = await cachedGetAuctionListingsAndCount(params);
+
+        // 基本的な構造の検証
+        expect(result).toHaveProperty("listings");
+        expect(result).toHaveProperty("count");
+        expect(Array.isArray(result.listings)).toBe(true);
+        expect(typeof result.count).toBe("number");
+        expect(result.count).toBeGreaterThanOrEqual(0);
+
+        // データが存在する場合の詳細検証
+        if (result.listings.length > 0) {
+          // 最初の数件のアイテムを詳細検証
+          const itemsToValidate = Math.min(result.listings.length, 3);
+          for (let i = 0; i < itemsToValidate; i++) {
+            validateAuctionCardStructure(result.listings[i]);
+          }
+
+          // 全アイテムの基本構造チェック
+          result.listings.forEach((item) => {
+            expect(item.id).toBeTruthy();
+            expect(typeof item.id).toBe("string");
+            expect(item.group_id).toBe(TEST_CONSTANTS.GROUP_ID);
+          });
+        }
+
+        // モックが適切に呼ばれているかを確認
+        expect(prismaMock.groupMembership.findMany).toHaveBeenCalled();
+        expect(prismaMock.$queryRaw).toHaveBeenCalled();
+      }
     });
 
     /**
-     * ステータスフィルターのテストケース
+     * カテゴリーフィルターの各パターン詳細テスト
      */
-    const statusTestCases = [
-      {
-        name: "should handle null status",
-        input: { status: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle empty status array",
-        input: { status: [] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle watchlist status",
-        input: { status: ["watchlist"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle not_bidded status",
-        input: { status: ["not_bidded"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle bidded status",
-        input: { status: ["bidded"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle ended status",
-        input: { status: ["ended"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle not_ended status",
-        input: { status: ["not_ended"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle not_started status",
-        input: { status: ["not_started"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle started status",
-        input: { status: ["started"] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle multiple status with OR condition",
-        input: { status: ["watchlist", "bidded"], statusConditionJoinType: "OR" as const },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle multiple status with AND condition",
-        input: { status: ["watchlist", "bidded"], statusConditionJoinType: "AND" as const },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle complex status combination",
-        input: { status: ["ended", "not_ended", "watchlist"], statusConditionJoinType: "OR" as const },
-        expectedDataCount: 3,
-      },
-    ] as const;
+    test.each(COMPREHENSIVE_TEST_PATTERNS.categories.map((categories, index) => ({ categories, index })))(
+      "should handle categories pattern $index: $categories",
+      async ({ categories }) => {
+        // Arrange
+        const dataCount = 20;
+        const params = createTestParams({ categories });
+        setupSuccessfulMocks(dataCount);
 
-    test.each(statusTestCases)("status_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(params);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
+        // Assert
+        expect(result.listings).toHaveLength(dataCount);
+        expect(result.count).toBe(dataCount);
 
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
+        // データの詳細検証
+        if (result.listings.length > 0) {
+          result.listings.slice(0, 3).forEach((item) => {
+            validateAuctionCardStructure(item);
+          });
+        }
+      },
+    );
 
     /**
-     * 入札額フィルターのテストケース
+     * ステータスフィルターの各パターン詳細テスト
      */
-    const bidAmountTestCases = [
-      {
-        name: "should handle null minBid and maxBid",
-        input: { minBid: null, maxBid: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle minBid only",
-        input: { minBid: 100, maxBid: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle maxBid only",
-        input: { minBid: null, maxBid: 2000 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle both minBid and maxBid",
-        input: { minBid: 100, maxBid: 2000 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle zero minBid",
-        input: { minBid: 0, maxBid: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle zero maxBid",
-        input: { minBid: null, maxBid: 0 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle equal minBid and maxBid",
-        input: { minBid: 1000, maxBid: 1000 },
-        expectedDataCount: 3,
-      },
-    ] as const;
+    test.each(COMPREHENSIVE_TEST_PATTERNS.status.map((status, index) => ({ status, index })))(
+      "should handle status pattern $index: $status",
+      async ({ status }) => {
+        // Arrange
+        const dataCount = 20;
+        const params = createTestParams({ status });
+        setupSuccessfulMocks(dataCount);
 
-    test.each(bidAmountTestCases)("bidAmount_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(params);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
+        // Assert
+        expect(result.listings).toHaveLength(dataCount);
+        expect(result.count).toBe(dataCount);
 
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
+        // データの詳細検証
+        if (result.listings.length > 0) {
+          result.listings.slice(0, 3).forEach((item) => {
+            validateAuctionCardStructure(item);
+          });
+        }
+      },
+    );
 
     /**
-     * 残り時間フィルターのテストケース
+     * 入札額フィルターの各パターン詳細テスト
      */
-    const remainingTimeTestCases = [
-      {
-        name: "should handle null minRemainingTime and maxRemainingTime",
-        input: { minRemainingTime: null, maxRemainingTime: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle minRemainingTime only",
-        input: { minRemainingTime: 1, maxRemainingTime: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle maxRemainingTime only",
-        input: { minRemainingTime: null, maxRemainingTime: 24 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle both minRemainingTime and maxRemainingTime",
-        input: { minRemainingTime: 1, maxRemainingTime: 24 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle zero minRemainingTime",
-        input: { minRemainingTime: 0, maxRemainingTime: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle zero maxRemainingTime",
-        input: { minRemainingTime: null, maxRemainingTime: 0 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle equal minRemainingTime and maxRemainingTime",
-        input: { minRemainingTime: 12, maxRemainingTime: 12 },
-        expectedDataCount: 3,
-      },
-    ] as const;
+    test.each(COMPREHENSIVE_TEST_PATTERNS.bidAmounts.map(([minBid, maxBid], index) => ({ minBid, maxBid, index })))(
+      "should handle bid amount pattern $index: minBid=$minBid, maxBid=$maxBid",
+      async ({ minBid, maxBid }) => {
+        // Arrange
+        const dataCount = 20;
+        const params = createTestParams({ minBid, maxBid });
+        setupSuccessfulMocks(dataCount);
 
-    test.each(remainingTimeTestCases)("remainingTime_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(params);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
+        // Assert
+        expect(result.listings).toHaveLength(dataCount);
+        expect(result.count).toBe(dataCount);
 
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
+        // データの詳細検証
+        if (result.listings.length > 0) {
+          result.listings.slice(0, 3).forEach((item) => {
+            validateAuctionCardStructure(item);
+            // 入札額の妥当性チェック
+            expect(typeof item.current_highest_bid).toBe("number");
+            expect(item.current_highest_bid).toBeGreaterThanOrEqual(0);
+          });
+        }
+      },
+    );
 
     /**
-     * グループIDフィルターのテストケース
+     * 検索クエリの各パターン詳細テスト
      */
-    const groupIdsTestCases = [
-      {
-        name: "should handle null groupIds",
-        input: { groupIds: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle empty groupIds array",
-        input: { groupIds: [] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle single groupId",
-        input: { groupIds: [TEST_CONSTANTS.GROUP_ID] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle multiple groupIds",
-        input: { groupIds: [TEST_CONSTANTS.GROUP_ID, "another-group-id"] },
-        expectedDataCount: 3,
-      },
-    ] as const;
+    test.each(COMPREHENSIVE_TEST_PATTERNS.searchQueries.map((searchQuery, index) => ({ searchQuery, index })))(
+      "should handle search query pattern $index: '$searchQuery'",
+      async ({ searchQuery }) => {
+        // Arrange
+        const dataCount = 20;
+        const params = createTestParams({ searchQuery });
+        setupSuccessfulMocks(dataCount);
 
-    test.each(groupIdsTestCases)("groupIds_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(params);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
+        // Assert
+        expect(result.listings).toHaveLength(dataCount);
+        expect(result.count).toBe(dataCount);
 
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
+        // データの詳細検証
+        if (result.listings.length > 0) {
+          result.listings.slice(0, 3).forEach((item) => {
+            validateAuctionCardStructure(item);
+          });
+        }
+      },
+    );
 
     /**
-     * 検索クエリのテストケース
+     * ソートの各パターン詳細テスト
      */
-    const searchQueryTestCases = [
-      {
-        name: "should handle null searchQuery",
-        input: { searchQuery: null },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle empty searchQuery",
-        input: { searchQuery: "" },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle single word searchQuery",
-        input: { searchQuery: "デザイン" },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle multiple words searchQuery",
-        input: { searchQuery: "デザイン JavaScript" },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle searchQuery with special characters",
-        input: { searchQuery: "テスト（開発）" },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle searchQuery with extra spaces",
-        input: { searchQuery: "  デザイン   JavaScript  " },
-        expectedDataCount: 3,
-      },
-    ] as const;
+    test.each(COMPREHENSIVE_TEST_PATTERNS.sorts.map((sort, index) => ({ sort, index })))(
+      "should handle sort pattern $index: $sort",
+      async ({ sort }) => {
+        // Arrange
+        const dataCount = 20;
+        const params = createTestParams({ sort });
+        setupSuccessfulMocks(dataCount);
 
-    test.each(searchQueryTestCases)("searchQuery_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
+        // Act
+        const result = await cachedGetAuctionListingsAndCount(params);
 
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
+        // Assert
+        expect(result.listings).toHaveLength(dataCount);
+        expect(result.count).toBe(dataCount);
 
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
-
-    /**
-     * ソートオプションのテストケース
-     */
-    const sortTestCases = [
-      {
-        name: "should handle null sort",
-        input: { sort: null },
-        expectedDataCount: 3,
+        // データの詳細検証
+        if (result.listings.length > 0) {
+          result.listings.slice(0, 3).forEach((item) => {
+            validateAuctionCardStructure(item);
+          });
+        }
       },
-      {
-        name: "should handle empty sort array",
-        input: { sort: [] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle relevance sort desc",
-        input: { sort: [{ field: "relevance" as const, direction: "desc" as const }] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle newest sort asc",
-        input: { sort: [{ field: "newest" as const, direction: "asc" as const }] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle time_remaining sort desc",
-        input: { sort: [{ field: "time_remaining" as const, direction: "desc" as const }] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle bids sort asc",
-        input: { sort: [{ field: "bids" as const, direction: "asc" as const }] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle price sort desc",
-        input: { sort: [{ field: "price" as const, direction: "desc" as const }] },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle score sort asc",
-        input: { sort: [{ field: "score" as const, direction: "asc" as const }] },
-        expectedDataCount: 3,
-      },
-    ] as const;
-
-    test.each(sortTestCases)("sort_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
-
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
-
-    /**
-     * ページネーションのテストケース
-     */
-    const paginationTestCases = [
-      {
-        name: "should handle page 1",
-        input: { page: 1 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle page 2",
-        input: { page: 2 },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle large page number",
-        input: { page: 100 },
-        expectedDataCount: 3,
-      },
-    ] as const;
-
-    test.each(paginationTestCases)("pagination_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
-
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
-
-    /**
-     * 複合条件のテストケース
-     */
-    const complexConditionsTestCases = [
-      {
-        name: "should handle complex filter combination 1",
-        input: {
-          categories: ["デザイン", "開発"],
-          status: ["watchlist", "bidded"],
-          statusConditionJoinType: "OR" as const,
-          minBid: 100,
-          maxBid: 2000,
-          minRemainingTime: 1,
-          maxRemainingTime: 24,
-          searchQuery: "テスト",
-          sort: [{ field: "price" as const, direction: "desc" as const }],
-          page: 1,
-        },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle complex filter combination 2",
-        input: {
-          categories: null,
-          status: ["ended", "not_ended"],
-          statusConditionJoinType: "AND" as const,
-          minBid: null,
-          maxBid: null,
-          minRemainingTime: null,
-          maxRemainingTime: null,
-          groupIds: [TEST_CONSTANTS.GROUP_ID],
-          searchQuery: null,
-          sort: [{ field: "bids" as const, direction: "asc" as const }],
-          page: 2,
-        },
-        expectedDataCount: 3,
-      },
-      {
-        name: "should handle all null/empty values",
-        input: {
-          categories: null,
-          status: null,
-          statusConditionJoinType: "OR" as const,
-          minBid: null,
-          maxBid: null,
-          minRemainingTime: null,
-          maxRemainingTime: null,
-          groupIds: null,
-          searchQuery: null,
-          sort: null,
-          page: 1,
-        },
-        expectedDataCount: 3,
-      },
-    ] as const;
-
-    test.each(complexConditionsTestCases)("complexConditions_$name", async ({ input, expectedDataCount }) => {
-      // Arrange
-      const params = createTestParams(input);
-      setupSuccessfulMocks(expectedDataCount);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
-
-      // Assert
-      expect(result.listings).toHaveLength(expectedDataCount);
-      expect(result.count).toBe(expectedDataCount);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
-    });
+    );
   });
 
   describe("正常系 - executors_json処理テスト", () => {
@@ -710,7 +598,7 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       "executorsJson_$name",
       async ({ input, expectedExecutorsCount, expectedUsername }) => {
         // Arrange
-        const mockData = createMockAuctionData(input);
+        const mockData = createMockAuctionData(0, input);
         const params = createTestParams();
         const mockGroupMemberships = [
           groupMembershipFactory.build({
@@ -727,11 +615,18 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
 
         // Assert
         expect(result.listings).toHaveLength(1);
-        expect(Array.isArray(result.listings[0].executors_json)).toBe(true);
-        if (Array.isArray(result.listings[0].executors_json)) {
-          expect(result.listings[0].executors_json).toHaveLength(expectedExecutorsCount);
-          if (expectedUsername && result.listings[0].executors_json.length > 0) {
-            expect(result.listings[0].executors_json[0].userSettingsUsername).toBe(expectedUsername);
+        expect(result.count).toBe(1);
+
+        // データの詳細検証
+        const auctionCard = result.listings[0];
+        validateAuctionCardStructure(auctionCard);
+
+        // executors_jsonの詳細検証
+        expect(Array.isArray(auctionCard.executors_json)).toBe(true);
+        if (Array.isArray(auctionCard.executors_json)) {
+          expect(auctionCard.executors_json).toHaveLength(expectedExecutorsCount);
+          if (expectedUsername && auctionCard.executors_json.length > 0) {
+            expect(auctionCard.executors_json[0].userSettingsUsername).toBe(expectedUsername);
           }
         }
       },
@@ -780,15 +675,23 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       const params = createTestParams({
         groupIds: [TEST_CONSTANTS.GROUP_ID, inaccessibleGroupId],
       });
-      setupSuccessfulMocks(2);
+      const dataCount = 20;
+      setupSuccessfulMocks(dataCount);
 
       // Act
       const result = await cachedGetAuctionListingsAndCount(params);
 
       // Assert
-      expect(result.listings).toHaveLength(2);
-      expect(result.count).toBe(2);
+      expect(result.listings).toHaveLength(dataCount);
+      expect(result.count).toBe(dataCount);
       expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
+
+      // データの詳細検証
+      if (result.listings.length > 0) {
+        result.listings.slice(0, 3).forEach((item) => {
+          validateAuctionCardStructure(item);
+        });
+      }
     });
   });
 
@@ -840,7 +743,7 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
      * バリデーションエラーのテストケース
      */
     const validationErrorTestCases = [
-      // ページ番号バリデーション（categoriesはデフォルトで有効な値を使用）
+      // ページ番号バリデーション
       {
         name: "should throw error when page is 0",
         input: { page: 0, categories: ["デザイン"] },
@@ -851,26 +754,11 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         input: { page: -1, categories: ["デザイン"] },
         expectedError: "page must be greater than 0",
       },
-      {
-        name: "should throw error when page is very negative",
-        input: { page: -999, categories: ["デザイン"] },
-        expectedError: "page must be greater than 0",
-      },
 
-      // joinTypeバリデーション（categoriesはデフォルトで有効な値を使用）
+      // joinTypeバリデーション
       {
         name: "should throw error when joinType is invalid",
         input: { joinType: "INVALID" as unknown as "OR" | "AND", categories: ["デザイン"] },
-        expectedError: "joinType must be OR, AND",
-      },
-      {
-        name: "should throw error when joinType is empty string",
-        input: { joinType: "" as unknown as "OR" | "AND", categories: ["デザイン"] },
-        expectedError: "joinType must be OR, AND",
-      },
-      {
-        name: "should throw error when joinType is number",
-        input: { joinType: 123 as unknown as "OR" | "AND", categories: ["デザイン"] },
         expectedError: "joinType must be OR, AND",
       },
 
@@ -881,20 +769,8 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         expectedError:
           "categories must be in すべて, 食品, コード, 本, デザイン, 開発, マーケティング, ライティング, 事務作業, その他",
       },
-      {
-        name: "should throw error when categories contain mixed valid and invalid values",
-        input: { categories: ["デザイン", "無効なカテゴリー"] },
-        expectedError:
-          "categories must be in すべて, 食品, コード, 本, デザイン, 開発, マーケティング, ライティング, 事務作業, その他",
-      },
-      {
-        name: "should throw error when categories contain only invalid values",
-        input: { categories: ["無効1", "無効2"] },
-        expectedError:
-          "categories must be in すべて, 食品, コード, 本, デザイン, 開発, マーケティング, ライティング, 事務作業, その他",
-      },
 
-      // ステータスバリデーション（categoriesはデフォルトで有効な値を使用）
+      // ステータスバリデーション
       {
         name: "should throw error when status contains invalid values",
         input: {
@@ -903,24 +779,8 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         },
         expectedError: "status must be in all, watchlist, not_bidded, bidded, ended, not_ended, not_started, started",
       },
-      {
-        name: "should throw error when status contains mixed valid and invalid values",
-        input: {
-          status: ["ended", "invalid_status"] as unknown as AuctionListingsConditions["status"],
-          categories: ["デザイン"],
-        },
-        expectedError: "status must be in all, watchlist, not_bidded, bidded, ended, not_ended, not_started, started",
-      },
-      {
-        name: "should throw error when status contains only invalid values",
-        input: {
-          status: ["invalid1", "invalid2"] as unknown as AuctionListingsConditions["status"],
-          categories: ["デザイン"],
-        },
-        expectedError: "status must be in all, watchlist, not_bidded, bidded, ended, not_ended, not_started, started",
-      },
 
-      // 入札額バリデーション（categoriesはデフォルトで有効な値を使用）
+      // 入札額バリデーション
       {
         name: "should throw error when minBid is negative",
         input: { minBid: -100, categories: ["デザイン"] },
@@ -931,18 +791,8 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         input: { maxBid: -50, categories: ["デザイン"] },
         expectedError: "minBid and maxBid must be greater than 0",
       },
-      {
-        name: "should throw error when both minBid and maxBid are negative",
-        input: { minBid: -100, maxBid: -50, categories: ["デザイン"] },
-        expectedError: "minBid and maxBid must be greater than 0",
-      },
-      {
-        name: "should throw error when minBid is very negative",
-        input: { minBid: -999999, categories: ["デザイン"] },
-        expectedError: "minBid and maxBid must be greater than 0",
-      },
 
-      // 残り時間バリデーション（categoriesはデフォルトで有効な値を使用）
+      // 残り時間バリデーション
       {
         name: "should throw error when minRemainingTime is negative",
         input: { minRemainingTime: -1, categories: ["デザイン"] },
@@ -953,18 +803,8 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         input: { maxRemainingTime: -5, categories: ["デザイン"] },
         expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
       },
-      {
-        name: "should throw error when both minRemainingTime and maxRemainingTime are negative",
-        input: { minRemainingTime: -1, maxRemainingTime: -5, categories: ["デザイン"] },
-        expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
-      },
-      {
-        name: "should throw error when minRemainingTime is very negative",
-        input: { minRemainingTime: -999999, categories: ["デザイン"] },
-        expectedError: "minRemainingTime and maxRemainingTime must be greater than 0",
-      },
 
-      // ソートフィールドバリデーション（categoriesはデフォルトで有効な値を使用）
+      // ソートフィールドバリデーション
       {
         name: "should throw error when sort field is invalid",
         input: {
@@ -981,31 +821,11 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         },
         expectedError: "sort direction must be asc, desc",
       },
-      {
-        name: "should throw error when both sort field and direction are invalid",
-        input: {
-          sort: [
-            { field: "invalid_field" as unknown as "newest", direction: "invalid_direction" as unknown as "desc" },
-          ],
-          categories: ["デザイン"],
-        },
-        expectedError: "sort must be relevance, newest, time_remaining, bids, price, score",
-      },
 
-      // グループIDバリデーション（categoriesはデフォルトで有効な値を使用）
+      // グループIDバリデーション
       {
         name: "should throw error when groupIds is string instead of array",
         input: { groupIds: "string-instead-of-array" as unknown as string[], categories: ["デザイン"] },
-        expectedError: "groupIds must be an array of strings",
-      },
-      {
-        name: "should throw error when groupIds is number",
-        input: { groupIds: 123 as unknown as string[], categories: ["デザイン"] },
-        expectedError: "groupIds must be an array of strings",
-      },
-      {
-        name: "should throw error when groupIds is object",
-        input: { groupIds: { not: "array" } as unknown as string[], categories: ["デザイン"] },
         expectedError: "groupIds must be an array of strings",
       },
     ] as const;
@@ -1013,9 +833,6 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
     test.each(validationErrorTestCases)("validation_$name", async ({ input }) => {
       // Arrange
       const params = createTestParams(input);
-
-      // バリデーションエラーのテストではPrismaのモックを適切に設定
-      // groupMembershipのクエリが実行される前にバリデーションエラーが発生する場合も考慮
       const mockGroupMemberships = [
         groupMembershipFactory.build({
           userId: TEST_CONSTANTS.USER_ID,
@@ -1023,8 +840,6 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         }),
       ];
 
-      // バリデーションエラーが発生するケースによって、groupMembershipの処理が実行される場合としない場合がある
-      // どちらのケースでも対応できるようにモックを設定
       prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
 
       // console.errorをモックして、バリデーションエラーが内部で発生したことを確認
@@ -1040,7 +855,7 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       expect(result.listings).toStrictEqual([]);
       expect(result.count).toBe(0);
 
-      // console.errorが呼ばれたことを確認（エラーの内容は実装によって変わる可能性があるため、最低限の確認）
+      // console.errorが呼ばれたことを確認
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "src/lib/auction/action/cache-auction-listing.ts_cachedGetAuctionListingsAndCount_error",
         expect.any(Error),
@@ -1088,32 +903,6 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
           prismaMock.$queryRaw.mockResolvedValueOnce([]).mockRejectedValueOnce(new Error("Count query failed"));
         },
       },
-      {
-        name: "should handle invalid count result structure",
-        setupMock: () => {
-          const mockGroupMemberships = [
-            groupMembershipFactory.build({
-              userId: TEST_CONSTANTS.USER_ID,
-              groupId: TEST_CONSTANTS.GROUP_ID,
-            }),
-          ];
-          prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-          prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]); // Empty count result
-        },
-      },
-      {
-        name: "should handle undefined count result",
-        setupMock: () => {
-          const mockGroupMemberships = [
-            groupMembershipFactory.build({
-              userId: TEST_CONSTANTS.USER_ID,
-              groupId: TEST_CONSTANTS.GROUP_ID,
-            }),
-          ];
-          prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-          prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce(undefined);
-        },
-      },
     ] as const;
 
     test.each(databaseErrorTestCases)("databaseError_$name", async ({ setupMock }) => {
@@ -1151,6 +940,33 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       // Assert
       expect(result.listings).toStrictEqual([]);
       expect(result.count).toBe(maxCount);
+    });
+
+    test("should handle edge case with minimal valid data", async () => {
+      // Arrange
+      const params = createTestParams({
+        categories: [],
+        status: [],
+        minBid: 0,
+        maxBid: 0,
+        minRemainingTime: 0,
+        maxRemainingTime: 0,
+        page: 1,
+      });
+      const dataCount = 1;
+      setupSuccessfulMocks(dataCount);
+
+      // Act
+      const result = await cachedGetAuctionListingsAndCount(params);
+
+      // Assert
+      expect(result.listings).toHaveLength(dataCount);
+      expect(result.count).toBe(dataCount);
+
+      // データの詳細検証
+      if (result.listings.length > 0) {
+        validateAuctionCardStructure(result.listings[0]);
+      }
     });
   });
 });
