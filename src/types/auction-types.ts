@@ -145,6 +145,13 @@ export const sortDirectionArray = ["asc", "desc"];
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * フィルター条件の型定義 (AND/OR)
+ */
+export type FilterCondition = "and" | "or";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * オークションのフィルターのprops
  */
 export type AuctionFiltersProps = {
@@ -312,13 +319,6 @@ export type CountdownState = {
   isUrgent: boolean;
   isCritical: boolean;
 };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * フィルター条件の型定義 (AND/OR)
- */
-export type FilterCondition = "and" | "or";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
