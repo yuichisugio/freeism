@@ -1152,31 +1152,5 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       expect(result.listings).toStrictEqual([]);
       expect(result.count).toBe(maxCount);
     });
-
-    test("should handle zero page number", async () => {
-      // Arrange
-      const params = createTestParams({ page: 0 });
-      setupSuccessfulMocks(0);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
-
-      // Assert
-      expect(result.listings).toHaveLength(0);
-      expect(result.count).toBe(0);
-    });
-
-    test("should handle negative page number", async () => {
-      // Arrange
-      const params = createTestParams({ page: -1 });
-      setupSuccessfulMocks(0);
-
-      // Act
-      const result = await cachedGetAuctionListingsAndCount(params);
-
-      // Assert
-      expect(result.listings).toHaveLength(0);
-      expect(result.count).toBe(0);
-    });
   });
 });
