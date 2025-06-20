@@ -1,4 +1,7 @@
 {
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": ["playwright"],
-  "enableAllProjectMcpServers": true
+  "permissions": {
+    "allow": ["Bash(rm:*)"]
+  }
 }
