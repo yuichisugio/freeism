@@ -141,10 +141,15 @@ function generateEfficientParameterCombinations(): GetAuctionListingsParams[] {
   // ソート別テストケース
   const sortTestCases = [
     [{ field: "relevance" as const, direction: "asc" as const }],
+    [{ field: "relevance" as const, direction: "desc" as const }],
+    [{ field: "newest" as const, direction: "asc" as const }],
     [{ field: "newest" as const, direction: "desc" as const }],
     [{ field: "time_remaining" as const, direction: "asc" as const }],
-    [{ field: "bids" as const, direction: "desc" as const }],
+    [{ field: "time_remaining" as const, direction: "desc" as const }],
     [{ field: "price" as const, direction: "asc" as const }],
+    [{ field: "price" as const, direction: "desc" as const }],
+    [{ field: "bids" as const, direction: "asc" as const }],
+    [{ field: "bids" as const, direction: "desc" as const }],
   ].map((sort) => ({
     categories: null,
     status: null,
