@@ -80,18 +80,20 @@ function setupSuccessfulMocks() {
  * 条件フラグの型定義
  */
 type ConditionFlags = {
-  hasCategories: boolean;
-  hasStatus: boolean;
-  hasMinBid: boolean;
-  hasMaxBid: boolean;
-  hasMinRemainingTime: boolean;
-  hasMaxRemainingTime: boolean;
-  hasGroupIds: boolean;
-  hasSearchQuery: boolean;
-  hasSort: boolean;
+  hasCategories?: boolean;
+  hasStatus?: boolean;
+  hasMinBid?: boolean;
+  hasMaxBid?: boolean;
+  hasMinRemainingTime?: boolean;
+  hasMaxRemainingTime?: boolean;
+  hasGroupIds?: boolean;
+  hasSearchQuery?: boolean;
+  hasSort?: boolean;
   sortField?: string;
   sortDirection?: string;
   statusValues?: string[];
+  joinType?: "AND" | "OR";
+  categoryCount?: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -100,6 +102,23 @@ type ConditionFlags = {
  * 統一されたオークション一覧取得SQL生成関数
  */
 function generateListingsSQL(flags: ConditionFlags): string {
+  const {
+    hasCategories = false,
+    hasStatus = false,
+    hasMinBid = false,
+    hasMaxBid = false,
+    hasMinRemainingTime = false,
+    hasMaxRemainingTime = false,
+    hasGroupIds = false,
+    hasSearchQuery = false,
+    hasSort = false,
+    sortField = "",
+    sortDirection = "",
+    statusValues = [],
+    joinType = "OR",
+    categoryCount = 0,
+  } = flags;
+
   // 基本のCTEとSELECT部分
   let sql = `
     WITH "FilteredAuctionsCTE" AS (
@@ -111,118 +130,178 @@ function generateListingsSQL(flags: ConditionFlags): string {
         a."current_highest_bid"`;
 
   // 入札数ソート用の追加カラム
-  if (flags.hasSort && flags.sortField === "bids") {
+  if (hasSort && sortField === "bids") {
     sql += `
             , (SELECT COUNT(*) FROM "BidHistory" bh_sort WHERE bh_sort."auction_id" = a.id) as bids_count_intermediate`;
   }
 
   // 全文検索用のスコア
-  if (flags.hasSearchQuery) {
+  if (hasSearchQuery) {
     sql += `
             , pgroonga_score(t.tableoid, t.ctid) as score`;
   }
 
+  // 実装では常にJOIN "Task" tが含まれている
   sql += `
       FROM "Auction" a
-      JOIN "Task" t ON a."task_id" = t.id
-      WHERE a."group_id" = ANY(?::text[])`;
+      JOIN "Task" t ON a."task_id" = t.id`;
+
+  // WHERE句の開始
+  const whereConditions: string[] = [];
+
+  // 基本的なグループ条件
+  whereConditions.push('a."group_id" = ANY(?::text[])');
 
   // 全文検索条件
-  if (flags.hasSearchQuery) {
-    sql = sql.replace(
-      'WHERE a."group_id" = ANY(?::text[])',
-      "WHERE public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ? AND a.\"group_id\" = ANY(?::text[])",
-    );
+  if (hasSearchQuery) {
+    whereConditions.unshift("public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ?");
   }
 
   // カテゴリー条件
-  if (flags.hasCategories) {
-    sql += ` AND (t.category ILIKE ? OR t.category ILIKE ?)`;
+  if (hasCategories) {
+    if ((categoryCount ?? 0) > 1) {
+      const categoryConditions = Array.from({ length: categoryCount ?? 0 }, () => "t.category ILIKE ?");
+      whereConditions.push(`(${categoryConditions.join(" OR ")})`);
+    } else {
+      whereConditions.push("(t.category ILIKE ?)");
+    }
   }
 
-  // ステータス条件（複雑な処理）
-  if (flags.hasStatus && flags.statusValues) {
-    if (flags.statusValues.includes("watchlist")) {
-      sql += ` AND ((EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ?)))`;
-    } else if (flags.statusValues.includes("not_bidded")) {
-      // not_biddedは単独で処理され、not_ended条件は自動で追加されない
-      sql += ` AND ((NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)))`;
-    } else if (flags.statusValues.includes("bidded")) {
-      sql += ` AND ((EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)))`;
-    } else if (flags.statusValues.includes("ended")) {
-      sql += ` AND ((t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ?))`;
-    } else if (flags.statusValues.includes("not_ended")) {
-      sql += ` AND ((t.status::text = ? OR t.status::text = ?))`;
-    } else if (flags.statusValues.includes("not_started")) {
-      sql += ` AND (((t.status::text = ? AND a."start_time" >= ?)))`;
-    } else if (flags.statusValues.includes("started")) {
-      sql += ` AND (((t.status::text = ? AND a."start_time" <= ?)))`;
+  // ステータス条件
+  if (hasStatus && statusValues) {
+    const joinOperator = joinType === "AND" ? " AND " : " OR ";
+    const watchlistConditions: string[] = [];
+    const bidConditions: string[] = [];
+    const statusConditions: string[] = [];
+
+    // 実装では'all'ステータスは単に無視される（何も条件を追加しない）
+    statusValues.forEach((statusItem) => {
+      // 'all'ステータスは何も処理しない（実装に合わせる）
+      if (statusItem === "all") {
+        return;
+      }
+      switch (statusItem) {
+        case "watchlist":
+          watchlistConditions.push(
+            'EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ?)',
+          );
+          break;
+        case "not_bidded":
+          bidConditions.push(
+            'NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)',
+          );
+          break;
+        case "bidded":
+          bidConditions.push(
+            'EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)',
+          );
+          break;
+        case "ended":
+          statusConditions.push(
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+          );
+          break;
+        case "not_ended":
+          statusConditions.push("t.status::text = ?", "t.status::text = ?");
+          break;
+        case "not_started":
+          statusConditions.push('(t.status::text = ? AND a."start_time" >= ?)');
+          break;
+        case "started":
+          statusConditions.push('(t.status::text = ? AND a."start_time" <= ?)');
+          break;
+      }
+    });
+
+    const combinedConditions: string[] = [];
+    if (watchlistConditions.length > 0) {
+      combinedConditions.push(`(${watchlistConditions.join(joinOperator)})`);
+    }
+    if (bidConditions.length > 0) {
+      combinedConditions.push(`(${bidConditions.join(joinOperator)})`);
+    }
+    if (statusConditions.length > 0) {
+      combinedConditions.push(`(${statusConditions.join(" OR ")})`);
+    }
+    if (combinedConditions.length > 0) {
+      whereConditions.push(`(${combinedConditions.join(" AND ")})`);
     }
   }
 
   // 入札額条件
-  if (flags.hasMinBid) {
-    sql += ` AND a."current_highest_bid" >= ?`;
+  if (hasMinBid) {
+    whereConditions.push('a."current_highest_bid" >= ?');
   }
-  if (flags.hasMaxBid) {
-    sql += ` AND a."current_highest_bid" <= ?`;
+  if (hasMaxBid) {
+    whereConditions.push('a."current_highest_bid" <= ?');
   }
 
   // 残り時間条件
-  if (flags.hasMinRemainingTime) {
-    sql += ` AND a."end_time" >= ?`;
+  if (hasMinRemainingTime) {
+    whereConditions.push('a."end_time" >= ?');
   }
-  if (flags.hasMaxRemainingTime) {
-    sql += ` AND a."end_time" <= ?`;
+  if (hasMaxRemainingTime) {
+    whereConditions.push('a."end_time" <= ?');
   }
 
   // グループID条件（追加のフィルター）
-  if (flags.hasGroupIds) {
-    sql += ` AND a."group_id" = ANY(?::text[])`;
+  if (hasGroupIds) {
+    whereConditions.push('a."group_id" = ANY(?::text[])');
   }
 
-  // ORDER BY句
-  if (flags.hasSort) {
-    if (flags.sortField === "price") {
+  // WHERE句を追加
+  if (whereConditions.length > 0) {
+    sql += `
+      WHERE ${whereConditions.join(" AND ")}`;
+  }
+
+  // ORDER BY句 - 実装のdirectionSqlに既にNULLS LASTが含まれているため重複を避ける
+  if (hasSort) {
+    if (sortField === "price") {
       sql += `
-      ORDER BY "current_highest_bid" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "bids") {
+      ORDER BY "current_highest_bid" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "bids") {
       sql += `
-      ORDER BY "bids_count_intermediate" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "time_remaining") {
+      ORDER BY "bids_count_intermediate" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "time_remaining") {
       sql += `
-      ORDER BY "end_time" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "newest") {
+      ORDER BY "end_time" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "newest") {
       sql += `
-      ORDER BY "created_at" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "relevance") {
-      if (flags.hasSearchQuery) {
+      ORDER BY "created_at" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "relevance") {
+      if (hasSearchQuery) {
         sql += `
-      ORDER BY score DESC`;
+      ORDER BY score DESC NULLS LAST`;
       } else {
         sql += `
-      ORDER BY a."created_at" DESC`;
+      ORDER BY a."created_at" DESC NULLS LAST`;
       }
-    } else if (flags.sortField === "score") {
-      // スコアソートの場合は全文検索の条件を追加する必要がある
-      if (!flags.hasSearchQuery) {
-        // スコアソートが指定されているが検索クエリがない場合は、デフォルトソートにする
+    } else if (sortField === "score") {
+      if (!hasSearchQuery) {
         sql += `
-      ORDER BY a."created_at" DESC`;
+      ORDER BY a."created_at" DESC NULLS LAST`;
       } else {
         sql += `
-      ORDER BY score ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
+      ORDER BY score ${sortDirection?.toUpperCase()} NULLS LAST`;
       }
     }
-  } else if (flags.hasSearchQuery) {
-    sql += `
-      ORDER BY score DESC`;
   } else {
-    sql += `
-      ORDER BY a."created_at" DESC`;
+    if (hasSearchQuery) {
+      sql += `
+      ORDER BY score DESC NULLS LAST`;
+    } else {
+      sql += `
+      ORDER BY a."created_at" DESC NULLS LAST`;
+    }
   }
 
-  // 残りのCTE部分
   sql += `
     ),
     "PaginatedAuctionsCTE" AS (
@@ -233,11 +312,14 @@ function generateListingsSQL(flags: ConditionFlags): string {
         "end_time",
         "current_highest_bid"`;
 
-  if (flags.hasSort && flags.sortField === "bids") {
+  // 入札数ソート用のカラム
+  if (hasSort && sortField === "bids") {
     sql += `
         , bids_count_intermediate`;
   }
-  if (flags.hasSearchQuery) {
+
+  // 全文検索用のスコア
+  if (hasSearchQuery) {
     sql += `
         , score`;
   }
@@ -295,7 +377,7 @@ function generateListingsSQL(flags: ConditionFlags): string {
         COALESCE(wc."is_watched", FALSE) as "is_watched",
         ex."executors_json"`;
 
-  if (flags.hasSearchQuery) {
+  if (hasSearchQuery) {
     sql += `
         , p.score as score
         , pgroonga_highlight_html(t.task, pgroonga_query_extract_keywords(?)) as task_highlighted
@@ -312,44 +394,44 @@ function generateListingsSQL(flags: ConditionFlags): string {
     LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id`;
 
   // 最終的なORDER BY句
-  if (flags.hasSort) {
-    if (flags.sortField === "price") {
+  if (hasSort) {
+    if (sortField === "price") {
       sql += `
-    ORDER BY "current_highest_bid" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "bids") {
+    ORDER BY "current_highest_bid" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "bids") {
       sql += `
-    ORDER BY "bids_count_intermediate" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "time_remaining") {
+    ORDER BY "bids_count_intermediate" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "time_remaining") {
       sql += `
-    ORDER BY "end_time" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "newest") {
+    ORDER BY "end_time" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "newest") {
       sql += `
-    ORDER BY "created_at" ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (flags.sortField === "relevance") {
-      if (flags.hasSearchQuery) {
+    ORDER BY "created_at" ${sortDirection?.toUpperCase()} NULLS LAST`;
+    } else if (sortField === "relevance") {
+      if (hasSearchQuery) {
         sql += `
-    ORDER BY score DESC`;
+    ORDER BY score DESC NULLS LAST`;
       } else {
         sql += `
-    ORDER BY a."created_at" DESC`;
+    ORDER BY a."created_at" DESC NULLS LAST`;
       }
-    } else if (flags.sortField === "score") {
-      // スコアソートの場合は全文検索の条件を追加する必要がある
-      if (!flags.hasSearchQuery) {
-        // スコアソートが指定されているが検索クエリがない場合は、デフォルトソートにする
+    } else if (sortField === "score") {
+      if (!hasSearchQuery) {
         sql += `
-    ORDER BY a."created_at" DESC`;
+    ORDER BY a."created_at" DESC NULLS LAST`;
       } else {
         sql += `
-    ORDER BY score ${flags.sortDirection?.toUpperCase()} NULLS LAST`;
+    ORDER BY score ${sortDirection?.toUpperCase()} NULLS LAST`;
       }
     }
-  } else if (flags.hasSearchQuery) {
-    sql += `
-    ORDER BY score DESC`;
   } else {
-    sql += `
-    ORDER BY a."created_at" DESC`;
+    if (hasSearchQuery) {
+      sql += `
+    ORDER BY score DESC NULLS LAST`;
+    } else {
+      sql += `
+    ORDER BY a."created_at" DESC NULLS LAST`;
+    }
   }
 
   return sql.replace(/\s+/g, " ").trim();
@@ -361,86 +443,467 @@ function generateListingsSQL(flags: ConditionFlags): string {
  * 統一されたカウント取得SQL生成関数
  */
 function generateCountSQL(flags: ConditionFlags): string {
+  const {
+    hasCategories = false,
+    hasStatus = false,
+    hasMinBid = false,
+    hasMaxBid = false,
+    hasMinRemainingTime = false,
+    hasMaxRemainingTime = false,
+    hasGroupIds = false,
+    hasSearchQuery = false,
+    statusValues = [],
+    joinType = "OR",
+    categoryCount = 0,
+  } = flags;
+
   let sql = `
     SELECT COUNT(*)::bigint as count
     FROM "Auction" a`;
 
-  // JOIN条件の判定 - 実際のコードに合わせて修正
-  // watchlist, bidded, not_bidded ステータスはt.を含まないため、JOINは不要
-  // ended, not_ended, not_started, started ステータスはt.を含むため、JOINが必要
-  const needsTaskJoin =
-    flags.hasCategories ||
-    flags.hasSearchQuery ||
-    (flags.hasStatus &&
-      flags.statusValues &&
-      (flags.statusValues.includes("ended") ||
-        flags.statusValues.includes("not_ended") ||
-        flags.statusValues.includes("not_started") ||
-        flags.statusValues.includes("started")));
+  const whereConditions: string[] = [];
+
+  // 基本的なグループ条件
+  whereConditions.push('a."group_id" = ANY(?::text[])');
+
+  // 全文検索条件
+  if (hasSearchQuery) {
+    whereConditions.unshift("public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ?");
+  }
+
+  // カテゴリー条件
+  if (hasCategories) {
+    if ((categoryCount ?? 0) > 1) {
+      const categoryConditions = Array.from({ length: categoryCount ?? 0 }, () => "t.category ILIKE ?");
+      whereConditions.push(`(${categoryConditions.join(" OR ")})`);
+    } else {
+      whereConditions.push("(t.category ILIKE ?)");
+    }
+  }
+
+  // ステータス条件
+  if (hasStatus && statusValues) {
+    const joinOperator = joinType === "AND" ? " AND " : " OR ";
+    const watchlistConditions: string[] = [];
+    const bidConditions: string[] = [];
+    const statusConditions: string[] = [];
+
+    // 実装では'all'ステータスは単に無視される（何も条件を追加しない）
+    statusValues.forEach((statusItem) => {
+      // 'all'ステータスは何も処理しない（実装に合わせる）
+      if (statusItem === "all") {
+        return;
+      }
+      switch (statusItem) {
+        case "watchlist":
+          watchlistConditions.push(
+            'EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ?)',
+          );
+          break;
+        case "not_bidded":
+          bidConditions.push(
+            'NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)',
+          );
+          break;
+        case "bidded":
+          bidConditions.push(
+            'EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)',
+          );
+          break;
+        case "ended":
+          statusConditions.push(
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+            "t.status::text = ?",
+          );
+          break;
+        case "not_ended":
+          statusConditions.push("t.status::text = ?", "t.status::text = ?");
+          break;
+        case "not_started":
+          statusConditions.push('(t.status::text = ? AND a."start_time" >= ?)');
+          break;
+        case "started":
+          statusConditions.push('(t.status::text = ? AND a."start_time" <= ?)');
+          break;
+      }
+    });
+
+    const combinedConditions: string[] = [];
+    if (watchlistConditions.length > 0) {
+      combinedConditions.push(`(${watchlistConditions.join(joinOperator)})`);
+    }
+    if (bidConditions.length > 0) {
+      combinedConditions.push(`(${bidConditions.join(joinOperator)})`);
+    }
+    if (statusConditions.length > 0) {
+      combinedConditions.push(`(${statusConditions.join(" OR ")})`);
+    }
+    if (combinedConditions.length > 0) {
+      whereConditions.push(`(${combinedConditions.join(" AND ")})`);
+    }
+  }
+
+  // 入札額条件
+  if (hasMinBid) {
+    whereConditions.push('a."current_highest_bid" >= ?');
+  }
+  if (hasMaxBid) {
+    whereConditions.push('a."current_highest_bid" <= ?');
+  }
+
+  // 残り時間条件
+  if (hasMinRemainingTime) {
+    whereConditions.push('a."end_time" >= ?');
+  }
+  if (hasMaxRemainingTime) {
+    whereConditions.push('a."end_time" <= ?');
+  }
+
+  // グループID条件（追加のフィルター）
+  if (hasGroupIds) {
+    whereConditions.push('a."group_id" = ANY(?::text[])');
+  }
+
+  // needsTaskJoinForCountのロジック - t.を含む条件がある場合はJOINが必要
+  const needsTaskJoin = whereConditions.some((condition) => condition.includes("t."));
 
   if (needsTaskJoin) {
     sql += `
     JOIN "Task" t ON a."task_id" = t.id`;
   }
 
-  sql += `
-    WHERE a."group_id" = ANY(?::text[])`;
-
-  // 全文検索条件
-  if (flags.hasSearchQuery) {
-    sql = sql.replace(
-      'WHERE a."group_id" = ANY(?::text[])',
-      "WHERE public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ? AND a.\"group_id\" = ANY(?::text[])",
-    );
-  }
-
-  // カテゴリー条件
-  if (flags.hasCategories) {
-    sql += ` AND (t.category ILIKE ? OR t.category ILIKE ?)`;
-  }
-
-  // ステータス条件（実際のコードに合わせて修正）
-  if (flags.hasStatus && flags.statusValues) {
-    if (flags.statusValues.includes("watchlist")) {
-      sql += ` AND ((EXISTS (SELECT 1 FROM "TaskWatchList" twl WHERE twl."auction_id" = a.id AND twl."user_id" = ?)))`;
-    } else if (flags.statusValues.includes("not_bidded")) {
-      // not_biddedは単独で処理され、not_ended条件は自動で追加されない
-      sql += ` AND ((NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)))`;
-    } else if (flags.statusValues.includes("bidded")) {
-      sql += ` AND ((EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)))`;
-    } else if (flags.statusValues.includes("ended")) {
-      sql += ` AND ((t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ? OR t.status::text = ?))`;
-    } else if (flags.statusValues.includes("not_ended")) {
-      sql += ` AND ((t.status::text = ? OR t.status::text = ?))`;
-    } else if (flags.statusValues.includes("not_started")) {
-      sql += ` AND (((t.status::text = ? AND a."start_time" >= ?)))`;
-    } else if (flags.statusValues.includes("started")) {
-      sql += ` AND (((t.status::text = ? AND a."start_time" <= ?)))`;
-    }
-  }
-
-  // 入札額条件
-  if (flags.hasMinBid) {
-    sql += ` AND a."current_highest_bid" >= ?`;
-  }
-  if (flags.hasMaxBid) {
-    sql += ` AND a."current_highest_bid" <= ?`;
-  }
-
-  // 残り時間条件
-  if (flags.hasMinRemainingTime) {
-    sql += ` AND a."end_time" >= ?`;
-  }
-  if (flags.hasMaxRemainingTime) {
-    sql += ` AND a."end_time" <= ?`;
-  }
-
-  // グループID条件（追加のフィルター）
-  if (flags.hasGroupIds) {
-    sql += ` AND a."group_id" = ANY(?::text[])`;
+  // WHERE句を追加
+  if (whereConditions.length > 0) {
+    sql += `
+      WHERE ${whereConditions.join(" AND ")}`;
   }
 
   return sql.replace(/\s+/g, " ").trim();
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ステータスの2つの組み合わせを生成する関数
+ */
+function generateStatusCombinations(): Array<[string, string]> {
+  const statuses = ["all", "watchlist", "not_bidded", "bidded", "ended", "not_ended", "not_started", "started"];
+  const combinations: Array<[string, string]> = [];
+
+  for (let i = 0; i < statuses.length; i++) {
+    for (let j = i + 1; j < statuses.length; j++) {
+      combinations.push([statuses[i], statuses[j]]);
+    }
+  }
+
+  return combinations;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ステータス2つの組み合わせとjoinTypeの全組み合わせテストケースを生成
+ */
+function generateStatusJoinTypeCombinations() {
+  const statusCombinations = generateStatusCombinations();
+  const joinTypes: Array<"OR" | "AND"> = ["OR", "AND"];
+  const testCases = [];
+
+  for (const [status1, status2] of statusCombinations) {
+    for (const joinType of joinTypes) {
+      // 実装では'all'ステータスは無視されるため、'all'以外のステータスがある場合のみhasStatus: trueを設定
+      const nonAllStatuses = [status1, status2].filter((s) => s !== "all");
+      const hasStatus = nonAllStatuses.length > 0;
+
+      testCases.push({
+        name: `ステータスフィルター適用(${status1} + ${status2}, ${joinType}結合)`,
+        conditions: { status: [status1, status2], joinType },
+        flags: {
+          hasStatus,
+          statusValues: [status1, status2],
+          joinType,
+        },
+      });
+    }
+  }
+
+  return testCases;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * ソート条件の全組み合わせを生成する関数
+ */
+function generateSortCombinations() {
+  const sortFields = ["relevance", "newest", "time_remaining", "bids", "price", "score"];
+  const directions = ["asc", "desc"];
+  const testCases = [];
+
+  for (const field of sortFields) {
+    for (const direction of directions) {
+      testCases.push({
+        name: `${field}ソート（${direction === "asc" ? "昇順" : "降順"}）適用`,
+        conditions: { sort: [{ field, direction }] },
+        flags: {
+          hasSort: true,
+          sortField: field,
+          sortDirection: direction,
+        },
+      });
+    }
+  }
+
+  return testCases;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 単一ステータスとjoinTypeの組み合わせを生成する関数
+ */
+function generateSingleStatusJoinTypeCombinations() {
+  const statuses = ["all", "watchlist", "not_bidded", "bidded", "ended", "not_ended", "not_started", "started"];
+  const joinTypes: Array<"OR" | "AND"> = ["OR", "AND"];
+  const testCases = [];
+
+  for (const status of statuses) {
+    for (const joinType of joinTypes) {
+      // 実装では'all'ステータスは無視されるため、'all'以外の場合のみhasStatus: trueを設定
+      const hasStatus = status !== "all";
+
+      testCases.push({
+        name: `単一ステータスフィルター適用(${status}, ${joinType}結合)`,
+        conditions: { status: [status], joinType },
+        flags: {
+          hasStatus,
+          statusValues: [status],
+          joinType,
+        },
+      });
+    }
+  }
+
+  return testCases;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 複合条件のテストケースを生成する関数
+ */
+function generateComplexConditionsCombinations() {
+  return [
+    {
+      name: "複合条件(カテゴリー + ステータス + ページネーション)",
+      conditions: { categories: ["コード"], status: ["watchlist"], page: 2, joinType: "OR" },
+      flags: {
+        hasCategories: true,
+        hasStatus: true,
+        statusValues: ["watchlist"],
+        categoryCount: 1,
+        page: 2,
+      },
+    },
+    {
+      name: "複合条件(検索クエリ + ステータス + ソート + ページネーション)",
+      conditions: {
+        searchQuery: "テスト検索",
+        status: ["bidded"],
+        sort: [{ field: "price", direction: "desc" }],
+        page: 3,
+        joinType: "AND",
+      },
+      flags: {
+        hasSearchQuery: true,
+        hasStatus: true,
+        hasSort: true,
+        statusValues: ["bidded"],
+        sortField: "price",
+        sortDirection: "desc",
+        joinType: "AND" as const,
+        page: 3,
+      },
+    },
+    {
+      name: "複合条件(複数カテゴリー + 複数ステータス + 入札額範囲 + ソート)",
+      conditions: {
+        categories: ["デザイン", "開発"],
+        status: ["watchlist", "bidded"],
+        minBid: 500,
+        maxBid: 2000,
+        sort: [{ field: "time_remaining", direction: "asc" }],
+        joinType: "OR",
+      },
+      flags: {
+        hasCategories: true,
+        hasStatus: true,
+        hasMinBid: true,
+        hasMaxBid: true,
+        hasSort: true,
+        categoryCount: 2,
+        statusValues: ["watchlist", "bidded"],
+        sortField: "time_remaining",
+        sortDirection: "asc",
+        joinType: "OR" as const,
+      },
+    },
+    {
+      name: "複合条件(検索クエリ + カテゴリー + 残り時間範囲 + グループID + ページネーション)",
+      conditions: {
+        searchQuery: "プログラミング タスク",
+        categories: ["コード", "開発"],
+        minRemainingTime: 12,
+        maxRemainingTime: 72,
+        groupIds: ["test-group-id"],
+        page: 5,
+        joinType: "AND",
+      },
+      flags: {
+        hasSearchQuery: true,
+        hasCategories: true,
+        hasMinRemainingTime: true,
+        hasMaxRemainingTime: true,
+        hasGroupIds: true,
+        categoryCount: 2,
+        joinType: "AND" as const,
+        page: 5,
+      },
+    },
+    {
+      name: "複合条件(全ステータス + 全入札額条件 + 全残り時間条件 + 検索クエリ + ソート)",
+      conditions: {
+        status: ["ended", "not_ended", "started"],
+        minBid: 100,
+        maxBid: 5000,
+        minRemainingTime: 6,
+        maxRemainingTime: 168,
+        searchQuery: "緊急 依頼",
+        sort: [{ field: "relevance", direction: "desc" }],
+        joinType: "OR",
+      },
+      flags: {
+        hasStatus: true,
+        hasMinBid: true,
+        hasMaxBid: true,
+        hasMinRemainingTime: true,
+        hasMaxRemainingTime: true,
+        hasSearchQuery: true,
+        hasSort: true,
+        statusValues: ["ended", "not_ended", "started"],
+        sortField: "relevance",
+        sortDirection: "desc",
+        joinType: "OR" as const,
+      },
+    },
+    {
+      name: "複合条件(3つのカテゴリー + 2つのステータス + 入札数ソート + 高ページ数)",
+      conditions: {
+        categories: ["マーケティング", "ライティング", "事務作業"],
+        status: ["not_bidded", "not_started"],
+        sort: [{ field: "bids", direction: "desc" }],
+        page: 15,
+        joinType: "AND",
+      },
+      flags: {
+        hasCategories: true,
+        hasStatus: true,
+        hasSort: true,
+        categoryCount: 3,
+        statusValues: ["not_bidded", "not_started"],
+        sortField: "bids",
+        sortDirection: "desc",
+        joinType: "AND" as const,
+        page: 15,
+      },
+    },
+    {
+      name: "複合条件(検索クエリ + スコアソート + 最小入札額 + 特定グループ)",
+      conditions: {
+        searchQuery: "AI 機械学習",
+        sort: [{ field: "score", direction: "desc" }],
+        minBid: 1000,
+        groupIds: ["test-group-id"],
+        joinType: "OR",
+      },
+      flags: {
+        hasSearchQuery: true,
+        hasSort: true,
+        hasMinBid: true,
+        hasGroupIds: true,
+        sortField: "score",
+        sortDirection: "desc",
+        joinType: "OR" as const,
+      },
+    },
+    {
+      name: "複合条件(すべてのカテゴリー + 価格ソート昇順 + 最大残り時間 + ページネーション)",
+      conditions: {
+        categories: ["すべて"],
+        sort: [{ field: "price", direction: "asc" }],
+        maxRemainingTime: 24,
+        page: 7,
+        joinType: "AND",
+      },
+      flags: {
+        hasCategories: false, // "すべて"が含まれている場合はカテゴリー条件を追加しない
+        hasSort: true,
+        hasMaxRemainingTime: true,
+        sortField: "price",
+        sortDirection: "asc",
+        joinType: "AND" as const,
+        page: 7,
+      },
+    },
+    {
+      name: "複合条件(単一カテゴリー + ウォッチリスト + 新着順ソート + 最大入札額)",
+      conditions: {
+        categories: ["その他"],
+        status: ["watchlist"],
+        sort: [{ field: "newest", direction: "desc" }],
+        maxBid: 3000,
+        joinType: "OR",
+      },
+      flags: {
+        hasCategories: true,
+        hasStatus: true,
+        hasSort: true,
+        hasMaxBid: true,
+        categoryCount: 1,
+        statusValues: ["watchlist"],
+        sortField: "newest",
+        sortDirection: "desc",
+        joinType: "OR" as const,
+      },
+    },
+    {
+      name: "複合条件(入札済み + 終了済み + 入札額範囲 + 残り時間範囲 + ページネーション)",
+      conditions: {
+        status: ["bidded", "ended"],
+        minBid: 200,
+        maxBid: 1500,
+        minRemainingTime: 1,
+        maxRemainingTime: 48,
+        page: 12,
+        joinType: "AND",
+      },
+      flags: {
+        hasStatus: true,
+        hasMinBid: true,
+        hasMaxBid: true,
+        hasMinRemainingTime: true,
+        hasMaxRemainingTime: true,
+        statusValues: ["bidded", "ended"],
+        joinType: "AND" as const,
+        page: 12,
+      },
+    },
+  ];
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -452,384 +915,139 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
       {
         name: "デフォルト条件のみ",
         conditions: {},
+        flags: {},
+      },
+      {
+        name: "カテゴリーフィルター適用(すべて)",
+        conditions: { categories: ["すべて"] },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
+          hasCategories: false, // "すべて"が含まれている場合はカテゴリー条件を追加しない
         },
       },
       {
-        name: "カテゴリーフィルター適用",
+        name: "カテゴリーフィルター適用(コード)",
+        conditions: { categories: ["コード"] },
+        flags: {
+          hasCategories: true,
+          categoryCount: 1,
+        },
+      },
+      {
+        name: "カテゴリーフィルター適用(デザイン, 開発)",
         conditions: { categories: ["デザイン", "開発"] },
         flags: {
           hasCategories: true,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
+          categoryCount: 2,
         },
       },
       {
-        name: "ウォッチリストステータスフィルター適用",
-        conditions: { status: ["watchlist"] },
+        name: "カテゴリーフィルター適用(デザイン, 開発, デザイン)",
+        conditions: { categories: ["デザイン", "開発", "デザイン"] },
         flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["watchlist"],
+          hasCategories: true,
+          categoryCount: 3,
         },
       },
       {
-        name: "未入札ステータスフィルター適用",
-        conditions: { status: ["not_bidded"] },
+        name: "カテゴリーフィルター適用(デザイン, デザイン)",
+        conditions: { categories: ["デザイン", "デザイン"] },
         flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["not_bidded"],
-        },
-      },
-      {
-        name: "入札済みステータスフィルター適用",
-        conditions: { status: ["bidded"] },
-        flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["bidded"],
-        },
-      },
-      {
-        name: "終了済みステータスフィルター適用",
-        conditions: { status: ["ended"] },
-        flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["ended"],
-        },
-      },
-      {
-        name: "未終了ステータスフィルター適用",
-        conditions: { status: ["not_ended"] },
-        flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["not_ended"],
-        },
-      },
-      {
-        name: "未開始ステータスフィルター適用",
-        conditions: { status: ["not_started"] },
-        flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["not_started"],
-        },
-      },
-      {
-        name: "開始済みステータスフィルター適用",
-        conditions: { status: ["started"] },
-        flags: {
-          hasCategories: false,
-          hasStatus: true,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
-          statusValues: ["started"],
+          hasCategories: true,
+          categoryCount: 2,
         },
       },
       {
         name: "最小入札額フィルター適用",
         conditions: { minBid: 100 },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
           hasMinBid: true,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
       {
         name: "最大入札額フィルター適用",
         conditions: { maxBid: 1000 },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
           hasMaxBid: true,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
       {
         name: "入札額範囲フィルター適用",
         conditions: { minBid: 100, maxBid: 1000 },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
           hasMinBid: true,
           hasMaxBid: true,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
       {
         name: "検索クエリ適用",
         conditions: { searchQuery: "テスト クエリ" },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
           hasSearchQuery: true,
-          hasSort: false,
-        },
-      },
-      {
-        name: "価格ソート（降順）適用",
-        conditions: { sort: [{ field: "price", direction: "desc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "price",
-          sortDirection: "desc",
-        },
-      },
-      {
-        name: "価格ソート（昇順）適用",
-        conditions: { sort: [{ field: "price", direction: "asc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "price",
-          sortDirection: "asc",
-        },
-      },
-      {
-        name: "入札数ソート適用",
-        conditions: { sort: [{ field: "bids", direction: "desc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "bids",
-          sortDirection: "desc",
-        },
-      },
-      {
-        name: "残り時間ソート適用",
-        conditions: { sort: [{ field: "time_remaining", direction: "asc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "time_remaining",
-          sortDirection: "asc",
-        },
-      },
-      {
-        name: "新着順ソート適用",
-        conditions: { sort: [{ field: "newest", direction: "desc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "newest",
-          sortDirection: "desc",
-        },
-      },
-      {
-        name: "関連度ソート適用",
-        conditions: { sort: [{ field: "relevance", direction: "desc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "relevance",
-          sortDirection: "desc",
-        },
-      },
-      {
-        name: "スコアソート適用",
-        conditions: { sort: [{ field: "score", direction: "desc" }] },
-        flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: true,
-          sortField: "score",
-          sortDirection: "desc",
         },
       },
       {
         name: "最小残り時間フィルター適用",
         conditions: { minRemainingTime: 24 },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
           hasMinRemainingTime: true,
-          hasMaxRemainingTime: false,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
       {
         name: "最大残り時間フィルター適用",
         conditions: { maxRemainingTime: 168 },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
           hasMaxRemainingTime: true,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
       {
         name: "残り時間範囲フィルター適用",
         conditions: { minRemainingTime: 24, maxRemainingTime: 168 },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
           hasMinRemainingTime: true,
           hasMaxRemainingTime: true,
-          hasGroupIds: false,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
       {
         name: "グループIDフィルター適用",
         conditions: { groupIds: ["test-group-id"] },
         flags: {
-          hasCategories: false,
-          hasStatus: false,
-          hasMinBid: false,
-          hasMaxBid: false,
-          hasMinRemainingTime: false,
-          hasMaxRemainingTime: false,
           hasGroupIds: true,
-          hasSearchQuery: false,
-          hasSort: false,
         },
       },
+      {
+        name: "ページネーション適用(1ページ目)",
+        conditions: { page: 1 },
+        flags: {},
+      },
+      {
+        name: "ページネーション適用(2ページ目)",
+        conditions: { page: 2 },
+        flags: {
+          page: 2,
+        },
+      },
+      {
+        name: "ページネーション適用(3ページ目)",
+        conditions: { page: 3 },
+        flags: {
+          page: 3,
+        },
+      },
+      {
+        name: "ページネーション適用(10ページ目)",
+        conditions: { page: 10 },
+        flags: {
+          page: 10,
+        },
+      },
+      // ソート条件の全組み合わせテストケースを追加
+      ...generateSortCombinations(),
+      // 単一ステータスとjoinTypeの全組み合わせテストケースを追加
+      ...generateSingleStatusJoinTypeCombinations(),
+      // 複合条件のテストケースを追加
+      ...generateComplexConditionsCombinations(),
+      // ステータス2つの組み合わせとjoinTypeの全組み合わせテストケースを追加
+      ...generateStatusJoinTypeCombinations(),
     ];
 
     test.each(testCases)("$name の場合のSQL生成テスト", async ({ conditions, flags }) => {

@@ -372,7 +372,7 @@ export const cachedGetAuctionListingsAndCount = cache(
         // ハイライトするために、pgroonga_highlight_htmlを使用する
         ftsHighlightDetailSQL = Prisma.sql`, pgroonga_highlight_html(t.detail, ${highlightParamsSQL}) as detail_highlighted`;
         // スコアでソートする
-        ftsOrderBySQL = Prisma.sql`score DESC`;
+        ftsOrderBySQL = Prisma.sql`score DESC NULLS LAST`;
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -382,7 +382,7 @@ export const cachedGetAuctionListingsAndCount = cache(
        */
       let orderBySql: Prisma.Sql = Prisma.empty;
       // 全文検索がない場合は、作成日時の降順にソート。全文検索がある場合は、スコアでソートする
-      const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`a."created_at" DESC`;
+      const defaultSort = ftsOrderBySQL !== Prisma.empty ? ftsOrderBySQL : Prisma.sql`a."created_at" DESC NULLS LAST`;
 
       // sortの指定がある場合
       if (sort && sort.length > 0) {
