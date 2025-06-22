@@ -90,6 +90,11 @@ export const cachedGetAuctionListingsAndCount = cache(
        */
       if (!listingsConditions || !userId) throw new Error("listingsConditions or userId is required");
 
+      // userIdの型チェックを追加
+      if (typeof userId !== "string") {
+        throw new Error("userId must be a string");
+      }
+
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
@@ -115,9 +120,14 @@ export const cachedGetAuctionListingsAndCount = cache(
       /**
        * バリデーション
        */
-      // ページ番号がある場合に、1以上か確認
-      if (page && page < 1) {
-        throw new Error("page must be greater than 0");
+      // ページ番号の型と値をチェック
+      if (page !== null && page !== undefined) {
+        if (typeof page !== "number") {
+          throw new Error("page must be a number");
+        }
+        if (page < 1) {
+          throw new Error("page must be greater than 0");
+        }
       }
 
       // ステータス条件の結合タイプがある場合に、joinTypeArrayに含まれているか確認
@@ -125,42 +135,98 @@ export const cachedGetAuctionListingsAndCount = cache(
         throw new Error(`joinType must be ${joinTypeArray.join(", ")}`);
       }
 
-      // カテゴリーがある場合に、AUCTION_CONSTANTS.AUCTION_CATEGORIESに含まれているか確認
-      if (categories && !categories.every((c) => AUCTION_CONSTANTS.AUCTION_CATEGORIES.includes(c))) {
-        throw new Error(`categories must be in ${AUCTION_CONSTANTS.AUCTION_CATEGORIES.join(", ")}`);
-      }
-
-      // ステータスがある場合に、AuctionFilterTypesに含まれているか確認
-      if (status && !status.every((s) => auctionFilterArray.includes(s))) {
-        throw new Error(`status must be in ${auctionFilterArray.join(", ")}`);
-      }
-
-      // 入札額がある場合に、0より大きいか確認
-      if ((minBid && minBid < 0) || (maxBid && maxBid < 0)) {
-        throw new Error("minBid and maxBid must be greater than 0");
-      }
-
-      // 残り時間がある場合に、0より大きいか確認
-      if ((minRemainingTime && minRemainingTime < 0) || (maxRemainingTime && maxRemainingTime < 0)) {
-        throw new Error("minRemainingTime and maxRemainingTime must be greater than 0");
-      }
-
-      // ソートがある場合
-      if (sort && sort.length > 0) {
-        // ソートフィールドがある場合に、auctionSortFieldArrayに含まれているか確認
-        if (!auctionSortFieldArray.includes(sort[0].field)) {
-          throw new Error(`sort must be ${auctionSortFieldArray.join(", ")}`);
+      // カテゴリーの型と内容をチェック
+      if (categories !== null && categories !== undefined) {
+        if (!Array.isArray(categories)) {
+          throw new Error("categories must be an array");
         }
-        // ソート方向がある場合に、sortDirectionArrayに含まれているか確認
-        if (!sortDirectionArray.includes(sort[0].direction)) {
-          throw new Error(`sort direction must be ${sortDirectionArray.join(", ")}`);
+        if (categories.length > 0 && !categories.every((c) => AUCTION_CONSTANTS.AUCTION_CATEGORIES.includes(c))) {
+          throw new Error(`categories must be in ${AUCTION_CONSTANTS.AUCTION_CATEGORIES.join(", ")}`);
         }
       }
 
-      // グループIDがある場合、groupIdsが配列であることを確認
+      // ステータスの型と内容をチェック
+      if (status !== null && status !== undefined) {
+        if (!Array.isArray(status)) {
+          throw new Error("status must be an array");
+        }
+        if (status.length > 0 && !status.every((s) => auctionFilterArray.includes(s))) {
+          throw new Error(`status must be in ${auctionFilterArray.join(", ")}`);
+        }
+      }
+
+      // 入札額の型と値をチェック
+      if (minBid !== null && minBid !== undefined) {
+        if (typeof minBid !== "number") {
+          throw new Error("minBid must be a number");
+        }
+        if (minBid < 0) {
+          throw new Error("minBid must be greater than or equal to 0");
+        }
+      }
+      if (maxBid !== null && maxBid !== undefined) {
+        if (typeof maxBid !== "number") {
+          throw new Error("maxBid must be a number");
+        }
+        if (maxBid < 0) {
+          throw new Error("maxBid must be greater than or equal to 0");
+        }
+      }
+
+      // 残り時間の型と値をチェック
+      if (minRemainingTime !== null && minRemainingTime !== undefined) {
+        if (typeof minRemainingTime !== "number") {
+          throw new Error("minRemainingTime must be a number");
+        }
+        if (minRemainingTime < 0) {
+          throw new Error("minRemainingTime must be greater than or equal to 0");
+        }
+      }
+      if (maxRemainingTime !== null && maxRemainingTime !== undefined) {
+        if (typeof maxRemainingTime !== "number") {
+          throw new Error("maxRemainingTime must be a number");
+        }
+        if (maxRemainingTime < 0) {
+          throw new Error("maxRemainingTime must be greater than or equal to 0");
+        }
+      }
+
+      // ソートの型と内容をチェック
+      if (sort !== null && sort !== undefined) {
+        if (!Array.isArray(sort)) {
+          throw new Error("sort must be an array");
+        }
+        if (sort.length > 0) {
+          // ソートフィールドがある場合に、auctionSortFieldArrayに含まれているか確認
+          if (!auctionSortFieldArray.includes(sort[0].field)) {
+            throw new Error(`sort must be ${auctionSortFieldArray.join(", ")}`);
+          }
+          // ソート方向がある場合に、sortDirectionArrayに含まれているか確認
+          if (!sortDirectionArray.includes(sort[0].direction)) {
+            throw new Error(`sort direction must be ${sortDirectionArray.join(", ")}`);
+          }
+        }
+      }
+
+      // グループIDの型をチェック
       if (groupIds !== null && groupIds !== undefined) {
         if (!Array.isArray(groupIds)) {
           throw new Error("groupIds must be an array of strings");
+        }
+        // 配列の要素がすべて文字列かチェック
+        if (groupIds.length > 0 && !groupIds.every((id) => typeof id === "string")) {
+          throw new Error("all groupIds must be strings");
+        }
+      }
+
+      // 検索クエリの型をチェック
+      if (searchQuery !== null && searchQuery !== undefined) {
+        if (typeof searchQuery !== "string") {
+          throw new Error("searchQuery must be a string");
+        }
+        // 検索クエリの長さをチェック（例：5000文字以内）
+        if (searchQuery.length > 5000) {
+          throw new Error("searchQuery is too long (max 5000 characters)");
         }
       }
 

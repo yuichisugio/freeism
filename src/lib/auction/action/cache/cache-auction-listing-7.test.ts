@@ -1,6 +1,13 @@
-import type { AuctionListingsConditions } from "@/types/auction-types";
+/**
+ * カテゴリーのテスト
+ * ステータスのテスト
+ * ページネーションのテスト
+ */
+import type { AuctionListingsConditions, JoinType } from "@/types/auction-types";
+import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import { auctionFilterArray, auctionSortFieldArray, joinTypeArray, sortDirectionArray } from "@/types/auction-types";
 import { type Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -92,7 +99,7 @@ type ConditionFlags = {
   sortField?: string;
   sortDirection?: string;
   statusValues?: string[];
-  joinType?: "AND" | "OR";
+  joinType?: JoinType;
   categoryCount?: number;
 };
 
@@ -592,7 +599,7 @@ function generateCountSQL(flags: ConditionFlags): string {
  * ステータスの2つの組み合わせを生成する関数
  */
 function generateStatusCombinations(): Array<[string, string]> {
-  const statuses = ["all", "watchlist", "not_bidded", "bidded", "ended", "not_ended", "not_started", "started"];
+  const statuses = auctionFilterArray;
   const combinations: Array<[string, string]> = [];
 
   for (let i = 0; i < statuses.length; i++) {
@@ -611,7 +618,7 @@ function generateStatusCombinations(): Array<[string, string]> {
  */
 function generateStatusJoinTypeCombinations() {
   const statusCombinations = generateStatusCombinations();
-  const joinTypes: Array<"OR" | "AND"> = ["OR", "AND"];
+  const joinTypes: Array<JoinType> = joinTypeArray;
   const testCases = [];
 
   for (const [status1, status2] of statusCombinations) {
@@ -641,8 +648,8 @@ function generateStatusJoinTypeCombinations() {
  * ソート条件の全組み合わせを生成する関数
  */
 function generateSortCombinations() {
-  const sortFields = ["relevance", "newest", "time_remaining", "bids", "price", "score"];
-  const directions = ["asc", "desc"];
+  const sortFields = auctionSortFieldArray;
+  const directions = sortDirectionArray;
   const testCases = [];
 
   for (const field of sortFields) {
@@ -668,8 +675,8 @@ function generateSortCombinations() {
  * 単一ステータスとjoinTypeの組み合わせを生成する関数
  */
 function generateSingleStatusJoinTypeCombinations() {
-  const statuses = ["all", "watchlist", "not_bidded", "bidded", "ended", "not_ended", "not_started", "started"];
-  const joinTypes: Array<"OR" | "AND"> = ["OR", "AND"];
+  const statuses = auctionFilterArray;
+  const joinTypes: Array<JoinType> = joinTypeArray;
   const testCases = [];
 
   for (const status of statuses) {
@@ -692,6 +699,51 @@ function generateSingleStatusJoinTypeCombinations() {
   return testCases;
 }
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 単一ステータスとjoinTypeの組み合わせを生成する関数
+ */
+function generateSingleCategoryCombinations() {
+  const categories = AUCTION_CONSTANTS.AUCTION_CATEGORIES;
+  const testCases = [];
+
+  for (const category of categories) {
+    testCases.push({
+      name: `カテゴリー適用(${category})`,
+      conditions: { categories: [category] },
+      flags: {
+        hasCategories: true,
+        categoryCount: 1,
+      },
+    });
+  }
+  return testCases;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 複数カテゴリーの組み合わせを生成する関数
+ */
+function generateMultipleCategoriesCombinations() {
+  const categories = AUCTION_CONSTANTS.AUCTION_CATEGORIES;
+  const testCases = [];
+
+  for (let i = 0; i < categories.length; i++) {
+    for (let j = i + 1; j < categories.length; j++) {
+      testCases.push({
+        name: `カテゴリー適用(${categories[i]} + ${categories[j]})`,
+        conditions: { categories: [categories[i], categories[j]] },
+        flags: {
+          hasCategories: true,
+          categoryCount: 2,
+        },
+      });
+    }
+  }
+  return testCases;
+}
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -918,37 +970,6 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         flags: {},
       },
       {
-        name: "カテゴリーフィルター適用(すべて)",
-        conditions: { categories: ["すべて"] },
-        flags: {
-          hasCategories: false, // "すべて"が含まれている場合はカテゴリー条件を追加しない
-        },
-      },
-      {
-        name: "カテゴリーフィルター適用(コード)",
-        conditions: { categories: ["コード"] },
-        flags: {
-          hasCategories: true,
-          categoryCount: 1,
-        },
-      },
-      {
-        name: "カテゴリーフィルター適用(デザイン, 開発)",
-        conditions: { categories: ["デザイン", "開発"] },
-        flags: {
-          hasCategories: true,
-          categoryCount: 2,
-        },
-      },
-      {
-        name: "カテゴリーフィルター適用(デザイン, 開発, デザイン)",
-        conditions: { categories: ["デザイン", "開発", "デザイン"] },
-        flags: {
-          hasCategories: true,
-          categoryCount: 3,
-        },
-      },
-      {
         name: "カテゴリーフィルター適用(デザイン, デザイン)",
         conditions: { categories: ["デザイン", "デザイン"] },
         flags: {
@@ -1020,26 +1041,16 @@ describe("cache-auction-listing.ts_cachedGetAuctionListingsAndCount", () => {
         flags: {},
       },
       {
-        name: "ページネーション適用(2ページ目)",
-        conditions: { page: 2 },
-        flags: {
-          page: 2,
-        },
-      },
-      {
-        name: "ページネーション適用(3ページ目)",
-        conditions: { page: 3 },
-        flags: {
-          page: 3,
-        },
-      },
-      {
         name: "ページネーション適用(10ページ目)",
         conditions: { page: 10 },
         flags: {
           page: 10,
         },
       },
+      // カテゴリーの全組み合わせテストケースを追加
+      ...generateSingleCategoryCombinations(),
+      // 複数カテゴリーの組み合わせテストケースを追加
+      ...generateMultipleCategoriesCombinations(),
       // ソート条件の全組み合わせテストケースを追加
       ...generateSortCombinations(),
       // 単一ステータスとjoinTypeの全組み合わせテストケースを追加
