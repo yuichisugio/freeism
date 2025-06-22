@@ -22,7 +22,7 @@ export type GetAuctionListingsParams = {
 /**
  * オークション一覧を取得する関数の引数の型
  */
-type ExecutorJsonItem = {
+export type ExecutorJsonItem = {
   id: string | null;
   rating: number | null;
   userId: string | null;
@@ -35,7 +35,7 @@ type ExecutorJsonItem = {
 /**
  * オークション一覧を取得する関数の引数の型
  */
-type ExecutorJsonItemFromDB = {
+export type ExecutorJsonItemFromDB = {
   id: string | null;
   user_id: string | null;
   user_image: string | null;
@@ -48,7 +48,7 @@ type ExecutorJsonItemFromDB = {
 /**
  * Raw クエリの戻り値の型を定義
  */
-type RawAuctionData = {
+export type RawAuctionData = {
   id: string;
   current_highest_bid: number;
   end_time: Date;
@@ -749,7 +749,7 @@ export const cachedGetAuctionListingsAndCount = cache(
  * @param obj - オブジェクト
  * @returns オブジェクトがExecutorJsonItemFromDB型かどうか
  */
-function isExecutorObjectFromDB(obj: unknown): obj is ExecutorJsonItemFromDB {
+export function isExecutorObjectFromDB(obj: unknown): obj is ExecutorJsonItemFromDB {
   // オブジェクトでない場合は、falseを返却
   if (typeof obj !== "object" || obj === null) {
     return false;
