@@ -5,7 +5,7 @@ import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
-import { checkGroupExistByName, updateGroup } from "@/lib/actions/group";
+import { checkGroupExistByName, updateGroup } from "@/lib/actions/group/group";
 import { checkIsOwner } from "@/lib/actions/permission";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { createGroupSchema } from "@/lib/zod-schema";

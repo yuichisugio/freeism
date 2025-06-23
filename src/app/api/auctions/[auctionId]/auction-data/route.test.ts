@@ -1,7 +1,7 @@
 import type { UpdateAuctionWithDetails } from "@/types/auction-types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getUpdatedAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { getUpdatedAuctionByAuctionId } from "@/lib/actions/auction/auction-retrieve";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 

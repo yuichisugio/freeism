@@ -1,11 +1,11 @@
 "use client";
 
-import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "@/lib/auction/action/auto-bid/auto-bid";
+import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "@/lib/actions/auction/auto-bid/auto-bid";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { executeAutoBid } from "@/lib/auction/action/auto-bid/auto-bid";
-import { cancelAutoBid } from "@/lib/auction/action/auto-bid/cancel-auto-bid";
-import { getAutoBidByUserId } from "@/lib/auction/action/auto-bid/get-auto-bid-settings";
-import { setAutoBid } from "@/lib/auction/action/auto-bid/set-auto-bid";
+import { executeAutoBid } from "@/lib/actions/auction/auto-bid/auto-bid";
+import { cancelAutoBid } from "@/lib/actions/auction/auto-bid/cancel-auto-bid";
+import { getAutoBidByUserId } from "@/lib/actions/auction/auto-bid/get-auto-bid-settings";
+import { setAutoBid } from "@/lib/actions/auction/auto-bid/set-auto-bid";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";

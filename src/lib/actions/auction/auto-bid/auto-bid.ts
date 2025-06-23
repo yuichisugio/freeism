@@ -1,9 +1,9 @@
 "use server";
 
-import type { ValidateAuctionResult } from "@/lib/auction/action/bid-validation";
+import type { ValidateAuctionResult } from "@/lib/actions/auction/bid-validation";
+import { validateAuction } from "@/lib/actions/auction/bid-validation";
+import { executeBid } from "@/lib/actions/auction/bid/bid-common";
 import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
-import { validateAuction } from "@/lib/auction/action/bid-validation";
-import { executeBid } from "@/lib/auction/action/bid/bid-common";
 import { prisma } from "@/lib/prisma";
 import {
   NotificationSendMethod,

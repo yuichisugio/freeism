@@ -1,6 +1,6 @@
 "use server";
 
-import { validateAuction } from "@/lib/auction/action/bid-validation";
+import { validateAuction } from "@/lib/actions/auction/bid-validation";
 import { prisma } from "@/lib/prisma";
 
 import { type ExecuteAutoBidReturn } from "./auto-bid";

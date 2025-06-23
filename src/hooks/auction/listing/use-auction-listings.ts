@@ -8,8 +8,8 @@ import type {
 } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
-import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
-import { getUserGroupIds } from "@/lib/auction/action/auction-user-join-group-list";
+import { getAuctionListingsAndCount } from "@/lib/actions/auction/auction-listing";
+import { getUserGroupIds } from "@/lib/actions/auction/auction-user-join-group-list";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

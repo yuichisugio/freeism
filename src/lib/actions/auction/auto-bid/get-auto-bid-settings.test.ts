@@ -1,4 +1,4 @@
-import { validateAuction } from "@/lib/auction/action/bid-validation";
+import { validateAuction } from "@/lib/actions/auction/bid-validation";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { autoBidFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";

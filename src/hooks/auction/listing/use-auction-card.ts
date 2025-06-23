@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { type AuctionMessage, type AuctionPersonInfo } from "@/hooks/auction/bid/use-auction-qa";
-import { getAuctionMessagesAndSellerInfo } from "@/lib/auction/action/auction-qa";
-import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
-import { getAutoBidByUserId } from "@/lib/auction/action/auto-bid/get-auto-bid-settings";
+import { getAuctionMessagesAndSellerInfo } from "@/lib/actions/auction/auction-qa";
+import { getAuctionByAuctionId } from "@/lib/actions/auction/auction-retrieve";
+import { getAutoBidByUserId } from "@/lib/actions/auction/auto-bid/get-auto-bid-settings";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { type AuctionCard } from "@/types/auction-types";
 import { TaskStatus } from "@prisma/client";

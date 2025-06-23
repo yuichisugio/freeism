@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { getAuctionMessagesAndSellerInfo, sendAuctionMessage } from "@/lib/auction/action/auction-qa";
+import { getAuctionMessagesAndSellerInfo, sendAuctionMessage } from "@/lib/actions/auction/auction-qa";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

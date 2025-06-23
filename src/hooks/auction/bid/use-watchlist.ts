@@ -1,6 +1,6 @@
 "use client";
 
-import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/auction/action/watchlist";
+import { serverIsAuctionWatched, serverToggleWatchlist } from "@/lib/actions/auction/watchlist";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";

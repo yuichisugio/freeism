@@ -1,4 +1,4 @@
-import { createAuctionReview } from "@/lib/auction/action/auction-rating";
+import { createAuctionReview } from "@/lib/actions/auction/auction-rating";
 import { AllTheProviders, mockUseMutation, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { ReviewPosition } from "@prisma/client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";

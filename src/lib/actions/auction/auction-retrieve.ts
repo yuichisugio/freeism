@@ -1,6 +1,6 @@
 "use server";
 
-import { getCachedAuctionByAuctionId } from "@/lib/auction/action/cache/cache-auction-retrieve";
+import { getCachedAuctionByAuctionId } from "@/lib/actions/auction/cache/cache-auction-retrieve";
 import { AUCTION_CONSTANTS, getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/types/auction-types";

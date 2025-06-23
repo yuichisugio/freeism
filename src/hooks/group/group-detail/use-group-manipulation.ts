@@ -3,7 +3,7 @@
 import type { Group } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { deleteGroup, joinGroup, removeMember } from "@/lib/actions/group";
+import { deleteGroup, joinGroup, removeMember } from "@/lib/actions/group/group";
 import { getGroupById } from "@/lib/actions/group/group-detail";
 import { leaveGroup } from "@/lib/actions/group/my-group";
 import { queryCacheKeys } from "@/lib/tanstack-query";

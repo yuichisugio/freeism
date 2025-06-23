@@ -1,6 +1,6 @@
 import type { UpdateAuctionWithDetails } from "@/types/auction-types";
 import type { TaskStatus } from "@prisma/client";
-import { sendEventToAuctionSubscribers } from "@/lib/auction/action/server-sent-events-broadcast";
+import { sendEventToAuctionSubscribers } from "@/lib/actions/auction/server-sent-events-broadcast";
 import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";

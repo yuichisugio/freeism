@@ -1,4 +1,4 @@
-import type { GetAuctionListingsParams } from "@/lib/auction/action/cache/cache-auction-listing";
+import type { GetAuctionListingsParams } from "@/lib/actions/auction/cache/cache-auction-listing";
 import type { AuctionListingResult, AuctionListingsConditions, Suggestion } from "@/types/auction-types";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -21,10 +21,10 @@ vi.mock("@/lib/auction/action/cache/cache-auction-listing", () => ({
  * モック関数の型定義
  */
 const mockCachedGetAuctionListingsAndCount = vi.mocked(
-  (await import("@/lib/auction/action/cache/cache-auction-listing")).cachedGetAuctionListingsAndCount,
+  (await import("@/lib/actions/auction/cache/cache-auction-listing")).cachedGetAuctionListingsAndCount,
 );
 const mockCachedGetSearchSuggestions = vi.mocked(
-  (await import("@/lib/auction/action/cache/cache-auction-suggestion")).cachedGetSearchSuggestions,
+  (await import("@/lib/actions/auction/cache/cache-auction-suggestion")).cachedGetSearchSuggestions,
 );
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

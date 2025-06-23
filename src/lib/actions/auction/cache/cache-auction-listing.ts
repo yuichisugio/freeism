@@ -1,8 +1,8 @@
 "use cache";
 
-import type { ExecutorJsonItem } from "@/lib/auction/utils/executor-utils";
+import type { ExecutorJsonItem } from "@/lib/actions/utils/auction-utils";
 import type { AuctionCard, AuctionListingResult, AuctionListingsConditions } from "@/types/auction-types";
-import { isExecutorObjectFromDB } from "@/lib/auction/utils/executor-utils";
+import { isExecutorObjectFromDB } from "@/lib/actions/utils/auction-utils";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { auctionFilterArray, auctionSortFieldArray, joinTypeArray, sortDirectionArray } from "@/types/auction-types";

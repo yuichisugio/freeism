@@ -3,7 +3,7 @@
 import { memo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { NoResult } from "@/components/share/share-no-result";
-import { getAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { getAuctionByAuctionId } from "@/lib/actions/auction/auction-retrieve";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery } from "@tanstack/react-query";
 

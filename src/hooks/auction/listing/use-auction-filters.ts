@@ -1,6 +1,6 @@
 "use client";
 
-import type { GetSearchSuggestionsParams } from "@/lib/auction/action/cache/cache-auction-suggestion";
+import type { GetSearchSuggestionsParams } from "@/lib/actions/auction/cache/cache-auction-suggestion";
 import type {
   AuctionFilterTypes,
   AuctionListingsConditions,
@@ -10,9 +10,9 @@ import type {
   UseAuctionFiltersProps,
 } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
-import { getUserGroupIds } from "@/lib/auction/action/auction-user-join-group-list";
-import { getUserGroups } from "@/lib/auction/action/user";
+import { getSearchSuggestions } from "@/lib/actions/auction/auction-listing";
+import { getUserGroupIds } from "@/lib/actions/auction/auction-user-join-group-list";
+import { getUserGroups } from "@/lib/actions/auction/user";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery } from "@tanstack/react-query";

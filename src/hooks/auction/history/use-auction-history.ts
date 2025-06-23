@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getUserBidHistories, getUserBidHistoriesCount } from "@/lib/auction/action/auction-history/bid-auction";
+import { getUserBidHistories, getUserBidHistoriesCount } from "@/lib/actions/auction/auction-history/bid-auction";
 import {
   getUserCreatedAuctions,
   getUserCreatedAuctionsCount,
-} from "@/lib/auction/action/auction-history/created-auction";
-import { getUserWonAuctions, getUserWonAuctionsCount } from "@/lib/auction/action/auction-history/won-auction";
+} from "@/lib/actions/auction/auction-history/created-auction";
+import { getUserWonAuctions, getUserWonAuctionsCount } from "@/lib/actions/auction/auction-history/won-auction";
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import {

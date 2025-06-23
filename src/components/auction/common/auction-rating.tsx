@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Textarea } from "@/components/ui/textarea";
-import { createAuctionReview, getDisplayUserInfo } from "@/lib/auction/action/auction-rating";
+import { createAuctionReview, getDisplayUserInfo } from "@/lib/actions/auction/auction-rating";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

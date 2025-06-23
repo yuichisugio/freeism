@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getUpdatedAuctionByAuctionId } from "@/lib/auction/action/auction-retrieve";
+import { getUpdatedAuctionByAuctionId } from "@/lib/actions/auction/auction-retrieve";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

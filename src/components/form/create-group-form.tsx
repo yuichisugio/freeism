@@ -5,7 +5,7 @@ import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
-import { createGroup } from "@/lib/actions/group";
+import { createGroup } from "@/lib/actions/group/group";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";

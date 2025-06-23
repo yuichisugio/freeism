@@ -1,6 +1,6 @@
 import type { AuctionWithDetails } from "@/types/auction-types";
 import type { Prisma } from "@prisma/client";
-import { getCachedAuctionByAuctionId } from "@/lib/auction/action/cache/cache-auction-retrieve";
+import { getCachedAuctionByAuctionId } from "@/lib/actions/auction/cache/cache-auction-retrieve";
 import { getAuctionUpdateSelect } from "@/lib/constants";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";

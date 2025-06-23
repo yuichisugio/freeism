@@ -1,7 +1,6 @@
+import { validateImageFiles } from "@/lib/cloudflare/image-validator";
 import { MAX_FILE_SIZE } from "@/lib/cloudflare/upload-constants";
 import { describe, expect, test, vi } from "vitest";
-
-import { validateImageFiles } from "./image-validator";
 
 // ファイル作成用のヘルパー関数
 function createTestFile(
@@ -48,8 +47,7 @@ describe("validateImageFiles", () => {
   });
 
   test("should return error for null files", async () => {
-    // @ts-expect-error - テスト用にnullを渡す
-    const result = await validateImageFiles(null);
+    const result = await validateImageFiles(null as unknown as File[]);
 
     expect(result).toStrictEqual({
       valid: false,
@@ -58,8 +56,7 @@ describe("validateImageFiles", () => {
   });
 
   test("should return error for undefined files", async () => {
-    // @ts-expect-error - テスト用にundefinedを渡す
-    const result = await validateImageFiles(undefined);
+    const result = await validateImageFiles(undefined as unknown as File[]);
 
     expect(result).toStrictEqual({
       valid: false,

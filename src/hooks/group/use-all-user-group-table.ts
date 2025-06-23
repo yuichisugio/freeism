@@ -2,8 +2,8 @@
 
 import type { AllUserGroupTable, TableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo } from "react";
-import { joinGroup } from "@/lib/actions/group";
 import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
+import { joinGroup } from "@/lib/actions/group/group";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
