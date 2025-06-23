@@ -1,10 +1,9 @@
+// テスト対象の型と関数をインポート
+import type { ExecutorJsonItem, ExecutorJsonItemFromDB } from "@/lib/auction/utils/executor-utils";
+import { isExecutorObjectFromDB } from "@/lib/auction/utils/executor-utils";
 import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-
-// テスト対象の型と関数をインポート
-import type { ExecutorJsonItem, ExecutorJsonItemFromDB } from "./cache-auction-listing";
-import { isExecutorObjectFromDB } from "./cache-auction-listing";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
