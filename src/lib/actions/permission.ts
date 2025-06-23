@@ -172,24 +172,49 @@ export async function grantOwnerPermission(
   userId: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // 操作者がグループオーナーかチェック
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パラメータの検証
+     */
+    if (!groupId || !userId) {
+      throw new Error("無効なパラメータが指定されました");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 操作者がグループオーナーかチェック
+     */
     const isOwner = await checkIsOwner(userId, groupId);
     if (!isOwner.success) {
       return { success: false, error: "グループオーナー権限がありません" };
     }
 
-    // 対象ユーザーのグループメンバーシップを取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 対象ユーザーのグループメンバーシップを取得
+     */
     const targetMembership = await checkGroupMembership(userId, groupId);
     if (!targetMembership) {
       return { success: false, error: "指定されたユーザーはグループに参加していません" };
     }
 
-    // 既にオーナー権限を持っている場合
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 既にオーナー権限を持っている場合
+     */
     if (targetMembership.isGroupOwner) {
       return { success: false, error: "指定されたユーザーは既にグループオーナーです" };
     }
 
-    // グループオーナー権限を付与
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループオーナー権限を付与
+     */
     await prisma.groupMembership.update({
       where: {
         id: targetMembership.id,
@@ -199,8 +224,15 @@ export async function grantOwnerPermission(
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パスを再検証
+     */
     revalidatePath(`/dashboard/group/${groupId}`);
     return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[GRANT_OWNER_PERMISSION]", error);
     return { success: false, error: "グループオーナー権限の付与中にエラーが発生しました" };
@@ -217,15 +249,39 @@ export async function grantOwnerPermission(
  */
 export async function checkIsAppOwner(userId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パラメータの検証
+     */
+    if (!userId) {
+      throw new Error("無効なパラメータが指定されました");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーを取得
+     */
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { isAppOwner: true },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーが見つからない場合はエラーを返す
+     */
     if (!user) {
       return { success: false, error: "ユーザーが見つかりません" };
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * アプリオーナー権限があるかどうかを返す
+     */
     return { success: !!user.isAppOwner };
   } catch (error) {
     console.error("[CHECK_APP_OWNER]", error);
@@ -243,13 +299,35 @@ export async function checkIsAppOwner(userId: string): Promise<{ success: boolea
  */
 export async function checkGroupMembership(userId: string, groupId: string): Promise<GroupMembership | null> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パラメータの検証
+     */
+    if (!userId || !groupId) {
+      throw new Error("無効なパラメータが指定されました");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループメンバーシップを取得
+     */
     const membership = await prisma.groupMembership.findFirst({
       where: {
         userId,
         groupId,
       },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループメンバーシップを返す
+     */
     return membership;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[CHECK_GROUP_MEMBERSHIP]", error);
     return null;
@@ -263,7 +341,12 @@ export async function checkGroupMembership(userId: string, groupId: string): Pro
  * 通知のUIを決めるために必要
  */
 export async function checkOneGroupOwner(userId: string): Promise<{ success: boolean; error?: string }> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  if (!userId) {
+    throw new Error("無効なパラメータが指定されました");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループオーナー情報を取得
@@ -278,14 +361,14 @@ export async function checkOneGroupOwner(userId: string): Promise<{ success: boo
     },
   });
 
-  if (!userGroupMemberships) {
-    return { success: false, error: "グループオーナー権限がありません" };
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループオーナー権限があるかどうかを返す
    */
-  return { success: !!userGroupMemberships };
+  if (!userGroupMemberships) {
+    return { success: false, error: "グループオーナー権限がありません" };
+  } else {
+    return { success: true };
+  }
 }

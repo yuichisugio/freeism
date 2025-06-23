@@ -751,10 +751,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           throw new Error("プッシュ通知の購読に失敗しました。通知が許可されていないか、ブラウザが対応していません。");
         }
         // 購読成功、DBを更新
-        const result = await updateUserSettingToggle(userId, true, "isPushEnabled");
-        if (!result.success) {
-          throw new Error(result.error ?? "サーバーでの設定更新に失敗しました。");
-        }
+        const result = await updateUserSettingToggle({ userId, isEnabled: true, column: "isPushEnabled" });
         return result;
       } else {
         // トグルをOFFにする場合
@@ -763,10 +760,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           await unsubscribe();
         }
         // 購読解除後 (または元々未購読)、DBを更新
-        const result = await updateUserSettingToggle(userId, false, "isPushEnabled");
-        if (!result.success) {
-          throw new Error(result.error ?? "サーバーでの設定更新に失敗しました。");
-        }
+        const result = await updateUserSettingToggle({ userId, isEnabled: false, column: "isPushEnabled" });
         return result;
       }
     },
@@ -823,20 +817,15 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       if (!userId) return;
 
       try {
-        const result = await updateUserSettingToggle(userId, false, "isPushEnabled");
-        if (result.success) {
-          // DB更新成功時にクエリを無効化して最新状態を取得
-          await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
-          const message =
-            reason === "denied"
-              ? "通知の権限が拒否されたため、設定を自動的にOFFにしました"
-              : "通知の権限がリセットされたため、設定を自動的にOFFにしました";
-          toast.info(message);
-          return true;
-        } else {
-          console.error(`権限${reason}時のDB更新に失敗:`, result.error);
-          return false;
-        }
+        await updateUserSettingToggle({ userId, isEnabled: false, column: "isPushEnabled" });
+        // DB更新成功時にクエリを無効化して最新状態を取得
+        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
+        const message =
+          reason === "denied"
+            ? "通知の権限が拒否されたため、設定を自動的にOFFにしました"
+            : "通知の権限がリセットされたため、設定を自動的にOFFにしました";
+        toast.info(message);
+        return true;
       } catch (error) {
         console.error(`権限${reason}時のDB更新でエラー:`, error);
         return false;

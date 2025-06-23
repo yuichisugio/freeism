@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { bulkCreateEvaluations } from "@/lib/actions/evaluation";
+import { bulkCreateEvaluations } from "@/lib/actions/modal/evaluation";
 import { checkIsOwner } from "@/lib/actions/permission";
 import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/lib/actions/task/upload-modal";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
@@ -765,11 +765,17 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
           }
         } else if (uploadType === "CONTRIBUTION_EVALUATION") {
           try {
+            // ユーザーIDの取得
+            const userId = session.data?.user?.id;
+            if (!userId) {
+              throw new Error("ユーザーIDが取得できませんでした");
+            }
+
             // 安全にCSVRowをContributionEvaluationDataに変換
             const evalData = convertToContributionEvaluationData(data);
 
             // APIを呼び出し
-            const evalResponse = (await bulkCreateEvaluations(evalData, groupId)) as EvaluationsApiResponse;
+            const evalResponse = (await bulkCreateEvaluations(evalData, groupId, userId)) as EvaluationsApiResponse;
 
             result = {
               success: evalResponse.success,
@@ -876,6 +882,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
     convertToContributionEvaluationData,
     convertToFixedContributionData,
     convertToTaskStatusData,
+    session.data?.user?.id,
   ]);
 
   // ---------------------------------------------------------------------------

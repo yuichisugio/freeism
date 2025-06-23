@@ -10,8 +10,7 @@ import { getCachedAllUsers } from "@/lib/actions/cache/cache-user";
  * @returns ユーザー一覧
  */
 export async function getAllUsers(): Promise<TaskParticipant[]> {
-  const users = await getCachedAllUsers();
-  return users;
+  return await getCachedAllUsers();
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

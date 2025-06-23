@@ -32,7 +32,7 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   const queryClient = useQueryClient();
   const { mutate, variables, isPending } = useMutation({
     mutationFn: async (isEmailEnabled: boolean) =>
-      await updateUserSettingToggle(userId, isEmailEnabled, "isEmailEnabled"),
+      await updateUserSettingToggle({ userId, isEnabled: isEmailEnabled, column: "isEmailEnabled" }),
     onSuccess: () => {
       toast.success("メール通知設定を更新しました。");
     },

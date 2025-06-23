@@ -101,8 +101,8 @@ export const SetupForm = memo(function SetupForm() {
   const { mutate, isPending, variables } = useMutation({
     mutationKey: queryCacheKeys.userSettings.update(userId),
     gcTime: Infinity,
-    mutationFn: (userSettings: SetupForm): Promise<{ success: boolean; error?: string }> =>
-      updateUserSetup(userSettings),
+    mutationFn: (userSettings: SetupForm): Promise<{ success: boolean; redirectURL: string }> =>
+      updateUserSetup(userSettings, userId),
     onError: (
       error: Error,
       _variables: SetupForm,
@@ -117,9 +117,7 @@ export const SetupForm = memo(function SetupForm() {
     },
     onSuccess: (data) => {
       toast.success("ユーザー設定を更新しました");
-      if (data.success) {
-        router.refresh();
-      }
+      router.push(data.redirectURL);
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });

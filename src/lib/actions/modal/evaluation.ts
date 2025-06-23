@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { z } from "zod"; // zodを使用して型検証を行います
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -56,17 +55,32 @@ type EvaluationResult =
 export async function bulkCreateEvaluations(
   rawData: EvaluationImportData[],
   groupId: string,
+  userId: string,
 ): Promise<EvaluationResult> {
   try {
-    // 認証セッションを取得
-    const userId = await getAuthenticatedSessionUserId();
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 入力データの検証
+    /**
+     * パラメータの検証
+     */
+    if (!groupId || !userId) {
+      throw new Error("無効なパラメータが指定されました");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 入力データの検証
+     */
     if (!Array.isArray(rawData) || rawData.length === 0) {
       return { success: false, error: "評価データが空か無効な形式です" };
     }
 
-    // 各行のデータを検証
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 各行のデータを検証
+     */
     const validationResults = rawData.map((item, index) => {
       try {
         // Zodスキーマを使用してデータを検証
@@ -90,11 +104,20 @@ export async function bulkCreateEvaluations(
       }
     });
 
-    // 検証エラーがあれば中断
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 検証エラーがあれば、検証エラーのみの配列を作成
+     */
     const validationErrors = validationResults.filter(
       (result): result is { success: false; error: string; rowIndex: number } => !result.success,
     );
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 検証エラーがあれば中断
+     */
     if (validationErrors.length > 0) {
       const errorMessages = validationErrors.map((e) => e.error);
       return {
@@ -103,15 +126,27 @@ export async function bulkCreateEvaluations(
       };
     }
 
-    // 検証済みデータを抽出
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 検証済みデータを抽出
+     */
     const validatedData = validationResults
       .filter((result): result is { success: true; data: EvaluationImportData; rowIndex: number } => result.success)
       .map((result) => result.data);
 
-    // タスクIDの一覧を取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクIDの一覧を取得
+     */
     const taskIds = [...new Set(validatedData.map((item) => item.taskId))];
 
-    // トランザクションを使用してデータを一括登録
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * トランザクションを使用してデータを一括登録
+     */
     const result = await prisma.$transaction(async (tx) => {
       // 全タスクを一度に取得
       const existingTasks = await tx.task.findMany({
@@ -147,13 +182,21 @@ export async function bulkCreateEvaluations(
       return createdRecords;
     });
 
-    // 正常処理の完了、ページのキャッシュを更新
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 正常処理の完了、ページのキャッシュを更新
+     */
     revalidatePath(`/dashboard/group/${groupId}`);
     return { success: true, analyses: [{ count: result.count, message: `${result.count}件のデータを登録しました` }] };
   } catch (error) {
     console.error("[BULK_CREATE_EVALUATIONS]", error);
 
-    // エラー処理を詳細に
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラー処理を詳細に
+     */
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }

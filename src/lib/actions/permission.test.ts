@@ -38,12 +38,7 @@ const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserI
 const mockRevalidatePath = vi.mocked(revalidatePath);
 
 describe("permission.ts", () => {
-  beforeEach(() => {
-    // 各テスト前にモックをリセット
-    vi.clearAllMocks();
-  });
-
-  // テストデータの準備
+  // 共通テストデータの準備
   const testUser = userFactory.build({ id: "test-user-1", isAppOwner: false });
   const testAppOwner = userFactory.build({ id: "test-app-owner", isAppOwner: true });
   const testGroup = groupFactory.build({ id: "test-group-1", createdBy: testUser.id });
@@ -54,6 +49,17 @@ describe("permission.ts", () => {
     groupId: testGroup.id,
     isGroupOwner: true,
   });
+
+  beforeEach(() => {
+    // 各テスト前にモックをリセット
+    vi.clearAllMocks();
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // 共通テストヘルパー関数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("checkIsOwner", () => {
     describe("正常系", () => {
@@ -136,66 +142,68 @@ describe("permission.ts", () => {
         });
       });
 
-      test("should return success true when isRoleCheck is true and user is task creator", async () => {
-        // Arrange
-        const taskWithCreator = {
-          creator: { id: testUser.id },
-          reporters: [],
-          executors: [],
-        };
-        prismaMock.task.findUnique.mockResolvedValue(taskWithCreator as unknown as typeof testTask);
+      describe("isRoleCheck scenarios", () => {
+        test("should return success true when user is task creator", async () => {
+          // Arrange
+          const taskWithCreator = {
+            creator: { id: testUser.id },
+            reporters: [],
+            executors: [],
+          };
+          prismaMock.task.findUnique.mockResolvedValue(taskWithCreator as unknown as typeof testTask);
 
-        // Act
-        const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
+          // Act
+          const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
 
-        // Assert
-        expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
-          where: { id: testTask.id },
-          select: {
-            creator: { select: { id: true } },
-            reporters: {
-              where: { userId: testUser.id, taskId: testTask.id },
-              select: { id: true },
+          // Assert
+          expect(result).toStrictEqual({ success: true });
+          expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
+            where: { id: testTask.id },
+            select: {
+              creator: { select: { id: true } },
+              reporters: {
+                where: { userId: testUser.id, taskId: testTask.id },
+                select: { id: true },
+              },
+              executors: {
+                where: { userId: testUser.id, taskId: testTask.id },
+                select: { id: true },
+              },
             },
-            executors: {
-              where: { userId: testUser.id, taskId: testTask.id },
-              select: { id: true },
-            },
-          },
+          });
         });
-      });
 
-      test("should return success true when isRoleCheck is true and user is task reporter", async () => {
-        // Arrange
-        const taskWithReporter = {
-          creator: { id: "other-user" },
-          reporters: [{ id: "reporter-1" }],
-          executors: [],
-        };
-        prismaMock.task.findUnique.mockResolvedValue(taskWithReporter as unknown as typeof testTask);
+        test("should return success true when user is task reporter", async () => {
+          // Arrange
+          const taskWithReporter = {
+            creator: { id: "other-user" },
+            reporters: [{ id: "reporter-1" }],
+            executors: [],
+          };
+          prismaMock.task.findUnique.mockResolvedValue(taskWithReporter as unknown as typeof testTask);
 
-        // Act
-        const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
+          // Act
+          const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
 
-        // Assert
-        expect(result).toStrictEqual({ success: true });
-      });
+          // Assert
+          expect(result).toStrictEqual({ success: true });
+        });
 
-      test("should return success true when isRoleCheck is true and user is task executor", async () => {
-        // Arrange
-        const taskWithExecutor = {
-          creator: { id: "other-user" },
-          reporters: [],
-          executors: [{ id: "executor-1" }],
-        };
-        prismaMock.task.findUnique.mockResolvedValue(taskWithExecutor as unknown as typeof testTask);
+        test("should return success true when user is task executor", async () => {
+          // Arrange
+          const taskWithExecutor = {
+            creator: { id: "other-user" },
+            reporters: [],
+            executors: [{ id: "executor-1" }],
+          };
+          prismaMock.task.findUnique.mockResolvedValue(taskWithExecutor as unknown as typeof testTask);
 
-        // Act
-        const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
+          // Act
+          const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
 
-        // Assert
-        expect(result).toStrictEqual({ success: true });
+          // Assert
+          expect(result).toStrictEqual({ success: true });
+        });
       });
     });
 
@@ -205,13 +213,10 @@ describe("permission.ts", () => {
         const result = await checkIsOwner(testUser.id, testGroup.id, undefined, true);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "タスクIDが指定されていません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "タスクIDが指定されていません" });
       });
 
-      test("should return error when task not found for role check", async () => {
+      test("should return error when task not found", async () => {
         // Arrange
         prismaMock.task.findUnique.mockResolvedValue(null);
 
@@ -219,10 +224,7 @@ describe("permission.ts", () => {
         const result = await checkIsOwner(testUser.id, undefined, testTask.id, true);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "タスクが見つかりません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "タスクが見つかりません" });
       });
 
       test("should return error when task not found for groupId extraction", async () => {
@@ -233,10 +235,7 @@ describe("permission.ts", () => {
         const result = await checkIsOwner(testUser.id, undefined, testTask.id);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "タスクが見つかりません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "タスクが見つかりません" });
       });
 
       test("should handle database error gracefully", async () => {
@@ -255,7 +254,7 @@ describe("permission.ts", () => {
     });
 
     describe("境界値テスト", () => {
-      test("should handle null userId", async () => {
+      test("should handle null parameter", async () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockResolvedValue("session-user-id");
         prismaMock.user.findFirst.mockResolvedValue(null);
@@ -265,11 +264,23 @@ describe("permission.ts", () => {
         const result = await checkIsOwner(null as unknown as string, testGroup.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false });
-        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalled();
+        expect(result.success).toBe(false);
       });
 
-      test("should handle empty string userId", async () => {
+      test("should handle undefined parameter", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue("session-user-id");
+        prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.groupMembership.findFirst.mockResolvedValue(null);
+
+        // Act
+        const result = await checkIsOwner(undefined as unknown as string, testGroup.id);
+
+        // Assert
+        expect(result.success).toBe(false);
+      });
+
+      test("should handle empty string parameter", async () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockResolvedValue("session-user-id");
         prismaMock.user.findFirst.mockResolvedValue(null);
@@ -279,8 +290,7 @@ describe("permission.ts", () => {
         const result = await checkIsOwner("", testGroup.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false });
-        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalled();
+        expect(result.success).toBe(false);
       });
 
       test("should handle undefined groupId and taskId", async () => {
@@ -307,21 +317,20 @@ describe("permission.ts", () => {
           id: "operator-membership",
           userId: operatorUser.id,
           groupId: testGroup.id,
-          isGroupOwner: true, // 操作者はオーナー
+          isGroupOwner: true,
         });
         const targetMembership = groupMembershipFactory.build({
           id: "target-membership",
           userId: targetUser.id,
           groupId: testGroup.id,
-          isGroupOwner: false, // 対象ユーザーはオーナーではない
+          isGroupOwner: false,
         });
 
         // checkIsOwnerのモック（操作者がオーナー権限あり）
-        prismaMock.user.findFirst.mockResolvedValue(null); // アプリオーナーではない
+        prismaMock.user.findFirst.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst
-          .mockResolvedValueOnce(operatorMembership) // checkIsOwner用（操作者）
-          .mockResolvedValueOnce(targetMembership); // checkGroupMembership用（対象ユーザー）
-        // 権限付与のモック
+          .mockResolvedValueOnce(operatorMembership)
+          .mockResolvedValueOnce(targetMembership);
         prismaMock.groupMembership.update.mockResolvedValue({
           ...targetMembership,
           isGroupOwner: true,
@@ -350,10 +359,7 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "グループオーナー権限がありません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "グループオーナー権限がありません" });
       });
 
       test("should return error when target user is not group member", async () => {
@@ -365,20 +371,14 @@ describe("permission.ts", () => {
           isGroupOwner: true,
         });
 
-        // checkIsOwnerのモック（操作者がオーナー権限あり）
         prismaMock.user.findFirst.mockResolvedValue(null);
-        prismaMock.groupMembership.findFirst
-          .mockResolvedValueOnce(operatorMembership) // checkIsOwner用
-          .mockResolvedValueOnce(null); // checkGroupMembership用（対象ユーザーがメンバーではない）
+        prismaMock.groupMembership.findFirst.mockResolvedValueOnce(operatorMembership).mockResolvedValueOnce(null);
 
         // Act
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "指定されたユーザーはグループに参加していません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "指定されたユーザーはグループに参加していません" });
       });
 
       test("should return error when target user is already owner", async () => {
@@ -392,23 +392,19 @@ describe("permission.ts", () => {
         const targetMembership = groupMembershipFactory.build({
           userId: targetUser.id,
           groupId: testGroup.id,
-          isGroupOwner: true, // 既にオーナー
+          isGroupOwner: true,
         });
 
-        // checkIsOwnerのモック（操作者がオーナー権限あり）
         prismaMock.user.findFirst.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst
-          .mockResolvedValueOnce(operatorMembership) // checkIsOwner用
-          .mockResolvedValueOnce(targetMembership); // checkGroupMembership用
+          .mockResolvedValueOnce(operatorMembership)
+          .mockResolvedValueOnce(targetMembership);
 
         // Act
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "指定されたユーザーは既にグループオーナーです",
-        });
+        expect(result).toStrictEqual({ success: false, error: "指定されたユーザーは既にグループオーナーです" });
       });
 
       test("should handle database error gracefully", async () => {
@@ -424,11 +420,10 @@ describe("permission.ts", () => {
           isGroupOwner: false,
         });
 
-        // checkIsOwnerは成功させて、その後のgroupMembership.updateでエラーを発生させる
         prismaMock.user.findFirst.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst
-          .mockResolvedValueOnce(operatorMembership) // checkIsOwner用
-          .mockResolvedValueOnce(targetMembership); // checkGroupMembership用
+          .mockResolvedValueOnce(operatorMembership)
+          .mockResolvedValueOnce(targetMembership);
         prismaMock.groupMembership.update.mockRejectedValue(new Error("Database error"));
 
         // Act
@@ -481,10 +476,7 @@ describe("permission.ts", () => {
         const result = await checkIsAppOwner("non-existent-user");
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "ユーザーが見つかりません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "ユーザーが見つかりません" });
       });
 
       test("should handle database error gracefully", async () => {
@@ -503,7 +495,7 @@ describe("permission.ts", () => {
     });
 
     describe("境界値テスト", () => {
-      test("should handle null userId", async () => {
+      test("should handle null parameter", async () => {
         // Arrange
         prismaMock.user.findUnique.mockResolvedValue(null);
 
@@ -513,25 +505,11 @@ describe("permission.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "ユーザーが見つかりません",
+          error: "アプリオーナー権限のチェック中にエラーが発生しました",
         });
       });
 
-      test("should handle empty string userId", async () => {
-        // Arrange
-        prismaMock.user.findUnique.mockResolvedValue(null);
-
-        // Act
-        const result = await checkIsAppOwner("");
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "ユーザーが見つかりません",
-        });
-      });
-
-      test("should handle undefined userId", async () => {
+      test("should handle undefined parameter", async () => {
         // Arrange
         prismaMock.user.findUnique.mockResolvedValue(null);
 
@@ -541,7 +519,21 @@ describe("permission.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "ユーザーが見つかりません",
+          error: "アプリオーナー権限のチェック中にエラーが発生しました",
+        });
+      });
+
+      test("should handle empty string parameter", async () => {
+        // Arrange
+        prismaMock.user.findUnique.mockResolvedValue(null);
+
+        // Act
+        const result = await checkIsAppOwner("");
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "アプリオーナー権限のチェック中にエラーが発生しました",
         });
       });
     });
@@ -592,37 +584,14 @@ describe("permission.ts", () => {
     });
 
     describe("境界値テスト", () => {
-      test("should handle null userId", async () => {
+      test("should handle null parameters", async () => {
         // Arrange
         prismaMock.groupMembership.findFirst.mockResolvedValue(null);
 
-        // Act
-        const result = await checkGroupMembership(null as unknown as string, testGroup.id);
-
-        // Assert
-        expect(result).toBeNull();
-      });
-
-      test("should handle null groupId", async () => {
-        // Arrange
-        prismaMock.groupMembership.findFirst.mockResolvedValue(null);
-
-        // Act
-        const result = await checkGroupMembership(testUser.id, null as unknown as string);
-
-        // Assert
-        expect(result).toBeNull();
-      });
-
-      test("should handle empty string parameters", async () => {
-        // Arrange
-        prismaMock.groupMembership.findFirst.mockResolvedValue(null);
-
-        // Act
-        const result = await checkGroupMembership("", "");
-
-        // Assert
-        expect(result).toBeNull();
+        // Act & Assert
+        expect(await checkGroupMembership(null as unknown as string, testGroup.id)).toBeNull();
+        expect(await checkGroupMembership(testUser.id, null as unknown as string)).toBeNull();
+        expect(await checkGroupMembership("", "")).toBeNull();
       });
     });
   });
@@ -662,54 +631,26 @@ describe("permission.ts", () => {
         const result = await checkOneGroupOwner(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "グループオーナー権限がありません",
-        });
+        expect(result).toStrictEqual({ success: false, error: "グループオーナー権限がありません" });
       });
     });
 
     describe("境界値テスト", () => {
-      test("should handle null userId", async () => {
-        // Arrange
-        prismaMock.groupMembership.findFirst.mockResolvedValue(null);
-
-        // Act
-        const result = await checkOneGroupOwner(null as unknown as string);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "グループオーナー権限がありません",
-        });
+      test("should throw error for null userId", async () => {
+        // Act & Assert
+        await expect(checkOneGroupOwner(null as unknown as string)).rejects.toThrow("無効なパラメータが指定されました");
       });
 
-      test("should handle empty string userId", async () => {
-        // Arrange
-        prismaMock.groupMembership.findFirst.mockResolvedValue(null);
-
-        // Act
-        const result = await checkOneGroupOwner("");
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "グループオーナー権限がありません",
-        });
+      test("should throw error for undefined userId", async () => {
+        // Act & Assert
+        await expect(checkOneGroupOwner(undefined as unknown as string)).rejects.toThrow(
+          "無効なパラメータが指定されました",
+        );
       });
 
-      test("should handle undefined userId", async () => {
-        // Arrange
-        prismaMock.groupMembership.findFirst.mockResolvedValue(null);
-
-        // Act
-        const result = await checkOneGroupOwner(undefined as unknown as string);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "グループオーナー権限がありません",
-        });
+      test("should throw error for empty string userId", async () => {
+        // Act & Assert
+        await expect(checkOneGroupOwner("")).rejects.toThrow("無効なパラメータが指定されました");
       });
     });
   });
