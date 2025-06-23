@@ -15,7 +15,7 @@ export async function getUserGroupIds(userId: string) {
   /**
    * ユーザーIDがない場合はエラーを投げる
    */
-  if (!userId) {
+  if (!userId || typeof userId !== "string" || userId.trim() === "") {
     throw new Error("userId is required");
   }
 
