@@ -72,7 +72,6 @@ describe("AuctionCreatedDetail", () => {
     currentHighestBid: 1000,
     startTime: new Date("2024-01-01T10:00:00Z"),
     endTime: new Date("2024-01-02T10:00:00Z"),
-    status: TaskStatusEnum.AUCTION_ENDED,
     task: {
       id: "task-id",
       task: "テストタスク",

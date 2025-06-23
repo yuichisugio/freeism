@@ -17,7 +17,7 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   /**
    * 出品商品のIDが存在しない場合はnullを返却
    */
-  if (!auctionId) throw new Error("auctionId is required");
+  if (!auctionId || typeof auctionId !== "string") throw new Error("auctionId is required");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -103,8 +103,5 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   /**
    * 出品商品の詳細を返却
    */
-  return {
-    ...auction,
-    status: auction.task.status,
-  } as AuctionHistoryCreatedDetail;
+  return auction;
 }

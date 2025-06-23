@@ -1,119 +1,78 @@
-import type { Prisma } from "@prisma/client";
+import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-// テスト対象の関数をインポート
 import { getCachedAuctionHistoryCreatedDetail } from "./cache-auction-history";
 
-// Next.jsのキャッシュ機能をモック
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * モック設定
+ */
 vi.mock("next/cache", () => ({
   unstable_cacheTag: vi.fn(),
 }));
 
-// Prismaクエリ結果の型定義
-type MockPrismaAuctionData = Prisma.AuctionGetPayload<{
-  select: {
-    id: true;
-    currentHighestBid: true;
-    startTime: true;
-    endTime: true;
-    task: {
-      select: {
-        id: true;
-        task: true;
-        detail: true;
-        imageUrl: true;
-        status: true;
-        deliveryMethod: true;
-        creatorId: true;
-        executors: {
-          select: {
-            userId: true;
-          };
-        };
-        reporters: {
-          select: {
-            userId: true;
-          };
-        };
-      };
-    };
-    winner: {
-      select: {
-        id: true;
-        name: true;
-        image: true;
-      };
-    };
-    winnerId: true;
-    bidHistories: {
-      select: {
-        id: true;
-        amount: true;
-        isAutoBid: true;
-        createdAt: true;
-        user: {
-          select: {
-            id: true;
-            name: true;
-            image: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 各テスト前にモックをリセット
+/**
+ * モックリセット
+ */
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// テストデータファクトリー
-const createTestData = () => ({
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テストデータファクトリー
+ */
+const CONSTANTS = {
   testAuctionId: "test-auction-id",
   testTaskId: "test-task-id",
   testUserId: "test-user-id",
   testCreatorId: "test-creator-id",
   testWinnerId: "test-winner-id",
   testBidHistoryId: "test-bid-history-id",
-});
+};
 
-// 基本的なモックデータを作成するヘルパー関数
-const createBaseMockData = (overrides: Record<string, unknown> = {}): MockPrismaAuctionData => {
-  const testData = createTestData();
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  const baseData: MockPrismaAuctionData = {
-    id: testData.testAuctionId,
+/**
+ * 基本的なモックデータを作成するヘルパー関数
+ */
+const createBaseMockData = (overrides: Partial<AuctionHistoryCreatedDetail> = {}): AuctionHistoryCreatedDetail => {
+  const baseData: AuctionHistoryCreatedDetail = {
+    id: CONSTANTS.testAuctionId,
     currentHighestBid: 500,
     startTime: new Date("2024-01-01T00:00:00Z"),
     endTime: new Date("2024-12-31T23:59:59Z"),
     task: {
-      id: testData.testTaskId,
+      id: CONSTANTS.testTaskId,
       task: "テストタスク",
       detail: "テストタスクの詳細",
       imageUrl: "https://example.com/image.jpg",
       status: TaskStatus.PENDING,
       deliveryMethod: "オンライン",
-      creatorId: testData.testCreatorId,
-      executors: [{ userId: testData.testUserId }],
-      reporters: [{ userId: testData.testUserId }],
+      creatorId: CONSTANTS.testCreatorId,
+      executors: [{ userId: CONSTANTS.testUserId }],
+      reporters: [{ userId: CONSTANTS.testUserId }],
     },
     winner: {
-      id: testData.testWinnerId,
+      id: CONSTANTS.testWinnerId,
       name: "落札者",
       image: "https://example.com/winner.jpg",
     },
-    winnerId: testData.testWinnerId,
+    winnerId: CONSTANTS.testWinnerId,
     bidHistories: [
       {
-        id: testData.testBidHistoryId,
+        id: CONSTANTS.testBidHistoryId,
         amount: 500,
         isAutoBid: false,
         createdAt: new Date("2024-01-01T12:00:00Z"),
         user: {
-          id: testData.testUserId,
+          id: CONSTANTS.testUserId,
           name: "テストユーザー",
           image: "https://example.com/user.jpg",
         },
@@ -121,17 +80,17 @@ const createBaseMockData = (overrides: Record<string, unknown> = {}): MockPrisma
     ],
   };
 
-  // Simple merge for overrides
-  return { ...baseData, ...overrides } as MockPrismaAuctionData;
+  return {
+    ...baseData,
+    ...overrides,
+  };
 };
 
-// 期待される結果を作成するヘルパー関数
-const createExpectedResult = (mockData: MockPrismaAuctionData) => ({
-  ...mockData,
-  status: mockData.task.status,
-});
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// 共通のPrismaクエリ期待値
+/**
+ * 共通のPrismaクエリ期待値
+ */
 const getExpectedPrismaQuery = (auctionId: string) => ({
   where: { id: auctionId },
   select: {
@@ -168,397 +127,434 @@ const getExpectedPrismaQuery = (auctionId: string) => ({
   },
 });
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テストケース
+ */
 describe("cache-auction-history", () => {
   describe("getCachedAuctionHistoryCreatedDetail", () => {
-    const testData = createTestData();
+    describe("正常系", () => {
+      test("オークション履歴詳細が正常に取得できる", async () => {
+        // Arrange
+        const mockData = createBaseMockData();
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-    test("正常系: オークション履歴詳細が正常に取得できる", async () => {
-      // Arrange
-      const mockData = createBaseMockData();
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(testData.testAuctionId));
-    });
-
-    test("異常系: auctionIdが空文字の場合はエラーが発生する", async () => {
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail("")).rejects.toThrow("auctionId is required");
-    });
-
-    test("異常系: auctionIdがnullの場合はエラーが発生する", async () => {
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail(null as unknown as string)).rejects.toThrow(
-        "auctionId is required",
-      );
-    });
-
-    test("異常系: auctionIdがundefinedの場合はエラーが発生する", async () => {
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail(undefined as unknown as string)).rejects.toThrow(
-        "auctionId is required",
-      );
-    });
-
-    test("異常系: オークションが見つからない場合はエラーが発生する", async () => {
-      // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail("non-existent-id")).rejects.toThrow("auction not found");
-    });
-
-    test("異常系: データベースエラーが発生する場合", async () => {
-      // Arrange
-      const error = new Error("Database connection error");
-      prismaMock.auction.findUnique.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail(testData.testAuctionId)).rejects.toThrow(
-        "Database connection error",
-      );
-    });
-
-    test("正常系: winner情報がnullの場合", async () => {
-      // Arrange
-      const mockData = createBaseMockData({ winner: null, winnerId: null });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.winner).toBeNull();
-      expect(result.winnerId).toBeNull();
-    });
-
-    test("正常系: bidHistoriesが空の場合", async () => {
-      // Arrange
-      const mockData = createBaseMockData({ bidHistories: [] });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.bidHistories).toHaveLength(0);
-    });
-
-    test("正常系: task.detailがnullの場合", async () => {
-      // Arrange
-      const baseData = createBaseMockData();
-      const mockData = {
-        ...baseData,
-        task: {
-          ...baseData.task,
-          detail: null,
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.task.detail).toBeNull();
-    });
-
-    test("正常系: task.imageUrlがnullの場合", async () => {
-      // Arrange
-      const baseData = createBaseMockData();
-      const mockData = {
-        ...baseData,
-        task: {
-          ...baseData.task,
-          imageUrl: null,
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.task.imageUrl).toBeNull();
-    });
-
-    test("正常系: task.deliveryMethodがnullの場合", async () => {
-      // Arrange
-      const baseData = createBaseMockData();
-      const mockData = {
-        ...baseData,
-        task: {
-          ...baseData.task,
-          deliveryMethod: null,
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.task.deliveryMethod).toBeNull();
-    });
-
-    test("正常系: executorsが空の場合", async () => {
-      // Arrange
-      const baseData = createBaseMockData();
-      const mockData = {
-        ...baseData,
-        task: {
-          ...baseData.task,
-          executors: [],
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.task.executors).toHaveLength(0);
-    });
-
-    test("正常系: reportersが空の場合", async () => {
-      // Arrange
-      const baseData = createBaseMockData();
-      const mockData = {
-        ...baseData,
-        task: {
-          ...baseData.task,
-          reporters: [],
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.task.reporters).toHaveLength(0);
-    });
-
-    // 境界値テストケース
-    test("境界値テスト: currentHighestBidが0の場合", async () => {
-      // Arrange
-      const mockData = createBaseMockData({ currentHighestBid: 0 });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.currentHighestBid).toBe(0);
-    });
-
-    test("境界値テスト: currentHighestBidが最大値の場合", async () => {
-      // Arrange
-      const mockData = createBaseMockData({ currentHighestBid: Number.MAX_SAFE_INTEGER });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.currentHighestBid).toBe(Number.MAX_SAFE_INTEGER);
-    });
-
-    test("境界値テスト: 過去の日付の場合", async () => {
-      // Arrange
-      const pastDate = new Date("2020-01-01T00:00:00Z");
-      const mockData = createBaseMockData({
-        startTime: pastDate,
-        endTime: pastDate,
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(CONSTANTS.testAuctionId));
       });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
 
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
+      test("複数の入札履歴がある場合", async () => {
+        // Arrange
+        const multipleBidHistories = [
+          {
+            id: "bid-1",
+            amount: 1000,
+            isAutoBid: true,
+            createdAt: new Date("2024-01-02T12:00:00Z"),
+            user: { id: "user-1", name: "ユーザー1", image: "https://example.com/user1.jpg" },
+          },
+          {
+            id: "bid-2",
+            amount: 500,
+            isAutoBid: false,
+            createdAt: new Date("2024-01-01T12:00:00Z"),
+            user: { id: "user-2", name: "ユーザー2", image: "https://example.com/user2.jpg" },
+          },
+        ];
+        const mockData = createBaseMockData({ bidHistories: multipleBidHistories });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.startTime).toStrictEqual(pastDate);
-      expect(result.endTime).toStrictEqual(pastDate);
-    });
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
-    test("境界値テスト: 未来の日付の場合", async () => {
-      // Arrange
-      const futureDate = new Date("2030-12-31T23:59:59Z");
-      const mockData = createBaseMockData({
-        startTime: futureDate,
-        endTime: futureDate,
+        // Assert
+        expect(result.bidHistories).toHaveLength(2);
+        expect(result.bidHistories[0].amount).toBe(1000);
+        expect(result.bidHistories[1].amount).toBe(500);
       });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
 
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
+      test("100件の入札履歴がある場合（制限値）", async () => {
+        // Arrange
+        const exactlyHundredBids = Array.from({ length: 100 }, (_, index) => ({
+          id: `bid-${index}`,
+          amount: 100 + index,
+          isAutoBid: index % 2 === 0,
+          createdAt: new Date(`2024-01-${String(index + 1).padStart(2, "0")}T12:00:00Z`),
+          user: {
+            id: `user-${index}`,
+            name: `ユーザー${index}`,
+            image: `https://example.com/user${index}.jpg`,
+          },
+        }));
+        const mockData = createBaseMockData({ bidHistories: exactlyHundredBids });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.startTime).toStrictEqual(futureDate);
-      expect(result.endTime).toStrictEqual(futureDate);
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result.bidHistories).toHaveLength(100);
+      });
+
+      test("キャッシュタグが正しく設定される", async () => {
+        // Arrange
+        const mockData = createBaseMockData();
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+        const { unstable_cacheTag } = await import("next/cache");
+
+        // Act
+        await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(vi.mocked(unstable_cacheTag)).toHaveBeenCalledWith(
+          `auction-history-created-detail:${CONSTANTS.testTaskId}`,
+        );
+      });
+
+      test("winner情報がnullの場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({ winner: null, winnerId: null });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.winner).toBeNull();
+        expect(result.winnerId).toBeNull();
+      });
+
+      test("bidHistoriesが空の場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({ bidHistories: [] });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.bidHistories).toHaveLength(0);
+      });
+
+      test("task.detailがnullの場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({
+          task: {
+            detail: null,
+            id: CONSTANTS.testTaskId,
+            task: "テスク",
+            imageUrl: "https://example.com/image.jpg",
+            status: TaskStatus.PENDING,
+            deliveryMethod: "オンライン",
+            creatorId: CONSTANTS.testCreatorId,
+            executors: [{ userId: CONSTANTS.testUserId }],
+            reporters: [{ userId: CONSTANTS.testUserId }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.task.detail).toBeNull();
+      });
+
+      test("task.imageUrlがnullの場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({
+          task: {
+            imageUrl: null,
+            id: CONSTANTS.testTaskId,
+            task: "テスク",
+            detail: "テスクの詳細",
+            status: TaskStatus.PENDING,
+            deliveryMethod: "オンライン",
+            creatorId: CONSTANTS.testCreatorId,
+            executors: [{ userId: CONSTANTS.testUserId }],
+            reporters: [{ userId: CONSTANTS.testUserId }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.task.imageUrl).toBeNull();
+      });
+
+      test("task.deliveryMethodがnullの場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({
+          task: {
+            deliveryMethod: null,
+            id: CONSTANTS.testTaskId,
+            task: "テスク",
+            detail: "テスクの詳細",
+            status: TaskStatus.PENDING,
+            imageUrl: "https://example.com/image.jpg",
+            creatorId: CONSTANTS.testCreatorId,
+            executors: [{ userId: CONSTANTS.testUserId }],
+            reporters: [{ userId: CONSTANTS.testUserId }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.task.deliveryMethod).toBeNull();
+      });
+
+      test("executorsが空の場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({
+          task: {
+            executors: [],
+            id: CONSTANTS.testTaskId,
+            imageUrl: null,
+            task: "テスク",
+            detail: "テスクの詳細",
+            status: TaskStatus.PENDING,
+            deliveryMethod: "オンライン",
+            creatorId: CONSTANTS.testCreatorId,
+            reporters: [{ userId: CONSTANTS.testUserId }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.task.executors).toHaveLength(0);
+      });
+
+      test("reportersが空の場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({
+          task: {
+            reporters: [],
+            id: CONSTANTS.testTaskId,
+            imageUrl: null,
+            task: "テスク",
+            detail: "テスクの詳細",
+            status: TaskStatus.PENDING,
+            deliveryMethod: "オンライン",
+            creatorId: CONSTANTS.testCreatorId,
+            executors: [{ userId: CONSTANTS.testUserId }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.task.reporters).toHaveLength(0);
+      });
     });
 
-    test("境界値テスト: task.statusがTASK_COMPLETEDの場合", async () => {
-      // Arrange
-      const baseData = createBaseMockData();
-      const mockData = {
-        ...baseData,
-        task: {
-          ...baseData.task,
-          status: TaskStatus.TASK_COMPLETED,
-        },
-      };
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
+    describe("異常系", () => {
+      test("auctionIdが空文字の場合はエラーが発生する", async () => {
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail("")).rejects.toThrow("auctionId is required");
+      });
 
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
+      test("auctionIdがnullの場合はエラーが発生する", async () => {
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail(null as unknown as string)).rejects.toThrow(
+          "auctionId is required",
+        );
+      });
 
-      // Assert
-      expect(result).toStrictEqual(createExpectedResult(mockData));
-      expect(result.task.status).toBe(TaskStatus.TASK_COMPLETED);
-      expect(result.status).toBe(TaskStatus.TASK_COMPLETED);
+      test("auctionIdがundefinedの場合はエラーが発生する", async () => {
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail(undefined as unknown as string)).rejects.toThrow(
+          "auctionId is required",
+        );
+      });
+
+      test("オークションが見つからない場合はエラーが発生する", async () => {
+        // Arrange
+        prismaMock.auction.findUnique.mockResolvedValue(null);
+
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail("non-existent-id")).rejects.toThrow("auction not found");
+      });
+
+      test("データベースエラーが発生する場合", async () => {
+        // Arrange
+        const error = new Error("Database connection error");
+        prismaMock.auction.findUnique.mockRejectedValue(error);
+
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId)).rejects.toThrow(
+          "Database connection error",
+        );
+      });
+
+      test("オークションが見つからない場合はキャッシュタグが設定されない", async () => {
+        // Arrange
+        prismaMock.auction.findUnique.mockResolvedValue(null);
+        const { unstable_cacheTag } = await import("next/cache");
+
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail("non-existent-id")).rejects.toThrow("auction not found");
+        expect(vi.mocked(unstable_cacheTag)).not.toHaveBeenCalled();
+      });
+
+      // 不正な引数のテストケースをパラメータ化
+      test.each([
+        { description: "空文字", value: "" },
+        { description: "null", value: null },
+        { description: "undefined", value: undefined },
+        { description: "数値", value: 123 as unknown as string },
+        { description: "真偽値", value: true as unknown as string },
+        { description: "オブジェクト", value: { id: "test" } as unknown as string },
+        { description: "配列", value: ["test"] as unknown as string },
+      ])("不正な引数テスト: auctionIdが$descriptionの場合", async ({ value }) => {
+        // Act & Assert
+        await expect(getCachedAuctionHistoryCreatedDetail(value as unknown as string)).rejects.toThrow(
+          "auctionId is required",
+        );
+        expect(prismaMock.auction.findUnique).not.toHaveBeenCalled();
+      });
     });
 
-    test("正常系: 複数の入札履歴がある場合", async () => {
-      // Arrange
-      const multipleBidHistories = [
-        {
-          id: "bid-1",
-          amount: 1000,
-          isAutoBid: true,
-          createdAt: new Date("2024-01-02T12:00:00Z"),
-          user: { id: "user-1", name: "ユーザー1", image: "https://example.com/user1.jpg" },
-        },
-        {
-          id: "bid-2",
-          amount: 500,
-          isAutoBid: false,
-          createdAt: new Date("2024-01-01T12:00:00Z"),
-          user: { id: "user-2", name: "ユーザー2", image: "https://example.com/user2.jpg" },
-        },
-      ];
-      const mockData = createBaseMockData({ bidHistories: multipleBidHistories });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
+    describe("境界値テスト", () => {
+      test("currentHighestBidが0の場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({ currentHighestBid: 0 });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
-      // Assert
-      expect(result.bidHistories).toHaveLength(2);
-      expect(result.bidHistories[0].amount).toBe(1000);
-      expect(result.bidHistories[1].amount).toBe(500);
-    });
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.currentHighestBid).toBe(0);
+      });
 
-    test("正常系: 100件の入札履歴がある場合（制限値）", async () => {
-      // Arrange
-      const exactlyHundredBids = Array.from({ length: 100 }, (_, index) => ({
-        id: `bid-${index}`,
-        amount: 100 + index,
-        isAutoBid: index % 2 === 0,
-        createdAt: new Date(`2024-01-${String(index + 1).padStart(2, "0")}T12:00:00Z`),
-        user: {
-          id: `user-${index}`,
-          name: `ユーザー${index}`,
-          image: `https://example.com/user${index}.jpg`,
-        },
-      }));
-      const mockData = createBaseMockData({ bidHistories: exactlyHundredBids });
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
+      test("currentHighestBidが最大値の場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({ currentHighestBid: Number.MAX_SAFE_INTEGER });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Act
-      const result = await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
-      // Assert
-      expect(result.bidHistories).toHaveLength(100);
-    });
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.currentHighestBid).toBe(Number.MAX_SAFE_INTEGER);
+      });
 
-    test("正常系: キャッシュタグが正しく設定される", async () => {
-      // Arrange
-      const mockData = createBaseMockData();
-      prismaMock.auction.findUnique.mockResolvedValue(
-        mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-      );
-      const { unstable_cacheTag } = await import("next/cache");
+      test("過去の日付の場合", async () => {
+        // Arrange
+        const pastDate = new Date("2020-01-01T00:00:00Z");
+        const mockData = createBaseMockData({
+          startTime: pastDate,
+          endTime: pastDate,
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Act
-      await getCachedAuctionHistoryCreatedDetail(testData.testAuctionId);
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
-      // Assert
-      expect(vi.mocked(unstable_cacheTag)).toHaveBeenCalledWith(
-        `auction-history-created-detail:${testData.testTaskId}`,
-      );
-    });
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.startTime).toStrictEqual(pastDate);
+        expect(result.endTime).toStrictEqual(pastDate);
+      });
 
-    test("異常系: オークションが見つからない場合はキャッシュタグが設定されない", async () => {
-      // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(null);
-      const { unstable_cacheTag } = await import("next/cache");
+      test("未来の日付の場合", async () => {
+        // Arrange
+        const futureDate = new Date("2030-12-31T23:59:59Z");
+        const mockData = createBaseMockData({
+          startTime: futureDate,
+          endTime: futureDate,
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
 
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail("non-existent-id")).rejects.toThrow("auction not found");
-      expect(vi.mocked(unstable_cacheTag)).not.toHaveBeenCalled();
-    });
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
-    // 不正な引数のテストケースをパラメータ化
-    test.each([
-      { description: "数値", value: 123 as unknown as string },
-      { description: "真偽値", value: true as unknown as string },
-      { description: "オブジェクト", value: { id: "test" } as unknown as string },
-      { description: "配列", value: ["test"] as unknown as string },
-      { description: "特殊文字", value: "!@#$%^&*()" },
-      { description: "長い文字列", value: "a".repeat(1000) },
-    ])("不正な引数テスト: auctionIdが$descriptionの場合", async ({ value }) => {
-      // Arrange
-      prismaMock.auction.findUnique.mockResolvedValue(null);
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.startTime).toStrictEqual(futureDate);
+        expect(result.endTime).toStrictEqual(futureDate);
+      });
 
-      // Act & Assert
-      await expect(getCachedAuctionHistoryCreatedDetail(value)).rejects.toThrow("auction not found");
-      expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(value));
+      test("task.statusがTASK_COMPLETEDの場合", async () => {
+        // Arrange
+        const mockData = createBaseMockData({
+          task: {
+            status: TaskStatus.TASK_COMPLETED,
+            id: CONSTANTS.testTaskId,
+            task: "テスク",
+            detail: "テスクの詳細",
+            imageUrl: "https://example.com/image.jpg",
+            deliveryMethod: "オンライン",
+            creatorId: CONSTANTS.testCreatorId,
+            executors: [{ userId: CONSTANTS.testUserId }],
+            reporters: [{ userId: CONSTANTS.testUserId }],
+          },
+        });
+        prismaMock.auction.findUnique.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
+        );
+
+        // Act
+        const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
+
+        // Assert
+        expect(result).toStrictEqual(mockData);
+        expect(result.task.status).toBe(TaskStatus.TASK_COMPLETED);
+      });
     });
   });
 });

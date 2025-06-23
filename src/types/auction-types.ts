@@ -365,7 +365,6 @@ export type AuctionHistoryCreatedDetail = {
   currentHighestBid: number;
   startTime: Date;
   endTime: Date;
-  status: TaskStatus;
   task: {
     id: string;
     task: string;
@@ -375,10 +374,10 @@ export type AuctionHistoryCreatedDetail = {
     deliveryMethod: string | null;
     creatorId: string;
     executors: {
-      userId: string;
+      userId: string | null;
     }[];
     reporters: {
-      userId: string;
+      userId: string | null;
     }[];
   };
   winner: {
