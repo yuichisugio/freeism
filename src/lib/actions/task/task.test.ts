@@ -32,7 +32,7 @@ vi.mock("next/cache", () => ({
  * モック関数の型定義
  */
 const mockGetAuthenticatedSessionUserId = vi.mocked(await import("@/lib/utils")).getAuthenticatedSessionUserId;
-const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsOwner;
+const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsPermission;
 const mockRevalidatePath = vi.mocked(await import("next/cache")).revalidatePath;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

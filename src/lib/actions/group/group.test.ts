@@ -35,7 +35,7 @@ vi.mock("next/cache", () => ({
  */
 const mockGetAuthenticatedSessionUserId = vi.mocked(await import("@/lib/utils")).getAuthenticatedSessionUserId;
 const mockCheckGroupMembership = vi.mocked(await import("@/lib/actions/permission")).checkGroupMembership;
-const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsOwner;
+const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsPermission;
 const mockRevalidatePath = vi.mocked(await import("next/cache")).revalidatePath;
 
 /**

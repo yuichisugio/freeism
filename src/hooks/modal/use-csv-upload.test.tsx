@@ -258,7 +258,7 @@ describe("useCsvUpload", () => {
    */
   describe("権限チェック", () => {
     test("should check permissions when modal opens", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       vi.mocked(checkIsOwner).mockResolvedValue({ success: true });
 
       renderHook(() => useCsvUpload(defaultProps));
@@ -269,7 +269,7 @@ describe("useCsvUpload", () => {
     });
 
     test("should handle permission check success", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       vi.mocked(checkIsOwner).mockResolvedValue({ success: true });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
@@ -280,7 +280,7 @@ describe("useCsvUpload", () => {
     });
 
     test("should handle permission check failure", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       vi.mocked(checkIsOwner).mockResolvedValue({ success: false });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
@@ -291,7 +291,7 @@ describe("useCsvUpload", () => {
     });
 
     test("should handle permission check error", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       vi.mocked(checkIsOwner).mockRejectedValue(new Error("Permission check failed"));
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
@@ -315,7 +315,7 @@ describe("useCsvUpload", () => {
     });
 
     test("should not check permissions when modal is closed", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       const checkIsOwnerSpy = vi.mocked(checkIsOwner);
 
       renderHook(() => useCsvUpload({ ...defaultProps, isOpen: false }));
@@ -341,7 +341,7 @@ describe("useCsvUpload", () => {
     });
 
     test("should return isAuthorized for FIXED_CONTRIBUTION type when authorized", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       vi.mocked(checkIsOwner).mockResolvedValue({ success: true });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
@@ -352,7 +352,7 @@ describe("useCsvUpload", () => {
     });
 
     test("should return false for FIXED_CONTRIBUTION type when not authorized", async () => {
-      const { checkIsOwner } = await import("@/lib/actions/permission");
+      const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
       vi.mocked(checkIsOwner).mockResolvedValue({ success: false });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
@@ -798,7 +798,7 @@ describe("パフォーマンステスト", () => {
  */
 describe("統合テスト", () => {
   test("should work with all upload types in sequence", async () => {
-    const { checkIsOwner } = await import("@/lib/actions/permission");
+    const { checkIsPermission: checkIsOwner } = await import("@/lib/actions/permission");
     vi.mocked(checkIsOwner).mockResolvedValue({ success: true });
 
     const { result } = renderHook(() =>

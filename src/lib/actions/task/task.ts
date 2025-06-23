@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { checkIsOwner } from "@/lib/actions/permission";
+import { checkIsPermission } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType, TaskStatus } from "@prisma/client";
@@ -23,7 +23,7 @@ export async function deleteTask(taskId: string) {
     /**
      * 権限チェック
      */
-    const isOwner = await checkIsOwner(userId, undefined, taskId, true);
+    const isOwner = await checkIsPermission(userId, undefined, taskId, true);
 
     if (!isOwner.success) {
       return { success: false, error: "このタスクを削除する権限がありません" };
@@ -205,7 +205,7 @@ export async function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
     /**
      * 権限チェック
      */
-    const isOwner = await checkIsOwner(userId, task.groupId, taskId, true);
+    const isOwner = await checkIsPermission(userId, task.groupId, taskId, true);
 
     if (!isOwner.success) {
       return { error: "このタスクのステータスを変更する権限がありません" };

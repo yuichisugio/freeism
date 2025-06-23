@@ -34,7 +34,7 @@ vi.mock("@/lib/cloudflare/upload", () => ({
 // 動的インポートでモックされた関数にアクセス
 async function importMocks() {
   const nextServer = await import("next/server");
-  const cloudflareUpload = await import("@/lib/cloudflare/upload");
+  const cloudflareUpload = await import("@/lib/actions/cloudflare/upload");
   const route = await import("./route");
 
   return {

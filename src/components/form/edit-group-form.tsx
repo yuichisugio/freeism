@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
 import { checkGroupExistByName, updateGroup } from "@/lib/actions/group/group";
-import { checkIsOwner } from "@/lib/actions/permission";
+import { checkIsPermission } from "@/lib/actions/permission";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { createGroupSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -64,7 +64,7 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
    */
   const { data: isGroupOwner = false } = useQuery({
     queryKey: queryCacheKeys.permission.groupOwner(group.id, userId ?? ""),
-    queryFn: async () => await checkIsOwner(userId ?? "", group.id),
+    queryFn: async () => await checkIsPermission(userId ?? "", group.id),
     enabled: !!userId && !!group.id,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
   });

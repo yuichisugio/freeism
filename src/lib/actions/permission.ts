@@ -15,7 +15,7 @@ import { getAuthenticatedSessionUserId } from "@/lib/utils";
  * @param isRoleCheck - 出品者、報告者、実行者の場合も権限があるとみなしてOKか
  * @returns グループオーナーの場合はtrue、それ以外はfalse
  */
-export async function checkIsOwner(
+export async function checkIsPermission(
   propsUserId?: string,
   propsGroupId?: string,
   propsTaskId?: string,
@@ -186,7 +186,7 @@ export async function grantOwnerPermission(
     /**
      * 操作者がグループオーナーかチェック
      */
-    const isOwner = await checkIsOwner(userId, groupId);
+    const isOwner = await checkIsPermission(userId, groupId);
     if (!isOwner.success) {
       return { success: false, error: "グループオーナー権限がありません" };
     }

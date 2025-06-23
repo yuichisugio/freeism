@@ -1,6 +1,6 @@
 "use server";
 
-import { MAX_FILE_SIZE } from "@/lib/cloudflare/upload-constants";
+import { MAX_FILE_SIZE } from "@/lib/actions/cloudflare/upload-constants";
 
 /**
  * アップロードする画像ファイルのバリデーションを行う関数

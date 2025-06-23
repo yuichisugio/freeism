@@ -86,7 +86,7 @@ vi.mock("next-auth/react", () => ({
 /**
  * モック関数の型定義
  */
-const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsOwner;
+const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsPermission;
 const mockGetMyTaskData = vi.mocked(await import("@/lib/actions/task/my-task-table")).getMyTaskData;
 const mockDeleteTask = vi.mocked(await import("@/lib/actions/task/task")).deleteTask;
 

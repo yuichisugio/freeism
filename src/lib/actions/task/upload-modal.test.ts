@@ -13,7 +13,7 @@ import {
 import { contributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { checkIsOwner } from "../permission";
+import { checkIsPermission } from "../permission";
 import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "./upload-modal";
 
 // モック設定
@@ -31,7 +31,7 @@ vi.mock("next/cache", () => ({
 
 // モック関数の型定義
 const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
-const mockCheckIsOwner = vi.mocked(checkIsOwner);
+const mockCheckIsOwner = vi.mocked(checkIsPermission);
 const mockRevalidatePath = vi.mocked(revalidatePath);
 
 describe("upload-modal", () => {

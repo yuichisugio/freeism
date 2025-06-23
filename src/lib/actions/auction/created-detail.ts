@@ -2,7 +2,7 @@
 
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { revalidateTag } from "next/cache";
-import { checkIsOwner } from "@/lib/actions/permission";
+import { checkIsPermission } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
 import { TaskStatus } from "@prisma/client";
 
@@ -62,7 +62,7 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
   /**
    * 自分が作成したタスクかチェック
    */
-  const { success, error } = await checkIsOwner(userId, undefined, taskId, true);
+  const { success, error } = await checkIsPermission(userId, undefined, taskId, true);
 
   if (!success) {
     throw new Error(error ?? "このタスクを編集する権限がありません");
@@ -124,7 +124,7 @@ export async function completeTaskDelivery(
   /**
    * 自分が出品者のタスクかチェック
    */
-  const { success, error } = await checkIsOwner(userId, undefined, taskId, true);
+  const { success, error } = await checkIsPermission(userId, undefined, taskId, true);
   if (!success) {
     throw new Error(error ?? "このタスクを編集する権限がありません");
   }

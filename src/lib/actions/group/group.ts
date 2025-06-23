@@ -3,7 +3,7 @@
 import type { CreateGroupFormData } from "@/components/form/create-group-form";
 import type { GetGroupMembers } from "@/types/group-types";
 import { revalidatePath } from "next/cache";
-import { checkGroupMembership, checkIsOwner } from "@/lib/actions/permission";
+import { checkGroupMembership, checkIsPermission } from "@/lib/actions/permission";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { createGroupSchema } from "@/lib/zod-schema";
@@ -319,7 +319,7 @@ export async function removeMember(groupId: string, userId: string, addToBlackLi
     const currentUserId = await getAuthenticatedSessionUserId();
 
     // 操作者がグループオーナーかチェック
-    const isOwner = await checkIsOwner(currentUserId, groupId);
+    const isOwner = await checkIsPermission(currentUserId, groupId);
     if (!isOwner.success) {
       return { error: "グループメンバーを削除する権限がありません" };
     }

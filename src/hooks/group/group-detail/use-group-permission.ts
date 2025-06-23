@@ -4,7 +4,7 @@ import type { GetGroupMembers } from "@/types/group-types";
 import { useCallback, useState } from "react";
 import { redirect } from "next/navigation";
 import { getGroupMembers } from "@/lib/actions/group/group";
-import { checkIsOwner, grantOwnerPermission } from "@/lib/actions/permission";
+import { checkIsPermission, grantOwnerPermission } from "@/lib/actions/permission";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -110,7 +110,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
    */
   const { data: isOwner, isLoading: isLoadingOwner } = useQuery({
     queryKey: queryCacheKeys.permission.groupOwner(groupId, userId),
-    queryFn: async () => await checkIsOwner(userId, groupId, undefined, false),
+    queryFn: async () => await checkIsPermission(userId, groupId, undefined, false),
     enabled: !!userId && !!groupId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
   });

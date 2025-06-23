@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { checkIsOwner } from "@/lib/actions/permission";
+import { checkIsPermission } from "@/lib/actions/permission";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import {
@@ -38,7 +38,7 @@ vi.mock("next/cache", () => ({
  * モック関数の型定義
  */
 const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
-const mockCheckIsOwner = vi.mocked(checkIsOwner);
+const mockCheckIsOwner = vi.mocked(checkIsPermission);
 const mockRevalidatePath = vi.mocked(revalidatePath);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

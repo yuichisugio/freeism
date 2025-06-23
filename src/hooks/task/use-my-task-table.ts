@@ -3,7 +3,7 @@
 import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { checkIsOwner } from "@/lib/actions/permission";
+import { checkIsPermission } from "@/lib/actions/permission";
 import { getMyTaskData } from "@/lib/actions/task/my-task-table";
 import { deleteTask as deleteTaskAction } from "@/lib/actions/task/task";
 import { TABLE_CONSTANTS } from "@/lib/constants";
@@ -181,7 +181,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
       const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
       if (immutableStatuses.includes(status as string)) return false; // taskStatusがenumなのでstringにキャスト
 
-      const isOwner = await checkIsOwner(currentUserId, task.groupId, task.id, true);
+      const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
 
       return !currentUserId || isOwner.success;
     },
@@ -229,7 +229,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    */
   const canDeleteTask = useCallback(
     async (task: MyTaskTable): Promise<boolean> => {
-      const isOwner = await checkIsOwner(currentUserId, task.groupId, task.id, true);
+      const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
       return isOwner.success && task.taskStatus === "PENDING";
     },
     [currentUserId],

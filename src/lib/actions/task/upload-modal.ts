@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { contributionType, TaskStatus } from "@prisma/client";
 
-import { checkIsOwner } from "../permission";
+import { checkIsPermission } from "../permission";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -479,7 +479,7 @@ export async function bulkUpdateTaskStatuses(
         }
 
         // 権限チェック
-        const isOwnerOrRoleCheck = await checkIsOwner(userId, task.group.id, undefined, true);
+        const isOwnerOrRoleCheck = await checkIsPermission(userId, task.group.id, undefined, true);
 
         // いずれかの権限がある場合のみ変更可能
         if (!isOwnerOrRoleCheck.success) {

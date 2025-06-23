@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { z } from "zod"; // zodを使用して型検証を行います
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -55,9 +56,15 @@ type EvaluationResult =
 export async function bulkCreateEvaluations(
   rawData: EvaluationImportData[],
   groupId: string,
-  userId: string,
 ): Promise<EvaluationResult> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザー認証の確認
+     */
+    const userId = await getAuthenticatedSessionUserId();
+
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**

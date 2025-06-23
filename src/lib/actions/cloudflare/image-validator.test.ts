@@ -1,5 +1,5 @@
-import { validateImageFiles } from "@/lib/cloudflare/image-validator";
-import { MAX_FILE_SIZE } from "@/lib/cloudflare/upload-constants";
+import { validateImageFiles } from "@/lib/actions/cloudflare/image-validator";
+import { MAX_FILE_SIZE } from "@/lib/actions/cloudflare/upload-constants";
 import { describe, expect, test, vi } from "vitest";
 
 // ファイル作成用のヘルパー関数

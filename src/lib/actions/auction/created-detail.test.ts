@@ -41,7 +41,7 @@ const mockGetCachedAuctionHistoryCreatedDetail = vi.mocked(
   (await import("./cache/cache-auction-history")).getCachedAuctionHistoryCreatedDetail,
 );
 const mockRevalidateTag = vi.mocked((await import("next/cache")).revalidateTag);
-const mockCheckIsOwner = vi.mocked((await import("@/lib/actions/permission")).checkIsOwner);
+const mockCheckIsOwner = vi.mocked((await import("@/lib/actions/permission")).checkIsPermission);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
