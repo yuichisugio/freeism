@@ -56,8 +56,8 @@ export const queryCacheKeys = {
         userId,
         ...[...userGroupIds].sort(),
       ] as const,
-    suggestions: (searchQuery: string, userId: string) =>
-      [...queryCacheKeys.auction._root, "suggestions", searchQuery, userId] as const,
+    suggestions: (searchQuery: string, userId: string, userGroupIds: string[]) =>
+      [...queryCacheKeys.auction._root, "suggestions", searchQuery, userId, ...[...userGroupIds].sort()] as const,
     messages: (auctionId: string, isDisplayAfterEnd: boolean, auctionEndDate: Date) =>
       [...queryCacheKeys.auction._root, "messages", auctionId, isDisplayAfterEnd, auctionEndDate] as const,
     detail: (auctionId: string) => [...queryCacheKeys.auction._root, "detail", auctionId] as const,

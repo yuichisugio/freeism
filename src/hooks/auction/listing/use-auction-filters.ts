@@ -11,6 +11,7 @@ import type {
 } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSearchSuggestions } from "@/lib/auction/action/auction-listing";
+import { getUserGroupIds } from "@/lib/auction/action/auction-user-join-group-list";
 import { getUserGroups } from "@/lib/auction/action/user";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
@@ -126,6 +127,20 @@ export function useAuctionFilters({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * ユーザーが参加しているグループIDを事前取得
+   * オークション一覧取得で毎回同じデータを取得しないよう、事前にキャッシュしておく
+   */
+  const { data: userGroupIds } = useQuery({
+    queryKey: queryCacheKeys.users.joinedGroupIds(userId),
+    queryFn: async () => await getUserGroupIds(userId),
+    staleTime: 1000 * 60 * 60 * 24, // 24時間（グループ参加は頻繁に変わらないため長めに設定）
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
+    enabled: !!userId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * サジェスト関連
    * TanStack Query v5 を使用してサジェストを取得
    */
@@ -158,7 +173,7 @@ export function useAuctionFilters({
     error: suggestionsError,
     isLoading: isSuggestionsLoading,
   } = useQuery({
-    queryKey: queryCacheKeys.auction.suggestions(debouncedSearchQuery ?? "", userId),
+    queryKey: queryCacheKeys.auction.suggestions(debouncedSearchQuery ?? "", userId, userGroupIds ?? []),
     queryFn: async () => {
       if (!debouncedSearchQuery?.trim() || !userId) {
         return [];
@@ -166,7 +181,7 @@ export function useAuctionFilters({
       return await getSearchSuggestions({
         query: debouncedSearchQuery,
         userId,
-        userGroupIds: [],
+        userGroupIds: userGroupIds ?? [],
       } as unknown as GetSearchSuggestionsParams);
     },
     enabled: !!debouncedSearchQuery?.trim() && !!userId,

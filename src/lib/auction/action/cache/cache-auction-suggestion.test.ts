@@ -1,4 +1,5 @@
 import type { Suggestion } from "@/types/auction-types";
+import type { Prisma } from "@prisma/client";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -13,6 +14,8 @@ import { cachedGetSearchSuggestions } from "./cache-auction-suggestion";
 beforeEach(() => {
   vi.clearAllMocks();
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * テストデータの定義
@@ -48,6 +51,38 @@ const createTestParams = (overrides: Partial<GetSearchSuggestionsParams> = {}): 
   limit: 10,
   ...overrides,
 });
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 期待されるSQL生成関数
+ */
+function generateExpectedSQL(): string {
+  return `
+        SELECT
+          t.id,
+          t.task as text,
+          t.detail as detail,
+          pgroonga_score(t.tableoid, t.ctid) as score,
+          pgroonga_highlight_html(t.task, ARRAY[?]) as highlighted
+        FROM
+          "Task" t
+        JOIN
+          "Auction" a ON t.id = a."task_id"
+        WHERE
+          public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ?
+        AND
+          a."group_id" = ANY(?::text[])
+        ORDER BY
+          score DESC
+        LIMIT
+          ?
+      `
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("cachedGetSearchSuggestions", () => {
   describe("正常系", () => {
@@ -129,6 +164,141 @@ describe("cachedGetSearchSuggestions", () => {
       // Assert
       expect(result).toStrictEqual(mockSuggestions);
       expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("SQL生成テスト", () => {
+    test("should generate correct SQL with basic query", async () => {
+      // Arrange
+      const params = createTestParams({ query: "テスト", limit: 10 });
+      const mockSuggestions = [mockSuggestion];
+      prismaMock.$queryRaw.mockResolvedValue(mockSuggestions);
+
+      // Act
+      await cachedGetSearchSuggestions(params);
+
+      // Assert
+      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+      const actualCall = prismaMock.$queryRaw.mock.calls[0];
+      const actualSql = actualCall[0] as Prisma.Sql;
+      const actualSqlString = actualSql.sql.replace(/\s+/g, " ").trim();
+      const expectedSqlString = generateExpectedSQL();
+
+      expect(actualSqlString).toStrictEqual(expectedSqlString);
+    });
+
+    test("should generate correct SQL with multiple words query", async () => {
+      // Arrange
+      const multipleWordsQuery = "プログラミング 学習";
+      const params = createTestParams({ query: multipleWordsQuery, limit: 5 });
+      const mockSuggestions = [mockSuggestion];
+      prismaMock.$queryRaw.mockResolvedValue(mockSuggestions);
+
+      // Act
+      await cachedGetSearchSuggestions(params);
+
+      // Assert
+      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+      const actualCall = prismaMock.$queryRaw.mock.calls[0];
+      const actualSql = actualCall[0] as Prisma.Sql;
+      const actualSqlString = actualSql.sql.replace(/\s+/g, " ").trim();
+      const expectedSqlString = generateExpectedSQL();
+
+      expect(actualSqlString).toStrictEqual(expectedSqlString);
+    });
+
+    test("should generate correct SQL with single group", async () => {
+      // Arrange
+      const singleGroupIds = ["single-group-id"];
+      const params = createTestParams({ userGroupIds: singleGroupIds, limit: 20 });
+      const mockSuggestions = [mockSuggestion];
+      prismaMock.$queryRaw.mockResolvedValue(mockSuggestions);
+
+      // Act
+      await cachedGetSearchSuggestions(params);
+
+      // Assert
+      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+      const actualCall = prismaMock.$queryRaw.mock.calls[0];
+      const actualSql = actualCall[0] as Prisma.Sql;
+      const actualSqlString = actualSql.sql.replace(/\s+/g, " ").trim();
+      const expectedSqlString = generateExpectedSQL();
+
+      expect(actualSqlString).toStrictEqual(expectedSqlString);
+    });
+  });
+
+  describe("normalizedQueryテスト", () => {
+    test.each([
+      {
+        description: "single word query",
+        input: "テスト",
+        expected: "テスト",
+      },
+      {
+        description: "multiple words query",
+        input: "プログラミング 学習",
+        expected: "プログラミング OR 学習",
+      },
+      {
+        description: "query with extra spaces",
+        input: "  テスト   プログラミング  ",
+        expected: "テスト OR プログラミング",
+      },
+      {
+        description: "query with multiple consecutive spaces",
+        input: "テスト    プログラミング    学習",
+        expected: "テスト OR プログラミング OR 学習",
+      },
+      {
+        description: "query with consecutive spaces",
+        input: "テストプログラミング    学習",
+        expected: "テストプログラミング OR 学習",
+      },
+      {
+        description: "query with tabs and newlines",
+        input: "テスト\t\nプログラミング",
+        expected: "テスト OR プログラミング",
+      },
+    ])("should normalize query correctly for $description", async ({ input, expected }) => {
+      // Arrange
+      const params = createTestParams({ query: input });
+      const mockSuggestions = [mockSuggestion];
+      prismaMock.$queryRaw.mockResolvedValue(mockSuggestions);
+
+      // Act
+      await cachedGetSearchSuggestions(params);
+
+      // Assert
+      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+      const actualCall = prismaMock.$queryRaw.mock.calls[0];
+      const actualSql = actualCall[0] as Prisma.Sql;
+
+      // SQLクエリ内で正規化されたクエリが使用されていることを確認
+      // normalizedQueryは第2パラメータとして渡される
+      expect(actualSql.values[1]).toBe(expected);
+    });
+
+    test("should handle query normalization in SQL generation", async () => {
+      // Arrange
+      const originalQuery = "テスト プログラミング";
+      const params = createTestParams({ query: originalQuery });
+      const mockSuggestions = [mockSuggestion];
+      prismaMock.$queryRaw.mockResolvedValue(mockSuggestions);
+
+      // Act
+      await cachedGetSearchSuggestions(params);
+
+      // Assert
+      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+      const actualCall = prismaMock.$queryRaw.mock.calls[0];
+      const actualSql = actualCall[0] as Prisma.Sql;
+
+      // 元のクエリがARRAY[]内で使用され、正規化されたクエリが&@~演算子で使用されることを確認
+      expect(actualSql.values[0]).toBe(originalQuery); // ARRAY[]内の元のクエリ
+      expect(actualSql.values[1]).toBe("テスト OR プログラミング"); // 正規化されたクエリ
+      expect(actualSql.values[2]).toStrictEqual(CONSTS.testUserGroupIds); // userGroupIds
+      expect(actualSql.values[3]).toBe(10); // limit
     });
   });
 

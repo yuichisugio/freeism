@@ -82,9 +82,9 @@ export const cachedGetSearchSuggestions = cache(async (params: GetSearchSuggesti
         JOIN
           "Auction" a ON t.id = a."task_id"
         WHERE
-          public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ${normalizedQuery} -- task と detail を結合して検索
+          public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ${normalizedQuery}
         AND
-          a."group_id" = ANY(${userGroupIds}::text[]) -- ユーザーが所属するグループのオークションのみ
+          a."group_id" = ANY(${userGroupIds}::text[])
         ORDER BY
           score DESC
         LIMIT
