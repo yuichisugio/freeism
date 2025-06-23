@@ -5,10 +5,11 @@
  * use cacheとuse serverを併用できないため、別ファイルとして作成
  */
 import type { GetAuctionListingsParams } from "@/lib/auction/action/cache/cache-auction-listing";
+import type { GetSearchSuggestionsParams } from "@/lib/auction/action/cache/cache-auction-suggestion";
 import type { AuctionListingResult, Suggestion } from "@/types/auction-types";
 import { cache } from "react";
 import { cachedGetAuctionListingsAndCount } from "@/lib/auction/action/cache/cache-auction-listing";
-import { cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-listing-suggestion";
+import { cachedGetSearchSuggestions } from "@/lib/auction/action/cache/cache-auction-suggestion";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -30,10 +31,11 @@ export const getAuctionListingsAndCount = cache(
  * オークション検索サジェストを取得する関数
  * @param query 検索クエリ
  * @param userId ユーザーID
+ * @param limit 取得件数
  * @returns オークション検索サジェスト
  */
-export const getSearchSuggestions = cache(async (query: string, userId: string): Promise<Suggestion[]> => {
-  return await cachedGetSearchSuggestions(query, userId);
+export const getSearchSuggestions = cache(async (params: GetSearchSuggestionsParams): Promise<Suggestion[]> => {
+  return await cachedGetSearchSuggestions(params);
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

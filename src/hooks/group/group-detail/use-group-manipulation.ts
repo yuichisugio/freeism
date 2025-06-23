@@ -169,6 +169,7 @@ export function useGroupManipulation({
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
       router.refresh();
     },
     onError: (error) => {
@@ -213,6 +214,7 @@ export function useGroupManipulation({
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
       router.refresh();
     },
     onError: (error) => {

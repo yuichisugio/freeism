@@ -24,7 +24,7 @@ const mockCachedGetAuctionListingsAndCount = vi.mocked(
   (await import("@/lib/auction/action/cache/cache-auction-listing")).cachedGetAuctionListingsAndCount,
 );
 const mockCachedGetSearchSuggestions = vi.mocked(
-  (await import("@/lib/auction/action/cache/cache-auction-listing-suggestion")).cachedGetSearchSuggestions,
+  (await import("@/lib/auction/action/cache/cache-auction-suggestion")).cachedGetSearchSuggestions,
 );
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -75,6 +75,7 @@ const createAuctionListingsParams = (
 ): GetAuctionListingsParams => ({
   listingsConditions,
   userId,
+  userGroupIds: [],
 });
 
 /**
@@ -253,11 +254,11 @@ describe("auction-listing", () => {
         mockCachedGetSearchSuggestions.mockResolvedValue(expectedSuggestions);
 
         // Act
-        const result = await getSearchSuggestions(query, testUserId);
+        const result = await getSearchSuggestions({ query, userId: testUserId, userGroupIds: [] });
 
         // Assert
         expect(result).toStrictEqual(expectedSuggestions);
-        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, testUserId);
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith({ query, userId: testUserId, userGroupIds: [] });
         expect(mockCachedGetSearchSuggestions).toHaveBeenCalledTimes(1);
       });
     });
@@ -270,11 +271,11 @@ describe("auction-listing", () => {
         const userId = null as unknown as string;
 
         // Act
-        const result = await getSearchSuggestions(query, userId);
+        const result = await getSearchSuggestions({ query, userId, userGroupIds: [] });
 
         // Assert
         expect(result).toThrowError();
-        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, userId);
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith({ query, userId, userGroupIds: [] });
       });
 
       test("should handle empty query", async () => {
@@ -286,11 +287,11 @@ describe("auction-listing", () => {
         mockCachedGetSearchSuggestions.mockResolvedValue(expectedSuggestions);
 
         // Act
-        const result = await getSearchSuggestions(query, userId);
+        const result = await getSearchSuggestions({ query, userId, userGroupIds: [] });
 
         // Assert
         expect(result).toStrictEqual(expectedSuggestions);
-        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith(query, userId);
+        expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith({ query, userId, userGroupIds: [] });
       });
     });
   });

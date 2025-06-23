@@ -6,6 +6,7 @@ import { getUserJoinGroupAndCount, leaveGroup } from "@/lib/actions/group/my-gro
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
@@ -127,6 +128,12 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * セッション取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  /**
    * グループから脱退する
    */
   const { mutate: leaveGroupMutation, isPending: isLeaveLoading } = useMutation({
@@ -139,6 +146,9 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroupConditions(tableConditions) });
+      if (userId) {
+        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
+      }
     },
   });
 

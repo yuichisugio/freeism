@@ -9,6 +9,7 @@ import type {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
 import { getAuctionListingsAndCount } from "@/lib/auction/action/auction-listing";
+import { getUserGroupIds } from "@/lib/auction/action/auction-user-join-group-list";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -233,6 +234,20 @@ export function useAuctionListings(): UseAuctionListingsReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * ユーザーが参加しているグループIDを事前取得
+   * オークション一覧取得で毎回同じデータを取得しないよう、事前にキャッシュしておく
+   */
+  const { data: userGroupIds } = useQuery({
+    queryKey: queryCacheKeys.users.joinedGroupIds(userId),
+    queryFn: async () => await getUserGroupIds(userId),
+    staleTime: 1000 * 60 * 60 * 24, // 24時間（グループ参加は頻繁に変わらないため長めに設定）
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
+    enabled: !!userId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * オークション一覧データと総件数を並列で取得
    * queryKeyのstate更新のたびにデータ更新&キャッシュ追加
    * watchlist更新時もキャッシュの内容から更新されてそう
@@ -242,11 +257,12 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     isPending,
     isPlaceholderData,
   } = useQuery({
-    queryKey: queryCacheKeys.auction.userAllListings(userId, listingsConditions),
-    queryFn: async () => await getAuctionListingsAndCount({ listingsConditions, userId }),
+    queryKey: queryCacheKeys.auction.userAllListings(userId, listingsConditions, userGroupIds ?? []),
+    queryFn: async () =>
+      await getAuctionListingsAndCount({ listingsConditions, userId, userGroupIds: userGroupIds ?? [] }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
-    enabled: !!listingsConditions && !!userId,
+    enabled: !!listingsConditions && !!userId && !!userGroupIds, // userGroupIdsも有効になってから実行
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -268,12 +284,20 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
       // 次のページをprefetch
       void queryClient.prefetchQuery({
-        queryKey: queryCacheKeys.auction.userAllListings(userId, { ...listingsConditions, page: nextPage }),
+        queryKey: queryCacheKeys.auction.userAllListings(
+          userId,
+          { ...listingsConditions, page: nextPage },
+          userGroupIds ?? [],
+        ),
         queryFn: async () =>
-          await getAuctionListingsAndCount({ listingsConditions: { ...listingsConditions, page: nextPage }, userId }),
+          await getAuctionListingsAndCount({
+            listingsConditions: { ...listingsConditions, page: nextPage },
+            userId,
+            userGroupIds: userGroupIds ?? [],
+          }),
       });
     }
-  }, [auctionListings, listingsConditions, isPlaceholderData, queryClient, isPending, userId]);
+  }, [auctionListings, listingsConditions, isPlaceholderData, queryClient, isPending, userId, userGroupIds]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -15,6 +15,7 @@ import { Prisma, TaskStatus } from "@prisma/client";
 export type GetAuctionListingsParams = {
   listingsConditions: AuctionListingsConditions;
   userId: string;
+  userGroupIds: string[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -80,17 +81,40 @@ export const cachedGetAuctionListingsAndCount = cache(
   async ({
     listingsConditions,
     userId,
+    userGroupIds,
   }: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-      console.log("cachedGetAuctionListingsAndCount");
 
       /**
        * 引数がnullの場合はエラーを投げる
        */
-      if (!listingsConditions || !userId) throw new Error("listingsConditions or userId is required");
+      if (!listingsConditions || !userId || !userGroupIds)
+        throw new Error("listingsConditions, userId, or userGroupIds is required");
 
-      // userIdの型チェックを追加
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * userGroupIdsの型チェックを追加
+       */
+      if (!Array.isArray(userGroupIds)) {
+        throw new Error("userGroupIds must be an array");
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * ユーザーが参加しているグループがない場合は、空の結果を返す
+       */
+      if (userGroupIds.length === 0) {
+        return { listings: [], count: 0 };
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * userIdの型チェックを追加
+       */
       if (typeof userId !== "string") {
         throw new Error("userId must be a string");
       }
@@ -238,27 +262,6 @@ export const cachedGetAuctionListingsAndCount = cache(
       const whereClauses: Prisma.Sql[] = [];
       let ftsCondition: Prisma.Sql = Prisma.empty;
       const keywords: string[] = [];
-      let userGroupIds: string[] = [];
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      /**
-       * ユーザーが参加しているグループIDを取得
-       */
-      const userGroupMemberships = await prisma.groupMembership.findMany({
-        where: { userId },
-        select: { groupId: true },
-      });
-      userGroupIds = userGroupMemberships.map((gm) => gm.groupId);
-
-      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-      /**
-       * ユーザーが参加しているグループがない場合は、空の結果を返す
-       */
-      if (userGroupIds.length === 0) {
-        return { listings: [], count: 0 };
-      }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

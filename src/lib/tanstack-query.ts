@@ -49,8 +49,13 @@ export const queryCacheKeys = {
   auction: {
     _root: ["auction"] as const,
     allListings: () => [...queryCacheKeys.auction._root, "allListings"] as const,
-    userAllListings: (userId: string, listingsConditions: AuctionListingsConditions) =>
-      [...queryCacheKeys.auction.allListings(), JSON.stringify(listingsConditions), userId] as const,
+    userAllListings: (userId: string, listingsConditions: AuctionListingsConditions, userGroupIds: string[]) =>
+      [
+        ...queryCacheKeys.auction.allListings(),
+        JSON.stringify(listingsConditions),
+        userId,
+        ...[...userGroupIds].sort(),
+      ] as const,
     suggestions: (searchQuery: string, userId: string) =>
       [...queryCacheKeys.auction._root, "suggestions", searchQuery, userId] as const,
     messages: (auctionId: string, isDisplayAfterEnd: boolean, auctionEndDate: Date) =>
@@ -121,6 +126,7 @@ export const queryCacheKeys = {
     _root: ["users"] as const,
     all: () => [...queryCacheKeys.users._root] as const,
     groups: (userId: string) => [...queryCacheKeys.users.all(), "groups", userId] as const,
+    joinedGroupIds: (userId: string) => [...queryCacheKeys.users.all(), "joinedGroupIds", userId] as const,
   },
 
   permission: {

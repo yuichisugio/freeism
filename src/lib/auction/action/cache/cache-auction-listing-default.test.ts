@@ -50,6 +50,7 @@ function createDefaultParams(): GetAuctionListingsParams {
   return {
     listingsConditions,
     userId: TEST_CONSTANTS.USER_ID,
+    userGroupIds: [],
   };
 }
 

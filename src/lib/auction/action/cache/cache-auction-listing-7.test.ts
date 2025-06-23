@@ -57,6 +57,7 @@ function createDefaultParams(overrides: Partial<AuctionListingsConditions> = {})
   return {
     listingsConditions: { ...defaultConditions, ...overrides },
     userId: TEST_CONSTANTS.USER_ID,
+    userGroupIds: [],
   };
 }
 

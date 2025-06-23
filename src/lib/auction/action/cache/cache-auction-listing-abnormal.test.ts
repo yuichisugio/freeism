@@ -57,6 +57,7 @@ function createTestParams(conditionsOverrides = {}, userId = TEST_CONSTANTS.USER
   return {
     listingsConditions: { ...defaultConditions, ...conditionsOverrides },
     userId,
+    userGroupIds: [],
   };
 }
 
@@ -519,6 +520,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
       const params = {
         listingsConditions: AuctionListingsConditionsFactory.build(),
         userId: "user1",
+        userGroupIds: [],
       };
 
       // Act
@@ -536,6 +538,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
           groupIds: ["group_nonexistent", "group_unknown"],
         }),
         userId: "user1",
+        userGroupIds: [],
       };
 
       // Act
@@ -670,6 +673,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
             searchQuery: "'; DROP TABLE Auction; --",
           }),
           userId: "user1",
+          userGroupIds: [],
         },
       },
       {
@@ -677,6 +681,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
         params: {
           listingsConditions: AuctionListingsConditionsFactory.build(),
           userId: "'; DROP TABLE User; --",
+          userGroupIds: [],
         },
       },
       {
@@ -686,6 +691,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
             groupIds: ["'; DROP TABLE Group; --", "normal-group-id"],
           }),
           userId: "user1",
+          userGroupIds: [],
         },
       },
       {
@@ -695,6 +701,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
             categories: ["デザイン'; DROP TABLE Task; --"] as unknown as string[],
           }),
           userId: "user1",
+          userGroupIds: [],
         },
       },
       {
@@ -704,13 +711,14 @@ describe("cachedGetAuctionListingsAndCount", () => {
             searchQuery: "<script>alert('xss')</script>",
           }),
           userId: "user1",
+          userGroupIds: [],
         },
       },
     ] as const;
 
     it.each(securityTestCases)("$name に対してSQL安全性が保たれる", async ({ params }) => {
       // Act
-      await cachedGetAuctionListingsAndCount(params);
+      await cachedGetAuctionListingsAndCount(params as unknown as GetAuctionListingsParams);
 
       // Assert
       const calls = vi.mocked(prisma.$queryRaw).mock.calls;

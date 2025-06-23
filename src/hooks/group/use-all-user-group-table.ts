@@ -7,6 +7,7 @@ import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
@@ -41,6 +42,14 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * クエリクライアント
    */
   const queryClient = useQueryClient();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッション取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -169,6 +178,9 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroupConditions(tableConditions) }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
+      if (userId) {
+        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
+      }
     },
   });
 
