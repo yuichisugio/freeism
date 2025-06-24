@@ -461,7 +461,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: false, error: "権限がありません" });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "権限がありません" });
 
         // Act
         const result = await updateTaskAction(testTask.id, updateData);

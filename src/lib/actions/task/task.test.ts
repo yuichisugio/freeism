@@ -155,7 +155,7 @@ describe("task.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         mockCheckIsOwner.mockResolvedValue({
           success: false,
-          error: "権限がありません",
+          message: "権限がありません",
         });
 
         // Act
@@ -489,7 +489,7 @@ describe("task.ts", () => {
         );
         mockCheckIsOwner.mockResolvedValue({
           success: false,
-          error: "権限がありません",
+          message: "権限がありません",
         });
 
         // Act

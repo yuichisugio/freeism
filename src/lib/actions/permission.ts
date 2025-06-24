@@ -20,7 +20,7 @@ export async function checkIsPermission(
   propsGroupId?: string,
   propsTaskId?: string,
   isRoleCheck?: boolean,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -40,7 +40,7 @@ export async function checkIsPermission(
     if (isRoleCheck) {
       // タスクIDが指定されていない場合はエラーを返す
       if (!propsTaskId) {
-        return { success: false, error: "タスクIDが指定されていません" };
+        return { success: false, message: "タスクIDが指定されていません" };
       }
 
       // タスクの詳細情報を取得
@@ -75,7 +75,7 @@ export async function checkIsPermission(
 
       // タスクが見つからない場合はエラーを返す
       if (!task) {
-        return { success: false, error: "タスクが見つかりません" };
+        return { success: false, message: "タスクが見つかりません" };
       }
 
       // タスクの作成者、タスクの報告者、タスクの実行者のいずれかがユーザーIDと一致する場合はtrueを返す
@@ -83,18 +83,49 @@ export async function checkIsPermission(
       const isReporter = task.reporters.find((reporter) => reporter.id);
       const isExecutor = task.executors.find((executor) => executor.id);
       if (isCreator || isReporter || isExecutor) {
-        return { success: true };
+        return { success: true, message: "タスクの作成者or報告者or実行者の権限があります" };
       }
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * グループIDが指定されていない場合はエラーを返す
+     * Appオーナー権限があるかチェック
      */
-    let groupId = propsGroupId;
+    const appOwner = await prisma.user.findUnique({
+      where: {
+        id: userId,
+        isAppOwner: true,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    // グループIDが指定されていない && タスクIDが指定されている場合はタスクIDからグループIDを取得
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * Appオーナー権限がある場合はtrueを返す
+     */
+    if (appOwner) {
+      return { success: true, message: "Appオーナー権限があります" };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループIDとタスクIDが指定されていない場合はエラーを返す
+     */
+    if (!propsGroupId && !propsTaskId) {
+      return { success: false, message: "グループIDとタスクIDが指定されていません" };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループIDが指定されていない && タスクIDが指定されている場合は、タスクIDからグループIDを取得
+     */
+
     if (!propsGroupId && propsTaskId) {
       // タスクIDからグループIDを取得
       const task = await prisma.task.findUnique({
@@ -106,32 +137,11 @@ export async function checkIsPermission(
 
       // タスクが見つからない場合はエラーを返す
       if (!task) {
-        return { success: false, error: "タスクが見つかりません" };
+        return { success: false, message: "タスクが見つかりません" };
       }
 
       // タスクのグループIDを取得
-      groupId = task.groupId;
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Appオーナー権限があるかチェック
-     */
-    const appOwner = await prisma.user.findFirst({
-      where: {
-        id: userId,
-        isAppOwner: true,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Appオーナー権限がある場合はtrueを返す
-     */
-    if (appOwner) {
-      return { success: true };
+      propsGroupId = task.groupId;
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -142,20 +152,32 @@ export async function checkIsPermission(
     const membership = await prisma.groupMembership.findFirst({
       where: {
         userId,
-        groupId,
+        groupId: propsGroupId,
         isGroupOwner: true,
+      },
+      select: {
+        id: true,
       },
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
+     * Groupオーナー権限がない場合はfalseを返す
+     */
+    if (!membership) {
+      return { success: false, message: "グループオーナー権限がありません" };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * Groupオーナー権限がある場合はtrueを返す
      */
-    return { success: !!membership };
+    return { success: !!membership, message: "Groupオーナー権限があります" };
   } catch (error) {
     console.error("[CHECK_GROUP_OWNER]", error);
-    return { success: false, error: "グループオーナー権限のチェック中にエラーが発生しました" };
+    return { success: false, message: "権限のチェック中にエラーが発生しました" };
   }
 }
 

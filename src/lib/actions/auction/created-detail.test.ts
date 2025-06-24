@@ -212,7 +212,7 @@ describe("created-detail.ts", () => {
 
       test("should throw error when user has no permission with error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, error: "権限がありません" });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "権限がありません" });
 
         // Act & Assert
         await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
@@ -279,7 +279,7 @@ describe("created-detail.ts", () => {
 
       test("should throw error when user has no permission", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, error: "権限がありません" });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "権限がありません" });
 
         // Act & Assert
         await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("権限がありません");
