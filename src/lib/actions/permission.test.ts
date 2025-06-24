@@ -1,9 +1,11 @@
 import { revalidatePath } from "next/cache";
+// モック関数のインポート
+import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupFactory, groupMembershipFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { checkGroupMembership, checkIsAppOwner, checkOneGroupOwner, grantOwnerPermission } from "./permission";
+import { checkGroupMembership, checkOneGroupOwner, grantOwnerPermission } from "./permission";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -21,6 +23,13 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+// getAuthenticatedSessionUserIdのモック
+vi.mock("@/lib/utils", () => ({
+  getAuthenticatedSessionUserId: vi.fn(),
+}));
+
+const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
@@ -34,7 +43,6 @@ const mockRevalidatePath = vi.mocked(revalidatePath);
  * 共通テストデータの準備
  */
 const testUser = userFactory.build({ id: "test-user-1", isAppOwner: false });
-const testAppOwner = userFactory.build({ id: "test-app-owner", isAppOwner: true });
 const testGroup = groupFactory.build({ id: "test-group-1", createdBy: testUser.id });
 const testGroupMembership = groupMembershipFactory.build({
   id: "test-membership-1",
@@ -51,6 +59,14 @@ const testGroupMembership = groupMembershipFactory.build({
 beforeEach(() => {
   // 各テスト前にモックをリセット
   vi.clearAllMocks();
+
+  // デフォルトの認証されたユーザーIDを設定
+  mockGetAuthenticatedSessionUserId.mockResolvedValue("authenticated-user-id");
+
+  // revalidatePathのデフォルト実装をリセット
+  mockRevalidatePath.mockImplementation(() => {
+    // 何もしない
+  });
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -63,7 +79,7 @@ describe("permission.ts", () => {
     describe("正常系", () => {
       test("should grant owner permission successfully", async () => {
         // Arrange
-        const operatorUser = userFactory.build({ id: "operator-user" });
+        const operatorUser = userFactory.build({ id: "authenticated-user-id" });
         const targetUser = userFactory.build({ id: "target-user" });
         const operatorMembership = groupMembershipFactory.build({
           id: "operator-membership",
@@ -78,8 +94,8 @@ describe("permission.ts", () => {
           isGroupOwner: false,
         });
 
-        // checkIsOwnerのモック（操作者がオーナー権限あり）
-        prismaMock.user.findFirst.mockResolvedValue(null);
+        // checkIsPermissionのモック（操作者がオーナー権限あり）
+        prismaMock.user.findUnique.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst
           .mockResolvedValueOnce(operatorMembership)
           .mockResolvedValueOnce(targetMembership);
@@ -92,7 +108,38 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({ success: true, message: "グループオーナー権限を付与しました" });
+        expect(prismaMock.groupMembership.update).toHaveBeenCalledWith({
+          where: { id: targetMembership.id },
+          data: { isGroupOwner: true },
+        });
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
+      });
+
+      test("should grant permission when user is app owner", async () => {
+        // Arrange
+        const appOwner = userFactory.build({ id: "authenticated-user-id", isAppOwner: true });
+        const targetUser = userFactory.build({ id: "target-user" });
+        const targetMembership = groupMembershipFactory.build({
+          id: "target-membership",
+          userId: targetUser.id,
+          groupId: testGroup.id,
+          isGroupOwner: false,
+        });
+
+        // checkIsPermissionのモック（アプリオーナー）
+        prismaMock.user.findUnique.mockResolvedValue(appOwner);
+        prismaMock.groupMembership.findFirst.mockResolvedValueOnce(targetMembership);
+        prismaMock.groupMembership.update.mockResolvedValue({
+          ...targetMembership,
+          isGroupOwner: true,
+        });
+
+        // Act
+        const result = await grantOwnerPermission(testGroup.id, targetUser.id);
+
+        // Assert
+        expect(result).toStrictEqual({ success: true, message: "グループオーナー権限を付与しました" });
         expect(prismaMock.groupMembership.update).toHaveBeenCalledWith({
           where: { id: targetMembership.id },
           data: { isGroupOwner: true },
@@ -102,42 +149,63 @@ describe("permission.ts", () => {
     });
 
     describe("異常系", () => {
+      describe("パラメータ検証エラー", () => {
+        test.each([
+          { groupId: "", userId: "valid-user-id", description: "groupId is empty string" },
+          { groupId: "valid-group-id", userId: "", description: "userId is empty string" },
+          { groupId: "", userId: "", description: "both parameters are empty strings" },
+          { groupId: null as unknown as string, userId: "valid-user-id", description: "groupId is null" },
+          { groupId: "valid-group-id", userId: null as unknown as string, description: "userId is null" },
+          { groupId: undefined as unknown as string, userId: "valid-user-id", description: "groupId is undefined" },
+          { groupId: "valid-group-id", userId: undefined as unknown as string, description: "userId is undefined" },
+        ])("should return error when $description", async ({ groupId, userId }) => {
+          // Act
+          const result = await grantOwnerPermission(groupId, userId);
+
+          // Assert
+          expect(result).toStrictEqual({
+            success: false,
+            message: "グループオーナー権限の付与中にエラーが発生しました: 無効なパラメータが指定されました",
+          });
+        });
+      });
+
       test("should return error when user has no owner permission", async () => {
         // Arrange
-        prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.user.findUnique.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst.mockResolvedValue(null);
 
         // Act
         const result = await grantOwnerPermission(testGroup.id, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "グループオーナー権限がありません" });
+        expect(result).toStrictEqual({ success: false, message: "アプリオーナー or グループオーナー権限がありません" });
       });
 
       test("should return error when target user is not group member", async () => {
         // Arrange
         const targetUser = userFactory.build({ id: "target-user" });
         const operatorMembership = groupMembershipFactory.build({
-          userId: testUser.id,
+          userId: "authenticated-user-id",
           groupId: testGroup.id,
           isGroupOwner: true,
         });
 
-        prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.user.findUnique.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst.mockResolvedValueOnce(operatorMembership).mockResolvedValueOnce(null);
 
         // Act
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "指定されたユーザーはグループに参加していません" });
+        expect(result).toStrictEqual({ success: false, message: "指定されたユーザーはグループに参加していません" });
       });
 
       test("should return error when target user is already owner", async () => {
         // Arrange
         const targetUser = userFactory.build({ id: "target-user" });
         const operatorMembership = groupMembershipFactory.build({
-          userId: testUser.id,
+          userId: "authenticated-user-id",
           groupId: testGroup.id,
           isGroupOwner: true,
         });
@@ -147,7 +215,7 @@ describe("permission.ts", () => {
           isGroupOwner: true,
         });
 
-        prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.user.findUnique.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst
           .mockResolvedValueOnce(operatorMembership)
           .mockResolvedValueOnce(targetMembership);
@@ -156,137 +224,100 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "指定されたユーザーは既にグループオーナーです" });
+        expect(result).toStrictEqual({ success: false, message: "指定されたユーザーは既にグループオーナーです" });
       });
 
       test("should handle database error gracefully", async () => {
         // Arrange
+        const targetUser = userFactory.build({ id: "target-user" });
         const operatorMembership = groupMembershipFactory.build({
-          userId: testUser.id,
+          userId: "authenticated-user-id",
           groupId: testGroup.id,
           isGroupOwner: true,
         });
         const targetMembership = groupMembershipFactory.build({
-          userId: testUser.id,
+          userId: targetUser.id,
           groupId: testGroup.id,
           isGroupOwner: false,
         });
 
-        prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.user.findUnique.mockResolvedValue(null);
         prismaMock.groupMembership.findFirst
           .mockResolvedValueOnce(operatorMembership)
           .mockResolvedValueOnce(targetMembership);
         prismaMock.groupMembership.update.mockRejectedValue(new Error("Database error"));
 
         // Act
-        const result = await grantOwnerPermission(testGroup.id, testUser.id);
+        const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "グループオーナー権限の付与中にエラーが発生しました",
-        });
-      });
-    });
-  });
-
-  describe("checkIsAppOwner", () => {
-    describe("正常系", () => {
-      test("should return success true when user is app owner", async () => {
-        // Arrange
-        prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
-
-        // Act
-        const result = await checkIsAppOwner(testAppOwner.id);
-
-        // Assert
-        expect(result).toStrictEqual({ success: true });
-        expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-          where: { id: testAppOwner.id },
-          select: { isAppOwner: true },
+          message: "グループオーナー権限の付与中にエラーが発生しました: Database error",
         });
       });
 
-      test("should return success false when user is not app owner", async () => {
+      test("should handle unknown error gracefully", async () => {
         // Arrange
-        prismaMock.user.findUnique.mockResolvedValue(testUser);
+        const targetUser = userFactory.build({ id: "target-user" });
+        const operatorMembership = groupMembershipFactory.build({
+          userId: "authenticated-user-id",
+          groupId: testGroup.id,
+          isGroupOwner: true,
+        });
+        const targetMembership = groupMembershipFactory.build({
+          userId: targetUser.id,
+          groupId: testGroup.id,
+          isGroupOwner: false,
+        });
 
-        // Act
-        const result = await checkIsAppOwner(testUser.id);
-
-        // Assert
-        expect(result).toStrictEqual({ success: false });
-      });
-    });
-
-    describe("異常系", () => {
-      test("should return error when user not found", async () => {
-        // Arrange
+        // checkIsPermission内のprisma callは成功させる
         prismaMock.user.findUnique.mockResolvedValue(null);
+        prismaMock.groupMembership.findFirst
+          .mockResolvedValueOnce(operatorMembership) // 1回目: checkIsPermissionは成功
+          .mockResolvedValueOnce(targetMembership); // 2回目: checkGroupMembershipも成功
+
+        // prisma.groupMembership.updateで未知のエラーを発生させる
+        prismaMock.groupMembership.update.mockRejectedValue("Unknown error");
 
         // Act
-        const result = await checkIsAppOwner("non-existent-user");
-
-        // Assert
-        expect(result).toStrictEqual({ success: false, error: "ユーザーが見つかりません" });
-      });
-
-      test("should handle database error gracefully", async () => {
-        // Arrange
-        prismaMock.user.findUnique.mockRejectedValue(new Error("Database error"));
-
-        // Act
-        const result = await checkIsAppOwner(testUser.id);
+        const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "アプリオーナー権限のチェック中にエラーが発生しました",
+          message: "グループオーナー権限の付与中にエラーが発生しました: 不明なエラー",
         });
       });
     });
 
     describe("境界値テスト", () => {
-      test("should handle null parameter", async () => {
+      test("should handle when same user tries to grant permission to themselves", async () => {
         // Arrange
+        const sameUser = userFactory.build({ id: "authenticated-user-id" });
+        const operatorMembership = groupMembershipFactory.build({
+          id: "operator-membership",
+          userId: sameUser.id,
+          groupId: testGroup.id,
+          isGroupOwner: true,
+        });
+        const targetMembership = groupMembershipFactory.build({
+          id: "target-membership",
+          userId: sameUser.id,
+          groupId: testGroup.id,
+          isGroupOwner: true,
+        });
+
         prismaMock.user.findUnique.mockResolvedValue(null);
+        prismaMock.groupMembership.findFirst
+          .mockResolvedValueOnce(operatorMembership)
+          .mockResolvedValueOnce(targetMembership);
 
         // Act
-        const result = await checkIsAppOwner(null as unknown as string);
+        const result = await grantOwnerPermission(testGroup.id, sameUser.id);
 
         // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "アプリオーナー権限のチェック中にエラーが発生しました",
-        });
-      });
-
-      test("should handle undefined parameter", async () => {
-        // Arrange
-        prismaMock.user.findUnique.mockResolvedValue(null);
-
-        // Act
-        const result = await checkIsAppOwner(undefined as unknown as string);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "アプリオーナー権限のチェック中にエラーが発生しました",
-        });
-      });
-
-      test("should handle empty string parameter", async () => {
-        // Arrange
-        prismaMock.user.findUnique.mockResolvedValue(null);
-
-        // Act
-        const result = await checkIsAppOwner("");
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "アプリオーナー権限のチェック中にエラーが発生しました",
-        });
+        expect(result).toStrictEqual({ success: false, message: "指定されたユーザーは既にグループオーナーです" });
       });
     });
   });
@@ -295,17 +326,27 @@ describe("permission.ts", () => {
     describe("正常系", () => {
       test("should return membership when user is group member", async () => {
         // Arrange
-        prismaMock.groupMembership.findFirst.mockResolvedValue(testGroupMembership);
+        const expectedMembership = {
+          id: testGroupMembership.id,
+          isGroupOwner: testGroupMembership.isGroupOwner,
+        };
+        prismaMock.groupMembership.findFirst.mockResolvedValue(
+          expectedMembership as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findFirst>>,
+        );
 
         // Act
         const result = await checkGroupMembership(testUser.id, testGroup.id);
 
         // Assert
-        expect(result).toStrictEqual(testGroupMembership);
+        expect(result).toStrictEqual(expectedMembership);
         expect(prismaMock.groupMembership.findFirst).toHaveBeenCalledWith({
           where: {
             userId: testUser.id,
             groupId: testGroup.id,
+          },
+          select: {
+            id: true,
+            isGroupOwner: true,
           },
         });
       });
@@ -333,17 +374,17 @@ describe("permission.ts", () => {
         // Assert
         expect(result).toBeNull();
       });
-    });
 
-    describe("境界値テスト", () => {
-      test("should handle null parameters", async () => {
+      test.each([
+        { userId: null as unknown as string, groupId: testGroup.id },
+        { userId: testUser.id, groupId: null as unknown as string },
+        { userId: "", groupId: "" },
+      ])("should handle null parameters", async ({ userId, groupId }) => {
         // Arrange
         prismaMock.groupMembership.findFirst.mockResolvedValue(null);
 
         // Act & Assert
-        expect(await checkGroupMembership(null as unknown as string, testGroup.id)).toBeNull();
-        expect(await checkGroupMembership(testUser.id, null as unknown as string)).toBeNull();
-        expect(await checkGroupMembership("", "")).toBeNull();
+        expect(await checkGroupMembership(userId, groupId)).toBeNull();
       });
     });
   });
@@ -363,7 +404,7 @@ describe("permission.ts", () => {
         const result = await checkOneGroupOwner(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({ success: true, message: "グループオーナー権限があります" });
         expect(prismaMock.groupMembership.findFirst).toHaveBeenCalledWith({
           where: {
             userId: testUser.id,
@@ -383,27 +424,20 @@ describe("permission.ts", () => {
         const result = await checkOneGroupOwner(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "グループオーナー権限がありません" });
+        expect(result).toStrictEqual({ success: false, message: "グループオーナー権限がありません" });
       });
     });
 
-    describe("境界値テスト", () => {
-      test("should throw error for null userId", async () => {
-        // Act & Assert
-        await expect(checkOneGroupOwner(null as unknown as string)).rejects.toThrow("無効なパラメータが指定されました");
-      });
-
-      test("should throw error for undefined userId", async () => {
-        // Act & Assert
-        await expect(checkOneGroupOwner(undefined as unknown as string)).rejects.toThrow(
-          "無効なパラメータが指定されました",
-        );
-      });
-
-      test("should throw error for empty string userId", async () => {
-        // Act & Assert
-        await expect(checkOneGroupOwner("")).rejects.toThrow("無効なパラメータが指定されました");
-      });
+    describe("異常系", () => {
+      test.each([{ userId: null }, { userId: undefined }, { userId: "" }])(
+        "should throw error for %s",
+        async ({ userId }) => {
+          // Act & Assert
+          await expect(checkOneGroupOwner(userId as unknown as string)).rejects.toThrow(
+            "無効なパラメータが指定されました",
+          );
+        },
+      );
     });
   });
 });

@@ -152,7 +152,7 @@ describe("useMyTaskTable", () => {
       totalTaskCount: 3,
     });
 
-    mockCheckIsOwner.mockResolvedValue({ success: true });
+    mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
     mockDeleteTask.mockResolvedValue({ success: true });
 
     // TanStack Queryのモック設定
@@ -379,7 +379,7 @@ describe("useMyTaskTable", () => {
         wrapper: AllTheProviders,
       });
       const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: true });
+      mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
 
       // Act
       let canEdit = false;
@@ -398,7 +398,7 @@ describe("useMyTaskTable", () => {
         wrapper: AllTheProviders,
       });
       const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: false });
+      mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
       // Act
       let canEdit = true;
@@ -442,7 +442,7 @@ describe("useMyTaskTable", () => {
         wrapper: AllTheProviders,
       });
       const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: true });
+      mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
 
       // Act
       let canDelete = false;
@@ -461,7 +461,7 @@ describe("useMyTaskTable", () => {
         wrapper: AllTheProviders,
       });
       const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: false });
+      mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
       // Act
       let canDelete = true;
@@ -479,7 +479,7 @@ describe("useMyTaskTable", () => {
         wrapper: AllTheProviders,
       });
       const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.TASK_COMPLETED });
-      mockCheckIsOwner.mockResolvedValue({ success: true });
+      mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
 
       // Act
       let canDelete = true;

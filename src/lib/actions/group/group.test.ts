@@ -74,7 +74,7 @@ function setupAuthenticationFailure() {
 }
 
 function setupOwnerPermission(hasPermission: boolean) {
-  mockCheckIsOwner.mockResolvedValue({ success: hasPermission });
+  mockCheckIsOwner.mockResolvedValue({ success: hasPermission, message: "Permission check successfully" });
 }
 
 function setupGroupMembership(membership: GroupMembership | null = null) {

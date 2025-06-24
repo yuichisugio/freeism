@@ -107,7 +107,7 @@ describe("useMyGroupTable", () => {
 
     // APIのモック設定
     mockGetUserJoinGroupAndCount.mockResolvedValue(mockApiResponse);
-    mockLeaveGroup.mockResolvedValue({ success: true });
+    mockLeaveGroup.mockResolvedValue({ success: true, message: "Leave group successfully" });
   });
 
   describe("正常系", () => {

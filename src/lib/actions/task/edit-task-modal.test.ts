@@ -120,7 +120,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.taskReporter.deleteMany.mockResolvedValue({ count: 0 });
         prismaMock.taskExecutor.deleteMany.mockResolvedValue({ count: 0 });
         prismaMock.task.update.mockResolvedValue(
@@ -188,7 +188,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(
           mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
         );
@@ -269,7 +269,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(
           mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
         );
@@ -332,7 +332,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(
           mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
         );
@@ -396,7 +396,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(
           mockUpdatedTask as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>,
         );
@@ -461,7 +461,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "権限がありません" });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act
         const result = await updateTaskAction(testTask.id, updateData);
@@ -512,7 +512,7 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.$transaction.mockRejectedValue(new Error("データベースエラー"));
 
         // Act

@@ -5,7 +5,7 @@ import type { CreateNotificationFormData } from "@/lib/zod-schema";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
 import { prepareCreateNotificationForm } from "@/lib/actions/notification/create-notification-form";
-import { checkIsAppOwner, checkOneGroupOwner } from "@/lib/actions/permission";
+import { checkIsPermission, checkOneGroupOwner } from "@/lib/actions/permission";
 import { queryCacheKeys } from "@/lib/tanstack-query";
 import { createNotificationSchema } from "@/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -106,11 +106,12 @@ export function useCreateNotification(): UseCreateNotificationReturn {
 
   /**
    * アプリケーションオーナー権限の取得
+   * checkIsPermissionに、userIdのみ渡すことで、isAppOwnerのみをチェックする
    */
-  const { data: isAppOwner, isLoading: isLoadingAppOwner } = useQuery<{ success: boolean; error?: string }>({
+  const { data: isAppOwner, isLoading: isLoadingAppOwner } = useQuery<{ success: boolean; message: string }>({
     queryKey: queryCacheKeys.permission.appOwner(userId),
-    queryFn: async () => await checkIsAppOwner(userId),
-    initialData: { success: false, error: "" },
+    queryFn: async () => await checkIsPermission(userId, undefined, undefined, false),
+    initialData: { success: false, message: "" },
     enabled: !!userId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
     gcTime: 1000 * 60 * 60 * 24, // 24時間
@@ -121,10 +122,10 @@ export function useCreateNotification(): UseCreateNotificationReturn {
   /**
    * グループオーナー権限の取得
    */
-  const { data: isGroupOwner, isLoading: isLoadingGroupOwner } = useQuery<{ success: boolean; error?: string }>({
+  const { data: isGroupOwner, isLoading: isLoadingGroupOwner } = useQuery<{ success: boolean; message: string }>({
     queryKey: queryCacheKeys.permission.oneGroupOwner(userId),
     queryFn: async () => await checkOneGroupOwner(userId),
-    initialData: { success: false, error: "" },
+    initialData: { success: false, message: "" },
     enabled: !!userId,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
     gcTime: 1000 * 60 * 60 * 24, // 24時間

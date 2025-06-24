@@ -144,7 +144,7 @@ describe("created-detail.ts", () => {
         const newDeliveryMethod = "対面";
         const updatedTask = { ...testTask, deliveryMethod: newDeliveryMethod };
 
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(updatedTask);
 
         // Act
@@ -166,7 +166,7 @@ describe("created-detail.ts", () => {
         const trimmedDeliveryMethod = "対面";
         const updatedTask = { ...testTask, deliveryMethod: trimmedDeliveryMethod };
 
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(updatedTask);
 
         // Act
@@ -212,7 +212,7 @@ describe("created-detail.ts", () => {
 
       test("should throw error when user has no permission with error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "権限がありません" });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
         await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
@@ -223,7 +223,7 @@ describe("created-detail.ts", () => {
 
       test("should throw error when checkIsOwner fails without error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
         await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
@@ -234,7 +234,7 @@ describe("created-detail.ts", () => {
       test("should throw error when task.update fails", async () => {
         // Arrange
         const error = new Error("Update failed");
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockRejectedValue(error);
 
         // Act & Assert
@@ -249,7 +249,7 @@ describe("created-detail.ts", () => {
     describe("正常系", () => {
       test("should complete task when user has permission", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue({ ...testTask, status: TaskStatus.SUPPLIER_DONE });
 
         // Act
@@ -279,7 +279,7 @@ describe("created-detail.ts", () => {
 
       test("should throw error when user has no permission", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "権限がありません" });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
         await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("権限がありません");
@@ -288,7 +288,7 @@ describe("created-detail.ts", () => {
 
       test("should throw error when checkIsOwner fails without error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false });
+        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
         await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow(
@@ -299,7 +299,7 @@ describe("created-detail.ts", () => {
       test("should throw error when task.update fails", async () => {
         // Arrange
         const error = new Error("Update failed");
-        mockCheckIsOwner.mockResolvedValue({ success: true });
+        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockRejectedValue(error);
 
         // Act & Assert

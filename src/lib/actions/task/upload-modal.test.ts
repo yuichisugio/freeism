@@ -42,7 +42,7 @@ describe("upload-modal", () => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
     mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-    mockCheckIsOwner.mockResolvedValue({ success: true });
+    mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
   });
 
   describe("bulkCreateTasks", () => {
@@ -793,7 +793,7 @@ describe("upload-modal", () => {
       prismaMock.task.findUnique.mockResolvedValue(
         task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
       );
-      mockCheckIsOwner.mockResolvedValue({ success: false });
+      mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
       // Act
       const result = await bulkUpdateTaskStatuses([{ taskId: "task-1", status: TaskStatus.PENDING }]);

@@ -169,8 +169,8 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
         await queryClient.invalidateQueries({ queryKey: queryCacheKeys.permission.groupOwner(groupId, userId) });
         await queryClient.invalidateQueries({ queryKey: queryCacheKeys.permission.members(groupId) });
         // router.refresh();
-      } else if (result.error) {
-        toast.error(result.error);
+      } else if (result.message) {
+        toast.error(result.message);
       }
     },
     onError: (error) => {

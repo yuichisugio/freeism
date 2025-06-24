@@ -248,7 +248,7 @@ export async function leaveGroup(groupId: string) {
     // メンバーシップの存在確認
     const membership = await checkGroupMembership(userId, groupId);
     if (!membership) {
-      return { error: "グループに参加していません" };
+      return { success: false, message: "グループに参加していません" };
     }
 
     // グループから脱退
@@ -260,10 +260,10 @@ export async function leaveGroup(groupId: string) {
 
     revalidatePath("/dashboard/group-list");
     revalidatePath("/dashboard/my-groups");
-    return { success: true };
+    return { success: true, message: "グループから脱退しました" };
   } catch (error) {
     console.error("[LEAVE_GROUP]", error);
-    return { error: "エラーが発生しました" };
+    return { success: false, message: "グループから脱退中にエラーが発生しました" };
   }
 }
 

@@ -1,6 +1,5 @@
 "use server";
 
-import type { GroupMembership } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -177,7 +176,10 @@ export async function checkIsPermission(
     return { success: !!membership, message: "Groupオーナー権限があります" };
   } catch (error) {
     console.error("[CHECK_GROUP_OWNER]", error);
-    return { success: false, message: "権限のチェック中にエラーが発生しました" };
+    return {
+      success: false,
+      message: `権限のチェック中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
 
@@ -192,7 +194,7 @@ export async function checkIsPermission(
 export async function grantOwnerPermission(
   groupId: string,
   userId: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -206,11 +208,11 @@ export async function grantOwnerPermission(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 操作者がグループオーナーかチェック
+     * 操作者（認証されているユーザー）がグループオーナーかチェック
      */
-    const isOwner = await checkIsPermission(userId, groupId);
+    const isOwner = await checkIsPermission(userId, groupId, undefined, false);
     if (!isOwner.success) {
-      return { success: false, error: "グループオーナー権限がありません" };
+      return { success: false, message: "アプリオーナー or グループオーナー権限がありません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -220,7 +222,7 @@ export async function grantOwnerPermission(
      */
     const targetMembership = await checkGroupMembership(userId, groupId);
     if (!targetMembership) {
-      return { success: false, error: "指定されたユーザーはグループに参加していません" };
+      return { success: false, message: "指定されたユーザーはグループに参加していません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -229,7 +231,7 @@ export async function grantOwnerPermission(
      * 既にオーナー権限を持っている場合
      */
     if (targetMembership.isGroupOwner) {
-      return { success: false, error: "指定されたユーザーは既にグループオーナーです" };
+      return { success: false, message: "指定されたユーザーは既にグループオーナーです" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -252,62 +254,15 @@ export async function grantOwnerPermission(
      * パスを再検証
      */
     revalidatePath(`/dashboard/group/${groupId}`);
-    return { success: true };
+    return { success: true, message: "グループオーナー権限を付与しました" };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[GRANT_OWNER_PERMISSION]", error);
-    return { success: false, error: "グループオーナー権限の付与中にエラーが発生しました" };
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * アプリオーナー権限をチェックする関数
- * 通知作成で、アプリオーナー権限があるかどうかをチェックするために使用。Appオーナー権限は、ユーザー指定の通知を送れる
- * @param userId - チェックするユーザーのID
- * @returns アプリオーナー権限があればtrue、なければfalse
- */
-export async function checkIsAppOwner(userId: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * パラメータの検証
-     */
-    if (!userId) {
-      throw new Error("無効なパラメータが指定されました");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * ユーザーを取得
-     */
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isAppOwner: true },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * ユーザーが見つからない場合はエラーを返す
-     */
-    if (!user) {
-      return { success: false, error: "ユーザーが見つかりません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * アプリオーナー権限があるかどうかを返す
-     */
-    return { success: !!user.isAppOwner };
-  } catch (error) {
-    console.error("[CHECK_APP_OWNER]", error);
-    return { success: false, error: "アプリオーナー権限のチェック中にエラーが発生しました" };
+    return {
+      success: false,
+      message: `グループオーナー権限の付与中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
 
@@ -319,7 +274,13 @@ export async function checkIsAppOwner(userId: string): Promise<{ success: boolea
  * @param groupId - チェックするグループのID
  * @returns グループメンバーシップ、存在しない場合はnull
  */
-export async function checkGroupMembership(userId: string, groupId: string): Promise<GroupMembership | null> {
+export async function checkGroupMembership(
+  userId: string,
+  groupId: string,
+): Promise<{
+  id: string;
+  isGroupOwner: boolean;
+} | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -340,14 +301,30 @@ export async function checkGroupMembership(userId: string, groupId: string): Pro
         userId,
         groupId,
       },
+      select: {
+        id: true,
+        isGroupOwner: true,
+      },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループメンバーシップが存在しない場合はnullを返す
+     */
+    if (!membership) {
+      return null;
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * グループメンバーシップを返す
      */
-    return membership;
+    return {
+      id: membership.id,
+      isGroupOwner: membership.isGroupOwner,
+    };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
@@ -361,9 +338,15 @@ export async function checkGroupMembership(userId: string, groupId: string): Pro
 /**
  * 一つでもグループオーナー権限があればtrueを返す
  * 通知のUIを決めるために必要
+ * @param userId - チェックするユーザーのID
+ * @returns グループオーナー権限があればtrue、なければfalse
  */
-export async function checkOneGroupOwner(userId: string): Promise<{ success: boolean; error?: string }> {
+export async function checkOneGroupOwner(userId: string): Promise<{ success: boolean; message: string }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータの検証
+   */
   if (!userId) {
     throw new Error("無効なパラメータが指定されました");
   }
@@ -388,9 +371,8 @@ export async function checkOneGroupOwner(userId: string): Promise<{ success: boo
   /**
    * グループオーナー権限があるかどうかを返す
    */
-  if (!userGroupMemberships) {
-    return { success: false, error: "グループオーナー権限がありません" };
-  } else {
-    return { success: true };
+  if (userGroupMemberships) {
+    return { success: true, message: "グループオーナー権限があります" };
   }
+  return { success: false, message: "グループオーナー権限がありません" };
 }
