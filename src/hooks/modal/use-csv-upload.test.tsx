@@ -402,8 +402,8 @@ describe("useCsvUpload", () => {
     });
 
     test("should handle successful task upload", async () => {
-      const { bulkCreateTasks } = await import("@/lib/actions/task/upload-modal");
-      vi.mocked(bulkCreateTasks).mockResolvedValue({ success: true, tasks: [] });
+      const { bulkCreateTask } = await import("@/lib/actions/task/modal/bulk-create-task");
+      vi.mocked(bulkCreateTask).mockResolvedValue({ success: true, tasks: [] });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
 

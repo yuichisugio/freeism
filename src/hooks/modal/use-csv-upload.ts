@@ -4,7 +4,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bulkCreateEvaluations } from "@/lib/actions/evaluation-modal/evaluation";
 import { checkIsPermission } from "@/lib/actions/permission";
-import { bulkCreateTasks, bulkUpdateFixedEvaluations, bulkUpdateTaskStatuses } from "@/lib/actions/task/upload-modal";
+import { bulkCreateTask } from "@/lib/actions/task/modal/bulk-create-task";
+import { bulkUpdateFixedEvaluations } from "@/lib/actions/task/modal/bulk-update-fix-evaluation";
+import { bulkUpdateTaskStatus } from "@/lib/actions/task/modal/bulk-update-task-status";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -751,7 +753,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             const taskData = convertToTaskReportData(data);
 
             // APIを呼び出し
-            const taskResponse = (await bulkCreateTasks(taskData, groupId)) as TasksApiResponse;
+            const taskResponse = (await bulkCreateTask(taskData, groupId)) as TasksApiResponse;
 
             result = {
               success: taskResponse.success,
@@ -817,7 +819,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             const statusData = convertToTaskStatusData(data);
 
             // APIを呼び出し
-            const statusResponse = (await bulkUpdateTaskStatuses(statusData)) as TaskStatusesApiResponse;
+            const statusResponse = (await bulkUpdateTaskStatus(statusData)) as TaskStatusesApiResponse;
 
             result = {
               success: statusResponse.success,
