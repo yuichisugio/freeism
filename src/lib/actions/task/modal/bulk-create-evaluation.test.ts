@@ -1,12 +1,10 @@
 import type { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-// モック関数のインポート
+import { bulkCreateEvaluations } from "@/lib/actions/task/modal/bulk-create-evaluation";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-
-import { bulkCreateEvaluations } from "./evaluation";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
