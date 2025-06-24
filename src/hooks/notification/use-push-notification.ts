@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
-import { updateUserSettingToggle } from "@/lib/actions/user-settings";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { deleteSubscription, getRecordId, saveSubscription } from "@/actions/notification/push-notification";
+import { updateUserSettingToggle } from "@/actions/user/user-settings";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";

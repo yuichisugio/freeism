@@ -2,9 +2,9 @@
 
 import { memo, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { getAuctionByAuctionId } from "@/actions/auction/auction-retrieve";
 import { NoResult } from "@/components/share/share-no-result";
-import { getAuctionByAuctionId } from "@/lib/actions/auction/auction-retrieve";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useQuery } from "@tanstack/react-query";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

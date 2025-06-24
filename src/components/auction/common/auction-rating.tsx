@@ -1,13 +1,13 @@
 "use client";
 
 import { memo, useCallback, useState } from "react";
+import { createAuctionReview, getDisplayUserInfo } from "@/actions/auction/auction-rating";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Textarea } from "@/components/ui/textarea";
-import { createAuctionReview, getDisplayUserInfo } from "@/lib/actions/auction/auction-rating";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Loader2 } from "lucide-react";

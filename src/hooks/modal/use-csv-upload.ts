@@ -2,11 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkIsPermission } from "@/lib/actions/permission";
-import { bulkCreateEvaluations } from "@/lib/actions/task/modal/bulk-create-evaluation";
-import { bulkCreateTask } from "@/lib/actions/task/modal/bulk-create-task";
-import { bulkUpdateFixedEvaluations } from "@/lib/actions/task/modal/bulk-update-fix-evaluation";
-import { bulkUpdateTaskStatus } from "@/lib/actions/task/modal/bulk-update-task-status";
+import { checkIsPermission } from "@/actions/permission/permission";
+import { bulkCreateEvaluations } from "@/actions/task/bulk-create-evaluation";
+import { bulkCreateTask } from "@/actions/task/bulk-create-task";
+import { bulkUpdateFixedEvaluations } from "@/actions/task/bulk-update-fix-evaluation";
+import { bulkUpdateTaskStatus } from "@/actions/task/bulk-update-task-status";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { contributionType } from "@prisma/client";
 import { useSession } from "next-auth/react";

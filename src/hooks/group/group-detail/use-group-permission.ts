@@ -3,9 +3,9 @@
 import type { GetGroupMembers } from "@/types/group-types";
 import { useCallback, useState } from "react";
 import { redirect } from "next/navigation";
-import { getGroupMembers } from "@/lib/actions/group/group";
-import { checkIsPermission, grantOwnerPermission } from "@/lib/actions/permission";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { getGroupMembers } from "@/actions/group/group";
+import { checkIsPermission, grantOwnerPermission } from "@/actions/permission/permission";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";

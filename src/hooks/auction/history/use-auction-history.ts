@@ -2,14 +2,11 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getUserBidHistories, getUserBidHistoriesCount } from "@/lib/actions/auction/auction-history/bid-auction";
-import {
-  getUserCreatedAuctions,
-  getUserCreatedAuctionsCount,
-} from "@/lib/actions/auction/auction-history/created-auction";
-import { getUserWonAuctions, getUserWonAuctionsCount } from "@/lib/actions/auction/auction-history/won-auction";
+import { getUserBidHistories, getUserBidHistoriesCount } from "@/actions/auction/auction-history/bid-auction";
+import { getUserCreatedAuctions, getUserCreatedAuctionsCount } from "@/actions/auction/auction-history/created-auction";
+import { getUserWonAuctions, getUserWonAuctionsCount } from "@/actions/auction/auction-history/won-auction";
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import {
   type AuctionCreatedTabFilter,
   type BidHistoryItem,

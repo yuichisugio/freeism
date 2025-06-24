@@ -4,8 +4,8 @@
  */
 import { fileURLToPath } from "node:url";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
-import { prisma } from "@/lib/prisma";
+import { sendAuctionNotification } from "@/actions/notification/auction-notification";
+import { prisma } from "@/library-setting/prisma";
 import {
   AuctionEventType,
   BidStatus,

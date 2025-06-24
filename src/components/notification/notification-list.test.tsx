@@ -1,5 +1,5 @@
+import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
 import type { NotificationManagerResult } from "@/hooks/notification/use-notification-list";
-import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
 import { faker } from "@faker-js/faker";
 import { AuctionEventType, NotificationTargetType } from "@prisma/client";
 import { fireEvent, render, screen } from "@testing-library/react";

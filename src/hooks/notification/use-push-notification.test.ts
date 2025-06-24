@@ -5,7 +5,7 @@
 /**
  * モック関数のインポート
  */
-import { deleteSubscription, getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
+import { deleteSubscription, getRecordId, saveSubscription } from "@/actions/notification/push-notification";
 import { AllTheProviders, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { pushSubscriptionFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { act, renderHook, waitFor } from "@testing-library/react";

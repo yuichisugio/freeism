@@ -1,11 +1,11 @@
 "use client";
 
 import { memo } from "react";
+import { updateUserSettingToggle } from "@/actions/user/user-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { updateUserSettingToggle } from "@/lib/actions/user-settings";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";

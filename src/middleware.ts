@@ -1,6 +1,6 @@
 // middleware.ts
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { auth } from "@/library-setting/auth";
 
 // 認証が必要なパスを設定
 export const config = {

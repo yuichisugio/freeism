@@ -1,7 +1,7 @@
 import type { TaskParticipant } from "@/types/group-types";
 import type { UseQueryOptions } from "@tanstack/react-query";
-import { getTaskById, updateTaskAction } from "@/lib/actions/task/edit-task-modal";
-import { getAllUsers } from "@/lib/actions/user";
+import { getTaskById, updateTaskAction } from "@/actions/task/edit-task-modal";
+import { getAllUsers } from "@/actions/user/user";
 import { AllTheProviders, mockUseMutation, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { contributionType } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";

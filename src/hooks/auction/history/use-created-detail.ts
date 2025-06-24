@@ -7,8 +7,8 @@ import {
   completeTaskDelivery,
   getAuctionHistoryCreatedDetail,
   updateDeliveryMethod,
-} from "@/lib/actions/auction/created-detail";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+} from "@/actions/auction/created-detail";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";

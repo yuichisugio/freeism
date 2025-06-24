@@ -1,6 +1,6 @@
-import type { GeneralNotificationParams } from "@/lib/actions/notification/general-notification";
+import type { GeneralNotificationParams } from "@/actions/notification/general-notification";
 import { NextResponse } from "next/server";
-import { sendGeneralNotification } from "@/lib/actions/notification/general-notification";
+import { sendGeneralNotification } from "@/actions/notification/general-notification";
 import { getAuthSession } from "@/lib/utils";
 
 /**

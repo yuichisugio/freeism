@@ -1,7 +1,7 @@
 import type { ClassValue } from "clsx";
 import type { Session } from "next-auth";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { auth } from "@/library-setting/auth";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

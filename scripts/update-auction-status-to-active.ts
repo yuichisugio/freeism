@@ -4,7 +4,7 @@
  * GitHub Actionsから実行するためのスクリプトです
  */
 import { fileURLToPath } from "node:url";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/library-setting/prisma";
 import { TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

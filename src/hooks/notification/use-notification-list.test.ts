@@ -1,8 +1,8 @@
-import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
 import {
   getNotificationsAndUnreadCount,
   updateNotificationStatus,
-} from "@/lib/actions/notification/notification-utilities";
+} from "@/actions/notification/notification-utilities";
 import { mockUseSession } from "@/test/setup/setup";
 import { AllTheProviders, mockUseInfiniteQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { faker } from "@faker-js/faker";

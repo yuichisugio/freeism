@@ -1,4 +1,4 @@
-import { createTask } from "@/lib/actions/task/create-task-form";
+import { createTask } from "@/actions/task/create-task-form";
 import { mockPush, mockToastError, mockToastSuccess } from "@/test/setup/setup";
 import { AllTheProviders, mockUseQuery } from "@/test/setup/tanstack-query-setup";
 import { contributionType } from "@prisma/client";

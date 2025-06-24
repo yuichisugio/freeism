@@ -1,4 +1,4 @@
-import { sendGeneralNotification } from "@/lib/actions/notification/general-notification";
+import { sendGeneralNotification } from "@/actions/notification/general-notification";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { notificationFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";

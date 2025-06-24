@@ -7,7 +7,7 @@ import type { QueryClient, QueryFunctionContext, UseQueryOptions } from "@tansta
 import {
   getNotificationsAndUnreadCount,
   getUnreadNotificationsCount,
-} from "@/lib/actions/notification/notification-utilities";
+} from "@/actions/notification/notification-utilities";
 import { AllTheProviders, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useSession } from "next-auth/react";

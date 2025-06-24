@@ -41,7 +41,7 @@ vi.mock("./return-auction-deposit-points", async (importOriginal) => {
 /**
  * モック関数の取得
  */
-const { sendAuctionNotification } = await import("@/lib/actions/notification/auction-notification");
+const { sendAuctionNotification } = await import("@/actions/notification/auction-notification");
 const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

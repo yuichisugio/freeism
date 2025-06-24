@@ -3,9 +3,9 @@
 import type { UseFormReturn } from "react-hook-form";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTask, prepareCreateTaskForm } from "@/lib/actions/task/create-task-form";
-import { queryCacheKeys } from "@/lib/tanstack-query";
-import { taskFormSchema } from "@/lib/zod-schema";
+import { createTask, prepareCreateTaskForm } from "@/actions/task/create-task-form";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
+import { taskFormSchema } from "@/library-setting/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contributionType } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";

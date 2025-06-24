@@ -4,8 +4,8 @@
  * GitHub Actionsから実行するためのスクリプトです
  */
 import { fileURLToPath } from "node:url";
-import { sendGeneralNotification } from "@/lib/actions/notification/general-notification";
-import { prisma } from "@/lib/prisma";
+import { sendGeneralNotification } from "@/actions/notification/general-notification";
+import { prisma } from "@/library-setting/prisma";
 import { NotificationSendTiming } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

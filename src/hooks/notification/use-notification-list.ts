@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
 import type { QueryFnReturnType } from "@/types/notifications-types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,9 +8,9 @@ import { redirect } from "next/navigation";
 import {
   getNotificationsAndUnreadCount,
   updateNotificationStatus,
-} from "@/lib/actions/notification/notification-utilities";
+} from "@/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 

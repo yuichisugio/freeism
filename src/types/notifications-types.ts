@@ -1,4 +1,4 @@
-import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
 
 /**
  * useInfiniteQuery の queryFn が返す各ページのデータ型

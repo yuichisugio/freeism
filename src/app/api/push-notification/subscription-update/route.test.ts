@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // テスト対象のインポート（モック設定後にインポート）
-import { getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
+import { getRecordId, saveSubscription } from "@/actions/notification/push-notification";
 import { getAuthSession } from "@/lib/utils";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 

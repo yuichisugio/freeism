@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { isR2Enabled } from "@/lib/actions/cloudflare/r2-client-config";
-import { getSignedUploadUrl } from "@/lib/actions/cloudflare/upload";
-import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/lib/actions/cloudflare/upload-constants";
+import { isR2Enabled } from "@/actions/cloudflare/r2-client-config";
+import { getSignedUploadUrl } from "@/actions/cloudflare/upload";
+import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/actions/cloudflare/upload-constants";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Image as ImageIcon, Loader2, Trash2, Upload } from "lucide-react";

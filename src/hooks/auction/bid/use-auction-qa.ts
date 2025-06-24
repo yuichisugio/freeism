@@ -2,8 +2,8 @@
 
 import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { getAuctionMessagesAndSellerInfo, sendAuctionMessage } from "@/lib/actions/auction/auction-qa";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { getAuctionMessagesAndSellerInfo, sendAuctionMessage } from "@/actions/auction/auction-qa";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";

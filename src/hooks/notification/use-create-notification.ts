@@ -1,13 +1,13 @@
 "use client";
 
-import type { GeneralNotificationParams } from "@/lib/actions/notification/general-notification";
-import type { CreateNotificationFormData } from "@/lib/zod-schema";
+import type { GeneralNotificationParams } from "@/actions/notification/general-notification";
+import type { CreateNotificationFormData } from "@/library-setting/zod-schema";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect } from "next/navigation";
-import { prepareCreateNotificationForm } from "@/lib/actions/notification/create-notification-form";
-import { checkIsPermission, checkOneGroupOwner } from "@/lib/actions/permission";
-import { queryCacheKeys } from "@/lib/tanstack-query";
-import { createNotificationSchema } from "@/lib/zod-schema";
+import { prepareCreateNotificationForm } from "@/actions/notification/create-notification-form";
+import { checkIsPermission, checkOneGroupOwner } from "@/actions/permission/permission";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
+import { createNotificationSchema } from "@/library-setting/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NotificationSendMethod } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";

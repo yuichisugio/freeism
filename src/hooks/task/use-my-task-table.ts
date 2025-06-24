@@ -3,11 +3,11 @@
 import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { checkIsPermission } from "@/lib/actions/permission";
-import { getMyTaskData } from "@/lib/actions/task/my-task-table";
-import { deleteTask as deleteTaskAction } from "@/lib/actions/task/task";
+import { checkIsPermission } from "@/actions/permission/permission";
+import { getMyTaskData } from "@/actions/task/my-task-table";
+import { deleteTask as deleteTaskAction } from "@/actions/task/task";
 import { TABLE_CONSTANTS } from "@/lib/constants";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { type contributionType, type TaskStatus } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -130,8 +130,8 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     isPending: isLoadingTasks,
     isPlaceholderData,
   } = useQuery({
-    queryKey: queryCacheKeys.table.myTaskConditions(tableConditions),
-    queryFn: async () => await getMyTaskData(tableConditions),
+    queryKey: queryCacheKeys.table.myTaskConditions(tableConditions, currentUserId),
+    queryFn: async () => await getMyTaskData(tableConditions, currentUserId),
     enabled: !!currentUserId, // ユーザーIDが取得できてからフェッチ
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 30, // 30 minutes
@@ -155,12 +155,12 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
           TasksQueryResult,
           ReturnType<typeof queryCacheKeys.table.myTaskConditions>
         >({
-          queryKey: queryCacheKeys.table.myTaskConditions({ ...tableConditions, page: nextPage }),
-          queryFn: async () => await getMyTaskData({ ...tableConditions, page: nextPage }),
+          queryKey: queryCacheKeys.table.myTaskConditions({ ...tableConditions, page: nextPage }, currentUserId),
+          queryFn: async () => await getMyTaskData({ ...tableConditions, page: nextPage }, currentUserId),
         });
       }
     }
-  }, [tasksResult, tableConditions, isPlaceholderData, queryClient]);
+  }, [tasksResult, tableConditions, isPlaceholderData, queryClient, currentUserId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -194,7 +194,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * タスク削除
    */
   const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
-    mutationFn: (taskId: string) => deleteTaskAction(taskId),
+    mutationFn: (taskId: string) => deleteTaskAction(taskId, currentUserId),
     onSuccess: async () => {
       toast.success("タスクを削除しました");
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myTask(), exact: false });

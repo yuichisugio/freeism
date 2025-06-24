@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-import "./src/env";
+import "./src/library-setting/env";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

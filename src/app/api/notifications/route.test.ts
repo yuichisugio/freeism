@@ -1,6 +1,6 @@
-import type { GeneralNotificationParams } from "@/lib/actions/notification/general-notification";
+import type { GeneralNotificationParams } from "@/actions/notification/general-notification";
 import type { Session } from "next-auth";
-import { sendGeneralNotification } from "@/lib/actions/notification/general-notification";
+import { sendGeneralNotification } from "@/actions/notification/general-notification";
 // モック設定
 import { getAuthSession } from "@/lib/utils";
 import { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";

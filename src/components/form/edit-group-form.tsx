@@ -3,12 +3,12 @@
 import type { Control, FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { checkGroupExistByName, updateGroup } from "@/actions/group/group";
+import { checkIsPermission } from "@/actions/permission/permission";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
-import { checkGroupExistByName, updateGroup } from "@/lib/actions/group/group";
-import { checkIsPermission } from "@/lib/actions/permission";
-import { queryCacheKeys } from "@/lib/tanstack-query";
-import { createGroupSchema } from "@/lib/zod-schema";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
+import { createGroupSchema } from "@/library-setting/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";

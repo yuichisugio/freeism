@@ -1,7 +1,7 @@
 import type { MyGroupTable, TableConditions } from "@/types/group-types";
 import React from "react";
 // モック関数のインポート
-import { getUserJoinGroupAndCount, leaveGroup } from "@/lib/actions/group/my-group";
+import { getUserJoinGroupAndCount, leaveGroup } from "@/actions/group/my-group";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";

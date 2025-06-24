@@ -1,11 +1,11 @@
 "use client";
 
-import type { GetAuctionWonDetailReturn } from "@/lib/actions/auction/auction-won-detail";
+import type { GetAuctionWonDetailReturn } from "@/actions/auction/auction-won-detail";
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getAuctionWonDetail } from "@/lib/actions/auction/auction-won-detail";
-import { completeTaskDelivery } from "@/lib/actions/auction/won-detail";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { getAuctionWonDetail } from "@/actions/auction/auction-won-detail";
+import { completeTaskDelivery } from "@/actions/auction/won-detail";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";

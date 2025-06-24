@@ -86,9 +86,9 @@ vi.mock("next-auth/react", () => ({
 /**
  * モック関数の型定義
  */
-const mockCheckIsOwner = vi.mocked(await import("@/lib/actions/permission")).checkIsPermission;
-const mockGetMyTaskData = vi.mocked(await import("@/lib/actions/task/my-task-table")).getMyTaskData;
-const mockDeleteTask = vi.mocked(await import("@/lib/actions/task/task")).deleteTask;
+const mockCheckIsOwner = vi.mocked(await import("@/actions/permission/permission")).checkIsPermission;
+const mockGetMyTaskData = vi.mocked(await import("@/actions/task/my-task-table")).getMyTaskData;
+const mockDeleteTask = vi.mocked(await import("@/actions/task/task")).deleteTask;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -153,7 +153,7 @@ describe("useMyTaskTable", () => {
     });
 
     mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
-    mockDeleteTask.mockResolvedValue({ success: true });
+    mockDeleteTask.mockResolvedValue({ success: true, message: "タスクを削除しました" });
 
     // TanStack Queryのモック設定
     mockUseQuery.mockReturnValue({
@@ -171,7 +171,7 @@ describe("useMyTaskTable", () => {
 
     // デフォルトのmutation設定（成功パターン）
     mockUseMutation.mockReturnValue({
-      mutateAsync: vi.fn().mockResolvedValue({ success: true }),
+      mutateAsync: vi.fn().mockResolvedValue({ success: true, message: "タスクを削除しました" }),
       isPending: false,
       isLoading: false,
       isError: false,

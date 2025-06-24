@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getRecordId, saveSubscription } from "@/lib/actions/notification/push-notification";
+import { getRecordId, saveSubscription } from "@/actions/notification/push-notification";
 import { getAuthSession } from "@/lib/utils";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

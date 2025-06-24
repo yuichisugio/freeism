@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { generateSignedUploadUrl } from "@/lib/actions/cloudflare/upload-server";
+import { generateSignedUploadUrl } from "@/actions/cloudflare/upload-server";
 
 /**
  * 署名付きアップロードURLを生成するAPIエンドポイント

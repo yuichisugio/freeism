@@ -14,7 +14,7 @@ import {
   getSearchSuggestions,
   getUserReviews,
   updateReview,
-} from "@/lib/actions/review-search/review-search";
+} from "@/actions/review-search/review-search";
 import { AllTheProviders, mockUseMutation, mockUseQuery } from "@/test/setup/tanstack-query-setup";
 import { auctionReviewFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { act, renderHook } from "@testing-library/react";

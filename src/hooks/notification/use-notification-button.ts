@@ -1,15 +1,15 @@
 "use client";
 
-import type { NotificationData } from "@/lib/actions/cache/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
 import type { QueryFnReturnType } from "@/types/notifications-types";
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import {
   getNotificationsAndUnreadCount,
   getUnreadNotificationsCount,
-} from "@/lib/actions/notification/notification-utilities";
+} from "@/actions/notification/notification-utilities";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 

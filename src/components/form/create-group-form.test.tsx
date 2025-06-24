@@ -1,5 +1,5 @@
 import React from "react";
-import { createGroup } from "@/lib/actions/group/group";
+import { createGroup } from "@/actions/group/group";
 import { mockPush, mockToastError, mockToastSuccess } from "@/test/setup/setup";
 import { Prisma } from "@prisma/client";
 import { render, screen, waitFor } from "@testing-library/react";

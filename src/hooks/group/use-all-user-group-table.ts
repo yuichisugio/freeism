@@ -2,10 +2,10 @@
 
 import type { AllUserGroupTable, TableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo } from "react";
-import { getAllUserGroupsAndCount } from "@/lib/actions/group/all-user-group";
-import { joinGroup } from "@/lib/actions/group/group";
+import { getAllUserGroupsAndCount } from "@/actions/group/all-user-group";
+import { joinGroup } from "@/actions/group/group";
 import { TABLE_CONSTANTS } from "@/lib/constants";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";

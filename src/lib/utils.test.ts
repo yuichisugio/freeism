@@ -441,7 +441,7 @@ describe("utils", () => {
 
     it("should return session from auth mock", async () => {
       // @/authのモックから固定のセッション情報が返される
-      const { auth } = await import("@/auth");
+      const { auth } = await import("@/library-setting/auth");
       const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
 
       mockAuth.mockResolvedValue({
@@ -468,7 +468,7 @@ describe("utils", () => {
     });
 
     it("should return null when no session exists", async () => {
-      const { auth } = await import("@/auth");
+      const { auth } = await import("@/library-setting/auth");
       const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
 
       mockAuth.mockResolvedValue(null);
@@ -485,7 +485,7 @@ describe("utils", () => {
 
     describe("正常テスト", () => {
       it("should return user ID when session exists", async () => {
-        const { auth } = await import("@/auth");
+        const { auth } = await import("@/library-setting/auth");
         const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
 
         mockAuth.mockResolvedValue({
@@ -505,7 +505,7 @@ describe("utils", () => {
 
     describe("異常テスト", () => {
       it("should call redirect when session does not exist", async () => {
-        const { auth } = await import("@/auth");
+        const { auth } = await import("@/library-setting/auth");
         const { redirect } = await import("next/navigation");
         const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
         const mockRedirect = vi.mocked(redirect);
@@ -519,7 +519,7 @@ describe("utils", () => {
       });
 
       it("should call redirect when user ID is missing", async () => {
-        const { auth } = await import("@/auth");
+        const { auth } = await import("@/library-setting/auth");
         const { redirect } = await import("next/navigation");
         const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
         const mockRedirect = vi.mocked(redirect);
@@ -539,7 +539,7 @@ describe("utils", () => {
       });
 
       it("should call redirect when auth function throws error", async () => {
-        const { auth } = await import("@/auth");
+        const { auth } = await import("@/library-setting/auth");
         const { redirect } = await import("next/navigation");
         const mockAuth = auth as unknown as MockedFunction<() => Promise<Session | null>>;
         const mockRedirect = vi.mocked(redirect);

@@ -4,8 +4,8 @@
  * GitHub Actionsから実行するためのスクリプトです
  */
 import { fileURLToPath } from "node:url";
-import { sendAuctionNotification } from "@/lib/actions/notification/auction-notification";
-import { prisma } from "@/lib/prisma";
+import { sendAuctionNotification } from "@/actions/notification/auction-notification";
+import { prisma } from "@/library-setting/prisma";
 import { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

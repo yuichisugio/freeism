@@ -3,10 +3,10 @@
 import type { Group } from "@/types/group-types";
 import { useCallback, useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { deleteGroup, joinGroup, removeMember } from "@/lib/actions/group/group";
-import { getGroupById } from "@/lib/actions/group/group-detail";
-import { leaveGroup } from "@/lib/actions/group/my-group";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { deleteGroup, joinGroup, removeMember } from "@/actions/group/group";
+import { getGroupById } from "@/actions/group/group-detail";
+import { leaveGroup } from "@/actions/group/my-group";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";

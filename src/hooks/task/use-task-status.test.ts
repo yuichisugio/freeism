@@ -1,3 +1,5 @@
+"use client";
+
 import { TaskStatus } from "@prisma/client";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -28,7 +30,7 @@ vi.mock("sonner", () => ({
 /**
  * モック関数の型定義
  */
-const mockUpdateTaskStatus = vi.mocked(await import("@/lib/actions/task/task")).updateTaskStatus;
+const mockUpdateTaskStatus = vi.mocked(await import("@/actions/task/task")).updateTaskStatus;
 const mockToast = vi.mocked(await import("sonner")).toast;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -147,7 +149,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -173,7 +175,7 @@ describe("useTaskStatus", () => {
       // Arrange
       const { result } = renderHook(() => useTaskStatus());
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -195,7 +197,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // 全ての有効なステータスをテスト
       const validStatuses = [
@@ -232,7 +234,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act - task-2のステータスを変更
       await act(async () => {
@@ -392,7 +394,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -414,7 +416,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -434,7 +436,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -454,7 +456,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -474,7 +476,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -494,7 +496,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -516,7 +518,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -536,7 +538,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act - 存在しないタスクIDを指定
       await act(async () => {
@@ -564,7 +566,7 @@ describe("useTaskStatus", () => {
         name: `タスク${index}`,
       }));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
@@ -626,7 +628,7 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
       // Act - 複数のステータス変更を順次実行
       await act(async () => {
@@ -665,7 +667,7 @@ describe("useTaskStatus", () => {
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
       // Act & Assert - 成功ケース
-      mockUpdateTaskStatus.mockResolvedValueOnce({ success: true });
+      mockUpdateTaskStatus.mockResolvedValueOnce({ success: true, message: "タスクのステータスを更新しました" });
       await act(async () => {
         await result.current.handleStatusChange(
           "task-1",
@@ -717,7 +719,7 @@ describe("useTaskStatus", () => {
       expect(result.current.openStatus).toBe("task-1");
 
       // Act - ステータス変更（成功）
-      mockUpdateTaskStatus.mockResolvedValue({ success: true });
+      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
       await act(async () => {
         await result.current.handleStatusChange(
           "task-1",

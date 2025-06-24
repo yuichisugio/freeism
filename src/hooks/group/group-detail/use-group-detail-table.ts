@@ -5,11 +5,11 @@ import type { TaskStatus } from "@prisma/client";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import { getGroupTaskAndCount } from "@/lib/actions/task/group-detail-table";
-import { deleteTask } from "@/lib/actions/task/task";
-import { getAllUsers } from "@/lib/actions/user";
+import { getGroupTaskAndCount } from "@/actions/task/group-detail-table";
+import { deleteTask } from "@/actions/task/task";
+import { getAllUsers } from "@/actions/user/user";
 import { TABLE_CONSTANTS } from "@/lib/constants";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { type contributionType } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -248,7 +248,7 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
    * タスク削除処理
    */
   const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
-    mutationFn: deleteTask,
+    mutationFn: (taskId: string) => deleteTask(taskId, userId),
     onSuccess: async () => {
       toast.success("タスクを削除しました");
       // 条件関係なく、キャッシュを無効化する

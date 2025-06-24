@@ -12,8 +12,8 @@ import {
   getSearchSuggestions,
   getUserReviews,
   updateReview,
-} from "@/lib/actions/review-search/review-search";
-import { queryCacheKeys } from "@/lib/tanstack-query";
+} from "@/actions/review-search/review-search";
+import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 

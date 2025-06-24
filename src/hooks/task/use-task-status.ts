@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateTaskStatus } from "@/lib/actions/task/task";
+import { updateTaskStatus } from "@/actions/task/task";
 import { TaskStatus } from "@prisma/client";
 import { toast } from "sonner";
 
@@ -56,8 +56,8 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
           onDataChange(data.map((row) => (row.id === taskId ? { ...row, status: newStatus } : row)));
         }
         toast.success("ステータスを更新しました");
-      } else if (result.error) {
-        toast.error(result.error);
+      } else if (!result.success && result.message) {
+        toast.error(result.message);
       }
 
       setOpenStatus(null);
