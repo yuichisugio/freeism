@@ -1,7 +1,11 @@
 {
   "permissions": {
-    "allow": ["Bash(rm:*)"]
+    "allow": [
+      "Bash(rm:*)"
+    ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["playwright"]
+  "enabledMcpjsonServers": [
+    "playwright"
+  ]
 }
