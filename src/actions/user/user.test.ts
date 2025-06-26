@@ -5,7 +5,7 @@ import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // getCachedAllUsersをモック化
-vi.mock("@/lib/actions/cache/cache-user", () => ({
+vi.mock("@/actions/user/cache-user", () => ({
   getCachedAllUsers: vi.fn(),
 }));
 

@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "ms-vscode-remote.remote-wsl",
+    "denoland.vscode-deno",
     "Prisma.prisma",
     "esbenp.prettier-vscode",
     "bradlc.vscode-tailwindcss",

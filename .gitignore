@@ -25,6 +25,8 @@ coverage/
 # misc
 .DS_Store
 *.pem
+.eslintcache
+.vscode/settings.json.bak
 
 # debug
 npm-debug.log*

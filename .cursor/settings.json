@@ -49,6 +49,26 @@
     "yuichisugio"
   ],
   "css.lint.unknownAtRules": "ignore",
+  "deno.enable": false,
+  "deno.path": null,
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.disablePaths": ["src", "scripts", "prisma", ".next", "node_modules"],
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
@@ -68,6 +88,7 @@
     }
   ],
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.packageManager": "pnpm",
   "eslint.execArgv": [],
   "eslint.options": {
     "cache": true,

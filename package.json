@@ -17,7 +17,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
-    "typecheck:rm": "rm -f tsconfig.tsbuildinfo && tsc --noEmit",
+    "typecheck:rm": "rm -rf tsconfig.tsbuildinfo && tsc --noEmit",
     "clean": "git clean -xdf node_modules dist",
     "lint": "next lint",
     "lint:fix": "next lint --fix && prisma validate",
@@ -39,7 +39,8 @@
     "actions:send-scheduled-notifications": "tsx scripts/send-scheduled-notifications.ts",
     "prisma:dev:migrate": "pnpm dotenv -e .env -- pnpm prisma migrate dev",
     "prisma:prod:deploy": "pnpm dotenv -e .env.production -- pnpm prisma migrate deploy",
-    "knip": "knip"
+    "knip": "knip",
+    "workspace:open": "code freeism-app.code-workspace"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"

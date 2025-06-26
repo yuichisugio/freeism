@@ -45,11 +45,20 @@ vi.mock("next-auth", () => ({
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * @/auth のモック設定
+ * @/library-setting/auth のモック設定
  * auth関数をモック化
  */
-vi.mock("@/auth", () => ({
-  auth: vi.fn(),
+vi.mock("@/library-setting/auth", () => ({
+  auth: vi.fn(() =>
+    Promise.resolve({
+      user: {
+        id: "cmb0e9xnm0001mchbj6ler4py",
+        email: "test@example.com",
+        name: "Test User",
+        image: "https://example.com/avatar.jpg",
+      },
+    }),
+  ),
 }));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

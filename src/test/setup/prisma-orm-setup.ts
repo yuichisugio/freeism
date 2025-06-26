@@ -7,7 +7,7 @@ import { mockDeep, mockReset } from "vitest-mock-extended";
 export const prismaMock: DeepMockProxy<PrismaClient> = vi.mocked(mockDeep<PrismaClient>());
 
 // jest-mock-extendedを使用したPrisma クライアントのモック
-vi.mock("@/lib/prisma", () => ({
+vi.mock("@/library-setting/prisma", () => ({
   prisma: prismaMock,
   __esModule: true,
 }));

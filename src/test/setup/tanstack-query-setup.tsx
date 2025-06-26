@@ -48,6 +48,8 @@ vi.mock("@tanstack/react-query", async () => {
     useMutation: mockUseMutation,
     useInfiniteQuery: mockUseInfiniteQuery,
     useQueryClient: mockUseQueryClient,
+    QueryClient: actual.QueryClient,
+    QueryClientProvider: actual.QueryClientProvider,
   };
 });
 
