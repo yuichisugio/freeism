@@ -18,9 +18,16 @@ export async function deleteTask(taskId: string, userId: string): Promise<{ succ
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * タスクIDのチェック
+     * タスクIDとユーザーIDの基本検証
      */
-    if (!taskId || !userId) {
+    if (
+      !taskId ||
+      typeof taskId !== "string" ||
+      taskId.trim() === "" ||
+      !userId ||
+      typeof userId !== "string" ||
+      userId.trim() === ""
+    ) {
       throw new Error("タスクID or ユーザーIDが指定されていません");
     }
 
@@ -104,6 +111,25 @@ export async function updateTaskStatus(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
+     * ステータスが有効かどうかをチェック
+     */
+    if (newStatus === null || newStatus === undefined || !Object.values(TaskStatus).includes(newStatus)) {
+      throw new Error("無効なステータスです");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 変更不可のステータスチェック
+     */
+    const immutableStatuses: TaskStatus[] = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
+    if (immutableStatuses.includes(newStatus)) {
+      throw new Error("このステータスのタスクは変更できません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * ユーザーIDを取得
      */
     const userId = await getAuthenticatedSessionUserId();
@@ -136,17 +162,7 @@ export async function updateTaskStatus(
      * タスクが見つからない場合はエラーを返す
      */
     if (!task) {
-      throw new Error("Task not found");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 変更不可のステータスチェック
-     */
-    const immutableStatuses: TaskStatus[] = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
-    if (immutableStatuses.includes(newStatus)) {
-      throw new Error("このステータスのタスクは変更できません");
+      throw new Error("タスクが見つかりません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -172,48 +188,15 @@ export async function updateTaskStatus(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * ステータスが「POINTS_AWARDED」に変更。かつ「fixedContributionPoint」が設定されている場合、実行者にポイント付与処理を行う。
-     */
-    if (newStatus === TaskStatus.POINTS_AWARDED && task.fixedContributionPoint) {
-      // GroupPointテーブルの残高を更新
-      const contributionPoint = task.fixedContributionPoint;
-
-      // 実行者のユーザーIDを取得（重複排除）
-      const executorUserIds = task.executors.filter((e) => e.user?.id).map((e) => e.user!.id);
-      const userIds = [...new Set(executorUserIds)];
-
-      // 各ユーザーのGroupPointを更新
-      for (const userId of userIds) {
-        await prisma.groupPoint.upsert({
-          where: {
-            userId_groupId: {
-              userId: userId,
-              groupId: task.groupId,
-            },
-          },
-          update: {
-            balance: { increment: contributionPoint },
-            fixedTotalPoints: { increment: contributionPoint },
-          },
-          create: {
-            userId: userId,
-            groupId: task.groupId,
-            balance: contributionPoint,
-            fixedTotalPoints: contributionPoint,
-          },
-        });
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
      * 成功を返却
      */
     return { success: true, message: "タスクのステータスを更新しました" };
   } catch (error) {
     console.error("[UPDATE_TASK_STATUS]", error);
-    return { success: false, message: "タスクのステータスの更新中にエラーが発生しました" };
+    return {
+      success: false,
+      message: `${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
 
