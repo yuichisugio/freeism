@@ -45,7 +45,7 @@ export async function getCachedAllUsers(): Promise<TaskParticipant[]> {
      */
     const returnUsers = users.map((user) => ({
       appUserId: user.id,
-      appUserName: user.settings?.username ?? "未設定",
+      appUserName: user.settings?.username ?? `未設定_${user.id}`,
     }));
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

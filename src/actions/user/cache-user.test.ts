@@ -7,23 +7,6 @@ import { getCachedAllUsers } from "./cache-user";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * テスト用のユーザー型定義
- */
-type MockUser = {
-  id: string;
-  settings: {
-    username: string | null;
-  } | null;
-};
-
-/**
- * PrismaのfindMany戻り値の型定義
- */
-type PrismaUserFindManyResult = Awaited<ReturnType<typeof prismaMock.user.findMany>>;
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * next/cacheのモック
  */
 vi.mock("next/cache", () => ({
@@ -32,13 +15,37 @@ vi.mock("next/cache", () => ({
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * Prismaレスポンス用の型定義
+ */
+type PrismaUserResponse = {
+  id: string;
+  settings: {
+    username: string | null;
+  } | null;
+};
+
+/**
+ * ヘルパー関数: Prismaレスポンス形式のモックユーザーを作成
+ */
+const createMockPrismaUser = (id: string, username: string | null): PrismaUserResponse => ({
+  id,
+  settings: username === "NO_SETTINGS" ? null : { username: username === "NULL" ? null : (username ?? "デフォルト名") },
+});
+
+/**
+ * ヘルパー関数: 期待値を作成
+ */
+const createExpectedResult = (users: { id: string; username: string | null }[]): TaskParticipant[] =>
+  users.map((user) => ({
+    appUserId: user.id,
+    appUserName: user.username ?? `未設定_${user.id}`,
+  }));
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-describe("getCachedAllUsers", () => {
+describe("cache-user.ts_getCachedAllUsers", () => {
   beforeEach(() => {
-    /**
-     * 各テスト前にモックをリセット
-     */
     vi.clearAllMocks();
   });
 
@@ -46,61 +53,25 @@ describe("getCachedAllUsers", () => {
 
   describe("正常系", () => {
     test("should return all users with username when users exist", async () => {
-      /**
-       * テストデータの準備
-       */
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: "テストユーザー1",
-          },
-        },
-        {
-          id: "user-2",
-          settings: {
-            username: "テストユーザー2",
-          },
-        },
-        {
-          id: "user-3",
-          settings: {
-            username: "テストユーザー3",
-          },
-        },
+      // Arrange
+      const mockUsers = [
+        createMockPrismaUser("user-1", "テストユーザー1"),
+        createMockPrismaUser("user-2", "テストユーザー2"),
+        createMockPrismaUser("user-3", "テストユーザー3"),
       ];
+      const expectedResult = createExpectedResult([
+        { id: "user-1", username: "テストユーザー1" },
+        { id: "user-2", username: "テストユーザー2" },
+        { id: "user-3", username: "テストユーザー3" },
+      ]);
+      prismaMock.user.findMany.mockResolvedValue(
+        mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
 
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: "テストユーザー1",
-        },
-        {
-          appUserId: "user-2",
-          appUserName: "テストユーザー2",
-        },
-        {
-          appUserId: "user-3",
-          appUserName: "テストユーザー3",
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
+      // Act
       const result = await getCachedAllUsers();
 
-      /**
-       * 結果の検証
-       */
+      // Assert
       expect(result).toStrictEqual(expectedResult);
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         select: {
@@ -120,549 +91,163 @@ describe("getCachedAllUsers", () => {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    test("should return users with default username when settings.username is null", async () => {
-      /**
-       * テストデータの準備（usernameがnullの場合）
-       */
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: null,
-          },
-        },
-        {
-          id: "user-2",
-          settings: {
-            username: "設定済みユーザー",
-          },
-        },
-      ];
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: "未設定",
-        },
-        {
-          appUserId: "user-2",
-          appUserName: "設定済みユーザー",
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
-      const result = await getCachedAllUsers();
-
-      /**
-       * 結果の検証
-       */
-      expect(result).toStrictEqual(expectedResult);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should return users with default username when settings is null", async () => {
-      /**
-       * テストデータの準備（settingsがnullの場合）
-       */
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: null,
-        },
-        {
-          id: "user-2",
-          settings: {
-            username: "設定済みユーザー",
-          },
-        },
-      ];
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: "未設定",
-        },
-        {
-          appUserId: "user-2",
-          appUserName: "設定済みユーザー",
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
-      const result = await getCachedAllUsers();
-
-      /**
-       * 結果の検証
-       */
-      expect(result).toStrictEqual(expectedResult);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
     test("should return empty array when no users exist", async () => {
-      /**
-       * Prismaモックの設定（空の配列を返す）
-       */
-      prismaMock.user.findMany.mockResolvedValue([] as unknown as PrismaUserFindManyResult);
+      // Arrange
+      prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
 
-      /**
-       * 関数の実行
-       */
+      // Act
       const result = await getCachedAllUsers();
 
-      /**
-       * 結果の検証
-       */
+      // Assert
       expect(result).toStrictEqual([]);
       expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1);
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    test("should handle single user correctly", async () => {
-      /**
-       * テストデータの準備（単一ユーザー）
-       */
-      const mockUsers: MockUser[] = [
-        {
-          id: "single-user",
-          settings: {
-            username: "単一ユーザー",
-          },
-        },
-      ];
+    test.each([
+      {
+        description: "single user",
+        users: [{ id: "single-user", username: "単一ユーザー" }],
+      },
+      {
+        description: "large number of users",
+        users: Array.from({ length: 100 }, (_, index) => ({
+          id: `user-${index + 1}`,
+          username: `ユーザー${index + 1}`,
+        })),
+      },
+    ])("should handle $description correctly", async ({ users }) => {
+      // Arrange
+      const mockUsers = users.map((user) => createMockPrismaUser(user.id, user.username));
+      const expectedResult = createExpectedResult(users);
+      prismaMock.user.findMany.mockResolvedValue(
+        mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
 
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "single-user",
-          appUserName: "単一ユーザー",
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
+      // Act
       const result = await getCachedAllUsers();
 
-      /**
-       * 結果の検証
-       */
+      // Assert
       expect(result).toStrictEqual(expectedResult);
+      expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1);
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    test("should handle large number of users correctly", async () => {
-      /**
-       * テストデータの準備（大量のユーザー）
-       */
-      const mockUsers: MockUser[] = Array.from({ length: 1000 }, (_, index) => ({
-        id: `user-${index + 1}`,
-        settings: {
-          username: `ユーザー${index + 1}`,
-        },
-      }));
+    test.each([
+      {
+        description: "settings.username is null",
+        users: [
+          { id: "user-1", username: "NULL" },
+          { id: "user-2", username: "設定済みユーザー" },
+        ],
+      },
+      {
+        description: "settings is null",
+        users: [
+          { id: "user-1", username: "NO_SETTINGS" },
+          { id: "user-2", username: "設定済みユーザー" },
+        ],
+      },
+      {
+        description: "mixed data types",
+        users: [
+          { id: "user-1", username: "正常なユーザー" },
+          { id: "user-2", username: "NO_SETTINGS" },
+          { id: "user-3", username: "NULL" },
+          { id: "user-4", username: "" },
+          { id: "user-5", username: "もう一人の正常なユーザー" },
+          { id: "user-6", username: null },
+          { id: "user-7", username: undefined },
+        ],
+      },
+    ])("should return users with default username when $description", async ({ users }) => {
+      // Arrange
+      const mockUsers = users.map((user) => createMockPrismaUser(user.id, user.username ?? null));
+      const expectedResult = createExpectedResult(
+        users.map((user) => ({
+          id: user.id,
+          username: user.username === "NO_SETTINGS" ? null : user.username === "NULL" ? null : (user.username ?? null),
+        })),
+      );
+      prismaMock.user.findMany.mockResolvedValue(
+        mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
 
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = mockUsers.map((user: MockUser) => ({
-        appUserId: user.id,
-        appUserName: user.settings?.username ?? "未設定",
-      }));
-
-      /**
-       * 関数の実行
-       */
+      // Act
       const result = await getCachedAllUsers();
 
-      /**
-       * 結果の検証
-       */
+      // Assert
       expect(result).toStrictEqual(expectedResult);
-      expect(result).toHaveLength(1000);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("異常系", () => {
-    test("should throw error and log when database query fails", async () => {
-      /**
-       * データベースエラーの準備
-       */
-      const databaseError = new Error("Database connection failed");
+    test.each([
+      {
+        errorType: "database connection",
+        error: new Error("Database connection failed"),
+      },
+      {
+        errorType: "timeout",
+        error: new Error("Query timeout"),
+      },
+      {
+        errorType: "network",
+        error: new Error("Network error"),
+      },
+      {
+        errorType: "validation",
+        error: new Error("Invalid query parameters"),
+      },
+    ])("should throw error and log when $errorType error occurs", async ({ error }) => {
+      // Arrange
+      prismaMock.user.findMany.mockRejectedValue(error);
 
-      /**
-       * Prismaモックの設定（エラーを投げる）
-       */
-      prismaMock.user.findMany.mockRejectedValue(databaseError);
+      // Act
+      await expect(getCachedAllUsers()).rejects.toThrow(error.message);
 
-      /**
-       * 関数の実行とエラーの検証
-       */
-      await expect(getCachedAllUsers()).rejects.toThrow("Database connection failed");
-
-      /**
-       * console.errorが呼ばれたことを確認
-       * setup.tsでconsole.errorがモックされているため、直接検証
-       */
-      expect(console.error).toHaveBeenCalledWith("Error fetching users:", databaseError);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should throw error when Prisma throws timeout error", async () => {
-      /**
-       * タイムアウトエラーの準備
-       */
-      const timeoutError = new Error("Query timeout");
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockRejectedValue(timeoutError);
-
-      /**
-       * 関数の実行とエラーの検証
-       */
-      await expect(getCachedAllUsers()).rejects.toThrow("Query timeout");
-
-      /**
-       * console.errorが呼ばれたことを確認
-       */
-      expect(console.error).toHaveBeenCalledWith("Error fetching users:", timeoutError);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should throw error when Prisma throws network error", async () => {
-      /**
-       * ネットワークエラーの準備
-       */
-      const networkError = new Error("Network error");
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockRejectedValue(networkError);
-
-      /**
-       * 関数の実行とエラーの検証
-       */
-      await expect(getCachedAllUsers()).rejects.toThrow("Network error");
-
-      /**
-       * console.errorが呼ばれたことを確認
-       */
-      expect(console.error).toHaveBeenCalledWith("Error fetching users:", networkError);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should throw error when Prisma throws validation error", async () => {
-      /**
-       * バリデーションエラーの準備
-       */
-      const validationError = new Error("Invalid query parameters");
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockRejectedValue(validationError);
-
-      /**
-       * 関数の実行とエラーの検証
-       */
-      await expect(getCachedAllUsers()).rejects.toThrow("Invalid query parameters");
-
-      /**
-       * console.errorが呼ばれたことを確認
-       */
-      expect(console.error).toHaveBeenCalledWith("Error fetching users:", validationError);
+      // Assert
+      expect(console.error).toHaveBeenCalledWith("Error fetching users:", error);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("境界値テスト", () => {
-    test("should handle user with empty string username", async () => {
-      /**
-       * テストデータの準備（空文字のusername）
-       */
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: "",
-          },
-        },
-      ];
+    test.each([
+      {
+        description: "empty string username",
+        username: "",
+      },
+      {
+        description: "very long username",
+        username: "a".repeat(1000),
+      },
+      {
+        description: "special characters in username",
+        username: "テスト@#$%^&*()_+-=[]{}|;':\",./<>?`~",
+      },
+      {
+        description: "unicode characters in username",
+        username: "🚀👨‍💻🌟テスト用户名用戶名",
+      },
+    ])("should handle user with $description", async ({ username }) => {
+      // Arrange
+      const mockUsers = [createMockPrismaUser("user-1", username)];
+      const expectedResult = createExpectedResult([{ id: "user-1", username }]);
 
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
+      prismaMock.user.findMany.mockResolvedValue(
+        mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
+      );
 
-      /**
-       * 期待する結果（空文字はそのまま空文字として返される）
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: "",
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
+      // Act
       const result = await getCachedAllUsers();
 
-      /**
-       * 結果の検証
-       */
-      expect(result).toStrictEqual(expectedResult);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should handle user with very long username", async () => {
-      /**
-       * テストデータの準備（非常に長いusername）
-       */
-      const longUsername = "a".repeat(1000);
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: longUsername,
-          },
-        },
-      ];
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: longUsername,
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
-      const result = await getCachedAllUsers();
-
-      /**
-       * 結果の検証
-       */
-      expect(result).toStrictEqual(expectedResult);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should handle user with special characters in username", async () => {
-      /**
-       * テストデータの準備（特殊文字を含むusername）
-       */
-      const specialUsername = "テスト@#$%^&*()_+-=[]{}|;':\",./<>?`~";
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: specialUsername,
-          },
-        },
-      ];
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: specialUsername,
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
-      const result = await getCachedAllUsers();
-
-      /**
-       * 結果の検証
-       */
-      expect(result).toStrictEqual(expectedResult);
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    test("should handle user with unicode characters in username", async () => {
-      /**
-       * テストデータの準備（Unicode文字を含むusername）
-       */
-      const unicodeUsername = "🚀👨‍💻🌟テスト用户名用戶名";
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: unicodeUsername,
-          },
-        },
-      ];
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: unicodeUsername,
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
-      const result = await getCachedAllUsers();
-
-      /**
-       * 結果の検証
-       */
-      expect(result).toStrictEqual(expectedResult);
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("データ型テスト", () => {
-    test("should handle mixed data types correctly", async () => {
-      /**
-       * テストデータの準備（様々なパターンの混在）
-       */
-      const mockUsers: MockUser[] = [
-        {
-          id: "user-1",
-          settings: {
-            username: "正常なユーザー",
-          },
-        },
-        {
-          id: "user-2",
-          settings: null,
-        },
-        {
-          id: "user-3",
-          settings: {
-            username: null,
-          },
-        },
-        {
-          id: "user-4",
-          settings: {
-            username: "",
-          },
-        },
-        {
-          id: "user-5",
-          settings: {
-            username: "もう一人の正常なユーザー",
-          },
-        },
-      ];
-
-      /**
-       * Prismaモックの設定
-       */
-      prismaMock.user.findMany.mockResolvedValue(mockUsers as unknown as PrismaUserFindManyResult);
-
-      /**
-       * 期待する結果
-       */
-      const expectedResult: TaskParticipant[] = [
-        {
-          appUserId: "user-1",
-          appUserName: "正常なユーザー",
-        },
-        {
-          appUserId: "user-2",
-          appUserName: "未設定",
-        },
-        {
-          appUserId: "user-3",
-          appUserName: "未設定",
-        },
-        {
-          appUserId: "user-4",
-          appUserName: "",
-        },
-        {
-          appUserId: "user-5",
-          appUserName: "もう一人の正常なユーザー",
-        },
-      ];
-
-      /**
-       * 関数の実行
-       */
-      const result = await getCachedAllUsers();
-
-      /**
-       * 結果の検証
-       */
+      // Assert
       expect(result).toStrictEqual(expectedResult);
     });
   });
