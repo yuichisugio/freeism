@@ -1,11 +1,15 @@
 "use server";
 
 import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
-import { type Prisma } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * ユーザーのタスクを取得する関数の戻り値の型
+ */
 type GetMyTaskDataReturn = {
   tasks: MyTaskTable[];
   totalTaskCount: number;
@@ -26,18 +30,23 @@ export async function getMyTaskData(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * ユーザーIDとテーブルの表示条件のチェック
+     * テーブルの表示条件を取得
      */
-    if (!userId || !tableConditions) {
-      throw new Error("ユーザーID or テーブルの表示条件が指定されていません");
-    }
+    const { page, sort, searchQuery, taskStatus, contributionType, itemPerPage } = tableConditions;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * テーブルの表示条件を取得
+     * ユーザーIDとテーブルの表示条件のチェック
      */
-    const { page, sort, searchQuery, taskStatus, contributionType, itemPerPage } = tableConditions;
+    if (
+      !userId ||
+      !tableConditions ||
+      (!Object.values(TaskStatus).includes(taskStatus as TaskStatus) && taskStatus !== "ALL") ||
+      (!Object.values(ContributionType).includes(contributionType as ContributionType) && contributionType !== "ALL")
+    ) {
+      throw new Error("ユーザーID or テーブルの表示条件が指定されていません");
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

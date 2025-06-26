@@ -10,7 +10,7 @@ import { deleteTask } from "@/actions/task/task";
 import { getAllUsers } from "@/actions/user/user";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { type contributionType } from "@prisma/client";
+import { type ContributionType } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
@@ -107,7 +107,7 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
       page,
       isJoined: "all" as const,
       searchQuery,
-      contributionType: contributionType as "ALL" | contributionType,
+      contributionType: contributionType as "ALL" | ContributionType,
       status: status as TaskStatus | "ALL",
       itemPerPage,
     }),

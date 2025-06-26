@@ -2,7 +2,7 @@ import type { TaskFormValues } from "@/hooks/modal/use-task-edit-modal";
 import type { TaskParticipant } from "@/types/group-types";
 import { AllTheProviders } from "@/test/setup/tanstack-query-setup";
 import { faker } from "@faker-js/faker";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Factory } from "fishery";
@@ -74,7 +74,7 @@ const taskFormValuesFactory = Factory.define<TaskFormValues>(({ params }) => ({
   detail: params.detail ?? faker.lorem.paragraph(),
   reference: params.reference ?? faker.lorem.paragraph(),
   info: params.info ?? faker.lorem.paragraph(),
-  contributionType: params.contributionType ?? contributionType.REWARD,
+  contributionType: params.contributionType ?? ContributionType.REWARD,
   category: params.category ?? "その他",
   executors: params.executors ?? [],
   reporters: params.reporters ?? [],

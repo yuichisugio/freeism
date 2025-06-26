@@ -8,7 +8,7 @@ import { Loading } from "@/components/share/share-loading";
 import { ShareTable } from "@/components/share/table/share-table";
 import { Button } from "@/components/ui/button";
 import { useGroupDetailTable } from "@/hooks/group/group-detail/use-group-detail-table";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -128,7 +128,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         key: "taskFixedContributionPoint" as keyof GroupDetailTask,
         header: "貢献P / 入札額",
         cell: (row: GroupDetailTask) => {
-          if (row.taskContributionType === contributionType.REWARD) {
+          if (row.taskContributionType === ContributionType.REWARD) {
             return `${row.taskFixedContributionPoint ?? 0}p`;
           }
           return row.taskFixedContributionPoint ? `${row.taskFixedContributionPoint}p` : "評価待ち";
@@ -274,12 +274,12 @@ export const GroupDetailTable = memo(function GroupDetailTable({
             filterType: "radio",
             filterText: tableConditions.contributionType ?? "ALL",
             onFilterChange: (value: string) =>
-              changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
+              changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | ContributionType }),
             placeholder: "タスクタイプで絞り込み...",
             radioOptions: [
               { value: "ALL", label: "全て" },
-              { value: contributionType.NON_REWARD, label: "通常タスク" },
-              { value: contributionType.REWARD, label: "報酬タスク" },
+              { value: ContributionType.NON_REWARD, label: "通常タスク" },
+              { value: ContributionType.REWARD, label: "報酬タスク" },
             ],
           },
           {

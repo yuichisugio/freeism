@@ -4,6 +4,7 @@ import { faker } from "@faker-js/faker/locale/ja";
 import {
   AuctionEventType,
   BidStatus,
+  ContributionType,
   NotificationTargetType,
   Prisma,
   PrismaClient,
@@ -142,7 +143,6 @@ const SEED_CONFIG = {
 
 // プロバイダータイプの定義
 type OAuthProvider = "google" | "github" | "facebook";
-// type ContributionType = "REWARD" | "NON_REWARD";
 type EvaluationMethod = "360度評価" | "相互評価" | "目標達成度" | "KPI評価" | "コンピテンシー評価";
 
 // Prismaクライアントのインスタンス化
@@ -294,7 +294,7 @@ type SeedTask = {
   userFixedSubmitterId?: string | null;
   info?: string | null;
   imageUrl?: string | null;
-  contributionType: string;
+  contributionType: ContributionType;
   deliveryMethod?: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -717,11 +717,11 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
 
     // contributionTypeとcategoryを先に決定
     const isReward = faker.datatype.boolean(SEED_CONFIG.TASK_REWARD_PROBABILITY);
-    const contributionType = isReward ? "REWARD" : "NON_REWARD";
+    const contributionType = isReward ? ContributionType.REWARD : ContributionType.NON_REWARD;
     const category = faker.helpers.arrayElement(SEED_CONFIG.TASK_CATEGORIES);
 
     let taskStatus: TaskStatus;
-    if (contributionType === "REWARD") {
+    if (contributionType === ContributionType.REWARD) {
       // オークション対象となる可能性のあるタスクは、初期ステータスをPENDINGに固定
       // オークションの状況に応じて後で POINTS_DEPOSITED などに変わる
       taskStatus = TaskStatus.PENDING;
@@ -868,7 +868,7 @@ async function createTasks(count: number, groupMemberships: { userId: string; gr
 
     // 出品タイプの場合は提供方法を設定
     let deliveryMethod = null;
-    if (contributionType === "REWARD") {
+    if (contributionType === ContributionType.REWARD) {
       const categoryMethods = CATEGORY_DELIVERY_METHODS[category] || DELIVERY_METHODS; // category はループの先頭で決定済み
       deliveryMethod = faker.helpers.arrayElement(categoryMethods);
     }
@@ -1226,7 +1226,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
   const preservedUserIds = new Set(PRESERVED_USER_IDS);
 
   // タスクから報酬タイプのタスクのみ抽出（contributionType が "REWARD" のもの）
-  const rewardTasks = tasks.filter((task) => task.contributionType === "REWARD");
+  const rewardTasks = tasks.filter((task) => task.contributionType === ContributionType.REWARD);
 
   // 報酬タスクが少ない場合は、追加の報酬タスクを作成 (SEED_CONFIG の最小数まで)
   const minRewardTasks = SEED_CONFIG.MIN_REWARD_TASKS_FOR_AUCTION;
@@ -1234,7 +1234,7 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
     console.log(
       `報酬タスクが少ないため(${rewardTasks.length}件)、NON_REWARDタスクから最大${minRewardTasks - rewardTasks.length}件を変換します`,
     );
-    const nonRewardTasks = tasks.filter((task) => task.contributionType === "NON_REWARD");
+    const nonRewardTasks = tasks.filter((task) => task.contributionType === ContributionType.NON_REWARD);
     const tasksToConvert = faker.helpers.arrayElements(
       nonRewardTasks,
       Math.min(nonRewardTasks.length, minRewardTasks - rewardTasks.length),
@@ -1248,11 +1248,11 @@ async function createAuctions(tasks: SeedTask[], users: SeedUser[]): Promise<See
       await prisma.task.update({
         where: { id: task.id },
         data: {
-          contributionType: "REWARD",
+          contributionType: ContributionType.REWARD,
           deliveryMethod,
         },
       });
-      rewardTasks.push({ ...task, contributionType: "REWARD", deliveryMethod });
+      rewardTasks.push({ ...task, contributionType: ContributionType.REWARD, deliveryMethod });
     }
   }
 

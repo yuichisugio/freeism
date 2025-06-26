@@ -4,7 +4,7 @@ import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -195,7 +195,7 @@ export async function createTask(data: CreateTaskParams) {
     /**
      * 報酬タイプがREWARDの場合はオークションを作成
      */
-    if (data.contributionType === contributionType.REWARD) {
+    if (data.contributionType === ContributionType.REWARD) {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**

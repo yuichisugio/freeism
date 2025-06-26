@@ -1,7 +1,7 @@
 import type { MyTaskTable } from "@/types/group-types";
 import { AllTheProviders, mockUseMutation, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { groupFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -103,7 +103,7 @@ const createMockMyTaskTable = (overrides: Partial<MyTaskTable> = {}): MyTaskTabl
   taskName: "テストタスク",
   taskDetail: "テストタスクの詳細",
   taskStatus: TaskStatus.PENDING,
-  taskContributionType: contributionType.NON_REWARD,
+  taskContributionType: ContributionType.NON_REWARD,
   taskFixedContributionPoint: null,
   taskFixedEvaluator: "未設定",
   taskFixedEvaluationLogic: null,
@@ -124,7 +124,7 @@ const createMockMyTaskTable = (overrides: Partial<MyTaskTable> = {}): MyTaskTabl
 const mockTasksData = [
   createMockMyTaskTable({ id: "task-1", taskName: "タスク1" }),
   createMockMyTaskTable({ id: "task-2", taskName: "タスク2", taskStatus: TaskStatus.TASK_COMPLETED }),
-  createMockMyTaskTable({ id: "task-3", taskName: "タスク3", taskContributionType: contributionType.REWARD }),
+  createMockMyTaskTable({ id: "task-3", taskName: "タスク3", taskContributionType: ContributionType.REWARD }),
 ];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -637,7 +637,7 @@ describe("useMyTaskTable", () => {
         page: 2,
         searchQuery: "テスト",
         taskStatus: TaskStatus.TASK_COMPLETED,
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         itemPerPage: 20,
       };
 
@@ -654,7 +654,7 @@ describe("useMyTaskTable", () => {
       expect(mockSetSortDirection).toHaveBeenCalledWith("asc");
       expect(mockSetSearchQuery).toHaveBeenCalledWith("テスト");
       expect(mockSetTaskStatus).toHaveBeenCalledWith(TaskStatus.TASK_COMPLETED);
-      expect(mockSetContributionType).toHaveBeenCalledWith(contributionType.REWARD);
+      expect(mockSetContributionType).toHaveBeenCalledWith(ContributionType.REWARD);
       expect(mockSetItemPerPage).toHaveBeenCalledWith(20);
     });
 

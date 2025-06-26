@@ -7,7 +7,7 @@ import { createTask, prepareCreateTaskForm } from "@/actions/task/create-task-fo
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { taskFormSchema } from "@/library-setting/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -200,7 +200,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
       detail: "",
       reference: "",
       info: "",
-      contributionType: contributionType.REWARD,
+      contributionType: ContributionType.REWARD,
       category: "その他", // デフォルト値を設定
       executors: [],
       reporters: [],
@@ -218,7 +218,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
    * 現在選択されている貢献タイプ
    */
   const selectedContributionType = form.watch("contributionType");
-  const isRewardType = useMemo(() => selectedContributionType === contributionType.REWARD, [selectedContributionType]);
+  const isRewardType = useMemo(() => selectedContributionType === ContributionType.REWARD, [selectedContributionType]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -344,11 +344,11 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
       try {
         // 時刻を00:00:00に設定
         const startTime =
-          data.contributionType === contributionType.REWARD && data.auctionStartTime
+          data.contributionType === ContributionType.REWARD && data.auctionStartTime
             ? getDateWithoutTime(data.auctionStartTime)
             : undefined;
         const endTime =
-          data.contributionType === contributionType.REWARD && data.auctionEndTime
+          data.contributionType === ContributionType.REWARD && data.auctionEndTime
             ? getDateWithoutTime(data.auctionEndTime)
             : undefined;
 
@@ -367,7 +367,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
           // 修正した日時を使用
           auctionStartTime: startTime,
           auctionEndTime: endTime,
-          deliveryMethod: data.contributionType === contributionType.REWARD ? data.deliveryMethod : undefined,
+          deliveryMethod: data.contributionType === ContributionType.REWARD ? data.deliveryMethod : undefined,
           isExtension: data.isExtension, // 文字列として送信
         });
 

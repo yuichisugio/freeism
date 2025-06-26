@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { auctionFactory, groupFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { CreateTaskParams } from "./create-task-form";
@@ -162,7 +162,7 @@ describe("create-task-form.ts", () => {
       reference: "https://example.com",
       info: "追加情報",
       imageUrl: "https://example.com/image.jpg",
-      contributionType: contributionType.NON_REWARD,
+      contributionType: ContributionType.NON_REWARD,
       category: "テスト",
       groupId: testGroup.id,
       deliveryMethod: "オンライン",
@@ -221,7 +221,7 @@ describe("create-task-form.ts", () => {
         // Arrange
         const rewardTaskData = {
           ...baseTaskData,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           auctionStartTime: new Date("2024-01-01T00:00:00Z"),
           auctionEndTime: new Date("2024-01-08T00:00:00Z"),
           isExtension: true,
@@ -229,7 +229,7 @@ describe("create-task-form.ts", () => {
 
         const createdTask = taskFactory.build({
           id: "created-task-id",
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         });
 
         const createdAuction = auctionFactory.build({
@@ -334,12 +334,12 @@ describe("create-task-form.ts", () => {
         // Arrange
         const rewardTaskData = {
           ...baseTaskData,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           isExtension: "false",
         };
 
         const createdTask = taskFactory.build({
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         });
 
         prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
@@ -366,13 +366,13 @@ describe("create-task-form.ts", () => {
         // Arrange
         const rewardTaskData = {
           ...baseTaskData,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           auctionStartTime: undefined,
           auctionEndTime: undefined,
         };
 
         const createdTask = taskFactory.build({
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         });
 
         prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
@@ -450,11 +450,11 @@ describe("create-task-form.ts", () => {
         // Arrange
         const rewardTaskData = {
           ...baseTaskData,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         };
 
         const createdTask = taskFactory.build({
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         });
 
         prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
@@ -480,7 +480,7 @@ describe("create-task-form.ts", () => {
         const minimalTaskData = {
           task: "最小タスク",
           groupId: testGroup.id,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
         };
 
         const createdTask = taskFactory.build();

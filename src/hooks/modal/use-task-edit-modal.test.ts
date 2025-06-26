@@ -3,7 +3,7 @@ import type { UseQueryOptions } from "@tanstack/react-query";
 import { getTaskById, updateTaskAction } from "@/actions/task/edit-task-modal";
 import { getAllUsers } from "@/actions/user/user";
 import { AllTheProviders, mockUseMutation, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -51,7 +51,7 @@ const createMockTask = () => ({
   reference: "テスト参考",
   info: "テスト情報",
   imageUrl: "https://example.com/image.jpg",
-  contributionType: contributionType.REWARD,
+  contributionType: ContributionType.REWARD,
   category: "テスト",
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -246,22 +246,22 @@ describe("useTaskEditModal", () => {
 
       // NON_REWARDに変更
       act(() => {
-        result.current.form.setValue("contributionType", contributionType.NON_REWARD);
+        result.current.form.setValue("contributionType", ContributionType.NON_REWARD);
         // フォームの変更を強制的にトリガー
         void result.current.form.trigger("contributionType");
       });
 
       // フォームの値が変更されることを確認
-      expect(result.current.form.getValues("contributionType")).toBe(contributionType.NON_REWARD);
+      expect(result.current.form.getValues("contributionType")).toBe(ContributionType.NON_REWARD);
 
       // REWARDに戻す
       act(() => {
-        result.current.form.setValue("contributionType", contributionType.REWARD);
+        result.current.form.setValue("contributionType", ContributionType.REWARD);
         void result.current.form.trigger("contributionType");
       });
 
       // フォームの値が変更されることを確認
-      expect(result.current.form.getValues("contributionType")).toBe(contributionType.REWARD);
+      expect(result.current.form.getValues("contributionType")).toBe(ContributionType.REWARD);
       expect(result.current.isRewardType).toBe(true);
     });
 
@@ -504,7 +504,7 @@ describe("useTaskEditModal", () => {
 
       // フォームのデフォルト値が保持されることを確認
       expect(result.current.form.getValues("task")).toBe("");
-      expect(result.current.form.getValues("contributionType")).toBe(contributionType.REWARD);
+      expect(result.current.form.getValues("contributionType")).toBe(ContributionType.REWARD);
     });
 
     test("should not add duplicate executor", () => {
@@ -708,7 +708,7 @@ describe("useTaskEditModal", () => {
 
       // フォームのデフォルト値が保持されることを確認
       expect(result.current.form.getValues("task")).toBe("");
-      expect(result.current.form.getValues("contributionType")).toBe(contributionType.REWARD);
+      expect(result.current.form.getValues("contributionType")).toBe(ContributionType.REWARD);
     });
 
     test("should handle loading states correctly", () => {
@@ -811,7 +811,7 @@ describe("useTaskEditModal", () => {
       await waitFor(() => {
         expect(result.current.form.getValues("task")).toBe("テストタスク");
         expect(result.current.form.getValues("detail")).toBe("テスト詳細");
-        expect(result.current.form.getValues("contributionType")).toBe(contributionType.REWARD);
+        expect(result.current.form.getValues("contributionType")).toBe(ContributionType.REWARD);
       });
     });
   });

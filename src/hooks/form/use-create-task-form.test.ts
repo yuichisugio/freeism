@@ -1,7 +1,7 @@
 import { createTask } from "@/actions/task/create-task-form";
 import { mockPush, mockToastError, mockToastSuccess } from "@/test/setup/setup";
 import { AllTheProviders, mockUseQuery } from "@/test/setup/tanstack-query-setup";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -612,7 +612,7 @@ describe("useTaskInputForm", () => {
         detail: "詳細説明",
         reference: "参考資料",
         info: "追加情報",
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         category: "テスト",
         groupId: "group-1",
         auctionStartTime: new Date(),
@@ -632,7 +632,7 @@ describe("useTaskInputForm", () => {
           detail: "詳細説明",
           reference: "参考資料",
           info: "追加情報",
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           category: "テスト",
           groupId: "group-1",
           deliveryMethod: "配送方法",
@@ -657,7 +657,7 @@ describe("useTaskInputForm", () => {
         detail: "詳細説明",
         reference: "参考資料",
         info: "追加情報",
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         category: "テスト",
         groupId: "group-1",
         auctionStartTime: new Date(),
@@ -686,7 +686,7 @@ describe("useTaskInputForm", () => {
         detail: "詳細説明",
         reference: "参考資料",
         info: "追加情報",
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         category: "テスト",
         groupId: "group-1",
         auctionStartTime: new Date(),
@@ -721,7 +721,7 @@ describe("useTaskInputForm", () => {
         detail: "詳細説明",
         reference: "参考資料",
         info: "追加情報",
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         category: "テスト",
         groupId: "group-1",
         auctionStartTime: new Date(),
@@ -755,7 +755,7 @@ describe("useTaskInputForm", () => {
         detail: "詳細説明",
         reference: "参考資料",
         info: "追加情報",
-        contributionType: contributionType.NON_REWARD,
+        contributionType: ContributionType.NON_REWARD,
         category: "テスト",
         groupId: "group-1",
         isExtension: "false",
@@ -768,7 +768,7 @@ describe("useTaskInputForm", () => {
 
       expect(vi.mocked(createTask)).toHaveBeenCalledWith(
         expect.objectContaining({
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           auctionStartTime: undefined,
           auctionEndTime: undefined,
           deliveryMethod: undefined,

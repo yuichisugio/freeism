@@ -8,7 +8,7 @@ import { bulkCreateTask } from "@/actions/task/bulk-create-task";
 import { bulkUpdateFixedEvaluations } from "@/actions/task/bulk-update-fix-evaluation";
 import { bulkUpdateTaskStatus } from "@/actions/task/bulk-update-task-status";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Papa from "papaparse";
 import { useDropzone } from "react-dropzone";
@@ -186,13 +186,13 @@ export const UPLOAD_TYPE_INFO: Record<UploadType, UploadTypeInfo> = {
   TASK_REPORT: {
     title: "タスク報告",
     description: "タスクの内容やタイプを一括で登録します。",
-    requiredFields: `task（タスク内容）, contributionType（貢献タイプ: ${contributionType.REWARD} または ${contributionType.NON_REWARD}）`,
+    requiredFields: `task（タスク内容）, contributionType（貢献タイプ: ${ContributionType.REWARD} または ${ContributionType.NON_REWARD}）`,
     optionalFields:
       "category（カテゴリ: " +
       AUCTION_CONSTANTS.AUCTION_CATEGORIES.slice(1).join(", ") +
       "）, reference（参考にした内容）, info（証拠・結果・補足情報）, auctionStartTime（オークション開始日時, YYYY-MM-DD HH:MM形式）, auctionEndTime（オークション終了日時, YYYY-MM-DD HH:MM形式）, deliveryMethod（提供方法）",
-    note: `報酬あり（${contributionType.REWARD}）のタスクはオークション関連の設定が必要です。未指定のカテゴリは「その他」として登録されます。`,
-    example: `Webサイトのデザイン改修,${contributionType.REWARD},デザイン,https://example.com/design,プルリクURL: https://github.com/org/repo/pull/123,2023-04-01 12:00,2023-04-08 12:00,Amazonほしい物リスト`,
+    note: `報酬あり（${ContributionType.REWARD}）のタスクはオークション関連の設定が必要です。未指定のカテゴリは「その他」として登録されます。`,
+    example: `Webサイトのデザイン改修,${ContributionType.REWARD},デザイン,https://example.com/design,プルリクURL: https://github.com/org/repo/pull/123,2023-04-01 12:00,2023-04-08 12:00,Amazonほしい物リスト`,
   },
   CONTRIBUTION_EVALUATION: {
     title: "貢献評価",
@@ -985,7 +985,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
                 } else if (key.includes("status")) {
                   sampleValue = "TASK_COMPLETED";
                 } else if (key.includes("contribution") || key.includes("contributionType")) {
-                  sampleValue = contributionType.REWARD;
+                  sampleValue = ContributionType.REWARD;
                 } else if (key.includes("Logic") || key.includes("logic")) {
                   sampleValue = "作業効率の向上に貢献";
                 } else if (key.includes("Evaluator") || key.includes("evaluator")) {

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { checkIsPermission } from "@/actions/permission/permission";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -189,7 +189,7 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
       /**
        * 貢献タイプがREWARDに変更され、オークションが存在しない場合は新規作成
        */
-      if (data.contributionType === contributionType.REWARD && !existingAuction) {
+      if (data.contributionType === ContributionType.REWARD && !existingAuction) {
         // タスクのgroupIdを使用してオークションを作成
         await prismaClient.auction.create({
           data: {
@@ -211,7 +211,7 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
       /**
        * 貢献タイプがNON_REWARDに変更され、オークションが存在する場合は削除
        */
-      else if (data.contributionType === contributionType.NON_REWARD && existingAuction) {
+      else if (data.contributionType === ContributionType.NON_REWARD && existingAuction) {
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         /**

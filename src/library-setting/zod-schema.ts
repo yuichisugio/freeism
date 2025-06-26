@@ -1,5 +1,5 @@
 // lib/schemas/createGroupSchema.ts
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { z } from "zod";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -58,7 +58,7 @@ export const taskFormSchema = z.object({
   reference: z.string().optional(),
   info: z.string().optional(),
   imageUrl: z.string().optional(),
-  contributionType: z.nativeEnum(contributionType, { required_error: "貢献の種類を選択してください" }),
+  contributionType: z.nativeEnum(ContributionType, { required_error: "貢献の種類を選択してください" }),
   reporters: z.array(taskPersonSchema).optional(),
   executors: z.array(taskPersonSchema).optional(),
   auctionStartTime: z.date().optional(),

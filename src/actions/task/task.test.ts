@@ -1,6 +1,6 @@
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupFactory, taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { deleteTask, updateTaskStatus } from "./task";
@@ -43,7 +43,7 @@ describe("task.ts", () => {
     groupId: testGroup.id,
     creatorId: testUser.id,
     status: TaskStatus.PENDING,
-    contributionType: contributionType.NON_REWARD,
+    contributionType: ContributionType.NON_REWARD,
   });
 
   const createTaskData = (overrides = {}) => ({

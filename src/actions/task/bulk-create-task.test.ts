@@ -4,7 +4,7 @@ import { checkIsPermission } from "@/actions/permission/permission";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { bulkCreateTask } from "./bulk-create-task";
@@ -45,7 +45,7 @@ describe("upload-modal", () => {
         detail: "詳細1",
         reference: "https://example.com",
         info: "情報1",
-        contributionType: contributionType.NON_REWARD,
+        contributionType: ContributionType.NON_REWARD,
         deliveryMethod: "オンライン",
       },
       {
@@ -53,7 +53,7 @@ describe("upload-modal", () => {
         detail: "詳細2",
         reference: null,
         info: null,
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         deliveryMethod: "オフライン",
         auctionStartTime: new Date("2024-01-01T10:00:00Z"),
         auctionEndTime: new Date("2024-01-08T10:00:00Z"),
@@ -131,7 +131,7 @@ describe("upload-modal", () => {
       const rewardTaskData = [
         {
           task: "報酬タスク",
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           auctionStartTime: new Date("2024-01-01T10:00:00Z"),
           auctionEndTime: new Date("2024-01-08T10:00:00Z"),
         },
@@ -178,7 +178,7 @@ describe("upload-modal", () => {
       const invalidDateTaskData = [
         {
           task: "無効な日付タスク",
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           auctionStartTime: "invalid-date",
           auctionEndTime: "invalid-date",
         },

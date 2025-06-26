@@ -1,5 +1,3 @@
-"use server";
-
 import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
 import type { Prisma } from "@prisma/client";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
@@ -11,7 +9,7 @@ import {
   userFactory,
   userSettingsFactory,
 } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getMyTaskData } from "./my-task-table";
@@ -26,7 +24,6 @@ import { getMyTaskData } from "./my-task-table";
 vi.mock("@/lib/utils", () => ({
   getAuthenticatedSessionUserId: vi.fn(),
 }));
-
 const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -81,6 +78,7 @@ const getBaseExpectedCall = (
   take,
 });
 
+// 単一ソートテストのヘルパー関数
 const testSortField = async (
   field: string,
   direction: "asc" | "desc",
@@ -95,6 +93,36 @@ const testSortField = async (
   await getMyTaskData(tableConditions, testUser.id);
 
   expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall({}, expectedOrderBy, 0, 10));
+};
+
+// 複数ソートテストのヘルパー関数
+const testMultipleSortFields = async (
+  sortTests: Array<{
+    field: string;
+    direction: "asc" | "desc";
+    expectedOrderBy: Prisma.TaskOrderByWithRelationInput;
+  }>,
+) => {
+  for (const { field, direction, expectedOrderBy } of sortTests) {
+    vi.clearAllMocks();
+    await testSortField(field, direction, expectedOrderBy);
+  }
+};
+
+// フィルターテストのヘルパー関数
+const testFilter = async (
+  filterConditions: Partial<MyTaskTableConditions>,
+  expectedWhereCondition: Record<string, unknown>,
+) => {
+  const tableConditions: MyTaskTableConditions = {
+    ...defaultTableConditions,
+    ...filterConditions,
+  };
+
+  setupEmptyTaskMocks();
+  await getMyTaskData(tableConditions, testUser.id);
+
+  expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall(expectedWhereCondition));
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -116,7 +144,7 @@ describe("getMyTaskData", () => {
         task: "テストタスク",
         detail: "テストタスクの詳細",
         status: TaskStatus.PENDING,
-        contributionType: contributionType.NON_REWARD,
+        contributionType: ContributionType.NON_REWARD,
         fixedContributionPoint: 100,
         fixedEvaluationLogic: "自動評価",
         creatorId: testUser.id,
@@ -188,7 +216,6 @@ describe("getMyTaskData", () => {
         totalTaskCount: 1,
       });
 
-      // expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce(); // getMyTaskDataではgetAuthenticatedSessionUserIdを使用していない
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
         where: {
           OR: [
@@ -282,154 +309,19 @@ describe("getMyTaskData", () => {
       });
     });
 
-    test("should apply search query filter", async () => {
+    test("should return empty array when no tasks found", async () => {
       // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        searchQuery: "検索クエリ",
-      };
-
-      setupEmptyTaskMocks();
+      prismaMock.task.findMany.mockResolvedValue([]);
+      prismaMock.task.count.mockResolvedValue(0);
 
       // Act
-      await getMyTaskData(tableConditions, testUser.id);
+      const result = await getMyTaskData(defaultTableConditions, testUser.id);
 
       // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
-        getBaseExpectedCall({
-          task: {
-            contains: "検索クエリ",
-            mode: "insensitive",
-          },
-        }),
-      );
-    });
-
-    test("should apply task status filter", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        taskStatus: TaskStatus.PENDING,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall({ status: TaskStatus.PENDING }));
-    });
-
-    test("should apply contribution type filter", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        contributionType: contributionType.REWARD,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
-        getBaseExpectedCall({ contributionType: contributionType.REWARD }),
-      );
-    });
-
-    test("should apply multiple filters simultaneously", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        searchQuery: "テスト",
-        taskStatus: TaskStatus.PENDING,
-        contributionType: contributionType.NON_REWARD,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
-        getBaseExpectedCall({
-          task: {
-            contains: "テスト",
-            mode: "insensitive",
-          },
-          status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
-        }),
-      );
-    });
-
-    test("should apply pagination correctly", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        page: 3,
-        itemPerPage: 5,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith({
-        ...getBaseExpectedCall(),
-        skip: 10, // (3 - 1) * 5
-        take: 5,
+      expect(result).toStrictEqual({
+        tasks: [],
+        totalTaskCount: 0,
       });
-    });
-
-    test("should apply sort by taskName", async () => {
-      await testSortField("taskName", "asc", { task: "asc" });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by groupName", async () => {
-      await testSortField("groupName", "desc", { group: { name: "desc" } });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by taskFixedContributionPoint", async () => {
-      await testSortField("taskFixedContributionPoint", "asc", { fixedContributionPoint: "asc" });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by taskCreatorName", async () => {
-      await testSortField("taskCreatorName", "asc", { creator: { settings: { username: "asc" } } });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by taskStatus", async () => {
-      await testSortField("taskStatus", "desc", { status: "desc" });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by taskFixedEvaluator", async () => {
-      await testSortField("taskFixedEvaluator", "asc", { fixedEvaluator: { settings: { username: "asc" } } });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by taskFixedEvaluationLogic", async () => {
-      await testSortField("taskFixedEvaluationLogic", "desc", { fixedEvaluationLogic: "desc" });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by id", async () => {
-      await testSortField("id", "asc", { id: "asc" });
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
-    });
-
-    test("should apply sort by auctionId", async () => {
-      await testSortField("auctionId", "desc", { createdAt: "desc" }); // auctionIdソートはcreatedAtソートにマップされる
-      expect(prismaMock.task.findMany).toHaveBeenCalled();
     });
 
     test("should handle null values in task data", async () => {
@@ -439,7 +331,7 @@ describe("getMyTaskData", () => {
         task: "テストタスク",
         detail: null,
         status: TaskStatus.PENDING,
-        contributionType: contributionType.NON_REWARD,
+        contributionType: ContributionType.NON_REWARD,
         fixedContributionPoint: null,
         fixedEvaluationLogic: null,
         fixedEvaluator: null,
@@ -481,7 +373,7 @@ describe("getMyTaskData", () => {
         task: "テストタスク",
         detail: "詳細",
         status: TaskStatus.PENDING,
-        contributionType: contributionType.NON_REWARD,
+        contributionType: ContributionType.NON_REWARD,
         fixedContributionPoint: 100,
         fixedEvaluationLogic: "ロジック",
         fixedEvaluator: null,
@@ -557,248 +449,260 @@ describe("getMyTaskData", () => {
         taskExecutorUserNames: "実行者2",
       });
     });
-
-    test("should return empty array when no tasks found", async () => {
-      // Arrange
-      prismaMock.task.findMany.mockResolvedValue([]);
-      prismaMock.task.count.mockResolvedValue(0);
-
-      // Act
-      const result = await getMyTaskData(defaultTableConditions, testUser.id);
-
-      // Assert
-      expect(result).toStrictEqual({
-        tasks: [],
-        totalTaskCount: 0,
-      });
-    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("異常系", () => {
-    test("should throw error when getAuthenticatedSessionUserId fails", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
-
-      // Act & Assert
-      await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(
-        "タスク情報の取得中にエラーが発生しました",
-      );
-    });
-
-    test("should throw error when prisma.task.findMany fails", async () => {
-      // Arrange
-      prismaMock.task.findMany.mockRejectedValue(new Error("データベースエラー"));
-
-      // Act & Assert
-      await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(
-        "タスク情報の取得中にエラーが発生しました",
-      );
-    });
-
-    test("should throw error when prisma.task.count fails", async () => {
-      // Arrange
-      prismaMock.task.findMany.mockResolvedValue([]);
-      prismaMock.task.count.mockRejectedValue(new Error("カウントエラー"));
-
-      // Act & Assert
-      await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(
-        "タスク情報の取得中にエラーが発生しました",
-      );
-    });
-
-    test("should handle invalid sort field gracefully", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        sort: { field: "invalidField" as unknown as keyof MyTaskTable, direction: "asc" as unknown as "asc" | "desc" },
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert - デフォルトソートが適用される
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
+  describe("フィルター機能", () => {
+    test.each([
+      {
+        name: "search query filter",
+        conditions: { searchQuery: "検索クエリ" },
+        expectedWhere: { task: { contains: "検索クエリ", mode: "insensitive" } },
+      },
+      {
+        name: "task status filter",
+        conditions: { taskStatus: TaskStatus.PENDING },
+        expectedWhere: { status: TaskStatus.PENDING },
+      },
+      {
+        name: "contribution type filter",
+        conditions: { contributionType: ContributionType.REWARD },
+        expectedWhere: { contributionType: ContributionType.REWARD },
+      },
+      {
+        name: "multiple filters",
+        conditions: {
+          searchQuery: "テスト",
+          taskStatus: TaskStatus.PENDING,
+          contributionType: ContributionType.NON_REWARD,
+        },
+        expectedWhere: {
+          task: { contains: "テスト", mode: "insensitive" },
+          status: TaskStatus.PENDING,
+          contributionType: ContributionType.NON_REWARD,
+        },
+      },
+    ])("should apply filters correctly", async ({ conditions, expectedWhere }) => {
+      await testFilter(conditions as MyTaskTableConditions, expectedWhere);
+      expect(prismaMock.task.findMany).toHaveBeenCalled();
     });
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  test("should handle empty search query correctly", async () => {
+    await testFilter({ searchQuery: "" }, {});
+    expect(prismaMock.task.findMany).toHaveBeenCalled();
+  });
+});
 
-  describe("境界値テスト", () => {
-    test("should handle page 1 correctly", async () => {
-      // Arrange
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+describe("ソート機能", () => {
+  test("should apply sorting correctly", async () => {
+    const sortTests = [
+      { field: "taskName", direction: "asc" as const, expectedOrderBy: { task: "asc" as const } },
+      { field: "groupName", direction: "desc" as const, expectedOrderBy: { group: { name: "desc" as const } } },
+      { field: "taskStatus", direction: "desc" as const, expectedOrderBy: { status: "desc" as const } },
+      {
+        field: "taskFixedContributionPoint",
+        direction: "asc" as const,
+        expectedOrderBy: { fixedContributionPoint: "asc" as const },
+      },
+      {
+        field: "taskFixedEvaluator",
+        direction: "asc" as const,
+        expectedOrderBy: { fixedEvaluator: { settings: { username: "asc" as const } } },
+      },
+      {
+        field: "taskFixedEvaluationLogic",
+        direction: "desc" as const,
+        expectedOrderBy: { fixedEvaluationLogic: "desc" as const },
+      },
+      { field: "id", direction: "asc" as const, expectedOrderBy: { id: "asc" as const } },
+      {
+        field: "taskCreatorName",
+        direction: "asc" as const,
+        expectedOrderBy: { creator: { settings: { username: "asc" as const } } },
+      },
+      {
+        field: "auctionId",
+        direction: "desc" as const,
+        expectedOrderBy: { createdAt: "desc" as const },
+      },
+    ];
+
+    await testMultipleSortFields(sortTests);
+    // 少なくとも1回のアサーションが実行されることを確認
+    expect(prismaMock.task.findMany).toHaveBeenCalled();
+  });
+
+  test("should handle invalid sort field gracefully", async () => {
+    const tableConditions: MyTaskTableConditions = {
+      ...defaultTableConditions,
+      sort: { field: "invalidField" as unknown as keyof MyTaskTable, direction: "asc" },
+    };
+
+    setupEmptyTaskMocks();
+    await getMyTaskData(tableConditions, testUser.id);
+
+    expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
+  });
+
+  test("should handle null sort object", async () => {
+    const tableConditions: MyTaskTableConditions = {
+      ...defaultTableConditions,
+      sort: null,
+    };
+
+    setupEmptyTaskMocks();
+    await getMyTaskData(tableConditions, testUser.id);
+
+    expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
+  });
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+describe("ページネーション", () => {
+  test("should apply pagination correctly", async () => {
+    const paginationTests = [
+      { page: 1, itemPerPage: 10, expectedSkip: 0, expectedTake: 10 },
+      { page: 3, itemPerPage: 5, expectedSkip: 10, expectedTake: 5 },
+      { page: 1000, itemPerPage: 50, expectedSkip: 49950, expectedTake: 50 },
+      { page: 1, itemPerPage: 1, expectedSkip: 0, expectedTake: 1 },
+    ];
+
+    for (const { page, itemPerPage, expectedSkip, expectedTake } of paginationTests) {
+      vi.clearAllMocks();
       const tableConditions: MyTaskTableConditions = {
         ...defaultTableConditions,
-        page: 1,
-        itemPerPage: 10,
+        page,
+        itemPerPage,
       };
 
       setupEmptyTaskMocks();
-
-      // Act
       await getMyTaskData(tableConditions, testUser.id);
 
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
-    });
-
-    test("should handle large page number", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        page: 1000,
-        itemPerPage: 50,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
       expect(prismaMock.task.findMany).toHaveBeenCalledWith(
-        getBaseExpectedCall({}, { createdAt: "desc" }, 49950, 50), // (1000 - 1) * 50
+        getBaseExpectedCall({}, { createdAt: "desc" }, expectedSkip, expectedTake),
       );
-    });
+    }
 
-    test("should handle itemPerPage of 1", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        page: 1,
-        itemPerPage: 1,
-      };
+    // 少なくとも1回のアサーションが実行されることを確認
+    expect(paginationTests.length).toBeGreaterThan(0);
+  });
+});
 
-      setupEmptyTaskMocks();
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall({}, { createdAt: "desc" }, 0, 1));
-    });
-
-    test("should handle empty search query", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        searchQuery: "",
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert - 空文字列の場合は検索条件が追加されない
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
-    });
-
-    test("should handle very long search query", async () => {
-      // Arrange
-      const longSearchQuery = "a".repeat(1000);
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        searchQuery: longSearchQuery,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
-        getBaseExpectedCall({
-          task: {
-            contains: longSearchQuery,
-            mode: "insensitive",
-          },
-        }),
-      );
-    });
-
-    test("should handle all possible TaskStatus values", async () => {
-      // Arrange
-      const allTaskStatuses = Object.values(TaskStatus);
-
-      for (const status of allTaskStatuses) {
-        const tableConditions: MyTaskTableConditions = {
-          ...defaultTableConditions,
-          taskStatus: status,
-        };
-
-        setupEmptyTaskMocks();
-
-        // Act
-        await getMyTaskData(tableConditions, testUser.id);
-
-        // Assert
-        expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall({ status }));
-      }
-    });
-
-    test("should handle all possible contributionType values", async () => {
-      // Arrange
-      const allContributionTypes = Object.values(contributionType);
-
-      for (const type of allContributionTypes) {
-        const tableConditions: MyTaskTableConditions = {
-          ...defaultTableConditions,
-          contributionType: type,
-        };
-
-        setupEmptyTaskMocks();
-
-        // Act
-        await getMyTaskData(tableConditions, testUser.id);
-
-        // Assert
-        expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall({ contributionType: type }));
-      }
-    });
+describe("境界値・パターンテスト", () => {
+  test("should handle long search query", async () => {
+    const longSearchQuery = "a".repeat(1000);
+    await testFilter({ searchQuery: longSearchQuery }, { task: { contains: longSearchQuery, mode: "insensitive" } });
+    expect(prismaMock.task.findMany).toHaveBeenCalled();
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  test("should handle all TaskStatus values", async () => {
+    const allTaskStatuses = Object.values(TaskStatus);
+    for (const status of allTaskStatuses) {
+      vi.clearAllMocks();
+      await testFilter({ taskStatus: status }, { status });
+    }
+    expect(allTaskStatuses.length).toBeGreaterThan(0);
+  });
 
-  describe("引数のパターンテスト", () => {
-    test("should handle undefined tableConditions properties", async () => {
-      // Arrange
-      const tableConditions = {
-        page: 1,
-        sort: null,
-        searchQuery: null,
-        taskStatus: "ALL" as const,
-        contributionType: "ALL" as const,
-        itemPerPage: 10,
-      };
+  test("should handle all ContributionType values", async () => {
+    const allContributionTypes = Object.values(ContributionType);
+    for (const type of allContributionTypes) {
+      vi.clearAllMocks();
+      await testFilter({ contributionType: type }, { contributionType: type });
+    }
+    expect(allContributionTypes.length).toBeGreaterThan(0);
+  });
+});
 
-      setupEmptyTaskMocks();
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
+describe("異常系・バリデーション", () => {
+  test.each([
+    {
+      name: "userId is empty",
+      userId: "",
+      conditions: defaultTableConditions,
+    },
+    {
+      name: "userId is null",
+      userId: null,
+      conditions: defaultTableConditions,
+    },
+    {
+      name: "userId is undefined",
+      userId: undefined,
+      conditions: defaultTableConditions,
+    },
+    {
+      name: "tableConditions is null",
+      userId: testUser.id,
+      conditions: null,
+    },
+    {
+      name: "tableConditions is undefined",
+      userId: testUser.id,
+      conditions: undefined,
+    },
+    {
+      name: "tableConditions is empty object",
+      userId: testUser.id,
+      conditions: {},
+    },
+    {
+      name: "tableConditions is empty array",
+      userId: testUser.id,
+      conditions: [],
+    },
+    {
+      name: "tableConditions is invalid contributionType",
+      userId: testUser.id,
+      conditions: { ...defaultTableConditions, contributionType: "INVALID" },
+    },
+    {
+      name: "tableConditions is invalid taskStatus",
+      userId: testUser.id,
+      conditions: { ...defaultTableConditions, taskStatus: "INVALID" },
+    },
+    {
+      name: "invalid taskStatus",
+      userId: testUser.id,
+      conditions: { ...defaultTableConditions, taskStatus: "INVALID" },
+    },
+    {
+      name: "invalid contributionType",
+      userId: testUser.id,
+      conditions: { ...defaultTableConditions, contributionType: "INVALID" },
+    },
+  ])("should throw validation errors when userId or conditions is invalid", async ({ userId, conditions }) => {
+    // Act & Assert
+    await expect(getMyTaskData(conditions as MyTaskTableConditions, userId!)).rejects.toThrow(
+      "タスク情報の取得中にエラーが発生しました",
+    );
+  });
 
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
-    });
-
-    test("should handle null sort object", async () => {
-      // Arrange
-      const tableConditions: MyTaskTableConditions = {
-        ...defaultTableConditions,
-        sort: null,
-      };
-
-      setupEmptyTaskMocks();
-
-      // Act
-      await getMyTaskData(tableConditions, testUser.id);
-
-      // Assert
-      expect(prismaMock.task.findMany).toHaveBeenCalledWith(getBaseExpectedCall());
-    });
+  test.each([
+    {
+      name: "findMany fails",
+      setup: () => prismaMock.task.findMany.mockRejectedValue(new Error("データベースエラー")),
+    },
+    {
+      name: "count fails",
+      setup: () => {
+        prismaMock.task.findMany.mockResolvedValue([]);
+        prismaMock.task.count.mockRejectedValue(new Error("カウントエラー"));
+      },
+    },
+  ])("should handle database errors when findMany or count fails", async ({ setup }) => {
+    setup();
+    await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(
+      "タスク情報の取得中にエラーが発生しました",
+    );
   });
 });

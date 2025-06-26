@@ -1,7 +1,7 @@
 "use server";
 
 import type { GroupDetailTask } from "@/types/group-types";
-import type { contributionType, Prisma, TaskStatus } from "@prisma/client";
+import type { ContributionType, Prisma, TaskStatus } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -15,7 +15,7 @@ type GetTasksByGroupIdProps = {
   sortField: string;
   sortDirection: string;
   searchQuery: string;
-  contributionTypeFilter: "ALL" | contributionType;
+  contributionTypeFilter: "ALL" | ContributionType;
   statusFilter: TaskStatus | "ALL";
   itemPerPage: number;
 };

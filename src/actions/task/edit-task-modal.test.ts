@@ -10,7 +10,7 @@ import {
   taskFactory,
   userFactory,
 } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getTaskById, updateTaskAction } from "./edit-task-modal";
@@ -69,7 +69,7 @@ describe("edit-task-modal.ts", () => {
           task: "テストタスク1",
           detail: "テストタスクの詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           groupId: testGroup.id,
           creatorId: testUser1.id,
         });
@@ -80,7 +80,7 @@ describe("edit-task-modal.ts", () => {
           reference: "https://example.com",
           info: "更新された情報",
           imageUrl: "https://example.com/image.jpg",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
           reporters: [{ name: "報告者1", userId: testUser1.id }],
           executors: [{ name: "実行者1", userId: testUser2.id }],
@@ -161,13 +161,13 @@ describe("edit-task-modal.ts", () => {
         const testTask = taskFactory.build({
           id: "test-task-1",
           groupId: testGroup.id,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
         });
 
         const updateData = {
           task: "報酬タスク",
           detail: "詳細",
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           category: "カテゴリ1",
         };
 
@@ -240,13 +240,13 @@ describe("edit-task-modal.ts", () => {
         const testTask = taskFactory.build({
           id: "test-task-1",
           groupId: testGroup.id,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         });
 
         const updateData = {
           task: "非報酬タスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -302,13 +302,13 @@ describe("edit-task-modal.ts", () => {
         const testTask = taskFactory.build({
           id: "test-task-1",
           groupId: testGroup.id,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
         });
 
         const updateData = {
           task: "非報酬タスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -375,7 +375,7 @@ describe("edit-task-modal.ts", () => {
         const updateData = {
           task: "シンプルタスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -424,7 +424,7 @@ describe("edit-task-modal.ts", () => {
         const updateData = {
           task: "タスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -453,7 +453,7 @@ describe("edit-task-modal.ts", () => {
         const updateData = {
           task: "タスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -479,7 +479,7 @@ describe("edit-task-modal.ts", () => {
         const updateData = {
           task: "タスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -504,7 +504,7 @@ describe("edit-task-modal.ts", () => {
         const updateData = {
           task: "タスク",
           detail: "詳細",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
         };
 
@@ -539,7 +539,7 @@ describe("edit-task-modal.ts", () => {
           reference: "https://example.com",
           info: "情報",
           imageUrl: "https://example.com/image.jpg",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           category: "カテゴリ1",
           createdAt: new Date("2024-01-01"),
           updatedAt: new Date("2024-01-02"),
@@ -696,7 +696,7 @@ describe("edit-task-modal.ts", () => {
         // Arrange
         const testTask = taskFactory.build({
           id: "test-task-1",
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
         });
 
         const mockTaskData = {

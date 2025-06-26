@@ -8,7 +8,7 @@ import { Loading } from "@/components/share/share-loading";
 import { ShareTable } from "@/components/share/table/share-table";
 import { Button } from "@/components/ui/button";
 import { useMyTaskTable } from "@/hooks/task/use-my-task-table";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -281,12 +281,12 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
           filterType: "radio",
           filterText: tableConditions.contributionType ?? "ALL",
           onFilterChange: (value: string) =>
-            changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | contributionType }),
+            changeTableConditions({ ...tableConditions, contributionType: value as "ALL" | ContributionType }),
           placeholder: "タスクタイプで絞り込み...",
           radioOptions: [
             { value: "ALL", label: "全て" },
-            { value: contributionType.NON_REWARD, label: "通常タスク" },
-            { value: contributionType.REWARD, label: "報酬タスク" },
+            { value: ContributionType.NON_REWARD, label: "通常タスク" },
+            { value: ContributionType.REWARD, label: "報酬タスク" },
           ],
         },
         {

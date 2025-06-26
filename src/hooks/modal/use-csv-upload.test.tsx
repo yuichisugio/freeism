@@ -1,5 +1,5 @@
 import { mockToastError, mockUseSession } from "@/test/setup/setup";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -110,7 +110,7 @@ function createMockFile(content: string, filename = "test.csv"): File {
 // 有効なタスクレポートCSVデータを作成
 function createValidTaskReportCsv(): string {
   return `task,contributionType,category,reference,info,auctionStartTime,auctionEndTime,deliveryMethod
-Webサイトのデザイン改修,${contributionType.REWARD},デザイン,https://example.com/design,プルリクURL: https://github.com/org/repo/pull/123,2023-04-01 12:00,2023-04-08 12:00,Amazonほしい物リスト`;
+  Webサイトのデザイン改修,${ContributionType.REWARD},デザイン,https://example.com/design,プルリクURL: https://github.com/org/repo/pull/123,2023-04-01 12:00,2023-04-08 12:00,Amazonほしい物リスト`;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -578,7 +578,7 @@ describe("UPLOAD_TYPE_INFO", () => {
     expect(info.requiredFields).toContain("contributionType");
     expect(info.optionalFields).toBeDefined();
     expect(info.note).toBeDefined();
-    expect(info.example).toContain(contributionType.REWARD);
+    expect(info.example).toContain(ContributionType.REWARD);
   });
 
   test("should have correct structure for CONTRIBUTION_EVALUATION", () => {

@@ -4,7 +4,7 @@ import type { GroupDetailTableConditions, GroupDetailTask, TaskParticipant } fro
 import type { UseQueryOptions } from "@tanstack/react-query";
 import { AllTheProviders, mockUseMutation, mockUseQuery, mockUseQueryClient } from "@/test/setup/tanstack-query-setup";
 import { groupDetailTaskFactory, taskParticipantFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { Factory } from "fishery";
 import { useSession } from "next-auth/react";
@@ -337,7 +337,7 @@ describe("useGroupDetailTable", () => {
       const newConditions = createTestTableConditions({
         page: 2,
         searchQuery: "test query",
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         status: TaskStatus.PENDING,
         itemPerPage: 20,
       });
@@ -350,7 +350,7 @@ describe("useGroupDetailTable", () => {
       // Assert
       expect(mockSetPage).toHaveBeenCalledWith(2);
       expect(mockSetSearchQuery).toHaveBeenCalledWith("test query");
-      expect(mockSetContributionType).toHaveBeenCalledWith(contributionType.REWARD);
+      expect(mockSetContributionType).toHaveBeenCalledWith(ContributionType.REWARD);
       expect(mockSetStatus).toHaveBeenCalledWith(TaskStatus.PENDING);
       expect(mockSetItemPerPage).toHaveBeenCalledWith(20);
     });
@@ -475,7 +475,7 @@ describe("useGroupDetailTable", () => {
       // Arrange
       const testTask = createTestGroupDetailTask({
         taskStatus: TaskStatus.PENDING,
-        taskContributionType: contributionType.NON_REWARD,
+        taskContributionType: ContributionType.NON_REWARD,
         taskReporterUserIds: ["other-user"],
         taskExecutorUserIds: ["other-user"],
       });
@@ -492,7 +492,7 @@ describe("useGroupDetailTable", () => {
       // Arrange
       const testTask = createTestGroupDetailTask({
         taskStatus: TaskStatus.PENDING,
-        taskContributionType: contributionType.NON_REWARD,
+        taskContributionType: ContributionType.NON_REWARD,
         taskReporterUserIds: [testUserId],
         taskExecutorUserIds: ["other-user"],
       });
@@ -509,7 +509,7 @@ describe("useGroupDetailTable", () => {
       // Arrange
       const testTask = createTestGroupDetailTask({
         taskStatus: TaskStatus.PENDING,
-        taskContributionType: contributionType.NON_REWARD,
+        taskContributionType: ContributionType.NON_REWARD,
         taskReporterUserIds: ["other-user"],
         taskExecutorUserIds: [testUserId],
       });
@@ -526,7 +526,7 @@ describe("useGroupDetailTable", () => {
       // Arrange
       const testTask = createTestGroupDetailTask({
         taskStatus: TaskStatus.PENDING,
-        taskContributionType: contributionType.NON_REWARD,
+        taskContributionType: ContributionType.NON_REWARD,
         taskReporterUserIds: ["other-user"],
         taskExecutorUserIds: ["other-user"],
       });
@@ -543,7 +543,7 @@ describe("useGroupDetailTable", () => {
       // Arrange
       const testTask = createTestGroupDetailTask({
         taskStatus: TaskStatus.FIXED_EVALUATED,
-        taskContributionType: contributionType.NON_REWARD,
+        taskContributionType: ContributionType.NON_REWARD,
         taskReporterUserIds: [testUserId],
         taskExecutorUserIds: [testUserId],
       });

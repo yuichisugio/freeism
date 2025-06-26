@@ -24,7 +24,7 @@ import { faker } from "@faker-js/faker";
 import {
   AuctionEventType,
   BidStatus,
-  contributionType,
+  ContributionType,
   NotificationSendMethod,
   NotificationSendTiming,
   NotificationTargetType,
@@ -183,7 +183,7 @@ export const taskFactory = Factory.define<Task>(({ sequence, params }) => {
     status: params.status ?? TaskStatus.PENDING,
     info: params.info ?? faker.lorem.paragraph(),
     detail: params.detail ?? faker.lorem.paragraphs(),
-    contributionType: params.contributionType ?? contributionType.NON_REWARD,
+    contributionType: params.contributionType ?? ContributionType.NON_REWARD,
     createdAt: params.createdAt ?? faker.date.past(),
     creatorId: params.creatorId ?? `user-${sequence}`, // 必須フィールド
     fixedContributionPoint: params.fixedContributionPoint ?? null,
@@ -413,7 +413,7 @@ export const groupDetailTaskFactory = Factory.define<{
   taskName: string;
   taskDetail: string | null;
   taskStatus: string;
-  taskContributionType: contributionType;
+  taskContributionType: ContributionType;
   taskFixedContributionPoint: number | null;
   taskFixedEvaluator: string | null;
   taskFixedEvaluationLogic: string | null;
@@ -438,7 +438,7 @@ export const groupDetailTaskFactory = Factory.define<{
   taskName: params.taskName ?? faker.lorem.sentence(),
   taskDetail: params.taskDetail ?? faker.lorem.paragraph(),
   taskStatus: params.taskStatus ?? TaskStatus.PENDING,
-  taskContributionType: params.taskContributionType ?? contributionType.NON_REWARD,
+  taskContributionType: params.taskContributionType ?? ContributionType.NON_REWARD,
   taskFixedContributionPoint: params.taskFixedContributionPoint ?? null,
   taskFixedEvaluator: params.taskFixedEvaluator ?? null,
   taskFixedEvaluationLogic: params.taskFixedEvaluationLogic ?? null,

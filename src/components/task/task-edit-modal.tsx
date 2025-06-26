@@ -12,7 +12,7 @@ import { Form } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
 import { useTaskEditModal } from "@/hooks/modal/use-task-edit-modal";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -124,8 +124,8 @@ export const TaskEditModal = memo(function TaskEditModal({
               name="contributionType"
               label="貢献の種類"
               options={[
-                { value: contributionType.REWARD, label: "報酬になる貢献" },
-                { value: contributionType.NON_REWARD, label: "報酬にならない貢献" },
+                { value: ContributionType.REWARD, label: "報酬になる貢献" },
+                { value: ContributionType.NON_REWARD, label: "報酬にならない貢献" },
               ]}
             />
 

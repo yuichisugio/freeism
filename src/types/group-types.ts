@@ -1,12 +1,5 @@
-import { type SortDirection as AuctionSortDirection } from "@/types/auction-types";
-import { type contributionType, type TaskStatus } from "@prisma/client";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ソート方向の型
- */
-export type SortDirection = AuctionSortDirection;
+import { type SortDirection } from "@/types/auction-types";
+import { type ContributionType, type TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -116,9 +109,11 @@ export type TableConditions<T> = {
   } | null;
   page: number;
   searchQuery: string | null;
-  isJoined: "isJoined" | "notJoined" | "all";
+  isJoined: (typeof joinStatus)[number];
   itemPerPage: number;
 };
+
+export const joinStatus = ["isJoined", "notJoined", "all"] as const;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -126,7 +121,7 @@ export type TableConditions<T> = {
  * GroupDetailTableのテーブルの条件の型
  */
 export type GroupDetailTableConditions = TableConditions<GroupDetailTask> & {
-  contributionType: "ALL" | contributionType;
+  contributionType: "ALL" | ContributionType;
   status: "ALL" | (string & {});
 };
 
@@ -221,7 +216,7 @@ export type GroupDetailTask = {
   taskName: string;
   taskDetail: string | null;
   taskStatus: string;
-  taskContributionType: contributionType;
+  taskContributionType: ContributionType;
   taskFixedContributionPoint: number | null;
   taskFixedEvaluator: string | null;
   taskFixedEvaluationLogic: string | null;
@@ -272,7 +267,7 @@ export type MyTaskTable = {
   taskName: string;
   taskDetail: string | null;
   taskStatus: TaskStatus;
-  taskContributionType: contributionType;
+  taskContributionType: ContributionType;
   taskFixedContributionPoint: number | null;
   taskFixedEvaluator: string | null;
   taskFixedEvaluationLogic: string | null;
@@ -302,5 +297,5 @@ export type MyTaskTable = {
  */
 export type MyTaskTableConditions = Omit<TableConditions<MyTaskTable>, "isJoined"> & {
   taskStatus: "ALL" | TaskStatus;
-  contributionType: "ALL" | contributionType;
+  contributionType: "ALL" | ContributionType;
 };

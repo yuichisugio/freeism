@@ -1,15 +1,15 @@
 generator client {
   provider        = "prisma-client-js"
-  plugin          = "@prisma/nextjs-monorepo-workaround-plugin"
-  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
   previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  plugin          = "@prisma/nextjs-monorepo-workaround-plugin"
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = [pg_bigm]
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
 model User {
@@ -37,12 +37,12 @@ model User {
   pushSubscriptions  PushSubscription[]
   sessions           Session[]
   taskCreator        Task[]             @relation("TaskCreator")
+  fixedEvaluator     Task[]             @relation("FixedEvaluator")
   userFixedSubmitter Task[]             @relation("UserFixedSubmitter")
   taskExecutor       TaskExecutor[]
   taskReporter       TaskReporter[]
   watchLists         TaskWatchList[]
   settings           UserSettings?
-  fixedEvaluator     Task[]             @relation("FixedEvaluator")
 
   @@index([image])
   @@index([isAppOwner])
@@ -85,32 +85,28 @@ model Session {
 
 model VerificationToken {
   identifier String
-  token      String   @unique
+  token      String   @id @unique
   expires    DateTime
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  @@id([token])
   @@unique([identifier, token])
 }
 
 model UserSettings {
-  id             String  @id @default(cuid())
-  username       String  @default("未設定")
-  lifeGoal       String  @default("未設定") @map("life_goal")
-  isEmailEnabled Boolean @default(false) @map("is_email_enabled")
-  isPushEnabled  Boolean @default(false) @map("is_push_enabled")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  userId String @unique @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
+  id             String   @id @default(cuid())
+  username       String   @default("未設定")
+  createdAt      DateTime @default(now()) @map("created_at")
+  lifeGoal       String   @default("未設定") @map("life_goal")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  userId         String   @unique @map("user_id")
+  isEmailEnabled Boolean  @default(false) @map("is_email_enabled")
+  isPushEnabled  Boolean  @default(false) @map("is_push_enabled")
+  user           User     @relation(fields: [userId], references: [id])
 
   @@index([username])
   @@index([isEmailEnabled])
   @@index([isPushEnabled])
-  @@index([username(ops: raw("gin_bigm_ops"))], type: Gin, map: "idx_user_settings_username_gin")
 }
 
 model Group {
@@ -148,40 +144,40 @@ model GroupMembership {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
-  @@index([userId]) // ユーザーID単体での検索（参加グループ一覧など）を考慮
-  @@index([groupId]) // グループID単体での検索（グループメンバー一覧など）を考慮
-  @@index([isGroupOwner]) // グループオーナーでのフィルタリングを考慮
+  @@index([userId])
+  @@index([groupId])
+  @@index([isGroupOwner])
 }
 
 model Task {
   id                     String           @id @default(cuid())
   task                   String
   reference              String?
-  groupId                String           @map("group_id")
   status                 TaskStatus       @default(PENDING)
   info                   String?
   detail                 String?
-  contributionType       contributionType @default(NON_REWARD) @map("contribution_type")
   createdAt              DateTime         @default(now()) @map("created_at")
   creatorId              String           @map("creator_id")
   fixedContributionPoint Int?             @map("fixed_contribution_point")
   fixedEvaluationDate    DateTime?        @map("fixed_evaluation_date")
   fixedEvaluationLogic   String?          @map("fixed_evaluation_logic")
-  fixedEvaluatorId       String?          @map("fixed_evaluator_id")
   imageUrl               String?          @map("image_url")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   userFixedSubmitterId   String?          @map("user_fixed_submitter_id")
   deliveryMethod         String?          @map("delivery_method")
   category               String?          @default("その他")
+  groupId                String           @map("group_id")
+  fixedEvaluatorId       String?          @map("fixed_evaluator_id")
+  contributionType       ContributionType @default(NON_REWARD) @map("contribution_type")
   analytics              Analytics[]
   auction                Auction?
   notifications          Notification[]
   creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  fixedEvaluator         User?            @relation("FixedEvaluator", fields: [fixedEvaluatorId], references: [id], onDelete: Cascade)
   group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   userFixedSubmitter     User?            @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
   executors              TaskExecutor[]
   reporters              TaskReporter[]
-  fixedEvaluator         User?            @relation("FixedEvaluator", fields: [fixedEvaluatorId], references: [id], onDelete: Cascade)
 
   @@index([contributionType])
   @@index([category])
@@ -193,6 +189,7 @@ model Task {
   @@index([id, creatorId])
   @@index([groupId, status, createdAt(sort: Desc)], map: "idx_task_groupId_status_createdAt_desc")
   @@index([groupId, contributionType, category], map: "idx_task_groupId_contributionType_category")
+  @@index([groupId, status, createdAt(sort: Desc), contributionType], map: "idx_task_groupId_status_createdAt_contributionType_desc")
 }
 
 model Analytics {
@@ -211,7 +208,7 @@ model Analytics {
   @@index([taskId])
   @@index([groupId])
   @@index([evaluator])
-  @@index([groupId, taskId]) // グループ内の特定のタスク分析検索
+  @@index([groupId, taskId])
   @@index([groupId, evaluator])
   @@index([createdAt])
 }
@@ -245,63 +242,54 @@ model Notification {
   @@index([groupId])
   @@index([taskId])
   @@index([auctionId])
-  @@index([sendScheduledDate(sort: Asc)], map: "idx_notification_scheduled")
+  @@index([sendScheduledDate], map: "idx_notification_scheduled")
   @@index([targetType, auctionEventType], map: "idx_notification_target_event")
-  @@index([isRead], type: Gin, map: "idx_notification_isread_gin")
+  @@index([isRead], map: "idx_notification_isread_gin", type: Gin)
   @@index([sendTimingType, sentAt])
-  @@index([createdAt]) // 追加: 通知リストを生成日時のみでソートする場合
-  @@index([expiresAt]) // 追加: 期限切れ通知のクリーンアップ用
+  @@index([createdAt])
+  @@index([expiresAt])
 }
 
 model TaskReporter {
-  id   String  @id @default(cuid())
-  name String? //アプリ未登録者のためにoptional必要。未登録者はUserテーブルがないため、ここに名前を登録する
-
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now()) @map("created_at")
+  taskId    String   @map("task_id")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  taskId String @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  userId String? @map("user_id")
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade) //アプリ未登録者のためにoptional必要
+  userId    String?  @map("user_id")
+  name      String?
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId, userId])
 }
 
 model TaskExecutor {
-  id   String  @id @default(cuid())
-  name String? //アプリ未登録者のためにoptional必要。未登録者はUserテーブルがないため、ここに名前を登録する
-
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now()) @map("created_at")
+  taskId    String   @map("task_id")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  taskId String @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  userId String? @map("user_id")
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade) //アプリ未登録者のためにoptional必要
+  userId    String?  @map("user_id")
+  name      String?
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId, userId])
 }
 
 model TaskWatchList {
-  id String @id @default(cuid())
-
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  auctionId String   @map("auction_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
-  @@index([userId]) // ユーザーID単体での検索（ウォッチリスト一覧など）を考慮
-  @@index([auctionId]) // オークションID単体での検索（オークションのウォッチャー一覧など）を考慮
+  @@index([userId])
+  @@index([auctionId])
 }
 
 model GroupPoint {
@@ -320,39 +308,32 @@ model GroupPoint {
 }
 
 model Auction {
-  id                String   @id @default(cuid())
-  startTime         DateTime @map("start_time")
-  endTime           DateTime @map("end_time")
-  currentHighestBid Int      @default(0) @map("current_highest_bid")
-  version           Int      @default(1) // 楽観的更新に使用
-
-  isExtension               Boolean @default(false) @map("is_extension") // オークション延長をするかどうかのフラグ
-  extensionTotalCount       Int     @default(0) @map("extension_total_count")
-  extensionLimitCount       Int     @default(2) @map("extension_limit_count")
-  extensionTime             Int     @default(10) @map("extension_time")
-  remainingTimeForExtension Int     @default(10) @map("remaining_time_for_extension")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  currentHighestBidderId String? @map("current_highest_bidder_id")
-  currentHighestBidder   User?   @relation("HighestBidder", fields: [currentHighestBidderId], references: [id])
-
-  groupId String @map("group_id")
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  taskId String @unique @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  winnerId String? @map("winner_id")
-  winner   User?   @relation("AuctionWinner", fields: [winnerId], references: [id])
-
-  messages      AuctionMessage[]
-  reviews       AuctionReview[]
-  autoBids      AutoBid[]
-  bidHistories  BidHistory[]
-  notifications Notification[]
-  watchlists    TaskWatchList[]
+  id                        String           @id @default(cuid())
+  taskId                    String           @unique @map("task_id")
+  startTime                 DateTime         @map("start_time")
+  endTime                   DateTime         @map("end_time")
+  currentHighestBid         Int              @default(0) @map("current_highest_bid")
+  currentHighestBidderId    String?          @map("current_highest_bidder_id")
+  winnerId                  String?          @map("winner_id")
+  version                   Int              @default(1)
+  createdAt                 DateTime         @default(now()) @map("created_at")
+  updatedAt                 DateTime         @updatedAt @map("updated_at")
+  groupId                   String           @map("group_id")
+  extensionLimitCount       Int              @default(2) @map("extension_limit_count")
+  extensionTotalCount       Int              @default(0) @map("extension_total_count")
+  isExtension               Boolean          @default(false) @map("is_extension")
+  extensionTime             Int              @default(10) @map("extension_time")
+  remainingTimeForExtension Int              @default(10) @map("remaining_time_for_extension")
+  currentHighestBidder      User?            @relation("HighestBidder", fields: [currentHighestBidderId], references: [id])
+  group                     Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  task                      Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  winner                    User?            @relation("AuctionWinner", fields: [winnerId], references: [id])
+  messages                  AuctionMessage[]
+  reviews                   AuctionReview[]
+  autoBids                  AutoBid[]
+  bidHistories              BidHistory[]
+  notifications             Notification[]
+  watchlists                TaskWatchList[]
 
   @@index([currentHighestBidderId])
   @@index([winnerId])
@@ -360,7 +341,7 @@ model Auction {
   @@index([version])
   @@index([startTime])
   @@index([endTime])
-  @@index([groupId, endTime(sort: Asc)], map: "idx_auction_group_end")
+  @@index([groupId, endTime], map: "idx_auction_group_end")
   @@index([groupId, startTime(sort: Desc)], map: "idx_auction_group_start_desc")
   @@index([groupId, currentHighestBid(sort: Desc)], map: "idx_auction_group_highestBid_desc")
   @@index([id, version])
@@ -370,21 +351,17 @@ model Auction {
 }
 
 model BidHistory {
-  id String @id @default(cuid())
-
+  id           String    @id @default(cuid())
+  auctionId    String    @map("auction_id")
+  userId       String    @map("user_id")
   amount       Int
   isAutoBid    Boolean   @default(false) @map("is_auto_bid")
   status       BidStatus @default(BIDDING)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
   depositPoint Int?      @map("deposit_point")
-
-  auctionId String  @map("auction_id")
-  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  auction      Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([auctionId])
   @@index([userId])
@@ -409,11 +386,10 @@ model AutoBid {
 
   @@unique([userId, auctionId])
   @@index([maxBidAmount])
-  @@index([auctionId, isActive, maxBidAmount(sort: Desc), createdAt(sort: Asc)], map: "idx_autoBid_auction_active_maxbid_createdat")
+  @@index([auctionId, isActive, maxBidAmount(sort: Desc), createdAt], map: "idx_autoBid_auction_active_maxbid_createdat")
   @@index([auctionId, userId, isActive, maxBidAmount], map: "idx_autoBid_auction_user_active_maxbid")
 }
 
-// 相互にレビューする。isSellerReviewでレビューの種類を区別する。isSellerReviewがtrueの場合は出品者の時に落札者に対して行う
 model AuctionReview {
   id                 String         @id @default(cuid())
   auctionId          String         @map("auction_id")
@@ -422,24 +398,19 @@ model AuctionReview {
   rating             Int
   comment            String?
   completionProofUrl String?        @map("completion_proof_url")
-  reviewPosition     ReviewPosition @map("review_position")
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
+  reviewPosition     ReviewPosition @map("review_position")
   auction            Auction        @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   reviewee           User           @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
   reviewer           User           @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, reviewerId, revieweeId])
-  @@index([auctionId, reviewerId]) // 特定オークションに対する特定のレビュアーのレビュー検索
-  @@index([revieweeId]) // 特定ユーザーが受け取ったレビュー一覧
-  @@index([reviewerId]) // 特定ユーザーが行ったレビュー一覧
+  @@index([auctionId, reviewerId])
+  @@index([revieweeId])
+  @@index([reviewerId])
   @@index([rating])
   @@index([reviewPosition])
-}
-
-enum ReviewPosition {
-  SELLER_TO_BUYER
-  BUYER_TO_SELLER
 }
 
 model AuctionMessage {
@@ -455,7 +426,7 @@ model AuctionMessage {
   @@index([auctionId])
   @@index([senderId])
   @@index([auctionId, createdAt])
-  @@index([auctionId, senderId, createdAt(sort: Asc)])
+  @@index([auctionId, senderId, createdAt])
 }
 
 model PushSubscription {
@@ -473,22 +444,27 @@ model PushSubscription {
   @@index([userId])
 }
 
-enum contributionType {
+enum ReviewPosition {
+  SELLER_TO_BUYER
+  BUYER_TO_SELLER
+}
+
+enum ContributionType {
   REWARD
   NON_REWARD
 }
 
 enum TaskStatus {
   PENDING
-  AUCTION_ACTIVE
-  AUCTION_ENDED
   POINTS_DEPOSITED
-  SUPPLIER_DONE
   TASK_COMPLETED
   FIXED_EVALUATED
   POINTS_AWARDED
-  AUCTION_CANCELED
   ARCHIVED
+  SUPPLIER_DONE
+  AUCTION_ACTIVE
+  AUCTION_ENDED
+  AUCTION_CANCELED
 }
 
 enum NotificationTargetType {

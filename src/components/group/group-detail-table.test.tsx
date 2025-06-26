@@ -1,7 +1,7 @@
 import React from "react";
 import { AllTheProviders } from "@/test/setup/tanstack-query-setup";
 import { groupDetailTaskFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -259,7 +259,7 @@ describe("GroupDetailTable", () => {
         sort: { field: "taskName", direction: "asc" },
         page: 2,
         searchQuery: "test query",
-        contributionType: contributionType.REWARD,
+        contributionType: ContributionType.REWARD,
         status: TaskStatus.PENDING,
         itemPerPage: 20,
         isJoined: "all",
@@ -378,14 +378,14 @@ describe("GroupDetailTable", () => {
       const rewardTask = groupDetailTaskFactory.build({
         id: "reward-task",
         taskName: "報酬タスク",
-        taskContributionType: contributionType.REWARD,
+        taskContributionType: ContributionType.REWARD,
         taskFixedContributionPoint: 100,
       });
 
       const nonRewardTask = groupDetailTaskFactory.build({
         id: "non-reward-task",
         taskName: "通常タスク",
-        taskContributionType: contributionType.NON_REWARD,
+        taskContributionType: ContributionType.NON_REWARD,
         taskFixedContributionPoint: null,
       });
 

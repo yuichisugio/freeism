@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -57,7 +57,7 @@ export async function bulkCreateTask(
               detail: row.detail ?? null,
               reference: row.reference ?? null,
               info: row.info ?? null,
-              contributionType: (row.contributionType as contributionType) ?? contributionType.NON_REWARD,
+              contributionType: (row.contributionType as ContributionType) ?? ContributionType.NON_REWARD,
               creatorId: userId,
               groupId: groupId,
               // 提供方法を追加
@@ -83,7 +83,7 @@ export async function bulkCreateTask(
           });
 
           // 報酬タイプがREWARDの場合はオークションを作成
-          if (row.contributionType === contributionType.REWARD) {
+          if (row.contributionType === ContributionType.REWARD) {
             // 日時文字列をDate型に変換
             let startTime = new Date();
             let endTime = new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // デフォルトは1週間後

@@ -9,7 +9,7 @@ import { getAllUsers } from "@/actions/user/user";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { taskFormSchema } from "@/library-setting/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -181,7 +181,7 @@ export function useTaskEditModal({
       detail: "",
       reference: "",
       info: "",
-      contributionType: contributionType.REWARD,
+      contributionType: ContributionType.REWARD,
       category: "その他",
       executors: [],
       reporters: [],
@@ -195,7 +195,7 @@ export function useTaskEditModal({
    * 現在選択されている貢献タイプを監視
    */
   const selectedContributionType = useMemo(() => form.watch("contributionType"), [form]);
-  const isRewardType = useMemo(() => selectedContributionType === contributionType.REWARD, [selectedContributionType]);
+  const isRewardType = useMemo(() => selectedContributionType === ContributionType.REWARD, [selectedContributionType]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

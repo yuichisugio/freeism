@@ -9,7 +9,7 @@ import { Loading } from "@/components/share/share-loading";
 import { UserCombobox } from "@/components/share/user-combobox";
 import { useTaskInputForm } from "@/hooks/form/use-create-task-form";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
-import { contributionType } from "@prisma/client";
+import { ContributionType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -113,8 +113,8 @@ export const CreateTaskForm = memo(function CreateTaskForm(): JSX.Element {
         name="contributionType"
         label="貢献の種類"
         options={[
-          { value: contributionType.REWARD, label: "報酬になる貢献" },
-          { value: contributionType.NON_REWARD, label: "報酬にならない貢献" },
+          { value: ContributionType.REWARD, label: "報酬になる貢献" },
+          { value: ContributionType.NON_REWARD, label: "報酬にならない貢献" },
         ]}
       />
 

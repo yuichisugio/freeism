@@ -7,7 +7,7 @@ import {
   userFactory,
   userSettingsFactory,
 } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { getGroupTaskAndCount } from "./group-detail-table";
@@ -42,7 +42,7 @@ type MockTaskData = {
   task: string;
   detail: string;
   status: TaskStatus;
-  contributionType: contributionType;
+  contributionType: ContributionType;
   fixedContributionPoint: number | null;
   fixedEvaluationLogic: string | null;
   createdAt: Date;
@@ -71,7 +71,7 @@ function createMockTaskData(overrides: Partial<MockTaskData> = {}): MockTaskData
     task: overrides.task ?? "テストタスク",
     detail: overrides.detail ?? "テストタスクの詳細",
     status: overrides.status ?? TaskStatus.PENDING,
-    contributionType: overrides.contributionType ?? contributionType.NON_REWARD,
+    contributionType: overrides.contributionType ?? ContributionType.NON_REWARD,
     fixedContributionPoint: overrides.fixedContributionPoint ?? null,
     fixedEvaluationLogic: overrides.fixedEvaluationLogic ?? null,
     createdAt: overrides.createdAt ?? new Date("2024-01-01"),
@@ -109,7 +109,7 @@ describe("group-detail-table.ts", () => {
           task: "テストタスク1",
           detail: "テストタスクの詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           fixedContributionPoint: 100,
           fixedEvaluationLogic: "自動評価",
           groupId: testGroup.id,
@@ -212,7 +212,7 @@ describe("group-detail-table.ts", () => {
           task: "検索対象タスク",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           createdAt: new Date(),
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
@@ -262,7 +262,7 @@ describe("group-detail-table.ts", () => {
           task: "報酬タスク",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           fixedContributionPoint: 500,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
@@ -278,7 +278,7 @@ describe("group-detail-table.ts", () => {
           sortField: "createdAt",
           sortDirection: "desc",
           searchQuery: "",
-          contributionTypeFilter: contributionType.REWARD,
+          contributionTypeFilter: ContributionType.REWARD,
           statusFilter: "ALL" as const,
           itemPerPage: 10,
         };
@@ -290,7 +290,7 @@ describe("group-detail-table.ts", () => {
         expect(prismaMock.task.findMany).toHaveBeenCalledWith({
           where: {
             groupId: testGroup.id,
-            contributionType: contributionType.REWARD,
+            contributionType: ContributionType.REWARD,
           },
           orderBy: { createdAt: "desc" },
           skip: 0,
@@ -298,7 +298,7 @@ describe("group-detail-table.ts", () => {
           select: expect.any(Object) as unknown as Prisma.TaskSelect,
         });
 
-        expect(result.returnTasks[0].taskContributionType).toBe(contributionType.REWARD);
+        expect(result.returnTasks[0].taskContributionType).toBe(ContributionType.REWARD);
       });
 
       test("should handle status filtering", async () => {
@@ -308,7 +308,7 @@ describe("group-detail-table.ts", () => {
           task: "完了タスク",
           detail: "詳細",
           status: TaskStatus.TASK_COMPLETED,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
@@ -353,7 +353,7 @@ describe("group-detail-table.ts", () => {
           task: "ソートテストタスク",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           fixedContributionPoint: 100,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
@@ -394,7 +394,7 @@ describe("group-detail-table.ts", () => {
           task: "ページネーションテスト",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
@@ -436,7 +436,7 @@ describe("group-detail-table.ts", () => {
           task: "参加者ありタスク",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
           reporters: [
             { user: { settings: { id: "reporter-1", username: "報告者1" } } },
@@ -478,7 +478,7 @@ describe("group-detail-table.ts", () => {
           task: "null設定テスト",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
           reporters: [
             { user: { settings: { id: "reporter-1", username: "報告者1" } } },
@@ -552,7 +552,7 @@ describe("group-detail-table.ts", () => {
           task: "複合フィルターテスト",
           detail: "詳細",
           status: TaskStatus.TASK_COMPLETED,
-          contributionType: contributionType.REWARD,
+          contributionType: ContributionType.REWARD,
           fixedContributionPoint: 200,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
@@ -568,7 +568,7 @@ describe("group-detail-table.ts", () => {
           sortField: "task",
           sortDirection: "asc",
           searchQuery: "複合",
-          contributionTypeFilter: contributionType.REWARD,
+          contributionTypeFilter: ContributionType.REWARD,
           statusFilter: TaskStatus.TASK_COMPLETED,
           itemPerPage: 5,
         };
@@ -584,7 +584,7 @@ describe("group-detail-table.ts", () => {
               contains: "複合",
               mode: "insensitive",
             },
-            contributionType: contributionType.REWARD,
+            contributionType: ContributionType.REWARD,
             status: TaskStatus.TASK_COMPLETED,
           },
           orderBy: { task: "asc" },
@@ -626,7 +626,7 @@ describe("group-detail-table.ts", () => {
           task: "テストタスク",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
@@ -702,7 +702,7 @@ describe("group-detail-table.ts", () => {
           task: "境界値テスト",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
@@ -776,7 +776,7 @@ describe("group-detail-table.ts", () => {
           task: "1件表示テスト",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
@@ -850,7 +850,7 @@ describe("group-detail-table.ts", () => {
           task: "空文字検索テスト",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 
@@ -932,7 +932,7 @@ describe("group-detail-table.ts", () => {
           task: "セレクトフィールドテスト",
           detail: "詳細",
           status: TaskStatus.PENDING,
-          contributionType: contributionType.NON_REWARD,
+          contributionType: ContributionType.NON_REWARD,
           creator: { settings: { id: "settings-1", username: "作成者" } },
         });
 

@@ -8,7 +8,7 @@ import { getMyTaskData } from "@/actions/task/my-task-table";
 import { deleteTask as deleteTaskAction } from "@/actions/task/task";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { type contributionType, type TaskStatus } from "@prisma/client";
+import { type ContributionType, type TaskStatus } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
@@ -94,7 +94,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
       page,
       searchQuery,
       taskStatus: taskStatus as "ALL" | TaskStatus,
-      contributionType: contributionType as "ALL" | contributionType,
+      contributionType: contributionType as "ALL" | ContributionType,
       itemPerPage,
     }),
     [page, sortField, sortDirection, searchQuery, taskStatus, contributionType, itemPerPage],

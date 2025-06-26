@@ -1,7 +1,7 @@
 import type { MyTaskTable } from "@/types/group-types";
 import { AllTheProviders } from "@/test/setup/tanstack-query-setup";
 import { taskFactory, userFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { contributionType, TaskStatus } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -341,7 +341,7 @@ describe("MyTaskTableComponent", () => {
 
     test("should handle task with all possible contributionType values", () => {
       // Arrange
-      const contributionTypes = Object.values(contributionType);
+      const contributionTypes = Object.values(ContributionType);
       const tasks = contributionTypes.map((type, index) =>
         createTestMyTaskTable({
           id: `task-${index}`,
