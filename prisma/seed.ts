@@ -33,7 +33,7 @@ console.log("乱数シードを設定しました。シード値: ", randomSeed)
  * 設定変更時は相互依存関係に注意してください。
  */
 // 保持する固定ユーザーID (外部からアクセス可能にする)
-const PRESERVED_USER_IDS = ["cmas8p75j0000g5qe2bee95b6", "cmarmneqq0000g5dyo5md5f84"];
+const PRESERVED_USER_IDS = ["cmceeh5c80004mcl28r6rwyv0", "cmarmneqq0000g5dyo5md5f84"];
 
 const SEED_CONFIG = {
   // 基本設定

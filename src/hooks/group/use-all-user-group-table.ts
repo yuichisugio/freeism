@@ -178,9 +178,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroupConditions(tableConditions) }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
-      if (userId) {
-        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
-      }
+      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId ?? "") });
     },
   });
 

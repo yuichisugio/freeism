@@ -316,11 +316,6 @@ export function useExportDataModal({
           // APIからデータを取得
           const result = await exportGroupAnalytics(groupId, state.page, state.onlyFixed);
 
-          if ("error" in result) {
-            toast.error(result.error);
-            return;
-          }
-
           // データを取得
           const resultData = result.data;
 
