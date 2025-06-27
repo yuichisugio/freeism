@@ -17,10 +17,15 @@ export type CreateTaskParams = TaskFormValuesAndGroupId & {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * タスク作成フォームのデータを返却
+ */
 export type PrepareCreateTaskFormReturn = {
   groups: { id: string; name: string }[];
   users: { id: string; name: string }[];
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスク作成フォームのデータを取得
@@ -52,6 +57,15 @@ export async function prepareCreateTaskForm(): Promise<PrepareCreateTaskFormRetu
       },
     },
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーが所属するグループがない場合は空の配列を返却
+   */
+  if (memberships.length === 0) {
+    return { groups: [], users: [] };
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -224,11 +238,6 @@ export async function createTask(data: CreateTaskParams): Promise<{ success: boo
           taskId: newTask.id,
           startTime,
           endTime,
-          currentHighestBid: 0,
-          extensionTotalCount: 0,
-          extensionLimitCount: 3,
-          extensionTime: 10,
-          remainingTimeForExtension: 10,
           groupId: data.groupId,
           isExtension,
         },
@@ -255,6 +264,6 @@ export async function createTask(data: CreateTaskParams): Promise<{ success: boo
      * エラーを返却
      */
     console.error("[CREATE_TASK]", error);
-    throw new Error("タスクの作成中にエラーが発生しました");
+    throw new Error(`タスクの作成中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
   }
 }

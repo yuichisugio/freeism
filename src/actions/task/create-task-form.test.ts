@@ -58,11 +58,11 @@ const testUserSettings2 = userSettingsFactory.build({
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * テストヘルパー関数
+ * タスク作成フォームのパラメータを作成するヘルパー関数
+ * @param overrides 上書きするパラメータ
+ * @returns タスク作成フォームのパラメータ
  */
-
-// 基本タスクデータを作成するヘルパー関数
-const createBaseTaskData = (overrides: Partial<CreateTaskParams> = {}): CreateTaskParams => ({
+const createTaskFuncParams = (overrides: Partial<CreateTaskParams> = {}): CreateTaskParams => ({
   task: "テストタスク",
   detail: "テストタスクの詳細",
   reference: "https://example.com",
@@ -76,50 +76,6 @@ const createBaseTaskData = (overrides: Partial<CreateTaskParams> = {}): CreateTa
   executors: [{ userId: testUser2.id, name: testUser2.name ?? undefined }],
   ...overrides,
 });
-
-// グループ存在チェックのモックセットアップ
-const setupGroupExistsCheck = (exists = true) => {
-  const groupData = exists ? { id: testGroup.id } : null;
-  prismaMock.group.findUnique.mockResolvedValue(
-    groupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-  );
-};
-
-// タスク作成成功時の共通モックセットアップ
-const setupSuccessfulTaskCreation = () => {
-  const createdTask = taskFactory.build({
-    id: "created-task-id",
-    groupId: testGroup.id,
-    creatorId: testUser.id,
-  });
-
-  setupGroupExistsCheck(true);
-  prismaMock.task.create.mockResolvedValue(createdTask);
-
-  return createdTask;
-};
-
-// オークション作成のモックセットアップ
-const setupAuctionCreation = (taskId: string) => {
-  const createdAuction = auctionFactory.build({
-    taskId,
-    groupId: testGroup.id,
-  });
-  prismaMock.auction.create.mockResolvedValue(createdAuction);
-  return createdAuction;
-};
-
-// 成功結果の共通検証
-const assertSuccessResult = (result: { success: boolean }) => {
-  expect(result).toStrictEqual({ success: true });
-  expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
-};
-
-// エラー結果の共通検証（実装に合わせてthrowをテスト）
-const assertTaskCreationError = async (taskData: CreateTaskParams) => {
-  await expect(createTask(taskData)).rejects.toThrow("タスクの作成中にエラーが発生しました");
-  expect(mockRevalidatePath).not.toHaveBeenCalled();
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -235,18 +191,28 @@ describe("create-task-form.ts", () => {
     describe("正常系", () => {
       test("should create task successfully with NON_REWARD contribution type", async () => {
         // Arrange
-        const taskData = createBaseTaskData();
-        setupSuccessfulTaskCreation();
+        const taskData = createTaskFuncParams();
+        const createdTask = taskFactory.build({
+          id: "created-task-id",
+          groupId: testGroup.id,
+          creatorId: testUser.id,
+        });
+
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
+        prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
         const result = await createTask(taskData);
 
         // Assert
-        assertSuccessResult(result);
+        expect(result).toStrictEqual({ success: true });
         expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
           where: { id: testGroup.id },
           select: { id: true },
         });
+        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
         expect(prismaMock.task.create).toHaveBeenCalledWith({
           data: {
             task: taskData.task,
@@ -267,120 +233,157 @@ describe("create-task-form.ts", () => {
             },
           },
         });
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
       });
 
       test("should create task with REWARD contribution type and auction", async () => {
         // Arrange
-        const rewardTaskData = createBaseTaskData({
+        const rewardTaskData = createTaskFuncParams({
           contributionType: ContributionType.REWARD,
           auctionStartTime: new Date("2024-01-01T00:00:00Z"),
           auctionEndTime: new Date("2024-01-08T00:00:00Z"),
           isExtension: "true",
         });
 
-        const createdTask = setupSuccessfulTaskCreation();
-        setupAuctionCreation(createdTask.id);
+        const createdTask = taskFactory.build({
+          id: "created-task-id",
+          groupId: testGroup.id,
+          creatorId: testUser.id,
+        });
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
+        prismaMock.task.create.mockResolvedValue(createdTask);
+        const createdAuction = auctionFactory.build({
+          taskId: createdTask.id,
+          groupId: testGroup.id,
+        });
+        prismaMock.auction.create.mockResolvedValue(createdAuction);
 
         // Act
         const result = await createTask(rewardTaskData);
 
         // Assert
-        assertSuccessResult(result);
+        expect(result).toStrictEqual({ success: true });
         expect(prismaMock.auction.create).toHaveBeenCalledWith({
           data: {
             taskId: createdTask.id,
-            startTime: rewardTaskData.auctionStartTime,
-            endTime: rewardTaskData.auctionEndTime,
-            currentHighestBid: 0,
-            extensionTotalCount: 0,
-            extensionLimitCount: 3,
-            extensionTime: 10,
-            remainingTimeForExtension: 10,
+            startTime: new Date("2024-01-01T00:00:00Z"),
+            endTime: new Date("2024-01-08T00:00:00Z"),
             groupId: testGroup.id,
             isExtension: true,
           },
         });
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
       });
 
-      test("should create task with default participants when not provided or empty", async () => {
-        // Arrange - undefinedとempty arrayの両方をテスト（共通の結果なので統合）
-        const testCases = [
-          { reporters: undefined, executors: undefined },
-          { reporters: [], executors: [] },
-        ];
-
-        for (const participantOverrides of testCases) {
-          vi.clearAllMocks();
-          mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-
-          const taskData = createBaseTaskData(participantOverrides);
-          setupSuccessfulTaskCreation();
+      test.each([
+        { reporters: undefined, executors: undefined },
+        { reporters: [], executors: undefined },
+        { reporters: undefined, executors: [] },
+        { reporters: [], executors: [] },
+      ])(
+        "should create task with default participants when not provided or empty",
+        async ({ reporters, executors }) => {
+          // Arrange
+          const taskData = createTaskFuncParams({ reporters, executors });
+          const createdTask = taskFactory.build({
+            id: "created-task-id",
+            groupId: testGroup.id,
+            creatorId: testUser.id,
+          });
+          prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+            ReturnType<typeof prismaMock.group.findUnique>
+          >);
+          prismaMock.task.create.mockResolvedValue(createdTask);
 
           // Act
           const result = await createTask(taskData);
 
           // Assert
-          assertSuccessResult(result);
+          expect(result).toStrictEqual({ success: true });
+          expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
           expect(prismaMock.task.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
               reporters: { create: [{ userId: testUser.id }] },
               executors: { create: [{ userId: testUser.id }] },
             }) as unknown as Prisma.TaskCreateInput,
           });
-        }
-      });
+        },
+      );
 
-      test("should handle isExtension value conversion (string to boolean)", async () => {
-        // Arrange - 文字列と真偽値の両方をテスト
-        const testCases = [
-          { isExtension: "false", expectedValue: false },
-          { isExtension: "true", expectedValue: true },
-          { isExtension: false, expectedValue: false },
-          { isExtension: true, expectedValue: true },
-        ] as const;
-
-        for (const { isExtension, expectedValue } of testCases) {
-          vi.clearAllMocks();
-          mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-
-          const rewardTaskData = createBaseTaskData({
+      test.each([
+        { isExtension: "false", expectedValue: false },
+        { isExtension: "true", expectedValue: true },
+        { isExtension: false, expectedValue: false },
+        { isExtension: true, expectedValue: true },
+      ] as const)(
+        "should handle isExtension value conversion (string to boolean)",
+        async ({ isExtension, expectedValue }) => {
+          // Arrange
+          const rewardTaskData = createTaskFuncParams({
             contributionType: ContributionType.REWARD,
             isExtension: isExtension as string,
           });
 
-          const createdTask = setupSuccessfulTaskCreation();
-          setupAuctionCreation(createdTask.id);
+          const createdTask = taskFactory.build({
+            id: "created-task-id",
+            groupId: testGroup.id,
+            creatorId: testUser.id,
+          });
+          prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+            ReturnType<typeof prismaMock.group.findUnique>
+          >);
+          prismaMock.task.create.mockResolvedValue(createdTask);
+          const createdAuction = auctionFactory.build({
+            taskId: createdTask.id,
+            groupId: testGroup.id,
+          });
+          prismaMock.auction.create.mockResolvedValue(createdAuction);
 
           // Act
           const result = await createTask(rewardTaskData);
 
           // Assert
-          assertSuccessResult(result);
+          expect(result).toStrictEqual({ success: true });
+          expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
           expect(prismaMock.auction.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
               isExtension: expectedValue,
             }) as unknown as Prisma.AuctionCreateInput,
           });
-        }
-      });
+        },
+      );
 
       test("should use default auction times when not provided", async () => {
         // Arrange
-        const rewardTaskData = createBaseTaskData({
+        const rewardTaskData = createTaskFuncParams({
           contributionType: ContributionType.REWARD,
           auctionStartTime: undefined,
           auctionEndTime: undefined,
         });
 
-        setupSuccessfulTaskCreation();
-        const taskId = "created-task-id";
-        setupAuctionCreation(taskId);
+        const createdTask = taskFactory.build({
+          id: "created-task-id",
+          groupId: testGroup.id,
+          creatorId: testUser.id,
+        });
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
+        prismaMock.task.create.mockResolvedValue(createdTask);
+        const createdAuction = auctionFactory.build({
+          taskId: "created-task-id",
+          groupId: testGroup.id,
+        });
+        prismaMock.auction.create.mockResolvedValue(createdAuction);
 
         // Act
         const result = await createTask(rewardTaskData);
 
         // Assert
-        assertSuccessResult(result);
+        expect(result).toStrictEqual({ success: true });
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
         expect(prismaMock.auction.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             startTime: expect.any(Date) as unknown as Date,
@@ -393,49 +396,70 @@ describe("create-task-form.ts", () => {
     describe("異常系", () => {
       test("should throw error when group not found", async () => {
         // Arrange
-        const taskData = createBaseTaskData();
-        setupGroupExistsCheck(false);
+        const taskData = createTaskFuncParams();
+        prismaMock.group.findUnique.mockResolvedValue(
+          null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+        );
 
         // Act & Assert
-        await expect(createTask(taskData)).rejects.toThrow("タスクの作成中にエラーが発生しました");
+        await expect(createTask(taskData)).rejects.toThrow(
+          "タスクの作成中にエラーが発生しました: グループが見つかりません",
+        );
         expect(prismaMock.task.create).not.toHaveBeenCalled();
         expect(mockRevalidatePath).not.toHaveBeenCalled();
       });
 
       test("should throw error when getAuthenticatedSessionUserId fails", async () => {
         // Arrange
-        const taskData = createBaseTaskData();
-        setupGroupExistsCheck(true);
+        const taskData = createTaskFuncParams();
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
 
         // Act & Assert
-        await assertTaskCreationError(taskData);
+        await expect(createTask(taskData)).rejects.toThrow("タスクの作成中にエラーが発生しました: 認証エラー");
         expect(prismaMock.task.create).not.toHaveBeenCalled();
+        expect(mockRevalidatePath).not.toHaveBeenCalled();
+        expect(prismaMock.task.create).not.toHaveBeenCalled();
+        expect(mockRevalidatePath).not.toHaveBeenCalled();
       });
 
       test("should throw error when task creation fails", async () => {
         // Arrange
-        const taskData = createBaseTaskData();
-        setupGroupExistsCheck(true);
+        const taskData = createTaskFuncParams();
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
         prismaMock.task.create.mockRejectedValue(new Error("データベースエラー"));
 
         // Act & Assert
-        await assertTaskCreationError(taskData);
-        expect(prismaMock.task.create).toHaveBeenCalled();
+        await expect(createTask(taskData)).rejects.toThrow("タスクの作成中にエラーが発生しました: データベースエラー");
+        expect(mockRevalidatePath).not.toHaveBeenCalled();
       });
 
       test("should throw error when auction creation fails", async () => {
         // Arrange
-        const rewardTaskData = createBaseTaskData({
+        const rewardTaskData = createTaskFuncParams({
           contributionType: ContributionType.REWARD,
         });
 
-        setupSuccessfulTaskCreation();
+        const createdTask = taskFactory.build({
+          id: "created-task-id",
+          groupId: testGroup.id,
+          creatorId: testUser.id,
+        });
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
+        prismaMock.task.create.mockResolvedValue(createdTask);
         prismaMock.auction.create.mockRejectedValue(new Error("オークション作成エラー"));
 
         // Act & Assert
-        await assertTaskCreationError(rewardTaskData);
-        expect(prismaMock.task.create).toHaveBeenCalled();
+        await expect(createTask(rewardTaskData)).rejects.toThrow(
+          "タスクの作成中にエラーが発生しました: オークション作成エラー",
+        );
+        expect(mockRevalidatePath).not.toHaveBeenCalled();
         expect(prismaMock.auction.create).toHaveBeenCalled();
       });
     });
@@ -443,7 +467,7 @@ describe("create-task-form.ts", () => {
     describe("境界値テスト", () => {
       test("should handle minimum required fields", async () => {
         // Arrange
-        const minimalTaskData = createBaseTaskData({
+        const minimalTaskData = createTaskFuncParams({
           task: "最小タスク",
           detail: undefined,
           reference: undefined,
@@ -455,13 +479,22 @@ describe("create-task-form.ts", () => {
           executors: undefined,
         });
 
-        setupSuccessfulTaskCreation();
+        const createdTask = taskFactory.build({
+          id: "created-task-id",
+          groupId: testGroup.id,
+          creatorId: testUser.id,
+        });
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
+        prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
         const result = await createTask(minimalTaskData);
 
         // Assert
-        assertSuccessResult(result);
+        expect(result).toStrictEqual({ success: true });
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
         expect(prismaMock.task.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             task: "最小タスク",
@@ -474,7 +507,7 @@ describe("create-task-form.ts", () => {
 
       test("should handle various null and empty values", async () => {
         // Arrange - null、undefined、空文字の境界値を統合テスト
-        const taskDataWithVariousValues = createBaseTaskData({
+        const taskDataWithVariousValues = createTaskFuncParams({
           detail: "",
           reference: undefined,
           info: undefined,
@@ -482,13 +515,22 @@ describe("create-task-form.ts", () => {
           category: undefined,
         });
 
-        setupSuccessfulTaskCreation();
+        const createdTask = taskFactory.build({
+          id: "created-task-id",
+          groupId: testGroup.id,
+          creatorId: testUser.id,
+        });
+        prismaMock.group.findUnique.mockResolvedValue({ id: testGroup.id } as unknown as Awaited<
+          ReturnType<typeof prismaMock.group.findUnique>
+        >);
+        prismaMock.task.create.mockResolvedValue(createdTask);
 
         // Act
         const result = await createTask(taskDataWithVariousValues);
 
         // Assert
-        assertSuccessResult(result);
+        expect(result).toStrictEqual({ success: true });
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
         expect(prismaMock.task.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             detail: "",
