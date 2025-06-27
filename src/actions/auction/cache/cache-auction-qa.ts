@@ -2,6 +2,7 @@
 
 import type { AuctionMessage, AuctionPersonInfo } from "@/hooks/auction/bid/use-auction-qa";
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 import { type Prisma } from "@prisma/client";
 
@@ -22,7 +23,7 @@ export async function getCachedAuctionMessageContents(
   /**
    * キャッシュの設定
    */
-  cacheTag(`auction-messages-${auctionId}`);
+  cacheTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId).join(":"));
   cacheLife("hours");
 
   if (!auctionId || typeof isDisplayAfterEnd !== "boolean" || !auctionEndDate?.getTime()) {

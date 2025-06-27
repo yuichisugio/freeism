@@ -4,6 +4,7 @@ import type { AuctionEventType, NotificationTargetType } from "@prisma/client";
 import { cache } from "react";
 import { unstable_cacheTag as cacheTag } from "next/cache";
 import { buildCommonNotificationWhereClause } from "@/actions/notification/notification-utilities";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 import { Prisma } from "@prisma/client";
 
@@ -64,7 +65,7 @@ export type RawNotificationFromDB = {
  * 未読の有無のみ知りたいので、1件のみ取得
  */
 export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
-  cacheTag(`Notification:${userId}`);
+  cacheTag(useCacheKeys.notification.notificationByUserId(userId).join(":"));
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -116,7 +117,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     unreadCount: number;
     readCount: number;
   }> => {
-    cacheTag(`Notification:${userId}`);
+    cacheTag(useCacheKeys.notification.notificationByUserId(userId).join(":"));
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

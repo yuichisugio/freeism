@@ -3,6 +3,7 @@
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { revalidateTag } from "next/cache";
 import { checkIsPermission } from "@/actions/permission/permission";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 import { TaskStatus } from "@prisma/client";
 
@@ -87,7 +88,7 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
   /**
    * キャッシュを無効化
    */
-  revalidateTag(`auction-history-created-detail:${taskId}`);
+  revalidateTag(useCacheKeys.auctionCreatedDetail.auctionByAuctionId(taskId).join(":"));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -148,7 +149,7 @@ export async function completeTaskDelivery(
   /**
    * キャッシュを無効化
    */
-  revalidateTag(`auction-history-created-detail:${taskId}`);
+  revalidateTag(useCacheKeys.auctionCreatedDetail.auctionByAuctionId(taskId).join(":"));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

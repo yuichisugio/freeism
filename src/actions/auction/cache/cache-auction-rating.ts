@@ -3,6 +3,7 @@
 import type { DisplayUserInfo } from "@/components/auction/common/auction-rating";
 import type { Prisma } from "@prisma/client";
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 import { ReviewPosition } from "@prisma/client";
 
@@ -41,7 +42,7 @@ export async function getCachedDisplayUserInfo(
   /**
    * キャッシュタグを設定
    */
-  cacheTag(`DisplayUserInfo:${auctionId}:${reviewPosition}`);
+  cacheTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition).join(":"));
   cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

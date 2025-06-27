@@ -2,6 +2,7 @@
 
 import { revalidateTag } from "next/cache";
 import { sendAuctionNotification } from "@/actions/notification/auction-notification";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 import { AuctionEventType, NotificationSendMethod } from "@prisma/client";
 
@@ -158,7 +159,7 @@ export async function sendAuctionMessage(
     /**
      * メッセージのキャッシュの更新に必要。
      */
-    revalidateTag(`auction-messages-${auctionId}`);
+    revalidateTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId).join(":"));
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

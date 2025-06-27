@@ -3,6 +3,7 @@
 import type { ReviewPosition } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 
 import { getCachedDisplayUserInfo } from "./cache/cache-auction-rating";
@@ -96,7 +97,7 @@ export async function createAuctionReview(
   /**
    * キャッシュを更新する
    */
-  revalidateTag(`DisplayUserInfo:${auctionId}:${reviewPosition}`);
+  revalidateTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition).join(":"));
 
   return review;
 }

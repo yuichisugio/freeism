@@ -77,7 +77,7 @@ function createTestMyTaskTable(overrides: Partial<MyTaskTable> = {}): MyTaskTabl
     taskFixedContributionPoint: testTask.fixedContributionPoint,
     taskFixedEvaluator: "テスト評価者",
     taskFixedEvaluationLogic: "テスト評価ロジック",
-    taskCreatorName: testUser.name,
+    taskCreatorName: testUser.name ?? "未設定",
     taskReporterUserIds: ["user-1"],
     taskExecutorUserIds: ["user-2"],
     taskReporterUserNames: "報告者テスト",

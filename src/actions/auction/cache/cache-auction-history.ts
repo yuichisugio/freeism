@@ -2,6 +2,7 @@
 
 import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { unstable_cacheTag as cacheTag } from "next/cache";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -96,7 +97,7 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   /**
    * キャッシュにタグをつける
    */
-  cacheTag(`auction-history-created-detail:${auction.task.id}`);
+  cacheTag(useCacheKeys.auctionHistory.auctionByAuctionId(auction.id).join(":"));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
