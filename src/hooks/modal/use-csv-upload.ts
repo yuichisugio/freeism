@@ -355,6 +355,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
    * セッション
    */
   const session = useSession();
+  const userId = useMemo(() => session?.data?.user?.id, [session]);
 
   // ---------------------------------------------------------------------------
 
@@ -364,12 +365,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
   useEffect(() => {
     async function checkPermissions() {
       try {
-        if (!session?.data?.user?.id) {
+        if (!userId) {
           setIsAuthorized(false);
           return;
         }
 
-        const userId = session.data.user.id;
         const isOwnerOrRoleCheck = await checkIsPermission(userId, groupId, undefined, true);
 
         setIsAuthorized(isOwnerOrRoleCheck.success);
@@ -382,7 +382,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
     if (isOpen) {
       void checkPermissions();
     }
-  }, [groupId, isOpen, session]);
+  }, [groupId, isOpen, session, userId]);
 
   // ---------------------------------------------------------------------------
 
@@ -819,7 +819,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             const statusData = convertToTaskStatusData(data);
 
             // APIを呼び出し
-            const statusResponse = (await bulkUpdateTaskStatus(statusData)) as TaskStatusesApiResponse;
+            const statusResponse = (await bulkUpdateTaskStatus(statusData, userId ?? "")) as TaskStatusesApiResponse;
 
             result = {
               success: statusResponse.success,
@@ -878,6 +878,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
     convertToContributionEvaluationData,
     convertToFixedContributionData,
     convertToTaskStatusData,
+    userId,
   ]);
 
   // ---------------------------------------------------------------------------

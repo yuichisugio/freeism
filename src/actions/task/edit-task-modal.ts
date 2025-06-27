@@ -3,7 +3,6 @@
 import type { TaskFormValuesAndGroupId, TaskParticipant } from "@/hooks/form/use-create-task-form";
 import { revalidatePath } from "next/cache";
 import { checkIsPermission } from "@/actions/permission/permission";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 import { ContributionType } from "@prisma/client";
 
@@ -15,14 +14,19 @@ import { ContributionType } from "@prisma/client";
  * @param data - 更新するタスクのデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function updateTaskAction(taskId: string, data: Omit<TaskFormValuesAndGroupId, "groupId">) {
+export async function updateTaskAction(
+  taskId: string,
+  data: Omit<TaskFormValuesAndGroupId, "groupId">,
+): Promise<{ success: boolean; message: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 認証セッションを取得
+     * タスクIDが指定されていない場合はエラーを返す
      */
-    const userId = await getAuthenticatedSessionUserId();
+    if (!taskId) {
+      throw new Error("タスクIDが指定されていません");
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -42,7 +46,7 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
      * タスクが見つからない場合はエラーを返す
      */
     if (!existingTask) {
-      return { error: "更新対象のタスクが見つかりません" };
+      throw new Error("更新対象のタスクが見つかりません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -50,7 +54,7 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
     /**
      * グループ所有者またはアプリ所有者か確認
      */
-    const isOwnerOrRoleCheck = await checkIsPermission(userId, existingTask.groupId, undefined, true);
+    const isOwnerOrRoleCheck = await checkIsPermission(undefined, existingTask.groupId, taskId, true);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -58,7 +62,7 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
      * 権限チェック（タスク作成者、グループ所有者、またはアプリ所有者のみ更新可能）
      */
     if (!isOwnerOrRoleCheck.success) {
-      return { error: "このタスクを更新する権限がありません" };
+      throw new Error(isOwnerOrRoleCheck.message);
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -66,15 +70,17 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
     /**
      * タスクと関連データの更新をトランザクションで行う
      */
-    const updatedTask = await prisma.$transaction(async (prismaClient) => {
+    await prisma.$transaction(async (prismaClient) => {
       // 1. 既存の報告者と実行者を削除
       if (data.reporters || data.executors) {
+        // 報告者を削除
         if (data.reporters) {
           await prismaClient.taskReporter.deleteMany({
             where: { taskId: taskId },
           });
         }
 
+        // 実行者を削除
         if (data.executors) {
           await prismaClient.taskExecutor.deleteMany({
             where: { taskId: taskId },
@@ -181,6 +187,11 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
         where: { taskId: taskId },
         select: {
           id: true,
+          task: {
+            select: {
+              contributionType: true,
+            },
+          },
         },
       });
 
@@ -209,15 +220,18 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * 貢献タイプがNON_REWARDに変更され、オークションが存在する場合は削除
+       * 貢献タイプがREWARDからNON_REWARDに変更され、オークションが存在する場合は削除
        */
-      else if (data.contributionType === ContributionType.NON_REWARD && existingAuction) {
+      else if (
+        data.contributionType === ContributionType.NON_REWARD &&
+        existingAuction &&
+        existingAuction.task.contributionType === ContributionType.REWARD
+      ) {
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         /**
          * オークションに入札がある場合は削除しない
          */
-        // オークションに入札がある場合は削除しない
         const hasBids = await prismaClient.bidHistory.findFirst({
           where: { auctionId: existingAuction.id },
         });
@@ -225,14 +239,13 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         /**
-         * 入札がある場合は警告を追加（タスクの更新自体は行う）
+         * 入札がある場合は警告を追加（タスクの更新自体は行うが、オークションは削除しない）
          */
         if (!hasBids) {
           await prismaClient.auction.delete({
             where: { id: existingAuction.id },
           });
         } else {
-          // 入札がある場合は警告を追加（タスクの更新自体は行う）
           console.warn(`タスク ${taskId} は入札があるため、オークションは削除されませんでした`);
         }
       }
@@ -253,10 +266,10 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
     /**
      * 成功を返す
      */
-    return { success: true, task: updatedTask };
+    return { success: true, message: "タスクが更新されました" };
   } catch (error) {
     console.error("[UPDATE_TASK_ACTION]", error);
-    return { error: "タスクの更新中にエラーが発生しました" };
+    return { success: false, message: `${error instanceof Error ? error.message : "不明なエラー"}` };
   }
 }
 
@@ -269,6 +282,20 @@ export async function updateTaskAction(taskId: string, data: Omit<TaskFormValues
  */
 export async function getTaskById(taskId: string) {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクIDが指定されていない場合はエラーを返す
+     */
+    if (!taskId) {
+      throw new Error("タスクIDが指定されていません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクを取得
+     */
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       select: {
@@ -344,14 +371,26 @@ export async function getTaskById(taskId: string) {
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * タスクが見つからない場合はエラーを返す
+     */
     if (!task) {
-      return { error: "タスクが見つかりません" };
+      throw new Error("タスクが見つかりません");
     }
 
-    return { success: true, task };
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 成功を返す
+     */
+    return { success: true, message: "タスクが取得されました", task };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[GET_TASK_BY_ID]", error);
-    return { error: "タスクの取得中にエラーが発生しました" };
+    return { success: false, message: `${error instanceof Error ? error.message : "不明なエラー"}`, task: null };
   }
 }
 

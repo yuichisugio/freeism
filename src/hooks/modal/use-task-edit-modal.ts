@@ -144,7 +144,7 @@ export function useTaskEditModal({
   /**
    * データ取得
    */
-  const { data: users, isLoading: isLoadingUsers } = useQuery({
+  const { data: users, isPending: isLoadingUsers } = useQuery({
     queryKey: queryCacheKeys.users.all(),
     queryFn: getAllUsers,
     select: (data) => data ?? [],
@@ -155,16 +155,16 @@ export function useTaskEditModal({
   /**
    * タスクデータ取得
    */
-  const { data: task, isLoading: isLoadingTask } = useQuery({
-    queryKey: ["task", taskId],
+  const { data: task, isPending: isLoadingTask } = useQuery({
+    queryKey: queryCacheKeys.tasks.taskById(taskId),
     queryFn: async () => {
       if (!taskId) return null;
       const result = await getTaskById(taskId);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.message);
         return null;
       }
-      return result.success ? result.task : null;
+      return result.task;
     },
     enabled: !!taskId,
   });

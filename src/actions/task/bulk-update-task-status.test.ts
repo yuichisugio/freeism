@@ -96,7 +96,7 @@ describe("upload-modal", () => {
         } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
 
       // Act
-      const result = await bulkUpdateTaskStatus(validStatusData);
+      const result = await bulkUpdateTaskStatus(validStatusData, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -110,7 +110,7 @@ describe("upload-modal", () => {
       const invalidData = [{ taskId: "", status: TaskStatus.PENDING }];
 
       // Act
-      const result = await bulkUpdateTaskStatus(invalidData);
+      const result = await bulkUpdateTaskStatus(invalidData, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -124,7 +124,7 @@ describe("upload-modal", () => {
       const invalidData = [{ taskId: "task-1", status: "" }];
 
       // Act
-      const result = await bulkUpdateTaskStatus(invalidData);
+      const result = await bulkUpdateTaskStatus(invalidData, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -137,7 +137,7 @@ describe("upload-modal", () => {
       const invalidData = [{ taskId: "task-1", status: "INVALID_STATUS" }];
 
       // Act
-      const result = await bulkUpdateTaskStatus(invalidData);
+      const result = await bulkUpdateTaskStatus(invalidData, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -151,7 +151,7 @@ describe("upload-modal", () => {
       prismaMock.task.findUnique.mockResolvedValue(null);
 
       // Act
-      const result = await bulkUpdateTaskStatus(validData);
+      const result = await bulkUpdateTaskStatus(validData, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -174,7 +174,7 @@ describe("upload-modal", () => {
       mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
 
       // Act
-      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.PENDING }]);
+      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.PENDING }], testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -196,7 +196,7 @@ describe("upload-modal", () => {
       );
 
       // Act
-      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.PENDING }]);
+      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.PENDING }], testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -255,7 +255,7 @@ describe("upload-modal", () => {
       prismaMock.groupPoint.create.mockImplementation(mockGroupPointCreate);
 
       // Act
-      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.POINTS_AWARDED }]);
+      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.POINTS_AWARDED }], testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -315,7 +315,7 @@ describe("upload-modal", () => {
       } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
 
       // Act
-      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.POINTS_AWARDED }]);
+      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.POINTS_AWARDED }], testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -327,7 +327,7 @@ describe("upload-modal", () => {
 
     test("should handle empty data array", async () => {
       // Act
-      const result = await bulkUpdateTaskStatus([]);
+      const result = await bulkUpdateTaskStatus([], testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -350,7 +350,7 @@ describe("upload-modal", () => {
       prismaMock.task.update.mockRejectedValue(new Error("Database update error"));
 
       // Act
-      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.TASK_COMPLETED }]);
+      const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.TASK_COMPLETED }], testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -364,7 +364,7 @@ describe("upload-modal", () => {
       mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
       // Act
-      const result = await bulkUpdateTaskStatus(validStatusData);
+      const result = await bulkUpdateTaskStatus(validStatusData, testUserId);
 
       // Assert
       expect(result.success).toBe(false);
@@ -515,7 +515,7 @@ describe("upload-modal", () => {
         } as unknown as Awaited<ReturnType<typeof prismaMock.task.update>>);
 
       // Act
-      const result = await bulkUpdateTaskStatus(allValidStatuses);
+      const result = await bulkUpdateTaskStatus(allValidStatuses, testUserId);
 
       // Assert
       expect(result.success).toBe(true);

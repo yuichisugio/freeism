@@ -17,24 +17,22 @@ export type CreateTaskParams = TaskFormValuesAndGroupId & {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+export type PrepareCreateTaskFormReturn = {
+  groups: { id: string; name: string }[];
+  users: { id: string; name: string }[];
+};
+
 /**
  * タスク作成フォームのデータを取得
  * @returns タスク作成フォームのデータ
  */
-export async function prepareCreateTaskForm() {
+export async function prepareCreateTaskForm(): Promise<PrepareCreateTaskFormReturn> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ユーザーID
    */
   const userId = await getAuthenticatedSessionUserId();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループ一覧
-   */
-  let groups: { id: string; name: string }[] = [];
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -60,7 +58,7 @@ export async function prepareCreateTaskForm() {
   /**
    * データを整形
    */
-  groups = memberships.map((membership) => ({
+  const groups: PrepareCreateTaskFormReturn["groups"] = memberships.map((membership) => ({
     id: membership.group.id,
     name: membership.group.name,
   }));
@@ -70,10 +68,10 @@ export async function prepareCreateTaskForm() {
   /**
    * グループに所属するユーザー一覧を取得
    */
-  let users: { id: string; name: string }[] = [];
+  let users: PrepareCreateTaskFormReturn["users"] = [];
   // ユーザーが所属するすべてのグループのメンバーを取得
   const allGroupIds = groups.map((group) => group.id);
-
+  // グループが存在する場合のみユーザーを取得
   if (allGroupIds.length > 0) {
     const groupMembers = await prisma.groupMembership.findMany({
       where: {
@@ -85,7 +83,11 @@ export async function prepareCreateTaskForm() {
         user: {
           select: {
             id: true,
-            name: true,
+            settings: {
+              select: {
+                username: true,
+              },
+            },
           },
         },
       },
@@ -96,7 +98,7 @@ export async function prepareCreateTaskForm() {
     groupMembers.forEach((member) => {
       uniqueUsers.set(member.user.id, {
         id: member.user.id,
-        name: member.user.name ?? "不明なユーザー",
+        name: member.user.settings?.username ?? `未設定_${member.user.id}`,
       });
     });
 
@@ -108,7 +110,7 @@ export async function prepareCreateTaskForm() {
   /**
    * タスク作成フォームのデータを返却
    */
-  return { groups, users };
+  return { groups: groups, users: users };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -118,7 +120,7 @@ export async function prepareCreateTaskForm() {
  * @param data - タスクのデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function createTask(data: CreateTaskParams) {
+export async function createTask(data: CreateTaskParams): Promise<{ success: boolean }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -138,7 +140,7 @@ export async function createTask(data: CreateTaskParams) {
      * グループが見つからない場合はエラーを返す
      */
     if (!group) {
-      return { error: "指定されたグループが見つかりません" };
+      throw new Error("指定されたグループが見つかりません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -253,6 +255,6 @@ export async function createTask(data: CreateTaskParams) {
      * エラーを返却
      */
     console.error("[CREATE_TASK]", error);
-    return { error: "タスクの作成中にエラーが発生しました" };
+    throw new Error("タスクの作成中にエラーが発生しました");
   }
 }

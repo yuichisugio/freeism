@@ -178,15 +178,19 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
   /**
    * タスク作成フォームのデータを取得
    */
-  const { data: formData, isLoading: isLoadingFormData } = useQuery({
+  const {
+    data: { groups, users },
+    isLoading: isLoadingFormData,
+  } = useQuery({
     queryKey: queryCacheKeys.tasks.prepareCreateTaskForm(),
     queryFn: () => prepareCreateTaskForm(),
+    initialData: {
+      groups: [],
+      users: [],
+    },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
   });
-
-  // useQueryから取得したデータがない場合のデフォルト値
-  const { groups = [], users = [] } = formData ?? {};
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -375,8 +379,6 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
           toast.success("タスクを保存しました");
           router.push(`/dashboard/group/${data.groupId}`);
           router.refresh();
-        } else if (result.error) {
-          toast.error(result.error);
         }
       } catch (error) {
         console.error("フォーム送信エラー:", error);

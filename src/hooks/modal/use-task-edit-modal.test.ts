@@ -172,10 +172,13 @@ describe("useTaskEditModal", () => {
 
     vi.mocked(getAllUsers).mockResolvedValue([]);
     vi.mocked(getTaskById).mockResolvedValue({
-      error: "タスクが見つかりません",
+      success: false,
+      message: "タスクが見つかりません",
+      task: null,
     });
     vi.mocked(updateTaskAction).mockResolvedValue({
-      error: "更新に失敗しました",
+      success: false,
+      message: "更新に失敗しました",
     });
   });
 
@@ -494,7 +497,9 @@ describe("useTaskEditModal", () => {
 
     test("should handle task loading error", async () => {
       vi.mocked(getTaskById).mockResolvedValue({
-        error: "タスクが見つかりません",
+        success: false,
+        message: "タスクが見つかりません",
+        task: null,
       });
 
       const props = createDefaultProps();
@@ -800,6 +805,7 @@ describe("useTaskEditModal", () => {
 
       vi.mocked(getTaskById).mockResolvedValue({
         success: true,
+        message: "タスクが取得されました",
         task: mockTask,
       });
 

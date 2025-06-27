@@ -120,6 +120,7 @@ export const queryCacheKeys = {
     byGroupIdWithConditions: <T = unknown>(groupId: string, tableConditions: TableConditions<T>) =>
       [...queryCacheKeys.tasks.byGroupId(groupId), JSON.stringify(tableConditions)] as const,
     prepareCreateTaskForm: () => [...queryCacheKeys.tasks.all(), "prepareCreateTaskForm"] as const,
+    taskById: (taskId: string) => [...queryCacheKeys.tasks.all(), "taskById", taskId] as const,
   },
 
   users: {

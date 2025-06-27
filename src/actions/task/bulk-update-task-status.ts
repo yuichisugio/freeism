@@ -1,7 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { checkIsPermission } from "@/actions/permission/permission";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 import { TaskStatus } from "@prisma/client";
 
@@ -24,7 +24,7 @@ const validStatuses: TaskStatus[] = [
 /**
  * タスクステータスの更新に失敗した場合のデータ型
  */
-type FailedResult = {
+export type FailedResult = {
   taskId: string;
   status: string;
   error: string;
@@ -36,7 +36,7 @@ type FailedResult = {
 /**
  * タスクステータスの更新に成功した場合のデータ型（簡素化）
  */
-type UpdatedTaskResult = {
+export type UpdatedTaskResult = {
   id: string;
   task: string;
   reference: string | null;
@@ -69,9 +69,13 @@ export async function bulkUpdateTaskStatus(
     status: string;
     [key: string]: unknown;
   }>,
+  userId: string,
 ) {
   try {
-    const userId = await getAuthenticatedSessionUserId();
+    // ユーザーIDが指定されていない場合はログインページにリダイレクト
+    if (!userId) {
+      redirect("/auth/login");
+    }
 
     const results: UpdatedTaskResult[] = [];
     const failedResults: FailedResult[] = [];

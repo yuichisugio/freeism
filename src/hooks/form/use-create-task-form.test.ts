@@ -644,9 +644,7 @@ describe("useTaskInputForm", () => {
     });
 
     test("should handle form submission error", async () => {
-      vi.mocked(createTask).mockResolvedValue({
-        error: "エラーが発生しました",
-      });
+      vi.mocked(createTask).mockResolvedValue({ success: false });
 
       const { result } = renderHook(() => useTaskInputForm(), {
         wrapper: AllTheProviders,
