@@ -1,15 +1,16 @@
 "use server";
 
 import type { GroupDetailTask } from "@/types/group-types";
-import type { ContributionType, Prisma, TaskStatus } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
+import { ContributionType, TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * getTasksByGroupId の props の型
  */
-type GetTasksByGroupIdProps = {
+export type GetTasksByGroupIdProps = {
   groupId: string;
   page: number;
   sortField: string;
@@ -25,7 +26,7 @@ type GetTasksByGroupIdProps = {
 /**
  * getTasksByGroupId の返り値の型
  */
-type GetGroupTaskAndCountReturn = {
+export type GetGroupTaskAndCountReturn = {
   returnTasks: GroupDetailTask[];
   totalTaskCount: number;
 };
@@ -49,6 +50,26 @@ export async function getGroupTaskAndCount({
 }: GetTasksByGroupIdProps): Promise<GetGroupTaskAndCountReturn> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パラメータのチェック
+     */
+    if (
+      !groupId ||
+      !page ||
+      !sortField ||
+      !sortDirection ||
+      !searchQuery ||
+      (!Object.values(TaskStatus).includes(statusFilter as TaskStatus) && statusFilter !== "ALL") ||
+      (!Object.values(ContributionType).includes(contributionTypeFilter as ContributionType) &&
+        contributionTypeFilter !== "ALL") ||
+      !itemPerPage
+    ) {
+      throw new Error("パラメータが不足しています");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     /**
      * タスクの検索条件
      */
@@ -248,7 +269,9 @@ export async function getGroupTaskAndCount({
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[GET_TASKS_BY_GROUP_ID]", error);
-    throw new Error("タスク情報の取得中にエラーが発生しました");
+    throw new Error(
+      `タスク情報の取得中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    );
   }
 }
 

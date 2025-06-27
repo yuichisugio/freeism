@@ -64,7 +64,7 @@ export async function getMyTaskData(
     // 検索条件
     if (searchQuery) {
       whereConditions.task = {
-        contains: searchQuery,
+        contains: searchQuery.trim(),
         mode: "insensitive",
       };
     }
@@ -90,8 +90,7 @@ export async function getMyTaskData(
     // ソート条件
     if (sort) {
       const { field, direction } = sort;
-      const sortDirection = direction as Prisma.SortOrder;
-
+      const sortDirection = (direction as Prisma.SortOrder) ?? "desc";
       if (field === "taskName") {
         orderBy = { task: sortDirection };
       } else if (field === "groupName") {
@@ -110,6 +109,8 @@ export async function getMyTaskData(
         orderBy = { creator: { settings: { username: sortDirection } } };
       } else if (field === "auctionId") {
         orderBy = { createdAt: sortDirection };
+      } else {
+        orderBy = {};
       }
     }
 
@@ -206,8 +207,8 @@ export async function getMyTaskData(
       taskFixedEvaluator: task.fixedEvaluator?.settings?.username ?? "未設定",
       taskFixedEvaluationLogic: task.fixedEvaluationLogic,
       taskCreatorName: task.creator?.settings?.username ?? "未設定",
-      taskReporterUserIds: task.reporters.map((r) => r.userId).filter((id): id is string => id != null),
-      taskExecutorUserIds: task.executors.map((e) => e.userId).filter((id): id is string => id != null),
+      taskReporterUserIds: task.reporters.map((r) => r.userId).filter((id): id is string => id !== null),
+      taskExecutorUserIds: task.executors.map((e) => e.userId).filter((id): id is string => id !== null),
       taskReporterUserNames: task.reporters
         .map((r) => r.user?.settings?.username)
         .filter((name): name is string => name != null && name !== "未設定")
@@ -217,12 +218,12 @@ export async function getMyTaskData(
         .filter((name): name is string => name != null && name !== "未設定")
         .join(", "),
       reporters: task.reporters.map((r) => ({
-        appUserName: r.user?.settings?.username ?? null,
-        appUserId: r.userId ?? null,
+        appUserName: r.user?.settings?.username ?? "未登録",
+        appUserId: r.userId ?? "未登録",
       })),
       executors: task.executors.map((e) => ({
-        appUserName: e.user?.settings?.username ?? null,
-        appUserId: e.userId ?? null,
+        appUserName: e.user?.settings?.username ?? "未登録",
+        appUserId: e.userId ?? "未登録",
       })),
       groupId: task.group.id,
       groupName: task.group.name,

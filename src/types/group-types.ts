@@ -271,7 +271,7 @@ export type MyTaskTable = {
   taskFixedContributionPoint: number | null;
   taskFixedEvaluator: string | null;
   taskFixedEvaluationLogic: string | null;
-  taskCreatorName: string | null;
+  taskCreatorName: string;
   taskReporterUserIds: string[] | null;
   taskExecutorUserIds: string[] | null;
   taskReporterUserNames: string | null;
