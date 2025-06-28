@@ -12,6 +12,6 @@ fi
 #   • Intel Mac     → arch -arm64 が無いので再実行せずそのまま
 #   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
-# ===== 1) lint処理はprepare-commit-msgで実行 =====
-# lint処理は prepare-commit-msg フックで実行されます
-echo "📝 Pre-commit hook: lint processing will be handled by prepare-commit-msg"
+# ===== 1) lint処理を実行（コミット前チェック） =====
+echo "🔍 Running lint-staged..."
+npx lint-staged --concurrent false
