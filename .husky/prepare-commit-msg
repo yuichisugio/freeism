@@ -5,7 +5,16 @@ if [ "$COMMITIZEN_HOOK_SKIP" = "1" ]; then
   exit 0
 fi
 
-# Commitizenでコミットメッセージを作成し、エディタが開かないようにする
+# ===== 1) まずlint処理を実行 =====
+echo "🔍 Running lint-staged before commit message creation..."
+if ! npx lint-staged --concurrent false; then
+  echo "❌ Lint checks failed. Aborting commit."
+  exit 1
+fi
+
+echo "✅ Lint checks passed. Proceeding with commit message creation..."
+
+# ===== 2) Commitizenでコミットメッセージを作成 =====
 if [ -z "$2" ] || [ "$2" = "message" ]; then
   # Windows環境対応: 標準入力をターミナルに接続
   if [ -t 0 ]; then

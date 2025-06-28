@@ -12,6 +12,9 @@ fi
 #   • Intel Mac     → arch -arm64 が無いので再実行せずそのまま
 #   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
-# ===== 1) lint-staged を実行してコミット前チェック =====
-echo "🔍 Running lint-staged..."
-npx lint-staged --concurrent false
+# ===== 1) 通常のgit commit時のlint処理 =====
+# COMMITIZEN_HOOK_SKIPが設定されていない場合（通常のgit commit）はここでlint実行
+if [ "$COMMITIZEN_HOOK_SKIP" != "1" ]; then
+  echo "🔍 Running lint-staged..."
+  npx lint-staged --concurrent false
+fi
