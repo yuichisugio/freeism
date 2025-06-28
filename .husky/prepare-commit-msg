@@ -1,2 +1,14 @@
 #!/usr/bin/env sh
+
+# If this commit was triggered via `pnpm commit` (or any script that sets
+# COMMITIZEN_HOOK_SKIP), we should not launch Commitizen again here. This
+# environment variable is intentionally exported **before** calling `git cz`
+# inside package.json (see the `commit` script).  When it is present, simply
+# exit early so that Commitizen runs only once.
+
+if [ -n "$COMMITIZEN_HOOK_SKIP" ]; then
+  # husky v9 以降では `exit 0` が推奨されている
+  exit 0
+fi
+
 exec < /dev/tty && npx cz --hook || true
