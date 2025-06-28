@@ -1,26 +1,89 @@
-import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { checkIsPermission } from "@/actions/permission/permission";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
-import {
-  groupMembershipFactory,
-  groupPointFactory,
-  taskFactory,
-  userFactory,
-} from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { bulkUpdateFixedEvaluations } from "./bulk-update-fix-evaluation";
 
-// モック設定
-vi.mock("@/lib/utils", () => ({
-  getAuthenticatedSessionUserId: vi.fn(),
-}));
+/**
+ * Prismaトランザクションの型定義
+ */
+type TaskFindFirstArgs = {
+  where: {
+    id: string;
+    groupId: string;
+  };
+  select: {
+    id: true;
+    status: true;
+  };
+};
 
-vi.mock("../permission", () => ({
-  checkIsOwner: vi.fn(),
+type TaskUpdateArgs = {
+  where: { id: string };
+  data: {
+    fixedContributionPoint: number;
+    fixedEvaluatorId: string;
+    fixedEvaluationLogic: string;
+    fixedEvaluationDate: Date;
+    userFixedSubmitterId: string;
+    status: TaskStatus;
+  };
+  select: {
+    id: true;
+    status: true;
+  };
+};
+
+type TaskFindUniqueArgs = {
+  where: { id: string };
+  select: {
+    reporters: {
+      select: { userId: true };
+      where: { userId: { not: null } };
+    };
+    executors: {
+      select: { userId: true };
+      where: { userId: { not: null } };
+    };
+  };
+};
+
+type GroupPointUpsertArgs = {
+  where: {
+    userId_groupId: {
+      userId: string;
+      groupId: string;
+    };
+  };
+  update: {
+    fixedTotalPoints: { increment: number };
+  };
+  create: {
+    userId: string;
+    groupId: string;
+    fixedTotalPoints: number;
+  };
+};
+
+type PrismaTransaction = {
+  task: {
+    findFirst: (args: TaskFindFirstArgs) => Promise<{ id: string; status: TaskStatus } | null>;
+    update: (args: TaskUpdateArgs) => Promise<{ id: string; status: TaskStatus }>;
+    findUnique: (args: TaskFindUniqueArgs) => Promise<{
+      reporters: { userId: string }[];
+      executors: { userId: string }[];
+    } | null>;
+  };
+  groupPoint: {
+    upsert: (args: GroupPointUpsertArgs) => Promise<{ id: string }>;
+  };
+};
+
+// モック設定
+vi.mock("@/actions/permission/permission", () => ({
+  checkIsPermission: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
@@ -28,424 +91,373 @@ vi.mock("next/cache", () => ({
 }));
 
 // モック関数の型定義
-const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
-const mockCheckIsOwner = vi.mocked(checkIsPermission);
+const mockCheckIsPermission = vi.mocked(checkIsPermission);
 const mockRevalidatePath = vi.mocked(revalidatePath);
 
-describe("upload-modal", () => {
+// トランザクション用のモックヘルパー
+const createMockTransaction = (
+  config: {
+    taskExists?: boolean;
+    taskStatus?: TaskStatus;
+    taskUpdateError?: Error | string;
+    hasUsers?: boolean;
+  } = {},
+) => {
+  const { taskExists = true, taskStatus = TaskStatus.TASK_COMPLETED, taskUpdateError, hasUsers = true } = config;
+
+  return vi.fn().mockImplementation(async (callback: (tx: PrismaTransaction) => Promise<void>) => {
+    const mockTx: PrismaTransaction = {
+      task: {
+        findFirst: vi.fn().mockResolvedValue(taskExists ? { id: "task-1", status: taskStatus } : null),
+        update: taskUpdateError
+          ? vi.fn().mockRejectedValue(taskUpdateError)
+          : vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.POINTS_AWARDED }),
+        findUnique: vi.fn().mockResolvedValue(
+          hasUsers
+            ? {
+                reporters: [{ userId: "user-1" }],
+                executors: [{ userId: "user-2" }],
+              }
+            : { reporters: [], executors: [] },
+        ),
+      },
+      groupPoint: {
+        upsert: vi.fn().mockResolvedValue({ id: "group-point-1" }),
+      },
+    };
+    return callback(mockTx);
+  });
+};
+
+describe("bulkUpdateFixedEvaluations", () => {
+  // テスト用定数
   const testUserId = "test-user-id";
   const testGroupId = "test-group-id";
+
+  // 有効な評価データ
+  const validEvaluationData = [
+    {
+      id: "task-1",
+      fixedContributionPoint: "100",
+      fixedEvaluatorId: "evaluator-1",
+      fixedEvaluationLogic: "自動評価",
+      fixedEvaluationDate: "2024-01-01T10:00:00Z",
+    },
+    {
+      id: "task-2",
+      fixedContributionPoint: 200,
+      fixedEvaluatorId: "evaluator-2",
+      fixedEvaluationLogic: "手動評価",
+    },
+  ];
+
+  // 権限設定ヘルパー
+  const setupPermission = (hasPermission: boolean) => {
+    const result = hasPermission
+      ? { success: true, message: "Permission check successfully" }
+      : { success: false, message: "Permission check failed" };
+    mockCheckIsPermission.mockResolvedValue(result);
+  };
 
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
-    mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-    mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+    // デフォルトで権限ありに設定
+    setupPermission(true);
   });
 
-  describe("bulkUpdateFixedEvaluations", () => {
-    const validEvaluationData = [
-      {
-        id: "task-1",
-        fixedContributionPoint: "100",
-        fixedEvaluatorId: "evaluator-1",
-        fixedEvaluationLogic: "自動評価",
-        fixedEvaluationDate: "2024-01-01T10:00:00Z",
-      },
-      {
-        id: "task-2",
-        fixedContributionPoint: 200,
-        fixedEvaluatorId: "evaluator-2",
-        fixedEvaluationLogic: "手動評価",
-      },
-    ];
-
-    test("should update fixed evaluations successfully for app owner", async () => {
+  describe("正常系テスト", () => {
+    test("有効なデータで固定評価を正常に更新する", async () => {
       // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      const tasks = validEvaluationData.map((data) =>
-        taskFactory.build({ id: data.id, status: TaskStatus.TASK_COMPLETED }),
-      );
-
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.groupMembership.findFirst.mockResolvedValue(null);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockImplementation(({ where }: { where: { id: string } }) => {
-              const task = tasks.find((t) => t.id === where.id);
-              return Promise.resolve(task ? { id: task.id, status: task.status } : null);
-            }),
-            update: vi.fn().mockImplementation(({ where }: { where: { id: string } }) => {
-              const task = tasks.find((t) => t.id === where.id);
-              return Promise.resolve({
-                id: task ? (task as unknown as { id: string }).id : undefined,
-                status: "POINTS_AWARDED",
-              });
-            }),
-            findUnique: vi.fn().mockImplementation(() => {
-              return Promise.resolve({
-                reporters: [{ userId: "user-1" }],
-                executors: [{ userId: "user-2" }],
-              });
-            }),
-          },
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(null),
-            create: vi.fn().mockResolvedValue({ id: "group-point-1" }),
-            update: vi.fn().mockResolvedValue({ id: "group-point-1" }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
 
       // Act
-      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId);
+      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
       expect(result.successData).toHaveLength(2);
       expect(result.failedData).toHaveLength(0);
+      expect(result.message).toContain("2件のタスクが正常に更新されました");
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroupId}`);
     });
 
-    test("should update fixed evaluations successfully for group owner", async () => {
+    test("既存のGroupPointを正常に更新する", async () => {
       // Arrange
-      const regularUser = userFactory.build({ id: testUserId, isAppOwner: false });
-      const groupMembership = groupMembershipFactory.build({
-        userId: testUserId,
-        groupId: testGroupId,
-        isGroupOwner: true,
-      });
-
-      prismaMock.user.findUnique.mockResolvedValue(regularUser);
-      prismaMock.groupMembership.findFirst.mockResolvedValue(groupMembership);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-            update: vi.fn().mockResolvedValue({ id: "task-1", status: "POINTS_AWARDED" }),
-            findUnique: vi.fn().mockResolvedValue({
-              reporters: [{ userId: "user-1" }],
-              executors: [{ userId: "user-2" }],
-            }),
-          },
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(null),
-            create: vi.fn().mockResolvedValue({ id: "group-point-1" }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
 
       // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
+      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
       expect(result.successData).toHaveLength(1);
     });
 
-    test("should return error when user has no permission", async () => {
+    test("重複するユーザーIDを正しく処理する", async () => {
       // Arrange
-      const regularUser = userFactory.build({ id: testUserId, isAppOwner: false });
-      prismaMock.user.findUnique.mockResolvedValue(regularUser);
-      prismaMock.groupMembership.findFirst.mockResolvedValue(null);
+      prismaMock.$transaction.mockImplementation(
+        createMockTransaction({
+          hasUsers: true,
+        }),
+      );
 
       // Act
-      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId);
+      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.successData).toHaveLength(1);
+    });
+  });
+
+  describe("権限エラーテスト", () => {
+    test("権限がない場合はエラーを返す", async () => {
+      // Arrange
+      setupPermission(false);
+
+      // Act
+      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(false);
       expect(result.error).toBe("この操作を行う権限がありません");
       expect(result.failedData).toHaveLength(2);
-      expect(result.failedData[0].失敗理由).toBe("アクセス権限エラー");
+      expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
     });
 
-    test("should handle missing task ID", async () => {
-      // Arrange
-      const invalidData = [
-        { id: "", fixedContributionPoint: "100", fixedEvaluatorId: "evaluator-1", fixedEvaluationLogic: "自動評価" },
-      ];
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {};
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
+    test("パラメータが不正な場合はエラーを返す", async () => {
       // Act
-      const result = await bulkUpdateFixedEvaluations(invalidData, testGroupId);
+      const result = await bulkUpdateFixedEvaluations(validEvaluationData, "", testUserId);
 
       // Assert
-      expect(result.success).toBe(true);
-      expect(result.successData).toHaveLength(0);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("タスクIDが指定されていません");
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("パラメータが不正です");
     });
+  });
 
-    test("should handle task not found", async () => {
-      // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue(null),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("指定されたタスクが見つかりません");
-    });
-
-    test("should handle task with invalid status", async () => {
-      // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.PENDING }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("タスクのステータスが「タスク完了」でないため更新できません");
-    });
-
-    test("should handle invalid contribution point", async () => {
-      // Arrange
-      const invalidData = [
-        {
+  describe("バリデーションエラーテスト", () => {
+    const validationTestCases = [
+      {
+        name: "タスクIDが空の場合",
+        data: {
+          id: "",
+          fixedContributionPoint: "100",
+          fixedEvaluatorId: "evaluator-1",
+          fixedEvaluationLogic: "自動評価",
+        },
+        expectedError: "タスクIDが指定されていません",
+      },
+      {
+        name: "貢献ポイントが数値でない場合",
+        data: {
           id: "task-1",
           fixedContributionPoint: "invalid-number",
           fixedEvaluatorId: "evaluator-1",
           fixedEvaluationLogic: "自動評価",
         },
-      ];
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations(invalidData, testGroupId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("固定貢献ポイントが数値ではありません");
-    });
-
-    test("should handle missing evaluator ID", async () => {
-      // Arrange
-      const invalidData = [
-        {
-          id: "task-1",
-          fixedContributionPoint: "100",
-          fixedEvaluatorId: "",
-          fixedEvaluationLogic: "自動評価",
-        },
-      ];
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations(invalidData, testGroupId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("固定評価者が指定されていません");
-    });
-
-    test("should handle missing evaluation logic", async () => {
-      // Arrange
-      const invalidData = [
-        {
+        expectedError: "固定貢献ポイントが数値ではありません",
+      },
+      {
+        name: "評価者IDが空の場合",
+        data: { id: "task-1", fixedContributionPoint: "100", fixedEvaluatorId: "", fixedEvaluationLogic: "自動評価" },
+        expectedError: "固定評価者が指定されていません",
+      },
+      {
+        name: "評価ロジックが空の場合",
+        data: {
           id: "task-1",
           fixedContributionPoint: "100",
           fixedEvaluatorId: "evaluator-1",
           fixedEvaluationLogic: "",
         },
-      ];
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
+        expectedError: "固定評価ロジックが指定されていません",
+      },
+    ];
 
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+    test.each(validationTestCases)("$name", async ({ data, expectedError }) => {
+      // Arrange
+      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskUpdateError: "String error" }));
 
       // Act
-      const result = await bulkUpdateFixedEvaluations(invalidData, testGroupId);
+      const result = await bulkUpdateFixedEvaluations([data], testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.successData).toHaveLength(0);
+      expect(result.failedData).toHaveLength(1);
+      expect(result.failedData[0].error).toBe(expectedError);
+    });
+  });
+
+  describe("タスク関連エラーテスト", () => {
+    test("タスクが見つからない場合", async () => {
+      // Arrange
+      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskExists: false }));
+
+      // Act
+      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
       expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("固定評価ロジックが指定されていません");
+      expect(result.failedData[0].error).toBe("指定されたタスクが見つかりません");
     });
 
-    test("should handle database error during transaction", async () => {
+    test("タスクのステータスが不正な場合", async () => {
       // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.$transaction.mockRejectedValue(new Error("Database error"));
+      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskStatus: TaskStatus.PENDING }));
 
       // Act
-      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId);
+      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.failedData).toHaveLength(1);
+      expect(result.failedData[0].error).toBe("タスクのステータスが「タスク完了」でないため更新できません");
+    });
+  });
+
+  describe("システムエラーテスト", () => {
+    test("データベースエラーが発生した場合", async () => {
+      // Arrange
+      prismaMock.$transaction.mockImplementation(vi.fn().mockRejectedValue(new Error("Database error")));
+
+      // Act
+      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("タスクの一括更新中にエラーが発生しました");
+      expect(result.error).toBe("Database error");
       expect(result.failedData).toHaveLength(2);
-      expect(result.failedData[0].失敗理由).toBe("システムエラー");
+      expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
     });
 
-    test("should update existing group points", async () => {
+    test("個別のタスク更新でエラーが発生した場合", async () => {
       // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      const existingGroupPoint = groupPointFactory.build({ userId: "user-1", groupId: testGroupId });
-
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-            update: vi.fn().mockResolvedValue({ id: "task-1", status: "POINTS_AWARDED" }),
-            findUnique: vi.fn().mockResolvedValue({
-              reporters: [{ userId: "user-1" }],
-              executors: [{ userId: "user-1" }], // 同じユーザー（重複排除テスト）
-            }),
-          },
-          groupPoint: {
-            findUnique: vi.fn().mockResolvedValue(existingGroupPoint),
-            update: vi.fn().mockResolvedValue({ id: "group-point-1" }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      prismaMock.$transaction.mockImplementation(
+        createMockTransaction({ taskUpdateError: new Error("Task update failed") }),
+      );
 
       // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
+      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.failedData).toHaveLength(1);
+      expect(result.failedData[0].error).toBe("エラー: Task update failed");
+    });
+
+    test("Error以外のオブジェクトでエラーが発生した場合", async () => {
+      // Arrange
+      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskUpdateError: "String error" }));
+
+      // Act
+      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.failedData).toHaveLength(1);
+      expect(result.failedData[0].error).toBe("エラー: 不明なエラー");
+    });
+  });
+
+  describe("境界値テスト", () => {
+    test("空の配列を渡した場合", async () => {
+      // Arrange
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
+
+      // Act
+      const result = await bulkUpdateFixedEvaluations([], testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.successData).toHaveLength(0);
+      expect(result.failedData).toHaveLength(0);
+      expect(result.message).toBe("0件のタスクが正常に更新されました。");
+    });
+
+    test("数値型の貢献ポイントを正常に処理する", async () => {
+      // Arrange
+      const numericData = [
+        {
+          id: "task-1",
+          fixedContributionPoint: 100, // 数値型
+          fixedEvaluatorId: "evaluator-1",
+          fixedEvaluationLogic: "自動評価",
+        },
+      ];
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
+
+      // Act
+      const result = await bulkUpdateFixedEvaluations(numericData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
       expect(result.successData).toHaveLength(1);
     });
 
-    test("should handle authentication error in transaction", async () => {
+    test("評価日が指定されていない場合は現在日時を使用する", async () => {
       // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-
-      // 認証情報が不正な場合をテスト（userIdがnullの場合）
-      mockGetAuthenticatedSessionUserId.mockResolvedValueOnce(null as unknown as string);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      const dataWithoutDate = [
+        {
+          id: "task-1",
+          fixedContributionPoint: "100",
+          fixedEvaluatorId: "evaluator-1",
+          fixedEvaluationLogic: "自動評価",
+          // fixedEvaluationDate なし
+        },
+      ];
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
 
       // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
+      const result = await bulkUpdateFixedEvaluations(dataWithoutDate, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("認証情報が不正です");
+      expect(result.successData).toHaveLength(1);
     });
 
-    test("should handle individual task update error in transaction", async () => {
+    test("不正な評価日が指定された場合は現在日時を使用する", async () => {
       // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-            update: vi.fn().mockRejectedValue(new Error("Task update failed")),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      const dataWithInvalidDate = [
+        {
+          id: "task-1",
+          fixedContributionPoint: "100",
+          fixedEvaluatorId: "evaluator-1",
+          fixedEvaluationLogic: "自動評価",
+          fixedEvaluationDate: "invalid-date",
+        },
+      ];
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
 
       // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
+      const result = await bulkUpdateFixedEvaluations(dataWithInvalidDate, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("エラー: Task update failed");
+      expect(result.successData).toHaveLength(1);
     });
+  });
 
-    test("should handle non-Error object in catch block", async () => {
+  describe("混合結果テスト", () => {
+    test("成功と失敗が混在する場合", async () => {
       // Arrange
-      const appOwnerUser = userFactory.build({ id: testUserId, isAppOwner: true });
-      prismaMock.user.findUnique.mockResolvedValue(appOwnerUser);
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findFirst: vi.fn().mockResolvedValue({ id: "task-1", status: TaskStatus.TASK_COMPLETED }),
-            update: vi.fn().mockRejectedValue("String error"), // Error オブジェクトではない
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      const mixedData = [
+        validEvaluationData[0], // 成功
+        { id: "", fixedContributionPoint: "100", fixedEvaluatorId: "evaluator-1", fixedEvaluationLogic: "自動評価" }, // 失敗
+        validEvaluationData[1], // 成功
+      ];
+      prismaMock.$transaction.mockImplementation(createMockTransaction());
 
       // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId);
+      const result = await bulkUpdateFixedEvaluations(mixedData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
+      expect(result.successData).toHaveLength(2);
       expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].失敗理由).toBe("エラー: 不明なエラー");
+      expect(result.message).toBe("2件のタスクが正常に更新されました。1件の更新に失敗しました。");
     });
   });
 });

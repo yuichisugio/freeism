@@ -1,7 +1,7 @@
 "use server";
 
+import type { Task } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 import { ContributionType } from "@prisma/client";
 
@@ -25,32 +25,49 @@ export async function bulkCreateTask(
     auctionEndTime?: string | Date;
   }>,
   groupId: string,
-) {
+  userId: string,
+): Promise<{
+  success: boolean;
+  tasks?: Task[];
+  error?: string;
+}> {
   try {
-    // groupIdの存在確認
-    if (!groupId) {
-      return { error: "グループIDが指定されていません" };
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パラメータチェック
+     */
+    if (!groupId || !userId || !data || data.length === 0) {
+      throw new Error("パラメータが不正です");
     }
 
-    // グループの存在確認
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループの存在確認
+     */
     const group = await prisma.group.findUnique({
       where: { id: groupId },
       select: { id: true },
     });
 
     if (!group) {
-      return { error: "指定されたグループが見つかりません" };
+      throw new Error("指定されたグループが見つかりません");
     }
 
-    // 認証セッションを取得
-    const userId = await getAuthenticatedSessionUserId();
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // トランザクションを使用してデータを一括登録
+    /**
+     * トランザクションを使用してデータを一括登録
+     */
     const result = await prisma.$transaction(async (tx) => {
-      // タスクを作成
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * タスクを作成
+       */
       const tasks = await Promise.all(
         data.map(async (row) => {
-          // タスクを作成
           const task = await tx.task.create({
             data: {
               task: row.task,
@@ -126,10 +143,30 @@ export async function bulkCreateTask(
       return tasks;
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 再検証
+     */
     revalidatePath(`/dashboard/group/${groupId}`);
-    return { success: true, tasks: result };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 結果を返却
+     */
+    return { success: true, tasks: result as Task[] };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラーを返却
+     */
   } catch (error) {
     console.error("[BULK_CREATE_TASKS]", error);
-    return { error: "タスクの一括登録中にエラーが発生しました" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "タスクの一括登録中にエラーが発生しました",
+    };
   }
 }

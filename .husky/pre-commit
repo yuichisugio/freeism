@@ -12,6 +12,6 @@ fi
 #   • Intel Mac     → arch -arm64 が無いので再実行せずそのまま
 #   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
-# ===== 1) テスト & Lint =====
-# pnpm run test
-pnpm run lint-staged
+# ===== 1) lint-staged を実行してコミット前チェック =====
+echo "🔍 Running lint-staged..."
+npx lint-staged --concurrent false

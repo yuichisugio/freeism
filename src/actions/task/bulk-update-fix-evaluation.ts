@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { checkIsPermission } from "@/actions/permission/permission";
 import { prisma } from "@/library-setting/prisma";
+import { TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -15,8 +16,8 @@ type FixedEvaluationData = {
   fixedEvaluatorId: string;
   fixedEvaluationLogic: string;
   fixedEvaluationDate?: string | Date;
-  失敗理由?: string;
-  [key: string]: unknown;
+  error?: string;
+  status?: TaskStatus;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -27,34 +28,28 @@ type FixedEvaluationData = {
  * @param groupId - グループID
  * @returns 処理結果と成功・失敗データを含むオブジェクト
  */
-export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], groupId: string) {
+export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], groupId: string, userId: string) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   try {
-    const userId = await getAuthenticatedSessionUserId();
-
-    // グループオーナーまたはアプリオーナーかどうかをチェック
-    const isAppOwner = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isAppOwner: true },
-    });
-
-    const isGroupOwner = await prisma.groupMembership.findFirst({
-      where: {
-        userId: userId,
-        groupId: groupId,
-        isGroupOwner: true,
-      },
-      select: { id: true },
-    });
-
-    // 権限がない場合はエラーを返す
-    if (!isAppOwner?.isAppOwner && !isGroupOwner) {
-      return {
-        success: false,
-        error: "この操作を行う権限がありません",
-        successData: [],
-        failedData: data.map((item) => ({ ...item, 失敗理由: "アクセス権限エラー" })),
-      };
+    /**
+     * パラメータチェック
+     */
+    if (!userId || !groupId) {
+      throw new Error("パラメータが不正です");
     }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 権限チェック
+     */
+    const isPermission = await checkIsPermission(userId, groupId, undefined, false);
+
+    if (!isPermission.success) {
+      throw new Error("この操作を行う権限がありません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // 成功したデータと失敗したデータを保存する配列
     const successData: FixedEvaluationData[] = [];
@@ -62,80 +57,63 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
 
     // トランザクションを使用してデータを一括更新
     await prisma.$transaction(async (tx) => {
+      // 行ごとに処理を行う
       for (const row of data) {
-        // 必須項目のチェック
-        if (!row.id) {
-          failedData.push({ ...row, 失敗理由: "タスクIDが指定されていません" });
+        // 行ごとのデータを取得
+        const { id, fixedContributionPoint, fixedEvaluatorId, fixedEvaluationLogic, fixedEvaluationDate } = row;
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        /**
+         * 必須項目のチェック
+         */
+        if (!id) {
+          failedData.push({ ...row, error: "タスクIDが指定されていません" });
           continue;
         }
 
-        // タスクの存在確認
-        const task = await tx.task.findFirst({
-          where: {
-            id: row.id,
-            groupId: groupId,
-          },
-          select: {
-            id: true,
-            status: true,
-          },
-        });
-
-        if (!task) {
-          failedData.push({ ...row, 失敗理由: "指定されたタスクが見つかりません" });
+        // 評価ポイントが数値かをチェック
+        const contributionPoint = parseInt(fixedContributionPoint.toString());
+        if (isNaN(contributionPoint)) {
+          failedData.push({ ...row, error: "固定貢献ポイントが数値ではありません" });
           continue;
         }
 
-        // タスクのステータスが TASK_COMPLETED かどうかチェック
-        if (task.status !== "TASK_COMPLETED") {
-          failedData.push({ ...row, 失敗理由: "タスクのステータスが「タスク完了」でないため更新できません" });
+        // 評価者と評価ロジックのチェック
+        if (!fixedEvaluatorId) {
+          failedData.push({ ...row, error: "固定評価者が指定されていません" });
           continue;
         }
 
+        if (!fixedEvaluationLogic) {
+          failedData.push({ ...row, error: "固定評価ロジックが指定されていません" });
+          continue;
+        }
+
+        // 評価日の確認（指定がなければ現在の日時）
+        let evaluationDate: Date;
+        if (fixedEvaluationDate) {
+          const dateValue = new Date(fixedEvaluationDate);
+          evaluationDate = isNaN(dateValue.getTime()) ? new Date() : dateValue;
+        } else {
+          evaluationDate = new Date();
+        }
+
+        // セッションのユーザーIDチェック
+        if (!userId) {
+          failedData.push({ ...row, error: "認証情報が不正です" });
+          continue;
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
         try {
-          // 評価ポイントが数値かをチェック
-          const contributionPoint = parseInt(row.fixedContributionPoint.toString());
-          if (isNaN(contributionPoint)) {
-            failedData.push({ ...row, 失敗理由: "固定貢献ポイントが数値ではありません" });
-            continue;
-          }
-
-          // 評価者と評価ロジックのチェック
-          if (!row.fixedEvaluatorId) {
-            failedData.push({ ...row, 失敗理由: "固定評価者が指定されていません" });
-            continue;
-          }
-
-          if (!row.fixedEvaluationLogic) {
-            failedData.push({ ...row, 失敗理由: "固定評価ロジックが指定されていません" });
-            continue;
-          }
-
-          // 評価日の確認（指定がなければ現在の日時）
-          let evaluationDate: Date;
-          if (row.fixedEvaluationDate) {
-            const dateValue = new Date(row.fixedEvaluationDate);
-            evaluationDate = isNaN(dateValue.getTime()) ? new Date() : dateValue;
-          } else {
-            evaluationDate = new Date();
-          }
-
-          // セッションのユーザーIDチェック
-          if (!userId) {
-            failedData.push({ ...row, 失敗理由: "認証情報が不正です" });
-            continue;
-          }
-
-          // タスクを更新
-          const updatedTask = await tx.task.update({
-            where: { id: row.id },
-            data: {
-              fixedContributionPoint: contributionPoint,
-              fixedEvaluatorId: row.fixedEvaluatorId,
-              fixedEvaluationLogic: row.fixedEvaluationLogic,
-              fixedEvaluationDate: evaluationDate,
-              userFixedSubmitterId: userId,
-              status: "POINTS_AWARDED",
+          /**
+           * タスクの存在確認
+           */
+          const task = await tx.task.findFirst({
+            where: {
+              id,
+              groupId: groupId,
             },
             select: {
               id: true,
@@ -143,10 +121,50 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
             },
           });
 
-          // GroupPointテーブルの残高を更新
+          if (!task) {
+            failedData.push({ ...row, error: "指定されたタスクが見つかりません" });
+            continue;
+          }
+
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+          /**
+           * タスクのステータスが TASK_COMPLETED かどうかチェック
+           */
+          if (task.status !== TaskStatus.TASK_COMPLETED) {
+            failedData.push({ ...row, error: "タスクのステータスが「タスク完了」でないため更新できません" });
+            continue;
+          }
+
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+          /**
+           * タスクを更新
+           */
+          const updatedTask = await tx.task.update({
+            where: { id },
+            data: {
+              fixedContributionPoint: contributionPoint,
+              fixedEvaluatorId,
+              fixedEvaluationLogic,
+              fixedEvaluationDate: evaluationDate,
+              userFixedSubmitterId: userId,
+              status: TaskStatus.POINTS_AWARDED,
+            },
+            select: {
+              id: true,
+              status: true,
+            },
+          });
+
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+          /**
+           * GroupPointテーブルの残高を更新
+           */
           // 1. 報告者と実行者のユーザーIDを取得
           const taskWithUsers = await tx.task.findUnique({
-            where: { id: row.id },
+            where: { id },
             select: {
               reporters: {
                 select: { userId: true },
@@ -159,6 +177,11 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
             },
           });
 
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+          /**
+           * タスクの実行者と報告者のユーザーIDを取得
+           */
           if (taskWithUsers) {
             // 重複を排除したユーザーIDリストを作成
             const userIds = [
@@ -168,69 +191,74 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
               ]),
             ];
 
-            // 各ユーザーのGroupPointを更新
-            for (const userId of userIds) {
-              // 既存のGroupPointを検索
-              const groupPoint = await tx.groupPoint.findUnique({
-                where: {
-                  userId_groupId: {
-                    userId: userId,
-                    groupId: groupId,
-                  },
-                },
-                select: { id: true },
-              });
+            // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+            /**
+             * 各ユーザーのGroupPointを更新
+             */
+            for (const userId of userIds) {
               // GroupPointが存在しなければ作成、存在すれば更新
-              if (groupPoint) {
-                await tx.groupPoint.update({
-                  where: {
-                    userId_groupId: {
-                      userId: userId,
-                      groupId: groupId,
-                    },
-                  },
-                  data: {
-                    balance: { increment: contributionPoint },
-                    fixedTotalPoints: { increment: contributionPoint },
-                  },
-                });
-              } else {
-                await tx.groupPoint.create({
-                  data: {
-                    userId: userId,
-                    groupId: groupId,
-                    balance: contributionPoint,
-                    fixedTotalPoints: contributionPoint,
-                  },
-                });
-              }
+              await tx.groupPoint.upsert({
+                where: { userId_groupId: { userId: userId, groupId: groupId } },
+                update: {
+                  balance: { increment: contributionPoint },
+                  fixedTotalPoints: { increment: contributionPoint },
+                },
+                create: {
+                  userId: userId,
+                  groupId: groupId,
+                  balance: contributionPoint,
+                  fixedTotalPoints: contributionPoint,
+                },
+              });
             }
           }
 
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+          /**
+           * 成功データを保存
+           */
           successData.push({ ...row, status: updatedTask.status });
         } catch (error) {
-          console.error(`タスク更新エラー (ID: ${row.id}):`, error);
-          failedData.push({ ...row, 失敗理由: `エラー: ${error instanceof Error ? error.message : "不明なエラー"}` });
+          // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+          /**
+           * エラーを保存
+           */
+          console.error(`タスク更新エラー (ID: ${id}):`, error);
+          failedData.push({ ...row, error: `エラー: ${error instanceof Error ? error.message : "不明なエラー"}` });
         }
       }
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 再検証
+     */
     revalidatePath(`/dashboard/group/${groupId}`);
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 結果を返却
+     */
     return {
       success: true,
       successData,
       failedData,
       message: `${successData.length}件のタスクが正常に更新されました。${failedData.length > 0 ? `${failedData.length}件の更新に失敗しました。` : ""}`,
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[BULK_UPDATE_FIXED_EVALUATIONS]", error);
     return {
       success: false,
-      error: "タスクの一括更新中にエラーが発生しました",
+      error: error instanceof Error ? error.message : "タスクの一括更新中にエラーが発生しました",
       successData: [],
-      failedData: data.map((item) => ({ ...item, 失敗理由: "システムエラー" })),
+      failedData: data.map((item) => ({ ...item, error: "システムエラー" })),
     };
   }
 }

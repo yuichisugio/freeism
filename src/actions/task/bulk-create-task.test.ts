@@ -1,7 +1,5 @@
 import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { checkIsPermission } from "@/actions/permission/permission";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { groupFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { ContributionType } from "@prisma/client";
@@ -10,79 +8,71 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { bulkCreateTask } from "./bulk-create-task";
 
 // モック設定
-vi.mock("@/lib/utils", () => ({
-  getAuthenticatedSessionUserId: vi.fn(),
-}));
-
-vi.mock("../permission", () => ({
-  checkIsOwner: vi.fn(),
-}));
-
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 // モック関数の型定義
-const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
-const mockCheckIsOwner = vi.mocked(checkIsPermission);
 const mockRevalidatePath = vi.mocked(revalidatePath);
 
-describe("upload-modal", () => {
+describe("bulkCreateTask", () => {
   const testUserId = "test-user-id";
   const testGroupId = "test-group-id";
+
+  // 共通のテストデータ
+  const validTaskData = [
+    {
+      task: "テストタスク1",
+      detail: "詳細1",
+      reference: "https://example.com",
+      info: "情報1",
+      contributionType: ContributionType.NON_REWARD,
+      deliveryMethod: "オンライン",
+    },
+    {
+      task: "テストタスク2",
+      detail: "詳細2",
+      reference: null,
+      info: null,
+      contributionType: ContributionType.REWARD,
+      deliveryMethod: "オフライン",
+      auctionStartTime: new Date("2024-01-01T10:00:00Z"),
+      auctionEndTime: new Date("2024-01-08T10:00:00Z"),
+    },
+  ];
+
+  // 共通のモック設定ヘルパー関数
+  const setupSuccessfulMocks = () => {
+    const group = groupFactory.build({ id: testGroupId });
+    prismaMock.group.findUnique.mockResolvedValue(group);
+
+    prismaMock.$transaction.mockImplementation(async (callback) => {
+      const mockTx = {
+        task: {
+          create: vi.fn().mockImplementation(() => {
+            return Promise.resolve({ id: `task-${Math.random()}` });
+          }),
+        },
+        auction: {
+          create: vi.fn().mockResolvedValue({ id: "auction-1" }),
+        },
+      };
+      return callback(mockTx as unknown as Prisma.TransactionClient);
+    });
+  };
 
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
-    mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-    mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
   });
 
-  describe("bulkCreateTasks", () => {
-    const validTaskData = [
-      {
-        task: "テストタスク1",
-        detail: "詳細1",
-        reference: "https://example.com",
-        info: "情報1",
-        contributionType: ContributionType.NON_REWARD,
-        deliveryMethod: "オンライン",
-      },
-      {
-        task: "テストタスク2",
-        detail: "詳細2",
-        reference: null,
-        info: null,
-        contributionType: ContributionType.REWARD,
-        deliveryMethod: "オフライン",
-        auctionStartTime: new Date("2024-01-01T10:00:00Z"),
-        auctionEndTime: new Date("2024-01-08T10:00:00Z"),
-      },
-    ];
-
+  describe("正常系", () => {
     test("should create tasks successfully with valid data", async () => {
       // Arrange
-      const group = groupFactory.build({ id: testGroupId });
-      const createdTasks = validTaskData.map((_, index) => ({ id: `task-${index + 1}` }));
-
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            create: vi.fn().mockImplementation(() => {
-              const index = createdTasks.length - validTaskData.length + 1;
-              return Promise.resolve({ id: `task-${index}` });
-            }),
-          },
-          auction: {
-            create: vi.fn().mockResolvedValue({ id: "auction-1" }),
-          },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
+      setupSuccessfulMocks();
 
       // Act
-      const result = await bulkCreateTask(validTaskData, testGroupId);
+      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -92,38 +82,6 @@ describe("upload-modal", () => {
         select: { id: true },
       });
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroupId}`);
-    });
-
-    test("should return error when groupId is empty", async () => {
-      // Act
-      const result = await bulkCreateTask(validTaskData, "");
-
-      // Assert
-      expect(result.error).toBe("グループIDが指定されていません");
-      expect(result.success).toBeUndefined();
-    });
-
-    test("should return error when groupId is null", async () => {
-      // Act
-      const result = await bulkCreateTask(validTaskData, null as unknown as string);
-
-      // Assert
-      expect(result.error).toBe("グループIDが指定されていません");
-    });
-
-    test("should return error when group does not exist", async () => {
-      // Arrange
-      prismaMock.group.findUnique.mockResolvedValue(null);
-
-      // Act
-      const result = await bulkCreateTask(validTaskData, testGroupId);
-
-      // Assert
-      expect(result.error).toBe("指定されたグループが見つかりません");
-      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
-        where: { id: testGroupId },
-        select: { id: true },
-      });
     });
 
     test("should create auction when contributionType is REWARD", async () => {
@@ -154,7 +112,7 @@ describe("upload-modal", () => {
       });
 
       // Act
-      const result = await bulkCreateTask(rewardTaskData, testGroupId);
+      const result = await bulkCreateTask(rewardTaskData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
@@ -201,32 +159,46 @@ describe("upload-modal", () => {
       });
 
       // Act
-      const result = await bulkCreateTask(invalidDateTaskData, testGroupId);
+      const result = await bulkCreateTask(invalidDateTaskData, testGroupId, testUserId);
 
       // Assert
       expect(result.success).toBe(true);
       // デフォルトの日時が使用されることを確認
       expect(mockAuctionCreate).toHaveBeenCalled();
     });
+  });
 
-    test("should handle empty data array", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId });
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: { create: vi.fn() },
-          auction: { create: vi.fn() },
-        };
-        return callback(mockTx as unknown as Prisma.TransactionClient);
-      });
-
+  describe("異常系", () => {
+    test.each([
+      ["groupId is empty", "", testUserId, validTaskData],
+      ["groupId is null", null as unknown as string, testUserId, validTaskData],
+      ["userId is empty", testGroupId, "", validTaskData],
+      ["userId is null", testGroupId, null as unknown as string, validTaskData],
+      ["data is null", testGroupId, testUserId, null as unknown as typeof validTaskData],
+      ["data is empty array", testGroupId, testUserId, []],
+    ])("should return error when %s", async (_description, groupId, userId, data) => {
       // Act
-      const result = await bulkCreateTask([], testGroupId);
+      const result = await bulkCreateTask(data, groupId, userId);
 
       // Assert
-      expect(result.success).toBe(true);
-      expect(result.tasks).toEqual([]);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("パラメータが不正です");
+    });
+
+    test("should return error when group does not exist", async () => {
+      // Arrange
+      prismaMock.group.findUnique.mockResolvedValue(null);
+
+      // Act
+      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("指定されたグループが見つかりません");
+      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+        where: { id: testGroupId },
+        select: { id: true },
+      });
     });
 
     test("should handle database transaction error", async () => {
@@ -236,11 +208,73 @@ describe("upload-modal", () => {
       prismaMock.$transaction.mockRejectedValue(new Error("Database error"));
 
       // Act
-      const result = await bulkCreateTask(validTaskData, testGroupId);
+      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
 
       // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Database error");
+    });
+
+    test("should handle general error", async () => {
+      // Arrange
+      const group = groupFactory.build({ id: testGroupId });
+      prismaMock.group.findUnique.mockResolvedValue(group);
+      prismaMock.$transaction.mockRejectedValue("Non-error object");
+
+      // Act
+      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(false);
       expect(result.error).toBe("タスクの一括登録中にエラーが発生しました");
-      expect(result.success).toBeUndefined();
+    });
+  });
+
+  describe("境界値テスト", () => {
+    test("should handle single task data", async () => {
+      // Arrange
+      const singleTaskData = [validTaskData[0]];
+      setupSuccessfulMocks();
+
+      // Act
+      const result = await bulkCreateTask(singleTaskData, testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.tasks).toBeDefined();
+    });
+
+    test("should handle tasks with minimal data", async () => {
+      // Arrange
+      const minimalTaskData = [
+        {
+          task: "最小限タスク",
+        },
+      ];
+      setupSuccessfulMocks();
+
+      // Act
+      const result = await bulkCreateTask(minimalTaskData, testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.tasks).toBeDefined();
+    });
+
+    test("should handle large number of tasks", async () => {
+      // Arrange
+      const largeBatchData = Array.from({ length: 100 }, (_, i) => ({
+        task: `大量タスク${i + 1}`,
+        contributionType: ContributionType.NON_REWARD,
+      }));
+      setupSuccessfulMocks();
+
+      // Act
+      const result = await bulkCreateTask(largeBatchData, testGroupId, testUserId);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.tasks).toBeDefined();
     });
   });
 });

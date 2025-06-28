@@ -8,52 +8,23 @@ import { TaskStatus } from "@prisma/client";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 有効なステータスの配列
- */
-const validStatuses: TaskStatus[] = [
-  "PENDING",
-  "POINTS_DEPOSITED",
-  "TASK_COMPLETED",
-  "FIXED_EVALUATED",
-  "POINTS_AWARDED",
-  "ARCHIVED",
-];
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * タスクステータスの更新に失敗した場合のデータ型
  */
 export type FailedResult = {
   taskId: string;
-  status: string;
+  status: TaskStatus;
   error: string;
-  [key: string]: unknown;
 };
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 /**
- * タスクステータスの更新に成功した場合のデータ型（簡素化）
+ * 一括タスクステータス更新の返却値の型
  */
-export type UpdatedTaskResult = {
-  id: string;
-  task: string;
-  reference: string | null;
-  status: string;
-  contributionType: string;
-  info: string | null;
-  fixedContributionPoint: number | null;
-  fixedEvaluatorId: string | null;
-  fixedEvaluationLogic: string | null;
-  fixedEvaluationDate: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  groupId: string;
-  creatorId: string | null;
-  userFixedSubmitterId: string | null;
-  reporters: { userId: string | null }[];
-  executors: { userId: string | null }[];
+type BulkUpdateTaskStatusReturn = {
+  success: boolean;
+  updatedCount: number;
+  failedCount: number;
+  failedData: FailedResult[] | null;
+  error: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -66,15 +37,25 @@ export type UpdatedTaskResult = {
 export async function bulkUpdateTaskStatus(
   data: Array<{
     taskId: string;
-    status: string;
-    [key: string]: unknown;
+    status: TaskStatus;
   }>,
   userId: string,
-) {
+): Promise<BulkUpdateTaskStatusReturn> {
   try {
-    // ユーザーIDが指定されていない場合はログインページにリダイレクト
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーIDが指定されていない場合はログインページにリダイレクト
+     */
     if (!userId) {
       redirect("/auth/login");
+    }
+
+    /**
+     * データが指定されていない場合はエラーを返却
+     */
+    if (data.length === 0) {
+      throw new Error("データが指定されていません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -83,7 +64,7 @@ export async function bulkUpdateTaskStatus(
      * 結果を返却
      */
     // 成功した場合
-    const results: UpdatedTaskResult[] = [];
+    const results: { id: string }[] = [];
 
     // 失敗した場合
     const failedResults: FailedResult[] = [];
@@ -91,26 +72,28 @@ export async function bulkUpdateTaskStatus(
     // データごとに処理
     for (const item of data) {
       try {
+        const { taskId, status } = item;
+
         // 必須フィールドのチェック
-        if (!item.taskId) {
+        if (!taskId) {
           failedResults.push({ ...item, error: "タスクIDが指定されていません" });
           continue;
         }
 
-        if (!item.status) {
+        if (!status) {
           failedResults.push({ ...item, error: "ステータスが指定されていません" });
           continue;
         }
 
         // ステータスの有効性チェック
-        if (!validStatuses.includes(item.status as TaskStatus)) {
-          failedResults.push({ ...item, error: `無効なステータスです: ${item.status}` });
+        if (!Object.values(TaskStatus).includes(status)) {
+          failedResults.push({ ...item, error: `無効なステータスです: ${status}` });
           continue;
         }
 
         // タスクの存在チェック
         const task = await prisma.task.findUnique({
-          where: { id: item.taskId },
+          where: { id: taskId },
           select: {
             id: true,
             status: true,
@@ -129,7 +112,7 @@ export async function bulkUpdateTaskStatus(
         }
 
         // 権限チェック
-        const isOwnerOrRoleCheck = await checkIsPermission(userId, task.group.id, undefined, true);
+        const isOwnerOrRoleCheck = await checkIsPermission(userId, task.group.id, taskId, true);
 
         // いずれかの権限がある場合のみ変更可能
         if (!isOwnerOrRoleCheck.success) {
@@ -138,11 +121,7 @@ export async function bulkUpdateTaskStatus(
         }
 
         // 変更不可のステータスチェック（特定のステータスからは変更不可）
-        const immutableStatuses: TaskStatus[] = [
-          TaskStatus.FIXED_EVALUATED,
-          TaskStatus.POINTS_AWARDED,
-          TaskStatus.ARCHIVED,
-        ];
+        const immutableStatuses: TaskStatus[] = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED];
         if (immutableStatuses.includes(task.status)) {
           failedResults.push({ ...item, error: `このステータス(${task.status})のタスクは変更できません` });
           continue;
@@ -150,81 +129,12 @@ export async function bulkUpdateTaskStatus(
 
         // ステータス更新
         const updatedTask = await prisma.task.update({
-          where: { id: item.taskId },
-          data: { status: item.status as TaskStatus },
+          where: { id: taskId },
+          data: { status },
           select: {
             id: true,
-            task: true,
-            reference: true,
-            status: true,
-            contributionType: true,
-            info: true,
-            fixedContributionPoint: true,
-            fixedEvaluatorId: true,
-            fixedEvaluationLogic: true,
-            fixedEvaluationDate: true,
-            createdAt: true,
-            updatedAt: true,
-            groupId: true,
-            creatorId: true,
-            userFixedSubmitterId: true,
-            reporters: {
-              select: { userId: true },
-            },
-            executors: {
-              select: { userId: true },
-            },
           },
         });
-
-        // ステータスがPOINTS_AWARDEDに変更されかつfixedContributionPointが設定されている場合、GroupPointを更新
-        if (item.status === TaskStatus.POINTS_AWARDED && task.fixedContributionPoint) {
-          const contributionPoint = task.fixedContributionPoint;
-
-          // 報告者と実行者のユーザーIDを取得（重複排除）
-          const reporterUserIds = updatedTask.reporters.filter((r) => r.userId).map((r) => r.userId!);
-          const executorUserIds = updatedTask.executors.filter((e) => e.userId).map((e) => e.userId!);
-          const userIds = [...new Set([...reporterUserIds, ...executorUserIds])];
-
-          // 各ユーザーのGroupPointを更新
-          for (const userId of userIds) {
-            // 既存のGroupPointを検索
-            const groupPoint = await prisma.groupPoint.findUnique({
-              where: {
-                userId_groupId: {
-                  userId: userId,
-                  groupId: task.group.id,
-                },
-              },
-              select: { id: true },
-            });
-
-            // GroupPointが存在しなければ作成、存在すれば更新
-            if (groupPoint) {
-              await prisma.groupPoint.update({
-                where: {
-                  userId_groupId: {
-                    userId: userId,
-                    groupId: task.group.id,
-                  },
-                },
-                data: {
-                  balance: { increment: contributionPoint },
-                  fixedTotalPoints: { increment: contributionPoint },
-                },
-              });
-            } else {
-              await prisma.groupPoint.create({
-                data: {
-                  userId: userId,
-                  groupId: task.group.id,
-                  balance: contributionPoint,
-                  fixedTotalPoints: contributionPoint,
-                },
-              });
-            }
-          }
-        }
 
         results.push(updatedTask);
       } catch (error) {
@@ -236,16 +146,27 @@ export async function bulkUpdateTaskStatus(
       }
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 結果を返却
+     */
     return {
-      success: true,
+      success: failedResults.length === 0,
       updatedCount: results.length,
       failedCount: failedResults.length,
       failedData: failedResults.length > 0 ? failedResults : null,
+      error: "",
     };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("一括タスクステータス更新エラー:", error);
     return {
       success: false,
+      updatedCount: 0,
+      failedCount: 0,
+      failedData: null,
       error: error instanceof Error ? error.message : "タスクステータスの一括更新中にエラーが発生しました",
     };
   }

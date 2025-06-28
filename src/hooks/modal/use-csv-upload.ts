@@ -8,7 +8,7 @@ import { bulkCreateTask } from "@/actions/task/bulk-create-task";
 import { bulkUpdateFixedEvaluations } from "@/actions/task/bulk-update-fix-evaluation";
 import { bulkUpdateTaskStatus } from "@/actions/task/bulk-update-task-status";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
-import { ContributionType } from "@prisma/client";
+import { ContributionType, TaskStatus } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Papa from "papaparse";
 import { useDropzone } from "react-dropzone";
@@ -143,7 +143,6 @@ type FixedContributionData = {
   fixedEvaluatorId: string;
   fixedEvaluationLogic: string;
   fixedEvaluationDate?: string | Date;
-  [key: string]: unknown;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -153,8 +152,7 @@ type FixedContributionData = {
  */
 type TaskStatusData = {
   taskId: string;
-  status: string;
-  [key: string]: unknown;
+  status: TaskStatus;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -662,7 +660,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
   const convertToTaskStatusData = useCallback((data: CsvRow[]): TaskStatusData[] => {
     return data.map((row) => {
       const taskId = typeof row.taskId === "string" ? row.taskId : "";
-      const status = typeof row.status === "string" ? row.status : "";
+      const status = typeof row.status === "string" ? (row.status as TaskStatus) : TaskStatus.PENDING;
 
       return {
         taskId,
@@ -753,7 +751,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             const taskData = convertToTaskReportData(data);
 
             // APIを呼び出し
-            const taskResponse = (await bulkCreateTask(taskData, groupId)) as TasksApiResponse;
+            const taskResponse = (await bulkCreateTask(taskData, groupId, userId ?? "")) as TasksApiResponse;
 
             result = {
               success: taskResponse.success,
@@ -771,7 +769,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             const evalData = convertToContributionEvaluationData(data);
 
             // APIを呼び出し
-            const evalResponse = (await bulkCreateEvaluations(evalData, groupId)) as EvaluationsApiResponse;
+            const evalResponse = (await bulkCreateEvaluations(
+              evalData,
+              groupId,
+              userId ?? "",
+            )) as EvaluationsApiResponse;
 
             result = {
               success: evalResponse.success,
@@ -789,7 +791,11 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
             const fixedData = convertToFixedContributionData(data);
 
             // APIを呼び出し
-            const fixedResponse = (await bulkUpdateFixedEvaluations(fixedData, groupId)) as FixedEvaluationsApiResponse;
+            const fixedResponse = (await bulkUpdateFixedEvaluations(
+              fixedData,
+              groupId,
+              userId ?? "",
+            )) as FixedEvaluationsApiResponse;
 
             result = {
               success: fixedResponse.success,

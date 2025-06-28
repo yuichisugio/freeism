@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 import { z } from "zod"; // zodを使用して型検証を行います
 
@@ -56,31 +55,16 @@ type EvaluationResult =
 export async function bulkCreateEvaluations(
   rawData: EvaluationImportData[],
   groupId: string,
+  userId: string,
 ): Promise<EvaluationResult> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * ユーザー認証の確認
-     */
-    const userId = await getAuthenticatedSessionUserId();
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
      * パラメータの検証
      */
-    if (!groupId || !userId) {
+    if (!groupId || !userId || !rawData || rawData.length === 0 || !Array.isArray(rawData)) {
       throw new Error("無効なパラメータが指定されました");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 入力データの検証
-     */
-    if (!Array.isArray(rawData) || rawData.length === 0) {
-      return { success: false, error: "評価データが空か無効な形式です" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -127,10 +111,7 @@ export async function bulkCreateEvaluations(
      */
     if (validationErrors.length > 0) {
       const errorMessages = validationErrors.map((e) => e.error);
-      return {
-        success: false,
-        error: `データ検証に失敗しました: ${errorMessages.join("; ")}`,
-      };
+      throw new Error(`データ検証に失敗しました: ${errorMessages.join("; ")}`);
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -195,18 +176,24 @@ export async function bulkCreateEvaluations(
      * 正常処理の完了、ページのキャッシュを更新
      */
     revalidatePath(`/dashboard/group/${groupId}`);
-    return { success: true, analyses: [{ count: result.count, message: `${result.count}件のデータを登録しました` }] };
-  } catch (error) {
-    console.error("[BULK_CREATE_EVALUATIONS]", error);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * エラー処理を詳細に
+     * 結果を返却
      */
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
-    return { success: false, error: "貢献評価の一括登録中にエラーが発生しました" };
+    return { success: true, analyses: [{ count: result.count, message: `${result.count}件のデータを登録しました` }] };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラーを返却
+     */
+  } catch (error) {
+    console.error("[BULK_CREATE_EVALUATIONS]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "貢献評価の一括登録中にエラーが発生しました",
+    };
   }
 }
