@@ -1,14 +1,2 @@
 #!/usr/bin/env sh
-
-# Commitizenでコミットメッセージを作成し、エディタが開かないようにする
-if [ "${COMMITIZEN_HOOK_SKIP}" = "1" ]; then
-  # git-cz（pnpm commit）実行時はフックをスキップ
-  exit 0
-fi
-
-if [ -z "$2" ] || [ "$2" = "message" ]; then
-  # 標準入力をターミナルに接続してCommitizenを実行
-  exec < /dev/tty
-  # Commitizenを実行し、作成されたメッセージをコミットメッセージファイルに書き込む
-  npx cz --hook || exit 1
-fi
+exec < /dev/tty && npx cz --hook || true
