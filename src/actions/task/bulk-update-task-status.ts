@@ -77,7 +77,15 @@ export async function bulkUpdateTaskStatus(
       redirect("/auth/login");
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 結果を返却
+     */
+    // 成功した場合
     const results: UpdatedTaskResult[] = [];
+
+    // 失敗した場合
     const failedResults: FailedResult[] = [];
 
     // データごとに処理

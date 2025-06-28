@@ -73,7 +73,11 @@ export async function cachedExportGroupAnalytics(
       onlyFixed === undefined ||
       onlyTaskCompleted === undefined ||
       onlyFixed === null ||
-      onlyTaskCompleted === null
+      onlyTaskCompleted === null ||
+      limit <= 0 ||
+      limit === undefined ||
+      limit === null ||
+      typeof limit !== "number"
     ) {
       throw new Error("パラメータが不正です");
     }
