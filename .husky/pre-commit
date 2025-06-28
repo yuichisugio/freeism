@@ -1,6 +1,11 @@
 #!/usr/bin/env sh
 
 # ===== 0) Rosetta で走っている macOS Intel だけ arm64 で再実行 =====
+if [ "${COMMITIZEN_HOOK_SKIP}" = "1" ]; then
+  # Commitizen 経由で再帰的に呼び出された commit のため、Lint はスキップ
+  exit 0
+fi
+
 if [ "$(uname -s)" = "Darwin" ] && [ "$(uname -m)" != "arm64" ]; then
   if /usr/bin/arch -arm64 true 2>/dev/null ; then       # Intel Mac では false を返す
     echo "🔄  Re-launching hook under arm64..."
