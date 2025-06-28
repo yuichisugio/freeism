@@ -1,7 +1,13 @@
 #!/usr/bin/env sh
 
-# Commitizenでコミットメッセージを作成し、エディタが開かないようにする
+# Commitzenでコミットメッセージを作成し、エディタが開かないようにする
+# Windows環境での重複実行を防ぐため、条件をより厳密にする
 if [ -z "$2" ] || [ "$2" = "message" ]; then
+  # git-czコマンドから実行された場合はスキップ
+  if [ -n "$COMMITIZEN_HOOK_SKIP" ]; then
+    exit 0
+  fi
+  
   # 標準入力をターミナルに接続してCommitizenを実行
   exec < /dev/tty
   # Commitizenを実行し、作成されたメッセージをコミットメッセージファイルに書き込む
