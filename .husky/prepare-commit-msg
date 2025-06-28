@@ -1,11 +1,6 @@
 #!/usr/bin/env sh
 
-# COMMITIZEN_HOOK_SKIPが設定されている場合はCommitizenをスキップ
-if [ "$COMMITIZEN_HOOK_SKIP" = "1" ]; then
-  exit 0
-fi
-
-# ===== 1) まずlint処理を実行 =====
+# ===== 1) まずlint処理を実行（Commitizen使用時も含む） =====
 echo "🔍 Running lint-staged before commit message creation..."
 if ! npx lint-staged --concurrent false; then
   echo "❌ Lint checks failed. Aborting commit."
@@ -14,7 +9,13 @@ fi
 
 echo "✅ Lint checks passed. Proceeding with commit message creation..."
 
-# ===== 2) Commitizenでコミットメッセージを作成 =====
+# ===== 2) COMMITIZEN_HOOK_SKIPが設定されている場合はCommitizenをスキップ =====
+if [ "$COMMITIZEN_HOOK_SKIP" = "1" ]; then
+  echo "🔄 Commitizen hook skip detected, exiting..."
+  exit 0
+fi
+
+# ===== 3) Commitizenでコミットメッセージを作成 =====
 if [ -z "$2" ] || [ "$2" = "message" ]; then
   # Windows環境対応: 標準入力をターミナルに接続
   if [ -t 0 ]; then
