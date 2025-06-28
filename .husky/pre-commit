@@ -12,6 +12,6 @@ fi
 #   • Intel Mac     → arch -arm64 が無いので再実行せずそのまま
 #   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
-# ===== 1) lint処理を実行（常に実行、Commitizen使用時も含む） =====
-echo "🔍 Running lint-staged..."
-npx lint-staged --concurrent false
+# ===== 1) テスト & Lint =====
+# pnpm run test
+pnpm run lint-staged

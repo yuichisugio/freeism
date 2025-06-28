@@ -81,6 +81,8 @@ type PrismaTransaction = {
   };
 };
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // モック設定
 vi.mock("@/actions/permission/permission", () => ({
   checkIsPermission: vi.fn(),
@@ -90,9 +92,13 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // モック関数の型定義
 const mockCheckIsPermission = vi.mocked(checkIsPermission);
 const mockRevalidatePath = vi.mocked(revalidatePath);
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // トランザクション用のモックヘルパー
 const createMockTransaction = (
@@ -128,6 +134,8 @@ const createMockTransaction = (
     return callback(mockTx);
   });
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("bulkUpdateFixedEvaluations", () => {
   // テスト用定数
@@ -180,6 +188,7 @@ describe("bulkUpdateFixedEvaluations", () => {
       expect(result.failedData).toHaveLength(0);
       expect(result.message).toContain("2件のタスクが正常に更新されました");
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroupId}`);
+      expect(prismaMock.$transaction).toHaveBeenCalled();
     });
 
     test("既存のGroupPointを正常に更新する", async () => {
@@ -192,6 +201,7 @@ describe("bulkUpdateFixedEvaluations", () => {
       // Assert
       expect(result.success).toBe(true);
       expect(result.successData).toHaveLength(1);
+      expect(prismaMock.$transaction).toHaveBeenCalled();
     });
 
     test("重複するユーザーIDを正しく処理する", async () => {
@@ -211,141 +221,173 @@ describe("bulkUpdateFixedEvaluations", () => {
     });
   });
 
-  describe("権限エラーテスト", () => {
-    test("権限がない場合はエラーを返す", async () => {
-      // Arrange
-      setupPermission(false);
+  describe("異常系テスト", () => {
+    describe("権限エラーテスト", () => {
+      test("権限がない場合はエラーを返す", async () => {
+        // Arrange
+        setupPermission(false);
 
-      // Act
-      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
+        // Act
+        const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
 
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("この操作を行う権限がありません");
-      expect(result.failedData).toHaveLength(2);
-      expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
-    });
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.error).toBe("この操作を行う権限がありません");
+        expect(result.failedData).toHaveLength(2);
+        expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
+      });
 
-    test("パラメータが不正な場合はエラーを返す", async () => {
-      // Act
-      const result = await bulkUpdateFixedEvaluations(validEvaluationData, "", testUserId);
-
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("パラメータが不正です");
-    });
-  });
-
-  describe("バリデーションエラーテスト", () => {
-    const validationTestCases = [
-      {
-        name: "タスクIDが空の場合",
-        data: {
-          id: "",
-          fixedContributionPoint: "100",
-          fixedEvaluatorId: "evaluator-1",
-          fixedEvaluationLogic: "自動評価",
+      test.each([
+        {
+          name: "両方のパラメータが不正な場合",
+          userId: "",
+          groupId: "",
         },
-        expectedError: "タスクIDが指定されていません",
-      },
-      {
-        name: "貢献ポイントが数値でない場合",
-        data: {
-          id: "task-1",
-          fixedContributionPoint: "invalid-number",
-          fixedEvaluatorId: "evaluator-1",
-          fixedEvaluationLogic: "自動評価",
+        {
+          name: "userIs is empty",
+          userId: "",
+          groupId: "test-group-id",
         },
-        expectedError: "固定貢献ポイントが数値ではありません",
-      },
-      {
-        name: "評価者IDが空の場合",
-        data: { id: "task-1", fixedContributionPoint: "100", fixedEvaluatorId: "", fixedEvaluationLogic: "自動評価" },
-        expectedError: "固定評価者が指定されていません",
-      },
-      {
-        name: "評価ロジックが空の場合",
-        data: {
-          id: "task-1",
-          fixedContributionPoint: "100",
-          fixedEvaluatorId: "evaluator-1",
-          fixedEvaluationLogic: "",
+        {
+          name: "groupId is empty",
+          userId: "test-user-id",
+          groupId: "",
         },
-        expectedError: "固定評価ロジックが指定されていません",
-      },
-    ];
+      ])("$name", async ({ userId, groupId }) => {
+        // Act
+        const result = await bulkUpdateFixedEvaluations(validEvaluationData, groupId, userId);
 
-    test.each(validationTestCases)("$name", async ({ data, expectedError }) => {
-      // Arrange
-      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskUpdateError: "String error" }));
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.error).toBe("パラメータが不正です");
+      });
 
-      // Act
-      const result = await bulkUpdateFixedEvaluations([data], testGroupId, testUserId);
+      test("空の配列を渡した場合", async () => {
+        // Arrange
+        prismaMock.$transaction.mockImplementation(createMockTransaction());
 
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.successData).toHaveLength(0);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].error).toBe(expectedError);
-    });
-  });
+        // Act
+        const result = await bulkUpdateFixedEvaluations([], testGroupId, testUserId);
 
-  describe("タスク関連エラーテスト", () => {
-    test("タスクが見つからない場合", async () => {
-      // Arrange
-      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskExists: false }));
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].error).toBe("指定されたタスクが見つかりません");
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "パラメータが不正です",
+          failedData: [],
+          successData: [],
+        });
+      });
     });
 
-    test("タスクのステータスが不正な場合", async () => {
-      // Arrange
-      prismaMock.$transaction.mockImplementation(createMockTransaction({ taskStatus: TaskStatus.PENDING }));
+    describe("バリデーションエラーテスト", () => {
+      test.each([
+        {
+          name: "タスクIDが空の場合",
+          data: {
+            id: "",
+            fixedContributionPoint: "100",
+            fixedEvaluatorId: "evaluator-1",
+            fixedEvaluationLogic: "自動評価",
+          },
+          expectedError: "タスクIDが指定されていません",
+        },
+        {
+          name: "貢献ポイントが数値でない場合",
+          data: {
+            id: "task-1",
+            fixedContributionPoint: "invalid-number",
+            fixedEvaluatorId: "evaluator-1",
+            fixedEvaluationLogic: "自動評価",
+          },
+          expectedError: "固定貢献ポイントが数値ではありません",
+        },
+        {
+          name: "評価者IDが空の場合",
+          data: { id: "task-1", fixedContributionPoint: "100", fixedEvaluatorId: "", fixedEvaluationLogic: "自動評価" },
+          expectedError: "固定評価者が指定されていません",
+        },
+        {
+          name: "評価ロジックが空の場合",
+          data: {
+            id: "task-1",
+            fixedContributionPoint: "100",
+            fixedEvaluatorId: "evaluator-1",
+            fixedEvaluationLogic: "",
+          },
+          expectedError: "固定評価ロジックが指定されていません",
+        },
+      ])("$name", async ({ data, expectedError }) => {
+        // Arrange
+        prismaMock.$transaction.mockImplementation(createMockTransaction({ taskUpdateError: "String error" }));
 
-      // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+        // Act
+        const result = await bulkUpdateFixedEvaluations([data], testGroupId, testUserId);
 
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].error).toBe("タスクのステータスが「タスク完了」でないため更新できません");
+        // Assert
+        expect(result.success).toBe(true);
+        expect(result.successData).toHaveLength(0);
+        expect(result.failedData).toHaveLength(1);
+        expect(result.failedData[0].error).toBe(expectedError);
+      });
     });
-  });
 
-  describe("システムエラーテスト", () => {
-    test("データベースエラーが発生した場合", async () => {
-      // Arrange
-      prismaMock.$transaction.mockImplementation(vi.fn().mockRejectedValue(new Error("Database error")));
+    describe("タスク関連エラーテスト", () => {
+      test("タスクが見つからない場合", async () => {
+        // Arrange
+        prismaMock.$transaction.mockImplementation(createMockTransaction({ taskExists: false }));
 
-      // Act
-      const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
+        // Act
+        const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
 
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Database error");
-      expect(result.failedData).toHaveLength(2);
-      expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
+        // Assert
+        expect(result.success).toBe(true);
+        expect(result.failedData).toHaveLength(1);
+        expect(result.failedData[0].error).toBe("指定されたタスクが見つかりません");
+      });
+
+      test("タスクのステータスが不正な場合", async () => {
+        // Arrange
+        prismaMock.$transaction.mockImplementation(createMockTransaction({ taskStatus: TaskStatus.PENDING }));
+
+        // Act
+        const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+
+        // Assert
+        expect(result.success).toBe(true);
+        expect(result.failedData).toHaveLength(1);
+        expect(result.failedData[0].error).toBe("タスクのステータスが「タスク完了」でないため更新できません");
+      });
     });
 
-    test("個別のタスク更新でエラーが発生した場合", async () => {
-      // Arrange
-      prismaMock.$transaction.mockImplementation(
-        createMockTransaction({ taskUpdateError: new Error("Task update failed") }),
-      );
+    describe("システムエラーテスト", () => {
+      test("データベースエラーが発生した場合", async () => {
+        // Arrange
+        prismaMock.$transaction.mockImplementation(vi.fn().mockRejectedValue(new Error("Database error")));
 
-      // Act
-      const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+        // Act
+        const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
 
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].error).toBe("エラー: Task update failed");
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.error).toBe("Database error");
+        expect(result.failedData).toHaveLength(2);
+        expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
+      });
+
+      test("個別のタスク更新でエラーが発生した場合", async () => {
+        // Arrange
+        prismaMock.$transaction.mockImplementation(
+          createMockTransaction({ taskUpdateError: new Error("Task update failed") }),
+        );
+
+        // Act
+        const result = await bulkUpdateFixedEvaluations([validEvaluationData[0]], testGroupId, testUserId);
+
+        // Assert
+        expect(result.success).toBe(true);
+        expect(result.failedData).toHaveLength(1);
+        expect(result.failedData[0].error).toBe("エラー: Task update failed");
+      });
     });
 
     test("Error以外のオブジェクトでエラーが発生した場合", async () => {
@@ -363,40 +405,6 @@ describe("bulkUpdateFixedEvaluations", () => {
   });
 
   describe("境界値テスト", () => {
-    test("空の配列を渡した場合", async () => {
-      // Arrange
-      prismaMock.$transaction.mockImplementation(createMockTransaction());
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations([], testGroupId, testUserId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.successData).toHaveLength(0);
-      expect(result.failedData).toHaveLength(0);
-      expect(result.message).toBe("0件のタスクが正常に更新されました。");
-    });
-
-    test("数値型の貢献ポイントを正常に処理する", async () => {
-      // Arrange
-      const numericData = [
-        {
-          id: "task-1",
-          fixedContributionPoint: 100, // 数値型
-          fixedEvaluatorId: "evaluator-1",
-          fixedEvaluationLogic: "自動評価",
-        },
-      ];
-      prismaMock.$transaction.mockImplementation(createMockTransaction());
-
-      // Act
-      const result = await bulkUpdateFixedEvaluations(numericData, testGroupId, testUserId);
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.successData).toHaveLength(1);
-    });
-
     test("評価日が指定されていない場合は現在日時を使用する", async () => {
       // Arrange
       const dataWithoutDate = [
@@ -438,26 +446,26 @@ describe("bulkUpdateFixedEvaluations", () => {
       expect(result.success).toBe(true);
       expect(result.successData).toHaveLength(1);
     });
-  });
 
-  describe("混合結果テスト", () => {
-    test("成功と失敗が混在する場合", async () => {
-      // Arrange
-      const mixedData = [
-        validEvaluationData[0], // 成功
-        { id: "", fixedContributionPoint: "100", fixedEvaluatorId: "evaluator-1", fixedEvaluationLogic: "自動評価" }, // 失敗
-        validEvaluationData[1], // 成功
-      ];
-      prismaMock.$transaction.mockImplementation(createMockTransaction());
+    describe("混合結果テスト", () => {
+      test("成功と失敗が混在する場合", async () => {
+        // Arrange
+        const mixedData = [
+          validEvaluationData[0], // 成功
+          { id: "", fixedContributionPoint: "100", fixedEvaluatorId: "evaluator-1", fixedEvaluationLogic: "自動評価" }, // 失敗
+          validEvaluationData[1], // 成功
+        ];
+        prismaMock.$transaction.mockImplementation(createMockTransaction());
 
-      // Act
-      const result = await bulkUpdateFixedEvaluations(mixedData, testGroupId, testUserId);
+        // Act
+        const result = await bulkUpdateFixedEvaluations(mixedData, testGroupId, testUserId);
 
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.successData).toHaveLength(2);
-      expect(result.failedData).toHaveLength(1);
-      expect(result.message).toBe("2件のタスクが正常に更新されました。1件の更新に失敗しました。");
+        // Assert
+        expect(result.success).toBe(true);
+        expect(result.successData).toHaveLength(2);
+        expect(result.failedData).toHaveLength(1);
+        expect(result.message).toBe("2件のタスクが正常に更新されました。1件の更新に失敗しました。");
+      });
     });
   });
 });

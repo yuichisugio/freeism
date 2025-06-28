@@ -1,20 +1,9 @@
 #!/usr/bin/env sh
 
-# ===== 1) COMMITIZEN_HOOK_SKIPが設定されている場合はCommitizenをスキップ =====
-if [ "$COMMITIZEN_HOOK_SKIP" = "1" ]; then
-  echo "🔄 Commitizen hook skip detected, exiting..."
-  exit 0
-fi
-
-# ===== 2) Commitizenでコミットメッセージを作成 =====
+# Commitizenでコミットメッセージを作成し、エディタが開かないようにする
 if [ -z "$2" ] || [ "$2" = "message" ]; then
-  # Windows環境対応: 標準入力をターミナルに接続
-  if [ -t 0 ]; then
-    # 既にターミナルに接続されている場合
-    npx cz --hook || exit 1
-  else
-    # Windows環境やCI環境での対応
-    exec < /dev/tty
-    npx cz --hook || exit 1
-  fi
+  # 標準入力をターミナルに接続してCommitizenを実行
+  exec < /dev/tty
+  # Commitizenを実行し、作成されたメッセージをコミットメッセージファイルに書き込む
+  npx cz --hook || exit 1
 fi

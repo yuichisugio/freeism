@@ -26,6 +26,7 @@ type FixedEvaluationData = {
  * FIXした分析結果データをCSVからアップロードして、タスクを更新する関数
  * @param data - CSVから読み込んだ評価データ
  * @param groupId - グループID
+ * @param userId - ユーザーID
  * @returns 処理結果と成功・失敗データを含むオブジェクト
  */
 export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], groupId: string, userId: string) {
@@ -34,7 +35,7 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
     /**
      * パラメータチェック
      */
-    if (!userId || !groupId) {
+    if (!userId || !groupId || !data || data.length === 0) {
       throw new Error("パラメータが不正です");
     }
 
