@@ -28,7 +28,7 @@
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\" && prisma format",
     "format:add": "git diff --cached --name-only | grep -E '\\.(js|jsx|ts|tsx|json|css|scss|md)$' | xargs npx prettier --write",
     "prepare": "husky",
-    "commit": "cross-env COMMITIZEN_HOOK_SKIP=1 git-cz",
+    "commit": "pnpm lint-staged && cross-env COMMITIZEN_HOOK_SKIP=1 LINT_STAGED_SKIP=1 git-cz",
     "commit:test": "echo 'Testing commit flow...' && git add . && git commit -m 'test: commit flow test'",
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
