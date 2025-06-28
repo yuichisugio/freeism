@@ -12,5 +12,11 @@ fi
 #   • Intel Mac     → arch -arm64 が無いので再実行せずそのまま
 #   • Linux/Windows CI → uname -s が Darwin ではないので分岐をスキップ
 
+# ===== 1) テスト & Lint =====
+# 環境変数 LINT_STAGED_SKIP がある場合は、lint-staged をスキップして即終了
+if [ -n "$LINT_STAGED_SKIP" ]; then
+  exit 0
+fi
+
 # pnpm run test
 pnpm run lint-staged
