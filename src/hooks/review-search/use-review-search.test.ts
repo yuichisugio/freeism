@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReviewSearchResult, SearchSuggestion } from "@/components/review-search/review-search";
-import type { AuctionReview } from "@prisma/client";
 import type { UseQueryOptions } from "@tanstack/react-query";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -112,7 +111,11 @@ describe("useReviewSearch", () => {
     mockGetMyReviews.mockResolvedValue(mockReviewSearchResult);
     mockGetUserReviews.mockResolvedValue(mockReviewSearchResult);
     mockGetSearchSuggestions.mockResolvedValue(mockSuggestions);
-    mockUpdateReview.mockResolvedValue(mockReviewData as unknown as AuctionReview);
+    mockUpdateReview.mockResolvedValue({
+      success: true,
+      message: "レビューを更新しました",
+      review: mockReviewData,
+    });
 
     // TanStack Queryのモック設定
     mockUseQuery.mockReturnValue({

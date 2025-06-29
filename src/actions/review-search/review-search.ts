@@ -5,15 +5,14 @@ import type {
   ReviewSearchResult,
   SearchSuggestion,
 } from "@/components/review-search/review-search";
+import type { AuctionReview } from "@prisma/client";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 
-import {
-  getCachedAllReviews,
-  getCachedMyReviews,
-  getCachedSearchSuggestions,
-  getCachedUserReviews,
-} from "./cache-review-search";
+import { getCachedAllReviews } from "./cache-get-all-review";
+import { getCachedMyReviews } from "./cache-get-my-review";
+import { getCachedSearchSuggestions } from "./cache-get-search-suggestion";
+import { getCachedUserReviews } from "./cache-get-user-reviews";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -44,11 +43,33 @@ export async function getMyReviews(searchParams: ReviewSearchParams | null): Pro
  * @param comment - 新しいコメント
  * @returns 更新されたレビューデータ
  */
-export async function updateReview(reviewId: string, rating: number, comment: string | null) {
+export async function updateReview(
+  reviewId: string,
+  rating: number,
+  comment: string | null,
+): Promise<{ success: boolean; message: string; review?: AuctionReview }> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * パラメータの検証
+     */
+    if (!reviewId || rating === null || rating === undefined || rating < 0 || rating > 5) {
+      throw new Error("無効なパラメータが指定されました");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーの認証
+     */
     const userId = await getAuthenticatedSessionUserId();
 
-    // 自分が書いたレビューかどうかを確認
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 自分が書いたレビューかどうかを確認
+     */
     const existingReview = await prisma.auctionReview.findFirst({
       where: {
         id: reviewId,
@@ -56,10 +77,20 @@ export async function updateReview(reviewId: string, rating: number, comment: st
       },
     });
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * レビューが見つからないか、編集権限がありません
+     */
     if (!existingReview) {
       throw new Error("レビューが見つからないか、編集権限がありません");
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * レビューを更新
+     */
     const updatedReview = await prisma.auctionReview.update({
       where: { id: reviewId },
       data: {
@@ -69,9 +100,19 @@ export async function updateReview(reviewId: string, rating: number, comment: st
       },
     });
 
-    return updatedReview;
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * レビューを更新した結果を返す
+     */
+    return { success: true, message: "レビューを更新しました", review: updatedReview };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("Error updating review:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error("レビューの更新に失敗しました");
   }
 }

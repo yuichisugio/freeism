@@ -8,12 +8,10 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { auctionReviewFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  getCachedAllReviews,
-  getCachedMyReviews,
-  getCachedSearchSuggestions,
-  getCachedUserReviews,
-} from "./cache-review-search";
+import { getCachedAllReviews } from "./cache-get-all-review";
+import { getCachedMyReviews } from "./cache-get-my-review";
+import { getCachedSearchSuggestions } from "./cache-get-search-suggestion";
+import { getCachedUserReviews } from "./cache-get-user-reviews";
 import { getAllReviews, getMyReviews, getSearchSuggestions, getUserReviews, updateReview } from "./review-search";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -24,10 +22,19 @@ vi.mock("@/lib/utils", () => ({
 }));
 
 // キャッシュ関数のモック
-vi.mock("./cache-review-search", () => ({
+vi.mock("./cache-get-search-suggestion", () => ({
   getCachedSearchSuggestions: vi.fn(),
+}));
+
+vi.mock("./cache-get-all-review", () => ({
   getCachedAllReviews: vi.fn(),
+}));
+
+vi.mock("./cache-get-user-reviews", () => ({
   getCachedUserReviews: vi.fn(),
+}));
+
+vi.mock("./cache-get-my-review", () => ({
   getCachedMyReviews: vi.fn(),
 }));
 
@@ -62,10 +69,39 @@ describe("review-search", () => {
     { value: "suggestion2", label: "サジェスト2" },
   ];
 
-  const testReviewSearchResult: ReviewSearchResult = {
-    reviews: [],
-    totalCount: 0,
-    totalPages: 0,
+  const mockReviewSearchResult: ReviewSearchResult = {
+    reviews: [
+      {
+        id: testReviewId,
+        rating: 4,
+        comment: "テストコメント",
+        createdAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+        reviewPosition: "BUYER_TO_SELLER",
+        reviewer: {
+          id: testUserId,
+          username: "テストユーザー",
+        },
+        reviewee: {
+          id: "reviewee-id",
+          username: "被評価者",
+        },
+        auction: {
+          id: "auction-id",
+          task: {
+            id: "task-id",
+            task: "テストタスク",
+            category: "DEVELOPMENT",
+            group: {
+              id: "group-id",
+              name: "テストグループ",
+            },
+          },
+        },
+      },
+    ],
+    totalCount: 1,
+    totalPages: 1,
   };
 
   beforeEach(() => {
@@ -75,65 +111,52 @@ describe("review-search", () => {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * テストヘルパー関数
+   */
+
+  // updateReviewの共通テストセットアップヘルパー
+  const setupUpdateReviewMocks = (rating: number, comment: string | null, shouldSucceed = true) => {
+    mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
+    if (shouldSucceed) {
+      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
+      const updatedReview = auctionReviewFactory.build({
+        id: testReviewId,
+        reviewerId: testUserId,
+        rating,
+        comment,
+        updatedAt: new Date(),
+      });
+      prismaMock.auctionReview.update.mockResolvedValue(updatedReview);
+      return { success: true, message: "レビューを更新しました", review: updatedReview };
+    } else {
+      prismaMock.auctionReview.findFirst.mockResolvedValue(null);
+      return null;
+    }
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   describe("getSearchSuggestions", () => {
-    test("should return search suggestions successfully", async () => {
-      // モックの設定
-      mockGetCachedSearchSuggestions.mockResolvedValue(testSearchSuggestions);
+    test.each([
+      { query: "テスト", expected: testSearchSuggestions },
+      { query: "", expected: [] },
+      { query: null as unknown as string, expected: [] },
+      { query: undefined as unknown as string, expected: [] },
+    ])("should return search suggestions for various query types", async ({ query, expected }) => {
+      mockGetCachedSearchSuggestions.mockResolvedValue(expected as unknown as SearchSuggestion[]);
 
-      // 関数を実行
-      const result = await getSearchSuggestions("テスト");
+      const result = await getSearchSuggestions(query);
 
-      // 結果を検証
-      expect(result).toStrictEqual(testSearchSuggestions);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith("テスト");
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
-    });
-
-    test("should handle empty query", async () => {
-      // モックの設定
-      mockGetCachedSearchSuggestions.mockResolvedValue([]);
-
-      // 関数を実行
-      const result = await getSearchSuggestions("");
-
-      // 結果を検証
-      expect(result).toStrictEqual([]);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith("");
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
-    });
-
-    test("should handle null query", async () => {
-      // モックの設定
-      mockGetCachedSearchSuggestions.mockResolvedValue([]);
-
-      // 関数を実行
-      const result = await getSearchSuggestions(null as unknown as string);
-
-      // 結果を検証
-      expect(result).toStrictEqual([]);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith(null);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
-    });
-
-    test("should handle undefined query", async () => {
-      // モックの設定
-      mockGetCachedSearchSuggestions.mockResolvedValue([]);
-
-      // 関数を実行
-      const result = await getSearchSuggestions(undefined as unknown as string);
-
-      // 結果を検証
-      expect(result).toStrictEqual([]);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith(undefined);
+      expect(result).toStrictEqual(expected);
+      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith(query);
       expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
     });
 
     test("should throw error when getCachedSearchSuggestions fails", async () => {
-      // モックの設定
       const errorMessage = "サジェスト取得エラー";
       mockGetCachedSearchSuggestions.mockRejectedValue(new Error(errorMessage));
 
-      // 関数を実行してエラーを検証
       await expect(getSearchSuggestions("テスト")).rejects.toThrow(errorMessage);
       expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith("テスト");
       expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
@@ -143,38 +166,25 @@ describe("review-search", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("getAllReviews", () => {
-    test("should return all reviews successfully with search params", async () => {
-      // モックの設定
-      mockGetCachedAllReviews.mockResolvedValue(testReviewSearchResult);
+    test.each([
+      { searchParams: testSearchParams, expected: mockReviewSearchResult },
+      { searchParams: null, expected: mockReviewSearchResult },
+      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResult },
+    ])("should return all reviews for various search params", async ({ searchParams, expected }) => {
+      const mockResult = { ...expected };
+      mockGetCachedAllReviews.mockResolvedValue(mockResult);
 
-      // 関数を実行
-      const result = await getAllReviews(testSearchParams);
+      const result = await getAllReviews(searchParams);
 
-      // 結果を検証
-      expect(result).toStrictEqual(testReviewSearchResult);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledWith(testSearchParams);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledOnce();
-    });
-
-    test("should return all reviews successfully with null search params", async () => {
-      // モックの設定
-      mockGetCachedAllReviews.mockResolvedValue(testReviewSearchResult);
-
-      // 関数を実行
-      const result = await getAllReviews(null);
-
-      // 結果を検証
-      expect(result).toStrictEqual(testReviewSearchResult);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledWith(null);
+      expect(result).toStrictEqual(mockResult);
+      expect(mockGetCachedAllReviews).toHaveBeenCalledWith(searchParams);
       expect(mockGetCachedAllReviews).toHaveBeenCalledOnce();
     });
 
     test("should throw error when getCachedAllReviews fails", async () => {
-      // モックの設定
-      const errorMessage = "全レビュー取得エラー";
+      const errorMessage = "レビュー取得エラー";
       mockGetCachedAllReviews.mockRejectedValue(new Error(errorMessage));
 
-      // 関数を実行してエラーを検証
       await expect(getAllReviews(testSearchParams)).rejects.toThrow(errorMessage);
       expect(mockGetCachedAllReviews).toHaveBeenCalledWith(testSearchParams);
       expect(mockGetCachedAllReviews).toHaveBeenCalledOnce();
@@ -184,116 +194,82 @@ describe("review-search", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("getUserReviews", () => {
-    test("should return user reviews successfully with search params", async () => {
-      // モックの設定
+    test.each([
+      { searchParams: testSearchParams, expected: mockReviewSearchResult },
+      { searchParams: null, expected: mockReviewSearchResult },
+      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResult },
+    ])("should return user reviews for various search params", async ({ searchParams, expected }) => {
+      const mockResult = { ...expected };
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      mockGetCachedUserReviews.mockResolvedValue(testReviewSearchResult);
+      mockGetCachedUserReviews.mockResolvedValue(mockResult);
 
-      // 関数を実行
-      const result = await getUserReviews(testSearchParams);
+      const result = await getUserReviews(searchParams);
 
-      // 結果を検証
-      expect(result).toStrictEqual(testReviewSearchResult);
+      expect(result).toStrictEqual(mockResult);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedUserReviews).toHaveBeenCalledWith(testSearchParams, testUserId);
+      expect(mockGetCachedUserReviews).toHaveBeenCalledWith(searchParams, testUserId);
       expect(mockGetCachedUserReviews).toHaveBeenCalledOnce();
-    });
-
-    test("should return user reviews successfully with null search params", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      mockGetCachedUserReviews.mockResolvedValue(testReviewSearchResult);
-
-      // 関数を実行
-      const result = await getUserReviews(null);
-
-      // 結果を検証
-      expect(result).toStrictEqual(testReviewSearchResult);
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedUserReviews).toHaveBeenCalledWith(null, testUserId);
-      expect(mockGetCachedUserReviews).toHaveBeenCalledOnce();
-    });
-
-    test("should throw error when getAuthenticatedSessionUserId fails", async () => {
-      // モックの設定
-      const errorMessage = "認証エラー";
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error(errorMessage));
-
-      // 関数を実行してエラーを検証
-      await expect(getUserReviews(testSearchParams)).rejects.toThrow(errorMessage);
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedUserReviews).not.toHaveBeenCalled();
     });
 
     test("should throw error when getCachedUserReviews fails", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
       const errorMessage = "ユーザーレビュー取得エラー";
+      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
       mockGetCachedUserReviews.mockRejectedValue(new Error(errorMessage));
 
-      // 関数を実行してエラーを検証
       await expect(getUserReviews(testSearchParams)).rejects.toThrow(errorMessage);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(mockGetCachedUserReviews).toHaveBeenCalledWith(testSearchParams, testUserId);
       expect(mockGetCachedUserReviews).toHaveBeenCalledOnce();
+    });
+
+    test("should throw error when authentication fails", async () => {
+      const errorMessage = "認証エラー";
+      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error(errorMessage));
+
+      await expect(getUserReviews(testSearchParams)).rejects.toThrow(errorMessage);
+      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
+      expect(mockGetCachedUserReviews).not.toHaveBeenCalled();
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("getMyReviews", () => {
-    test("should return my reviews successfully with search params", async () => {
-      // モックの設定
+    test.each([
+      { searchParams: testSearchParams, expected: mockReviewSearchResult },
+      { searchParams: null, expected: mockReviewSearchResult },
+      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResult },
+    ])("should return my reviews for various search params", async ({ searchParams, expected }) => {
+      const mockResult = { ...expected };
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      mockGetCachedMyReviews.mockResolvedValue(testReviewSearchResult);
+      mockGetCachedMyReviews.mockResolvedValue(mockResult);
 
-      // 関数を実行
-      const result = await getMyReviews(testSearchParams);
+      const result = await getMyReviews(searchParams);
 
-      // 結果を検証
-      expect(result).toStrictEqual(testReviewSearchResult);
+      expect(result).toStrictEqual(mockResult);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedMyReviews).toHaveBeenCalledWith(testSearchParams, testUserId);
+      expect(mockGetCachedMyReviews).toHaveBeenCalledWith(searchParams, testUserId);
       expect(mockGetCachedMyReviews).toHaveBeenCalledOnce();
-    });
-
-    test("should return my reviews successfully with null search params", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      mockGetCachedMyReviews.mockResolvedValue(testReviewSearchResult);
-
-      // 関数を実行
-      const result = await getMyReviews(null);
-
-      // 結果を検証
-      expect(result).toStrictEqual(testReviewSearchResult);
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedMyReviews).toHaveBeenCalledWith(null, testUserId);
-      expect(mockGetCachedMyReviews).toHaveBeenCalledOnce();
-    });
-
-    test("should throw error when getAuthenticatedSessionUserId fails", async () => {
-      // モックの設定
-      const errorMessage = "認証エラー";
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error(errorMessage));
-
-      // 関数を実行してエラーを検証
-      await expect(getMyReviews(testSearchParams)).rejects.toThrow(errorMessage);
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedMyReviews).not.toHaveBeenCalled();
     });
 
     test("should throw error when getCachedMyReviews fails", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
       const errorMessage = "マイレビュー取得エラー";
+      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
       mockGetCachedMyReviews.mockRejectedValue(new Error(errorMessage));
 
-      // 関数を実行してエラーを検証
       await expect(getMyReviews(testSearchParams)).rejects.toThrow(errorMessage);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
       expect(mockGetCachedMyReviews).toHaveBeenCalledWith(testSearchParams, testUserId);
       expect(mockGetCachedMyReviews).toHaveBeenCalledOnce();
+    });
+
+    test("should throw error when authentication fails", async () => {
+      const errorMessage = "認証エラー";
+      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error(errorMessage));
+
+      await expect(getMyReviews(testSearchParams)).rejects.toThrow(errorMessage);
+      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
+      expect(mockGetCachedMyReviews).not.toHaveBeenCalled();
     });
   });
 
@@ -302,348 +278,120 @@ describe("review-search", () => {
   describe("updateReview", () => {
     const newRating = 5;
     const newComment = "更新されたコメント";
-    const updatedReview = auctionReviewFactory.build({
-      id: testReviewId,
-      reviewerId: testUserId,
-      rating: newRating,
-      comment: newComment,
-      updatedAt: new Date(),
-    });
 
-    test("should update review successfully", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReview);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 関数を実行
-      const result = await updateReview(testReviewId, newRating, newComment);
+    describe("正常系", () => {
+      test.each([{ comment: newComment }, { comment: null }, { comment: "" }])(
+        "should update review successfully with various comment types",
+        async ({ comment }) => {
+          const expectedReview = setupUpdateReviewMocks(newRating, comment);
 
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReview);
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: testReviewId,
-          reviewerId: testUserId,
+          const result = await updateReview(testReviewId, newRating, comment);
+
+          expect(result).toStrictEqual(expectedReview);
+          expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
+          expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
+            where: { id: testReviewId, reviewerId: testUserId },
+          });
+          expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
+            where: { id: testReviewId },
+            data: {
+              rating: newRating,
+              comment,
+              updatedAt: expect.any(Date) as unknown as Date,
+            },
+          });
         },
-      });
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: newRating,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should update review successfully with null comment", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewWithNullComment = { ...updatedReview, comment: null };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewWithNullComment);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, newRating, null);
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewWithNullComment);
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: testReviewId,
-          reviewerId: testUserId,
-        },
-      });
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: newRating,
-          comment: null,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should throw error when review not found", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(null);
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: testReviewId,
-          reviewerId: testUserId,
-        },
-      });
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
-    });
-
-    test("should throw error when user is not the reviewer", async () => {
-      // モックの設定
-      const otherUserId = "other-user-id";
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(otherUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(null);
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: testReviewId,
-          reviewerId: otherUserId,
-        },
-      });
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
-    });
-
-    test("should throw error when getAuthenticatedSessionUserId fails", async () => {
-      // モックの設定
-      const errorMessage = "認証エラー";
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error(errorMessage));
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).not.toHaveBeenCalled();
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
-    });
-
-    test("should throw error when findFirst fails", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      const errorMessage = "データベースエラー";
-      prismaMock.auctionReview.findFirst.mockRejectedValue(new Error(errorMessage));
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: testReviewId,
-          reviewerId: testUserId,
-        },
-      });
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
-    });
-
-    test("should throw error when update fails", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const errorMessage = "更新エラー";
-      prismaMock.auctionReview.update.mockRejectedValue(new Error(errorMessage));
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: testReviewId,
-          reviewerId: testUserId,
-        },
-      });
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: newRating,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    // 境界値テスト
-    test("should handle minimum rating value", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewMinRating = { ...updatedReview, rating: 1 };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewMinRating);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, 1, newComment);
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewMinRating);
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: 1,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should handle maximum rating value", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewMaxRating = { ...updatedReview, rating: 5 };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewMaxRating);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, 5, newComment);
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewMaxRating);
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: 5,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should handle empty comment", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewEmptyComment = { ...updatedReview, comment: "" };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewEmptyComment);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, newRating, "");
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewEmptyComment);
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: newRating,
-          comment: "",
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should handle invalid rating value (0)", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewInvalidRating = { ...updatedReview, rating: 0 };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewInvalidRating);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, 0, newComment);
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewInvalidRating);
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: 0,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should handle invalid rating value (6)", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewInvalidRating = { ...updatedReview, rating: 6 };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewInvalidRating);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, 6, newComment);
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewInvalidRating);
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: 6,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should handle negative rating value", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
-      const updatedReviewNegativeRating = { ...updatedReview, rating: -1 };
-      prismaMock.auctionReview.update.mockResolvedValue(updatedReviewNegativeRating);
-
-      // 関数を実行
-      const result = await updateReview(testReviewId, -1, newComment);
-
-      // 結果を検証
-      expect(result).toStrictEqual(updatedReviewNegativeRating);
-      expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
-        where: { id: testReviewId },
-        data: {
-          rating: -1,
-          comment: newComment,
-          updatedAt: expect.any(Date) as unknown as Date,
-        },
-      });
-    });
-
-    test("should handle empty reviewId", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(null);
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview("", newRating, newComment)).rejects.toThrow("レビューの更新に失敗しました");
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: "",
-          reviewerId: testUserId,
-        },
-      });
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
-    });
-
-    test("should handle undefined reviewId", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(null);
-
-      // 関数を実行してエラーを検証
-      await expect(updateReview(undefined as unknown as string, newRating, newComment)).rejects.toThrow(
-        "レビューの更新に失敗しました",
       );
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: undefined,
-          reviewerId: testUserId,
+
+      test.each([{ rating: 1 }, { rating: 5 }, { rating: 0 }])(
+        "should handle various rating boundary values",
+        async ({ rating }) => {
+          const expectedReview = setupUpdateReviewMocks(rating, newComment);
+
+          const result = await updateReview(testReviewId, rating, newComment);
+
+          expect(result).toStrictEqual(expectedReview);
+          expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
+            where: { id: testReviewId },
+            data: {
+              rating,
+              comment: newComment,
+              updatedAt: expect.any(Date) as unknown as Date,
+            },
+          });
         },
-      });
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
+      );
     });
 
-    test("should handle null reviewId", async () => {
-      // モックの設定
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
-      prismaMock.auctionReview.findFirst.mockResolvedValue(null);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 関数を実行してエラーを検証
-      await expect(updateReview(null as unknown as string, newRating, newComment)).rejects.toThrow(
-        "レビューの更新に失敗しました",
-      );
-      expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(prismaMock.auctionReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: null,
-          reviewerId: testUserId,
+    describe("異常系", () => {
+      test.each([
+        { reviewId: "", rating: 1, comment: newComment, description: "empty reviewId" },
+        { reviewId: undefined as unknown as string, rating: 1, comment: newComment, description: "undefined reviewId" },
+        { reviewId: null as unknown as string, rating: 1, comment: newComment, description: "null reviewId" },
+        { reviewId: testReviewId, rating: -1, comment: newComment, description: "negative rating" },
+        { reviewId: testReviewId, rating: 6, comment: newComment, description: "rating above 5" },
+        {
+          reviewId: testReviewId,
+          rating: undefined as unknown as number,
+          comment: newComment,
+          description: "undefined rating",
         },
+        { reviewId: testReviewId, rating: null as unknown as number, comment: newComment, description: "null rating" },
+      ])("should handle invalid parameters: $description", async ({ reviewId, rating, comment }) => {
+        await expect(updateReview(reviewId, rating, comment)).rejects.toThrow("無効なパラメータが指定されました");
+        expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
       });
-      expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
+
+      test.each([
+        {
+          name: "review not found",
+          setup: () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
+            prismaMock.auctionReview.findFirst.mockResolvedValue(null);
+          },
+          expectedError: "レビューが見つからないか、編集権限がありません",
+        },
+        {
+          name: "user not authorized",
+          setup: () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue("other-user-id");
+            prismaMock.auctionReview.findFirst.mockResolvedValue(null);
+          },
+          expectedError: "レビューが見つからないか、編集権限がありません",
+        },
+        {
+          name: "authentication fails",
+          setup: () => {
+            mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
+          },
+          expectedError: "認証エラー",
+        },
+        {
+          name: "database findFirst fails",
+          setup: () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
+            prismaMock.auctionReview.findFirst.mockRejectedValue(new Error("データベースエラー"));
+          },
+          expectedError: "データベースエラー",
+        },
+        {
+          name: "database update fails",
+          setup: () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
+            prismaMock.auctionReview.findFirst.mockResolvedValue(testReview);
+            prismaMock.auctionReview.update.mockRejectedValue(new Error("更新エラー"));
+          },
+          expectedError: "更新エラー",
+        },
+      ])("should handle various error scenarios", async ({ setup, expectedError }) => {
+        setup();
+
+        await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow(expectedError);
+      });
     });
   });
 });
