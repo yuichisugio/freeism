@@ -16,7 +16,7 @@ const evaluationDataSchema = z.object({
     z.number().min(0, "貢献度は0以上の数値である必要があります"),
     z
       .string()
-      .min(1, "貢献度は必須です")
+      .min(0, "貢献度は必須です")
       .transform((val) => {
         const num = Number(val);
         if (isNaN(num)) {

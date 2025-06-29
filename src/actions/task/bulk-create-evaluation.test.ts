@@ -89,13 +89,6 @@ function setupTaskNotFoundPrismaMock(foundTasks: { id: string }[]) {
   });
 }
 
-/**
- * データベースエラーのPrismaモック設定
- */
-function setupDatabaseErrorPrismaMock(error: Error) {
-  prismaMock.$transaction.mockRejectedValue(error);
-}
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("bulkCreateEvaluations", () => {
@@ -220,77 +213,69 @@ describe("bulkCreateEvaluations", () => {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("異常系 - 入力データ検証エラー", () => {
-    test("should return error when rawData is empty or invalid", async () => {
+  describe("異常系", () => {
+    test.each([
+      { data: [], expectedError: "無効なパラメータが指定されました" },
+      { data: null as unknown as EvaluationTestData[], expectedError: "無効なパラメータが指定されました" },
+    ])("should return error when rawData is empty or invalid", async ({ data, expectedError }) => {
       // Arrange & Act & Assert
-      const testCases = [
-        { data: [], expectedError: "無効なパラメータが指定されました" },
-        { data: null as unknown as EvaluationTestData[], expectedError: "無効なパラメータが指定されました" },
-      ];
 
-      for (const testCase of testCases) {
-        const result = await bulkCreateEvaluations(
-          testCase.data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
-          testGroup.id,
-          testUser.id,
-        );
+      const result = await bulkCreateEvaluations(
+        data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
+        testGroup.id,
+        testUser.id,
+      );
 
-        expect(result).toStrictEqual({
-          success: false,
-          error: testCase.expectedError,
-        });
-      }
+      expect(result).toStrictEqual({
+        success: false,
+        error: expectedError,
+      });
     });
 
-    test("should return error for missing or invalid required fields", async () => {
+    test.each([
+      {
+        data: [{ contributionPoint: 100, evaluationLogic: "評価ロジック" }] as IncompleteEvaluationData[],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "taskId"],
+      },
+      {
+        data: [{ taskId: "", contributionPoint: 100, evaluationLogic: "評価ロジック" }],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目"],
+      },
+      {
+        data: [{ taskId: testTask1.id, evaluationLogic: "評価ロジック" }] as IncompleteEvaluationData[],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "contributionPoint"],
+      },
+      {
+        data: [{ taskId: testTask1.id, contributionPoint: "", evaluationLogic: "評価ロジック" }],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は必須です"],
+      },
+      {
+        data: [{ taskId: testTask1.id, contributionPoint: -10, evaluationLogic: "評価ロジック" }],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は0以上の数値である必要があります"],
+      },
+      {
+        data: [{ taskId: testTask1.id, contributionPoint: "invalid", evaluationLogic: "評価ロジック" }],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は有効な数値である必要があります"],
+      },
+      {
+        data: [{ taskId: testTask1.id, contributionPoint: 100 }] as IncompleteEvaluationData[],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "evaluationLogic"],
+      },
+      {
+        data: [{ taskId: testTask1.id, contributionPoint: 100, evaluationLogic: "" }],
+        expectedErrorContains: ["データ検証に失敗しました", "1行目", "評価ロジックは必須です"],
+      },
+    ])("should return error for missing or invalid required fields", async ({ data, expectedErrorContains }) => {
       // Arrange & Act & Assert
-      const testCases = [
-        {
-          data: [{ contributionPoint: 100, evaluationLogic: "評価ロジック" }] as IncompleteEvaluationData[],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "taskId"],
-        },
-        {
-          data: [{ taskId: "", contributionPoint: 100, evaluationLogic: "評価ロジック" }],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目"],
-        },
-        {
-          data: [{ taskId: testTask1.id, evaluationLogic: "評価ロジック" }] as IncompleteEvaluationData[],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "contributionPoint"],
-        },
-        {
-          data: [{ taskId: testTask1.id, contributionPoint: "", evaluationLogic: "評価ロジック" }],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は必須です"],
-        },
-        {
-          data: [{ taskId: testTask1.id, contributionPoint: -10, evaluationLogic: "評価ロジック" }],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は0以上の数値である必要があります"],
-        },
-        {
-          data: [{ taskId: testTask1.id, contributionPoint: "invalid", evaluationLogic: "評価ロジック" }],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は有効な数値である必要があります"],
-        },
-        {
-          data: [{ taskId: testTask1.id, contributionPoint: 100 }] as IncompleteEvaluationData[],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "evaluationLogic"],
-        },
-        {
-          data: [{ taskId: testTask1.id, contributionPoint: 100, evaluationLogic: "" }],
-          expectedErrorContains: ["データ検証に失敗しました", "1行目", "評価ロジックは必須です"],
-        },
-      ];
-
-      for (const testCase of testCases) {
-        const result = await bulkCreateEvaluations(
-          testCase.data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
-          testGroup.id,
-          testUser.id,
-        );
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          for (const expectedText of testCase.expectedErrorContains) {
-            expect(result.error).toContain(expectedText);
-          }
+      const result = await bulkCreateEvaluations(
+        data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
+        testGroup.id,
+        testUser.id,
+      );
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        for (const expectedText of expectedErrorContains) {
+          expect(result.error).toContain(expectedText);
         }
       }
     });
@@ -325,14 +310,11 @@ describe("bulkCreateEvaluations", () => {
         expect(result.error).toContain("2行目");
       }
     });
-  });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("異常系 - データベースエラー", () => {
-    test("should return error when tasks not found", async () => {
-      // Arrange & Act & Assert
-      const testCases = [
+    describe("データベースエラー", () => {
+      test.each([
         {
           description: "single task not found",
           data: [{ taskId: "non-existent-task", contributionPoint: 100, evaluationLogic: "評価ロジック" }],
@@ -349,78 +331,75 @@ describe("bulkCreateEvaluations", () => {
           foundTasks: [{ id: testTask1.id }],
           expectedErrorContains: "以下のタスクIDが見つかりません",
         },
-      ];
-
-      for (const testCase of testCases) {
-        setupTaskNotFoundPrismaMock(testCase.foundTasks);
-
-        const result = await bulkCreateEvaluations(testCase.data, testGroup.id, testUser.id);
-
+      ])("should return error when tasks not found", async ({ data, foundTasks, expectedErrorContains }) => {
+        // Arrange & Act & Assert
+        setupTaskNotFoundPrismaMock(foundTasks);
+        const result = await bulkCreateEvaluations(data, testGroup.id, testUser.id);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error).toContain(testCase.expectedErrorContains);
+          expect(result.error).toContain(expectedErrorContains);
         }
-      }
-    });
-
-    test("should handle various database errors", async () => {
-      // Arrange
-      const validEvaluationData = [
-        {
-          taskId: testTask1.id,
-          contributionPoint: 100,
-          evaluationLogic: "評価ロジック",
-        },
-      ];
-
-      // Act & Assert
-      const errorTestCases = [
-        { error: new Error("データベース接続エラー"), expectedError: "データベース接続エラー" },
-        { error: "予期しないエラー", expectedError: "貢献評価の一括登録中にエラーが発生しました" },
-      ];
-
-      for (const testCase of errorTestCases) {
-        setupDatabaseErrorPrismaMock(testCase.error as Error);
-
-        const result = await bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error).toBe(testCase.expectedError);
-        }
-      }
-    });
-
-    test("should return error when createMany fails", async () => {
-      // Arrange
-      const validEvaluationData = [
-        {
-          taskId: testTask1.id,
-          contributionPoint: 100,
-          evaluationLogic: "評価ロジック",
-        },
-      ];
-
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        const mockTx = {
-          task: {
-            findMany: vi.fn().mockResolvedValue([{ id: testTask1.id }]),
-          },
-          analytics: {
-            createMany: vi.fn().mockRejectedValue(new Error("データ作成エラー")),
-          },
-        };
-        return await callback(mockTx as unknown as PrismaTransaction);
       });
 
-      // Act
-      const result = await bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id);
+      test("should handle various database errors", async () => {
+        // Arrange
+        const validEvaluationData = [
+          {
+            taskId: testTask1.id,
+            contributionPoint: 100,
+            evaluationLogic: "評価ロジック",
+          },
+        ];
 
-      // Assert
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error).toBe("データ作成エラー");
-      }
+        // Act & Assert
+        const errorTestCases = [
+          { error: new Error("データベース接続エラー"), expectedError: "データベース接続エラー" },
+          { error: "予期しないエラー", expectedError: "貢献評価の一括登録中にエラーが発生しました" },
+        ];
+
+        for (const testCase of errorTestCases) {
+          prismaMock.$transaction.mockRejectedValue(testCase.error as Error);
+
+          const result = await bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id);
+
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            expect(result.error).toBe(testCase.expectedError);
+          }
+        }
+      });
+
+      test("should return error when createMany fails", async () => {
+        // Arrange
+        const validEvaluationData = [
+          {
+            taskId: testTask1.id,
+            contributionPoint: 100,
+            evaluationLogic: "評価ロジック",
+          },
+        ];
+
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          const mockTx = {
+            task: {
+              findMany: vi.fn().mockResolvedValue([{ id: testTask1.id }]),
+            },
+            analytics: {
+              createMany: vi.fn().mockRejectedValue(new Error("データ作成エラー")),
+            },
+          };
+          return await callback(mockTx as unknown as PrismaTransaction);
+        });
+
+        // Act
+        const result = await bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id);
+
+        // Assert
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBe("データ作成エラー");
+        }
+      });
     });
   });
 
