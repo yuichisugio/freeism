@@ -10,8 +10,11 @@ import { getAuctionListingsAndCount, getSearchSuggestions } from "./auction-list
 /**
  * キャッシュ関数をモック
  */
-vi.mock("@/lib/auction/action/cache/cache-auction-listing", () => ({
+vi.mock("@/actions/auction/cache/cache-auction-listing", () => ({
   cachedGetAuctionListingsAndCount: vi.fn(),
+}));
+
+vi.mock("@/actions/auction/cache/cache-auction-suggestion", () => ({
   cachedGetSearchSuggestions: vi.fn(),
 }));
 
@@ -214,11 +217,8 @@ describe("auction-listing", () => {
         const listingsConditions = createBaseListingsConditions();
         const params = createAuctionListingsParams(listingsConditions);
 
-        // Act
-        const result = await getAuctionListingsAndCount(params);
-
-        // Assert
-        expect(result).toThrowError();
+        // Act & Assert
+        await expect(getAuctionListingsAndCount(params)).rejects.toThrow("test");
         expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
       });
 
@@ -270,11 +270,8 @@ describe("auction-listing", () => {
         const query = "テスト";
         const userId = null as unknown as string;
 
-        // Act
-        const result = await getSearchSuggestions({ query, userId, userGroupIds: [] });
-
-        // Assert
-        expect(result).toThrowError();
+        // Act & Assert
+        await expect(getSearchSuggestions({ query, userId, userGroupIds: [] })).rejects.toThrow("test");
         expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith({ query, userId, userGroupIds: [] });
       });
 

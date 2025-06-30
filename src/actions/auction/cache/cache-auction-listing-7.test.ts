@@ -36,6 +36,27 @@ const TEST_CONSTANTS = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * モックの成功レスポンスを設定するヘルパー
+ */
+function setupSuccessfulMocks() {
+  // ユーザーがテストグループに参加しているモック
+  const mockGroupMemberships = [
+    groupMembershipFactory.build({
+      userId: TEST_CONSTANTS.USER_ID,
+      groupId: TEST_CONSTANTS.GROUP_ID,
+    }),
+  ];
+
+  // 空のオークションデータとカウントを返すモック
+  prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
+  prismaMock.$queryRaw
+    .mockResolvedValueOnce([]) // オークションデータのモック（空配列）
+    .mockResolvedValueOnce([{ count: BigInt(0) }]); // 件数のモック
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * テストパラメータ作成ヘルパー
  * デフォルト条件を設定
  */
@@ -57,29 +78,8 @@ function createDefaultParams(overrides: Partial<AuctionListingsConditions> = {})
   return {
     listingsConditions: { ...defaultConditions, ...overrides },
     userId: TEST_CONSTANTS.USER_ID,
-    userGroupIds: [],
+    userGroupIds: [TEST_CONSTANTS.GROUP_ID], // 空配列ではなく実際のグループIDを設定
   };
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * モックの成功レスポンスを設定するヘルパー
- */
-function setupSuccessfulMocks() {
-  // ユーザーがテストグループに参加しているモック
-  const mockGroupMemberships = [
-    groupMembershipFactory.build({
-      userId: TEST_CONSTANTS.USER_ID,
-      groupId: TEST_CONSTANTS.GROUP_ID,
-    }),
-  ];
-
-  // 空のオークションデータとカウントを返すモック
-  prismaMock.groupMembership.findMany.mockResolvedValue(mockGroupMemberships);
-  prismaMock.$queryRaw
-    .mockResolvedValueOnce([]) // オークションデータのモック（空配列）
-    .mockResolvedValueOnce([{ count: BigInt(0) }]); // 件数のモック
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -205,18 +205,17 @@ function generateListingsSQL(flags: ConditionFlags): string {
           );
           break;
         case "ended":
-          statusConditions.push(
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-          );
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
           break;
         case "not_ended":
-          statusConditions.push("t.status::text = ?", "t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
           break;
         case "not_started":
           statusConditions.push('(t.status::text = ? AND a."start_time" >= ?)');
@@ -258,60 +257,59 @@ function generateListingsSQL(flags: ConditionFlags): string {
     whereConditions.push('a."end_time" <= ?');
   }
 
-  // グループID条件（追加のフィルター）
+  // グループID条件
   if (hasGroupIds) {
     whereConditions.push('a."group_id" = ANY(?::text[])');
   }
 
-  // WHERE句を追加
+  // WHERE句の追加
   if (whereConditions.length > 0) {
     sql += `
       WHERE ${whereConditions.join(" AND ")}`;
   }
 
-  // ORDER BY句 - 実装のdirectionSqlに既にNULLS LASTが含まれているため重複を避ける
-  if (hasSort) {
-    if (sortField === "price") {
-      sql += `
-      ORDER BY "current_highest_bid" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "bids") {
-      sql += `
-      ORDER BY "bids_count_intermediate" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "time_remaining") {
-      sql += `
-      ORDER BY "end_time" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "newest") {
-      sql += `
-      ORDER BY "created_at" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "relevance") {
-      if (hasSearchQuery) {
-        sql += `
-      ORDER BY score DESC NULLS LAST`;
-      } else {
-        sql += `
-      ORDER BY a."created_at" DESC NULLS LAST`;
-      }
-    } else if (sortField === "score") {
-      if (!hasSearchQuery) {
-        sql += `
-      ORDER BY a."created_at" DESC NULLS LAST`;
-      } else {
-        sql += `
-      ORDER BY score ${sortDirection?.toUpperCase()} NULLS LAST`;
-      }
+  // ORDER BY句の構築
+  let orderBy = "";
+  if (hasSearchQuery && (!hasSort || sortField === "relevance")) {
+    orderBy = "score DESC NULLS LAST";
+  } else if (hasSort) {
+    switch (sortField) {
+      case "newest":
+        orderBy = `"created_at" ${sortDirection?.toUpperCase() ?? "DESC"} NULLS LAST`;
+        break;
+      case "time_remaining":
+        orderBy = `"end_time" ${sortDirection?.toUpperCase() ?? "ASC"} NULLS LAST`;
+        break;
+      case "bids":
+        orderBy = `"bids_count_intermediate" ${sortDirection?.toUpperCase() ?? "DESC"} NULLS LAST`;
+        break;
+      case "price":
+        orderBy = `"current_highest_bid" ${sortDirection?.toUpperCase() ?? "DESC"} NULLS LAST`;
+        break;
+      case "relevance":
+        // 検索クエリがない場合はデフォルトソートを使用
+        orderBy = hasSearchQuery
+          ? `score ${sortDirection?.toUpperCase() ?? "DESC"} NULLS LAST`
+          : 'a."created_at" DESC NULLS LAST';
+        break;
+      case "score":
+        // scoreソートは実装でdefaultケースで処理される
+        // 検索クエリがある場合はスコアソート、ない場合はデフォルトソートを使用
+        orderBy = hasSearchQuery ? "score DESC NULLS LAST" : 'a."created_at" DESC NULLS LAST';
+        break;
+      default:
+        orderBy = 'a."created_at" DESC NULLS LAST';
     }
   } else {
-    if (hasSearchQuery) {
-      sql += `
-      ORDER BY score DESC NULLS LAST`;
-    } else {
-      sql += `
-      ORDER BY a."created_at" DESC NULLS LAST`;
-    }
+    orderBy = 'a."created_at" DESC NULLS LAST';
   }
 
   sql += `
-    ),
+      ORDER BY ${orderBy}
+    ),`;
+
+  // 以降の構造は同じ
+  sql += `
     "PaginatedAuctionsCTE" AS (
       SELECT
         "id",
@@ -320,13 +318,11 @@ function generateListingsSQL(flags: ConditionFlags): string {
         "end_time",
         "current_highest_bid"`;
 
-  // 入札数ソート用のカラム
   if (hasSort && sortField === "bids") {
     sql += `
         , bids_count_intermediate`;
   }
 
-  // 全文検索用のスコア
   if (hasSearchQuery) {
     sql += `
         , score`;
@@ -399,48 +395,8 @@ function generateListingsSQL(flags: ConditionFlags): string {
     JOIN "Group" g ON a."group_id" = g.id
     LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
     LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
-    LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id`;
-
-  // 最終的なORDER BY句
-  if (hasSort) {
-    if (sortField === "price") {
-      sql += `
-    ORDER BY "current_highest_bid" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "bids") {
-      sql += `
-    ORDER BY "bids_count_intermediate" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "time_remaining") {
-      sql += `
-    ORDER BY "end_time" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "newest") {
-      sql += `
-    ORDER BY "created_at" ${sortDirection?.toUpperCase()} NULLS LAST`;
-    } else if (sortField === "relevance") {
-      if (hasSearchQuery) {
-        sql += `
-    ORDER BY score DESC NULLS LAST`;
-      } else {
-        sql += `
-    ORDER BY a."created_at" DESC NULLS LAST`;
-      }
-    } else if (sortField === "score") {
-      if (!hasSearchQuery) {
-        sql += `
-    ORDER BY a."created_at" DESC NULLS LAST`;
-      } else {
-        sql += `
-    ORDER BY score ${sortDirection?.toUpperCase()} NULLS LAST`;
-      }
-    }
-  } else {
-    if (hasSearchQuery) {
-      sql += `
-    ORDER BY score DESC NULLS LAST`;
-    } else {
-      sql += `
-    ORDER BY a."created_at" DESC NULLS LAST`;
-    }
-  }
+    LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
+    ORDER BY ${orderBy}`;
 
   return sql.replace(/\s+/g, " ").trim();
 }
@@ -519,15 +475,13 @@ function generateCountSQL(flags: ConditionFlags): string {
           );
           break;
         case "ended":
-          statusConditions.push(
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-            "t.status::text = ?",
-          );
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
+          statusConditions.push("t.status::text = ?");
           break;
         case "not_ended":
           statusConditions.push("t.status::text = ?", "t.status::text = ?");
@@ -703,23 +657,18 @@ function generateSingleStatusJoinTypeCombinations() {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * 単一ステータスとjoinTypeの組み合わせを生成する関数
+ * 単一カテゴリの組み合わせを生成する関数
  */
 function generateSingleCategoryCombinations() {
   const categories = AUCTION_CONSTANTS.AUCTION_CATEGORIES;
-  const testCases = [];
-
-  for (const category of categories) {
-    testCases.push({
-      name: `カテゴリー適用(${category})`,
-      conditions: { categories: [category] },
-      flags: {
-        hasCategories: true,
-        categoryCount: 1,
-      },
-    });
-  }
-  return testCases;
+  return categories.map((category) => ({
+    name: `カテゴリー適用(${category})`,
+    conditions: { categories: [category] },
+    flags: {
+      hasCategories: category !== "すべて", // "すべて"の場合はカテゴリー条件を追加しない
+      categoryCount: 1,
+    },
+  }));
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -733,11 +682,12 @@ function generateMultipleCategoriesCombinations() {
 
   for (let i = 0; i < categories.length; i++) {
     for (let j = i + 1; j < categories.length; j++) {
+      const hasSuubete = categories[i] === "すべて" || categories[j] === "すべて";
       testCases.push({
         name: `カテゴリー適用(${categories[i]} + ${categories[j]})`,
         conditions: { categories: [categories[i], categories[j]] },
         flags: {
-          hasCategories: true,
+          hasCategories: !hasSuubete, // "すべて"が含まれている場合はカテゴリー条件を追加しない
           categoryCount: 2,
         },
       });
@@ -745,6 +695,7 @@ function generateMultipleCategoriesCombinations() {
   }
   return testCases;
 }
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**

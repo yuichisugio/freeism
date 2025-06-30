@@ -242,31 +242,31 @@ describe("bulkCreateEvaluations", () => {
         expectedErrorContains: ["データ検証に失敗しました", "1行目"],
       },
       {
-        data: [{ taskId: testTask1.id, evaluationLogic: "評価ロジック" }] as IncompleteEvaluationData[],
+        data: [{ taskId: "valid-task-id", evaluationLogic: "評価ロジック" }] as IncompleteEvaluationData[],
         expectedErrorContains: ["データ検証に失敗しました", "1行目", "contributionPoint"],
       },
       {
-        data: [{ taskId: testTask1.id, contributionPoint: "", evaluationLogic: "評価ロジック" }],
+        data: [{ taskId: "valid-task-id", contributionPoint: "", evaluationLogic: "評価ロジック" }],
         expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は必須です"],
       },
       {
-        data: [{ taskId: testTask1.id, contributionPoint: -10, evaluationLogic: "評価ロジック" }],
+        data: [{ taskId: "valid-task-id", contributionPoint: -10, evaluationLogic: "評価ロジック" }],
         expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は0以上の数値である必要があります"],
       },
       {
-        data: [{ taskId: testTask1.id, contributionPoint: "invalid", evaluationLogic: "評価ロジック" }],
+        data: [{ taskId: "valid-task-id", contributionPoint: "invalid", evaluationLogic: "評価ロジック" }],
         expectedErrorContains: ["データ検証に失敗しました", "1行目", "貢献度は有効な数値である必要があります"],
       },
       {
-        data: [{ taskId: testTask1.id, contributionPoint: 100 }] as IncompleteEvaluationData[],
+        data: [{ taskId: "valid-task-id", contributionPoint: 100 }] as IncompleteEvaluationData[],
         expectedErrorContains: ["データ検証に失敗しました", "1行目", "evaluationLogic"],
       },
       {
-        data: [{ taskId: testTask1.id, contributionPoint: 100, evaluationLogic: "" }],
+        data: [{ taskId: "valid-task-id", contributionPoint: 100, evaluationLogic: "" }],
         expectedErrorContains: ["データ検証に失敗しました", "1行目", "評価ロジックは必須です"],
       },
     ])("should return error for missing or invalid required fields", async ({ data, expectedErrorContains }) => {
-      // Arrange & Act & Assert
+      // Act & Assert
       const result = await bulkCreateEvaluations(
         data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
         testGroup.id,
@@ -289,11 +289,13 @@ describe("bulkCreateEvaluations", () => {
           evaluationLogic: "", // 無効
         },
         {
-          taskId: testTask1.id,
+          taskId: "valid-task-id",
           contributionPoint: "invalid", // 無効
           evaluationLogic: "有効な評価ロジック",
         },
       ];
+
+      // バリデーションエラーのテストなので、prismaモックは設定しない
 
       // Act
       const result = await bulkCreateEvaluations(

@@ -26,9 +26,9 @@ vi.mock("next/cache", () => ({
   revalidateTag: vi.fn(),
 }));
 
-// checkIsOwnerのモック
-vi.mock("@/lib/actions/permission", () => ({
-  checkIsOwner: vi.fn(),
+// checkIsPermissionのモック
+vi.mock("@/actions/permission/permission", () => ({
+  checkIsPermission: vi.fn(),
 }));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -41,7 +41,7 @@ const mockGetCachedAuctionHistoryCreatedDetail = vi.mocked(
   (await import("./cache/cache-auction-history")).getCachedAuctionHistoryCreatedDetail,
 );
 const mockRevalidateTag = vi.mocked((await import("next/cache")).revalidateTag);
-const mockCheckIsOwner = vi.mocked((await import("@/actions/permission/permission")).checkIsPermission);
+const mockCheckIsPermission = vi.mocked((await import("@/actions/permission/permission")).checkIsPermission);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -144,7 +144,7 @@ describe("created-detail.ts", () => {
         const newDeliveryMethod = "対面";
         const updatedTask = { ...testTask, deliveryMethod: newDeliveryMethod };
 
-        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(updatedTask);
 
         // Act
@@ -152,12 +152,12 @@ describe("created-detail.ts", () => {
 
         // Assert
         expect(result).toStrictEqual(updatedTask);
-        expect(mockCheckIsOwner).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
         expect(prismaMock.task.update).toHaveBeenCalledWith({
           where: { id: testTask.id },
           data: { deliveryMethod: newDeliveryMethod },
         });
-        expect(mockRevalidateTag).toHaveBeenCalledWith(`auction-history-created-detail:${testTask.id}`);
+        expect(mockRevalidateTag).toHaveBeenCalledWith(`auctionCreatedDetail:auctionByAuctionId:${testTask.id}`);
       });
 
       test("should trim whitespace from delivery method", async () => {
@@ -166,7 +166,7 @@ describe("created-detail.ts", () => {
         const trimmedDeliveryMethod = "対面";
         const updatedTask = { ...testTask, deliveryMethod: trimmedDeliveryMethod };
 
-        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue(updatedTask);
 
         // Act
@@ -212,29 +212,29 @@ describe("created-detail.ts", () => {
 
       test("should throw error when user has no permission with error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
         await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
-          "権限がありません",
+          "Permission check failed",
         );
         expect(prismaMock.task.update).not.toHaveBeenCalled();
       });
 
       test("should throw error when checkIsOwner fails without error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
         await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
-          "このタスクを編集する権限がありません",
+          "Permission check failed",
         );
       });
 
       test("should throw error when task.update fails", async () => {
         // Arrange
         const error = new Error("Update failed");
-        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockRejectedValue(error);
 
         // Act & Assert
@@ -249,7 +249,7 @@ describe("created-detail.ts", () => {
     describe("正常系", () => {
       test("should complete task when user has permission", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockResolvedValue({ ...testTask, status: TaskStatus.SUPPLIER_DONE });
 
         // Act
@@ -257,12 +257,12 @@ describe("created-detail.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(mockCheckIsOwner).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
         expect(prismaMock.task.update).toHaveBeenCalledWith({
           where: { id: testTask.id },
           data: { status: TaskStatus.SUPPLIER_DONE },
         });
-        expect(mockRevalidateTag).toHaveBeenCalledWith(`auction-history-created-detail:${testTask.id}`);
+        expect(mockRevalidateTag).toHaveBeenCalledWith(`auctionCreatedDetail:auctionByAuctionId:${testTask.id}`);
       });
     });
 
@@ -279,27 +279,25 @@ describe("created-detail.ts", () => {
 
       test("should throw error when user has no permission", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
-        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("権限がありません");
+        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("Permission check failed");
         expect(prismaMock.task.update).not.toHaveBeenCalled();
       });
 
       test("should throw error when checkIsOwner fails without error message", async () => {
         // Arrange
-        mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
 
         // Act & Assert
-        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow(
-          "このタスクを編集する権限がありません",
-        );
+        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("Permission check failed");
       });
 
       test("should throw error when task.update fails", async () => {
         // Arrange
         const error = new Error("Update failed");
-        mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
         prismaMock.task.update.mockRejectedValue(error);
 
         // Act & Assert

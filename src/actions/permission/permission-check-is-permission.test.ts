@@ -757,7 +757,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました" },
+        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Authentication failed" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
         },
@@ -768,7 +768,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました" },
+        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockRejectedValue(new Error("Database error"));
         },
@@ -779,7 +779,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました" },
+        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));
         },
@@ -790,7 +790,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました" },
+        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.groupMembership.findFirst.mockRejectedValue(new Error("Database error"));
@@ -802,7 +802,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました" },
+        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));

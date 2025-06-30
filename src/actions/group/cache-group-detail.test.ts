@@ -204,23 +204,10 @@ describe("getCachedGroupById", () => {
       );
 
       // 関数実行と検証
-      await expect(getCachedGroupById(emptyGroupId)).rejects.toThrow("グループが見つかりません");
+      await expect(getCachedGroupById(emptyGroupId)).rejects.toThrow("グループIDがありません");
 
-      // Prismaが正しく呼ばれたことを確認
-      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
-        where: { id: emptyGroupId },
-        select: {
-          id: true,
-          name: true,
-          goal: true,
-          evaluationMethod: true,
-          depositPeriod: true,
-          maxParticipants: true,
-          members: {
-            select: { userId: true },
-          },
-        },
-      });
+      // Prismaが呼び出されないことを確認（バリデーションエラーのため）
+      expect(prismaMock.group.findUnique).not.toHaveBeenCalled();
     });
 
     test("should handle very long groupId", async () => {

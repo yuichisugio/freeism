@@ -10,7 +10,7 @@ import { getGroupById } from "./group-detail";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // getCachedGroupByIdのモック
-vi.mock("@/lib/actions/cache/cache-group-detail", () => ({
+vi.mock("@/actions/group/cache-group-detail", () => ({
   getCachedGroupById: vi.fn(),
 }));
 

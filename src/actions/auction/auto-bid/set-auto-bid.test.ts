@@ -1,4 +1,3 @@
-import { sendAuctionNotification } from "@/actions/notification/auction-notification";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { autoBidFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";
@@ -26,7 +25,7 @@ vi.mock("./auto-bid", () => ({
 }));
 
 // sendAuctionNotificationのモック
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
+vi.mock("@/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn(),
   __esModule: true,
 }));
@@ -38,7 +37,6 @@ vi.mock("@/lib/actions/notification/auction-notification", () => ({
  */
 const mockValidateAuction = vi.mocked(validateAuction);
 const mockExecuteAutoBid = vi.mocked(executeAutoBid);
-const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -49,7 +47,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockValidateAuction.mockReset();
   mockExecuteAutoBid.mockReset();
-  mockSendAuctionNotification.mockReset();
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

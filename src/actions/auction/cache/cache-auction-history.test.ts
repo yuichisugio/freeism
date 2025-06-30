@@ -220,7 +220,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(vi.mocked(unstable_cacheTag)).toHaveBeenCalledWith(
-          `auction-history-created-detail:${CONSTANTS.testTaskId}`,
+          `auctionHistory:auctionByAuctionId:${CONSTANTS.testAuctionId}`,
         );
       });
 

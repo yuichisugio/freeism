@@ -93,7 +93,9 @@ const createSuccessfulReviewTest = async (
       reviewPosition,
     },
   });
-  expect(mockRevalidateTag).toHaveBeenCalledWith(`DisplayUserInfo:${TEST_AUCTION_ID}:${reviewPosition}`);
+  expect(mockRevalidateTag).toHaveBeenCalledWith(
+    `auctionRating:auctionByAuctionId:${TEST_AUCTION_ID}:${reviewPosition}`,
+  );
   expect(result).toStrictEqual(expectedReview);
 };
 

@@ -12,7 +12,7 @@ import { getAutoBidByUserId } from "./get-auto-bid-settings";
  * モック関数の定義
  */
 // bid-validationモジュールのモック
-vi.mock("@/lib/auction/action/bid-validation", () => ({
+vi.mock("@/actions/auction/bid-validation", () => ({
   validateAuction: vi.fn(),
   __esModule: true,
 }));
@@ -26,7 +26,6 @@ const mockValidateAuction = vi.mocked(validateAuction);
  */
 beforeEach(() => {
   vi.clearAllMocks();
-  mockValidateAuction.mockReset();
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

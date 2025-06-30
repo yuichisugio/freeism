@@ -1,45 +1,37 @@
-import { sendAuctionNotification } from "@/actions/notification/auction-notification";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { autoBidFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { AuctionEventType, NotificationSendMethod, NotificationSendTiming, TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { ExecuteAutoBidParams } from "./auto-bid";
-import { validateAuction } from "../bid-validation";
-import { executeBid } from "../bid/bid-common";
-import { executeAutoBid } from "./auto-bid";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * モック関数の定義
  */
-// bid-commonモジュールのモック
-vi.mock("../bid-common", () => ({
-  executeBid: vi.fn(),
+const mockExecuteBid = vi.fn();
+const mockValidateAuction = vi.fn();
+const mockSendAuctionNotification = vi.fn();
+
+// モジュールのモック設定
+vi.mock("../bid/bid-common", () => ({
+  executeBid: mockExecuteBid,
   __esModule: true,
 }));
 
-// bid-validationモジュールのモック
 vi.mock("../bid-validation", () => ({
-  validateAuction: vi.fn(),
+  validateAuction: mockValidateAuction,
   __esModule: true,
 }));
 
-// sendAuctionNotificationのモック
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
-  sendAuctionNotification: vi.fn(),
+vi.mock("@/actions/notification/auction-notification", () => ({
+  sendAuctionNotification: mockSendAuctionNotification,
   __esModule: true,
 }));
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * テスト対象の関数をインポート
- */
-const mockValidateAuction = vi.mocked(validateAuction);
-const mockExecuteBid = vi.mocked(executeBid);
-const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
+// テスト対象関数をimport（mockの後に実行）
+const { executeAutoBid } = await import("./auto-bid");
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -48,9 +40,6 @@ const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
  */
 beforeEach(() => {
   vi.clearAllMocks();
-  mockValidateAuction.mockReset();
-  mockExecuteBid.mockReset();
-  mockSendAuctionNotification.mockReset();
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -209,7 +198,7 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid1, mockAutoBid2]);
-      mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
+      mockExecuteBid.mockImplementation(async () => ({ success: true, message: "入札成功" }));
 
       // Act
       const result = await executeAutoBid(params);
@@ -247,7 +236,7 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
-      mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
+      mockExecuteBid.mockImplementation(async () => ({ success: true, message: "入札成功" }));
 
       // Act
       const result = await executeAutoBid(params);
@@ -291,7 +280,7 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid1, mockAutoBid2]);
-      mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
+      mockExecuteBid.mockImplementation(async () => ({ success: true, message: "入札成功" }));
 
       // Act
       const result = await executeAutoBid(params);
@@ -327,9 +316,9 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
-      mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
+      mockExecuteBid.mockImplementation(async () => ({ success: true, message: "入札成功" }));
       prismaMock.autoBid.update.mockResolvedValue(mockAutoBid);
-      mockSendAuctionNotification.mockResolvedValue({ success: true });
+      mockSendAuctionNotification.mockImplementation(async () => ({ success: true }));
 
       // Act
       const result = await executeAutoBid(params);
@@ -409,7 +398,7 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
-      mockExecuteBid.mockResolvedValue({ success: false, message: "入札に失敗しました" });
+      mockExecuteBid.mockImplementation(async () => ({ success: false, message: "入札に失敗しました" }));
 
       // Act & Assert
       await expect(executeAutoBid(params)).rejects.toThrow("入札に失敗しました");
@@ -449,12 +438,12 @@ describe("auto-bid_executeAutoBid", () => {
         paramsValidationResult: null,
       };
 
-      mockValidateAuction.mockResolvedValue({
+      mockValidateAuction.mockImplementation(async () => ({
         success: false,
         message: "オークションIDが無効です",
         userId: "",
         auction: null,
-      });
+      }));
 
       // Act & Assert
       await expect(executeAutoBid(params)).rejects.toThrow("オークションIDが無効です");
@@ -516,12 +505,12 @@ describe("auto-bid_executeAutoBid", () => {
         paramsValidationResult: null,
       };
 
-      mockValidateAuction.mockResolvedValue({
+      mockValidateAuction.mockImplementation(async () => ({
         success: false,
         message: "オークションIDが無効です",
         userId: "",
         auction: null,
-      });
+      }));
 
       // Act & Assert
       await expect(executeAutoBid(params)).rejects.toThrow("オークションIDが無効です");
@@ -549,7 +538,7 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
-      mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
+      mockExecuteBid.mockImplementation(async () => ({ success: true, message: "入札成功" }));
 
       // Act
       const result = await executeAutoBid(params);
@@ -578,7 +567,7 @@ describe("auto-bid_executeAutoBid", () => {
       });
 
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
-      mockExecuteBid.mockResolvedValue({ success: true, message: "入札成功" });
+      mockExecuteBid.mockImplementation(async () => ({ success: true, message: "入札成功" }));
 
       // Act
       const result = await executeAutoBid(params);

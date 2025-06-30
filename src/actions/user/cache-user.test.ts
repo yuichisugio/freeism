@@ -30,7 +30,7 @@ type PrismaUserResponse = {
  */
 const createMockPrismaUser = (id: string, username: string | null): PrismaUserResponse => ({
   id,
-  settings: username === "NO_SETTINGS" ? null : { username: username === "NULL" ? null : (username ?? "デフォルト名") },
+  settings: username === "NO_SETTINGS" ? null : { username: username === "NULL" ? null : username },
 });
 
 /**
@@ -166,10 +166,22 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       // Arrange
       const mockUsers = users.map((user) => createMockPrismaUser(user.id, user.username ?? null));
       const expectedResult = createExpectedResult(
-        users.map((user) => ({
-          id: user.id,
-          username: user.username === "NO_SETTINGS" ? null : user.username === "NULL" ? null : (user.username ?? null),
-        })),
+        users.map((user) => {
+          let finalUsername: string | null;
+          if (user.username === "NO_SETTINGS") {
+            finalUsername = null; // settings が null の場合
+          } else if (user.username === "NULL") {
+            finalUsername = null; // settings.username が null の場合
+          } else if (user.username === null || user.username === undefined) {
+            finalUsername = null; // username が null または undefined の場合
+          } else {
+            finalUsername = user.username;
+          }
+          return {
+            id: user.id,
+            username: finalUsername,
+          };
+        }),
       );
       prismaMock.user.findMany.mockResolvedValue(
         mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,

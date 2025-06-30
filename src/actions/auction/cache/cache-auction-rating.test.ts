@@ -777,7 +777,9 @@ describe("getCachedDisplayUserInfo", () => {
       await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
       // Assert
-      expect(vi.mocked(unstable_cacheTag)).toHaveBeenCalledWith(`DisplayUserInfo:${auctionId}:${reviewPosition}`);
+      expect(vi.mocked(unstable_cacheTag)).toHaveBeenCalledWith(
+        `auctionRating:auctionByAuctionId:${auctionId}:${reviewPosition}`,
+      );
       expect(vi.mocked(unstable_cacheLife)).toHaveBeenCalledWith("max");
     });
   });

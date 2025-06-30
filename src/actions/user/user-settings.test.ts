@@ -3,6 +3,7 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { userFactory, userSettingsFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import type { UpdateUserSettingToggleParams } from "./user-settings";
 import { getUserSettings, updateUserSettingToggle, updateUserSetup } from "./user-settings";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -107,36 +108,38 @@ describe("user-settings.test.ts", () => {
 
     // 異常系・境界値テスト（統合）
     describe("異常系・境界値テスト", () => {
+      test("should throw error for null parameters", async () => {
+        await expect(updateUserSettingToggle(null as unknown as UpdateUserSettingToggleParams)).rejects.toThrow(
+          "無効なパラメータが指定されました",
+        );
+      });
+
+      test("should throw error for undefined parameters", async () => {
+        await expect(updateUserSettingToggle(undefined as unknown as UpdateUserSettingToggleParams)).rejects.toThrow(
+          "無効なパラメータが指定されました",
+        );
+      });
+
       test.each([
-        // パラメータがnull/undefined
-        null,
-        undefined,
         // 無効なuserId
-        { userId: "", isEnabled: true, column: "isEmailEnabled" },
-        { userId: null, isEnabled: true, column: "isEmailEnabled" },
-        { userId: undefined, isEnabled: true, column: "isEmailEnabled" },
+        { userId: "", isEnabled: true, column: "isEmailEnabled", description: "empty userId" },
+        { userId: null, isEnabled: true, column: "isEmailEnabled", description: "null userId" },
+        { userId: undefined, isEnabled: true, column: "isEmailEnabled", description: "undefined userId" },
         // 無効なisEnabled
-        { userId: mockUserId, isEnabled: null, column: "isEmailEnabled" },
-        { userId: mockUserId, isEnabled: undefined, column: "isEmailEnabled" },
+        { userId: mockUserId, isEnabled: null, column: "isEmailEnabled", description: "null isEnabled" },
+        { userId: mockUserId, isEnabled: undefined, column: "isEmailEnabled", description: "undefined isEnabled" },
         // 無効なcolumn
-        { userId: mockUserId, isEnabled: true, column: "invalidColumn" },
-        { userId: mockUserId, isEnabled: true, column: null },
-        { userId: mockUserId, isEnabled: true, column: undefined },
-      ])("should throw error for invalid parameters", async (params) => {
-        const { userId, isEnabled, column } = params as {
-          userId: string;
-          isEnabled: boolean;
-          column: "isEmailEnabled" | "isPushEnabled";
-        };
-
-        // 関数の実行
-        const result = await updateUserSettingToggle({
-          userId,
-          isEnabled,
-          column,
-        });
-
-        await expect(result).rejects.toThrow("無効なパラメータが指定されました");
+        { userId: mockUserId, isEnabled: true, column: "invalidColumn", description: "invalid column" },
+        { userId: mockUserId, isEnabled: true, column: null, description: "null column" },
+        { userId: mockUserId, isEnabled: true, column: undefined, description: "undefined column" },
+      ])("should throw error for invalid parameters: $description", async ({ userId, isEnabled, column }) => {
+        await expect(
+          updateUserSettingToggle({
+            userId: userId!,
+            isEnabled: isEnabled!,
+            column: column as "isEmailEnabled" | "isPushEnabled",
+          }),
+        ).rejects.toThrow("無効なパラメータが指定されました");
       });
 
       test.each([

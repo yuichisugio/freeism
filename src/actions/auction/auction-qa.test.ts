@@ -18,7 +18,7 @@ vi.mock("next/cache", () => ({
   __esModule: true,
 }));
 
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
+vi.mock("@/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn(),
   __esModule: true,
 }));
@@ -34,10 +34,10 @@ vi.mock("./cache/cache-auction-qa", () => ({
 /**
  * モック関数の型アサーション
  */
-const mockRevalidateTag = revalidateTag as ReturnType<typeof vi.fn>;
-const mockSendAuctionNotification = sendAuctionNotification as ReturnType<typeof vi.fn>;
-const mockGetCachedAuctionMessageContents = getCachedAuctionMessageContents as ReturnType<typeof vi.fn>;
-const mockGetCachedAuctionSellerInfo = getCachedAuctionSellerInfo as ReturnType<typeof vi.fn>;
+const mockRevalidateTag = vi.mocked(revalidateTag);
+const mockSendAuctionNotification = vi.mocked(sendAuctionNotification);
+const mockGetCachedAuctionMessageContents = vi.mocked(getCachedAuctionMessageContents);
+const mockGetCachedAuctionSellerInfo = vi.mocked(getCachedAuctionSellerInfo);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -46,10 +46,6 @@ const mockGetCachedAuctionSellerInfo = getCachedAuctionSellerInfo as ReturnType<
  */
 beforeEach(() => {
   vi.clearAllMocks();
-  mockRevalidateTag.mockReset();
-  mockSendAuctionNotification.mockReset();
-  mockGetCachedAuctionMessageContents.mockReset();
-  mockGetCachedAuctionSellerInfo.mockReset();
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -357,7 +353,7 @@ describe("auction-qa", () => {
           message: mockAuctionMessage,
         });
 
-        expect(mockRevalidateTag).toHaveBeenCalledWith(`auction-messages-${testAuctionId}`);
+        expect(mockRevalidateTag).toHaveBeenCalledWith(`auctionQa:auctionByAuctionId:${testAuctionId}`);
         expect(prismaMock.auctionMessage.create).toHaveBeenCalledWith({
           data: {
             message: testMessage,

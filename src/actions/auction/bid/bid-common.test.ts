@@ -21,11 +21,11 @@ vi.mock("@/lib/utils", () => ({
   getAuthenticatedSessionUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
+vi.mock("@/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-vi.mock("./server-sent-events-broadcast", () => ({
+vi.mock("../server-sent-events-broadcast", () => ({
   sendEventToAuctionSubscribers: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -53,11 +53,11 @@ vi.mock("@/lib/constants", () => ({
   }),
 }));
 
-vi.mock("./auto-bid", () => ({
-  processAutoBid: vi.fn().mockResolvedValue({ success: true, message: "自動入札完了" }),
+vi.mock("../auto-bid/auto-bid", () => ({
+  executeAutoBid: vi.fn().mockResolvedValue({ success: true, message: "自動入札完了" }),
 }));
 
-vi.mock("./bid-validation", () => ({
+vi.mock("../bid-validation", () => ({
   validateAuction: vi.fn(),
 }));
 
@@ -70,15 +70,15 @@ vi.mock("./extend-auction-time", () => ({
 /**
  * モック関数の型定義
  */
-const mockSendAuctionNotification = vi.mocked(
+const { sendAuctionNotification: mockSendAuctionNotification } = vi.mocked(
   await import("@/actions/notification/auction-notification"),
-).sendAuctionNotification;
-const mockSendEventToAuctionSubscribers = vi.mocked(
+);
+const { sendEventToAuctionSubscribers: mockSendEventToAuctionSubscribers } = vi.mocked(
   await import("../server-sent-events-broadcast"),
-).sendEventToAuctionSubscribers;
-const mockProcessAutoBid = vi.mocked(await import("../auto-bid/auto-bid")).executeAutoBid;
-const mockValidateAuction = vi.mocked(await import("../bid-validation")).validateAuction;
-const mockProcessAuctionExtension = vi.mocked(await import("./extend-auction-time")).processAuctionExtension;
+);
+const { executeAutoBid: mockProcessAutoBid } = vi.mocked(await import("../auto-bid/auto-bid"));
+const { validateAuction: mockValidateAuction } = vi.mocked(await import("../bid-validation"));
+const { processAuctionExtension: mockProcessAuctionExtension } = vi.mocked(await import("./extend-auction-time"));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

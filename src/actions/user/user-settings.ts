@@ -10,7 +10,7 @@ import { prisma } from "@/library-setting/prisma";
 /**
  * ユーザー設定の更新パラメータ
  */
-type UpdateUserSettingToggleParams = {
+export type UpdateUserSettingToggleParams = {
   userId: string;
   isEnabled: boolean;
   column: "isEmailEnabled" | "isPushEnabled";

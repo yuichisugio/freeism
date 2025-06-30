@@ -104,7 +104,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが10分延長されました",
       });
     });
   });
@@ -267,7 +267,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが10分延長されました",
       });
     });
 
@@ -290,7 +290,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: false,
         newEndTime: null,
-        message: "オークション延長中に不明なエラーが発生しました",
+        message: "延長回数の上限に達しています",
       });
     });
 
@@ -341,7 +341,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが3分延長されました",
       });
     });
 
@@ -392,9 +392,8 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが1440分延長されました",
       });
-      expect(result.message).toContain("1440分延長されました");
     });
 
     test("should handle minimum auction duration", async () => {
@@ -498,7 +497,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが10分延長されました",
       });
     });
 
@@ -549,7 +548,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが10分延長されました",
       });
     });
 
@@ -600,7 +599,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが10分延長されました",
       });
     });
 
@@ -684,7 +683,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが10分延長されました",
       });
     });
 
@@ -735,7 +734,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       expect(result).toStrictEqual({
         success: true,
         newEndTime: expect.any(Date) as Date,
-        message: "延長されました",
+        message: "オークションが1分延長されました",
       });
     });
   });

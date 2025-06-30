@@ -403,7 +403,7 @@ describe("create-task-form.ts", () => {
 
         // Act & Assert
         await expect(createTask(taskData)).rejects.toThrow(
-          "タスクの作成中にエラーが発生しました: グループが見つかりません",
+          "タスクの作成中にエラーが発生しました: 指定されたグループが見つかりません",
         );
         expect(prismaMock.task.create).not.toHaveBeenCalled();
         expect(mockRevalidatePath).not.toHaveBeenCalled();

@@ -50,7 +50,7 @@ function createDefaultParams(overrides: Partial<AuctionListingsConditions> = {})
   return {
     listingsConditions: { ...defaultConditions, ...overrides },
     userId: TEST_CONSTANTS.USER_ID,
-    userGroupIds: [],
+    userGroupIds: [TEST_CONSTANTS.GROUP_ID],
   };
 }
 
@@ -92,7 +92,7 @@ function generateDefaultListingsSQL(): string {
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
           WHERE a."group_id" = ANY(?::text[])
-          ORDER BY a."created_at" DESC
+          ORDER BY a."created_at" DESC NULLS LAST
         ),
         "PaginatedAuctionsCTE" AS (
           SELECT
@@ -159,7 +159,7 @@ function generateDefaultListingsSQL(): string {
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ORDER BY a."created_at" DESC
+        ORDER BY a."created_at" DESC NULLS LAST
       `
     .replace(/\s+/g, " ")
     .trim();
@@ -197,7 +197,7 @@ function generateCategoriesListingsSQL(): string {
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
           WHERE a."group_id" = ANY(?::text[]) AND (t.category ILIKE ? OR t.category ILIKE ?)
-          ORDER BY a."created_at" DESC
+          ORDER BY a."created_at" DESC NULLS LAST
         ),
         "PaginatedAuctionsCTE" AS (
           SELECT
@@ -264,7 +264,7 @@ function generateCategoriesListingsSQL(): string {
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ORDER BY a."created_at" DESC
+        ORDER BY a."created_at" DESC NULLS LAST
       `
     .replace(/\s+/g, " ")
     .trim();
@@ -303,7 +303,7 @@ function generateBidAmountListingsSQL(): string {
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
           WHERE a."group_id" = ANY(?::text[]) AND a."current_highest_bid" >= ? AND a."current_highest_bid" <= ?
-          ORDER BY a."created_at" DESC
+          ORDER BY a."created_at" DESC NULLS LAST
         ),
         "PaginatedAuctionsCTE" AS (
           SELECT
@@ -370,7 +370,7 @@ function generateBidAmountListingsSQL(): string {
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ORDER BY a."created_at" DESC
+        ORDER BY a."created_at" DESC NULLS LAST
       `
     .replace(/\s+/g, " ")
     .trim();
@@ -499,7 +499,7 @@ function generateSearchQueryListingsSQL(): string {
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
           WHERE public.normalize_japanese(t.task || ' ' || COALESCE(t.detail, '')) &@~ ? AND a."group_id" = ANY(?::text[])
-          ORDER BY score DESC
+          ORDER BY score DESC NULLS LAST
         ),
         "PaginatedAuctionsCTE" AS (
           SELECT
@@ -570,7 +570,7 @@ function generateSearchQueryListingsSQL(): string {
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ORDER BY score DESC
+        ORDER BY score DESC NULLS LAST
       `
     .replace(/\s+/g, " ")
     .trim();
@@ -609,7 +609,7 @@ function generateStatusFilterListingsSQL(): string {
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
           WHERE a."group_id" = ANY(?::text[]) AND ((NOT EXISTS (SELECT 1 FROM "BidHistory" bh WHERE bh."auction_id" = a.id AND bh."user_id" = ?)) AND (t.status::text = ? OR t.status::text = ?))
-          ORDER BY a."created_at" DESC
+          ORDER BY a."created_at" DESC NULLS LAST
         ),
         "PaginatedAuctionsCTE" AS (
           SELECT
@@ -676,7 +676,7 @@ function generateStatusFilterListingsSQL(): string {
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ORDER BY a."created_at" DESC
+        ORDER BY a."created_at" DESC NULLS LAST
       `
     .replace(/\s+/g, " ")
     .trim();

@@ -74,54 +74,54 @@ describe("won-auction", () => {
         await expect(getUserWonAuctionsWhereCondition(userId, wonStatus)).rejects.toThrow(expectedError);
       });
     });
-  });
 
-  describe("正常系", () => {
-    test.each([
-      { case: "empty string", wonStatus: "" as never, statusArray: DEFAULT_STATUS_ARRAY },
-      { case: "undefined", wonStatus: undefined as never, statusArray: DEFAULT_STATUS_ARRAY },
-      { case: "null", wonStatus: null as never, statusArray: DEFAULT_STATUS_ARRAY },
-      { case: "other-status", wonStatus: "other-status" as never, statusArray: DEFAULT_STATUS_ARRAY },
-      {
-        case: "completed",
-        wonStatus: "completed",
-        statusArray: [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
-      },
-      {
-        case: "incomplete",
-        wonStatus: "incomplete",
-        statusArray: [
-          TaskStatus.PENDING,
-          TaskStatus.AUCTION_ACTIVE,
-          TaskStatus.AUCTION_ENDED,
-          TaskStatus.POINTS_DEPOSITED,
-          TaskStatus.SUPPLIER_DONE,
-        ],
-      },
-      {
-        case: "all",
-        wonStatus: "all",
-        statusArray: [
-          TaskStatus.PENDING,
-          TaskStatus.AUCTION_ACTIVE,
-          TaskStatus.AUCTION_ENDED,
-          TaskStatus.POINTS_DEPOSITED,
-          TaskStatus.SUPPLIER_DONE,
-          TaskStatus.TASK_COMPLETED,
-          TaskStatus.FIXED_EVALUATED,
-          TaskStatus.POINTS_AWARDED,
-        ],
-      },
-    ])("should return array when wonStatus is $case", async ({ wonStatus, statusArray }) => {
-      // Act
-      const result = await getUserWonAuctionsWhereCondition(wonStatus);
-
-      // Assert
-      expect(result).toStrictEqual({
-        winnerId: CONSTANTS.testUserId,
-        task: {
-          status: { in: statusArray },
+    describe("正常系", () => {
+      test.each([
+        { case: "empty string", wonStatus: "" as never, statusArray: DEFAULT_STATUS_ARRAY },
+        { case: "undefined", wonStatus: undefined as never, statusArray: DEFAULT_STATUS_ARRAY },
+        { case: "null", wonStatus: null as never, statusArray: DEFAULT_STATUS_ARRAY },
+        { case: "other-status", wonStatus: "other-status" as never, statusArray: DEFAULT_STATUS_ARRAY },
+        {
+          case: "completed",
+          wonStatus: "completed",
+          statusArray: [TaskStatus.TASK_COMPLETED, TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED],
         },
+        {
+          case: "incomplete",
+          wonStatus: "incomplete",
+          statusArray: [
+            TaskStatus.PENDING,
+            TaskStatus.AUCTION_ACTIVE,
+            TaskStatus.AUCTION_ENDED,
+            TaskStatus.POINTS_DEPOSITED,
+            TaskStatus.SUPPLIER_DONE,
+          ],
+        },
+        {
+          case: "all",
+          wonStatus: "all",
+          statusArray: [
+            TaskStatus.PENDING,
+            TaskStatus.AUCTION_ACTIVE,
+            TaskStatus.AUCTION_ENDED,
+            TaskStatus.POINTS_DEPOSITED,
+            TaskStatus.SUPPLIER_DONE,
+            TaskStatus.TASK_COMPLETED,
+            TaskStatus.FIXED_EVALUATED,
+            TaskStatus.POINTS_AWARDED,
+          ],
+        },
+      ])("should return array when wonStatus is $case", async ({ wonStatus, statusArray }) => {
+        // Act
+        const result = await getUserWonAuctionsWhereCondition(CONSTANTS.testUserId, wonStatus);
+
+        // Assert
+        expect(result).toStrictEqual({
+          winnerId: CONSTANTS.testUserId,
+          task: {
+            status: { in: statusArray },
+          },
+        });
       });
     });
   });
@@ -156,24 +156,30 @@ describe("won-auction", () => {
           itemPerPage: null as never,
         },
         { case: "page is 0", page: 0, userId: CONSTANTS.testUserId, itemPerPage: CONSTANTS.testItemPerPage },
-        {
-          case: "page is undefined",
-          page: CONSTANTS.testPage,
-          userId: CONSTANTS.testUserId,
-          itemPerPage: CONSTANTS.testItemPerPage,
-        },
-        {
-          case: "page is null",
-          page: CONSTANTS.testPage,
-          userId: CONSTANTS.testUserId,
-          itemPerPage: CONSTANTS.testItemPerPage,
-        },
         { case: "all required parameters are missing", page: 0, userId: "", itemPerPage: 0 },
       ])("should throw error when $case", async ({ page, userId, itemPerPage }) => {
         // Act & Assert
         await expect(getUserWonAuctions(page, userId, itemPerPage)).rejects.toThrow(
           "userId, itemPerPage, and page are required",
         );
+      });
+
+      test.each([
+        {
+          case: "page is undefined",
+          page: undefined as never,
+          userId: CONSTANTS.testUserId,
+          itemPerPage: CONSTANTS.testItemPerPage,
+        },
+        {
+          case: "page is null",
+          page: null as never,
+          userId: CONSTANTS.testUserId,
+          itemPerPage: CONSTANTS.testItemPerPage,
+        },
+      ])("should throw error when $case", async ({ page, userId, itemPerPage }) => {
+        // Act & Assert
+        await expect(getUserWonAuctions(page, userId, itemPerPage)).rejects.toThrow();
       });
     });
 

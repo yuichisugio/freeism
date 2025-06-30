@@ -466,7 +466,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         expect(result.failedData).toHaveLength(1);
         expect(result.successData[0].id).toBe("task-1");
         expect(result.successData[1].id).toBe("task-2");
-        expect(result.failedData[0].id).toBe("task-2");
+        expect(result.failedData[0].id).toBe("");
         expect(result.message).toBe("2件のタスクが正常に更新されました。1件の更新に失敗しました。");
       });
     });

@@ -19,7 +19,7 @@ const { mockEnv, mockLogger } = vi.hoisted(() => ({
 }));
 
 // envのモック
-vi.mock("@/env", () => ({
+vi.mock("@/library-setting/env", () => ({
   env: mockEnv,
 }));
 

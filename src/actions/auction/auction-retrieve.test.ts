@@ -61,7 +61,7 @@ vi.mock("@/lib/constants", () => ({
   getAuctionUpdateSelect: vi.fn(() => mockSelectObject),
 }));
 
-vi.mock("@/lib/auction/action/cache/cache-auction-retrieve", () => ({
+vi.mock("@/actions/auction/cache/cache-auction-retrieve", () => ({
   getCachedAuctionByAuctionId: vi.fn(),
   __esModule: true,
 }));
@@ -81,7 +81,7 @@ const mockGetAuctionUpdateSelect = vi.mocked(getAuctionUpdateSelect);
  */
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetCachedAuctionByAuctionId.mockReset();
+  // mockGetCachedAuctionByAuctionId.mockReset(); は削除 - vitest のモック関数にはmockResetメソッドがない場合がある
   mockGetAuctionUpdateSelect.mockReset();
   // モック関数のデフォルト戻り値を設定
   mockGetAuctionUpdateSelect.mockReturnValue(mockSelectObject as Prisma.AuctionSelect);

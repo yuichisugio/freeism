@@ -50,7 +50,7 @@ function createDefaultParams(): GetAuctionListingsParams {
   return {
     listingsConditions,
     userId: TEST_CONSTANTS.USER_ID,
-    userGroupIds: [],
+    userGroupIds: [TEST_CONSTANTS.GROUP_ID], // 空配列だと早期リターンしてしまうため、グループIDを追加
   };
 }
 
@@ -93,7 +93,7 @@ function generateExpectedListingsSQL(): string {
           FROM "Auction" a
           JOIN "Task" t ON a."task_id" = t.id
           WHERE a."group_id" = ANY(?::text[])
-          ORDER BY a."created_at" DESC
+          ORDER BY a."created_at" DESC NULLS LAST
         ),
         "PaginatedAuctionsCTE" AS (
           SELECT
@@ -160,7 +160,7 @@ function generateExpectedListingsSQL(): string {
         LEFT JOIN "BidsCountCTE" bc ON p.id = bc.auction_id
         LEFT JOIN "WatchlistCTE" wc ON p.id = wc.auction_id
         LEFT JOIN "ExecutorsCTE" ex ON a."task_id" = ex.task_id
-        ORDER BY a."created_at" DESC
+        ORDER BY a."created_at" DESC NULLS LAST
       `
     .replace(/\s+/g, " ")
     .trim();
