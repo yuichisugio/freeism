@@ -1,7 +1,6 @@
 "use server";
 
 import type { Prisma } from "@prisma/client";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -16,6 +15,7 @@ type getAllUserGroupsAndCountProps = {
   searchQuery: string;
   isJoined: "isJoined" | "notJoined" | "all";
   itemPerPage: number;
+  userId: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -33,13 +33,14 @@ export async function getAllUserGroupsAndCount({
   searchQuery,
   isJoined,
   itemPerPage,
+  userId,
 }: getAllUserGroupsAndCountProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 認証処理
-   */
-  const userId = await getAuthenticatedSessionUserId();
+  // ユーザーIDがあるかチェック
+  if (!userId || !sortField || !sortDirection || searchQuery == null || !itemPerPage || !page) {
+    throw new Error("Invalid parameters");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -75,6 +76,11 @@ async function getAllUserGroups(
   itemPerPage: number,
 ) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // パラメータの検証
+  if (!page || !sortField || !sortDirection || searchQuery == null || !itemPerPage || !userId) {
+    throw new Error("Invalid parameters");
+  }
 
   /**
    * グループ一覧のsortの条件
@@ -204,6 +210,11 @@ export async function getAllUserGroupsCount(
   userId: string,
 ) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ユーザーIDがあるかチェック
+  if (!userId || searchQuery == null || !isJoined) {
+    throw new Error("Invalid parameters");
+  }
 
   /**
    * グループ一覧のwhereの条件

@@ -1,4 +1,4 @@
-import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-list";
 import type { NotificationManagerResult } from "@/hooks/notification/use-notification-list";
 import { faker } from "@faker-js/faker";
 import { AuctionEventType, NotificationTargetType } from "@prisma/client";

@@ -41,35 +41,31 @@ export type NotificationParams = {
 export async function sendEmailNotification(
   params: NotificationParams,
 ): Promise<{ success: boolean; error?: string; message?: string }> {
-  // Server Actions としてマーク
-  "use server";
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 受信者のメール通知設定を取得
-  const emailNotificationSettings = await prisma.userSettings.findMany({
-    where: {
-      userId: { in: params.recipientUserIds },
-    },
-    select: {
-      isEmailEnabled: true,
-    },
-  });
-
-  if (emailNotificationSettings.length === 0 || !emailNotificationSettings.some((u) => u.isEmailEnabled)) {
-    return { success: true, message: "メール通知設定が見つかりません" };
-  }
-
-  // メール通知が有効なユーザーのみ抽出
-  const enabledEmailSettings = emailNotificationSettings.filter((setting) => setting.isEmailEnabled);
-
-  if (enabledEmailSettings.length === 0) {
-    return { success: true, message: "メール通知設定が見つかりません" };
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    // 受信者のメール通知設定を取得
+    const emailNotificationSettings = await prisma.userSettings.findMany({
+      where: {
+        userId: { in: params.recipientUserIds },
+      },
+      select: {
+        isEmailEnabled: true,
+      },
+    });
+
+    if (emailNotificationSettings.length === 0 || !emailNotificationSettings.some((u) => u.isEmailEnabled)) {
+      return { success: true, message: "メール通知設定が見つかりません" };
+    }
+
+    // メール通知が有効なユーザーのみ抽出
+    const enabledEmailSettings = emailNotificationSettings.filter((setting) => setting.isEmailEnabled);
+
+    if (enabledEmailSettings.length === 0) {
+      return { success: true, message: "メール通知設定が見つかりません" };
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // TODO: 受信者のメールの受信拒否設定の場合は、メールを送信しない分岐を行う

@@ -11,12 +11,6 @@ import { sendInAppNotification } from "./in-app-notification";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * オークション関連の通知の管理を行うファイル
- */
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
  * オークション関連の通知メッセージデータ
  */
 export type AuctionNotificationParams = {
@@ -36,7 +30,7 @@ export type AuctionNotificationParams = {
 /**
  * オークション関連の通知メッセージデータ
  */
-type MessageData = {
+export type MessageData = {
   first: string;
   second: string;
 };
@@ -157,6 +151,15 @@ export async function sendAuctionNotification(
 async function calculateExpiryDate(eventType: AuctionEventType): Promise<Date | null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * イベントタイプの検証
+   */
+  if (!Object.values(AuctionEventType).includes(eventType)) {
+    throw new Error(`Invalid event type: ${eventType}`);
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   // 現在の日時を取得
   const now = new Date();
 
@@ -192,6 +195,15 @@ export async function getAuctionNotificationMessage(
   messageData: MessageData,
 ): Promise<{ title: string; body: string; targetType: NotificationTargetType }> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * イベントタイプの検証
+     */
+    if (!Object.values(AuctionEventType).includes(eventType)) {
+      throw new Error(`Invalid event type: ${eventType}`);
+    }
+
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     // イベントタイプごとに通知メッセージを生成

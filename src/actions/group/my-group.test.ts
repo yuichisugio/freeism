@@ -15,7 +15,7 @@ vi.mock("@/lib/utils", () => ({
   getAuthenticatedSessionUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/permission", () => ({
+vi.mock("@/actions/permission/permission", () => ({
   checkGroupMembership: vi.fn(),
 }));
 
@@ -27,6 +27,20 @@ vi.mock("next/cache", () => ({
 const mockGetAuthenticatedSessionUserId = vi.mocked((await import("@/lib/utils")).getAuthenticatedSessionUserId);
 const mockCheckGroupMembership = vi.mocked((await import("@/actions/permission/permission")).checkGroupMembership);
 const mockRevalidatePath = vi.mocked(revalidatePath);
+
+// 型定義
+type GroupPointMockData = {
+  group: {
+    id: string;
+    name: string;
+    goal: string;
+    evaluationMethod: string;
+    depositPeriod: number;
+    members: { isGroupOwner: boolean }[];
+  };
+  balance: number;
+  fixedTotalPoints: number;
+};
 
 describe("my-group.ts", () => {
   // テストデータ
@@ -52,72 +66,91 @@ describe("my-group.ts", () => {
     fixedTotalPoints: 300,
   });
 
+  // 共通のパラメータ
+  const defaultParams = {
+    page: 1,
+    sortField: "name",
+    sortDirection: "asc",
+    searchQuery: "search", // 空文字列はバリデーションエラーになるため
+    itemPerPage: 10,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("getUserJoinGroupAndCount", () => {
-    const defaultParams = {
-      page: 1,
-      sortField: "name",
-      sortDirection: "asc",
-      searchQuery: "",
-      itemPerPage: 10,
-    };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * データベースエラーを発生させるヘルパー関数
+   */
+  const setupDatabaseError = (method: "findMany" | "count" | "delete", errorMessage = "Database error") => {
+    if (method === "findMany") {
+      prismaMock.groupPoint.findMany.mockRejectedValue(new Error(errorMessage));
+    } else if (method === "count") {
+      prismaMock.group.count.mockRejectedValue(new Error(errorMessage));
+    } else if (method === "delete") {
+      prismaMock.groupMembership.delete.mockRejectedValue(new Error(errorMessage));
+    }
+  };
+
+  /**
+   * グループポイントのモックデータを生成するヘルパー関数
+   */
+  const createGroupPointMockData = (
+    groupData: typeof testGroup1,
+    pointData: typeof testGroupPoint1,
+    isGroupOwner = false,
+  ): GroupPointMockData => ({
+    group: {
+      id: groupData.id,
+      name: groupData.name,
+      goal: groupData.goal,
+      evaluationMethod: groupData.evaluationMethod,
+      depositPeriod: groupData.depositPeriod,
+      members: [{ isGroupOwner }],
+    },
+    balance: pointData.balance,
+    fixedTotalPoints: pointData.fixedTotalPoints,
+  });
+
+  /**
+   * 期待される結果データを生成するヘルパー関数
+   */
+  const createExpectedGroupData = (
+    groupData: typeof testGroup1,
+    pointData: typeof testGroupPoint1,
+    isGroupOwner = false,
+  ) => ({
+    id: groupData.id,
+    groupName: groupData.name,
+    groupGoal: groupData.goal,
+    groupEvaluationMethod: groupData.evaluationMethod,
+    groupDepositPeriod: groupData.depositPeriod,
+    groupPointBalance: pointData.balance,
+    groupPointFixedTotalPoints: pointData.fixedTotalPoints,
+    isGroupOwner,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("getUserJoinGroupAndCount", () => {
     describe("正常系", () => {
       test("should return user joined groups and count successfully", async () => {
         // Arrange
+        const mockData = [
+          createGroupPointMockData(testGroup1, testGroupPoint1, true),
+          createGroupPointMockData(testGroup2, testGroupPoint2, false),
+        ];
         const expectedGroupList = [
-          {
-            id: testGroup1.id,
-            groupName: testGroup1.name,
-            groupGoal: testGroup1.goal,
-            groupEvaluationMethod: testGroup1.evaluationMethod,
-            groupDepositPeriod: testGroup1.depositPeriod,
-            groupPointBalance: testGroupPoint1.balance,
-            groupPointFixedTotalPoints: testGroupPoint1.fixedTotalPoints,
-            isGroupOwner: true,
-          },
-          {
-            id: testGroup2.id,
-            groupName: testGroup2.name,
-            groupGoal: testGroup2.goal,
-            groupEvaluationMethod: testGroup2.evaluationMethod,
-            groupDepositPeriod: testGroup2.depositPeriod,
-            groupPointBalance: testGroupPoint2.balance,
-            groupPointFixedTotalPoints: testGroupPoint2.fixedTotalPoints,
-            isGroupOwner: false,
-          },
+          createExpectedGroupData(testGroup1, testGroupPoint1, true),
+          createExpectedGroupData(testGroup2, testGroupPoint2, false),
         ];
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([
-          {
-            group: {
-              id: testGroup1.id,
-              name: testGroup1.name,
-              goal: testGroup1.goal,
-              evaluationMethod: testGroup1.evaluationMethod,
-              depositPeriod: testGroup1.depositPeriod,
-              members: [{ isGroupOwner: true }],
-            },
-            balance: testGroupPoint1.balance,
-            fixedTotalPoints: testGroupPoint1.fixedTotalPoints,
-          },
-          {
-            group: {
-              id: testGroup2.id,
-              name: testGroup2.name,
-              goal: testGroup2.goal,
-              evaluationMethod: testGroup2.evaluationMethod,
-              depositPeriod: testGroup2.depositPeriod,
-              members: [{ isGroupOwner: false }],
-            },
-            balance: testGroupPoint2.balance,
-            fixedTotalPoints: testGroupPoint2.fixedTotalPoints,
-          },
-        ] as unknown as Awaited<ReturnType<typeof prismaMock.groupPoint.findMany>>);
+        prismaMock.groupPoint.findMany.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.groupPoint.findMany>>,
+        );
         prismaMock.group.count.mockResolvedValue(2);
 
         // Act
@@ -134,7 +167,6 @@ describe("my-group.ts", () => {
       test("should handle search query correctly", async () => {
         // Arrange
         const searchParams = { ...defaultParams, searchQuery: "テスト" };
-
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         prismaMock.groupPoint.findMany.mockResolvedValue([]);
         prismaMock.group.count.mockResolvedValue(0);
@@ -157,130 +189,45 @@ describe("my-group.ts", () => {
       });
 
       test("should handle pagination correctly", async () => {
-        // Arrange
-        const paginationParams = { ...defaultParams, page: 2, itemPerPage: 5 };
+        // testParameterBoundaryは元のパラメータのsearchQueryも空文字列なので修正
+        const paginationParams1 = { ...defaultParams, page: 2, itemPerPage: 5 };
+        const paginationParams2 = { ...defaultParams, itemPerPage: 5 };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         prismaMock.groupPoint.findMany.mockResolvedValue([]);
         prismaMock.group.count.mockResolvedValue(0);
 
-        // Act
-        await getUserJoinGroupAndCount(paginationParams);
+        await getUserJoinGroupAndCount(paginationParams1);
 
-        // Assert
         expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             skip: 5, // (page - 1) * itemPerPage = (2 - 1) * 5
             take: 5,
           }),
         );
-      });
-
-      test("should handle different sort fields correctly", async () => {
-        // Arrange
-        const sortParams = { ...defaultParams, sortField: "groupPointBalance", sortDirection: "desc" };
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         prismaMock.groupPoint.findMany.mockResolvedValue([]);
         prismaMock.group.count.mockResolvedValue(0);
 
-        // Act
-        await getUserJoinGroupAndCount(sortParams);
+        await getUserJoinGroupAndCount(paginationParams2);
 
-        // Assert
         expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
-            orderBy: {
-              balance: "desc",
-            },
-          }),
-        );
-      });
-
-      test("should handle groupPointFixedTotalPoints sort field", async () => {
-        // Arrange
-        const sortParams = { ...defaultParams, sortField: "groupPointFixedTotalPoints", sortDirection: "asc" };
-
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockResolvedValue(0);
-
-        // Act
-        await getUserJoinGroupAndCount(sortParams);
-
-        // Assert
-        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            orderBy: {
-              fixedTotalPoints: "asc",
-            },
-          }),
-        );
-      });
-
-      test("should handle groupDepositPeriod sort field", async () => {
-        // Arrange
-        const sortParams = { ...defaultParams, sortField: "groupDepositPeriod", sortDirection: "desc" };
-
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockResolvedValue(0);
-
-        // Act
-        await getUserJoinGroupAndCount(sortParams);
-
-        // Assert
-        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            orderBy: {
-              group: {
-                depositPeriod: "desc",
-              },
-            },
-          }),
-        );
-      });
-
-      test("should handle default sort field", async () => {
-        // Arrange
-        const sortParams = { ...defaultParams, sortField: "name", sortDirection: "asc" };
-
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockResolvedValue(0);
-
-        // Act
-        await getUserJoinGroupAndCount(sortParams);
-
-        // Assert
-        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            orderBy: {
-              group: {
-                name: "asc",
-              },
-            },
+            take: 5,
           }),
         );
       });
 
       test("should handle empty members array correctly", async () => {
         // Arrange
+        const mockDataWithEmptyMembers = [createGroupPointMockData(testGroup1, testGroupPoint1, false)];
+        mockDataWithEmptyMembers[0].group.members = []; // 空の配列
+
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([
-          {
-            group: {
-              id: testGroup1.id,
-              name: testGroup1.name,
-              goal: testGroup1.goal,
-              evaluationMethod: testGroup1.evaluationMethod,
-              depositPeriod: testGroup1.depositPeriod,
-              members: [], // 空の配列
-            },
-            balance: testGroupPoint1.balance,
-            fixedTotalPoints: testGroupPoint1.fixedTotalPoints,
-          },
-        ] as unknown as Awaited<ReturnType<typeof prismaMock.groupPoint.findMany>>);
+        prismaMock.groupPoint.findMany.mockResolvedValue(
+          mockDataWithEmptyMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupPoint.findMany>>,
+        );
         prismaMock.group.count.mockResolvedValue(1);
 
         // Act
@@ -291,95 +238,96 @@ describe("my-group.ts", () => {
       });
     });
 
-    describe("異常系", () => {
-      test("should handle authentication failure", async () => {
+    describe("ソートフィールドのテスト", () => {
+      test.each([
+        ["groupPointBalance", "desc", { balance: "desc" }],
+        ["groupPointFixedTotalPoints", "asc", { fixedTotalPoints: "asc" }],
+        ["groupDepositPeriod", "desc", { group: { depositPeriod: "desc" } }],
+        ["name", "asc", { group: { name: "asc" } }],
+      ])("should handle %s sort field with %s direction", async (sortField, sortDirection, expectedOrderBy) => {
         // Arrange
-        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
-
-        // Act & Assert
-        await expect(getUserJoinGroupAndCount(defaultParams)).rejects.toThrow("Authentication failed");
-      });
-
-      test("should handle database error in getUserJoinGroup", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockRejectedValue(new Error("Database error"));
-
-        // Act & Assert
-        await expect(getUserJoinGroupAndCount(defaultParams)).rejects.toThrow("Database error");
-      });
-
-      test("should handle database error in getUserJoinGroupCount", async () => {
-        // Arrange
+        const sortParams = { ...defaultParams, sortField, sortDirection };
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockRejectedValue(new Error("Database error"));
+        prismaMock.group.count.mockResolvedValue(0);
 
-        // Act & Assert
-        await expect(getUserJoinGroupAndCount(defaultParams)).rejects.toThrow("Database error");
+        // Act
+        await getUserJoinGroupAndCount(sortParams);
+
+        // Assert
+        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderBy: expectedOrderBy,
+          }),
+        );
+      });
+    });
+
+    describe("異常系", () => {
+      test.each([
+        [
+          "authentication failure",
+          () => mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed")),
+          "Authentication failed",
+        ],
+        [
+          "database error in getUserJoinGroup",
+          () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
+            setupDatabaseError("findMany");
+          },
+          "Database error",
+        ],
+        [
+          "database error in getUserJoinGroupCount",
+          () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
+            prismaMock.groupPoint.findMany.mockResolvedValue([]);
+            setupDatabaseError("count");
+          },
+          "Database error",
+        ],
+      ])("should handle %s", async (_, setupError, expectedError) => {
+        setupError();
+        await expect(getUserJoinGroupAndCount(defaultParams)).rejects.toThrow(expectedError);
       });
     });
 
     describe("境界値テスト", () => {
-      test("should handle page 0", async () => {
+      test.each([
+        ["page 0", { page: 0 }],
+        ["itemPerPage 0", { itemPerPage: 0 }],
+      ])("should throw error for %s", async (_, paramOverride) => {
         // Arrange
-        const boundaryParams = { ...defaultParams, page: 0 };
+        const boundaryParams = { ...defaultParams, ...paramOverride };
 
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockResolvedValue(0);
-
-        // Act
-        await getUserJoinGroupAndCount(boundaryParams);
-
-        // Assert
-        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            skip: -10, // (0 - 1) * 10
-          }),
-        );
+        // Act & Assert
+        await expect(getUserJoinGroupAndCount(boundaryParams)).rejects.toThrow("Invalid parameters");
       });
 
-      test("should handle itemPerPage 0", async () => {
-        // Arrange
-        const boundaryParams = { ...defaultParams, itemPerPage: 0 };
-
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockResolvedValue(0);
-
-        // Act
-        await getUserJoinGroupAndCount(boundaryParams);
-
-        // Assert
-        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            take: 0,
-          }),
-        );
-      });
-
-      test("should handle empty search query", async () => {
+      test("should throw error when searchQuery is empty string", async () => {
         // Arrange
         const emptySearchParams = { ...defaultParams, searchQuery: "" };
 
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        prismaMock.groupPoint.findMany.mockResolvedValue([]);
-        prismaMock.group.count.mockResolvedValue(0);
+        // Act & Assert
+        await expect(getUserJoinGroupAndCount(emptySearchParams)).rejects.toThrow("Invalid parameters");
+      });
 
-        // Act
-        await getUserJoinGroupAndCount(emptySearchParams);
-
-        // Assert
-        expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: expect.not.objectContaining({
-              group: expect.objectContaining({
-                name: expect.anything() as unknown as object,
-              }) as unknown as object,
-            }) as unknown as object,
-          }) as unknown as object,
+      test.each([
+        ["page", null],
+        ["sortField", null],
+        ["sortDirection", null],
+        ["itemPerPage", null],
+      ])("should throw error when %s is null", async (paramName, paramValue) => {
+        await expect(getUserJoinGroupAndCount({ ...defaultParams, [paramName]: paramValue })).rejects.toThrow(
+          "Invalid parameters",
         );
+      });
+
+      test("should throw error when searchQuery is null", async () => {
+        await expect(
+          getUserJoinGroupAndCount({ ...defaultParams, searchQuery: null as unknown as string }),
+        ).rejects.toThrow("Invalid parameters");
       });
     });
   });
@@ -388,124 +336,94 @@ describe("my-group.ts", () => {
     describe("正常系", () => {
       test("should return formatted group list", async () => {
         // Arrange
-        prismaMock.groupPoint.findMany.mockResolvedValue([
-          {
-            group: {
-              id: testGroup1.id,
-              name: testGroup1.name,
-              goal: testGroup1.goal,
-              evaluationMethod: testGroup1.evaluationMethod,
-              depositPeriod: testGroup1.depositPeriod,
-              members: [{ isGroupOwner: true }],
-            },
-            balance: testGroupPoint1.balance,
-            fixedTotalPoints: testGroupPoint1.fixedTotalPoints,
-          },
-        ] as unknown as Awaited<ReturnType<typeof prismaMock.groupPoint.findMany>>);
+        const mockData = [createGroupPointMockData(testGroup1, testGroupPoint1, true)];
+        const expectedResult = [createExpectedGroupData(testGroup1, testGroupPoint1, true)];
+
+        prismaMock.groupPoint.findMany.mockResolvedValue(
+          mockData as unknown as Awaited<ReturnType<typeof prismaMock.groupPoint.findMany>>,
+        );
 
         // Act
-        const result = await getUserJoinGroup(1, "name", "asc", "", testUser.id, 10);
+        const result = await getUserJoinGroup(1, "name", "asc", "search", testUser.id, 10);
 
         // Assert
-        expect(result).toStrictEqual([
-          {
-            id: testGroup1.id,
-            groupName: testGroup1.name,
-            groupGoal: testGroup1.goal,
-            groupEvaluationMethod: testGroup1.evaluationMethod,
-            groupDepositPeriod: testGroup1.depositPeriod,
-            groupPointBalance: testGroupPoint1.balance,
-            groupPointFixedTotalPoints: testGroupPoint1.fixedTotalPoints,
-            isGroupOwner: true,
-          },
-        ]);
+        expect(result).toStrictEqual(expectedResult);
       });
     });
 
     describe("異常系", () => {
       test("should handle database error", async () => {
-        // Arrange
-        prismaMock.groupPoint.findMany.mockRejectedValue(new Error("Database error"));
+        setupDatabaseError("findMany");
+        await expect(getUserJoinGroup(1, "name", "asc", "search", testUser.id, 10)).rejects.toThrow("Database error");
+      });
 
-        // Act & Assert
-        await expect(getUserJoinGroup(1, "name", "asc", "", testUser.id, 10)).rejects.toThrow("Database error");
+      test.each([
+        ["userId", ""],
+        ["page", null],
+        ["sortField", null],
+        ["sortDirection", null],
+        ["searchQuery", null],
+        ["searchQuery", ""], // 空文字列のテスト
+        ["itemPerPage", null],
+      ])("should throw error when %s is invalid", async (paramName, paramValue) => {
+        const params = {
+          page: 1,
+          sortField: "name",
+          sortDirection: "asc",
+          searchQuery: "search",
+          userId: testUser.id,
+          itemPerPage: 10,
+        };
+
+        if (paramName === "userId") {
+          params.userId = paramValue!;
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+          (params as any)[paramName] = paramValue;
+        }
+
+        await expect(
+          getUserJoinGroup(
+            params.page,
+            params.sortField,
+            params.sortDirection,
+            params.searchQuery,
+            params.userId,
+            params.itemPerPage,
+          ),
+        ).rejects.toThrow("ユーザーIDがありません");
       });
     });
   });
 
   describe("getUserJoinGroupCount", () => {
     describe("正常系", () => {
-      test("should return group count without search query", async () => {
+      test.each([
+        ["without search query", null, { members: { some: { userId: testUser.id } } }],
+        ["with search query", "テスト", { members: { some: { userId: testUser.id } }, name: { contains: "テスト" } }],
+        ["with empty string search query", "", { members: { some: { userId: testUser.id } } }],
+      ])("should return group count %s", async (_, searchQuery, expectedWhere) => {
         // Arrange
-        prismaMock.group.count.mockResolvedValue(5);
+        const expectedCount = searchQuery === "テスト" ? 2 : searchQuery === null ? 5 : 3;
+        prismaMock.group.count.mockResolvedValue(expectedCount);
 
         // Act
-        const result = await getUserJoinGroupCount(null, testUser.id);
+        const result = await getUserJoinGroupCount(searchQuery, testUser.id);
 
         // Assert
-        expect(result).toBe(5);
-        expect(prismaMock.group.count).toHaveBeenCalledWith({
-          where: {
-            members: {
-              some: {
-                userId: testUser.id,
-              },
-            },
-          },
-        });
-      });
-
-      test("should return group count with search query", async () => {
-        // Arrange
-        prismaMock.group.count.mockResolvedValue(2);
-
-        // Act
-        const result = await getUserJoinGroupCount("テスト", testUser.id);
-
-        // Assert
-        expect(result).toBe(2);
-        expect(prismaMock.group.count).toHaveBeenCalledWith({
-          where: {
-            members: {
-              some: {
-                userId: testUser.id,
-              },
-            },
-            name: {
-              contains: "テスト",
-            },
-          },
-        });
-      });
-
-      test("should handle empty string search query", async () => {
-        // Arrange
-        prismaMock.group.count.mockResolvedValue(3);
-
-        // Act
-        const result = await getUserJoinGroupCount("", testUser.id);
-
-        // Assert
-        expect(result).toBe(3);
-        expect(prismaMock.group.count).toHaveBeenCalledWith({
-          where: {
-            members: {
-              some: {
-                userId: testUser.id,
-              },
-            },
-          },
-        });
+        expect(result).toBe(expectedCount);
+        expect(prismaMock.group.count).toHaveBeenCalledWith({ where: expectedWhere });
       });
     });
 
     describe("異常系", () => {
       test("should handle database error", async () => {
-        // Arrange
-        prismaMock.group.count.mockRejectedValue(new Error("Database error"));
+        setupDatabaseError("count");
+        await expect(getUserJoinGroupCount("search", testUser.id)).rejects.toThrow("Database error");
+      });
 
-        // Act & Assert
-        await expect(getUserJoinGroupCount("", testUser.id)).rejects.toThrow("Database error");
+      test("should throw error when userId is empty", async () => {
+        await expect(getUserJoinGroupCount("search", "")).rejects.toThrow("ユーザーIDがありません");
       });
     });
   });
@@ -524,12 +442,10 @@ describe("my-group.ts", () => {
         const result = await leaveGroup(groupId);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({ success: true, message: "グループから脱退しました" });
         expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUser.id, groupId);
         expect(prismaMock.groupMembership.delete).toHaveBeenCalledWith({
-          where: {
-            id: testGroupMembership1.id,
-          },
+          where: { id: testGroupMembership1.id },
         });
         expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
         expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
@@ -537,101 +453,70 @@ describe("my-group.ts", () => {
     });
 
     describe("異常系", () => {
-      test("should return error when user is not a member", async () => {
+      test.each([
+        [
+          "user is not a member",
+          () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
+            mockCheckGroupMembership.mockResolvedValue(null);
+          },
+          { success: false, message: "グループに参加していません" },
+          false,
+        ],
+        [
+          "authentication failure",
+          () => mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed")),
+          { success: false, message: "グループから脱退中にエラーが発生しました: Authentication failed" },
+          false,
+        ],
+        [
+          "checkGroupMembership failure",
+          () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
+            mockCheckGroupMembership.mockRejectedValue(new Error("Database error"));
+          },
+          { success: false, message: "グループから脱退中にエラーが発生しました: Database error" },
+          false,
+        ],
+        [
+          "database delete failure",
+          () => {
+            mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
+            mockCheckGroupMembership.mockResolvedValue(testGroupMembership1);
+            setupDatabaseError("delete");
+          },
+          { success: false, message: "グループから脱退中にエラーが発生しました: Database error" },
+          false,
+        ],
+      ])("should handle %s", async (_, setupError, expectedResult, shouldCallRevalidate) => {
         // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        mockCheckGroupMembership.mockResolvedValue(null);
+        setupError();
 
         // Act
         const result = await leaveGroup(groupId);
 
         // Assert
-        expect(result).toStrictEqual({ error: "グループに参加していません" });
-        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-        expect(mockRevalidatePath).not.toHaveBeenCalled();
-      });
-
-      test("should handle authentication failure", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
-
-        // Act
-        const result = await leaveGroup(groupId);
-
-        // Assert
-        expect(result).toStrictEqual({ error: "エラーが発生しました" });
-        expect(mockCheckGroupMembership).not.toHaveBeenCalled();
-        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-        expect(mockRevalidatePath).not.toHaveBeenCalled();
-      });
-
-      test("should handle checkGroupMembership failure", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        mockCheckGroupMembership.mockRejectedValue(new Error("Database error"));
-
-        // Act
-        const result = await leaveGroup(groupId);
-
-        // Assert
-        expect(result).toStrictEqual({ error: "エラーが発生しました" });
-        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-        expect(mockRevalidatePath).not.toHaveBeenCalled();
-      });
-
-      test("should handle database delete failure", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        mockCheckGroupMembership.mockResolvedValue(testGroupMembership1);
-        prismaMock.groupMembership.delete.mockRejectedValue(new Error("Database error"));
-
-        // Act
-        const result = await leaveGroup(groupId);
-
-        // Assert
-        expect(result).toStrictEqual({ error: "エラーが発生しました" });
-        expect(mockRevalidatePath).not.toHaveBeenCalled();
+        expect(result).toStrictEqual(expectedResult);
+        if (!shouldCallRevalidate) {
+          expect(mockRevalidatePath).not.toHaveBeenCalled();
+        }
       });
     });
 
     describe("境界値テスト", () => {
-      test("should handle empty groupId", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        mockCheckGroupMembership.mockResolvedValue(null);
-
+      test.each([
+        ["empty groupId", ""],
+        ["null groupId", null],
+        ["undefined groupId", undefined],
+      ])("should handle %s", async (_, invalidGroupId) => {
         // Act
-        const result = await leaveGroup("");
+        const result = await leaveGroup(invalidGroupId!);
 
         // Assert
-        expect(result).toStrictEqual({ error: "グループに参加していません" });
-        expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUser.id, "");
-      });
-
-      test("should handle null groupId", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        mockCheckGroupMembership.mockResolvedValue(null);
-
-        // Act
-        const result = await leaveGroup(null as unknown as string);
-
-        // Assert
-        expect(result).toStrictEqual({ error: "グループに参加していません" });
-        expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUser.id, null);
-      });
-
-      test("should handle undefined groupId", async () => {
-        // Arrange
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
-        mockCheckGroupMembership.mockResolvedValue(null);
-
-        // Act
-        const result = await leaveGroup(undefined as unknown as string);
-
-        // Assert
-        expect(result).toStrictEqual({ error: "グループに参加していません" });
-        expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUser.id, undefined);
+        expect(result).toStrictEqual({
+          success: false,
+          message: "グループから脱退中にエラーが発生しました: グループIDがありません",
+        });
       });
     });
   });

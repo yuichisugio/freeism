@@ -11,8 +11,7 @@ import { getCachedGroupById } from "@/actions/group/cache-group-detail";
  * @returns {Promise<Group>} グループ情報
  */
 export async function getGroupById(groupId: string): Promise<Group> {
-  const group = await getCachedGroupById(groupId);
-  return group;
+  return await getCachedGroupById(groupId);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

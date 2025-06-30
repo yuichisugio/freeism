@@ -15,6 +15,87 @@ vi.mock("@/lib/utils", () => ({
 // モック関数の型定義
 const mockGetAuthSession = vi.mocked(await import("@/lib/utils")).getAuthSession;
 
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// テストヘルパー関数
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 標準的なモックセッションを作成するヘルパー関数
+ */
+const createMockSession = (userId = "user-123"): Session => ({
+  user: { id: userId, email: "test@example.com", name: "Test User" },
+  expires: "2024-12-31",
+});
+
+/**
+ * 基本的なNotificationParamsを作成するヘルパー関数
+ */
+const createNotificationParams = (overrides: Partial<NotificationParams> = {}): NotificationParams => ({
+  recipientUserIds: ["user-1"],
+  title: "テスト通知",
+  message: "テストメッセージ",
+  sendMethods: [NotificationSendMethod.IN_APP],
+  senderUserId: null,
+  actionUrl: null,
+  targetType: NotificationTargetType.USER,
+  groupId: null,
+  taskId: null,
+  auctionId: null,
+  sendTiming: NotificationSendTiming.NOW,
+  sendScheduledDate: null,
+  expiresAt: null,
+  notificationId: null,
+  sentAt: null,
+  ...overrides,
+});
+
+/**
+ * 基本的なモック設定を行うヘルパー関数
+ */
+const setupBasicMocks = (session: Session | null = createMockSession()) => {
+  mockGetAuthSession.mockResolvedValue(session);
+  prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
+};
+
+/**
+ * コンソールエラーのスパイを設定するヘルパー関数
+ */
+const setupConsoleSpy = () => {
+  return vi.spyOn(console, "error").mockImplementation(() => {
+    // エラーログのモック実装
+  });
+};
+
+/**
+ * 成功レスポンスの検証を行うヘルパー関数
+ */
+const expectSuccessResponse = (result: { success: boolean; error?: string }) => {
+  expect(result).toStrictEqual({ success: true });
+};
+
+/**
+ * エラーレスポンスの検証を行うヘルパー関数
+ */
+const expectErrorResponse = (result: { success: boolean; error?: string }) => {
+  expect(result).toStrictEqual({
+    success: false,
+    error: "通知の作成中にエラーが発生しました",
+  });
+};
+
+/**
+ * isReadオブジェクトを生成するヘルパー関数
+ */
+const createIsReadObject = (userIds: string[]): Record<string, { isRead: boolean; readAt: null }> => {
+  const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
+  userIds.forEach((userId) => {
+    isReadJsonb[userId] = { isRead: false, readAt: null };
+  });
+  return isReadJsonb;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 describe("sendInAppNotification", () => {
   // 各テスト前にモックをリセット
   beforeEach(() => {
@@ -24,273 +105,119 @@ describe("sendInAppNotification", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("正常系 - 新規通知作成", () => {
-    test("should create new notification with NOW timing successfully", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1", "user-2"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: "https://example.com",
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: new Date("2024-12-31"),
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: {
-          title: "テスト通知",
-          message: "テストメッセージ",
-          targetType: NotificationTargetType.USER,
+    const testCases = [
+      {
+        name: "should create new notification with NOW timing successfully",
+        params: {
+          recipientUserIds: ["user-1", "user-2"],
+          title: "NOW通知",
+          message: "NOW通知メッセージ",
+          actionUrl: "https://example.com",
+          expiresAt: new Date("2024-12-31"),
+        },
+        expectedData: {
           sendTimingType: NotificationSendTiming.NOW,
           sendScheduledDate: null,
           sentAt: expect.any(Date) as unknown as Date,
           expiresAt: new Date("2024-12-31"),
           actionUrl: "https://example.com",
           senderUserId: "user-123",
-          groupId: null,
-          taskId: null,
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-            "user-2": { isRead: false, readAt: null },
-          },
-          sendMethods: [NotificationSendMethod.IN_APP],
         },
-      });
-    });
-
-    test("should create new notification with SCHEDULED timing successfully", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const scheduledDate = new Date("2024-12-25");
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "予約通知",
-        message: "予約メッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: scheduledDate,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: {
-          title: "予約通知",
-          message: "予約メッセージ",
-          targetType: NotificationTargetType.USER,
+      },
+      {
+        name: "should create new notification with SCHEDULED timing successfully",
+        params: {
+          sendTiming: NotificationSendTiming.SCHEDULED,
+          sendScheduledDate: new Date("2024-12-25"),
+          title: "SCHEDULED通知",
+          message: "SCHEDULED通知メッセージ",
+        },
+        expectedData: {
           sendTimingType: NotificationSendTiming.SCHEDULED,
-          sendScheduledDate: scheduledDate,
+          sendScheduledDate: new Date("2024-12-25"),
           sentAt: null as unknown as Date,
           expiresAt: undefined,
           actionUrl: undefined,
           senderUserId: "user-123",
-          groupId: null,
-          taskId: null,
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-          },
-          sendMethods: [NotificationSendMethod.IN_APP],
         },
-      });
-    });
-
-    test("should create GROUP notification successfully", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1", "user-2", "user-3"],
-        title: "グループ通知",
-        message: "グループメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.GROUP,
-        groupId: "group-123",
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: {
+      },
+      {
+        name: "should create GROUP notification successfully",
+        params: {
+          recipientUserIds: ["user-1", "user-2", "user-3"],
           title: "グループ通知",
           message: "グループメッセージ",
           targetType: NotificationTargetType.GROUP,
-          sendTimingType: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          sentAt: expect.any(Date) as unknown as Date,
-          expiresAt: undefined,
-          actionUrl: undefined,
-          senderUserId: "user-123",
+          groupId: "group-123",
+        },
+        expectedData: {
+          targetType: NotificationTargetType.GROUP,
           groupId: "group-123",
           taskId: null,
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-            "user-2": { isRead: false, readAt: null },
-            "user-3": { isRead: false, readAt: null },
-          },
-          sendMethods: [NotificationSendMethod.IN_APP],
+          senderUserId: "user-123",
         },
-      });
-    });
-
-    test("should create TASK notification successfully", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "タスク通知",
-        message: "タスクメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.TASK,
-        groupId: null,
-        taskId: "task-123",
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: {
+      },
+      {
+        name: "should create TASK notification successfully",
+        params: {
           title: "タスク通知",
           message: "タスクメッセージ",
           targetType: NotificationTargetType.TASK,
-          sendTimingType: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          sentAt: expect.any(Date) as unknown as Date,
-          expiresAt: undefined,
-          actionUrl: undefined,
-          senderUserId: "user-123",
+          taskId: "task-123",
+        },
+        expectedData: {
+          targetType: NotificationTargetType.TASK,
           groupId: null,
           taskId: "task-123",
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-          },
-          sendMethods: [NotificationSendMethod.IN_APP],
+          senderUserId: "user-123",
         },
-      });
-    });
-
-    test("should create auction notification with null senderUserId", async () => {
-      // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "オークション通知",
-        message: "オークションメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: "auction-123", // オークションIDが設定されている
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(mockGetAuthSession).not.toHaveBeenCalled(); // オークション通知の場合はgetAuthSessionが呼ばれない
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: {
+      },
+      {
+        name: "should create auction notification with null senderUserId",
+        params: {
           title: "オークション通知",
           message: "オークションメッセージ",
-          targetType: NotificationTargetType.USER,
-          sendTimingType: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          sentAt: expect.any(Date) as unknown as Date,
-          expiresAt: undefined,
-          actionUrl: undefined,
-          senderUserId: null, // オークション通知の場合はnull
-          groupId: null,
-          taskId: null,
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-          },
-          sendMethods: [NotificationSendMethod.IN_APP],
+          auctionId: "auction-123",
         },
+        expectedData: {
+          senderUserId: null,
+        },
+        skipAuthCheck: true,
+      },
+    ];
+
+    testCases.forEach(({ name, params, expectedData, skipAuthCheck = false }) => {
+      test(`${name}`, async () => {
+        // テストデータの準備
+        const notificationParams = createNotificationParams(params);
+
+        // モックの設定
+        if (!skipAuthCheck) {
+          setupBasicMocks();
+        } else {
+          prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
+        }
+
+        // 関数実行
+        const result = await sendInAppNotification(notificationParams);
+
+        // 検証
+        expectSuccessResponse(result);
+
+        if (skipAuthCheck) {
+          expect(mockGetAuthSession).not.toHaveBeenCalled();
+        }
+
+        expect(prismaMock.notification.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            title: notificationParams.title,
+            message: notificationParams.message,
+            targetType: notificationParams.targetType,
+            isRead: createIsReadObject(notificationParams.recipientUserIds),
+            sendMethods: [NotificationSendMethod.IN_APP],
+            ...expectedData,
+          }) as unknown as object,
+        });
       });
     });
   });
@@ -300,23 +227,11 @@ describe("sendInAppNotification", () => {
   describe("正常系 - 既存通知更新", () => {
     test("should update existing notification when notificationId is provided", async () => {
       // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
+      const notificationParams = createNotificationParams({
+        notificationId: "notification-123",
         title: "更新通知",
         message: "更新メッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: "notification-123", // 既存の通知ID
-        sentAt: null,
-      };
+      });
 
       // モックの設定
       prismaMock.notification.updateMany.mockResolvedValue({ count: 1 });
@@ -325,146 +240,63 @@ describe("sendInAppNotification", () => {
       const result = await sendInAppNotification(notificationParams);
 
       // 検証
-      expect(result).toStrictEqual({ success: true });
+      expectSuccessResponse(result);
       expect(prismaMock.notification.updateMany).toHaveBeenCalledWith({
         where: { id: "notification-123" },
         data: {
           sentAt: expect.any(Date) as unknown as Date,
         },
       });
-      expect(prismaMock.notification.create).not.toHaveBeenCalled(); // 新規作成は呼ばれない
-      expect(mockGetAuthSession).not.toHaveBeenCalled(); // セッション取得も呼ばれない
+      expect(prismaMock.notification.create).not.toHaveBeenCalled();
+      expect(mockGetAuthSession).not.toHaveBeenCalled();
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("境界値テスト", () => {
-    test("should handle empty recipientUserIds array", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: [], // 空の配列
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
+  describe("境界値テスト - recipientUserIds", () => {
+    const testCases = [
+      {
+        name: "should handle empty recipientUserIds array",
+        recipientUserIds: [],
+        expectedIsRead: {},
+      },
+      {
+        name: "should handle single recipientUserId",
+        recipientUserIds: ["user-1"],
+        expectedIsRead: { "user-1": { isRead: false, readAt: null } },
+      },
+      {
+        name: "should handle multiple recipientUserIds",
+        recipientUserIds: ["user-1", "user-2", "user-3", "user-4", "user-5"],
+        expectedIsRead: {
+          "user-1": { isRead: false, readAt: null },
+          "user-2": { isRead: false, readAt: null },
+          "user-3": { isRead: false, readAt: null },
+          "user-4": { isRead: false, readAt: null },
+          "user-5": { isRead: false, readAt: null },
+        },
+      },
+    ];
 
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
+    testCases.forEach(({ name, recipientUserIds, expectedIsRead }) => {
+      test(`${name}`, async () => {
+        // テストデータの準備
+        const notificationParams = createNotificationParams({ recipientUserIds });
 
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
+        // モックの設定
+        setupBasicMocks();
 
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          isRead: {}, // 空のオブジェクト
-        }) as unknown as object,
-      });
-    });
+        // 関数実行
+        const result = await sendInAppNotification(notificationParams);
 
-    test("should handle single recipientUserId", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"], // 単一のユーザー
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-          },
-        }) as unknown as object,
-      });
-    });
-
-    test("should handle multiple recipientUserIds", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1", "user-2", "user-3", "user-4", "user-5"], // 複数のユーザー
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          isRead: {
-            "user-1": { isRead: false, readAt: null },
-            "user-2": { isRead: false, readAt: null },
-            "user-3": { isRead: false, readAt: null },
-            "user-4": { isRead: false, readAt: null },
-            "user-5": { isRead: false, readAt: null },
-          },
-        }) as unknown as object,
+        // 検証
+        expectSuccessResponse(result);
+        expect(prismaMock.notification.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            isRead: expectedIsRead,
+          }) as unknown as object,
+        });
       });
     });
   });
@@ -472,118 +304,45 @@ describe("sendInAppNotification", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("セッション関連のテスト", () => {
-    test("should handle null session", async () => {
-      // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null, // オークション通知ではない
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
+    const sessionTestCases = [
+      {
+        name: "should handle null session",
+        session: null,
+        expectedSenderUserId: null,
+      },
+      {
+        name: "should handle session without user",
+        session: { expires: "2024-12-31" } as Session,
+        expectedSenderUserId: null,
+      },
+      {
+        name: "should handle session with user without id",
+        session: {
+          user: { email: "test@example.com", name: "Test User" },
+          expires: "2024-12-31",
+        } as Session,
+        expectedSenderUserId: null,
+      },
+    ];
 
-      // モックの設定（セッションがnull）
-      mockGetAuthSession.mockResolvedValue(null);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
+    sessionTestCases.forEach(({ name, session, expectedSenderUserId }) => {
+      test(`${name}`, async () => {
+        // テストデータの準備
+        const notificationParams = createNotificationParams();
 
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
+        // モックの設定
+        setupBasicMocks(session);
 
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          senderUserId: null, // セッションがnullの場合はnull
-        }) as unknown as object,
-      });
-    });
+        // 関数実行
+        const result = await sendInAppNotification(notificationParams);
 
-    test("should handle session without user", async () => {
-      // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定（userがundefined）
-      const mockSessionWithoutUser: Session = {
-        expires: "2024-12-31",
-      } as Session;
-      mockGetAuthSession.mockResolvedValue(mockSessionWithoutUser);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          senderUserId: null, // userがundefinedの場合はnull
-        }) as unknown as object,
-      });
-    });
-
-    test("should handle session with user without id", async () => {
-      // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定（user.idがundefined）
-      const mockSessionWithoutUserId: Session = {
-        user: { email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      } as Session;
-      mockGetAuthSession.mockResolvedValue(mockSessionWithoutUserId);
-      prismaMock.notification.create.mockResolvedValue(notificationFactory.build());
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.notification.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          senderUserId: null, // user.idがundefinedの場合はnull
-        }) as unknown as object,
+        // 検証
+        expectSuccessResponse(result);
+        expect(prismaMock.notification.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            senderUserId: expectedSenderUserId,
+          }) as unknown as object,
+        });
       });
     });
   });
@@ -591,290 +350,112 @@ describe("sendInAppNotification", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("異常系テスト", () => {
-    test("should handle Prisma create error", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
+    const errorTestCases = [
+      {
+        name: "should handle Prisma create error",
+        setupMock: () => {
+          const mockSession = createMockSession();
+          mockGetAuthSession.mockResolvedValue(mockSession);
+          const prismaError = new Error("Database connection failed");
+          prismaMock.notification.create.mockRejectedValue(prismaError);
+          return prismaError;
+        },
+        params: {},
+      },
+      {
+        name: "should handle Prisma updateMany error",
+        setupMock: () => {
+          const prismaError = new Error("Update failed");
+          prismaMock.notification.updateMany.mockRejectedValue(prismaError);
+          return prismaError;
+        },
+        params: { notificationId: "notification-123" },
+      },
+      {
+        name: "should handle getAuthSession error",
+        setupMock: () => {
+          const authError = new Error("Authentication failed");
+          mockGetAuthSession.mockRejectedValue(authError);
+          return authError;
+        },
+        params: {},
+      },
+    ];
 
-      // モックの設定（Prismaエラー）
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      const prismaError = new Error("Database connection failed");
-      prismaMock.notification.create.mockRejectedValue(prismaError);
+    errorTestCases.forEach(({ name, setupMock, params }) => {
+      test(`${name}`, async () => {
+        // テストデータの準備
+        const notificationParams = createNotificationParams(params);
 
-      // コンソールエラーをモック
+        // モックの設定
+        const expectedError = setupMock();
 
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
+        // コンソールエラーをモック
+        const consoleSpy = setupConsoleSpy();
+
+        // 関数実行
+        const result = await sendInAppNotification(notificationParams);
+
+        // 検証
+        expectErrorResponse(result);
+        expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", expectedError);
+
+        // クリーンアップ
+        consoleSpy.mockRestore();
       });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の作成中にエラーが発生しました",
-      });
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", prismaError);
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラーstack:", expect.any(String));
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
-    });
-
-    test("should handle Prisma updateMany error", async () => {
-      // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "更新通知",
-        message: "更新メッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: "notification-123",
-        sentAt: null,
-      };
-
-      // モックの設定（Prismaエラー）
-      const prismaError = new Error("Update failed");
-      prismaMock.notification.updateMany.mockRejectedValue(prismaError);
-
-      // コンソールエラーをモック
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
-      });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の作成中にエラーが発生しました",
-      });
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", prismaError);
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
-    });
-
-    test("should handle getAuthSession error", async () => {
-      // テストデータの準備
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null, // オークション通知ではない
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定（getAuthSessionエラー）
-      const authError = new Error("Authentication failed");
-      mockGetAuthSession.mockRejectedValue(authError);
-
-      // コンソールエラーをモック
-
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
-      });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の作成中にエラーが発生しました",
-      });
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", authError);
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("引数の異常値テスト", () => {
-    test("should handle undefined recipientUserIds", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: undefined as unknown as string[], // 異常値
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
+    const invalidDataTestCases = [
+      {
+        name: "should handle undefined recipientUserIds",
+        params: { recipientUserIds: undefined as unknown as string[] },
+        setupPrismaError: false,
+      },
+      {
+        name: "should handle null title",
+        params: { title: null as unknown as string },
+        setupPrismaError: true,
+        prismaErrorMessage: "Prisma validation error: title cannot be null",
+      },
+      {
+        name: "should handle undefined sendTiming",
+        params: { sendTiming: undefined as unknown as NotificationSendTiming },
+        setupPrismaError: true,
+        prismaErrorMessage: "Prisma validation error: sendTiming cannot be undefined",
+      },
+    ];
 
-      // モックの設定
-      mockGetAuthSession.mockResolvedValue(mockSession);
+    invalidDataTestCases.forEach(({ name, params, setupPrismaError, prismaErrorMessage }) => {
+      test(`${name}`, async () => {
+        // テストデータの準備
+        const mockSession = createMockSession();
+        const notificationParams = createNotificationParams(params);
 
-      // コンソールエラーをモック
+        // モックの設定
+        mockGetAuthSession.mockResolvedValue(mockSession);
 
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
+        if (setupPrismaError && prismaErrorMessage) {
+          const prismaError = new Error(prismaErrorMessage);
+          prismaMock.notification.create.mockRejectedValue(prismaError);
+        }
+
+        // コンソールエラーをモック
+        const consoleSpy = setupConsoleSpy();
+
+        // 関数実行
+        const result = await sendInAppNotification(notificationParams);
+
+        // 検証
+        expectErrorResponse(result);
+        expect(consoleSpy).toHaveBeenCalled();
+
+        // クリーンアップ
+        consoleSpy.mockRestore();
       });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の作成中にエラーが発生しました",
-      });
-      expect(consoleSpy).toHaveBeenCalled();
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
-    });
-
-    test("should handle null title", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: null as unknown as string, // 異常値
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定（Prismaエラーを発生させる）
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      const prismaError = new Error("Prisma validation error: title cannot be null");
-      prismaMock.notification.create.mockRejectedValue(prismaError);
-
-      // コンソールエラーをモック
-
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
-      });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の作成中にエラーが発生しました",
-      });
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", prismaError);
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
-    });
-
-    test("should handle undefined sendTiming", async () => {
-      // テストデータの準備
-      const mockSession: Session = {
-        user: { id: "user-123", email: "test@example.com", name: "Test User" },
-        expires: "2024-12-31",
-      };
-      const notificationParams: NotificationParams = {
-        recipientUserIds: ["user-1"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        sendMethods: [NotificationSendMethod.IN_APP],
-        senderUserId: null,
-        actionUrl: null,
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: undefined as unknown as NotificationSendTiming, // 異常値
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-        sentAt: null,
-      };
-
-      // モックの設定（Prismaエラーを発生させる）
-      mockGetAuthSession.mockResolvedValue(mockSession);
-      const prismaError = new Error("Prisma validation error: sendTiming cannot be undefined");
-      prismaMock.notification.create.mockRejectedValue(prismaError);
-
-      // コンソールエラーをモック
-
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
-      });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の作成中にエラーが発生しました",
-      });
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", prismaError);
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
     });
   });
 });

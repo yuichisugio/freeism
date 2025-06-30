@@ -40,44 +40,47 @@ describe("sendEmailNotification", () => {
     sentAt: new Date(),
   };
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // ヘルパー関数：テスト実行とPrisma呼び出し検証
+  const executeTestAndVerifyPrismaCall = async (params: NotificationParams, expectedRecipientIds: string[]) => {
+    const result = await sendEmailNotification(params);
+
+    // Prismaの呼び出しを検証
+    expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: { in: expectedRecipientIds },
+      },
+      select: {
+        isEmailEnabled: true,
+      },
+    });
+
+    return result;
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     vi.clearAllMocks();
-    // コンソールログをモック
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {
+      // 何もしない
+    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("正常系テスト", () => {
     test("should return success when email notification settings are found", async () => {
-      // モックの設定 - メール通知が有効なユーザー設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }, { isEmailEnabled: true }];
+      // モックの設定
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: true },
+        { isEmailEnabled: true },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(baseNotificationParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-      expect(result.error).toBeUndefined();
-      expect(result.message).toBeUndefined();
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [testUserId1, testUserId2] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(baseNotificationParams, [testUserId1, testUserId2]);
+      expect(result).toStrictEqual({ success: true });
     });
 
     test("should return success with message when no email notification settings found", async () => {
@@ -87,81 +90,49 @@ describe("sendEmailNotification", () => {
       );
 
       // 関数を実行
-      const result = await sendEmailNotification(baseNotificationParams);
+      const result = await executeTestAndVerifyPrismaCall(baseNotificationParams, [testUserId1, testUserId2]);
 
       // 結果を検証
       expect(result.success).toBe(true);
       expect(result.message).toBe("メール通知設定が見つかりません");
       expect(result.error).toBeUndefined();
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledOnce();
     });
 
-    test("should handle single recipient user", async () => {
-      // 単一受信者のパラメータ
-      const singleRecipientParams: NotificationParams = {
-        ...baseNotificationParams,
-        recipientUserIds: [testUserId1],
-      };
-
-      // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+    test("should handle all email notifications disabled", async () => {
+      // モックの設定 - 全て無効
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: false },
+        { isEmailEnabled: false },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
       // 関数を実行
-      const result = await sendEmailNotification(singleRecipientParams);
+      const result = await executeTestAndVerifyPrismaCall(baseNotificationParams, [testUserId1, testUserId2]);
 
       // 結果を検証
-      expect(result.success).toBe(true);
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [testUserId1] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
+      expect(result).toStrictEqual({
+        success: true,
+        message: "メール通知設定が見つかりません",
       });
     });
 
-    test("should handle multiple recipients", async () => {
-      // 複数受信者のパラメータ
-      const multipleRecipientsParams: NotificationParams = {
+    test("should handle mixed email notification settings", async () => {
+      // 混在するメール通知設定のパラメータ
+      const mixedParams = {
         ...baseNotificationParams,
-        recipientUserIds: [testUserId1, testUserId2, "user-3", "user-4", "user-5"],
+        recipientUserIds: [testUserId1, testUserId2, "user-3", "user-4"],
       };
 
-      // モックの設定
-      const userSettingsFromDb = [
+      // モックの設定 - 一部有効、一部無効
+      prismaMock.userSettings.findMany.mockResolvedValue([
         { isEmailEnabled: true },
         { isEmailEnabled: false },
         { isEmailEnabled: true },
-        { isEmailEnabled: true },
         { isEmailEnabled: false },
-      ];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
-      // 関数を実行
-      const result = await sendEmailNotification(multipleRecipientsParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [testUserId1, testUserId2, "user-3", "user-4", "user-5"] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(mixedParams, [testUserId1, testUserId2, "user-3", "user-4"]);
+      expect(result).toStrictEqual({ success: true });
     });
 
     test("should handle optional parameters as null", async () => {
@@ -183,456 +154,215 @@ describe("sendEmailNotification", () => {
       };
 
       // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
+        ReturnType<typeof prismaMock.userSettings.findMany>
+      >);
 
-      // 関数を実行
-      const result = await sendEmailNotification(nullOptionalParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-    });
-
-    test("should handle different notification target types", async () => {
-      // グループターゲットのパラメータ
-      const groupTargetParams: NotificationParams = {
-        ...baseNotificationParams,
-        targetType: NotificationTargetType.GROUP,
-      };
-
-      // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(groupTargetParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-    });
-
-    test("should handle different send timing types", async () => {
-      // スケジュール送信のパラメータ
-      const scheduledParams: NotificationParams = {
-        ...baseNotificationParams,
-        sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: new Date("2024-12-25T10:00:00Z"),
-      };
-
-      // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(scheduledParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-    });
-
-    test("should handle different send methods", async () => {
-      // 複数送信方法のパラメータ
-      const multipleSendMethodsParams: NotificationParams = {
-        ...baseNotificationParams,
-        sendMethods: [NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH],
-      };
-
-      // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(multipleSendMethodsParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(nullOptionalParams, [testUserId1, testUserId2]);
+      expect(result).toStrictEqual({ success: true });
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("境界値テスト", () => {
-    test("should handle empty recipient user ids array", async () => {
-      // 空の受信者配列のパラメータ
-      const emptyRecipientsParams: NotificationParams = {
-        ...baseNotificationParams,
+    test.each([
+      {
+        description: "empty recipient user ids array",
         recipientUserIds: [],
-      };
-
-      // モックの設定
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        [] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(emptyRecipientsParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-      expect(result.message).toBe("メール通知設定が見つかりません");
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
-    });
-
-    test("should handle very long recipient user ids", async () => {
-      // 非常に長いユーザーIDのパラメータ
-      const longUserId = "a".repeat(1000);
-      const longUserIdParams: NotificationParams = {
+        expectedMessage: "メール通知設定が見つかりません",
+        userSettings: [],
+      },
+      {
+        description: "single recipient user",
+        recipientUserIds: [testUserId1],
+        expectedMessage: undefined,
+        userSettings: [{ isEmailEnabled: true }],
+      },
+      {
+        description: "large number of recipients",
+        recipientUserIds: Array.from({ length: 100 }, (_, index) => `user-${index}`),
+        expectedMessage: undefined,
+        userSettings: Array.from({ length: 100 }, () => ({ isEmailEnabled: true })),
+      },
+    ])("should handle $description", async ({ recipientUserIds, expectedMessage, userSettings }) => {
+      // パラメータの設定
+      const params = {
         ...baseNotificationParams,
-        recipientUserIds: [longUserId],
+        recipientUserIds,
       };
 
       // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
       prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
+        userSettings as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
       );
 
       // 関数を実行
-      const result = await sendEmailNotification(longUserIdParams);
+      const result = await executeTestAndVerifyPrismaCall(params, recipientUserIds);
 
       // 結果を検証
       expect(result.success).toBe(true);
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [longUserId] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
+      if (expectedMessage) {
+        expect(result.message).toBe(expectedMessage);
+      } else {
+        expect(result.message).toBeUndefined();
+      }
     });
 
-    test("should handle special characters in user ids", async () => {
-      // 特殊文字を含むユーザーIDのパラメータ
+    test("should handle special characters and long values in user ids", async () => {
+      // 特殊文字と長いユーザーIDのパラメータ
       const specialUserId = "user-!@#$%^&*()_+-=[]{}|;':\",./<>?";
-      const specialUserIdParams: NotificationParams = {
+      const longUserId = "a".repeat(1000);
+      const specialParams = {
         ...baseNotificationParams,
-        recipientUserIds: [specialUserId],
+        recipientUserIds: [specialUserId, longUserId],
       };
 
       // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: true },
+        { isEmailEnabled: true },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
-      // 関数を実行
-      const result = await sendEmailNotification(specialUserIdParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [specialUserId] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(specialParams, [specialUserId, longUserId]);
+      expect(result).toStrictEqual({ success: true });
     });
 
-    test("should handle very long title and message", async () => {
-      // 非常に長いタイトルとメッセージのパラメータ
-      const longTitle = "a".repeat(10000);
-      const longMessage = "b".repeat(50000);
-      const longContentParams: NotificationParams = {
+    test("should handle extreme content lengths", async () => {
+      // 非常に長いタイトルとメッセージ、または空の値
+      const extremeParams = {
         ...baseNotificationParams,
-        title: longTitle,
-        message: longMessage,
+        title: "a".repeat(10000),
+        message: "b".repeat(50000),
       };
 
       // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
+        ReturnType<typeof prismaMock.userSettings.findMany>
+      >);
 
-      // 関数を実行
-      const result = await sendEmailNotification(longContentParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-    });
-
-    test("should handle empty title and message", async () => {
-      // 空のタイトルとメッセージのパラメータ
-      const emptyContentParams: NotificationParams = {
-        ...baseNotificationParams,
-        title: "",
-        message: "",
-      };
-
-      // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(emptyContentParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-    });
-
-    test("should handle large number of recipients", async () => {
-      // 大量の受信者のパラメータ
-      const largeRecipientList = Array.from({ length: 1000 }, (_, index) => `user-${index}`);
-      const largeRecipientsParams: NotificationParams = {
-        ...baseNotificationParams,
-        recipientUserIds: largeRecipientList,
-      };
-
-      // モックの設定
-      const userSettingsFromDb = Array.from({ length: 1000 }, () => ({ isEmailEnabled: true }));
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(largeRecipientsParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: largeRecipientList },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(extremeParams, [testUserId1, testUserId2]);
+      expect(result).toStrictEqual({ success: true });
     });
 
     test("should handle null and undefined values in recipient ids", async () => {
       // null/undefinedを含む受信者配列のパラメータ
-      const nullUndefinedParams: NotificationParams = {
+      const nullUndefinedParams = {
         ...baseNotificationParams,
         recipientUserIds: [testUserId1, null as unknown as string, undefined as unknown as string, testUserId2],
       };
 
       // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
+        ReturnType<typeof prismaMock.userSettings.findMany>
+      >);
 
-      // 関数を実行
-      const result = await sendEmailNotification(nullUndefinedParams);
-
-      // 結果を検証
-      expect(result.success).toBe(true);
-
-      // Prismaの呼び出しを検証
-      expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: { in: [testUserId1, null, undefined, testUserId2] },
-        },
-        select: {
-          isEmailEnabled: true,
-        },
-      });
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(nullUndefinedParams, [
+        testUserId1,
+        null as unknown as string,
+        undefined as unknown as string,
+        testUserId2,
+      ]);
+      expect(result).toStrictEqual({ success: true });
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("パラメータバリデーションテスト", () => {
-    test("should handle all notification target types", async () => {
-      // 全ての通知ターゲットタイプをテスト
-      const targetTypes = [NotificationTargetType.USER, NotificationTargetType.GROUP];
-
-      for (const targetType of targetTypes) {
-        const params: NotificationParams = {
-          ...baseNotificationParams,
-          targetType,
-        };
+    test.each([{ targetType: NotificationTargetType.USER }, { targetType: NotificationTargetType.GROUP }])(
+      "should handle notification target type: $targetType",
+      async ({ targetType }) => {
+        const params = { ...baseNotificationParams, targetType };
 
         // モックの設定
-        const userSettingsFromDb = [{ isEmailEnabled: true }];
-        prismaMock.userSettings.findMany.mockResolvedValue(
-          userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-        );
+        prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
+          ReturnType<typeof prismaMock.userSettings.findMany>
+        >);
 
-        // 関数を実行
-        const result = await sendEmailNotification(params);
+        // 関数を実行と結果検証
+        const result = await executeTestAndVerifyPrismaCall(params, [testUserId1, testUserId2]);
+        expect(result).toStrictEqual({ success: true });
+      },
+    );
 
-        // 結果を検証
-        expect(result.success).toBe(true);
-      }
-    });
+    test.each([
+      { sendTiming: NotificationSendTiming.NOW, sendScheduledDate: null },
+      { sendTiming: NotificationSendTiming.SCHEDULED, sendScheduledDate: new Date("2024-12-25T10:00:00Z") },
+    ])("should handle send timing: $sendTiming", async ({ sendTiming, sendScheduledDate }) => {
+      const params = { ...baseNotificationParams, sendTiming, sendScheduledDate };
 
-    test("should handle all send timing types", async () => {
-      // 全ての送信タイミングタイプをテスト
-      const sendTimings = [NotificationSendTiming.NOW, NotificationSendTiming.SCHEDULED];
-
-      for (const sendTiming of sendTimings) {
-        const params: NotificationParams = {
-          ...baseNotificationParams,
-          sendTiming,
-          sendScheduledDate: sendTiming === NotificationSendTiming.SCHEDULED ? new Date() : null,
-        };
-
-        // モックの設定
-        const userSettingsFromDb = [{ isEmailEnabled: true }];
-        prismaMock.userSettings.findMany.mockResolvedValue(
-          userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-        );
-
-        // 関数を実行
-        const result = await sendEmailNotification(params);
-
-        // 結果を検証
-        expect(result.success).toBe(true);
-      }
-    });
-
-    test("should handle all send method types", async () => {
-      // 全ての送信方法タイプをテスト
-      const sendMethods = [
-        [NotificationSendMethod.EMAIL],
-        [NotificationSendMethod.IN_APP],
-        [NotificationSendMethod.WEB_PUSH],
-        [NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP],
-        [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH],
-        [NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH],
-      ];
-
-      for (const sendMethodArray of sendMethods) {
-        const params: NotificationParams = {
-          ...baseNotificationParams,
-          sendMethods: sendMethodArray,
-        };
-
-        // モックの設定
-        const userSettingsFromDb = [{ isEmailEnabled: true }];
-        prismaMock.userSettings.findMany.mockResolvedValue(
-          userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-        );
-
-        // 関数を実行
-        const result = await sendEmailNotification(params);
-
-        // 結果を検証
-        expect(result.success).toBe(true);
-      }
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("コンソールログテスト", () => {
-    test("should log email notification settings", async () => {
       // モックの設定
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
+        ReturnType<typeof prismaMock.userSettings.findMany>
+      >);
 
-      // 関数を実行
-      await sendEmailNotification(baseNotificationParams);
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(params, [testUserId1, testUserId2]);
+      expect(result).toStrictEqual({ success: true });
+    });
 
-      // コンソールログの呼び出しを検証
-      expect(console.log).toHaveBeenCalledWith(
-        "email-notification.ts_sendEmailNotification_isEmailNotificationEnabled",
-        userSettingsFromDb,
-      );
+    test.each([
+      { sendMethods: [NotificationSendMethod.EMAIL] },
+      { sendMethods: [NotificationSendMethod.IN_APP] },
+      { sendMethods: [NotificationSendMethod.WEB_PUSH] },
+      { sendMethods: [NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP] },
+      { sendMethods: [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH] },
+      { sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH] },
+      { sendMethods: [NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH] },
+    ])("should handle send methods: $sendMethods", async ({ sendMethods }) => {
+      const params = { ...baseNotificationParams, sendMethods };
+
+      // モックの設定
+      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
+        ReturnType<typeof prismaMock.userSettings.findMany>
+      >);
+
+      // 関数を実行と結果検証
+      const result = await executeTestAndVerifyPrismaCall(params, [testUserId1, testUserId2]);
+      expect(result).toStrictEqual({ success: true });
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("メール通知設定の組み合わせテスト", () => {
-    test("should handle mixed email notification settings", async () => {
-      // 混在するメール通知設定のパラメータ
-      const mixedRecipientsParams: NotificationParams = {
-        ...baseNotificationParams,
-        recipientUserIds: [testUserId1, testUserId2, "user-3", "user-4"],
-      };
-
-      // モックの設定 - 一部有効、一部無効
-      const userSettingsFromDb = [
-        { isEmailEnabled: true },
-        { isEmailEnabled: false },
-        { isEmailEnabled: true },
-        { isEmailEnabled: false },
-      ];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+  describe("異常系テスト", () => {
+    test("should handle prisma database error", async () => {
+      // Prismaエラーをモック
+      const dbError = new Error("Database connection failed");
+      prismaMock.userSettings.findMany.mockRejectedValue(dbError);
 
       // 関数を実行
-      const result = await sendEmailNotification(mixedRecipientsParams);
+      const result = await sendEmailNotification(baseNotificationParams);
 
       // 結果を検証
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("メール通知を送信できませんでした");
+
+      // コンソールエラーの呼び出しを検証
+      expect(console.error).toHaveBeenCalledWith("email-notification.ts_sendEmailNotification_error", dbError);
     });
 
-    test("should handle all email notifications disabled", async () => {
-      // 全てのメール通知が無効のパラメータ
-      const allDisabledParams: NotificationParams = {
-        ...baseNotificationParams,
-        recipientUserIds: [testUserId1, testUserId2],
-      };
-
-      // モックの設定 - 全て無効
-      const userSettingsFromDb = [{ isEmailEnabled: false }, { isEmailEnabled: false }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
-
-      // 関数を実行
-      const result = await sendEmailNotification(allDisabledParams);
-
-      // 結果を検証
-      expect(result).toStrictEqual({
-        success: true,
-        message: "メール通知設定が見つかりません",
+    test("should handle unexpected error during execution", async () => {
+      // 予期しないエラーをモック
+      const unexpectedError = new Error("Unexpected error");
+      prismaMock.userSettings.findMany.mockImplementation(() => {
+        throw unexpectedError;
       });
-    });
-
-    test("should handle partial user settings found", async () => {
-      // 一部のユーザー設定のみ見つかる場合
-      const partialSettingsParams: NotificationParams = {
-        ...baseNotificationParams,
-        recipientUserIds: [testUserId1, testUserId2, "user-3"],
-      };
-
-      // モックの設定 - 一部のユーザー設定のみ
-      const userSettingsFromDb = [{ isEmailEnabled: true }];
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        userSettingsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
 
       // 関数を実行
-      const result = await sendEmailNotification(partialSettingsParams);
+      const result = await sendEmailNotification(baseNotificationParams);
 
       // 結果を検証
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("メール通知を送信できませんでした");
+
+      // コンソールエラーの呼び出しを検証
+      expect(console.error).toHaveBeenCalledWith("email-notification.ts_sendEmailNotification_error", unexpectedError);
     });
   });
 });

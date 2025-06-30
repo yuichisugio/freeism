@@ -59,44 +59,16 @@ export type RawNotificationFromDB = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
- * 未読通知の数を取得する - JSONB最適化版
- * @returns 未読通知の数
- * 未読の有無のみ知りたいので、1件のみ取得
+ * 通知とその未読数を取得する関数の戻り値の型
  */
-export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
-  cacheTag(useCacheKeys.notification.notificationByUserId(userId).join(":"));
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 共通のWHERE句を取得 (タスク条件を含む)
-    const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 未読条件を追加
-    const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
-    const whereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
-
-    // PostgreSQLのJSONB演算子を使用した効率的なクエリ
-    const countResult = await prisma.$queryRaw<{ id: string }[]>`
-      SELECT id
-      FROM "Notification" n
-      WHERE ${whereClause} -- 結合したWHERE句を使用
-      LIMIT 1
-    `;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // 未読通知があるかどうかを返す
-    return countResult.length > 0;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("未読通知カウントエラー:", error);
-    return false;
-  }
-});
+export type NotificationAndUnreadCount = {
+  notifications: NotificationData[];
+  totalCount: number;
+  unreadCount: number;
+  readCount: number;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -107,16 +79,7 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
  * @returns 通知リストと未読数
  */
 export const cachedGetNotificationsAndUnreadCount = cache(
-  async (
-    userId: string,
-    page = 1,
-    limit = 20,
-  ): Promise<{
-    notifications: NotificationData[];
-    totalCount: number;
-    unreadCount: number;
-    readCount: number;
-  }> => {
+  async (userId: string, page = 1, limit = 20): Promise<NotificationAndUnreadCount> => {
     cacheTag(useCacheKeys.notification.notificationByUserId(userId).join(":"));
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

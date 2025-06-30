@@ -11,7 +11,7 @@ import { prisma } from "@/library-setting/prisma";
 /**
  * getUserJoinGroupAndCountのpropsの型
  */
-type getUserJoinGroupAndCountProps = {
+export type GetUserJoinGroupAndCountProps = {
   page: number;
   sortField: string;
   sortDirection: string;
@@ -33,8 +33,12 @@ export async function getUserJoinGroupAndCount({
   sortDirection,
   searchQuery,
   itemPerPage,
-}: getUserJoinGroupAndCountProps) {
+}: GetUserJoinGroupAndCountProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  if (!page || !sortField || !sortDirection || !searchQuery || !itemPerPage) {
+    throw new Error("Invalid parameters");
+  }
 
   /**
    * 認証処理
@@ -75,6 +79,10 @@ export async function getUserJoinGroup(
   itemPerPage: number,
 ) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  if (!userId || !page || !sortField || !sortDirection || !searchQuery || !itemPerPage) {
+    throw new Error("ユーザーIDがありません");
+  }
 
   /**
    * グループ一覧のsortの条件
@@ -195,6 +203,10 @@ export async function getUserJoinGroup(
 export async function getUserJoinGroupCount(searchQuery: string | null, userId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  if (!userId) {
+    throw new Error("ユーザーIDがありません");
+  }
+
   /**
    * グループ一覧のwhereの条件
    */
@@ -242,6 +254,10 @@ export async function getUserJoinGroupCount(searchQuery: string | null, userId: 
  */
 export async function leaveGroup(groupId: string) {
   try {
+    if (!groupId) {
+      throw new Error("グループIDがありません");
+    }
+
     // 認証処理
     const userId = await getAuthenticatedSessionUserId();
 
@@ -263,7 +279,10 @@ export async function leaveGroup(groupId: string) {
     return { success: true, message: "グループから脱退しました" };
   } catch (error) {
     console.error("[LEAVE_GROUP]", error);
-    return { success: false, message: "グループから脱退中にエラーが発生しました" };
+    return {
+      success: false,
+      message: `グループから脱退中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
 

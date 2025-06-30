@@ -49,7 +49,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    * セッション取得
    */
   const { data: session } = useSession();
-  const userId = session?.user?.id;
+  const userId = session?.user?.id ?? "";
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -113,7 +113,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     isPending: isGroupsPending,
     isPlaceholderData,
   } = useQuery({
-    queryKey: queryCacheKeys.table.allGroupConditions(tableConditions),
+    queryKey: queryCacheKeys.table.allGroupConditions(tableConditions, userId),
     queryFn: async () =>
       await getAllUserGroupsAndCount({
         page: tableConditions.page,
@@ -122,6 +122,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
         searchQuery: tableConditions.searchQuery ?? "",
         isJoined: tableConditions.isJoined,
         itemPerPage: tableConditions.itemPerPage,
+        userId,
       }),
     placeholderData: keepPreviousData, // 前のデータを保持して、新しいデータが取得されるまで表示。Loading状態を表示しないことで、チラつきをなくす
     staleTime: 1000 * 60 * 60 * 1, // 1時間
@@ -148,7 +149,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
 
       // 次のページをprefetch
       void queryClient.prefetchQuery({
-        queryKey: queryCacheKeys.table.allGroupConditions({ ...tableConditions, page: nextPage }),
+        queryKey: queryCacheKeys.table.allGroupConditions({ ...tableConditions, page: nextPage }, userId),
         queryFn: async () =>
           await getAllUserGroupsAndCount({
             page: nextPage,
@@ -157,10 +158,11 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
             searchQuery: tableConditions.searchQuery ?? "",
             isJoined: tableConditions.isJoined,
             itemPerPage: tableConditions.itemPerPage,
+            userId: userId ?? "",
           }),
       });
     }
-  }, [data, tableConditions, isPlaceholderData, queryClient]);
+  }, [data, tableConditions, isPlaceholderData, queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -177,7 +179,9 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       toast.error("エラーが発生しました");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroupConditions(tableConditions) }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
+      await queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.table.allGroupConditions(tableConditions, userId),
+      }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
       await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId ?? "") });
     },
   });

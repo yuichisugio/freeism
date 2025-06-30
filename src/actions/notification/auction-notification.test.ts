@@ -6,7 +6,7 @@ import {
 } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { AuctionNotificationParams } from "./auction-notification";
+import type { AuctionNotificationParams, MessageData } from "./auction-notification";
 import { getAuctionNotificationMessage, sendAuctionNotification } from "./auction-notification";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -39,6 +39,78 @@ const mockSendInAppNotification = vi.mocked(sendInAppNotification);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+// テストデータファクトリー
+type AuctionNotificationParamsOverrides = {
+  text?: MessageData;
+  auctionEventType?: AuctionEventType;
+  auctionId?: string;
+  recipientUserId?: string[];
+  sendMethods?: NotificationSendMethod[];
+  actionUrl?: string | null;
+  sendTiming?: NotificationSendTiming;
+  sendScheduledDate?: Date | null;
+  expiresAt?: Date | null;
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * テスト用メッセージデータファクトリー
+ */
+function createMessageData(overrides: MessageData) {
+  return {
+    first: overrides.first ?? "テスト商品",
+    second: overrides.second ?? "テスト商品詳細",
+  };
+}
+
+/**
+ * テスト用AuctionNotificationParamsファクトリー
+ */
+function createAuctionNotificationParams(
+  overrides: AuctionNotificationParamsOverrides = {},
+): AuctionNotificationParams {
+  return {
+    text: createMessageData(overrides.text ?? { first: "テスト商品", second: "テスト商品詳細" }),
+    auctionEventType: overrides.auctionEventType ?? AuctionEventType.AUCTION_WIN,
+    auctionId: overrides.auctionId ?? "auction-123",
+    recipientUserId: overrides.recipientUserId ?? ["user-1"],
+    sendMethods: overrides.sendMethods ?? [NotificationSendMethod.IN_APP],
+    actionUrl: overrides.actionUrl !== undefined ? overrides.actionUrl : "https://example.com/auction/123",
+    sendTiming: overrides.sendTiming ?? NotificationSendTiming.NOW,
+    sendScheduledDate: overrides.sendScheduledDate !== undefined ? overrides.sendScheduledDate : null,
+    expiresAt: overrides.expiresAt !== undefined ? overrides.expiresAt : new Date("2024-12-31"),
+  };
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 通知メソッドの呼び出し確認ヘルパー
+ */
+function expectNotificationCalls(options: { push?: number; email?: number; inApp?: number }) {
+  if (options.push !== undefined) {
+    expect(mockSendPushNotification).toHaveBeenCalledTimes(options.push);
+  }
+  if (options.email !== undefined) {
+    expect(mockSendEmailNotification).toHaveBeenCalledTimes(options.email);
+  }
+  if (options.inApp !== undefined) {
+    expect(mockSendInAppNotification).toHaveBeenCalledTimes(options.inApp);
+  }
+}
+
+/**
+ * モック成功設定ヘルパー
+ */
+function setupSuccessMocks() {
+  mockSendPushNotification.mockResolvedValue({ success: true });
+  mockSendEmailNotification.mockResolvedValue({ success: true });
+  mockSendInAppNotification.mockResolvedValue({ success: true });
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 describe("auction-notification", () => {
   beforeEach(() => {
     // 各テスト前にモックをリセット
@@ -51,111 +123,89 @@ describe("auction-notification", () => {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     describe("正常系", () => {
-      test("should return correct message for AUCTION_WIN event", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.AUCTION_WIN, messageData);
+      test.each([
+        {
+          eventType: AuctionEventType.AUCTION_WIN,
+          messageData: { first: "テスト商品", second: "テスト商品詳細" },
+          expectedTitle: "[テスト商品] を落札しました！",
+          expectedBody: "おめでとうございます！「テスト商品詳細」を落札しました。",
+          expectedTargetType: NotificationTargetType.AUCTION_BIDDER,
+        },
+        {
+          eventType: AuctionEventType.OUTBID,
+          messageData: { first: "テスト商品", second: "100" },
+          expectedTitle: "[テスト商品] の最高入札額が更新されました",
+          expectedBody: "他ユーザーが 100 ポイントで最高入札額を更新したため、あなたは最高入札者ではなくなりました。",
+          expectedTargetType: NotificationTargetType.AUCTION_BIDDER,
+        },
+        {
+          eventType: AuctionEventType.POINT_RETURNED,
+          messageData: { first: "テスト商品", second: "50" },
+          expectedTitle: "オークションポイントが返還されました",
+          expectedBody: "[テスト商品] のオークションで預けていたポイント50ptが返還されました。",
+          expectedTargetType: NotificationTargetType.AUCTION_BIDDER,
+        },
+        {
+          eventType: AuctionEventType.AUCTION_LOST,
+          messageData: { first: "テスト商品", second: "テスト商品詳細" },
+          expectedTitle: "[テスト商品] は落札できませんでした",
+          expectedBody: "あなたが入札していた「テスト商品詳細」のオークションは他のユーザーが落札しました。",
+          expectedTargetType: NotificationTargetType.AUCTION_BIDDER,
+        },
+        {
+          eventType: AuctionEventType.AUTO_BID_LIMIT_REACHED,
+          messageData: { first: "テスト商品", second: "200" },
+          expectedTitle: "[テスト商品] の自動入札が上限に達しました",
+          expectedBody: "設定した自動入札の上限額(200pt)に達したため、自動入札を停止しました。",
+          expectedTargetType: NotificationTargetType.AUCTION_BIDDER,
+        },
+        {
+          eventType: AuctionEventType.QUESTION_RECEIVED,
+          messageData: { first: "テスト商品", second: "テスト商品詳細" },
+          expectedTitle: "[テスト商品] に新しい質問が届きました",
+          expectedBody: "「テスト商品詳細」に新しい質問が届きました。",
+          expectedTargetType: NotificationTargetType.AUCTION_SELLER,
+        },
+        {
+          eventType: AuctionEventType.ENDED,
+          messageData: { first: "テスト商品", second: "テスト商品詳細" },
+          expectedTitle: "[テスト商品] のオークションが終了しました",
+          expectedBody: "出品した商品「テスト商品詳細」のオークション期間が終了しました。結果を確認してください。",
+          expectedTargetType: NotificationTargetType.AUCTION_SELLER,
+        },
+        {
+          eventType: AuctionEventType.ITEM_SOLD,
+          messageData: { first: "テスト商品", second: "テスト商品詳細" },
+          expectedTitle: "[テスト商品] が落札されました",
+          expectedBody: "出品した商品「テスト商品詳細」が落札されました。",
+          expectedTargetType: NotificationTargetType.AUCTION_SELLER,
+        },
+        {
+          eventType: AuctionEventType.NO_WINNER,
+          messageData: { first: "テスト商品", second: "テスト商品詳細" },
+          expectedTitle: "[テスト商品] のオークションは落札者がいませんでした",
+          expectedBody: "「テスト商品詳細」のオークションは落札者が現れませんでした。",
+          expectedTargetType: NotificationTargetType.AUCTION_SELLER,
+        },
+      ])(
+        "should return correct message for $eventType event",
+        async ({ eventType, messageData, expectedTitle, expectedBody, expectedTargetType }) => {
+          const result = await getAuctionNotificationMessage(eventType, messageData);
 
-        expect(result).toStrictEqual({
-          title: "[テスト商品] を落札しました！",
-          body: "おめでとうございます！「テスト商品詳細」を落札しました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should return correct message for OUTBID event", async () => {
-        const messageData = { first: "テスト商品", second: "100" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.OUTBID, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] の最高入札額が更新されました",
-          body: "他ユーザーが 100 ポイントで最高入札額を更新したため、あなたは最高入札者ではなくなりました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should return correct message for POINT_RETURNED event", async () => {
-        const messageData = { first: "テスト商品", second: "50" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.POINT_RETURNED, messageData);
-
-        expect(result).toStrictEqual({
-          title: "オークションポイントが返還されました",
-          body: "[テスト商品] のオークションで預けていたポイント50ptが返還されました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should return correct message for AUCTION_LOST event", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.AUCTION_LOST, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] は落札できませんでした",
-          body: "あなたが入札していた「テスト商品詳細」のオークションは他のユーザーが落札しました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should return correct message for AUTO_BID_LIMIT_REACHED event", async () => {
-        const messageData = { first: "テスト商品", second: "200" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.AUTO_BID_LIMIT_REACHED, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] の自動入札が上限に達しました",
-          body: "設定した自動入札の上限額(200pt)に達したため、自動入札を停止しました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should return correct message for QUESTION_RECEIVED event", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.QUESTION_RECEIVED, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] に新しい質問が届きました",
-          body: "「テスト商品詳細」に新しい質問が届きました。",
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        });
-      });
-
-      test("should return correct message for ENDED event", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.ENDED, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] のオークションが終了しました",
-          body: "出品した商品「テスト商品詳細」のオークション期間が終了しました。結果を確認してください。",
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        });
-      });
-
-      test("should return correct message for ITEM_SOLD event", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.ITEM_SOLD, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] が落札されました",
-          body: "出品した商品「テスト商品詳細」が落札されました。",
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        });
-      });
-
-      test("should return correct message for NO_WINNER event", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
-        const result = await getAuctionNotificationMessage(AuctionEventType.NO_WINNER, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[テスト商品] のオークションは落札者がいませんでした",
-          body: "「テスト商品詳細」のオークションは落札者が現れませんでした。",
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        });
-      });
+          expect(result).toStrictEqual({
+            title: expectedTitle,
+            body: expectedBody,
+            targetType: expectedTargetType,
+          });
+        },
+      );
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     describe("異常系", () => {
       test("should throw error for unsupported auction event type", async () => {
-        const messageData = { first: "テスト商品", second: "テスト商品詳細" };
+        const messageData = createMessageData({ first: "テスト商品", second: "テスト商品詳細" });
         const invalidEventType = "INVALID_EVENT" as AuctionEventType;
 
         await expect(getAuctionNotificationMessage(invalidEventType, messageData)).rejects.toThrow(
@@ -163,35 +213,31 @@ describe("auction-notification", () => {
         );
       });
 
-      test("should handle empty message data", async () => {
-        const messageData = { first: "", second: "" };
+      test.each([
+        {
+          description: "empty message data",
+          messageData: { first: "", second: "" },
+          expectedTitle: "[] を落札しました！",
+          expectedBody: "おめでとうございます！「」を落札しました。",
+        },
+        {
+          description: "null message data",
+          messageData: { first: null as unknown as string, second: null as unknown as string },
+          expectedTitle: "[null] を落札しました！",
+          expectedBody: "おめでとうございます！「null」を落札しました。",
+        },
+        {
+          description: "undefined message data",
+          messageData: { first: undefined as unknown as string, second: undefined as unknown as string },
+          expectedTitle: "[undefined] を落札しました！",
+          expectedBody: "おめでとうございます！「undefined」を落札しました。",
+        },
+      ])("should handle $description", async ({ messageData, expectedTitle, expectedBody }) => {
         const result = await getAuctionNotificationMessage(AuctionEventType.AUCTION_WIN, messageData);
 
         expect(result).toStrictEqual({
-          title: "[] を落札しました！",
-          body: "おめでとうございます！「」を落札しました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should handle null message data", async () => {
-        const messageData = { first: null as unknown as string, second: null as unknown as string };
-        const result = await getAuctionNotificationMessage(AuctionEventType.AUCTION_WIN, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[null] を落札しました！",
-          body: "おめでとうございます！「null」を落札しました。",
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        });
-      });
-
-      test("should handle undefined message data", async () => {
-        const messageData = { first: undefined as unknown as string, second: undefined as unknown as string };
-        const result = await getAuctionNotificationMessage(AuctionEventType.AUCTION_WIN, messageData);
-
-        expect(result).toStrictEqual({
-          title: "[undefined] を落札しました！",
-          body: "おめでとうございます！「undefined」を落札しました。",
+          title: expectedTitle,
+          body: expectedBody,
           targetType: NotificationTargetType.AUCTION_BIDDER,
         });
       });
@@ -227,126 +273,64 @@ describe("auction-notification", () => {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     describe("正常系", () => {
-      test("should send all notification types successfully when sendTiming is NOW", async () => {
-        // モックの戻り値を設定
-        mockSendPushNotification.mockResolvedValue({ success: true });
-        mockSendEmailNotification.mockResolvedValue({ success: true });
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1", "user-2"],
+      test.each([
+        {
+          description: "should send all notification types successfully when sendTiming is NOW",
           sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
           sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({ success: true });
-        expect(mockSendPushNotification).toHaveBeenCalledTimes(1);
-        expect(mockSendEmailNotification).toHaveBeenCalledTimes(1);
-        expect(mockSendInAppNotification).toHaveBeenCalledTimes(1);
-      });
-
-      test("should send only IN_APP notification when sendMethods contains only IN_APP", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+          expectedCalls: { push: 1, email: 1, inApp: 1 },
+        },
+        {
+          description: "should send only IN_APP notification when sendMethods contains only IN_APP",
           sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
           sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({ success: true });
-        expect(mockSendPushNotification).not.toHaveBeenCalled();
-        expect(mockSendEmailNotification).not.toHaveBeenCalled();
-        expect(mockSendInAppNotification).toHaveBeenCalledTimes(1);
-      });
-
-      test("should not send WEB_PUSH and EMAIL when sendTiming is SCHEDULED", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+          expectedCalls: { push: 0, email: 0, inApp: 1 },
+        },
+        {
+          description: "should not send WEB_PUSH and EMAIL when sendTiming is SCHEDULED",
           sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
           sendTiming: NotificationSendTiming.SCHEDULED,
-          sendScheduledDate: new Date("2024-12-31"),
-          expiresAt: new Date("2024-12-31"),
-        };
+          expectedCalls: { push: 0, email: 0, inApp: 1 },
+        },
+      ])("$description", async ({ sendMethods, sendTiming, expectedCalls }) => {
+        // Arrange
+        setupSuccessMocks();
+        const params = createAuctionNotificationParams({
+          sendMethods,
+          sendTiming,
+          sendScheduledDate: sendTiming === NotificationSendTiming.SCHEDULED ? new Date("2024-12-31") : null,
+        });
 
+        // Act
         const result = await sendAuctionNotification(params);
 
+        // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(mockSendPushNotification).not.toHaveBeenCalled();
-        expect(mockSendEmailNotification).not.toHaveBeenCalled();
-        expect(mockSendInAppNotification).toHaveBeenCalledTimes(1);
+        expectNotificationCalls(expectedCalls);
       });
 
-      test("should handle null actionUrl", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
+      test.each([
+        {
+          description: "should handle null actionUrl",
+          overrides: { actionUrl: null },
+          expectedContaining: { actionUrl: null },
+        },
+        {
+          description: "should handle null expiresAt",
+          overrides: { expiresAt: null },
+          expectedContaining: { expiresAt: expect.any(Date) as unknown as Date },
+        },
+      ])("$description", async ({ overrides, expectedContaining }) => {
+        // Arrange
+        setupSuccessMocks();
+        const params = createAuctionNotificationParams(overrides);
 
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: null,
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: null,
-        };
-
+        // Act
         const result = await sendAuctionNotification(params);
 
+        // Assert
         expect(result).toStrictEqual({ success: true });
-        expect(mockSendInAppNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            actionUrl: null,
-          }),
-        );
-      });
-
-      test("should handle null expiresAt", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: null,
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({ success: true });
-        expect(mockSendInAppNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            expiresAt: expect.any(Date) as unknown as Date,
-          }),
-        );
+        expect(mockSendInAppNotification).toHaveBeenCalledWith(expect.objectContaining(expectedContaining));
       });
     });
 
@@ -354,17 +338,7 @@ describe("auction-notification", () => {
 
     describe("異常系", () => {
       test("should return error when recipientUserId is empty array", async () => {
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: [],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
+        const params = createAuctionNotificationParams({ recipientUserId: [] });
 
         const result = await sendAuctionNotification(params);
 
@@ -372,95 +346,48 @@ describe("auction-notification", () => {
           success: false,
           error: "オークション通知の送信に失敗しました",
         });
-        expect(mockSendPushNotification).not.toHaveBeenCalled();
-        expect(mockSendEmailNotification).not.toHaveBeenCalled();
-        expect(mockSendInAppNotification).not.toHaveBeenCalled();
+        expectNotificationCalls({ push: 0, email: 0, inApp: 0 });
       });
 
-      test("should return error when push notification fails", async () => {
-        mockSendPushNotification.mockResolvedValue({ success: false });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+      test.each([
+        {
+          description: "should return error when push notification fails",
           sendMethods: [NotificationSendMethod.WEB_PUSH],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({
-          success: false,
-          error: "プッシュ通知の送信に失敗しました",
-        });
-        expect(mockSendPushNotification).toHaveBeenCalledTimes(1);
-      });
-
-      test("should return error when email notification fails", async () => {
-        mockSendEmailNotification.mockResolvedValue({ success: false });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+          mockSetup: () => mockSendPushNotification.mockResolvedValue({ success: false }),
+          expectedError: "プッシュ通知の送信に失敗しました",
+          expectedCalls: { push: 1, email: 0, inApp: 0 },
+        },
+        {
+          description: "should return error when email notification fails",
           sendMethods: [NotificationSendMethod.EMAIL],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({
-          success: false,
-          error: "メール通知の送信に失敗しました",
-        });
-        expect(mockSendEmailNotification).toHaveBeenCalledTimes(1);
-      });
-
-      test("should return error when in-app notification fails", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: false });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+          mockSetup: () => mockSendEmailNotification.mockResolvedValue({ success: false }),
+          expectedError: "メール通知の送信に失敗しました",
+          expectedCalls: { push: 0, email: 1, inApp: 0 },
+        },
+        {
+          description: "should return error when in-app notification fails",
           sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
+          mockSetup: () => mockSendInAppNotification.mockResolvedValue({ success: false }),
+          expectedError: "アプリ内通知の送信に失敗しました",
+          expectedCalls: { push: 0, email: 0, inApp: 1 },
+        },
+      ])("$description", async ({ sendMethods, mockSetup, expectedError, expectedCalls }) => {
+        // Arrange
+        mockSetup();
+        const params = createAuctionNotificationParams({ sendMethods });
 
+        // Act
         const result = await sendAuctionNotification(params);
 
-        expect(result).toStrictEqual({
-          success: false,
-          error: "アプリ内通知の送信に失敗しました",
-        });
-        expect(mockSendInAppNotification).toHaveBeenCalledTimes(1);
+        // Assert
+        expect(result).toStrictEqual({ success: false, error: expectedError });
+        expectNotificationCalls(expectedCalls);
       });
 
       test("should return error when getAuctionNotificationMessage throws error", async () => {
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
+        const params = createAuctionNotificationParams({
           auctionEventType: "INVALID_EVENT" as AuctionEventType,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
+        });
 
         const result = await sendAuctionNotification(params);
 
@@ -472,18 +399,9 @@ describe("auction-notification", () => {
 
       test("should handle push notification throwing exception", async () => {
         mockSendPushNotification.mockRejectedValue(new Error("Push notification error"));
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+        const params = createAuctionNotificationParams({
           sendMethods: [NotificationSendMethod.WEB_PUSH],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
+        });
 
         const result = await sendAuctionNotification(params);
 
@@ -497,152 +415,82 @@ describe("auction-notification", () => {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     describe("境界値テスト", () => {
-      test("should handle single recipient user", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
+      test.each([
+        {
+          description: "should handle single recipient user",
           recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({ success: true });
-        expect(mockSendInAppNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            recipientUserIds: ["user-1"],
-          }),
-        );
-      });
-
-      test("should handle multiple recipient users", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
+          expectedUserIds: ["user-1"],
+        },
+        {
+          description: "should handle multiple recipient users",
           recipientUserId: ["user-1", "user-2", "user-3", "user-4", "user-5"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
+          expectedUserIds: ["user-1", "user-2", "user-3", "user-4", "user-5"],
+        },
+      ])("$description", async ({ recipientUserId, expectedUserIds }) => {
+        // Arrange
+        setupSuccessMocks();
+        const params = createAuctionNotificationParams({ recipientUserId });
 
+        // Act
         const result = await sendAuctionNotification(params);
 
+        // Assert
         expect(result).toStrictEqual({ success: true });
         expect(mockSendInAppNotification).toHaveBeenCalledWith(
           expect.objectContaining({
-            recipientUserIds: ["user-1", "user-2", "user-3", "user-4", "user-5"],
+            recipientUserIds: expectedUserIds,
           }),
         );
       });
 
-      test("should handle very long auction ID", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
+      test.each([
+        {
+          description: "should handle very long auction ID",
+          auctionId: "a".repeat(1000),
+        },
+        {
+          description: "should handle very long action URL",
+          actionUrl: "https://example.com/" + "a".repeat(2000),
+        },
+      ])("$description", async ({ auctionId, actionUrl }) => {
+        // Arrange
+        setupSuccessMocks();
+        const params = createAuctionNotificationParams({
+          ...(auctionId && { auctionId }),
+          ...(actionUrl && { actionUrl }),
+        });
 
-        const longAuctionId = "a".repeat(1000);
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: longAuctionId,
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
+        // Act
         const result = await sendAuctionNotification(params);
 
+        // Assert
         expect(result).toStrictEqual({ success: true });
         expect(mockSendInAppNotification).toHaveBeenCalledWith(
           expect.objectContaining({
-            auctionId: longAuctionId,
+            ...(auctionId && { auctionId }),
+            ...(actionUrl && { actionUrl }),
           }),
         );
       });
 
-      test("should handle very long action URL", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
+      test.each([
+        {
+          description: "should handle future expiry date",
+          expiresAt: new Date("2030-12-31"),
+        },
+        {
+          description: "should handle past expiry date",
+          expiresAt: new Date("2020-01-01"),
+        },
+      ])("$description", async ({ expiresAt }) => {
+        // Arrange
+        setupSuccessMocks();
+        const params = createAuctionNotificationParams({ expiresAt });
 
-        const longUrl = "https://example.com/" + "a".repeat(2000);
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: longUrl,
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
-
+        // Act
         const result = await sendAuctionNotification(params);
 
-        expect(result).toStrictEqual({ success: true });
-        expect(mockSendInAppNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            actionUrl: longUrl,
-          }),
-        );
-      });
-
-      test("should handle future expiry date", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const futureDate = new Date("2030-12-31");
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: futureDate,
-        };
-
-        const result = await sendAuctionNotification(params);
-
-        expect(result).toStrictEqual({ success: true });
-        expect(mockSendInAppNotification).toHaveBeenCalledWith(
-          expect.objectContaining({
-            expiresAt: expect.any(Date) as unknown as Date,
-          }),
-        );
-      });
-
-      test("should handle past expiry date", async () => {
-        mockSendInAppNotification.mockResolvedValue({ success: true });
-
-        const pastDate = new Date("2020-01-01");
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
-          sendMethods: [NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: pastDate,
-        };
-
-        const result = await sendAuctionNotification(params);
-
+        // Assert
         expect(result).toStrictEqual({ success: true });
         expect(mockSendInAppNotification).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -656,38 +504,29 @@ describe("auction-notification", () => {
 
     describe("複合パターンテスト", () => {
       test("should handle multiple notification methods with mixed success/failure", async () => {
+        // Arrange
         mockSendPushNotification.mockResolvedValue({ success: true });
         mockSendEmailNotification.mockResolvedValue({ success: false });
         mockSendInAppNotification.mockResolvedValue({ success: true });
 
-        const params: AuctionNotificationParams = {
-          text: { first: "テスト商品", second: "テスト商品詳細" },
-          auctionEventType: AuctionEventType.AUCTION_WIN,
-          auctionId: "auction-123",
-          recipientUserId: ["user-1"],
+        const params = createAuctionNotificationParams({
           sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP],
-          actionUrl: "https://example.com/auction/123",
-          sendTiming: NotificationSendTiming.NOW,
-          sendScheduledDate: null,
-          expiresAt: new Date("2024-12-31"),
-        };
+        });
 
+        // Act
         const result = await sendAuctionNotification(params);
 
-        // 最初に失敗した通知でエラーが返される（この場合はEMAIL）
+        // Assert - 最初に失敗した通知でエラーが返される（この場合はEMAIL）
         expect(result).toStrictEqual({
           success: false,
           error: "メール通知の送信に失敗しました",
         });
-        expect(mockSendPushNotification).toHaveBeenCalledTimes(1);
-        expect(mockSendEmailNotification).toHaveBeenCalledTimes(1);
-        expect(mockSendInAppNotification).not.toHaveBeenCalled(); // エラーで処理が止まるため
+        expectNotificationCalls({ push: 1, email: 1, inApp: 0 }); // エラーで処理が止まるため
       });
 
       test("should handle all notification types for different auction events", async () => {
-        mockSendPushNotification.mockResolvedValue({ success: true });
-        mockSendEmailNotification.mockResolvedValue({ success: true });
-        mockSendInAppNotification.mockResolvedValue({ success: true });
+        // Arrange
+        setupSuccessMocks();
 
         const auctionEvents = [
           AuctionEventType.AUCTION_WIN,
@@ -701,27 +540,19 @@ describe("auction-notification", () => {
           AuctionEventType.NO_WINNER,
         ];
 
+        // Act & Assert
         for (const eventType of auctionEvents) {
-          const params: AuctionNotificationParams = {
-            text: { first: "テスト商品", second: "テスト商品詳細" },
+          const params = createAuctionNotificationParams({
             auctionEventType: eventType,
-            auctionId: "auction-123",
-            recipientUserId: ["user-1"],
             sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP],
-            actionUrl: "https://example.com/auction/123",
-            sendTiming: NotificationSendTiming.NOW,
-            sendScheduledDate: null,
-            expiresAt: new Date("2024-12-31"),
-          };
+          });
 
           const result = await sendAuctionNotification(params);
           expect(result).toStrictEqual({ success: true });
         }
 
         // 各イベントタイプで3つの通知方法が呼ばれるため、合計27回
-        expect(mockSendPushNotification).toHaveBeenCalledTimes(9);
-        expect(mockSendEmailNotification).toHaveBeenCalledTimes(9);
-        expect(mockSendInAppNotification).toHaveBeenCalledTimes(9);
+        expectNotificationCalls({ push: 9, email: 9, inApp: 9 });
       });
     });
   });

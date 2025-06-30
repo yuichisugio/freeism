@@ -103,8 +103,8 @@ export const queryCacheKeys = {
     _root: ["table"] as const,
     all: () => [...queryCacheKeys.table._root] as const,
     allGroup: () => [...queryCacheKeys.table.all(), "allGroup"] as const, // exact: falseでキャッシュを無効化するため、キャッシュキーには"group"を含める
-    allGroupConditions: (tableConditions: TableConditions<AllUserGroupTable>) =>
-      [...queryCacheKeys.table.allGroup(), JSON.stringify(tableConditions)] as const,
+    allGroupConditions: (tableConditions: TableConditions<AllUserGroupTable>, userId: string) =>
+      [...queryCacheKeys.table.allGroup(), JSON.stringify(tableConditions), userId] as const,
     myGroup: () => [...queryCacheKeys.table.all(), "myGroup"] as const,
     myGroupConditions: (tableConditions: TableConditions<MyGroupTable>) =>
       [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions)] as const,

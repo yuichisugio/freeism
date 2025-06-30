@@ -5,9 +5,6 @@ import type { GeneralNotificationParams } from "./general-notification";
 import { sendEmailNotification } from "./email-notification";
 import { sendGeneralNotification } from "./general-notification";
 import { sendInAppNotification } from "./in-app-notification";
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// モック関数のインポート
 import { getNotificationTargetUserIds } from "./notification-utilities";
 import { sendPushNotification } from "./push-notification";
 
@@ -64,6 +61,50 @@ function createValidGeneralNotificationParams(
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+// ヘルパー関数：通知メソッドの呼び出し確認
+function expectNotificationMethodCalls(inApp: boolean, email: boolean, push: boolean) {
+  if (inApp) {
+    expect(mockSendInAppNotification).toHaveBeenCalled();
+  } else {
+    expect(mockSendInAppNotification).not.toHaveBeenCalled();
+  }
+
+  if (email) {
+    expect(mockSendEmailNotification).toHaveBeenCalled();
+  } else {
+    expect(mockSendEmailNotification).not.toHaveBeenCalled();
+  }
+
+  if (push) {
+    expect(mockSendPushNotification).toHaveBeenCalled();
+  } else {
+    expect(mockSendPushNotification).not.toHaveBeenCalled();
+  }
+}
+
+// ヘルパー関数：期待されるNotificationParamsオブジェクトを作成
+function createExpectedNotificationParams(params: GeneralNotificationParams, recipientUserIds: string[]) {
+  return {
+    recipientUserIds,
+    title: params.title,
+    message: params.message,
+    senderUserId: null,
+    actionUrl: params.actionUrl,
+    targetType: params.targetType,
+    groupId: params.groupId,
+    taskId: params.taskId,
+    auctionId: params.auctionId,
+    sendTiming: params.sendTiming,
+    sendScheduledDate: params.sendScheduledDate,
+    expiresAt: params.expiresAt,
+    sendMethods: params.sendMethods,
+    notificationId: params.notificationId,
+    sentAt: null,
+  };
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 describe("sendGeneralNotification", () => {
   beforeEach(() => {
     // 各テスト前にモックをリセット
@@ -79,11 +120,30 @@ describe("sendGeneralNotification", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("正常系テスト", () => {
-    test("should send in-app notification successfully", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+    test.each([
+      {
+        description: "should send in-app notification successfully",
         sendMethods: [NotificationSendMethod.IN_APP],
-      });
+        expectedCalls: { inApp: true, email: false, push: false },
+      },
+      {
+        description: "should send email notification successfully",
+        sendMethods: [NotificationSendMethod.EMAIL],
+        expectedCalls: { inApp: false, email: true, push: false },
+      },
+      {
+        description: "should send push notification successfully",
+        sendMethods: [NotificationSendMethod.WEB_PUSH],
+        expectedCalls: { inApp: false, email: false, push: true },
+      },
+      {
+        description: "should send multiple notification methods successfully",
+        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+        expectedCalls: { inApp: true, email: true, push: true },
+      },
+    ])("$description", async ({ sendMethods, expectedCalls }) => {
+      // Arrange
+      const params = createValidGeneralNotificationParams({ sendMethods });
 
       // Act
       const result = await sendGeneralNotification(params);
@@ -95,193 +155,85 @@ describe("sendGeneralNotification", () => {
         groupId: undefined,
         taskId: undefined,
       });
-      expect(mockSendInAppNotification).toHaveBeenCalledWith({
-        recipientUserIds: ["user-1", "user-2"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        senderUserId: null,
-        actionUrl: "https://example.com",
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        sendMethods: [NotificationSendMethod.IN_APP],
-        notificationId: null,
-        sentAt: null,
-      });
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
+      expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
+
+      // 呼び出された通知メソッドのパラメータ確認
+      const expectedParams = createExpectedNotificationParams(params, ["user-1", "user-2"]);
+      if (expectedCalls.inApp) {
+        expect(mockSendInAppNotification).toHaveBeenCalledWith(expectedParams);
+      }
+      if (expectedCalls.email) {
+        expect(mockSendEmailNotification).toHaveBeenCalledWith(expectedParams);
+      }
+      if (expectedCalls.push) {
+        expect(mockSendPushNotification).toHaveBeenCalledWith(expectedParams);
+      }
     });
 
-    test("should send email notification successfully", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        sendMethods: [NotificationSendMethod.EMAIL],
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendEmailNotification).toHaveBeenCalledWith({
-        recipientUserIds: ["user-1", "user-2"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        senderUserId: null,
-        actionUrl: "https://example.com",
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        sendMethods: [NotificationSendMethod.EMAIL],
-        notificationId: null,
-        sentAt: null,
-      });
-      expect(mockSendInAppNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
-    });
-
-    test("should send push notification successfully", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        sendMethods: [NotificationSendMethod.WEB_PUSH],
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendPushNotification).toHaveBeenCalledWith({
-        recipientUserIds: ["user-1", "user-2"],
-        title: "テスト通知",
-        message: "テストメッセージ",
-        senderUserId: null,
-        actionUrl: "https://example.com",
-        targetType: NotificationTargetType.USER,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        sendTiming: NotificationSendTiming.NOW,
-        sendScheduledDate: null,
-        expiresAt: null,
-        sendMethods: [NotificationSendMethod.WEB_PUSH],
-        notificationId: null,
-        sentAt: null,
-      });
-      expect(mockSendInAppNotification).not.toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-    });
-
-    test("should send multiple notification methods successfully", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).toHaveBeenCalled();
-      expect(mockSendPushNotification).toHaveBeenCalled();
-    });
-
-    test("should handle GROUP target type correctly", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+    test.each([
+      {
+        description: "should handle GROUP target type correctly",
         targetType: NotificationTargetType.GROUP,
-        recipientUserIds: null,
-        groupId: "group-1",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.GROUP, {
-        userIds: undefined,
-        groupId: "group-1",
-        taskId: undefined,
-      });
-    });
-
-    test("should handle TASK target type correctly", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+        params: { recipientUserIds: null, groupId: "group-1", taskId: null },
+        expectedCall: { userIds: undefined, groupId: "group-1", taskId: undefined },
+      },
+      {
+        description: "should handle TASK target type correctly",
         targetType: NotificationTargetType.TASK,
-        recipientUserIds: null,
-        taskId: "task-1",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.TASK, {
-        userIds: undefined,
-        groupId: undefined,
-        taskId: "task-1",
-      });
-    });
-
-    test("should handle SYSTEM target type correctly", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+        params: { recipientUserIds: null, groupId: null, taskId: "task-1" },
+        expectedCall: { userIds: undefined, groupId: undefined, taskId: "task-1" },
+      },
+      {
+        description: "should handle SYSTEM target type correctly",
         targetType: NotificationTargetType.SYSTEM,
-        recipientUserIds: null,
+        params: { recipientUserIds: null, groupId: null, taskId: null },
+        expectedCall: { userIds: undefined, groupId: undefined, taskId: undefined },
+      },
+      {
+        description: "should handle USER target type correctly",
+        targetType: NotificationTargetType.USER,
+        params: { recipientUserIds: ["user-1", "user-2"], groupId: null, taskId: null },
+        expectedCall: { userIds: ["user-1", "user-2"], groupId: undefined, taskId: undefined },
+      },
+    ])("$description", async ({ targetType, params, expectedCall }) => {
+      // Arrange
+      const notificationParams = createValidGeneralNotificationParams({
+        targetType,
+        ...params,
       });
 
       // Act
-      const result = await sendGeneralNotification(params);
+      const result = await sendGeneralNotification(notificationParams);
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.SYSTEM, {
-        userIds: undefined,
-        groupId: undefined,
-        taskId: undefined,
-      });
+      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(targetType, expectedCall);
     });
 
-    test("should handle scheduled notification with past date and notificationId", async () => {
-      // Arrange
-      const pastDate = new Date(Date.now() - 1000 * 60 * 60); // 1時間前
-      const params = createValidGeneralNotificationParams({
+    test.each([
+      {
+        description: "should handle scheduled notification with past date and notificationId",
         sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: pastDate,
+        sendScheduledDate: new Date(Date.now() - 1000 * 60 * 60), // 1時間前
         notificationId: "notification-1",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      // 予約送信で過去の日時かつnotificationIdがある場合は、他の通知は送信されない
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
-    });
-
-    test("should handle scheduled notification with future date", async () => {
-      // Arrange
-      const futureDate = new Date(Date.now() + 1000 * 60 * 60); // 1時間後
-      const params = createValidGeneralNotificationParams({
-        sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: futureDate,
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
+        expectedCalls: { inApp: true, email: false, push: false }, // 過去の予約送信
+      },
+      {
+        description: "should handle scheduled notification with future date",
+        sendTiming: NotificationSendTiming.SCHEDULED,
+        sendScheduledDate: new Date(Date.now() + 1000 * 60 * 60), // 1時間後
+        notificationId: null,
+        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
+        expectedCalls: { inApp: true, email: true, push: false }, // 未来の予約送信
+      },
+    ])("$description", async ({ sendTiming, sendScheduledDate, notificationId, sendMethods, expectedCalls }) => {
+      // Arrange
+      const params = createValidGeneralNotificationParams({
+        sendTiming,
+        sendScheduledDate,
+        notificationId,
+        sendMethods,
       });
 
       // Act
@@ -289,9 +241,7 @@ describe("sendGeneralNotification", () => {
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-      // 未来の予約送信の場合は、すべての通知が送信される
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).toHaveBeenCalled();
+      expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
   });
 
@@ -307,123 +257,84 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知の対象者が見つかりません",
-      });
-      expect(mockSendInAppNotification).not.toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
+      expect(result).toStrictEqual({ success: false, error: "通知の対象者が見つかりません" });
+      expectNotificationMethodCalls(false, false, false);
     });
 
-    test("should return error when in-app notification fails", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+    test.each([
+      {
+        description: "should return error when in-app notification fails",
         sendMethods: [NotificationSendMethod.IN_APP],
-      });
-      mockSendInAppNotification.mockResolvedValue({
-        success: false,
-        error: "アプリ内通知エラー",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "アプリ内通知の送信に失敗しました",
-      });
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
-    });
-
-    test("should return error when push notification fails", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+        mockSetup: () => {
+          mockSendInAppNotification.mockResolvedValue({ success: false, error: "アプリ内通知エラー" });
+        },
+        expectedError: "アプリ内通知の送信に失敗しました",
+        expectedCalls: { inApp: true, email: false, push: false },
+      },
+      {
+        description: "should return error when push notification fails",
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH],
-      });
-      mockSendPushNotification.mockResolvedValue({
-        success: false,
-        message: "プッシュ通知エラー",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "プッシュ通知の送信に失敗しました",
-      });
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendPushNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-    });
-
-    test("should return error when email notification fails", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+        mockSetup: () => {
+          mockSendPushNotification.mockResolvedValue({ success: false, message: "プッシュ通知エラー" });
+        },
+        expectedError: "プッシュ通知の送信に失敗しました",
+        expectedCalls: { inApp: true, email: false, push: true },
+      },
+      {
+        description: "should return error when email notification fails",
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-      });
-      mockSendEmailNotification.mockResolvedValue({
-        success: false,
-        error: "メール通知エラー",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メール通知の送信に失敗しました",
-      });
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
-    });
-
-    test("should return error when getNotificationTargetUserIds throws error", async () => {
+        mockSetup: () => {
+          mockSendEmailNotification.mockResolvedValue({ success: false, error: "メール通知エラー" });
+        },
+        expectedError: "メール通知の送信に失敗しました",
+        expectedCalls: { inApp: true, email: true, push: false },
+      },
+    ])("$description", async ({ sendMethods, mockSetup, expectedError, expectedCalls }) => {
       // Arrange
-      const params = createValidGeneralNotificationParams();
-      mockGetNotificationTargetUserIds.mockRejectedValue(new Error("データベースエラー"));
+      const params = createValidGeneralNotificationParams({ sendMethods });
+      mockSetup();
 
       // Act
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知エラーが発生しました",
-      });
-      expect(mockSendInAppNotification).not.toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
+      expect(result).toStrictEqual({ success: false, error: expectedError });
+      expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
 
-    test("should return error when sendInAppNotification throws error", async () => {
+    test.each([
+      {
+        description: "should return error when getNotificationTargetUserIds throws error",
+        mockSetup: () => {
+          mockGetNotificationTargetUserIds.mockRejectedValue(new Error("データベースエラー"));
+        },
+        expectedError: "通知エラーが発生しました",
+      },
+      {
+        description: "should return error when sendInAppNotification throws error",
+        mockSetup: () => {
+          mockSendInAppNotification.mockRejectedValue(new Error("予期しないエラー"));
+        },
+        expectedError: "通知エラーが発生しました",
+      },
+    ])("$description", async ({ mockSetup, expectedError }) => {
       // Arrange
       const params = createValidGeneralNotificationParams({
         sendMethods: [NotificationSendMethod.IN_APP],
       });
-      mockSendInAppNotification.mockRejectedValue(new Error("予期しないエラー"));
+      mockSetup();
 
       // Act
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "通知エラーが発生しました",
-      });
+      expect(result).toStrictEqual({ success: false, error: expectedError });
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("境界値テスト", () => {
+  describe("境界値・エッジケーステスト", () => {
     test("should handle empty sendMethods array", async () => {
       // Arrange
       const params = createValidGeneralNotificationParams({
@@ -435,62 +346,73 @@ describe("sendGeneralNotification", () => {
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-      expect(mockSendInAppNotification).not.toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
+      expectNotificationMethodCalls(false, false, false);
     });
 
-    test("should handle null values in optional fields", async () => {
+    test.each([
+      {
+        description: "should handle null values in optional fields",
+        overrides: {
+          recipientUserIds: null,
+          groupId: null,
+          taskId: null,
+          auctionId: null,
+          actionUrl: null,
+          sendScheduledDate: null,
+          expiresAt: null,
+          notificationId: null,
+        },
+        expectedCall: {
+          userIds: undefined,
+          groupId: undefined,
+          taskId: undefined,
+        },
+      },
+      {
+        description: "should handle undefined values gracefully",
+        overrides: {
+          recipientUserIds: undefined as unknown as string[],
+          groupId: undefined as unknown as string,
+          taskId: undefined as unknown as string,
+          auctionId: undefined as unknown as string,
+          actionUrl: undefined as unknown as string,
+          sendScheduledDate: undefined as unknown as Date,
+          expiresAt: undefined as unknown as Date,
+          notificationId: undefined as unknown as string,
+        },
+        expectedCall: {
+          userIds: undefined,
+          groupId: undefined,
+          taskId: undefined,
+        },
+      },
+    ])("$description", async ({ overrides, expectedCall }) => {
       // Arrange
-      const params = createValidGeneralNotificationParams({
-        recipientUserIds: null,
-        groupId: null,
-        taskId: null,
-        auctionId: null,
-        actionUrl: null,
-        sendScheduledDate: null,
-        expiresAt: null,
-        notificationId: null,
-      });
+      const params = createValidGeneralNotificationParams(overrides);
 
       // Act
       const result = await sendGeneralNotification(params);
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, {
-        userIds: undefined,
-        groupId: undefined,
-        taskId: undefined,
-      });
+      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, expectedCall);
     });
 
-    test("should handle single user in recipientUserIds", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
+    test.each([
+      {
+        description: "should handle single user in recipientUserIds",
         recipientUserIds: ["user-1"],
-      });
-      mockGetNotificationTargetUserIds.mockResolvedValue(["user-1"]);
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, {
-        userIds: ["user-1"],
-        groupId: undefined,
-        taskId: undefined,
-      });
-    });
-
-    test("should handle large number of users", async () => {
+        expectedUserIds: ["user-1"],
+      },
+      {
+        description: "should handle large number of users",
+        recipientUserIds: Array.from({ length: 1000 }, (_, i) => `user-${i}`),
+        expectedUserIds: Array.from({ length: 1000 }, (_, i) => `user-${i}`),
+      },
+    ])("$description", async ({ recipientUserIds, expectedUserIds }) => {
       // Arrange
-      const largeUserList = Array.from({ length: 1000 }, (_, i) => `user-${i}`);
-      const params = createValidGeneralNotificationParams({
-        recipientUserIds: largeUserList,
-      });
-      mockGetNotificationTargetUserIds.mockResolvedValue(largeUserList);
+      const params = createValidGeneralNotificationParams({ recipientUserIds });
+      mockGetNotificationTargetUserIds.mockResolvedValue(expectedUserIds);
 
       // Act
       const result = await sendGeneralNotification(params);
@@ -499,18 +421,36 @@ describe("sendGeneralNotification", () => {
       expect(result).toStrictEqual({ success: true });
       expect(mockSendInAppNotification).toHaveBeenCalledWith(
         expect.objectContaining({
-          recipientUserIds: largeUserList,
+          recipientUserIds: expectedUserIds,
         }),
       );
     });
 
-    test("should handle very long title and message", async () => {
+    test.each([
+      {
+        description: "should handle empty string values",
+        title: "",
+        message: "",
+        actionUrl: "",
+      },
+      {
+        description: "should handle very long title and message",
+        title: "a".repeat(1000),
+        message: "b".repeat(5000),
+        actionUrl: "https://example.com",
+      },
+      {
+        description: "should handle special characters in title and message",
+        title: "特殊文字テスト!@#$%^&*()_+-=[]{}|;':\",./<>?",
+        message: "改行\nタブ\t特殊文字🎉📧💌",
+        actionUrl: "https://example.com",
+      },
+    ])("$description", async ({ title, message, actionUrl }) => {
       // Arrange
-      const longTitle = "a".repeat(1000);
-      const longMessage = "b".repeat(5000);
       const params = createValidGeneralNotificationParams({
-        title: longTitle,
-        message: longMessage,
+        title,
+        message,
+        actionUrl,
       });
 
       // Act
@@ -520,19 +460,46 @@ describe("sendGeneralNotification", () => {
       expect(result).toStrictEqual({ success: true });
       expect(mockSendInAppNotification).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: longTitle,
-          message: longMessage,
+          title,
+          message,
+          actionUrl,
         }),
       );
     });
 
-    test("should handle scheduled notification with exact current time", async () => {
+    test("should handle concurrent notification sending", async () => {
       // Arrange
-      const now = new Date();
+      const params1 = createValidGeneralNotificationParams({ title: "通知1" });
+      const params2 = createValidGeneralNotificationParams({ title: "通知2" });
+
+      // Act
+      const [result1, result2] = await Promise.all([
+        sendGeneralNotification(params1),
+        sendGeneralNotification(params2),
+      ]);
+
+      // Assert
+      expect(result1).toStrictEqual({ success: true });
+      expect(result2).toStrictEqual({ success: true });
+    });
+
+    test.each([
+      {
+        description: "should handle scheduled notification with exact current time",
+        sendScheduledDate: new Date(),
+        notificationId: "notification-1",
+      },
+      {
+        description: "should handle notification with very old scheduled date",
+        sendScheduledDate: new Date("2000-01-01T00:00:00Z"),
+        notificationId: "old-notification",
+      },
+    ])("$description", async ({ sendScheduledDate, notificationId }) => {
+      // Arrange
       const params = createValidGeneralNotificationParams({
         sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: now,
-        notificationId: "notification-1",
+        sendScheduledDate,
+        notificationId,
       });
 
       // Act
@@ -540,71 +507,7 @@ describe("sendGeneralNotification", () => {
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-      // 現在時刻と同じ場合は過去として扱われる可能性があるため、アプリ内通知のみ送信される
       expect(mockSendInAppNotification).toHaveBeenCalled();
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("引数パターンテスト", () => {
-    test("should handle all NotificationTargetType values", async () => {
-      // Arrange & Act & Assert
-      const targetTypes = [
-        NotificationTargetType.USER,
-        NotificationTargetType.GROUP,
-        NotificationTargetType.TASK,
-        NotificationTargetType.SYSTEM,
-      ];
-
-      for (const targetType of targetTypes) {
-        const params = createValidGeneralNotificationParams({
-          targetType,
-          recipientUserIds: targetType === NotificationTargetType.USER ? ["user-1"] : null,
-          groupId: targetType === NotificationTargetType.GROUP ? "group-1" : null,
-          taskId: targetType === NotificationTargetType.TASK ? "task-1" : null,
-        });
-
-        const result = await sendGeneralNotification(params);
-        expect(result).toStrictEqual({ success: true });
-      }
-    });
-
-    test("should handle all NotificationSendMethod values", async () => {
-      // Arrange & Act & Assert
-      const sendMethods = [
-        [NotificationSendMethod.IN_APP],
-        [NotificationSendMethod.EMAIL],
-        [NotificationSendMethod.WEB_PUSH],
-        [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-        [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH],
-        [NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-        [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
-      ];
-
-      for (const methods of sendMethods) {
-        const params = createValidGeneralNotificationParams({
-          sendMethods: methods,
-        });
-
-        const result = await sendGeneralNotification(params);
-        expect(result).toStrictEqual({ success: true });
-      }
-    });
-
-    test("should handle all NotificationSendTiming values", async () => {
-      // Arrange & Act & Assert
-      const sendTimings = [NotificationSendTiming.NOW, NotificationSendTiming.SCHEDULED];
-
-      for (const timing of sendTimings) {
-        const params = createValidGeneralNotificationParams({
-          sendTiming: timing,
-          sendScheduledDate: timing === NotificationSendTiming.SCHEDULED ? new Date(Date.now() + 1000 * 60) : null,
-        });
-
-        const result = await sendGeneralNotification(params);
-        expect(result).toStrictEqual({ success: true });
-      }
     });
   });
 
@@ -627,23 +530,30 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "アプリ内通知の送信に失敗しました",
-      });
+      expect(result).toStrictEqual({ success: false, error: "アプリ内通知の送信に失敗しました" });
       // 最初の失敗で処理が停止するため、後続の通知は呼ばれない
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendPushNotification).not.toHaveBeenCalled();
-      expect(mockSendEmailNotification).not.toHaveBeenCalled();
+      expectNotificationMethodCalls(true, false, false);
     });
 
-    test("should handle scheduled notification without notificationId", async () => {
+    test.each([
+      {
+        description: "should handle scheduled notification without notificationId",
+        pastDate: new Date(Date.now() - 1000 * 60 * 60), // 1時間前
+        notificationId: null,
+        expectedCalls: { inApp: true, email: true, push: false }, // 通常の送信処理
+      },
+      {
+        description: "should handle scheduled notification with future date and notificationId",
+        pastDate: new Date(Date.now() + 1000 * 60 * 60), // 1時間後
+        notificationId: "notification-1",
+        expectedCalls: { inApp: true, email: true, push: false }, // 通常の送信処理
+      },
+    ])("$description", async ({ pastDate, notificationId, expectedCalls }) => {
       // Arrange
-      const pastDate = new Date(Date.now() - 1000 * 60 * 60); // 1時間前
       const params = createValidGeneralNotificationParams({
         sendTiming: NotificationSendTiming.SCHEDULED,
         sendScheduledDate: pastDate,
-        notificationId: null, // notificationIdがnull
+        notificationId,
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
       });
 
@@ -652,114 +562,7 @@ describe("sendGeneralNotification", () => {
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-      // notificationIdがnullの場合は、通常の送信処理が実行される
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).toHaveBeenCalled();
-    });
-
-    test("should handle scheduled notification with future date and notificationId", async () => {
-      // Arrange
-      const futureDate = new Date(Date.now() + 1000 * 60 * 60); // 1時間後
-      const params = createValidGeneralNotificationParams({
-        sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: futureDate,
-        notificationId: "notification-1",
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      // 未来の日時の場合は、通常の送信処理が実行される
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).toHaveBeenCalled();
-    });
-  });
-
-  describe("エッジケースとエラーハンドリング", () => {
-    test("should handle undefined values gracefully", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        recipientUserIds: undefined as unknown as string[],
-        groupId: undefined as unknown as string,
-        taskId: undefined as unknown as string,
-        auctionId: undefined as unknown as string,
-        actionUrl: undefined as unknown as string,
-        sendScheduledDate: undefined as unknown as Date,
-        expiresAt: undefined as unknown as Date,
-        notificationId: undefined as unknown as string,
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, {
-        userIds: undefined,
-        groupId: undefined,
-        taskId: undefined,
-      });
-    });
-
-    test("should handle empty string values", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        title: "",
-        message: "",
-        actionUrl: "",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendInAppNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "",
-          message: "",
-          actionUrl: "",
-        }),
-      );
-    });
-
-    test("should handle special characters in title and message", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        title: "特殊文字テスト!@#$%^&*()_+-=[]{}|;':\",./<>?",
-        message: "改行\nタブ\t特殊文字🎉📧💌",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendInAppNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "特殊文字テスト!@#$%^&*()_+-=[]{}|;':\",./<>?",
-          message: "改行\nタブ\t特殊文字🎉📧💌",
-        }),
-      );
-    });
-
-    test("should handle concurrent notification sending", async () => {
-      // Arrange
-      const params1 = createValidGeneralNotificationParams({ title: "通知1" });
-      const params2 = createValidGeneralNotificationParams({ title: "通知2" });
-
-      // Act
-      const [result1, result2] = await Promise.all([
-        sendGeneralNotification(params1),
-        sendGeneralNotification(params2),
-      ]);
-
-      // Assert
-      expect(result1).toStrictEqual({ success: true });
-      expect(result2).toStrictEqual({ success: true });
+      expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
 
     test("should handle notification with all optional fields as null", async () => {
@@ -785,44 +588,6 @@ describe("sendGeneralNotification", () => {
 
       // Assert
       expect(result).toStrictEqual({ success: true });
-    });
-
-    test("should handle notification with very old scheduled date", async () => {
-      // Arrange
-      const veryOldDate = new Date("2000-01-01T00:00:00Z");
-      const params = createValidGeneralNotificationParams({
-        sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: veryOldDate,
-        notificationId: "old-notification",
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      // 過去の日時なので、プッシュ通知とメール通知はスキップされる
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-    });
-
-    test("should handle notification with future scheduled date but no notificationId", async () => {
-      // Arrange
-      const futureDate = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24時間後
-      const params = createValidGeneralNotificationParams({
-        sendTiming: NotificationSendTiming.SCHEDULED,
-        sendScheduledDate: futureDate,
-        notificationId: null,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      // 未来の日時でnotificationIdがnullの場合は、通常の送信処理が実行される
-      expect(mockSendInAppNotification).toHaveBeenCalled();
-      expect(mockSendEmailNotification).toHaveBeenCalled();
     });
   });
 });

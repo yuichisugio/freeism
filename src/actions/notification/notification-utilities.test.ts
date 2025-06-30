@@ -1,41 +1,29 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // モック関数のインポート
-import {
-  cachedGetNotificationsAndUnreadCount,
-  cachedGetUnreadNotificationsCount,
-} from "@/actions/notification/cache-notification-utilities";
-import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { cachedGetNotificationsAndUnreadCount } from "@/actions/notification/cache-notification-list";
+import { cachedGetUnreadNotificationsCount } from "@/actions/notification/cache-notification-unread-count";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { NotificationTargetType } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   buildCommonNotificationWhereClause,
-  buildNotificationTargetCondition,
   getNotificationsAndUnreadCount,
   getNotificationTargetUserIds,
   getUnreadNotificationsCount,
-  getUserAccessibleGroupIds,
   updateNotificationStatus,
 } from "./notification-utilities";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 依存関数のモック
-vi.mock("@/lib/actions/cache/cache-notification-utilities", () => ({
-  cachedGetUnreadNotificationsCount: vi.fn(),
+vi.mock("@/actions/notification/cache-notification-list", () => ({
   cachedGetNotificationsAndUnreadCount: vi.fn(),
 }));
 
-vi.mock("@/lib/utils", () => ({
-  getAuthenticatedSessionUserId: vi.fn(),
-}));
-
-vi.mock("next/cache", () => ({
-  revalidateTag: vi.fn(),
-  revalidatePath: vi.fn(),
+vi.mock("@/actions/notification/cache-notification-unread-count", () => ({
+  cachedGetUnreadNotificationsCount: vi.fn(),
 }));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -43,9 +31,77 @@ vi.mock("next/cache", () => ({
 // モック関数の型定義
 const mockCachedGetUnreadNotificationsCount = vi.mocked(cachedGetUnreadNotificationsCount);
 const mockCachedGetNotificationsAndUnreadCount = vi.mocked(cachedGetNotificationsAndUnreadCount);
-const mockGetAuthenticatedSessionUserId = vi.mocked(getAuthenticatedSessionUserId);
-const mockRevalidateTag = vi.mocked(revalidateTag);
-const mockRevalidatePath = vi.mocked(revalidatePath);
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// 共通テストデータ
+const TEST_DATA = {
+  userIds: {
+    user1: "test-user-1",
+    user2: "test-user-2",
+    user3: "test-user-3",
+  },
+  groupIds: {
+    group1: "test-group-1",
+    group2: "test-group-2",
+  },
+  taskIds: {
+    task1: "test-task-1",
+    task2: "test-task-2",
+  },
+  notificationIds: {
+    notification1: "test-notification-1",
+    notification2: "test-notification-2",
+  },
+} as const;
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// テストヘルパー関数
+const createMockNotification = (overrides = {}) => ({
+  id: TEST_DATA.notificationIds.notification1,
+  title: "テスト通知",
+  message: "テストメッセージ",
+  NotificationTargetType: NotificationTargetType.USER,
+  isRead: false,
+  sentAt: new Date(),
+  readAt: null,
+  expiresAt: null,
+  actionUrl: null,
+  senderUserId: null,
+  groupId: null,
+  taskId: null,
+  userName: null,
+  groupName: null,
+  taskName: null,
+  auctionEventType: null,
+  auctionId: null,
+  ...overrides,
+});
+
+const createMockUsers = (userIds: string[]) => userIds.map((id) => ({ id }));
+
+const createMockGroupMembers = (userIds: string[]) => userIds.map((userId) => ({ userId }));
+
+const createMockTask = (overrides = {}) => ({
+  creatorId: TEST_DATA.userIds.user1,
+  groupId: TEST_DATA.groupIds.group1,
+  reporters: [{ userId: TEST_DATA.userIds.user2 }],
+  executors: [{ userId: TEST_DATA.userIds.user3 }],
+  ...overrides,
+});
+
+const setupPrismaTransactionMock = () => {
+  const mockTransaction = vi
+    .fn()
+    .mockImplementation(async (callback: (tx: { $executeRaw: () => Promise<void> }) => Promise<unknown>) => {
+      return await callback({
+        $executeRaw: vi.fn().mockResolvedValue(undefined),
+      });
+    });
+  prismaMock.$transaction.mockImplementation(mockTransaction);
+  return mockTransaction;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -53,288 +109,113 @@ describe("notification-utilities", () => {
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
-
-    // デフォルトのモック設定
-    mockGetAuthenticatedSessionUserId.mockResolvedValue("user-1");
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("getUnreadNotificationsCount", () => {
-    describe("正常系テスト", () => {
-      test("should return true when user has unread notifications", async () => {
-        // Arrange
-        const userId = "user-1";
-        mockCachedGetUnreadNotificationsCount.mockResolvedValue(true);
+    const userId = TEST_DATA.userIds.user1;
 
-        // Act
-        const result = await getUnreadNotificationsCount(userId);
+    test.each([
+      { hasUnread: true, expected: true, description: "未読通知がある場合はtrueを返す" },
+      { hasUnread: false, expected: false, description: "未読通知がない場合はfalseを返す" },
+    ])("$description", async ({ hasUnread, expected }) => {
+      // Arrange
+      mockCachedGetUnreadNotificationsCount.mockResolvedValue(hasUnread);
 
-        // Assert
-        expect(result).toBe(true);
-        expect(mockCachedGetUnreadNotificationsCount).toHaveBeenCalledWith(userId);
-      });
+      // Act
+      const result = await getUnreadNotificationsCount(userId);
 
-      test("should return false when user has no unread notifications", async () => {
-        // Arrange
-        const userId = "user-1";
-        mockCachedGetUnreadNotificationsCount.mockResolvedValue(false);
-
-        // Act
-        const result = await getUnreadNotificationsCount(userId);
-
-        // Assert
-        expect(result).toBe(false);
-        expect(mockCachedGetUnreadNotificationsCount).toHaveBeenCalledWith(userId);
-      });
+      // Assert
+      expect(result).toBe(expected);
+      expect(mockCachedGetUnreadNotificationsCount).toHaveBeenCalledWith(userId);
     });
 
-    describe("異常系テスト", () => {
-      test("should handle error from cached function", async () => {
-        // Arrange
-        const userId = "user-1";
-        mockCachedGetUnreadNotificationsCount.mockRejectedValue(new Error("キャッシュエラー"));
+    test("キャッシュ関数でエラーが発生した場合はエラーを再スローする", async () => {
+      // Arrange
+      const errorMessage = "キャッシュエラー";
+      mockCachedGetUnreadNotificationsCount.mockRejectedValue(new Error(errorMessage));
 
-        // Act & Assert
-        await expect(getUnreadNotificationsCount(userId)).rejects.toThrow("キャッシュエラー");
-      });
+      // Act & Assert
+      await expect(getUnreadNotificationsCount(userId)).rejects.toThrow(errorMessage);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("getNotificationsAndUnreadCount", () => {
-    describe("正常系テスト", () => {
-      test("should return notifications and counts successfully", async () => {
-        // Arrange
-        const userId = "user-1";
-        const page = 1;
-        const limit = 20;
-        const mockNotifications = [
-          {
-            id: "notification-1",
-            title: "テスト通知",
-            message: "テストメッセージ",
-            NotificationTargetType: NotificationTargetType.USER,
-            isRead: false,
-            sentAt: new Date(),
-            readAt: null,
-            expiresAt: null,
-            actionUrl: null,
-            senderUserId: null,
-            groupId: null,
-            taskId: null,
-            userName: null,
-            groupName: null,
-            taskName: null,
-            auctionEventType: null,
-            auctionId: null,
-          },
-        ];
-        const mockResult = {
-          notifications: mockNotifications,
-          totalCount: 1,
-          unreadCount: 1,
-          readCount: 0,
-        };
-        mockCachedGetNotificationsAndUnreadCount.mockResolvedValue(mockResult);
+    const userId = TEST_DATA.userIds.user1;
+    const page = 1;
+    const limit = 20;
 
-        // Act
-        const result = await getNotificationsAndUnreadCount(userId, page, limit);
+    test("通知データと未読数を正常に取得する", async () => {
+      // Arrange
+      const mockNotifications = [createMockNotification()];
+      const mockResult = {
+        notifications: mockNotifications,
+        totalCount: 1,
+        unreadCount: 1,
+        readCount: 0,
+      };
+      mockCachedGetNotificationsAndUnreadCount.mockResolvedValue(mockResult);
 
-        // Assert
-        expect(result).toStrictEqual(mockResult);
-        expect(mockCachedGetNotificationsAndUnreadCount).toHaveBeenCalledWith(userId, page, limit);
-      });
+      // Act
+      const result = await getNotificationsAndUnreadCount(userId, page, limit);
 
-      test("should use default values for page and limit", async () => {
-        // Arrange
-        const userId = "user-1";
-        const mockResult = {
-          notifications: [],
-          totalCount: 0,
-          unreadCount: 0,
-          readCount: 0,
-        };
-        mockCachedGetNotificationsAndUnreadCount.mockResolvedValue(mockResult);
-
-        // Act
-        const result = await getNotificationsAndUnreadCount(userId);
-
-        // Assert
-        expect(result).toStrictEqual(mockResult);
-        expect(mockCachedGetNotificationsAndUnreadCount).toHaveBeenCalledWith(userId, 1, 20);
-      });
+      // Assert
+      expect(result).toStrictEqual(mockResult);
+      expect(mockCachedGetNotificationsAndUnreadCount).toHaveBeenCalledWith(userId, page, limit);
     });
 
-    describe("異常系テスト", () => {
-      test("should return empty result when error occurs", async () => {
-        // Arrange
-        const userId = "user-1";
-        mockCachedGetNotificationsAndUnreadCount.mockRejectedValue(new Error("データベースエラー"));
+    test("キャッシュ関数でエラーが発生した場合はエラーを再スローする", async () => {
+      // Arrange
+      const errorMessage = "データベースエラー";
+      mockCachedGetNotificationsAndUnreadCount.mockRejectedValue(new Error(errorMessage));
 
-        // Act
-        const result = await getNotificationsAndUnreadCount(userId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          notifications: [],
-          totalCount: 0,
-          unreadCount: 0,
-          readCount: 0,
-        });
-      });
+      // Act & Assert
+      await expect(getNotificationsAndUnreadCount(userId, page, limit)).rejects.toThrow(errorMessage);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("updateNotificationStatus", () => {
-    describe("正常系テスト", () => {
-      test("should update notification status successfully", async () => {
-        // Arrange
-        const updates = [
-          { notificationId: "notification-1", isRead: true },
-          { notificationId: "notification-2", isRead: false },
-        ];
-        const userId = "user-1";
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(userId);
+    const userId = TEST_DATA.userIds.user1;
 
-        // Prismaのトランザクションモック
-        const mockTransaction = vi
-          .fn()
-          .mockImplementation(async (callback: (tx: { $executeRaw: () => Promise<void> }) => Promise<unknown>) => {
-            return await callback({
-              $executeRaw: vi.fn().mockResolvedValue(undefined),
-            });
-          });
-        prismaMock.$transaction.mockImplementation(mockTransaction);
+    test.each([
+      {
+        description: "通知ステータスを正常に更新する",
+        updates: [
+          { notificationId: TEST_DATA.notificationIds.notification1, isRead: true },
+          { notificationId: TEST_DATA.notificationIds.notification2, isRead: false },
+        ],
+      },
+      {
+        description: "空の更新配列を処理する",
+        updates: [],
+      },
+    ])("$description", async ({ updates }) => {
+      // Arrange
+      setupPrismaTransactionMock();
 
-        // Act
-        const result = await updateNotificationStatus(updates);
+      // Act
+      const result = await updateNotificationStatus(updates, userId);
 
-        // Assert
-        expect(result).toStrictEqual({ success: true });
-        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalled();
-        expect(prismaMock.$transaction).toHaveBeenCalled();
-        expect(mockRevalidateTag).toHaveBeenCalledWith(`Notification:${userId}`);
-        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/notifications");
-      });
-
-      test("should handle empty updates array", async () => {
-        // Arrange
-        const updates: Array<{ notificationId: string; isRead: boolean }> = [];
-        const userId = "user-1";
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(userId);
-
-        const mockTransaction = vi
-          .fn()
-          .mockImplementation(async (callback: (tx: { $executeRaw: () => Promise<void> }) => Promise<unknown>) => {
-            return await callback({
-              $executeRaw: vi.fn().mockResolvedValue(undefined),
-            });
-          });
-        prismaMock.$transaction.mockImplementation(mockTransaction);
-
-        // Act
-        const result = await updateNotificationStatus(updates);
-
-        // Assert
-        expect(result).toStrictEqual({ success: true });
-      });
+      // Assert
+      expect(result).toStrictEqual({ success: true });
+      expect(prismaMock.$transaction).toHaveBeenCalled();
     });
 
-    describe("異常系テスト", () => {
-      test("should return error when authentication fails", async () => {
-        // Arrange
-        const updates = [{ notificationId: "notification-1", isRead: true }];
-        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
+    test("トランザクションが失敗した場合はエラーレスポンスを返す", async () => {
+      // Arrange
+      const updates = [{ notificationId: TEST_DATA.notificationIds.notification1, isRead: true }];
+      prismaMock.$transaction.mockRejectedValue(new Error("トランザクションエラー"));
 
-        // Act
-        const result = await updateNotificationStatus(updates);
+      // Act
+      const result = await updateNotificationStatus(updates, userId);
 
-        // Assert
-        expect(result).toStrictEqual({ success: false });
-      });
-
-      test("should return error when transaction fails", async () => {
-        // Arrange
-        const updates = [{ notificationId: "notification-1", isRead: true }];
-        const userId = "user-1";
-        mockGetAuthenticatedSessionUserId.mockResolvedValue(userId);
-        prismaMock.$transaction.mockRejectedValue(new Error("トランザクションエラー"));
-
-        // Act
-        const result = await updateNotificationStatus(updates);
-
-        // Assert
-        expect(result).toStrictEqual({ success: false });
-      });
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("getUserAccessibleGroupIds", () => {
-    describe("正常系テスト", () => {
-      test("should return group IDs for user with groups", async () => {
-        // Arrange
-        const userId = "user-1";
-        const mockGroupMemberships = [{ groupId: "group-1" }, { groupId: "group-2" }];
-        prismaMock.groupMembership.findMany.mockResolvedValue(
-          mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-        );
-
-        // Act
-        const result = await getUserAccessibleGroupIds(userId);
-
-        // Assert
-        expect(result).toStrictEqual(["group-1", "group-2"]);
-        expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-          where: { userId },
-          select: { groupId: true },
-        });
-      });
-
-      test("should return dummy ID when user has no groups", async () => {
-        // Arrange
-        const userId = "user-1";
-        prismaMock.groupMembership.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-        );
-
-        // Act
-        const result = await getUserAccessibleGroupIds(userId);
-
-        // Assert
-        expect(result).toStrictEqual(["00000000-0000-0000-0000-000000000000"]);
-      });
-
-      test("should filter out null group IDs", async () => {
-        // Arrange
-        const userId = "user-1";
-        const mockGroupMemberships = [{ groupId: "group-1" }, { groupId: null }, { groupId: "group-2" }];
-        prismaMock.groupMembership.findMany.mockResolvedValue(
-          mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-        );
-
-        // Act
-        const result = await getUserAccessibleGroupIds(userId);
-
-        // Assert
-        expect(result).toStrictEqual(["group-1", "group-2"]);
-      });
-    });
-
-    describe("異常系テスト", () => {
-      test("should handle database error", async () => {
-        // Arrange
-        const userId = "user-1";
-        prismaMock.groupMembership.findMany.mockRejectedValue(new Error("データベースエラー"));
-
-        // Act & Assert
-        await expect(getUserAccessibleGroupIds(userId)).rejects.toThrow("データベースエラー");
-      });
+      // Assert
+      expect(result).toStrictEqual({ success: false });
     });
   });
 
@@ -342,11 +223,11 @@ describe("notification-utilities", () => {
 
   describe("getNotificationTargetUserIds", () => {
     describe("正常系テスト", () => {
-      test("should return all user IDs for SYSTEM target type", async () => {
+      test("SYSTEM対象タイプの場合は全ユーザーIDを返す", async () => {
         // Arrange
         const targetType = NotificationTargetType.SYSTEM;
         const params = {};
-        const mockUsers = [{ id: "user-1" }, { id: "user-2" }, { id: "user-3" }];
+        const mockUsers = createMockUsers([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3]);
         prismaMock.user.findMany.mockResolvedValue(
           mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
         );
@@ -355,29 +236,30 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual(["user-1", "user-2", "user-3"]);
+        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3]);
         expect(prismaMock.user.findMany).toHaveBeenCalledWith({
           select: { id: true },
         });
       });
 
-      test("should return specified user IDs for USER target type", async () => {
+      test("USER対象タイプの場合は指定されたユーザーIDを返す", async () => {
         // Arrange
         const targetType = NotificationTargetType.USER;
-        const params = { userIds: ["user-1", "user-2"] };
+        const userIds = [TEST_DATA.userIds.user1, TEST_DATA.userIds.user2];
+        const params = { userIds };
 
         // Act
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual(["user-1", "user-2"]);
+        expect(result).toStrictEqual(userIds);
       });
 
-      test("should return group member IDs for GROUP target type", async () => {
+      test("GROUP対象タイプの場合はグループメンバーIDを返す", async () => {
         // Arrange
         const targetType = NotificationTargetType.GROUP;
-        const params = { groupId: "group-1" };
-        const mockGroupMembers = [{ userId: "user-1" }, { userId: "user-2" }];
+        const params = { groupId: TEST_DATA.groupIds.group1 };
+        const mockGroupMembers = createMockGroupMembers([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
         prismaMock.groupMembership.findMany.mockResolvedValue(
           mockGroupMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
         );
@@ -386,30 +268,29 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual(["user-1", "user-2"]);
+        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-          where: { groupId: "group-1" },
+          where: { groupId: TEST_DATA.groupIds.group1 },
           select: { userId: true },
         });
       });
 
-      test("should return task-related user IDs for TASK target type", async () => {
+      test("TASK対象タイプの場合はタスク関連ユーザーIDを返す", async () => {
         // Arrange
         const targetType = NotificationTargetType.TASK;
-        const params = { taskId: "task-1" };
-        const mockTask = {
-          creatorId: "user-1",
-          groupId: "group-1",
+        const params = { taskId: TEST_DATA.taskIds.task1 };
+        const mockTask = createMockTask({
           reporters: [
-            { userId: "user-2" },
+            { userId: TEST_DATA.userIds.user2 },
             { userId: null }, // 未登録ユーザーは除外される
           ],
           executors: [
-            { userId: "user-3" },
+            { userId: TEST_DATA.userIds.user3 },
             { userId: null }, // 未登録ユーザーは除外される
           ],
-        };
-        const mockGroupMembers = [{ userId: "user-4" }, { userId: "user-5" }];
+        });
+        const mockGroupMembers = createMockGroupMembers([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
+
         prismaMock.task.findUnique.mockResolvedValue(
           mockTask as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
         );
@@ -422,9 +303,9 @@ describe("notification-utilities", () => {
 
         // Assert
         // 重複を除去して返される
-        expect(result).toStrictEqual(["user-1", "user-2", "user-3", "user-4", "user-5"]);
+        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3]);
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
-          where: { id: "task-1" },
+          where: { id: TEST_DATA.taskIds.task1 },
           select: {
             creatorId: true,
             groupId: true,
@@ -441,15 +322,15 @@ describe("notification-utilities", () => {
           },
         });
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-          where: { groupId: "group-1" },
+          where: { groupId: TEST_DATA.groupIds.group1 },
           select: { userId: true },
         });
       });
 
-      test("should handle task not found for TASK target type", async () => {
+      test("TASK対象タイプでタスクが見つからない場合は空配列を返す", async () => {
         // Arrange
         const targetType = NotificationTargetType.TASK;
-        const params = { taskId: "task-1" };
+        const params = { taskId: TEST_DATA.taskIds.task1 };
         prismaMock.task.findUnique.mockResolvedValue(null);
 
         // Act
@@ -459,22 +340,19 @@ describe("notification-utilities", () => {
         expect(result).toStrictEqual([]);
       });
 
-      test("should remove duplicate user IDs", async () => {
+      test("重複ユーザーIDを除去する", async () => {
         // Arrange
         const targetType = NotificationTargetType.TASK;
-        const params = { taskId: "task-1" };
-        const mockTask = {
-          creatorId: "user-1",
-          groupId: "group-1",
-          reporters: [
-            { userId: "user-1" }, // 重複
-          ],
-          executors: [{ userId: "user-2" }],
-        };
-        const mockGroupMembers = [
-          { userId: "user-1" }, // 重複
-          { userId: "user-2" }, // 重複
-        ];
+        const params = { taskId: TEST_DATA.taskIds.task1 };
+        const mockTask = createMockTask({
+          reporters: [{ userId: TEST_DATA.userIds.user1 }], // 重複
+          executors: [{ userId: TEST_DATA.userIds.user2 }],
+        });
+        const mockGroupMembers = createMockGroupMembers([
+          TEST_DATA.userIds.user1, // 重複
+          TEST_DATA.userIds.user2, // 重複
+        ]);
+
         prismaMock.task.findUnique.mockResolvedValue(
           mockTask as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
         );
@@ -486,165 +364,76 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual(["user-1", "user-2"]);
+        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
       });
     });
 
-    describe("異常系テスト", () => {
-      test("should throw error when userIds not provided for USER target type", async () => {
-        // Arrange
-        const targetType = NotificationTargetType.USER;
-        const params = {};
-
+    describe("異常系・境界値テスト", () => {
+      test.each([
+        {
+          targetType: NotificationTargetType.USER,
+          params: {},
+          expectedError: "ユーザーIDが指定されていません",
+          description: "USER対象タイプでuserIdsが提供されない場合",
+        },
+        {
+          targetType: NotificationTargetType.GROUP,
+          params: {},
+          expectedError: "グループIDが指定されていません",
+          description: "GROUP対象タイプでgroupIdが提供されない場合",
+        },
+        {
+          targetType: NotificationTargetType.TASK,
+          params: {},
+          expectedError: "タスクIDが指定されていません",
+          description: "TASK対象タイプでtaskIdが提供されない場合",
+        },
+      ])("$description", async ({ targetType, params, expectedError }) => {
         // Act & Assert
-        await expect(getNotificationTargetUserIds(targetType, params)).rejects.toThrow(
-          "ユーザーIDが指定されていません",
-        );
+        await expect(getNotificationTargetUserIds(targetType, params)).rejects.toThrow(expectedError);
       });
 
-      test("should throw error when groupId not provided for GROUP target type", async () => {
-        // Arrange
-        const targetType = NotificationTargetType.GROUP;
-        const params = {};
-
-        // Act & Assert
-        await expect(getNotificationTargetUserIds(targetType, params)).rejects.toThrow(
-          "グループIDが指定されていません",
-        );
-      });
-
-      test("should throw error when taskId not provided for TASK target type", async () => {
-        // Arrange
-        const targetType = NotificationTargetType.TASK;
-        const params = {};
-
-        // Act & Assert
-        await expect(getNotificationTargetUserIds(targetType, params)).rejects.toThrow("タスクIDが指定されていません");
-      });
-
-      test("should handle database error for SYSTEM target type", async () => {
+      test("SYSTEM対象タイプでデータベースエラーが発生した場合", async () => {
         // Arrange
         const targetType = NotificationTargetType.SYSTEM;
         const params = {};
-        prismaMock.user.findMany.mockRejectedValue(new Error("データベースエラー"));
+        const errorMessage = "データベースエラー";
+        prismaMock.user.findMany.mockRejectedValue(new Error(errorMessage));
 
         // Act & Assert
-        await expect(getNotificationTargetUserIds(targetType, params)).rejects.toThrow("データベースエラー");
+        await expect(getNotificationTargetUserIds(targetType, params)).rejects.toThrow(errorMessage);
       });
-    });
 
-    describe("境界値テスト", () => {
-      test("should handle empty user list for SYSTEM target type", async () => {
+      test.each([
+        {
+          targetType: NotificationTargetType.SYSTEM,
+          setupMock: () => prismaMock.user.findMany.mockResolvedValue([]),
+          params: {},
+          description: "SYSTEM対象タイプで空のユーザーリスト",
+        },
+        {
+          targetType: NotificationTargetType.USER,
+          setupMock: () => {
+            // USER対象タイプでは追加のモック設定は不要
+          },
+          params: { userIds: [] },
+          description: "USER対象タイプで空のuserIds配列",
+        },
+        {
+          targetType: NotificationTargetType.GROUP,
+          setupMock: () => prismaMock.groupMembership.findMany.mockResolvedValue([]),
+          params: { groupId: TEST_DATA.groupIds.group1 },
+          description: "GROUP対象タイプで空のグループメンバー",
+        },
+      ])("$description の場合は空配列を返す", async ({ targetType, setupMock, params }) => {
         // Arrange
-        const targetType = NotificationTargetType.SYSTEM;
-        const params = {};
-        prismaMock.user.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
-        );
+        setupMock();
 
         // Act
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
         expect(result).toStrictEqual([]);
-      });
-
-      test("should handle empty userIds array for USER target type", async () => {
-        // Arrange
-        const targetType = NotificationTargetType.USER;
-        const params = { userIds: [] };
-
-        // Act
-        const result = await getNotificationTargetUserIds(targetType, params);
-
-        // Assert
-        expect(result).toStrictEqual([]);
-      });
-
-      test("should handle empty group members for GROUP target type", async () => {
-        // Arrange
-        const targetType = NotificationTargetType.GROUP;
-        const params = { groupId: "group-1" };
-        prismaMock.groupMembership.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-        );
-
-        // Act
-        const result = await getNotificationTargetUserIds(targetType, params);
-
-        // Assert
-        expect(result).toStrictEqual([]);
-      });
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("buildNotificationTargetCondition", () => {
-    describe("正常系テスト", () => {
-      test("should build condition with task IDs", async () => {
-        // Arrange
-        const userId = "user-1";
-        const groupIds = ["group-1", "group-2"];
-        const taskIds = ["task-1", "task-2"];
-
-        // Act
-        const result = await buildNotificationTargetCondition(userId, groupIds, taskIds);
-
-        // Assert
-        expect(result).toBeDefined();
-        // Prisma.sqlオブジェクトの内容は直接比較できないため、存在確認のみ
-      });
-
-      test("should build condition without task IDs", async () => {
-        // Arrange
-        const userId = "user-1";
-        const groupIds = ["group-1", "group-2"];
-
-        // Act
-        const result = await buildNotificationTargetCondition(userId, groupIds);
-
-        // Assert
-        expect(result).toBeDefined();
-      });
-
-      test("should build condition with empty task IDs", async () => {
-        // Arrange
-        const userId = "user-1";
-        const groupIds = ["group-1", "group-2"];
-        const taskIds: string[] = [];
-
-        // Act
-        const result = await buildNotificationTargetCondition(userId, groupIds, taskIds);
-
-        // Assert
-        expect(result).toBeDefined();
-      });
-    });
-
-    describe("境界値テスト", () => {
-      test("should handle empty group IDs", async () => {
-        // Arrange
-        const userId = "user-1";
-        const groupIds: string[] = [];
-
-        // Act
-        const result = await buildNotificationTargetCondition(userId, groupIds);
-
-        // Assert
-        expect(result).toBeDefined();
-      });
-
-      test("should handle single group ID", async () => {
-        // Arrange
-        const userId = "user-1";
-        const groupIds = ["group-1"];
-
-        // Act
-        const result = await buildNotificationTargetCondition(userId, groupIds);
-
-        // Assert
-        expect(result).toBeDefined();
       });
     });
   });
@@ -652,26 +441,42 @@ describe("notification-utilities", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("buildCommonNotificationWhereClause", () => {
-    describe("正常系テスト", () => {
-      test("should build where clause with task condition", async () => {
-        // Arrange
-        const userId = "user-1";
-        const includeTaskCondition = true;
+    const userId = TEST_DATA.userIds.user1;
 
-        // getUserAccessibleGroupIdsのモック
-        const mockGroupMemberships = [{ groupId: "group-1" }];
+    describe("正常系テスト", () => {
+      test.each([
+        {
+          includeTaskCondition: true,
+          description: "タスク条件を含むWHERE句を構築する",
+          expectTaskQuery: true,
+        },
+        {
+          includeTaskCondition: false,
+          description: "タスク条件を含まないWHERE句を構築する",
+          expectTaskQuery: false,
+        },
+        {
+          includeTaskCondition: undefined,
+          description: "デフォルト値でWHERE句を構築する（タスク条件を含む）",
+          expectTaskQuery: true,
+        },
+      ])("$description", async ({ includeTaskCondition, expectTaskQuery }) => {
+        // Arrange
+        const mockGroupMemberships = [{ groupId: TEST_DATA.groupIds.group1 }];
         prismaMock.groupMembership.findMany.mockResolvedValue(
           mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
         );
 
-        // getTaskIdsByGroupIdsのモック（内部関数なので間接的にテスト）
-        const mockTasks = [{ id: "task-1" }];
+        const mockTasks = [{ id: TEST_DATA.taskIds.task1 }];
         prismaMock.task.findMany.mockResolvedValue(
           mockTasks as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
         );
 
         // Act
-        const result = await buildCommonNotificationWhereClause(userId, includeTaskCondition);
+        const result =
+          includeTaskCondition === undefined
+            ? await buildCommonNotificationWhereClause(userId)
+            : await buildCommonNotificationWhereClause(userId, includeTaskCondition);
 
         // Assert
         expect(result).toBeDefined();
@@ -679,123 +484,225 @@ describe("notification-utilities", () => {
           where: { userId },
           select: { groupId: true },
         });
-        expect(prismaMock.task.findMany).toHaveBeenCalledWith({
-          where: { groupId: { in: ["group-1"] } },
-          select: { id: true },
-        });
+
+        if (expectTaskQuery) {
+          expect(prismaMock.task.findMany).toHaveBeenCalledWith({
+            where: { groupId: { in: [TEST_DATA.groupIds.group1] } },
+            select: { id: true },
+          });
+        } else {
+          expect(prismaMock.task.findMany).not.toHaveBeenCalled();
+        }
+      });
+    });
+
+    describe("異常系・境界値テスト", () => {
+      test("userIdが空の場合はエラーを投げる", async () => {
+        // Act & Assert
+        await expect(buildCommonNotificationWhereClause("")).rejects.toThrow("ユーザーIDがありません");
       });
 
-      test("should build where clause without task condition", async () => {
+      test.each([
+        {
+          errorSource: "groupMembership",
+          setupError: () => prismaMock.groupMembership.findMany.mockRejectedValue(new Error("データベースエラー")),
+          expectedError: "データベースエラー",
+          description: "グループメンバーシップ取得でエラーが発生",
+        },
+        {
+          errorSource: "task",
+          setupError: () => {
+            prismaMock.groupMembership.findMany.mockResolvedValue([
+              { groupId: TEST_DATA.groupIds.group1 },
+            ] as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>);
+            prismaMock.task.findMany.mockRejectedValue(new Error("タスク取得エラー"));
+          },
+          expectedError: "タスク取得エラー",
+          description: "タスク取得でエラーが発生",
+        },
+      ])("$description した場合", async ({ setupError, expectedError }) => {
         // Arrange
-        const userId = "user-1";
-        const includeTaskCondition = false;
+        setupError();
 
-        const mockGroupMemberships = [{ groupId: "group-1" }];
+        // Act & Assert
+        await expect(buildCommonNotificationWhereClause(userId, true)).rejects.toThrow(expectedError);
+      });
+
+      test.each([
+        {
+          description: "グループに所属していないユーザー",
+          groupMemberships: [] as Array<{ groupId: string }>,
+          expectedDummyGroupId: "00000000-0000-0000-0000-000000000000",
+        },
+        {
+          description: "グループにタスクが存在しない",
+          groupMemberships: [{ groupId: TEST_DATA.groupIds.group1 }] as Array<{ groupId: string }>,
+          tasks: [] as Array<{ id: string }>,
+        },
+      ])("$description の場合も正常にWHERE句を構築する", async ({ groupMemberships, tasks, expectedDummyGroupId }) => {
+        // Arrange
         prismaMock.groupMembership.findMany.mockResolvedValue(
-          mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+          groupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+        );
+        prismaMock.task.findMany.mockResolvedValue(
+          (tasks ?? []) as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
         );
 
         // Act
-        const result = await buildCommonNotificationWhereClause(userId, includeTaskCondition);
+        const result = await buildCommonNotificationWhereClause(userId);
 
         // Assert
         expect(result).toBeDefined();
-        expect(prismaMock.groupMembership.findMany).toHaveBeenCalled();
-        // タスク条件を含めない場合はタスク検索は実行されない
-        expect(prismaMock.task.findMany).not.toHaveBeenCalled();
+
+        if (expectedDummyGroupId) {
+          expect(prismaMock.task.findMany).toHaveBeenCalledWith({
+            where: { groupId: { in: [expectedDummyGroupId] } },
+            select: { id: true },
+          });
+        }
       });
+    });
 
-      test("should use default value for includeTaskCondition", async () => {
+    describe("SQL全文検証テスト", () => {
+      test("should generate correct SQL with task condition included", async () => {
         // Arrange
-        const userId = "user-1";
+        const mockGroupMemberships = [{ groupId: TEST_DATA.groupIds.group1 }];
+        const mockTasks = [{ id: TEST_DATA.taskIds.task1 }];
 
-        const mockGroupMemberships = [{ groupId: "group-1" }];
         prismaMock.groupMembership.findMany.mockResolvedValue(
           mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
         );
-
-        const mockTasks = [{ id: "task-1" }];
         prismaMock.task.findMany.mockResolvedValue(
           mockTasks as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
         );
 
         // Act
-        const result = await buildCommonNotificationWhereClause(userId);
+        const result = await buildCommonNotificationWhereClause(userId, true);
 
         // Assert
-        expect(result).toBeDefined();
-        // デフォルトでtrue（タスク条件を含む）
-        expect(prismaMock.task.findMany).toHaveBeenCalled();
-      });
-    });
+        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const expectedSqlString = `(
+      (n."target_type" = 'SYSTEM') OR
+      (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
+      (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
+      OR (n."target_type" = 'TASK' AND n."task_id" = ANY(?))
+    ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
+          .replace(/\s+/g, " ")
+          .trim();
 
-    describe("異常系テスト", () => {
-      test("should handle error from getUserAccessibleGroupIds", async () => {
-        // Arrange
-        const userId = "user-1";
-        prismaMock.groupMembership.findMany.mockRejectedValue(new Error("データベースエラー"));
-
-        // Act & Assert
-        await expect(buildCommonNotificationWhereClause(userId)).rejects.toThrow("データベースエラー");
+        expect(actualSqlString).toStrictEqual(expectedSqlString);
       });
 
-      test("should handle error from getTaskIdsByGroupIds", async () => {
+      test("should generate correct SQL without task condition", async () => {
         // Arrange
-        const userId = "user-1";
-        const includeTaskCondition = true;
+        const mockGroupMemberships = [{ groupId: TEST_DATA.groupIds.group1 }];
 
-        const mockGroupMemberships = [{ groupId: "group-1" }];
         prismaMock.groupMembership.findMany.mockResolvedValue(
           mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
         );
-        prismaMock.task.findMany.mockRejectedValue(new Error("タスク取得エラー"));
-
-        // Act & Assert
-        await expect(buildCommonNotificationWhereClause(userId, includeTaskCondition)).rejects.toThrow(
-          "タスク取得エラー",
-        );
-      });
-    });
-
-    describe("境界値テスト", () => {
-      test("should handle user with no groups", async () => {
-        // Arrange
-        const userId = "user-1";
-        prismaMock.groupMembership.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-        );
-        prismaMock.task.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
-        );
 
         // Act
-        const result = await buildCommonNotificationWhereClause(userId);
+        const result = await buildCommonNotificationWhereClause(userId, false);
 
         // Assert
-        expect(result).toBeDefined();
-        // ダミーIDでタスク検索が実行される
-        expect(prismaMock.task.findMany).toHaveBeenCalledWith({
-          where: { groupId: { in: ["00000000-0000-0000-0000-000000000000"] } },
-          select: { id: true },
-        });
+        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const expectedSqlString = `(
+      (n."target_type" = 'SYSTEM') OR
+      (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
+      (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
+      
+    ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
+          .replace(/\s+/g, " ")
+          .trim();
+
+        expect(actualSqlString).toStrictEqual(expectedSqlString);
       });
 
-      test("should handle groups with no tasks", async () => {
+      test("should generate correct SQL when no tasks exist", async () => {
         // Arrange
-        const userId = "user-1";
-        const mockGroupMemberships = [{ groupId: "group-1" }];
+        const mockGroupMemberships = [{ groupId: TEST_DATA.groupIds.group1 }];
+        const mockTasks = [] as Array<{ id: string }>;
+
         prismaMock.groupMembership.findMany.mockResolvedValue(
           mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
         );
         prismaMock.task.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+          mockTasks as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
         );
 
         // Act
-        const result = await buildCommonNotificationWhereClause(userId);
+        const result = await buildCommonNotificationWhereClause(userId, true);
 
         // Assert
-        expect(result).toBeDefined();
+        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const expectedSqlString = `(
+      (n."target_type" = 'SYSTEM') OR
+      (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
+      (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
+      
+    ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
+          .replace(/\s+/g, " ")
+          .trim();
+
+        expect(actualSqlString).toStrictEqual(expectedSqlString);
+      });
+
+      test("should generate correct SQL with dummy group ID when user has no groups", async () => {
+        // Arrange
+        const mockGroupMemberships = [] as Array<{ groupId: string }>;
+        const mockTasks = [] as Array<{ id: string }>;
+
+        prismaMock.groupMembership.findMany.mockResolvedValue(
+          mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+        );
+        prismaMock.task.findMany.mockResolvedValue(
+          mockTasks as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
+
+        // Act
+        const result = await buildCommonNotificationWhereClause(userId, true);
+
+        // Assert
+        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const expectedSqlString = `(
+      (n."target_type" = 'SYSTEM') OR
+      (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
+      (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
+      
+    ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
+          .replace(/\s+/g, " ")
+          .trim();
+
+        expect(actualSqlString).toStrictEqual(expectedSqlString);
+      });
+
+      test("should generate correct SQL with multiple groups and tasks", async () => {
+        // Arrange
+        const mockGroupMemberships = [{ groupId: TEST_DATA.groupIds.group1 }, { groupId: TEST_DATA.groupIds.group2 }];
+        const mockTasks = [{ id: TEST_DATA.taskIds.task1 }, { id: TEST_DATA.taskIds.task2 }];
+
+        prismaMock.groupMembership.findMany.mockResolvedValue(
+          mockGroupMemberships as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+        );
+        prismaMock.task.findMany.mockResolvedValue(
+          mockTasks as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
+        );
+
+        // Act
+        const result = await buildCommonNotificationWhereClause(userId, true);
+
+        // Assert
+        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const expectedSqlString = `(
+      (n."target_type" = 'SYSTEM') OR
+      (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
+      (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
+      OR (n."target_type" = 'TASK' AND n."task_id" = ANY(?))
+    ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
+          .replace(/\s+/g, " ")
+          .trim();
+
+        expect(actualSqlString).toStrictEqual(expectedSqlString);
       });
     });
   });

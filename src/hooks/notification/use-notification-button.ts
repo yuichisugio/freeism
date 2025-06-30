@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-list";
 import type { QueryFnReturnType } from "@/types/notifications-types";
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
@@ -80,12 +80,14 @@ export function useNotificationButton(): NotificationButtonReturn {
       queryFn: async () => {
         const result = await getNotificationsAndUnreadCount(userId, 1, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
-        const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
-          ...notification,
-          sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
-          readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
-          expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
-        }));
+        const processedNotifications: NotificationData[] = result.notifications.map(
+          (notification: NotificationData) => ({
+            ...notification,
+            sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
+            readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
+            expiresAt: notification.expiresAt ? new Date(notification.expiresAt as unknown as string) : null,
+          }),
+        );
 
         const pageData: QueryFnReturnType = {
           notifications: processedNotifications,

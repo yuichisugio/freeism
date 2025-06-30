@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationData } from "@/actions/notification/cache-notification-utilities";
+import type { NotificationData } from "@/actions/notification/cache-notification-list";
 import type { QueryFnReturnType } from "@/types/notifications-types";
 import type { InfiniteData } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -320,7 +320,7 @@ export function useNotificationList(): NotificationManagerResult {
 
       if (updatesToSync.length === 0) return;
 
-      updateNotificationStatus(updatesToSync)
+      updateNotificationStatus(updatesToSync, userId)
         .then(() => {
           queryClient.setQueriesData<InfiniteQueryData>(
             { queryKey: queryCacheKeys.Notification.userAllNotifications(userId) },

@@ -16,7 +16,7 @@ import { z } from "zod";
  * @param data - 作成するグループのデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function createGroup(data: CreateGroupFormData) {
+export async function createGroup(data: CreateGroupFormData): Promise<{ success: boolean; error?: string }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   try {
@@ -74,7 +74,13 @@ export async function createGroup(data: CreateGroupFormData) {
      */
     if (error instanceof z.ZodError) {
       console.error("Zod validation error:", error.errors);
-      return { error: "入力内容に誤りがあります" };
+      return { success: false, error: "入力内容に誤りがあります" };
+    }
+
+    // Prismaの一意制約エラーをチェック
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+      console.error("Unique constraint error:", error);
+      return { success: false, error: "このグループ名は既に使用されています" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -83,7 +89,7 @@ export async function createGroup(data: CreateGroupFormData) {
      * エラーを返す
      */
     console.error("createGroup unexpected error:", error);
-    return { error: "エラーが発生しました" };
+    return { success: false, error: "エラーが発生しました" };
   }
 }
 
@@ -95,49 +101,64 @@ export async function createGroup(data: CreateGroupFormData) {
  * @returns 処理結果を含むオブジェクト
  */
 export async function joinGroup(groupId: string) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  try {
-    // 認証処理
-    const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループの存在確認
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-    });
-
-    if (!group) {
-      return { error: "グループが見つかりません" };
-    }
-
-    // 既に参加済みかチェック
-    const membership = await checkGroupMembership(userId, groupId);
-    if (membership) {
-      return { error: "既に参加済みです" };
-    }
-
-    // 参加人数が上限に達している場合
-    const memberCount = await prisma.groupMembership.count({
-      where: { groupId },
-    });
-    if (memberCount >= group.maxParticipants) {
-      return { error: "参加人数が上限に達しています" };
-    }
-
-    // グループに参加
-    await prisma.groupMembership.create({
-      data: {
-        userId,
-        groupId,
-      },
-    });
-
-    revalidatePath("/dashboard/group-list");
-    revalidatePath("/dashboard/my-groups");
-    return { success: true };
-  } catch (error) {
-    console.error("[JOIN_GROUP]", error);
-    return { error: "エラーが発生しました" };
+  if (!groupId) {
+    throw new Error("グループIDがありません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 認証処理
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループの存在確認
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+  });
+
+  if (!group) {
+    throw new Error("グループが見つかりません");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 既に参加済みかチェック
+  const membership = await checkGroupMembership(userId, groupId);
+  if (membership) {
+    throw new Error("既に参加済みです");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 参加人数が上限に達している場合
+  const memberCount = await prisma.groupMembership.count({
+    where: { groupId },
+  });
+  if (memberCount >= group.maxParticipants) {
+    throw new Error("参加人数が上限に達しています");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループに参加
+  await prisma.groupMembership.create({
+    data: {
+      userId,
+      groupId,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  revalidatePath("/dashboard/group-list");
+  revalidatePath("/dashboard/my-groups");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  return { success: true };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -148,36 +169,51 @@ export async function joinGroup(groupId: string) {
  * @returns 処理結果を含むオブジェクト
  */
 export async function deleteGroup(groupId: string) {
-  try {
-    // 認証処理
-    const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループの存在確認
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-    });
-
-    if (!group) {
-      return { error: "グループが見つかりません" };
-    }
-
-    // グループの作成者のみが削除可能
-    if (group.createdBy !== userId) {
-      return { error: "グループの削除権限がありません" };
-    }
-
-    // グループを削除
-    await prisma.group.delete({
-      where: { id: groupId },
-    });
-
-    revalidatePath("/dashboard/group-list");
-    revalidatePath("/dashboard/my-groups");
-    return { success: true };
-  } catch (error) {
-    console.error("[DELETE_GROUP]", error);
-    return { error: "グループの削除中にエラーが発生しました" };
+  // グループIDがあるかチェック
+  if (!groupId) {
+    throw new Error("グループIDがありません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 認証処理
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループの存在確認
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+  });
+
+  if (!group) {
+    return { error: "グループが見つかりません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループの作成者のみが削除可能
+  if (group.createdBy !== userId) {
+    return { error: "グループの削除権限がありません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループを削除
+  await prisma.group.delete({
+    where: { id: groupId },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  revalidatePath("/dashboard/group-list");
+  revalidatePath("/dashboard/my-groups");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  return { success: true };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -189,15 +225,24 @@ export async function deleteGroup(groupId: string) {
  * @returns 重複している場合はtrue、していない場合はfalse
  */
 export async function checkGroupExistByName(name: string) {
-  try {
-    const group = await prisma.group.findFirst({
-      where: { name },
-    });
-    return !!group;
-  } catch (error) {
-    console.error("[CHECK_GROUP_NAME]", error);
-    throw error;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループ名があるかチェック
+  if (!name) {
+    throw new Error("グループ名がありません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループ名の重複をチェック
+  const group = await prisma.group.findFirst({
+    where: { name },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 重複している場合はtrue、していない場合はfalse
+  return !!group;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -209,59 +254,74 @@ export async function checkGroupExistByName(name: string) {
  * @returns 処理結果を含むオブジェクト
  */
 export async function updateGroup(groupId: string, data: CreateGroupFormData) {
-  try {
-    // 認証処理
-    const userId = await getAuthenticatedSessionUserId();
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // グループの存在確認
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-    });
-
-    if (!group) {
-      return { error: "グループが見つかりません" };
-    }
-
-    // グループの作成者のみが編集可能
-    if (group.createdBy !== userId) {
-      return { error: "グループの編集権限がありません" };
-    }
-
-    // 同じ名前のグループが存在するかチェック（自分自身は除く）
-    if (data.name !== group.name) {
-      const existingGroup = await prisma.group.findFirst({
-        where: {
-          name: data.name,
-          NOT: {
-            id: groupId,
-          },
-        },
-      });
-
-      if (existingGroup) {
-        return { error: "このグループ名は既に使用されています" };
-      }
-    }
-
-    const validatedData = createGroupSchema.parse(data);
-
-    // グループを更新
-    await prisma.group.update({
-      where: { id: groupId },
-      data: validatedData,
-    });
-
-    revalidatePath("/dashboard/group-list");
-    revalidatePath("/dashboard/my-groups");
-    return { success: true };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error("Zod validation error:", error.errors);
-      return { error: "入力内容に誤りがあります" };
-    }
-    console.error("[UPDATE_GROUP]", error);
-    return { error: "グループの更新中にエラーが発生しました" };
+  // グループIDがあるかチェック
+  if (!groupId) {
+    throw new Error("グループIDがありません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 認証処理
+  const userId = await getAuthenticatedSessionUserId();
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループの存在確認
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+  });
+
+  if (!group) {
+    return { error: "グループが見つかりません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループの作成者のみが編集可能
+  if (group.createdBy !== userId) {
+    return { error: "グループの編集権限がありません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // 同じ名前のグループが存在するかチェック（自分自身は除く）
+  if (data.name !== group.name) {
+    const existingGroup = await prisma.group.findFirst({
+      where: {
+        name: data.name,
+        NOT: {
+          id: groupId,
+        },
+      },
+    });
+
+    if (existingGroup) {
+      return { error: "このグループ名は既に使用されています" };
+    }
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const validatedData = createGroupSchema.parse(data);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // グループを更新
+  await prisma.group.update({
+    where: { id: groupId },
+    data: validatedData,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  revalidatePath("/dashboard/group-list");
+  revalidatePath("/dashboard/my-groups");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  return { success: true };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -272,36 +332,39 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData) {
  * @returns グループメンバーの配列
  */
 export async function getGroupMembers(groupId: string): Promise<GetGroupMembers[]> {
-  try {
-    const members = await prisma.groupMembership.findMany({
-      where: {
-        groupId,
-      },
-      select: {
-        isGroupOwner: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  if (!groupId) {
+    throw new Error("グループIDがありません");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  const members = await prisma.groupMembership.findMany({
+    where: {
+      groupId,
+    },
+    select: {
+      isGroupOwner: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-      orderBy: {
-        joinedAt: "asc",
-      },
-    });
+    },
+    orderBy: {
+      joinedAt: "asc",
+    },
+  });
 
-    const returnMembers: GetGroupMembers[] = members.map((member) => ({
-      isGroupOwner: member.isGroupOwner,
-      userId: member.user.id,
-      appUserName: member.user.name ?? "未設定",
-    }));
+  const returnMembers: GetGroupMembers[] = members.map((member) => ({
+    isGroupOwner: member.isGroupOwner,
+    userId: member.user.id,
+    appUserName: member.user.name ?? "未設定",
+  }));
 
-    return returnMembers;
-  } catch (error) {
-    console.error("[GET_GROUP_MEMBERS]", error);
-    throw error;
-  }
+  return returnMembers;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -313,61 +376,68 @@ export async function getGroupMembers(groupId: string): Promise<GetGroupMembers[
  * @param addToBlackList - ブラックリストに追加するかどうか
  * @returns 処理結果を含むオブジェクト
  */
-export async function removeMember(groupId: string, userId: string, addToBlackList: boolean) {
-  try {
-    // 認証処理
-    const currentUserId = await getAuthenticatedSessionUserId();
+export async function removeMember(
+  groupId: string,
+  userId: string,
+  addToBlackList: boolean,
+): Promise<{ success: boolean }> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 操作者がグループオーナーかチェック
-    const isOwner = await checkIsPermission(currentUserId, groupId);
-    if (!isOwner.success) {
-      return { error: "グループメンバーを削除する権限がありません" };
-    }
+  if (!groupId || !userId || addToBlackList === undefined || addToBlackList === null) {
+    throw new Error("グループIDまたはユーザーIDがありません");
+  }
 
-    // 対象ユーザーのメンバーシップ確認
-    const membership = await checkGroupMembership(userId, groupId);
-    if (!membership) {
-      return { error: "指定されたユーザーはグループに参加していません" };
-    }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 操作者自身を削除対象にできないようにする
-    if (userId === currentUserId) {
-      return { error: "自分自身を削除することはできません" };
-    }
+  // 認証処理
+  const currentUserId = await getAuthenticatedSessionUserId();
 
-    // オーナー権限を持つメンバーは削除できないようにする
-    if (membership.isGroupOwner) {
-      return { error: "グループオーナーを削除することはできません" };
-    }
+  // 操作者がグループオーナーかチェック
+  const isOwner = await checkIsPermission(currentUserId, groupId);
+  if (!isOwner.success) {
+    throw new Error("グループメンバーを削除する権限がありません");
+  }
 
-    // トランザクション処理
-    await prisma.$transaction(async (tx) => {
-      // メンバーシップを削除
-      await tx.groupMembership.delete({
-        where: { id: membership.id },
-      });
+  // 対象ユーザーのメンバーシップ確認
+  const membership = await checkGroupMembership(userId, groupId);
+  if (!membership) {
+    throw new Error("指定されたユーザーはグループに参加していません");
+  }
 
-      // ブラックリストに追加する場合
-      if (addToBlackList) {
-        const group = await tx.group.findUnique({
-          where: { id: groupId },
-          select: { isBlackList: true },
-        });
+  // 操作者自身を削除対象にできないようにする
+  if (userId === currentUserId) {
+    throw new Error("自分自身を削除することはできません");
+  }
 
-        const blackList = (group?.isBlackList as Record<string, boolean>) ?? {};
-        blackList[userId] = true;
+  // オーナー権限を持つメンバーは削除できないようにする
+  if (membership.isGroupOwner) {
+    throw new Error("グループオーナーを削除することはできません");
+  }
 
-        await tx.group.update({
-          where: { id: groupId },
-          data: { isBlackList: blackList },
-        });
-      }
+  // トランザクション処理
+  await prisma.$transaction(async (tx) => {
+    // メンバーシップを削除
+    await tx.groupMembership.delete({
+      where: { id: membership.id },
     });
 
-    revalidatePath(`/dashboard/group/${groupId}`);
-    return { success: true };
-  } catch (error) {
-    console.error("[REMOVE_MEMBER]", error);
-    return { error: "メンバー削除中にエラーが発生しました" };
-  }
+    // ブラックリストに追加する場合
+    if (addToBlackList) {
+      const group = await tx.group.findUnique({
+        where: { id: groupId },
+        select: { isBlackList: true },
+      });
+
+      const blackList = (group?.isBlackList as Record<string, boolean>) ?? {};
+      blackList[userId] = true;
+
+      await tx.group.update({
+        where: { id: groupId },
+        data: { isBlackList: blackList },
+      });
+    }
+  });
+
+  revalidatePath(`/dashboard/group/${groupId}`);
+  return { success: true };
 }

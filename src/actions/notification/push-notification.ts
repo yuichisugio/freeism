@@ -9,8 +9,6 @@ import type { NotificationParams } from "./email-notification";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
 /**
  * Web Push用のサブスクリプション型
  */
@@ -45,7 +43,10 @@ export async function sendPushNotification(params: NotificationParams): Promise<
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 受信者のプッシュ通知設定を取得
+    /**
+     * 受信者のプッシュ通知設定を取得
+     * 設定画面で受信拒否しているユーザーを除外したuserIdのリストを作成
+     */
     const isPushNotificationEnabled = await prisma.userSettings.findMany({
       where: {
         userId: { in: params.recipientUserIds },
@@ -56,6 +57,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
       },
     });
 
+    // プッシュ通知設定が見つからない場合は送信処理を中断
     if (isPushNotificationEnabled.length === 0) {
       return { success: false, message: "プッシュ通知設定が見つかりません" };
     }
@@ -255,6 +257,15 @@ export async function sendPushNotification(params: NotificationParams): Promise<
  * @returns {string | null} 購読情報のID
  */
 export async function getRecordId(endpoint: string): Promise<string | null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  // エンドポイントがない場合はエラー
+  if (!endpoint) {
+    throw new Error("エンドポイントがありません");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   const recordId = await prisma.pushSubscription.findUnique({
     where: {
       endpoint: endpoint,
@@ -284,8 +295,6 @@ export async function saveSubscription(subscription: {
   recordId?: string;
   deviceId?: string;
 }): Promise<PushSubscription | { error: string }> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -313,6 +322,7 @@ export async function saveSubscription(subscription: {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // 有効期限をDateオブジェクトに変換
     const expirationTimeDate =
       typeof subscription.expirationTime === "number"
         ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
@@ -322,6 +332,7 @@ export async function saveSubscription(subscription: {
 
     let result: PushSubscription | undefined = undefined;
 
+    // ダミーのレコードIDの場合は新規作成、それ以外は更新
     if (dummyRecordId === subscription.recordId) {
       result = await prisma.pushSubscription.create({
         data: {
@@ -377,6 +388,13 @@ export async function deleteSubscription(endpoint: string) {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // エンドポイントがない場合はエラー
+    if (!endpoint) {
+      throw new Error("エンドポイントがありません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
     await prisma.pushSubscription.delete({
       where: {
         endpoint: endpoint,
@@ -395,6 +413,6 @@ export async function deleteSubscription(endpoint: string) {
       return { success: true }; // すでに削除されている場合も成功として扱う
     }
     console.error("購読情報の削除に失敗しました:", error);
-    throw new Error("購読情報の削除に失敗しました");
+    throw new Error(`購読情報の削除に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
   }
 }

@@ -5,7 +5,7 @@ import { prisma } from "@/library-setting/prisma";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // ユーザー情報の型定義
-type UserForForm = {
+export type UserForForm = {
   id: string;
   name: string;
 };
@@ -17,6 +17,22 @@ type UserForForm = {
  */
 export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroupOwner: boolean, userId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータの検証
+   */
+  if (
+    isAppOwner === undefined ||
+    isGroupOwner === undefined ||
+    userId === undefined ||
+    isAppOwner === null ||
+    isGroupOwner === null ||
+    userId === null
+  ) {
+    throw new Error("Invalid parameters");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ユーザー一覧を取得

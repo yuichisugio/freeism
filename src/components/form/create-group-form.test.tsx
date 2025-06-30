@@ -119,7 +119,7 @@ function setupCreateGroupSuccess() {
  * createGroup失敗時のモック設定
  */
 function setupCreateGroupError(error: string) {
-  mockCreateGroup.mockResolvedValue({ error });
+  mockCreateGroup.mockResolvedValue({ success: false, error });
 }
 
 /**

@@ -7,16 +7,72 @@ import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { AuctionEventType, NotificationTargetType, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { RawNotificationFromDB } from "./cache-notification-utilities";
-import {
-  cachedGetNotificationsAndUnreadCount,
-  cachedGetUnreadNotificationsCount,
-} from "./cache-notification-utilities";
+import type { RawNotificationFromDB } from "./cache-notification-list";
+import { cachedGetNotificationsAndUnreadCount } from "./cache-notification-list";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+// SQL文字列正規化ヘルパー関数
+/**
+ * SQL文字列を正規化して比較しやすくする関数
+ * 改行、余分なスペース、タブを除去し、統一された形式にする
+ * @param sqlString SQL文字列
+ * @returns 正規化されたSQL文字列
+ */
+function normalizeSqlString(sqlString: string): string {
+  return sqlString
+    .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
+    .replace(/\n/g, " ") // 改行を単一スペースに変換
+    .replace(/\t/g, " ") // タブを単一スペースに変換
+    .trim(); // 前後の空白を除去
+}
+
+/**
+ * Prisma.sqlオブジェクトから完全なSQL文字列を生成する関数
+ * @param strings SQL文字列の配列
+ * @param values 値の配列
+ * @returns 完全なSQL文字列
+ */
+function buildFullSqlString(strings: readonly string[], values: readonly unknown[]): string {
+  let result = "";
+  for (let i = 0; i < strings.length; i++) {
+    result += strings[i];
+    if (i < values.length) {
+      const value = values[i];
+      if (typeof value === "string") {
+        result += `'${value}'`;
+      } else {
+        result += String(value);
+      }
+    }
+  }
+  return normalizeSqlString(result);
+}
+
+/**
+ * モックされたPrisma.$queryRawの呼び出し引数を型安全に取得する関数
+ * @param callArgs prismaMock.$queryRaw.mock.calls[index]
+ * @returns SQL文字列と値の配列
+ */
+function extractSqlFromMockCall(callArgs: unknown[]): { strings: readonly string[]; values: readonly unknown[] } {
+  const firstArg = callArgs[0];
+
+  // 通知クエリの場合 (Prisma.sql` ... `形式)
+  if (firstArg && typeof firstArg === "object" && "strings" in firstArg && "values" in firstArg) {
+    return {
+      strings: (firstArg as { strings: readonly string[] }).strings,
+      values: (firstArg as { values: readonly unknown[] }).values,
+    };
+  }
+
+  // カウントクエリの場合 (配列形式の場合もある)
+  throw new Error("予期しないSQL呼び出し形式です");
+}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 // 依存関数のモック
-vi.mock("@/lib/actions/notification/notification-utilities", () => ({
+vi.mock("@/actions/notification/notification-utilities", () => ({
   buildCommonNotificationWhereClause: vi.fn(),
 }));
 
@@ -57,173 +113,6 @@ function createMockRawNotificationFromDB(overrides: Partial<RawNotificationFromD
   };
 }
 
-function createMockWhereClause(): Prisma.Sql {
-  return Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-describe("cachedGetUnreadNotificationsCount", () => {
-  beforeEach(() => {
-    // 各テスト前にモックをリセット
-    vi.clearAllMocks();
-
-    // デフォルトのモック設定
-    mockBuildCommonNotificationWhereClause.mockResolvedValue(createMockWhereClause());
-    mockCacheTag.mockReturnValue(undefined);
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("正常系テスト", () => {
-    test("should return true when unread notifications exist", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockResult = [{ id: "notification-1" }];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-      expect(mockCacheTag).toHaveBeenCalledWith(`Notification:${userId}`);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
-    });
-
-    test("should return false when no unread notifications exist", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockResult: RawNotificationFromDB[] = [];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-      expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle different user IDs correctly", async () => {
-      // Arrange
-      const userId = "user-2";
-      const mockResult = [{ id: "notification-2" }];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-      expect(mockCacheTag).toHaveBeenCalledWith(`Notification:${userId}`);
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("異常系テスト", () => {
-    test("should return false when database query throws error", async () => {
-      // Arrange
-      const userId = "user-1";
-      prismaMock.$queryRaw.mockRejectedValue(new Error("データベースエラー"));
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-
-    test("should return false when buildCommonNotificationWhereClause throws error", async () => {
-      // Arrange
-      const userId = "user-1";
-      mockBuildCommonNotificationWhereClause.mockRejectedValue(new Error("WHERE句構築エラー"));
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-
-    test("should handle null result from database", async () => {
-      // Arrange
-      const userId = "user-1";
-      prismaMock.$queryRaw.mockResolvedValue(null as unknown as RawNotificationFromDB[]);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    test("should handle undefined result from database", async () => {
-      // Arrange
-      const userId = "user-1";
-      prismaMock.$queryRaw.mockResolvedValue(undefined as unknown as RawNotificationFromDB[]);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("境界値テスト", () => {
-    test("should handle empty user ID", async () => {
-      // Arrange
-      const userId = "";
-      const mockResult: RawNotificationFromDB[] = [];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-
-    test("should handle very long user ID", async () => {
-      // Arrange
-      const userId = "a".repeat(1000);
-      const mockResult = [{ id: "notification-1" }];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-
-    test("should handle special characters in user ID", async () => {
-      // Arrange
-      const userId = "user-!@#$%^&*()";
-      const mockResult: RawNotificationFromDB[] = [];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-  });
-});
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("cachedGetNotificationsAndUnreadCount", () => {
@@ -232,7 +121,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
     vi.clearAllMocks();
 
     // デフォルトのモック設定
-    mockBuildCommonNotificationWhereClause.mockResolvedValue(createMockWhereClause());
+    const sql = Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
+    mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
     mockCacheTag.mockReturnValue(undefined);
   });
 
@@ -311,8 +201,200 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       });
 
       expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-      expect(mockCacheTag).toHaveBeenCalledWith(`Notification:${userId}`);
+      expect(mockCacheTag).toHaveBeenCalledWith(`notification:notificationByUserId:${userId}`);
       expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(4);
+    });
+
+    test("should call prisma.$queryRaw with correct SQL statements", async () => {
+      // Arrange
+      const userId = "user-1";
+      const page = 1;
+      const limit = 20;
+      const offset = (page - 1) * limit; // 0
+
+      const mockNotifications = [createMockRawNotificationFromDB({ id: "notification-1", isRead: false })];
+      const mockUnreadCount = [{ count: BigInt(1) }];
+      const mockTotalCount = [{ count: BigInt(1) }];
+
+      prismaMock.$queryRaw
+        .mockResolvedValueOnce(mockNotifications) // 未読通知
+        .mockResolvedValueOnce([]) // 既読通知
+        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
+        .mockResolvedValueOnce(mockTotalCount); // 総カウント
+
+      // Act
+      await cachedGetNotificationsAndUnreadCount(userId, page, limit);
+
+      // Assert - 各prisma.$queryRawの呼び出しでのSQL文をチェック
+      expect(prismaMock.$queryRaw).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          strings: [
+            '\n        SELECT\n          n.id,\n          n.title,\n          n.message,\n          n."target_type" as "NotificationTargetType",\n          CASE -- isRead を動的に設定\n            WHEN n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            ' ->> \'isRead\')::boolean = TRUE THEN TRUE\n            ELSE FALSE\n          END as "isRead",\n          n."sent_at" as "sentAt",\n          CASE -- readAt を動的に設定\n            WHEN n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            " ->> 'isRead')::boolean = TRUE\n            THEN (n.\"is_read\" -> ",
+            ' ->> \'readAt\')::timestamp\n            ELSE null\n          END as "readAt",\n          n."expires_at" as "expiresAt",\n          n."action_url" as "actionUrl",\n          n."sender_user_id" as "senderUserId",\n          n."group_id" as "groupId",\n          n."task_id" as "taskId",\n          n."auction_event_type" as "auctionEventType",\n          n."auction_id" as "auctionId",\n          u.name as "userName",\n          g.name as "groupName",\n          t.task as "taskName"\n        FROM "Notification" n\n        LEFT JOIN "User" u ON n."sender_user_id" = u.id\n        LEFT JOIN "Group" g ON n."group_id" = g.id\n        LEFT JOIN "Task" t ON n."task_id" = t.id\n        WHERE (n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            " ->> 'isRead')::boolean = TRUE)) -- filterCondition を適用\n        ORDER BY n.\"sent_at\" DESC, n.id DESC\n        LIMIT ",
+            " OFFSET ",
+            "\n      ",
+          ],
+          values: [userId, userId, userId, userId, userId, userId, userId, limit, offset],
+        }),
+      );
+
+      expect(prismaMock.$queryRaw).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          strings: [
+            '\n        SELECT\n          n.id,\n          n.title,\n          n.message,\n          n."target_type" as "NotificationTargetType",\n          CASE -- isRead を動的に設定\n            WHEN n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            ' ->> \'isRead\')::boolean = TRUE THEN TRUE\n            ELSE FALSE\n          END as "isRead",\n          n."sent_at" as "sentAt",\n          CASE -- readAt を動的に設定\n            WHEN n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            " ->> 'isRead')::boolean = TRUE\n            THEN (n.\"is_read\" -> ",
+            ' ->> \'readAt\')::timestamp\n            ELSE null\n          END as "readAt",\n          n."expires_at" as "expiresAt",\n          n."action_url" as "actionUrl",\n          n."sender_user_id" as "senderUserId",\n          n."group_id" as "groupId",\n          n."task_id" as "taskId",\n          n."auction_event_type" as "auctionEventType",\n          n."auction_id" as "auctionId",\n          u.name as "userName",\n          g.name as "groupName",\n          t.task as "taskName"\n        FROM "Notification" n\n        LEFT JOIN "User" u ON n."sender_user_id" = u.id\n        LEFT JOIN "Group" g ON n."group_id" = g.id\n        LEFT JOIN "Task" t ON n."task_id" = t.id\n        WHERE (n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            " ->> 'isRead')::boolean = TRUE) -- filterCondition を適用\n        ORDER BY n.\"sent_at\" DESC, n.id DESC\n        LIMIT ",
+            " OFFSET ",
+            "\n      ",
+          ],
+          values: [userId, userId, userId, userId, userId, userId, userId, limit, offset],
+        }),
+      );
+
+      expect(prismaMock.$queryRaw).toHaveBeenNthCalledWith(
+        3,
+        [
+          '\n        SELECT COUNT(*) as count\n        FROM "Notification" n\n        WHERE ',
+          " -- 未読カウント用WHERE句\n      ",
+        ],
+        expect.objectContaining({
+          strings: [
+            '(n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? ',
+            ' AND (n."is_read" -> ',
+            " ->> 'isRead')::boolean = TRUE))",
+          ],
+          values: [userId, userId],
+        }),
+      );
+
+      expect(prismaMock.$queryRaw).toHaveBeenNthCalledWith(
+        4,
+        ['\n        SELECT COUNT(*) as count\n        FROM "Notification" n\n        WHERE ', "\n      "],
+        expect.objectContaining({
+          strings: [
+            '(n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW()))',
+          ],
+          values: [],
+        }),
+      );
+    });
+
+    test("should call prisma.$queryRaw with exact SQL strings using toStrictEqual", async () => {
+      // Arrange
+      const userId = "user-1";
+      const page = 1;
+      const limit = 20;
+      const offset = (page - 1) * limit; // 0
+
+      const mockNotifications = [createMockRawNotificationFromDB({ id: "notification-1", isRead: false })];
+      const mockUnreadCount = [{ count: BigInt(1) }];
+      const mockTotalCount = [{ count: BigInt(1) }];
+
+      prismaMock.$queryRaw
+        .mockResolvedValueOnce(mockNotifications) // 未読通知
+        .mockResolvedValueOnce([]) // 既読通知
+        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
+        .mockResolvedValueOnce(mockTotalCount); // 総カウント
+
+      // Act
+      await cachedGetNotificationsAndUnreadCount(userId, page, limit);
+
+      // Assert - SQL全文をtoStrictEqualでチェック
+      // 1回目の呼び出し: 未読通知クエリ
+      const firstCallArgs = prismaMock.$queryRaw.mock.calls[0];
+      const firstCallSqlData = extractSqlFromMockCall(firstCallArgs);
+      const firstCallSql = buildFullSqlString(firstCallSqlData.strings, firstCallSqlData.values);
+      const expectedFirstSql = normalizeSqlString(`
+        SELECT 
+          n.id, 
+          n.title, 
+          n.message, 
+          n."target_type" as "NotificationTargetType", 
+          CASE -- isRead を動的に設定 
+            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE THEN TRUE 
+            ELSE FALSE 
+          END as "isRead", 
+          n."sent_at" as "sentAt", 
+          CASE -- readAt を動的に設定 
+            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE 
+            THEN (n."is_read" -> '${userId}' ->> 'readAt')::timestamp 
+            ELSE null 
+          END as "readAt", 
+          n."expires_at" as "expiresAt", 
+          n."action_url" as "actionUrl", 
+          n."sender_user_id" as "senderUserId", 
+          n."group_id" as "groupId", 
+          n."task_id" as "taskId", 
+          n."auction_event_type" as "auctionEventType", 
+          n."auction_id" as "auctionId", 
+          u.name as "userName", 
+          g.name as "groupName", 
+          t.task as "taskName" 
+        FROM "Notification" n 
+        LEFT JOIN "User" u ON n."sender_user_id" = u.id 
+        LEFT JOIN "Group" g ON n."group_id" = g.id 
+        LEFT JOIN "Task" t ON n."task_id" = t.id 
+        WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE)) -- filterCondition を適用 
+        ORDER BY n."sent_at" DESC, n.id DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+      expect(firstCallSql).toStrictEqual(expectedFirstSql);
+
+      // 2回目の呼び出し: 既読通知クエリ
+      const secondCallArgs = prismaMock.$queryRaw.mock.calls[1];
+      const secondCallSqlData = extractSqlFromMockCall(secondCallArgs);
+      const secondCallSql = buildFullSqlString(secondCallSqlData.strings, secondCallSqlData.values);
+      const expectedSecondSql = normalizeSqlString(`
+        SELECT 
+          n.id, 
+          n.title, 
+          n.message, 
+          n."target_type" as "NotificationTargetType", 
+          CASE -- isRead を動的に設定 
+            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE THEN TRUE 
+            ELSE FALSE 
+          END as "isRead", 
+          n."sent_at" as "sentAt", 
+          CASE -- readAt を動的に設定 
+            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE 
+            THEN (n."is_read" -> '${userId}' ->> 'readAt')::timestamp 
+            ELSE null 
+          END as "readAt", 
+          n."expires_at" as "expiresAt", 
+          n."action_url" as "actionUrl", 
+          n."sender_user_id" as "senderUserId", 
+          n."group_id" as "groupId", 
+          n."task_id" as "taskId", 
+          n."auction_event_type" as "auctionEventType", 
+          n."auction_id" as "auctionId", 
+          u.name as "userName", 
+          g.name as "groupName", 
+          t.task as "taskName" 
+        FROM "Notification" n 
+        LEFT JOIN "User" u ON n."sender_user_id" = u.id 
+        LEFT JOIN "Group" g ON n."group_id" = g.id 
+        LEFT JOIN "Task" t ON n."task_id" = t.id 
+        WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE) -- filterCondition を適用 
+        ORDER BY n."sent_at" DESC, n.id DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+      expect(secondCallSql).toStrictEqual(expectedSecondSql);
+
+      // カウントクエリは複雑な構造のため、このテストでは通知クエリのみをチェック
+      // 3回目と4回目の呼び出しは既存のテストでカバーされているため省略
     });
 
     test("should handle empty notifications list", async () => {
@@ -761,7 +843,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
         // モックをリセット
         vi.clearAllMocks();
-        mockBuildCommonNotificationWhereClause.mockResolvedValue(createMockWhereClause());
+        const sql = Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
+        mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
       }
     });
 
@@ -789,7 +872,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
         // モックをリセット
         vi.clearAllMocks();
-        mockBuildCommonNotificationWhereClause.mockResolvedValue(createMockWhereClause());
+        const sql = Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
+        mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
       }
     });
 
