@@ -17,6 +17,30 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
+     * バリデーション
+     * 検索クエリのバリデーション（undefined チェックのみ、空文字列は有効）。空文字列は「すべてのレビューを検索する」という意味で有効な値として扱う
+     * ページ番号のバリデーション（1以上）
+     * タブのバリデーション（search, edit, received）
+     */
+
+    // タブのバリデーション
+    if (searchParams?.tab && !REVIEW_SEARCH_CONSTANTS.TAB_TYPES.includes(searchParams.tab)) {
+      throw new Error("無効なタブが指定されました");
+    }
+
+    // ページ番号のバリデーション
+    if (searchParams?.page !== undefined && searchParams.page !== null && searchParams.page < 1) {
+      throw new Error("ページ番号は1以上である必要があります");
+    }
+
+    // 検索クエリのバリデーション。空文字列は有効な値として扱うが、それ以外はエラー
+    if (searchParams && (searchParams.searchQuery === undefined || searchParams.searchQuery === null)) {
+      throw new Error("検索クエリの定義がありません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * ページネーション/オフセット/取得件数の設定
      */
     const page = searchParams?.page ?? 1;
@@ -37,6 +61,17 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
      */
     if (searchParams?.searchQuery && searchParams.searchQuery.length > 0) {
       whereCondition.OR = [
+        // ユーザー名での検索（レビュー送信者）
+        {
+          reviewer: {
+            settings: {
+              username: {
+                contains: searchParams.searchQuery,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
         // ユーザー名での検索（レビュー受信者）
         {
           reviewee: {
@@ -48,6 +83,7 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
             },
           },
         },
+        // レビューコメントでの検索
         {
           comment: {
             contains: searchParams.searchQuery,
@@ -79,8 +115,8 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
           },
         },
         // ID系での検索
-        { revieweeId: searchParams.searchQuery },
         { reviewerId: searchParams.searchQuery },
+        { revieweeId: searchParams.searchQuery },
         { auctionId: searchParams.searchQuery },
         { auction: { taskId: searchParams.searchQuery } },
         { auction: { task: { groupId: searchParams.searchQuery } } },
@@ -94,6 +130,12 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
      */
     const reviews = await prisma.auctionReview.findMany({
       where: whereCondition,
+      // 作成日時の降順でソート（新しいレビューが上に）
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: offset, // スキップする件数
+      take: limit, // 取得する件数
       select: {
         id: true,
         rating: true,
@@ -142,12 +184,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
           },
         },
       },
-      // 作成日時の降順でソート（新しいレビューが上に）
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: offset, // スキップする件数
-      take: limit, // 取得する件数
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -169,7 +205,7 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
       const reviewer = review.reviewer
         ? {
             id: review.reviewer.id,
-            username: review.reviewer.settings?.username ?? "未設定",
+            username: review.reviewer.settings?.username ?? `未設定:${review.reviewer.id}`,
           }
         : null;
 
@@ -177,7 +213,7 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
       const reviewee = review.reviewee
         ? {
             id: review.reviewee.id,
-            username: review.reviewee.settings?.username ?? "未設定",
+            username: review.reviewee.settings?.username ?? `未設定:${review.reviewee.id}`,
           }
         : null;
 
@@ -223,6 +259,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
      */
   } catch (error) {
     console.error("Error fetching all reviews:", error);
-    throw new Error("レビューの取得に失敗しました");
+    throw new Error(`${error instanceof Error ? error.message : "不明なエラー"}:レビューの取得に失敗しました`);
   }
 }
