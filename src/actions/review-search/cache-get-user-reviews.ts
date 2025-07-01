@@ -71,17 +71,6 @@ export async function getCachedUserReviews(
      */
     if (searchParams?.searchQuery && searchParams.searchQuery.length > 0) {
       whereCondition.OR = [
-        // ユーザー名での検索（レビュー受信者）
-        {
-          reviewee: {
-            settings: {
-              username: {
-                contains: searchParams.searchQuery,
-                mode: "insensitive",
-              },
-            },
-          },
-        },
         // ユーザー名での検索（レビュー送信者）
         {
           reviewer: {
@@ -125,7 +114,6 @@ export async function getCachedUserReviews(
           },
         },
         // ID系での検索
-        { revieweeId: searchParams.searchQuery },
         { reviewerId: searchParams.searchQuery },
         { auctionId: searchParams.searchQuery },
         { auction: { taskId: searchParams.searchQuery } },
@@ -154,17 +142,6 @@ export async function getCachedUserReviews(
         reviewPosition: true,
         // レビュー送信者の情報
         reviewer: {
-          select: {
-            id: true,
-            settings: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
-        // レビュー受信者の情報
-        reviewee: {
           select: {
             id: true,
             settings: {
@@ -214,15 +191,7 @@ export async function getCachedUserReviews(
       const reviewer = review.reviewer
         ? {
             id: review.reviewer.id,
-            username: review.reviewer.settings?.username ?? "未設定",
-          }
-        : null;
-
-      // レビュー受信者の情報を安全に取得
-      const reviewee = review.reviewee
-        ? {
-            id: review.reviewee.id,
-            username: review.reviewee.settings?.username ?? "未設定",
+            username: review.reviewer.settings?.username ?? `未設定:${review.reviewer.id}`,
           }
         : null;
 
@@ -234,7 +203,7 @@ export async function getCachedUserReviews(
         updatedAt: review.updatedAt,
         reviewPosition: review.reviewPosition,
         reviewer,
-        reviewee,
+        reviewee: null, // レビュー受信者の情報は自分自身の情報なので不要
         auction: {
           id: review.auction.id,
           task: {

@@ -288,7 +288,7 @@ describe("review-search", () => {
         async ({ comment }) => {
           const expectedReview = setupUpdateReviewMocks(newRating, comment);
 
-          const result = await updateReview(testReviewId, newRating, comment);
+          const result = await updateReview(testReviewId, newRating, comment, testSearchParams);
 
           expect(result).toStrictEqual(expectedReview);
           expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
@@ -311,7 +311,7 @@ describe("review-search", () => {
         async ({ rating }) => {
           const expectedReview = setupUpdateReviewMocks(rating, newComment);
 
-          const result = await updateReview(testReviewId, rating, newComment);
+          const result = await updateReview(testReviewId, rating, newComment, testSearchParams);
 
           expect(result).toStrictEqual(expectedReview);
           expect(prismaMock.auctionReview.update).toHaveBeenCalledWith({
@@ -343,7 +343,9 @@ describe("review-search", () => {
         },
         { reviewId: testReviewId, rating: null as unknown as number, comment: newComment, description: "null rating" },
       ])("should handle invalid parameters: $description", async ({ reviewId, rating, comment }) => {
-        await expect(updateReview(reviewId, rating, comment)).rejects.toThrow("無効なパラメータが指定されました");
+        await expect(updateReview(reviewId, rating, comment, testSearchParams)).rejects.toThrow(
+          "無効なパラメータが指定されました",
+        );
         expect(prismaMock.auctionReview.update).not.toHaveBeenCalled();
       });
 
@@ -391,7 +393,9 @@ describe("review-search", () => {
       ])("should handle various error scenarios", async ({ setup, expectedError }) => {
         setup();
 
-        await expect(updateReview(testReviewId, newRating, newComment)).rejects.toThrow(expectedError);
+        await expect(updateReview(testReviewId, newRating, newComment, testSearchParams)).rejects.toThrow(
+          expectedError,
+        );
       });
     });
   });

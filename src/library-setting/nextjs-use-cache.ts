@@ -1,3 +1,4 @@
+import { type ReviewSearchParams } from "@/components/review-search/review-search";
 import { type ReviewPosition } from "@prisma/client";
 
 /**
@@ -23,5 +24,9 @@ export const useCacheKeys = {
   },
   notification: {
     notificationByUserId: (userId: string) => ["notification", "notificationByUserId", userId] as const,
+  },
+  reviewSearch: {
+    myReviews: (userId: string, searchParams: ReviewSearchParams) =>
+      ["reviewSearch", "myReviews", userId, JSON.stringify(searchParams)] as const,
   },
 };

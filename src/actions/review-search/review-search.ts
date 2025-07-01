@@ -6,7 +6,9 @@ import type {
   SearchSuggestion,
 } from "@/components/review-search/review-search";
 import type { AuctionReview } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
+import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 
 import { getCachedAllReviews } from "./cache-get-all-review";
@@ -47,6 +49,7 @@ export async function updateReview(
   reviewId: string,
   rating: number,
   comment: string | null,
+  searchParams: ReviewSearchParams | null,
 ): Promise<{ success: boolean; message: string; review?: AuctionReview }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -99,6 +102,24 @@ export async function updateReview(
         updatedAt: new Date(),
       },
     });
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * キャッシュの更新
+     */
+    revalidateTag(
+      useCacheKeys.reviewSearch
+        .myReviews(
+          userId,
+          searchParams ?? {
+            searchQuery: "",
+            page: 1,
+            tab: "search",
+          },
+        )
+        .join(":"),
+    );
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

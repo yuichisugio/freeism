@@ -186,7 +186,7 @@ export function useReviewSearch() {
    */
   const { mutateAsync: updateReviewMutation, isPending } = useMutation({
     mutationFn: ({ reviewId, rating, comment }: { reviewId: string; rating: number; comment: string | null }) =>
-      updateReview(reviewId, rating, comment),
+      updateReview(reviewId, rating, comment, searchParams),
     onSuccess: (_updatedReview, variables) => {
       // 編集モードを終了
       setEditingReviews((prev) => {
