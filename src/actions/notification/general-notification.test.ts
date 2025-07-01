@@ -61,6 +61,22 @@ function createValidGeneralNotificationParams(
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+/**
+ * PushNotificationResultのモックを作成するヘルパー関数
+ */
+function createPushNotificationResult(
+  overrides: Partial<{ success: boolean; sent: number; failed: number; totalTargets: number; message: string }> = {},
+) {
+  return {
+    success: true,
+    sent: 1,
+    failed: 0,
+    totalTargets: 1,
+    message: "通知の送信に成功しました",
+    ...overrides,
+  };
+}
+
 // ヘルパー関数：通知メソッドの呼び出し確認
 function expectNotificationMethodCalls(inApp: boolean, email: boolean, push: boolean) {
   if (inApp) {
@@ -114,7 +130,7 @@ describe("sendGeneralNotification", () => {
     mockGetNotificationTargetUserIds.mockResolvedValue(["user-1", "user-2"]);
     mockSendInAppNotification.mockResolvedValue({ success: true });
     mockSendEmailNotification.mockResolvedValue({ success: true });
-    mockSendPushNotification.mockResolvedValue({ success: true });
+    mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -275,7 +291,9 @@ describe("sendGeneralNotification", () => {
         description: "should return error when push notification fails",
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH],
         mockSetup: () => {
-          mockSendPushNotification.mockResolvedValue({ success: false, message: "プッシュ通知エラー" });
+          mockSendPushNotification.mockResolvedValue(
+            createPushNotificationResult({ success: false, message: "プッシュ通知エラー" }),
+          );
         },
         expectedError: "プッシュ通知の送信に失敗しました",
         expectedCalls: { inApp: true, email: false, push: true },

@@ -229,20 +229,20 @@ describe("POST /api/push-notification/subscription-update", () => {
       expect(mockSaveSubscription).not.toHaveBeenCalled();
     });
 
-    test("should return 400 when saveSubscription returns error", async () => {
+    test("should return 500 when saveSubscription throws error", async () => {
       // Arrange
       const request = createMockRequest(validRequestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
       mockGetRecordId.mockResolvedValue("test-record-id");
-      mockSaveSubscription.mockResolvedValue({ error: "Database error" });
+      mockSaveSubscription.mockRejectedValue(new Error("Database error"));
 
       // Act
       const response = await POST(request);
       const responseData = (await response.json()) as { error: string };
 
       // Assert
-      expect(response.status).toBe(400);
-      expect(responseData.error).toBe("Database error");
+      expect(response.status).toBe(500);
+      expect(responseData.error).toBe("購読の更新に失敗しました");
       expect(mockSaveSubscription).toHaveBeenCalledWith({
         endpoint: validRequestBody.newSubscription.endpoint,
         expirationTime: validRequestBody.newSubscription.expirationTime,

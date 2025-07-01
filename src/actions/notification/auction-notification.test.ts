@@ -101,10 +101,26 @@ function expectNotificationCalls(options: { push?: number; email?: number; inApp
 }
 
 /**
+ * PushNotificationResultのモックを作成するヘルパー関数
+ */
+function createPushNotificationResult(
+  overrides: Partial<{ success: boolean; sent: number; failed: number; totalTargets: number; message: string }> = {},
+) {
+  return {
+    success: true,
+    sent: 1,
+    failed: 0,
+    totalTargets: 1,
+    message: "通知の送信に成功しました",
+    ...overrides,
+  };
+}
+
+/**
  * モック成功設定ヘルパー
  */
 function setupSuccessMocks() {
-  mockSendPushNotification.mockResolvedValue({ success: true });
+  mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
   mockSendEmailNotification.mockResolvedValue({ success: true });
   mockSendInAppNotification.mockResolvedValue({ success: true });
 }
@@ -353,7 +369,7 @@ describe("auction-notification", () => {
         {
           description: "should return error when push notification fails",
           sendMethods: [NotificationSendMethod.WEB_PUSH],
-          mockSetup: () => mockSendPushNotification.mockResolvedValue({ success: false }),
+          mockSetup: () => mockSendPushNotification.mockResolvedValue(createPushNotificationResult({ success: false })),
           expectedError: "プッシュ通知の送信に失敗しました",
           expectedCalls: { push: 1, email: 0, inApp: 0 },
         },
@@ -505,7 +521,7 @@ describe("auction-notification", () => {
     describe("複合パターンテスト", () => {
       test("should handle multiple notification methods with mixed success/failure", async () => {
         // Arrange
-        mockSendPushNotification.mockResolvedValue({ success: true });
+        mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
         mockSendEmailNotification.mockResolvedValue({ success: false });
         mockSendInAppNotification.mockResolvedValue({ success: true });
 

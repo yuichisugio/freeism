@@ -1,9 +1,6 @@
 import type { PushSubscription } from "@prisma/client";
 import type { Session } from "next-auth";
 import type { SendResult } from "web-push";
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// モック関数のインポート
 import { getAuthSession } from "@/lib/utils";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { pushSubscriptionFactory, userSettingsFactory } from "@/test/test-utils/test-utils-prisma-orm";
@@ -107,10 +104,8 @@ function createSubscriptionData(
 
 describe("sendPushNotification", () => {
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     vi.clearAllMocks();
 
-    // 環境変数のモック設定
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = "test-public-key";
     process.env.VAPID_PRIVATE_KEY = "test-private-key";
     process.env.VAPID_SUBJECT = "mailto:test@example.com";
@@ -158,6 +153,7 @@ describe("sendPushNotification", () => {
         sent: 2,
         failed: 0,
         totalTargets: 2,
+        message: "通知の送信に成功しました",
       });
       expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
         where: {
@@ -200,6 +196,7 @@ describe("sendPushNotification", () => {
         sent: 1,
         failed: 0,
         totalTargets: 1,
+        message: "通知の送信に成功しました",
       });
       expect(prismaMock.pushSubscription.findMany).toHaveBeenCalledWith({
         where: {
@@ -245,6 +242,7 @@ describe("sendPushNotification", () => {
         sent: 1,
         failed: 0,
         totalTargets: 2,
+        message: "通知の送信に成功しました",
       });
       expect(mockWebPush.sendNotification).toHaveBeenCalledTimes(1);
       expect(mockWebPush.sendNotification).toHaveBeenCalledWith(
@@ -286,6 +284,14 @@ describe("sendPushNotification", () => {
           // actionUrlがnullの場合はdataプロパティが含まれない
         }),
       );
+      expect(mockWebPush.sendNotification).toHaveBeenCalledTimes(1);
+      expect(mockWebPush.sendNotification).toHaveBeenCalledWith(
+        expect.any(Object),
+        JSON.stringify({
+          title: "テスト通知",
+          body: "テストメッセージ",
+        }),
+      );
     });
   });
 
@@ -303,6 +309,9 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
+        sent: 0,
+        failed: 0,
+        totalTargets: 0,
         message: "プッシュ通知設定が見つかりません",
       });
       expect(prismaMock.pushSubscription.findMany).not.toHaveBeenCalled();
@@ -324,6 +333,9 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
+        sent: 0,
+        failed: 0,
+        totalTargets: 0,
         message: "VAPIDキーが設定されていません。",
       });
     });
@@ -380,6 +392,7 @@ describe("sendPushNotification", () => {
         sent: 0,
         failed: 1,
         totalTargets: 1,
+        message: "通知の送信に成功しました",
       });
       expect(prismaMock.pushSubscription.delete).toHaveBeenCalledWith({
         where: {
@@ -412,6 +425,7 @@ describe("sendPushNotification", () => {
         sent: 0,
         failed: 1,
         totalTargets: 1,
+        message: "通知の送信に成功しました",
       });
       expect(mockWebPush.sendNotification).not.toHaveBeenCalled();
     });
@@ -427,7 +441,10 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "通知の送信に失敗しました",
+        sent: 0,
+        failed: 0,
+        totalTargets: 0,
+        message: "通知の送信に失敗しました: Database error",
       });
     });
   });
@@ -443,11 +460,14 @@ describe("sendPushNotification", () => {
       const emptyResult = await sendPushNotification(emptyRecipientsParams);
       expect(emptyResult).toStrictEqual({
         success: false,
+        sent: 0,
+        failed: 0,
+        totalTargets: 0,
         message: "プッシュ通知設定が見つかりません",
       });
+    });
 
-      // deviceIdがnullの場合
-      vi.clearAllMocks();
+    test("should handle edge cases: deviceId is null", async () => {
       const params = createValidNotificationParams();
       const userSettings = createUserSettingsMock([{ isPushEnabled: true, userId: "user-1" }]);
       const pushSubscriptions = [createPushSubscriptionMock({ userId: "user-1", deviceId: null })];
@@ -457,10 +477,11 @@ describe("sendPushNotification", () => {
 
       const deviceIdResult = await sendPushNotification(params);
       expect(deviceIdResult).toStrictEqual({
-        success: false, // 修正: deviceIdがnullでスキップされるため、successはfalse
+        success: false, // deviceIdがnullの場合は送信対象が空になりsuccessCountが0のため、successはfalse
         sent: 0,
         failed: 0,
         totalTargets: 1,
+        message: "通知の送信に成功しました",
       });
     });
   });
@@ -475,17 +496,28 @@ describe("getRecordId", () => {
 
   describe("正常系", () => {
     test("should handle various endpoint scenarios", async () => {
-      // 正常系: レコードが存在する場合
+      // Arrange
       const validEndpoint = "https://fcm.googleapis.com/fcm/send/test-endpoint";
       const expectedId = "test-record-id";
 
       prismaMock.pushSubscription.findUnique.mockResolvedValue({ id: expectedId } as PushSubscription);
-      const validResult = await getRecordId(validEndpoint);
-      expect(validResult).toBe(expectedId);
 
-      // 正常系: レコードが存在しない場合
+      // Act
+      const validResult = await getRecordId(validEndpoint);
+
+      // Assert
+      expect(validResult).toBe(expectedId);
+    });
+
+    test("should handle edge cases: record not found", async () => {
+      // Arrange
+      const validEndpoint = "https://fcm.googleapis.com/fcm/send/test-endpoint";
       prismaMock.pushSubscription.findUnique.mockResolvedValue(null);
+
+      // Act
       const nullResult = await getRecordId(validEndpoint);
+
+      // Assert
       expect(nullResult).toBeNull();
     });
   });
@@ -571,38 +603,35 @@ describe("saveSubscription", () => {
       });
     });
 
+    test.each([{ expirationTime: null }, { expirationTime: undefined }])(
+      "should handle various expirationTime values and get recordId when not provided",
+      async (subscription) => {
+        // Arrange
+        const subscription2 = createSubscriptionData(subscription);
+        const createdSubscription = createPushSubscriptionMock();
+        prismaMock.pushSubscription.create.mockResolvedValue(createdSubscription);
+
+        // Act
+        const nullResult = await saveSubscription(subscription2);
+
+        // Assert
+        expect(nullResult).toStrictEqual(createdSubscription);
+      },
+    );
+
     test("should handle various expirationTime values and get recordId when not provided", async () => {
-      // null expirationTime
-      const nullExpiration = createSubscriptionData({
-        expirationTime: null,
-        recordId: "00000000000000000000000000000000",
-      });
-      const createdSubscription = createPushSubscriptionMock();
-      prismaMock.pushSubscription.create.mockResolvedValue(createdSubscription);
-
-      const nullResult = await saveSubscription(nullExpiration);
-      expect(nullResult).toStrictEqual(createdSubscription);
-
-      // undefined expirationTime
-      vi.clearAllMocks();
-      const undefinedExpiration = createSubscriptionData({
-        expirationTime: undefined,
-        recordId: "00000000000000000000000000000000",
-      });
-      prismaMock.pushSubscription.create.mockResolvedValue(createdSubscription);
-
-      const undefinedResult = await saveSubscription(undefinedExpiration);
-      expect(undefinedResult).toStrictEqual(createdSubscription);
-
-      // recordIdが提供されていない場合（getRecordIdを使用）
-      vi.clearAllMocks();
+      // Arrange
       const noRecordId = createSubscriptionData();
       delete (noRecordId as { recordId?: string }).recordId;
+      const createdSubscription = createPushSubscriptionMock();
 
       prismaMock.pushSubscription.findUnique.mockResolvedValue({ id: "existing-id" } as PushSubscription);
       prismaMock.pushSubscription.update.mockResolvedValue(createdSubscription);
 
+      // Act
       const getRecordIdResult = await saveSubscription(noRecordId);
+
+      // Assert
       expect(getRecordIdResult).toStrictEqual(createdSubscription);
       expect(prismaMock.pushSubscription.findUnique).toHaveBeenCalledWith({
         where: { endpoint: noRecordId.endpoint },
@@ -612,46 +641,45 @@ describe("saveSubscription", () => {
   });
 
   describe("異常系・境界値テスト", () => {
-    test("should handle various error scenarios and edge cases", async () => {
-      // 認証エラー
+    test("should throw error when authentication fails", async () => {
+      // Arrange
       mockGetAuthSession.mockRejectedValue(new Error("Auth error"));
       const subscription = createSubscriptionData();
 
-      const authErrorResult = await saveSubscription(subscription);
-      expect(authErrorResult).toStrictEqual({ error: "購読情報の保存に失敗しました" });
+      // Act & Assert
+      await expect(saveSubscription(subscription)).rejects.toThrow("購読情報の保存に失敗しました: Auth error");
+    });
 
-      // データベースエラー
-      mockGetAuthSession.mockResolvedValue({ user: { id: "test-user-id" } } as unknown as Session);
+    test("should throw error when database operation fails", async () => {
+      // Arrange
+      const subscription = createSubscriptionData({
+        recordId: "00000000000000000000000000000000",
+      });
       prismaMock.pushSubscription.create.mockRejectedValue(new Error("Database error"));
 
-      const dbErrorResult = await saveSubscription(
-        createSubscriptionData({
-          recordId: "00000000000000000000000000000000",
-        }),
-      );
-      expect(dbErrorResult).toStrictEqual({ error: "購読情報の保存に失敗しました" });
+      // Act & Assert
+      await expect(saveSubscription(subscription)).rejects.toThrow("購読情報の保存に失敗しました: Database error");
+    });
 
-      // 結果がundefinedの場合
+    test("should throw error when result is undefined", async () => {
+      // Arrange
+      const subscription = createSubscriptionData({
+        recordId: "00000000000000000000000000000000",
+      });
       prismaMock.pushSubscription.create.mockResolvedValue(undefined as unknown as PushSubscription);
 
-      const undefinedResult = await saveSubscription(
-        createSubscriptionData({
-          recordId: "00000000000000000000000000000000",
-        }),
-      );
-      expect(undefinedResult).toStrictEqual({ error: "保存処理中にエラーが発生しました。" });
+      // Act & Assert
+      await expect(saveSubscription(subscription)).rejects.toThrow("保存処理中にエラーが発生しました。");
+    });
 
-      // 境界値: 空のエンドポイント
-      const mockSubscription = createPushSubscriptionMock();
-      prismaMock.pushSubscription.create.mockResolvedValue(mockSubscription);
+    test("should throw error when subscription data is incomplete", async () => {
+      // Arrange
+      const incompleteSubscription = createSubscriptionData({ endpoint: "" });
 
-      const emptyEndpointResult = await saveSubscription(
-        createSubscriptionData({
-          endpoint: "",
-          recordId: "00000000000000000000000000000000",
-        }),
+      // Act & Assert
+      await expect(saveSubscription(incompleteSubscription)).rejects.toThrow(
+        "購読情報の保存に失敗しました: 購読情報が不完全です",
       );
-      expect(emptyEndpointResult).toStrictEqual(mockSubscription);
     });
   });
 });

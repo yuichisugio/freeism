@@ -26,10 +26,10 @@ type WebPushSubscription = {
  */
 type PushNotificationResult = {
   success: boolean;
-  sent?: number;
-  failed?: number;
-  totalTargets?: number;
-  message?: string;
+  sent: number;
+  failed: number;
+  totalTargets: number;
+  message: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -59,7 +59,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // プッシュ通知設定が見つからない場合は送信処理を中断
     if (isPushNotificationEnabled.length === 0) {
-      return { success: false, message: "プッシュ通知設定が見つかりません" };
+      return { success: false, sent: 0, failed: 0, totalTargets: 0, message: "プッシュ通知設定が見つかりません" };
     }
 
     // 設定画面で受信拒否しているユーザーを除外したuserIdのリストを作成
@@ -69,6 +69,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * VAPIDキーの設定
+     */
     // VAPIDキーを取得して設定
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
     const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ?? "";
@@ -77,7 +80,7 @@ export async function sendPushNotification(params: NotificationParams): Promise<
     // VAPIDキーが設定されていない場合は送信処理を中断
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.error("VAPID keys are not configured. Cannot send push notification.");
-      return { success: false, message: "VAPIDキーが設定されていません。" };
+      return { success: false, sent: 0, failed: 0, totalTargets: 0, message: "VAPIDキーが設定されていません。" };
     }
 
     // 毎回最新の環境変数で設定
@@ -85,7 +88,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 対象ユーザーの購読情報を取得
+    /**
+     * 対象ユーザーの購読情報を取得
+     */
     const targetSubscriptions = await prisma.pushSubscription.findMany({
       where: {
         userId: { in: recipientUserIds }, // 設定画面で受信拒否しているユーザーを除外したuserIdのリスト
@@ -102,7 +107,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 通知ペイロードの作成。urlは指定された場合のみ含める
+    /**
+     * 通知ペイロードの作成。urlは指定された場合のみ含める
+     */
     const payload = JSON.stringify({
       title: params.title,
       body: params.message,
@@ -111,7 +118,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 端末の重複削除。new Setを使用しないのはupdatedAtで降順で並び替えたいため。
+    /**
+     * 端末の重複削除。new Setを使用しないのはupdatedAtで降順で並び替えたいため。
+     */
     const deviceGroups = new Map<string, typeof targetSubscriptions>();
 
     targetSubscriptions.forEach((subscription) => {
@@ -127,7 +136,11 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     const noDuplicationTargetSubscriptions: PushSubscription[] = [];
 
-    // デバイスごとに1つのサブスクリプションにのみ通知を送信
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * デバイスごとに1つのサブスクリプションにのみ通知を送信
+     */
     for (const deviceSubscriptions of deviceGroups.values()) {
       // デバイスごとに最新のサブスクリプションを使用（最新 = 最後に更新されたもの）
       const sortedSubscriptions = deviceSubscriptions.sort(
@@ -140,7 +153,9 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 購読情報を送信 (Promise.allSettledで個々の送信結果を取得)
+    /**
+     * 購読情報を送信 (Promise.allSettledで個々の送信結果を取得)
+     */
     const results = await Promise.allSettled(
       noDuplicationTargetSubscriptions.map(async (subscription) => {
         // p256dhとauthがnullでないことを再確認 (findManyのwhere条件でフィルタ済みだが念のため)
@@ -204,18 +219,23 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 結果の集計
+    /**
+     * 結果の集計
+     * allSettled()が自動的にstatusをfulfilledまたはrejectedに設定してくれる
+     */
     const fulfilledResults = results.filter(
       (result): result is PromiseFulfilledResult<{ success: boolean; endpoint: string; error?: string }> =>
         result.status === "fulfilled",
     );
     const successCount = fulfilledResults.filter((result) => result.value.success).length;
-    const failedCount = fulfilledResults.length - successCount;
+    const failedCount = fulfilledResults.filter((result) => !result.value.success).length;
     const rejectedCount = results.filter((result) => result.status === "rejected").length;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 詳細な失敗理由もログ出力やデバッグ用に保持しておくと良い
+    /**
+     * 詳細な失敗理由もログ出力やデバッグ用に保持しておくと良い
+     */
     const failures = fulfilledResults.filter((result) => !result.value.success).map((result) => result.value);
     if (failures.length > 0) {
       console.warn("sendPushNotification_Failed endpoints:", failures);
@@ -230,21 +250,30 @@ export async function sendPushNotification(params: NotificationParams): Promise<
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 結果を返す
+    /**
+     * 結果を返す
+     */
     return {
       success: successCount > 0, // 1件でも成功すればtrue
       sent: successCount,
       failed: failedCount + rejectedCount, // 失敗とリジェクトを合算
       totalTargets: targetSubscriptions.length,
-      // results: results // 詳細な結果が必要な場合はこれも返す
+      message: "通知の送信に成功しました",
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラー処理
+     */
   } catch (error) {
     console.error("sendPushNotification_Failed to send push notification:", error);
     return {
       success: false,
-      message: "通知の送信に失敗しました",
+      sent: 0,
+      failed: 0,
+      totalTargets: 0,
+      message: `通知の送信に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
     };
   }
 }
@@ -294,22 +323,37 @@ export async function saveSubscription(subscription: {
   };
   recordId?: string;
   deviceId?: string;
-}): Promise<PushSubscription | { error: string }> {
+}): Promise<PushSubscription> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ユーザーIDを取得
+    /**
+     * 購読情報が不完全な場合はエラー
+     */
+    if (!subscription.endpoint || !subscription.keys.p256dh || !subscription.keys.auth) {
+      throw new Error("購読情報が不完全です");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユーザーIDを取得
+     */
     const session = await getAuthSession();
     const userId = session?.user?.id;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ダミーのレコードID
+    /**
+     * ダミーのレコードID
+     */
     const dummyRecordId = "00000000000000000000000000000000";
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 購読情報のレコードIDがない場合は、購読情報を取得する
+    /**
+     * 購読情報のレコードIDがない場合は、購読情報を取得する
+     */
     if (!subscription.recordId) {
       const recordId = await getRecordId(subscription.endpoint);
       if (recordId === null || recordId === undefined) {
@@ -322,7 +366,9 @@ export async function saveSubscription(subscription: {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 有効期限をDateオブジェクトに変換
+    /**
+     * 有効期限をDateオブジェクトに変換
+     */
     const expirationTimeDate =
       typeof subscription.expirationTime === "number"
         ? new Date(subscription.expirationTime) // numberならDateオブジェクトに変換
@@ -332,7 +378,9 @@ export async function saveSubscription(subscription: {
 
     let result: PushSubscription | undefined = undefined;
 
-    // ダミーのレコードIDの場合は新規作成、それ以外は更新
+    /**
+     * ダミーのレコードIDの場合は新規作成、それ以外は更新
+     */
     if (dummyRecordId === subscription.recordId) {
       result = await prisma.pushSubscription.create({
         data: {
@@ -345,7 +393,9 @@ export async function saveSubscription(subscription: {
         },
       });
     } else {
-      // Prismaを使用してDBに保存
+      /**
+       * Prismaを使用してDBに保存
+       */
       result = await prisma.pushSubscription.update({
         where: {
           id: subscription.recordId,
@@ -363,17 +413,24 @@ export async function saveSubscription(subscription: {
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 結果をチェック＆返却
+    /**
+     * 結果をチェック＆返却
+     */
     if (!result) {
-      return { error: "保存処理中にエラーが発生しました。" };
+      throw new Error("保存処理中にエラーが発生しました。");
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 結果を返却
+     */
     return result;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("購読情報の保存に失敗しました:", error);
-    return { error: "購読情報の保存に失敗しました" };
+    throw new Error(`購読情報の保存に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
   }
 }
 
