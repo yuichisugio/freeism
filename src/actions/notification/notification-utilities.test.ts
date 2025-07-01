@@ -610,7 +610,6 @@ describe("notification-utilities", () => {
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
       (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
-      
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
           .replace(/\s+/g, " ")
           .trim();
@@ -639,7 +638,6 @@ describe("notification-utilities", () => {
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
       (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
-      
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
           .replace(/\s+/g, " ")
           .trim();
@@ -668,7 +666,6 @@ describe("notification-utilities", () => {
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
       (n."target_type" = 'GROUP' AND n."group_id" = ANY(?))
-      
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`
           .replace(/\s+/g, " ")
           .trim();
