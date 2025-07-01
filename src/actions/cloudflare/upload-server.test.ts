@@ -33,7 +33,7 @@ const {
 }));
 
 // envのモック
-vi.mock("@/env", () => ({
+vi.mock("@/library-setting/env", () => ({
   env: mockEnv,
 }));
 
