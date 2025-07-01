@@ -114,18 +114,16 @@ describe("cache-review-search", () => {
         });
       });
 
-      describe("Edge cases and boundary conditions", () => {
-        test("should handle undefined searchParams", async () => {
-          const userId = "test-user-id";
+      test("should handle undefined searchParams", async () => {
+        const userId = "test-user-id";
 
-          prismaMock.auctionReview.findMany.mockResolvedValue(
-            [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-          );
-          prismaMock.auctionReview.count.mockResolvedValue(0);
+        prismaMock.auctionReview.findMany.mockResolvedValue(
+          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
+        );
+        prismaMock.auctionReview.count.mockResolvedValue(0);
 
-          // undefinedを渡してもエラーにならないことを確認
-          await expect(getCachedUserReviews(undefined as unknown as ReviewSearchParams, userId)).resolves.toBeDefined();
-        });
+        // undefinedを渡してもエラーにならないことを確認
+        await expect(getCachedUserReviews(undefined as unknown as ReviewSearchParams, userId)).resolves.toBeDefined();
       });
 
       test("should handle search query with OR conditions", async () => {
@@ -318,27 +316,33 @@ describe("cache-review-search", () => {
         // 空文字列は有効な入力として扱われることを確認
         const result = await getCachedUserReviews(searchParams, userId);
         expect(result).toBeDefined();
+        expect(
+          prismaMock.auctionReview.findMany as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
+        ).toHaveBeenCalledWith({
+          where: { revieweeId: userId },
+          select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
+          orderBy: { createdAt: "desc" } as unknown as Prisma.AuctionReviewOrderByWithRelationInput,
+          skip: 0,
+          take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
+        });
       });
 
-      test("should handle all valid tab types", async () => {
+      test.each(REVIEW_SEARCH_CONSTANTS.TAB_TYPES)("should handle all valid tab types", async (tab) => {
         const userId = "test-user-id";
-        const validTabs = ["search", "edit", "received"] as const;
 
         prismaMock.auctionReview.findMany.mockResolvedValue(
           [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
         );
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
-        for (const tab of validTabs) {
-          const searchParams: ReviewSearchParams = {
-            searchQuery: "",
-            page: 1,
-            tab,
-          };
+        const searchParams: ReviewSearchParams = {
+          searchQuery: "",
+          page: 1,
+          tab,
+        };
 
-          const result = await getCachedUserReviews(searchParams, userId);
-          expect(result).toBeDefined();
-        }
+        const result = await getCachedUserReviews(searchParams, userId);
+        expect(result).toBeDefined();
       });
     });
 
@@ -351,33 +355,6 @@ describe("cache-review-search", () => {
 
         await expect(getCachedUserReviews(null, userId)).rejects.toThrow("レビューの取得に失敗しました");
         expect(console.error).toHaveBeenCalledWith("Error fetching user reviews:", dbError);
-      });
-
-      test("should handle empty search query", async () => {
-        const userId = "test-user-id";
-        const searchParams: ReviewSearchParams = {
-          searchQuery: "",
-          page: 1,
-          tab: "search",
-        };
-
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
-        prismaMock.auctionReview.count.mockResolvedValue(0);
-
-        await getCachedUserReviews(searchParams, userId);
-
-        // 空の検索クエリの場合、OR条件が追加されないことを確認
-        expect(
-          prismaMock.auctionReview.findMany as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        ).toHaveBeenCalledWith({
-          where: { revieweeId: userId },
-          select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
-          orderBy: { createdAt: "desc" } as unknown as Prisma.AuctionReviewOrderByWithRelationInput,
-          skip: 0,
-          take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
-        });
       });
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -419,10 +396,13 @@ describe("cache-review-search", () => {
           );
         });
 
-        test("should throw error when searchQuery is null", async () => {
+        test.each([
+          { searchQuery: null as unknown as string, description: "null searchQuery" },
+          { searchQuery: undefined as unknown as string, description: "undefined searchQuery" },
+        ])("should throw error when $description", async ({ searchQuery }) => {
           const userId = "test-user-id";
           const searchParams: ReviewSearchParams = {
-            searchQuery: null as unknown as string,
+            searchQuery,
             page: 1,
             tab: "search",
           };

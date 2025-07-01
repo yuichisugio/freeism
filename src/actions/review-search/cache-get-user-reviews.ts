@@ -1,7 +1,6 @@
 "use cache";
 
 import type { ReviewData, ReviewSearchParams, ReviewSearchResult } from "@/components/review-search/review-search";
-import type { ReviewSearchTab } from "@/lib/constants";
 import type { Prisma } from "@prisma/client";
 import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/library-setting/prisma";
@@ -42,8 +41,8 @@ export async function getCachedUserReviews(
       throw new Error("ページ番号は1以上である必要があります");
     }
 
-    // 検索クエリのバリデーション
-    if (searchParams?.searchQuery === undefined || searchParams.searchQuery === null) {
+    // 検索クエリのバリデーション。空文字列は有効な値として扱うが、それ以外はエラー
+    if (searchParams && (searchParams.searchQuery === undefined || searchParams.searchQuery === null)) {
       throw new Error("検索クエリの定義がありません");
     }
 
