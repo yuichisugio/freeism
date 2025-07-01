@@ -1,6 +1,6 @@
 import type { ReviewSearchParams } from "@/components/review-search/review-search";
 import type { Prisma } from "@prisma/client";
-import { REVIEW_CONSTANTS } from "@/lib/constants";
+import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { ReviewPosition } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -68,7 +68,7 @@ describe("cache-review-search", () => {
         select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
         orderBy: { createdAt: "desc" } as unknown as Prisma.AuctionReviewOrderByWithRelationInput,
         skip: 0,
-        take: REVIEW_CONSTANTS.ITEMS_PER_PAGE,
+        take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
       });
     });
 
@@ -175,6 +175,7 @@ describe("cache-review-search", () => {
       const searchParams: ReviewSearchParams = {
         searchQuery: "テスト",
         page: 1,
+        tab: "received",
       };
 
       prismaMock.auctionReview.findMany.mockResolvedValue(
@@ -211,7 +212,7 @@ describe("cache-review-search", () => {
         select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
         orderBy: { createdAt: "desc" },
         skip: 0,
-        take: REVIEW_CONSTANTS.ITEMS_PER_PAGE,
+        take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
       });
     });
 

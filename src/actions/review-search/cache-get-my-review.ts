@@ -2,7 +2,7 @@
 
 import type { ReviewData, ReviewSearchParams, ReviewSearchResult } from "@/components/review-search/review-search";
 import type { Prisma } from "@prisma/client";
-import { REVIEW_CONSTANTS } from "@/lib/constants";
+import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/library-setting/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -18,7 +18,7 @@ export async function getCachedMyReviews(
 ): Promise<ReviewSearchResult> {
   try {
     const page = searchParams?.page ?? 1;
-    const limit = REVIEW_CONSTANTS.ITEMS_PER_PAGE;
+    const limit = REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE;
     const offset = (page - 1) * limit;
 
     const whereCondition: Prisma.AuctionReviewWhereInput = {

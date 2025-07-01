@@ -13,14 +13,30 @@ import { prisma } from "@/library-setting/prisma";
  */
 export async function getCachedSearchSuggestions(query: string): Promise<SearchSuggestion[]> {
   try {
-    if (!query || query.length < 2) {
-      return []; // 2文字未満の場合は空の配列を返す
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * バリデーション
+     */
+    // 検索クエリが空文字列または2文字未満の場合は空の配列を返す
+    if (!query || query.trim().length < 2) {
+      return [];
     }
 
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * サジェスト候補を格納する配列
+     */
     const suggestions: SearchSuggestion[] = [];
 
-    // 一括でレビューデータを取得し、関連するすべての情報を含める
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 一括でレビューデータを取得し、関連するすべての情報を含める
+     */
     const reviews = await prisma.auctionReview.findMany({
+      take: 50,
       where: {
         OR: [
           // ユーザー名での検索（レビュー受信者）
@@ -105,24 +121,42 @@ export async function getCachedSearchSuggestions(query: string): Promise<SearchS
           },
         },
       },
-      take: 50, // 最大50件のレビューから抽出
     });
 
-    // ユニークな値を格納するためのSet
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * レビューデータが0件の場合は空の配列を返す
+     */
+    if (reviews.length === 0) {
+      return [];
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * ユニークな値を格納するためのSet
+     */
     const uniqueUsernames = new Set<string>();
     const uniqueGroupNames = new Set<string>();
     const uniqueTaskNames = new Set<string>();
     const uniqueComments = new Set<string>();
 
-    // レビューデータから各項目を抽出
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * レビューデータから各項目を抽出
+     */
     reviews.forEach((review) => {
-      // ユーザー名（送信者・受信者）
+      // ユーザー名（送信者）
       if (review.reviewer?.settings?.username) {
         const username = review.reviewer.settings.username;
         if (username.toLowerCase().includes(query.toLowerCase())) {
           uniqueUsernames.add(username);
         }
       }
+
+      // ユーザー名（受信者）
       if (review.reviewee?.settings?.username) {
         const username = review.reviewee.settings.username;
         if (username.toLowerCase().includes(query.toLowerCase())) {
@@ -155,49 +189,64 @@ export async function getCachedSearchSuggestions(query: string): Promise<SearchS
       }
     });
 
-    // サジェスト候補を作成（各カテゴリから最大5件ずつ）
-    Array.from(uniqueUsernames)
-      .slice(0, 5)
-      .forEach((username) => {
-        suggestions.push({
-          value: username,
-          label: `ユーザー: ${username}`,
-        });
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * サジェスト候補を作成（各カテゴリから最大5件ずつ）
+     * Array.from()でSetを配列に変換している
+     */
+    const MAX_LENGTH = 30;
+    // ユーザー名（送信者・受信者）
+    Array.from(uniqueUsernames).forEach((username) => {
+      suggestions.push({
+        value: username,
+        label: `ユーザー: ${username.length > MAX_LENGTH ? username.substring(0, MAX_LENGTH) + "..." : username}`,
       });
+    });
 
-    Array.from(uniqueGroupNames)
-      .slice(0, 5)
-      .forEach((groupName) => {
-        suggestions.push({
-          value: groupName,
-          label: `グループ: ${groupName}`,
-        });
+    // グループ名
+    Array.from(uniqueGroupNames).forEach((groupName) => {
+      suggestions.push({
+        value: groupName,
+        label: `グループ: ${groupName.length > MAX_LENGTH ? groupName.substring(0, MAX_LENGTH) + "..." : groupName}`,
       });
+    });
 
-    Array.from(uniqueTaskNames)
-      .slice(0, 5)
-      .forEach((taskName) => {
-        suggestions.push({
-          value: taskName,
-          label: `タスク: ${taskName.substring(0, 30)}...`,
-        });
+    // タスク名
+    Array.from(uniqueTaskNames).forEach((taskName) => {
+      suggestions.push({
+        value: taskName,
+        label: `タスク: ${taskName.length > MAX_LENGTH ? taskName.substring(0, MAX_LENGTH) + "..." : taskName}`,
       });
+    });
 
-    Array.from(uniqueComments)
-      .slice(0, 3)
-      .forEach((comment) => {
-        suggestions.push({
-          value: comment,
-          label: `コメント: ${comment.substring(0, 30)}...`,
-        });
+    // コメント
+    Array.from(uniqueComments).forEach((comment) => {
+      suggestions.push({
+        value: comment,
+        label: `コメント: ${comment.length > MAX_LENGTH ? comment.substring(0, MAX_LENGTH) + "..." : comment}`,
       });
+    });
 
-    // 重複を除去し、最大10件に制限
-    const uniqueSuggestions = suggestions
-      .filter((suggestion, index, self) => index === self.findIndex((s) => s.value === suggestion.value))
-      .slice(0, 10);
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 重複を除去し、最大20件に制限
+     */
+    const uniqueSuggestions = Array.from(new Map(suggestions.map((item) => [item.value, item])).values()).slice(0, 20);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 返す
+     */
     return uniqueSuggestions;
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラー処理
+     */
   } catch (error) {
     console.error("Error fetching search suggestions:", error);
     return [];

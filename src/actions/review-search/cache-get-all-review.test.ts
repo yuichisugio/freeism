@@ -1,6 +1,6 @@
 import type { ReviewSearchParams } from "@/components/review-search/review-search";
 import type { Prisma } from "@prisma/client";
-import { REVIEW_CONSTANTS } from "@/lib/constants";
+import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { ReviewPosition } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -75,7 +75,7 @@ describe("cache-review-search", () => {
         select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
         orderBy: { createdAt: "desc" },
         skip: 0,
-        take: REVIEW_CONSTANTS.ITEMS_PER_PAGE,
+        take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
       });
     });
 
@@ -171,6 +171,7 @@ describe("cache-review-search", () => {
       const searchParams: ReviewSearchParams = {
         searchQuery: "全体",
         page: 1,
+        tab: "search",
       };
 
       prismaMock.auctionReview.findMany.mockResolvedValue(
@@ -208,7 +209,7 @@ describe("cache-review-search", () => {
         select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
         orderBy: { createdAt: "desc" } as unknown as Prisma.AuctionReviewOrderByWithRelationInput,
         skip: 0,
-        take: REVIEW_CONSTANTS.ITEMS_PER_PAGE,
+        take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
       });
     });
   });
@@ -231,7 +232,7 @@ describe("cache-review-search", () => {
     const result = await getCachedAllReviews(null);
 
     // ITEMS_PER_PAGEが10の場合、25件なら3ページになる
-    expect(result.totalPages).toBe(Math.ceil(25 / REVIEW_CONSTANTS.ITEMS_PER_PAGE));
+    expect(result.totalPages).toBe(Math.ceil(25 / REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE));
     expect(result.totalCount).toBe(25);
   });
 });

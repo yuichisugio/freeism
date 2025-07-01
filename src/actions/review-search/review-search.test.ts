@@ -62,6 +62,7 @@ describe("review-search", () => {
   const testSearchParams: ReviewSearchParams = {
     searchQuery: "テスト",
     page: 1,
+    tab: "search",
   };
 
   const testSearchSuggestions: SearchSuggestion[] = [
@@ -174,7 +175,7 @@ describe("review-search", () => {
       const mockResult = { ...expected };
       mockGetCachedAllReviews.mockResolvedValue(mockResult);
 
-      const result = await getAllReviews(searchParams);
+      const result = await getAllReviews(searchParams as ReviewSearchParams);
 
       expect(result).toStrictEqual(mockResult);
       expect(mockGetCachedAllReviews).toHaveBeenCalledWith(searchParams);
@@ -203,7 +204,7 @@ describe("review-search", () => {
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
       mockGetCachedUserReviews.mockResolvedValue(mockResult);
 
-      const result = await getUserReviews(searchParams);
+      const result = await getUserReviews(searchParams as ReviewSearchParams);
 
       expect(result).toStrictEqual(mockResult);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
@@ -244,7 +245,7 @@ describe("review-search", () => {
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
       mockGetCachedMyReviews.mockResolvedValue(mockResult);
 
-      const result = await getMyReviews(searchParams);
+      const result = await getMyReviews(searchParams as ReviewSearchParams);
 
       expect(result).toStrictEqual(mockResult);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
