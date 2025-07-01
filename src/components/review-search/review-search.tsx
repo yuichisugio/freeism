@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReviewSearchTab } from "@/lib/constants";
 import { memo, useCallback, useEffect, useState } from "react";
 import { RatingStar } from "@/components/auction/common/rating-star";
 import { Error } from "@/components/share/share-error";
@@ -31,7 +32,7 @@ import {
 /**
  * ページネーション用の型定義
  */
-type ReviewPaginationProps = {
+export type ReviewPaginationProps = {
   currentPage: number; // 現在のページ番号
   totalPages: number; // 総ページ数
   onPageChange: (page: number) => void; // ページ変更時のコールバック
@@ -80,7 +81,7 @@ export type ReviewData = {
 export type ReviewSearchParams = {
   searchQuery: string; // 検索クエリ文字列
   page: number; // ページネーション用のページ番号
-  tab?: "search" | "edit" | "received"; // タブの種類
+  tab: ReviewSearchTab; // タブの種類
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -796,7 +797,7 @@ export const ReviewSearch = memo(function ReviewSearch() {
       />
 
       {/* タブ機能 */}
-      <Tabs value={activeTab} onValueChange={(value) => changeTab(value as "search" | "edit" | "received")}>
+      <Tabs value={activeTab} onValueChange={(value) => changeTab(value as ReviewSearchTab)}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="search">レビュー検索</TabsTrigger>
           <TabsTrigger value="edit">レビュー編集</TabsTrigger>

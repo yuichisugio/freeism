@@ -3,19 +3,27 @@ import { type Prisma } from "@prisma/client";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * テーブル関連の定数
+ * レビュー検索関連の定数
  */
-export const TABLE_CONSTANTS = {
-  ITEMS_PER_PAGE: 50,
+export const REVIEW_SEARCH_CONSTANTS = {
+  // タブの種類定数
+  TAB_TYPES: ["search", "edit", "received"] as const,
+  // ページネーション
+  ITEMS_PER_PAGE: 5,
 };
+
+/**
+ * レビュー検索タブの型定義
+ */
+export type ReviewSearchTab = (typeof REVIEW_SEARCH_CONSTANTS.TAB_TYPES)[number];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * レビュー関連の定数
+ * テーブル関連の定数
  */
-export const REVIEW_CONSTANTS = {
-  ITEMS_PER_PAGE: 5,
+export const TABLE_CONSTANTS = {
+  ITEMS_PER_PAGE: 50,
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

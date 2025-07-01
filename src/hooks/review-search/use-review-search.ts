@@ -5,6 +5,7 @@ import type {
   ReviewSearchParams,
   SearchSuggestion,
 } from "@/components/review-search/review-search";
+import type { ReviewSearchTab } from "@/lib/constants";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getAllReviews,
@@ -13,6 +14,7 @@ import {
   getUserReviews,
   updateReview,
 } from "@/actions/review-search/review-search";
+import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
@@ -36,9 +38,9 @@ export function useReviewSearch() {
    * タブ
    */
   const [activeTab, setActiveTab] = useQueryState("tab", {
-    defaultValue: "search" as "search" | "edit" | "received",
+    defaultValue: "search" as ReviewSearchTab,
     parse: (value) => {
-      if (value === "edit" || value === "received") return value;
+      if (REVIEW_SEARCH_CONSTANTS.TAB_TYPES.includes(value as ReviewSearchTab)) return value;
       return "search";
     },
     history: "push",
@@ -74,7 +76,7 @@ export function useReviewSearch() {
     () => ({
       searchQuery,
       page,
-      tab: activeTab,
+      tab: activeTab as ReviewSearchTab,
     }),
     [searchQuery, page, activeTab],
   );
@@ -256,7 +258,7 @@ export function useReviewSearch() {
    * タブを変更する関数
    */
   const changeTab = useCallback(
-    (tab: "search" | "edit" | "received") => {
+    (tab: ReviewSearchTab) => {
       void setActiveTab(tab);
       void setPage(1); // ページをリセット
     },

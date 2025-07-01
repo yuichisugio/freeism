@@ -1,8 +1,9 @@
 "use cache";
 
 import type { ReviewData, ReviewSearchParams, ReviewSearchResult } from "@/components/review-search/review-search";
+import type { ReviewSearchTab } from "@/lib/constants";
 import type { Prisma } from "@prisma/client";
-import { REVIEW_CONSTANTS } from "@/lib/constants";
+import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/library-setting/prisma";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -21,10 +22,38 @@ export async function getCachedUserReviews(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
+     * バリデーション
+     * 検索クエリのバリデーション（undefined チェックのみ、空文字列は有効）。空文字列は「すべてのレビューを検索する」という意味で有効な値として扱う
+     * ページ番号のバリデーション（1以上）
+     * タブのバリデーション（search, edit, received）
+     */
+    // ユーザーIDのバリデーション
+    if (!userId) {
+      throw new Error("ユーザーIDが存在しません");
+    }
+
+    // タブのバリデーション
+    if (searchParams?.tab && !REVIEW_SEARCH_CONSTANTS.TAB_TYPES.includes(searchParams.tab)) {
+      throw new Error("無効なタブが指定されました");
+    }
+
+    // ページ番号のバリデーション
+    if (searchParams?.page !== undefined && searchParams.page !== null && searchParams.page < 1) {
+      throw new Error("ページ番号は1以上である必要があります");
+    }
+
+    // 検索クエリのバリデーション
+    if (searchParams?.searchQuery === undefined || searchParams.searchQuery === null) {
+      throw new Error("検索クエリの定義がありません");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * ページネーション/オフセット/取得件数の設定
      */
     const page = searchParams?.page ?? 1;
-    const limit = REVIEW_CONSTANTS.ITEMS_PER_PAGE;
+    const limit = REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE;
     const offset = (page - 1) * limit;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -112,6 +141,11 @@ export async function getCachedUserReviews(
      */
     const reviews = await prisma.auctionReview.findMany({
       where: whereCondition,
+      orderBy: {
+        createdAt: "desc", // 作成日時の降順でソート（新しいレビューが上に）
+      },
+      skip: offset, // スキップする件数
+      take: limit, // 取得する件数
       select: {
         id: true,
         rating: true,
@@ -160,12 +194,6 @@ export async function getCachedUserReviews(
           },
         },
       },
-      // 作成日時の降順でソート（新しいレビューが上に）
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: offset, // スキップする件数
-      take: limit, // 取得する件数
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -241,6 +269,6 @@ export async function getCachedUserReviews(
      */
   } catch (error) {
     console.error("Error fetching user reviews:", error);
-    throw new Error("レビューの取得に失敗しました");
+    throw new Error(`${error instanceof Error ? error.message : "不明なエラー"}:レビューの取得に失敗しました`);
   }
 }
