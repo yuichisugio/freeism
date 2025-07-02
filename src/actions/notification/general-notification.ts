@@ -47,6 +47,9 @@ export async function sendGeneralNotification(
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 通知するユーザーIDリストを取得
+     */
     // 受信者のユーザーIDを取得
     const targetUserIds = await getNotificationTargetUserIds(params.targetType, {
       userIds: params.recipientUserIds ?? undefined,
@@ -62,6 +65,9 @@ export async function sendGeneralNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 通知パラメータを作成
+     */
     // 通知するユーザーIDリストを作成
     const notificationParams: NotificationParams = {
       recipientUserIds: targetUserIds,
@@ -81,7 +87,11 @@ export async function sendGeneralNotification(
       sentAt: null,
     };
 
-    // 通知するユーザーが見つからない場合はエラー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 通知するユーザーが見つからない場合はエラー
+     */
     if (notificationParams.recipientUserIds.length === 0) {
       console.error("sendGeneralNotification_recipientUserIds_エラー:");
       console.error("sendGeneralNotification_recipientUserIds_エラー_stack:", new Error().stack);
@@ -90,9 +100,11 @@ export async function sendGeneralNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // アプリ内通知を送信。NOW以外でも登録する。
-    // アプリ内表示は、通知のデータ表示時に制限しているので、登録しただけでは表示されない。
-    // その登録したdataを元に、GitHub Actionsで送信する
+    /**
+     * アプリ内通知を送信。NOW以外でも登録する。
+     * アプリ内表示は、通知のデータ表示時に制限しているので、登録しただけでは表示されない。
+     * その登録したdataを元に、GitHub Actionsで送信する
+     */
     if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
       const inAppNotificationResult = await sendInAppNotification(notificationParams);
       if (!inAppNotificationResult.success) {
@@ -115,7 +127,9 @@ export async function sendGeneralNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // プッシュ通知を送信。
+    /**
+     * プッシュ通知を送信。
+     */
     if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH)) {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
@@ -127,7 +141,9 @@ export async function sendGeneralNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // メール通知を送信。
+    /**
+     * メール通知を送信。
+     */
     if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL)) {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
@@ -139,10 +155,15 @@ export async function sendGeneralNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * 返す値は、成功したかどうかだけなので、trueを返す
+     */
     return { success: true };
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("sendGeneralNotification_エラー:", error);
     console.error("sendGeneralNotification_エラーstack:", new Error().stack);
-    return { success: false, error: "通知エラーが発生しました" };
+    return { success: false, error: error instanceof Error ? error.message : "通知エラーが発生しました" };
   }
 }

@@ -20,7 +20,10 @@ export async function sendInAppNotification(
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // すでに通知がある場合は、SCHEDULEDで、GitHub Actionsによる予約通知の送信のため、すでにレコードがあるので、情報を更新
+    /**
+     * すでに通知のレコードがある場合は、SCHEDULEDのはず
+     * GitHub Actionsによる予約通知の送信のため、すでにレコードがあるので、情報のみを更新する
+     */
     if (notificationParams.notificationId) {
       // sentAtを更新するため、現時点の日時を取得
       const now = new Date();
@@ -38,18 +41,27 @@ export async function sendInAppNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // isReadのJSONオブジェクトを構築
+    /**
+     * isReadのJSONオブジェクトを構築
+     */
     const isReadJsonb: Record<string, { isRead: boolean; readAt: null }> = {};
+    if (!notificationParams.recipientUserIds) {
+      throw new Error("recipientUserIds is required");
+    }
     notificationParams.recipientUserIds.forEach((targetUserId) => {
       isReadJsonb[targetUserId] = { isRead: false, readAt: null };
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 送信者のuserIDを入れる変数
+    /**
+     * 送信者のuserIDを入れる変数
+     */
     let senderUserId: string | null = null;
 
-    // オークション通知の場合は、GitHub Actionsやシステムメッセージのみなので、通知作成フォームから送信しないため、senderUserIdをnullにする。
+    /**
+     * オークション通知の場合は、GitHub Actionsやシステムメッセージのみなので、通知作成フォームから送信しないため、senderUserIdをnullにする。
+     */
     if (!notificationParams.auctionId) {
       // 通知作成者を取得
       const session = await getAuthSession();
@@ -58,7 +70,28 @@ export async function sendInAppNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 通知を保存
+    /**
+     * 必須パラメータのチェック
+     */
+    if (!notificationParams.title) {
+      throw new Error("title is required");
+    }
+    if (!notificationParams.message) {
+      throw new Error("message is required");
+    }
+    if (!notificationParams.targetType) {
+      throw new Error("targetType is required");
+    }
+    if (!notificationParams.sendTiming) {
+      throw new Error("sendTiming is required");
+    }
+    if (!notificationParams.sendMethods) {
+      throw new Error("sendMethods is required");
+    }
+
+    /**
+     * 通知を保存
+     */
     await prisma.notification.create({
       data: {
         title: notificationParams.title,
@@ -81,13 +114,18 @@ export async function sendInAppNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // trueを返す
+    /**
+     * 成功を返す
+     */
     return { success: true };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("sendInAppNotification_エラー:", error);
     console.error("sendInAppNotification_エラーstack:", new Error().stack);
-    return { success: false, error: "通知の作成中にエラーが発生しました" };
+    return {
+      success: false,
+      error: `通知の作成中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
