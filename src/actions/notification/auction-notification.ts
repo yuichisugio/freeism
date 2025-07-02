@@ -1,8 +1,12 @@
 "use server";
 
-import type { NotificationSendTiming } from "@prisma/client";
 import { sendPushNotification } from "@/actions/notification/push-notification";
-import { AuctionEventType, NotificationSendMethod, NotificationTargetType } from "@prisma/client";
+import {
+  AuctionEventType,
+  NotificationSendMethod,
+  NotificationSendTiming,
+  NotificationTargetType,
+} from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
 import { sendEmailNotification } from "./email-notification";
@@ -44,29 +48,68 @@ export type MessageData = {
  */
 export async function sendAuctionNotification(
   params: AuctionNotificationParams,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    if (params.recipientUserId?.length === 0) {
-      console.error(`sendAuctionNotification_recipientUserId_エラー_stack:`, new Error().stack);
-      console.error(`sendAuctionNotification_recipientUserId_エラー:`, "通知の対象者が見つかりません");
-      throw new Error("通知の対象者が見つかりません");
+    /**
+     * 必要なデータが不足している場合はエラーを返す
+     * オークション通知は、予約送信に対応していないため、送信タイミングがNOWでない場合はエラーを返す
+     */
+    if (
+      !params.text?.first ||
+      !params.text.second ||
+      !params.auctionEventType ||
+      !Object.values(AuctionEventType).includes(params.auctionEventType) ||
+      !params.auctionId ||
+      !params.recipientUserId ||
+      params.recipientUserId.length === 0 ||
+      !params.sendMethods ||
+      params.sendMethods.length === 0 ||
+      !params.sendMethods.every((method) => Object.values(NotificationSendMethod).includes(method)) ||
+      params.sendTiming !== NotificationSendTiming.NOW
+    ) {
+      throw new Error("必要なデータが不足しています");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // メッセージ作成に必要な情報をデータベースから取得
+    /**
+     * メッセージ作成に必要な情報をデータベースから取得
+     */
     const { title, body, targetType } = await getAuctionNotificationMessage(params.auctionEventType, params.text);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    /**
+     * ステータスごとの自動で削除する日付を計算
+     * 現在は、全てのオークション通知は通知の1ヶ月後に削除する。
+     * 今後は、イベントタイプに応じた自動で削除する日時を計算する。
+     */
     // 自動で削除する日付を計算
-    const expiryDate = await calculateExpiryDate(params.auctionEventType);
+    let expiryDate: Date;
+
+    // イベントタイプに応じた自動で削除する日時を計算
+    switch (params.auctionEventType) {
+      case AuctionEventType.ITEM_SOLD:
+      case AuctionEventType.NO_WINNER:
+      case AuctionEventType.ENDED:
+      case AuctionEventType.OUTBID:
+      case AuctionEventType.QUESTION_RECEIVED:
+      case AuctionEventType.AUTO_BID_LIMIT_REACHED:
+      case AuctionEventType.AUCTION_WIN:
+      case AuctionEventType.AUCTION_LOST:
+      case AuctionEventType.POINT_RETURNED:
+      case AuctionEventType.AUCTION_CANCELED:
+      default:
+        expiryDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 通知する内容を作成
+    /**
+     * 通知する内容を作成
+     */
     const notificationParams: NotificationParams = {
       recipientUserIds: params.recipientUserId,
       title: title,
@@ -87,98 +130,59 @@ export async function sendAuctionNotification(
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // push通知を送信
-    if (
-      notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH) &&
-      notificationParams.sendTiming === "NOW"
-    ) {
+    /**
+     * push通知を送信
+     */
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH)) {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
-        console.error("sendAuctionNotification_sendPushNotification_エラー:");
-        console.error("sendAuctionNotification_sendPushNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "プッシュ通知の送信に失敗しました" };
+        throw new Error("プッシュ通知の送信に失敗しました");
       }
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // メール通知を送信
-    if (
-      notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL) &&
-      notificationParams.sendTiming === "NOW"
-    ) {
+    /**
+     * メール通知を送信
+     */
+    if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL)) {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
-        console.error("sendAuctionNotification_sendEmailNotification_エラー:");
-        console.error("sendAuctionNotification_sendEmailNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "メール通知の送信に失敗しました" };
+        throw new Error("メール通知の送信に失敗しました");
       }
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // アプリ内通知を送信
+    /**
+     * アプリ内通知を送信
+     */
     if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
       const inAppNotificationResult = await sendInAppNotification(notificationParams);
       if (!inAppNotificationResult.success) {
-        console.error("sendAuctionNotification_sendInAppNotification_エラー:");
-        console.error("sendAuctionNotification_sendInAppNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "アプリ内通知の送信に失敗しました" };
+        throw new Error("アプリ内通知の送信に失敗しました");
       }
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    return { success: true };
+    /**
+     * 成功した場合は成功を返す
+     */
+    return { success: true, message: "オークション通知の送信に成功しました" };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * エラーが発生した場合はエラーを返す
+     */
   } catch (error) {
     console.error(`sendAuctionNotification_エラー:`, error);
     console.error(`sendAuctionNotification_エラー_stack:`, new Error().stack);
-    return { success: false, error: "オークション通知の送信に失敗しました" };
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションイベントタイプに応じた自動で削除する日時を計算する。
- * 一旦全てのオークション通知は通知の1ヶ月後に削除する。
- * 今後は、イベントタイプに応じた自動で削除する日時を計算する。
- * @param eventType - オークションイベントタイプ
- * @returns {Date | null} 自動削除日時
- */
-async function calculateExpiryDate(eventType: AuctionEventType): Promise<Date | null> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * イベントタイプの検証
-   */
-  if (!Object.values(AuctionEventType).includes(eventType)) {
-    throw new Error(`Invalid event type: ${eventType}`);
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 現在の日時を取得
-  const now = new Date();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // イベントタイプに応じた自動で削除する日時を計算
-  switch (eventType) {
-    case AuctionEventType.ITEM_SOLD:
-    case AuctionEventType.NO_WINNER:
-    case AuctionEventType.ENDED:
-    case AuctionEventType.OUTBID:
-    case AuctionEventType.QUESTION_RECEIVED:
-    case AuctionEventType.AUTO_BID_LIMIT_REACHED:
-    case AuctionEventType.AUCTION_WIN:
-    case AuctionEventType.AUCTION_LOST:
-    case AuctionEventType.POINT_RETURNED:
-    case AuctionEventType.AUCTION_CANCELED:
-    default:
-      return new Date(now.setMonth(now.getMonth() + 1));
+    return {
+      success: false,
+      message: `オークション通知の送信に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
 
@@ -194,91 +198,85 @@ export async function getAuctionNotificationMessage(
   eventType: AuctionEventType,
   messageData: MessageData,
 ): Promise<{ title: string; body: string; targetType: NotificationTargetType }> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * イベントタイプの検証
-     */
-    if (!Object.values(AuctionEventType).includes(eventType)) {
-      throw new Error(`Invalid event type: ${eventType}`);
-    }
+  /**
+   * イベントタイプの検証
+   */
+  if (!Object.values(AuctionEventType).includes(eventType) || !messageData?.first || !messageData.second) {
+    throw new Error(`Invalid event type: ${eventType} or messageData: ${JSON.stringify(messageData)}`);
+  }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // イベントタイプごとに通知メッセージを生成
-    switch (eventType) {
-      // 入札：自分が入札した商品を落札できた時
-      case AuctionEventType.AUCTION_WIN:
-        return {
-          title: `[${messageData.first}] を落札しました！`,
-          body: `おめでとうございます！「${messageData.second}」を落札しました。`,
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        };
-      // 入札：自分の最高入札額だった商品の最高入札額が他者に更新された場合
-      case AuctionEventType.OUTBID:
-        return {
-          title: `[${messageData.first}] の最高入札額が更新されました`,
-          body: `他ユーザーが ${messageData.second} ポイントで最高入札額を更新したため、あなたは最高入札者ではなくなりました。`,
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        };
-      // 入札：入札に使用したポイントが返還された場合
-      case AuctionEventType.POINT_RETURNED:
-        return {
-          title: `オークションポイントが返還されました`,
-          body: `[${messageData.first}] のオークションで預けていたポイント${messageData.second}ptが返還されました。`,
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        };
-      // 入札：入札した商品を落札できなかった場合
-      case AuctionEventType.AUCTION_LOST:
-        return {
-          title: `[${messageData.first}] は落札できませんでした`,
-          body: `あなたが入札していた「${messageData.second}」のオークションは他のユーザーが落札しました。`,
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        };
-      // 入札：自動入札の上限に達した場合
-      case AuctionEventType.AUTO_BID_LIMIT_REACHED:
-        return {
-          title: `[${messageData.first}] の自動入札が上限に達しました`,
-          body: `設定した自動入札の上限額(${messageData.second}pt)に達したため、自動入札を停止しました。`,
-          targetType: NotificationTargetType.AUCTION_BIDDER,
-        };
-      // 出品：自分の出品した商品に新しい質問が届いた場合
-      case AuctionEventType.QUESTION_RECEIVED:
-        return {
-          title: `[${messageData.first}] に新しい質問が届きました`,
-          body: `「${messageData.second}」に新しい質問が届きました。`,
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        };
-      // 出品：自分の出品した商品のオークション期間が終了した場合
-      case AuctionEventType.ENDED:
-        return {
-          title: `[${messageData.first}] のオークションが終了しました`,
-          body: `出品した商品「${messageData.second}」のオークション期間が終了しました。結果を確認してください。`,
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        };
-      // 出品：自分の出品した商品の落札者が決まった場合
-      case AuctionEventType.ITEM_SOLD:
-        return {
-          title: `[${messageData.first}] が落札されました`,
-          body: `出品した商品「${messageData.second}」が落札されました。`,
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        };
-      // 出品：自分の出品した商品の落札者が決まらなかった場合
-      case AuctionEventType.NO_WINNER:
-        return {
-          title: `[${messageData.first}] のオークションは落札者がいませんでした`,
-          body: `「${messageData.second}」のオークションは落札者が現れませんでした。`,
-          targetType: NotificationTargetType.AUCTION_SELLER,
-        };
-      default:
-        throw new Error(`未対応のオークションイベントタイプです: ${String(eventType)}`);
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error(`getAuctionNotificationMessage_エラー:`, error);
-    console.error(`getAuctionNotificationMessage_エラー_stack:`, new Error().stack);
-    throw new Error("オークション通知のメッセージを作成できませんでした");
+  /**
+   * イベントタイプごとに通知メッセージを生成
+   */
+  switch (eventType) {
+    // 入札：自分が入札した商品を落札できた時
+    case AuctionEventType.AUCTION_WIN:
+      return {
+        title: `[${messageData.first}] を落札しました！`,
+        body: `おめでとうございます！「${messageData.second}」を落札しました。`,
+        targetType: NotificationTargetType.AUCTION_BIDDER,
+      };
+    // 入札：自分の最高入札額だった商品の最高入札額が他者に更新された場合
+    case AuctionEventType.OUTBID:
+      return {
+        title: `[${messageData.first}] の最高入札額が更新されました`,
+        body: `他ユーザーが ${messageData.second} ポイントで最高入札額を更新したため、あなたは最高入札者ではなくなりました。`,
+        targetType: NotificationTargetType.AUCTION_BIDDER,
+      };
+    // 入札：入札に使用したポイントが返還された場合
+    case AuctionEventType.POINT_RETURNED:
+      return {
+        title: `オークションポイントが返還されました`,
+        body: `[${messageData.first}] のオークションで預けていたポイント${messageData.second}ptが返還されました。`,
+        targetType: NotificationTargetType.AUCTION_BIDDER,
+      };
+    // 入札：入札した商品を落札できなかった場合
+    case AuctionEventType.AUCTION_LOST:
+      return {
+        title: `[${messageData.first}] は落札できませんでした`,
+        body: `あなたが入札していた「${messageData.second}」のオークションは他のユーザーが落札しました。`,
+        targetType: NotificationTargetType.AUCTION_BIDDER,
+      };
+    // 入札：自動入札の上限に達した場合
+    case AuctionEventType.AUTO_BID_LIMIT_REACHED:
+      return {
+        title: `[${messageData.first}] の自動入札が上限に達しました`,
+        body: `設定した自動入札の上限額(${messageData.second}pt)に達したため、自動入札を停止しました。`,
+        targetType: NotificationTargetType.AUCTION_BIDDER,
+      };
+    // 出品：自分の出品した商品に新しい質問が届いた場合
+    case AuctionEventType.QUESTION_RECEIVED:
+      return {
+        title: `[${messageData.first}] に新しい質問が届きました`,
+        body: `「${messageData.second}」に新しい質問が届きました。`,
+        targetType: NotificationTargetType.AUCTION_SELLER,
+      };
+    // 出品：自分の出品した商品のオークション期間が終了した場合
+    case AuctionEventType.ENDED:
+      return {
+        title: `[${messageData.first}] のオークションが終了しました`,
+        body: `出品した商品「${messageData.second}」のオークション期間が終了しました。結果を確認してください。`,
+        targetType: NotificationTargetType.AUCTION_SELLER,
+      };
+    // 出品：自分の出品した商品の落札者が決まった場合
+    case AuctionEventType.ITEM_SOLD:
+      return {
+        title: `[${messageData.first}] が落札されました`,
+        body: `出品した商品「${messageData.second}」が落札されました。`,
+        targetType: NotificationTargetType.AUCTION_SELLER,
+      };
+    // 出品：自分の出品した商品の落札者が決まらなかった場合
+    case AuctionEventType.NO_WINNER:
+      return {
+        title: `[${messageData.first}] のオークションは落札者がいませんでした`,
+        body: `「${messageData.second}」のオークションは落札者が現れませんでした。`,
+        targetType: NotificationTargetType.AUCTION_SELLER,
+      };
+    default:
+      throw new Error(`未対応のオークションイベントタイプです: ${String(eventType)}`);
   }
 }

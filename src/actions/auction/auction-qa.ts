@@ -4,7 +4,7 @@ import { revalidateTag } from "next/cache";
 import { sendAuctionNotification } from "@/actions/notification/auction-notification";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
-import { AuctionEventType, NotificationSendMethod } from "@prisma/client";
+import { AuctionEventType, NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 
 import { getCachedAuctionMessageContents, getCachedAuctionSellerInfo } from "./cache/cache-auction-qa";
 
@@ -148,7 +148,7 @@ export async function sendAuctionMessage(
         recipientUserId: [recipientId],
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL],
         actionUrl: `/auction/${auctionId}`,
-        sendTiming: "NOW",
+        sendTiming: NotificationSendTiming.NOW,
         sendScheduledDate: null,
         expiresAt: null,
       });

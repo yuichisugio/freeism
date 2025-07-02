@@ -6,7 +6,7 @@
 import { fileURLToPath } from "node:url";
 import { sendAuctionNotification } from "@/actions/notification/auction-notification";
 import { prisma } from "@/library-setting/prisma";
-import { NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
+import { AuctionEventType, NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -126,7 +126,7 @@ export async function returnAuctionDepositPoints(): Promise<number> {
             first: task.task,
             second: String(depositPointAmount),
           },
-          auctionEventType: "POINT_RETURNED",
+          auctionEventType: AuctionEventType.POINT_RETURNED,
           auctionId: auction.id,
           recipientUserId: [winningBid.userId],
           sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],

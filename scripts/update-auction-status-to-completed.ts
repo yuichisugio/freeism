@@ -586,7 +586,7 @@ async function sendNotificationAsync(notificationData: NotificationData): Promis
     if (result.success) {
       console.log(`通知を送信しました: イベントタイプ ${eventType}, 受信者 ${recipientUserId.join(", ")}`);
     } else {
-      console.error(`通知送信に失敗しました: ${result.error}`);
+      console.error(`通知送信に失敗しました: ${result.message}`);
     }
   } catch (error) {
     console.error(`通知送信中にエラーが発生しました:`, error);

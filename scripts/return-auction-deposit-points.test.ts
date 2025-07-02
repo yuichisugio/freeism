@@ -228,7 +228,7 @@ function createExpectedNotificationParams(auctionId: string, taskName: string, d
 describe("returnAuctionDepositPoints", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendAuctionNotification.mockResolvedValue({ success: true });
+    mockSendAuctionNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
 
     // コンソールモックを設定
     console.log = mockConsoleLog;
@@ -735,7 +735,7 @@ describe("returnAuctionDepositPoints", () => {
 describe("main", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendAuctionNotification.mockResolvedValue({ success: true });
+    mockSendAuctionNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
 
     // コンソールモックを設定
     console.log = mockConsoleLog;

@@ -198,7 +198,7 @@ const expectNotificationSent = (
 describe("update-auction-status-to-completed", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSendAuctionNotification.mockResolvedValue({ success: true });
+    mockSendAuctionNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
 
     // コンソールモックを設定
     console.log = mockConsoleLog;
@@ -459,7 +459,7 @@ describe("update-auction-status-to-completed", () => {
       const taskWithRelations = createTaskWithNoBids(task, auction, group);
 
       setupPrismaMockForNoBids(taskWithRelations, seller.id);
-      mockSendAuctionNotification.mockResolvedValue({ success: false, error: "Notification failed" });
+      mockSendAuctionNotification.mockResolvedValue({ success: false, message: "Notification failed" });
 
       const result = await updateAuctionStatusToCompleted();
 
