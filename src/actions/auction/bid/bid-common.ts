@@ -183,16 +183,19 @@ export async function executeBid(
       /**
        * オークション延長処理を実行
        */
-      const { success, message } = await processAuctionExtension({
-        auctionId,
-        auction: validation.auction!,
-        tx,
-      });
-      if (success) {
-        toast.info(message);
-      }
-      if (!success) {
-        throw new Error(message);
+      // 延長可能な設定のオークションの場合は、延長処理を実行
+      if (validation.auction?.isExtension) {
+        const { success, message } = await processAuctionExtension({
+          auctionId,
+          auction: validation.auction,
+          tx,
+        });
+        if (success) {
+          toast.info(message);
+        }
+        if (!success) {
+          throw new Error(message);
+        }
       }
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

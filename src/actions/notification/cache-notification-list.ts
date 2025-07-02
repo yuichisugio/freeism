@@ -187,11 +187,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       /**
        * 通知データを整形する
        */
-      const uniqueRawNotifications = Array.isArray(allRawNotificationsFromDb)
-        ? Array.from(new Map(allRawNotificationsFromDb.map((n) => [n.id, n])).values())
-        : [];
-
-      const notifications: NotificationData[] = uniqueRawNotifications.map(
+      const notifications: NotificationData[] = allRawNotificationsFromDb.map(
         (n: RawNotificationFromDB): NotificationData => ({
           id: n.id,
           title: n.title ?? "",
