@@ -159,7 +159,6 @@ export async function joinGroup(groupId: string): Promise<{ success: boolean; er
     /**
      * グループに参加
      */
-    // グループに参加
     await prisma.groupMembership.create({
       data: {
         userId,
@@ -228,6 +227,9 @@ export async function deleteGroup(groupId: string): Promise<{ success: boolean; 
      */
     const group = await prisma.group.findUnique({
       where: { id: groupId },
+      select: {
+        createdBy: true,
+      },
     });
 
     if (!group) {
@@ -237,9 +239,10 @@ export async function deleteGroup(groupId: string): Promise<{ success: boolean; 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * グループの作成者のみが削除可能
+     * グループの操作権限があるユーザーのみが削除可能
      */
-    if (group.createdBy !== userId) {
+    const isOwner = await checkIsPermission(userId, groupId, undefined, false);
+    if (!isOwner.success) {
       throw new Error("グループの削除権限がありません");
     }
 
@@ -295,7 +298,7 @@ export async function checkGroupExistByName(name: string): Promise<boolean> {
   /**
    * グループ名があるかチェック
    */
-  if (!name) {
+  if (!name || name.trim() === "") {
     throw new Error("グループ名がありません");
   }
 
@@ -341,9 +344,26 @@ export async function updateGroup(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
+     * データをバリデーション
+     */
+    const validatedData = createGroupSchema.parse(data);
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
      * 認証処理
      */
     const userId = await getAuthenticatedSessionUserId();
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * グループの作成者のみが編集可能
+     */
+    const isOwner = await checkIsPermission(userId, groupId, undefined, false);
+    if (!isOwner.success) {
+      throw new Error("グループの編集権限がありません");
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -352,19 +372,13 @@ export async function updateGroup(
      */
     const group = await prisma.group.findUnique({
       where: { id: groupId },
+      select: {
+        name: true,
+      },
     });
 
     if (!group) {
       throw new Error("グループが見つかりません");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループの作成者のみが編集可能
-     */
-    if (group.createdBy !== userId) {
-      throw new Error("グループの編集権限がありません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -389,13 +403,6 @@ export async function updateGroup(
         throw new Error("このグループ名は既に使用されています");
       }
     }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * データをバリデーション
-     */
-    const validatedData = createGroupSchema.parse(data);
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -472,7 +479,11 @@ export async function getGroupMembers(groupId: string): Promise<GetGroupMembers[
       user: {
         select: {
           id: true,
-          name: true,
+          settings: {
+            select: {
+              username: true,
+            },
+          },
         },
       },
     },
@@ -489,7 +500,7 @@ export async function getGroupMembers(groupId: string): Promise<GetGroupMembers[
   const returnMembers: GetGroupMembers[] = members.map((member) => ({
     isGroupOwner: member.isGroupOwner,
     userId: member.user.id,
-    appUserName: member.user.name ?? "未設定",
+    appUserName: member.user.settings?.username ?? `未設定_${member.user.id}`,
   }));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -521,7 +532,7 @@ export async function removeMember(
      * グループIDがあるかチェック
      */
     if (!groupId || !userId || addToBlackList === undefined || addToBlackList === null) {
-      return { success: false, error: "グループIDまたはユーザーIDがありません" };
+      throw new Error("グループIDまたはユーザーIDがありません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -536,7 +547,7 @@ export async function removeMember(
     /**
      * 操作者がグループオーナーかチェック
      */
-    const isOwner = await checkIsPermission(currentUserId, groupId);
+    const isOwner = await checkIsPermission(currentUserId, groupId, undefined, false);
     if (!isOwner.success) {
       throw new Error("グループメンバーを削除する権限がありません");
     }
