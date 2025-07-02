@@ -48,24 +48,32 @@ export const updateNotificationStatus = cache(
 
       // Prismaの$transactionを使用して、すべての更新をアトミックに実行
       await prisma.$transaction(async (tx) => {
+        // 更新対象の通知IDと既読状態をチェック
         for (const update of updates) {
+          // 更新対象の通知IDと既読状態を取得
           const { notificationId, isRead } = update;
+
+          // 通知IDまたは既読状態が不正な場合はエラー
+          if (!notificationId || isRead === undefined || isRead === null) {
+            throw new Error("通知IDまたは既読状態が不正です");
+          }
+
           // 未読の場合はreadAtをnullではなく明示的にNULLとして扱うために条件分岐
           if (isRead) {
             // 既読にする場合
             const readAt = new Date().toISOString();
             await tx.$executeRaw`
-            UPDATE "Notification"
-            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
-            WHERE id = ${notificationId}
-          `;
+              UPDATE "Notification"
+              SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', true, 'readAt', ${readAt}))
+              WHERE id = ${notificationId}
+            `;
           } else {
             // 未読にする場合 - readAtはnullではなくプロパティそのものを設定しない
             await tx.$executeRaw`
-            UPDATE "Notification"
-            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
-            WHERE id = ${notificationId}
-          `;
+              UPDATE "Notification"
+              SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object(${userId}, jsonb_build_object('isRead', false))
+              WHERE id = ${notificationId}
+            `;
           }
         }
       });

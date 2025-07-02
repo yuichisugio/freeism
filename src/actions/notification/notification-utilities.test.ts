@@ -17,6 +17,77 @@ import {
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+// SQL検証用のヘルパー関数
+
+/**
+ * SQL文字列を正規化する関数（空白文字の統一）
+ * @param sqlString 正規化対象のSQL文字列
+ * @returns 正規化されたSQL文字列
+ */
+function normalizeSqlString(sqlString: string): string {
+  return sqlString
+    .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
+    .replace(/\n/g, " ") // 改行を単一スペースに変換
+    .replace(/\t/g, " ") // タブを単一スペースに変換
+    .trim(); // 前後の空白を除去
+}
+
+/**
+ * Prisma.sqlオブジェクトから完全なSQL文字列を生成する関数
+ * @param strings SQL文字列の配列
+ * @param values 値の配列
+ * @returns 完全なSQL文字列
+ */
+function buildFullSqlString(strings: readonly string[], values: readonly unknown[]): string {
+  let result = "";
+  for (let i = 0; i < strings.length; i++) {
+    result += strings[i];
+    if (i < values.length) {
+      const value = values[i];
+      if (typeof value === "string") {
+        result += `'${value}'`;
+      } else if (Array.isArray(value)) {
+        result += `ARRAY[${value.map((v) => (typeof v === "string" ? `'${v}'` : String(v))).join(",")}]`;
+      } else {
+        result += String(value);
+      }
+    }
+  }
+  return normalizeSqlString(result);
+}
+
+/**
+ * モックされたPrisma.$executeRawの呼び出し引数からSQL情報を抽出する関数
+ * @param callArgs prismaMock.$executeRaw.mock.calls[index]
+ * @returns SQL文字列と値の配列、またはnull（抽出できない場合）
+ */
+function extractSqlFromExecuteRawCall(
+  callArgs: unknown[],
+): { strings: readonly string[]; values: readonly unknown[] } | null {
+  const firstArg = callArgs[0];
+
+  // 配列形式の場合（Prismaのテンプレートリテラル）
+  if (Array.isArray(firstArg)) {
+    // 配列の最初の要素がstrings配列、残りの引数がvalues
+    const strings = firstArg as readonly string[];
+    const values = callArgs.slice(1) as readonly unknown[];
+
+    return { strings, values };
+  }
+
+  // Prisma.sql`...`形式の場合
+  if (firstArg && typeof firstArg === "object" && "strings" in firstArg && "values" in firstArg) {
+    return {
+      strings: (firstArg as { strings: readonly string[] }).strings,
+      values: (firstArg as { values: readonly unknown[] }).values,
+    };
+  }
+
+  return null;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 // 依存関数のモック
 vi.mock("@/actions/notification/cache-notification-list", () => ({
   cachedGetNotificationsAndUnreadCount: vi.fn(),
@@ -79,10 +150,6 @@ const createMockNotification = (overrides = {}) => ({
   ...overrides,
 });
 
-const createMockUsers = (userIds: string[]) => userIds.map((id) => ({ id }));
-
-const createMockGroupMembers = (userIds: string[]) => userIds.map((userId) => ({ userId }));
-
 const createMockTask = (overrides = {}) => ({
   creatorId: TEST_DATA.userIds.user1,
   groupId: TEST_DATA.groupIds.group1,
@@ -90,18 +157,6 @@ const createMockTask = (overrides = {}) => ({
   executors: [{ userId: TEST_DATA.userIds.user3 }],
   ...overrides,
 });
-
-const setupPrismaTransactionMock = () => {
-  const mockTransaction = vi
-    .fn()
-    .mockImplementation(async (callback: (tx: { $executeRaw: () => Promise<void> }) => Promise<unknown>) => {
-      return await callback({
-        $executeRaw: vi.fn().mockResolvedValue(undefined),
-      });
-    });
-  prismaMock.$transaction.mockImplementation(mockTransaction);
-  return mockTransaction;
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -196,7 +251,14 @@ describe("notification-utilities", () => {
       },
     ])("$description", async ({ updates }) => {
       // Arrange
-      setupPrismaTransactionMock();
+      const mockTransaction = vi
+        .fn()
+        .mockImplementation(async (callback: (tx: { $executeRaw: () => Promise<void> }) => Promise<unknown>) => {
+          return await callback({
+            $executeRaw: vi.fn().mockResolvedValue(undefined),
+          });
+        });
+      prismaMock.$transaction.mockImplementation(mockTransaction);
 
       // Act
       const result = await updateNotificationStatus(updates, userId);
@@ -217,6 +279,301 @@ describe("notification-utilities", () => {
       // Assert
       expect(result).toStrictEqual({ success: false });
     });
+
+    describe("SQL全文検証テスト", () => {
+      test("既読にする場合のSQL文をtoStrictEqualで検証する", async () => {
+        // Arrange
+        const updates = [{ notificationId: TEST_DATA.notificationIds.notification1, isRead: true }];
+
+        // 固定の日時を設定（テストの再現性のため）
+        const fixedDate = new Date("2024-01-01T12:00:00.000Z");
+        const mockDateSpy = vi.spyOn(global, "Date").mockImplementation(() => fixedDate);
+
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(mockExecuteRaw).toHaveBeenCalledTimes(1);
+
+        // Prismaの$executeRawは、テンプレートリテラル形式で呼び出される
+        // 実際の呼び出しを検証する
+        const actualCall = mockExecuteRaw.mock.calls[0];
+        expect(actualCall).toBeDefined();
+        expect(actualCall.length).toBeGreaterThan(0);
+
+        // SQL引数を抽出
+        const sqlData = extractSqlFromExecuteRawCall(actualCall);
+        expect(sqlData).not.toBeNull();
+
+        if (sqlData) {
+          // SQL文字列を再構築
+          const actualSql = buildFullSqlString(sqlData.strings, sqlData.values);
+          const expectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', true, 'readAt', '${fixedDate.toISOString()}'))
+            WHERE id = '${TEST_DATA.notificationIds.notification1}'
+          `);
+
+          expect(actualSql).toStrictEqual(expectedSql);
+        }
+
+        // モックを復元
+        mockDateSpy.mockRestore();
+      });
+
+      test("未読にする場合のSQL文をtoStrictEqualで検証する", async () => {
+        // Arrange
+        const updates = [{ notificationId: TEST_DATA.notificationIds.notification1, isRead: false }];
+
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(mockExecuteRaw).toHaveBeenCalledTimes(1);
+        const actualCall = mockExecuteRaw.mock.calls[0];
+        const sqlData = extractSqlFromExecuteRawCall(actualCall);
+
+        expect(sqlData).not.toBeNull();
+        if (sqlData) {
+          const actualSql = buildFullSqlString(sqlData.strings, sqlData.values);
+          const expectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', false))
+            WHERE id = '${TEST_DATA.notificationIds.notification1}'
+          `);
+
+          expect(actualSql).toStrictEqual(expectedSql);
+        }
+      });
+
+      test("複数の更新（既読・未読混在）の場合のSQL文をtoStrictEqualで検証する", async () => {
+        // Arrange
+        const updates = [
+          { notificationId: TEST_DATA.notificationIds.notification1, isRead: true },
+          { notificationId: TEST_DATA.notificationIds.notification2, isRead: false },
+        ];
+
+        // 固定の日時を設定（テストの再現性のため）
+        const fixedDate = new Date("2024-01-01T12:00:00.000Z");
+        const mockDateSpy = vi.spyOn(global, "Date").mockImplementation(() => fixedDate);
+
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(mockExecuteRaw).toHaveBeenCalledTimes(2);
+
+        // 1回目の呼び出し: 既読にする場合
+        const firstCall = mockExecuteRaw.mock.calls[0];
+        const firstSqlData = extractSqlFromExecuteRawCall(firstCall);
+        expect(firstSqlData).not.toBeNull();
+        if (firstSqlData) {
+          const firstActualSql = buildFullSqlString(firstSqlData.strings, firstSqlData.values);
+          const firstExpectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', true, 'readAt', '${fixedDate.toISOString()}'))
+            WHERE id = '${TEST_DATA.notificationIds.notification1}'
+          `);
+          expect(firstActualSql).toStrictEqual(firstExpectedSql);
+        }
+
+        // 2回目の呼び出し: 未読にする場合
+        const secondCall = mockExecuteRaw.mock.calls[1];
+        const secondSqlData = extractSqlFromExecuteRawCall(secondCall);
+        expect(secondSqlData).not.toBeNull();
+        if (secondSqlData) {
+          const secondActualSql = buildFullSqlString(secondSqlData.strings, secondSqlData.values);
+          const secondExpectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', false))
+            WHERE id = '${TEST_DATA.notificationIds.notification2}'
+          `);
+          expect(secondActualSql).toStrictEqual(secondExpectedSql);
+        }
+
+        // モックを復元
+        mockDateSpy.mockRestore();
+      });
+
+      test("不正な更新データがある場合のエラーハンドリングを確認する", async () => {
+        // Arrange
+        const updates = [
+          { notificationId: "", isRead: true }, // 不正な通知ID
+        ];
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        const result = await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(result).toStrictEqual({ success: false });
+        expect(mockExecuteRaw).not.toHaveBeenCalled();
+      });
+
+      test("空の更新データでSQL実行されないことを確認する", async () => {
+        // Arrange
+        const updates: Array<{ notificationId: string; isRead: boolean }> = [];
+
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        const result = await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(mockExecuteRaw).not.toHaveBeenCalled();
+      });
+
+      test("同じ通知IDに対する複数の更新が正しいSQL文を生成することを確認する", async () => {
+        // Arrange
+        const updates = [
+          { notificationId: TEST_DATA.notificationIds.notification1, isRead: true },
+          { notificationId: TEST_DATA.notificationIds.notification1, isRead: false },
+        ];
+
+        // 固定の日時を設定（テストの再現性のため）
+        const fixedDate = new Date("2024-01-01T12:00:00.000Z");
+        const mockDateSpy = vi.spyOn(global, "Date").mockImplementation(() => fixedDate);
+
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(mockExecuteRaw).toHaveBeenCalledTimes(2);
+
+        // 1回目の呼び出し: 既読にする場合
+        const firstCall = mockExecuteRaw.mock.calls[0];
+        const firstSqlData = extractSqlFromExecuteRawCall(firstCall);
+        expect(firstSqlData).not.toBeNull();
+        if (firstSqlData) {
+          const firstActualSql = buildFullSqlString(firstSqlData.strings, firstSqlData.values);
+          const firstExpectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', true, 'readAt', '${fixedDate.toISOString()}'))
+            WHERE id = '${TEST_DATA.notificationIds.notification1}'
+          `);
+          expect(firstActualSql).toStrictEqual(firstExpectedSql);
+        }
+
+        // 2回目の呼び出し: 未読にする場合（同じ通知ID）
+        const secondCall = mockExecuteRaw.mock.calls[1];
+        const secondSqlData = extractSqlFromExecuteRawCall(secondCall);
+        expect(secondSqlData).not.toBeNull();
+        if (secondSqlData) {
+          const secondActualSql = buildFullSqlString(secondSqlData.strings, secondSqlData.values);
+          const secondExpectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', false))
+            WHERE id = '${TEST_DATA.notificationIds.notification1}'
+          `);
+          expect(secondActualSql).toStrictEqual(secondExpectedSql);
+        }
+
+        // モックを復元
+        mockDateSpy.mockRestore();
+      });
+
+      test("複数の異なる通知IDの既読更新SQL文を検証する", async () => {
+        // Arrange
+        const updates = [
+          { notificationId: TEST_DATA.notificationIds.notification1, isRead: true },
+          { notificationId: TEST_DATA.notificationIds.notification2, isRead: true },
+        ];
+
+        // 固定の日時を設定（テストの再現性のため）
+        const fixedDate = new Date("2024-01-01T12:00:00.000Z");
+        const mockDateSpy = vi.spyOn(global, "Date").mockImplementation(() => fixedDate);
+
+        const mockExecuteRaw = vi.fn().mockResolvedValue(undefined);
+        const mockTransaction = {
+          $executeRaw: mockExecuteRaw,
+        };
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
+        });
+
+        // Act
+        await updateNotificationStatus(updates, userId);
+
+        // Assert
+        expect(mockExecuteRaw).toHaveBeenCalledTimes(2);
+
+        // 1回目の呼び出し
+        const firstCall = mockExecuteRaw.mock.calls[0];
+        const firstSqlData = extractSqlFromExecuteRawCall(firstCall);
+        expect(firstSqlData).not.toBeNull();
+        if (firstSqlData) {
+          const firstActualSql = buildFullSqlString(firstSqlData.strings, firstSqlData.values);
+          const firstExpectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', true, 'readAt', '${fixedDate.toISOString()}'))
+            WHERE id = '${TEST_DATA.notificationIds.notification1}'
+          `);
+          expect(firstActualSql).toStrictEqual(firstExpectedSql);
+        }
+
+        // 2回目の呼び出し
+        const secondCall = mockExecuteRaw.mock.calls[1];
+        const secondSqlData = extractSqlFromExecuteRawCall(secondCall);
+        expect(secondSqlData).not.toBeNull();
+        if (secondSqlData) {
+          const secondActualSql = buildFullSqlString(secondSqlData.strings, secondSqlData.values);
+          const secondExpectedSql = normalizeSqlString(`
+            UPDATE "Notification"
+            SET "is_read" = COALESCE("is_read", '{}'::jsonb) || jsonb_build_object('${userId}', jsonb_build_object('isRead', true, 'readAt', '${fixedDate.toISOString()}'))
+            WHERE id = '${TEST_DATA.notificationIds.notification2}'
+          `);
+          expect(secondActualSql).toStrictEqual(secondExpectedSql);
+        }
+
+        // モックを復元
+        mockDateSpy.mockRestore();
+      });
+    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -227,7 +584,11 @@ describe("notification-utilities", () => {
         // Arrange
         const targetType = NotificationTargetType.SYSTEM;
         const params = {};
-        const mockUsers = createMockUsers([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3]);
+        const mockUsers = [
+          { id: TEST_DATA.userIds.user1 },
+          { id: TEST_DATA.userIds.user2 },
+          { id: TEST_DATA.userIds.user3 },
+        ];
         prismaMock.user.findMany.mockResolvedValue(
           mockUsers as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
         );
@@ -259,7 +620,7 @@ describe("notification-utilities", () => {
         // Arrange
         const targetType = NotificationTargetType.GROUP;
         const params = { groupId: TEST_DATA.groupIds.group1 };
-        const mockGroupMembers = createMockGroupMembers([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
+        const mockGroupMembers = [{ userId: TEST_DATA.userIds.user1 }, { userId: TEST_DATA.userIds.user2 }];
         prismaMock.groupMembership.findMany.mockResolvedValue(
           mockGroupMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
         );
@@ -289,7 +650,7 @@ describe("notification-utilities", () => {
             { userId: null }, // 未登録ユーザーは除外される
           ],
         });
-        const mockGroupMembers = createMockGroupMembers([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
+        const mockGroupMembers = [{ userId: TEST_DATA.userIds.user1 }, { userId: TEST_DATA.userIds.user2 }];
 
         prismaMock.task.findUnique.mockResolvedValue(
           mockTask as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
@@ -348,10 +709,10 @@ describe("notification-utilities", () => {
           reporters: [{ userId: TEST_DATA.userIds.user1 }], // 重複
           executors: [{ userId: TEST_DATA.userIds.user2 }],
         });
-        const mockGroupMembers = createMockGroupMembers([
-          TEST_DATA.userIds.user1, // 重複
-          TEST_DATA.userIds.user2, // 重複
-        ]);
+        const mockGroupMembers = [
+          { userId: TEST_DATA.userIds.user1 }, // 重複
+          { userId: TEST_DATA.userIds.user2 }, // 重複
+        ];
 
         prismaMock.task.findUnique.mockResolvedValue(
           mockTask as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
