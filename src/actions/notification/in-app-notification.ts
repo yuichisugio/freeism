@@ -16,7 +16,7 @@ import type { NotificationParams } from "./email-notification";
  */
 export async function sendInAppNotification(
   notificationParams: NotificationParams,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -36,7 +36,7 @@ export async function sendInAppNotification(
           sentAt: now,
         },
       });
-      return { success: true };
+      return { success: true, message: "通知を更新しました" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -117,7 +117,7 @@ export async function sendInAppNotification(
     /**
      * 成功を返す
      */
-    return { success: true };
+    return { success: true, message: "通知を作成しました" };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
@@ -125,7 +125,7 @@ export async function sendInAppNotification(
     console.error("sendInAppNotification_エラーstack:", new Error().stack);
     return {
       success: false,
-      error: `通知の作成中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+      message: `通知の作成中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
     };
   }
 }

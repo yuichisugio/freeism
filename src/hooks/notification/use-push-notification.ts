@@ -87,7 +87,7 @@ function reducer(state: PushNotificationState, action: Action): PushNotification
   }
 }
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * サービスワーカーのメッセージイベントの型定義
@@ -123,7 +123,7 @@ export type DeviceInfo = {
   deviceId: string;
 };
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * URLBase64をUint8Arrayに変換するヘルパー関数
@@ -519,7 +519,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
             if (subscriptionData) {
               const result = await saveSubscription(subscriptionData);
               if ("error" in result) {
-                syncError = new Error(`Failed to sync subscription: ${result.error}`);
+                syncError = new Error(`Failed to sync subscription: ${String(result.error)}`);
               } else {
                 currentRecordId ??= await getRecordId(existingSubscription.endpoint);
               }

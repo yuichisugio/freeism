@@ -1,7 +1,7 @@
 "use server";
 
-import type { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
+import { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -15,13 +15,13 @@ export type NotificationParams = {
   title: string;
   message: string;
   sendMethods: NotificationSendMethod[];
+  targetType: NotificationTargetType;
+  sendTiming: NotificationSendTiming;
   senderUserId: string | null;
   actionUrl: string | null;
-  targetType: NotificationTargetType;
   groupId: string | null;
   taskId: string | null;
   auctionId: string | null;
-  sendTiming: NotificationSendTiming;
   sendScheduledDate: Date | null;
   expiresAt: Date | null;
   fromEmail?: string;
@@ -40,50 +40,57 @@ export type NotificationParams = {
  */
 export async function sendEmailNotification(
   params: NotificationParams,
-): Promise<{ success: boolean; error?: string; message?: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 受信者のメール通知設定を取得
+    /**
+     * 必須パラメータのチェック
+     */
+    if (
+      !params.title ||
+      !params.message ||
+      !params.sendMethods ||
+      params.sendMethods.length === 0 ||
+      !params.sendMethods.every((method) => Object.values(NotificationSendMethod).includes(method)) ||
+      !params.targetType ||
+      !Object.values(NotificationTargetType).includes(params.targetType) ||
+      !params.recipientUserIds ||
+      params.recipientUserIds.length === 0 ||
+      !params.sendTiming ||
+      !Object.values(NotificationSendTiming).includes(params.sendTiming)
+    ) {
+      throw new Error("必須パラメータが不足しています");
+    }
+
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 受信者のメール通知設定を取得
+     */
     const emailNotificationSettings = await prisma.userSettings.findMany({
       where: {
         userId: { in: params.recipientUserIds },
+        isEmailEnabled: true,
       },
       select: {
         isEmailEnabled: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
 
-    if (emailNotificationSettings.length === 0 || !emailNotificationSettings.some((u) => u.isEmailEnabled)) {
-      return { success: true, message: "メール通知設定が見つかりません" };
-    }
-
-    // メール通知が有効なユーザーのみ抽出
-    const enabledEmailSettings = emailNotificationSettings.filter((setting) => setting.isEmailEnabled);
-
-    if (enabledEmailSettings.length === 0) {
-      return { success: true, message: "メール通知設定が見つかりません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // TODO: 受信者のメールの受信拒否設定の場合は、メールを送信しない分岐を行う
-
-    // // 受信者のメールアドレスを取得
-    // const recipientUserEmails = await prisma.user.findMany({
-    //   where: {
-    //     id: { in: params.recipientUserIds },
-    //   },
-    //   select: {
-    //     email: true,
-    //   },
-    // });
-
-    // // 受信者リストの検証
-    // if (!recipientUserEmails || recipientUserEmails.length === 0) {
-    //   return { success: false, error: "受信者リストが空です" };
-    // }
+    /**
+     * メール通知設定が見つからない場合は、メール通知を送信しない
+     */
+    if (emailNotificationSettings.length === 0) {
+      return { success: true, message: "メール通知設定が見つかりません" };
+    }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -148,17 +155,21 @@ export async function sendEmailNotification(
 
     // // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // メール送信に成功した場合
-    return { success: true };
+    /**
+     * メール送信に成功した場合
+     */
+    return { success: true, message: "メール通知を送信しました" };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // メール送信に失敗した場合
+    /**
+     * メール送信に失敗した場合
+     */
   } catch (error) {
     console.error("email-notification.ts_sendEmailNotification_error", error);
     return {
       success: false,
-      error: "メール通知を送信できませんでした",
+      message: `メール通知を送信できませんでした: ${error instanceof Error ? error.message : "不明なエラー"}`,
     };
   }
 }
