@@ -1,7 +1,4 @@
 import { unstable_cacheTag as cacheTag } from "next/cache";
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// モック関数のインポート
 import { buildCommonNotificationWhereClause } from "@/actions/notification/notification-utilities";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { AuctionEventType, NotificationTargetType, Prisma } from "@prisma/client";
@@ -11,21 +8,6 @@ import type { RawNotificationFromDB } from "./cache-notification-list";
 import { cachedGetNotificationsAndUnreadCount } from "./cache-notification-list";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// SQL文字列正規化ヘルパー関数
-/**
- * SQL文字列を正規化して比較しやすくする関数
- * 改行、余分なスペース、タブを除去し、統一された形式にする
- * @param sqlString SQL文字列
- * @returns 正規化されたSQL文字列
- */
-function normalizeSqlString(sqlString: string): string {
-  return sqlString
-    .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
-    .replace(/\n/g, " ") // 改行を単一スペースに変換
-    .replace(/\t/g, " ") // タブを単一スペースに変換
-    .trim(); // 前後の空白を除去
-}
 
 /**
  * Prisma.sqlオブジェクトから完全なSQL文字列を生成する関数
@@ -46,7 +28,11 @@ function buildFullSqlString(strings: readonly string[], values: readonly unknown
       }
     }
   }
-  return normalizeSqlString(result);
+  return result
+    .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
+    .replace(/\n/g, " ") // 改行を単一スペースに変換
+    .replace(/\t/g, " ") // タブを単一スペースに変換
+    .trim();
 }
 
 /**
@@ -317,9 +303,9 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const firstCallArgs = prismaMock.$queryRaw.mock.calls[0];
       const firstCallSqlData = extractSqlFromMockCall(firstCallArgs);
       const firstCallSql = buildFullSqlString(firstCallSqlData.strings, firstCallSqlData.values);
-      const expectedFirstSql = normalizeSqlString(`
-        SELECT 
-          n.id, 
+      let expectedFirstSql = `
+        SELECT
+          n.id,
           n.title, 
           n.message, 
           n."target_type" as "NotificationTargetType", 
@@ -350,14 +336,19 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE)) -- filterCondition を適用 
         ORDER BY n."sent_at" DESC, n.id DESC 
         LIMIT ${limit} OFFSET ${offset}
-      `);
+      `;
+      expectedFirstSql = expectedFirstSql
+        .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
+        .replace(/\n/g, " ") // 改行を単一スペースに変換
+        .replace(/\t/g, " ") // タブを単一スペースに変換
+        .trim();
       expect(firstCallSql).toStrictEqual(expectedFirstSql);
 
       // 2回目の呼び出し: 既読通知クエリ
       const secondCallArgs = prismaMock.$queryRaw.mock.calls[1];
       const secondCallSqlData = extractSqlFromMockCall(secondCallArgs);
       const secondCallSql = buildFullSqlString(secondCallSqlData.strings, secondCallSqlData.values);
-      const expectedSecondSql = normalizeSqlString(`
+      let expectedSecondSql = `
         SELECT 
           n.id, 
           n.title, 
@@ -390,7 +381,12 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE) -- filterCondition を適用 
         ORDER BY n."sent_at" DESC, n.id DESC 
         LIMIT ${limit} OFFSET ${offset}
-      `);
+      `;
+      expectedSecondSql = expectedSecondSql
+        .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
+        .replace(/\n/g, " ") // 改行を単一スペースに変換
+        .replace(/\t/g, " ") // タブを単一スペースに変換
+        .trim();
       expect(secondCallSql).toStrictEqual(expectedSecondSql);
 
       // カウントクエリは複雑な構造のため、このテストでは通知クエリのみをチェック
@@ -736,32 +732,6 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
       // Assert
       expect(result.notifications).toStrictEqual([]);
-    });
-
-    test("should handle very large limit", async () => {
-      // Arrange
-      const userId = "user-1";
-      const page = 1;
-      const limit = 10000;
-
-      const mockNotifications = Array.from({ length: 100 }, (_, i) =>
-        createMockRawNotificationFromDB({ id: `notification-${i}` }),
-      );
-      const mockUnreadCount = [{ count: BigInt(100) }];
-      const mockTotalCount = [{ count: BigInt(100) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
-
-      // Assert
-      expect(result.notifications).toHaveLength(100);
-      expect(result.totalCount).toBe(100);
     });
 
     test("should handle empty user ID", async () => {

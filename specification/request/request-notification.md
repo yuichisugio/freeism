@@ -1,3 +1,18 @@
+# 通知の仕様
+
+## 一番重要な点
+
+- 全体・未読・既読のタブごとにバラバラに取得せず、全部を取得してから、CL側で表示しているため、わざと未読と既読を同じ件数を取得する実装にしている
+  - できることなら、全体・未読・既読のタブごとにバラバラに取得したい
+  - 今の実装を行った時は、TanStack Query
+    v5のQueryClientの設定`refetchOnMount: true`が`false`になっていたので、別タブでステータス更新しても、キャッシュがあってステータスが更新されなかった。
+  - なので、回避策として、未読と既読を同じ数取得して、一つにまとめてクライアント側に返す実装にした。
+  - リファクタリングするなら、キャッシュの設定をちゃんと行えば、理想の「全体・未読・既読のタブごとにバラバラに取得する」こともできると思う
+  - TanStack Query v5と`use cache`の両方の設定でキャッシュ更新する設定が必要
+  - notionにも反省をまとめていると思うから、あとでまとめたい
+
+## etc
+
 カスタムの`pendingUpdates`メカニズムを、TanStack
 Queryの`mutation`、`onMutate`、`onError`、`onSettled`に置き換える。リストクエリは`["notifications", userId, "unread"]`などで管理し、ステータス変更時に`mutate({id, isRead})`を使って楽観的更新を行う。`useInfiniteQuery`を使い、リストの更新を容易にする。`queryClient.invalidateQueries`を使用し、エラーや成功時にキャッシュを更新。ローカルの`allNotifications`に依存せず、クエリ結果でUIを更新する。
 
@@ -223,3 +238,123 @@ export function useNotificationList() {
 [12]:
   https://tanstack.com/query/v4/docs/react/guides/updates-from-mutation-responses?utm_source=chatgpt.com
   "Updates from Mutation Responses | TanStack Query React Docs"
+
+添付されたコードを詳細に分析して、Step by Stepで解説いたします。
+
+## フィルター条件の中身の違いについて
+
+まず、`unreadFilterCondition`と`readFilterCondition`の具体的な内容を確認しましょう。
+
+```typescript
+// 未読フィルター条件
+const unreadFilterCondition = Prisma.sql`AND (NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
+
+// 既読フィルター条件
+const readFilterCondition = Prisma.sql`AND (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE)`;
+```
+
+**これらのフィルター条件は実際には異なります**。違いは以下の通りです：
+
+### unreadFilterCondition（未読フィルター）の詳細解説
+
+```sql
+AND (NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))
+```
+
+この条件を分解すると：
+
+- `n."is_read" ? ${userId}`: PostgreSQLのJSONB演算子で、is_readフィールドに指定されたuserIdのキーが存在するかチェック
+- `n."is_read" -> ${userId} ->> 'isRead'`: 該当ユーザーのis_readオブジェクト内のisReadプロパティを文字列として取得
+- `::boolean = TRUE`: 文字列をboolean型にキャストしてTRUEと比較
+- `NOT (...)`: 全体を否定することで「既読ではない」つまり「未読」の条件を作成
+
+### readFilterCondition（既読フィルター）の詳細解説
+
+```sql
+AND (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE)
+```
+
+こちらは：
+
+- `NOT`が付いていないため、条件が満たされる場合は「既読」
+- ユーザーIDがis_readに存在し、かつisReadがTRUEの場合にマッチ
+
+## 2回に分けて取得する意味と問題点
+
+### 現在の実装の動作
+
+```typescript
+for (const filterCondition of [unreadFilterCondition, readFilterCondition]) {
+  const notificationsQuery = Prisma.sql`
+    // SELECT文...
+    WHERE ${commonWhereClause} ${filterCondition}
+    ORDER BY n."sent_at" DESC, n.id DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `;
+
+  const currentBatch = await prisma.$queryRaw<RawNotificationFromDB[]>(notificationsQuery);
+  if (Array.isArray(currentBatch)) {
+    allRawNotificationsFromDb.push(...currentBatch);
+  }
+}
+```
+
+この実装では：
+
+1. **1回目**：未読の通知を`LIMIT 20 OFFSET 0`で取得
+2. **2回目**：既読の通知を同じく`LIMIT 20 OFFSET 0`で取得
+3. 結果を配列に結合
+
+**問題1: ページネーションの破綻**
+両方のクエリで同じ`offset`を使用しているため、ページネーションが正しく動作しません。例えば、page=2の場合：
+
+- 未読通知：21-40件目を取得
+- 既読通知：21-40件目を取得
+- 結果：最大40件取得される可能性があり、期待される20件を超える
+
+**問題2: データの重複と非効率性**
+
+```typescript
+const uniqueRawNotifications = Array.isArray(allRawNotificationsFromDb)
+  ? Array.from(new Map(allRawNotificationsFromDb.map((n) => [n.id, n])).values())
+  : [];
+```
+
+重複除去処理が必要になっているのは、実装に問題があることを示しています。
+
+### より適切な実装方法
+
+この要件であれば、以下のような単一クエリの方が適切です：
+
+```typescript
+const notificationsQuery = Prisma.sql`
+  SELECT 
+    // SELECT句は同じ...
+  FROM "Notification" n
+  LEFT JOIN "User" u ON n."sender_user_id" = u.id
+  LEFT JOIN "Group" g ON n."group_id" = g.id  
+  LEFT JOIN "Task" t ON n."task_id" = t.id
+  WHERE ${commonWhereClause}
+  ORDER BY 
+    -- 未読を優先してソート
+    CASE 
+      WHEN NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE) 
+      THEN 0 
+      ELSE 1 
+    END,
+    n."sent_at" DESC, 
+    n.id DESC
+  LIMIT ${limit} OFFSET ${offset}
+`;
+```
+
+この方法なら：
+
+- 正確なページネーション
+- 未読優先の表示
+- 単一クエリで効率的
+- 重複の心配なし
+
+### 結論
+
+現在の実装で2回に分けて取得する意味は、おそらく「未読通知を優先表示したい」という意図があったと推測されますが、実装に問題があり期待通りに動作していない可能性が高いです。単一クエリでソート条件を工夫する方が、より確実で効率的な実装になります。

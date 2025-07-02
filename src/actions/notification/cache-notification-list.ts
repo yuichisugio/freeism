@@ -84,58 +84,98 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     try {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 共通のWHERE句を取得 (タスク条件を含む)
+      /**
+       * パラメータチェック
+       */
+      if (
+        !userId ||
+        !page ||
+        typeof page !== "number" ||
+        page < 1 ||
+        !limit ||
+        typeof limit !== "number" ||
+        limit < 1
+      ) {
+        throw new Error("Invalid parameters");
+      }
+
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 共通のWHERE句を取得 (タスク条件を含む)
+       */
       const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+      /**
+       * orderBy , where条件を作成する
+       */
       // 各カテゴリのオフセットを計算
       const offset = (page - 1) * limit;
 
-      // フィルター条件に応じたWHERE句の追加部分
+      // 未読フィルター条件。NOTをつけているので、ユーザーIDが存在しているかつ、isReadがTRUEである場合は除外する
       const unreadFilterCondition = Prisma.sql`AND (NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
+
+      // 既読フィルター条件。ユーザーIDが存在しているかつ、isReadがTRUEである場合は取得する
       const readFilterCondition = Prisma.sql`AND (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE)`;
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 通知リストを取得するSQLを作成
+       */
       const allRawNotificationsFromDb: RawNotificationFromDB[] = [];
 
       for (const filterCondition of [unreadFilterCondition, readFilterCondition]) {
-        // 通知取得クエリパート
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        /**
+         * メモ
+         * sender_user_idは、通知の受信者ではなく、通知の送信者を取得して、それを通知に表示する
+         */
         const notificationsQuery = Prisma.sql`
-        SELECT
-          n.id,
-          n.title,
-          n.message,
-          n."target_type" as "NotificationTargetType",
-          CASE -- isRead を動的に設定
-            WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE THEN TRUE
-            ELSE FALSE
-          END as "isRead",
-          n."sent_at" as "sentAt",
-          CASE -- readAt を動的に設定
-            WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE
-            THEN (n."is_read" -> ${userId} ->> 'readAt')::timestamp
-            ELSE null
-          END as "readAt",
-          n."expires_at" as "expiresAt",
-          n."action_url" as "actionUrl",
-          n."sender_user_id" as "senderUserId",
-          n."group_id" as "groupId",
-          n."task_id" as "taskId",
-          n."auction_event_type" as "auctionEventType",
-          n."auction_id" as "auctionId",
-          u.name as "userName",
-          g.name as "groupName",
-          t.task as "taskName"
-        FROM "Notification" n
-        LEFT JOIN "User" u ON n."sender_user_id" = u.id
-        LEFT JOIN "Group" g ON n."group_id" = g.id
-        LEFT JOIN "Task" t ON n."task_id" = t.id
-        WHERE ${commonWhereClause} ${filterCondition} -- filterCondition を適用
-        ORDER BY n."sent_at" DESC, n.id DESC
-        LIMIT ${limit} OFFSET ${offset}
+          SELECT
+            n.id,
+            n.title,
+            n.message,
+            n."target_type" as "NotificationTargetType",
+            CASE -- isRead を動的に設定
+              WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE
+              THEN TRUE
+              ELSE FALSE
+            END as "isRead",
+            n."sent_at" as "sentAt",
+            CASE -- readAt を動的に設定
+              WHEN n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE
+              THEN (n."is_read" -> ${userId} ->> 'readAt')::timestamp
+              ELSE null
+            END as "readAt",
+            n."expires_at" as "expiresAt",
+            n."action_url" as "actionUrl",
+            n."sender_user_id" as "senderUserId",
+            n."group_id" as "groupId",
+            n."task_id" as "taskId",
+            n."auction_event_type" as "auctionEventType",
+            n."auction_id" as "auctionId",
+            u.name as "userName",
+            g.name as "groupName",
+            t.task as "taskName"
+          FROM "Notification" n
+          LEFT JOIN "User" u ON n."sender_user_id" = u.id
+          LEFT JOIN "Group" g ON n."group_id" = g.id
+          LEFT JOIN "Task" t ON n."task_id" = t.id
+          WHERE ${commonWhereClause} ${filterCondition}
+          ORDER BY n."sent_at" DESC, n.id DESC
+          LIMIT ${limit} OFFSET ${offset}
       `;
 
-        // 未読と既読の通知を結合して取得し、最終ソート
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        /**
+         * 通知を取得
+         * 未読と既読の通知を結合して取得し、最終ソート
+         */
         const currentBatch = await prisma.$queryRaw<RawNotificationFromDB[]>(notificationsQuery);
         if (Array.isArray(currentBatch)) {
           allRawNotificationsFromDb.push(...currentBatch);
@@ -144,7 +184,9 @@ export const cachedGetNotificationsAndUnreadCount = cache(
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-      // 通知データを変換する
+      /**
+       * 通知データを整形する
+       */
       const uniqueRawNotifications = Array.isArray(allRawNotificationsFromDb)
         ? Array.from(new Map(allRawNotificationsFromDb.map((n) => [n.id, n])).values())
         : [];
@@ -174,19 +216,28 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * 通知カウント取得
+       * 通知カウント取得する条件を作成
        */
       const isUnreadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
       const unreadWhereClause = Prisma.sql`${commonWhereClause} AND ${isUnreadCondition}`;
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 未読通知カウントを取得
+       */
       const unreadCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
         SELECT COUNT(*) as count
         FROM "Notification" n
-        WHERE ${unreadWhereClause} -- 未読カウント用WHERE句
+        WHERE ${unreadWhereClause}
       `;
       const unreadCount = Number(unreadCountResult[0]?.count ?? 0);
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 通知全体の件数を取得
+       */
       const allNotificationsTotalCountResult = await prisma.$queryRaw<{ count: bigint }[]>`
         SELECT COUNT(*) as count
         FROM "Notification" n
@@ -194,17 +245,30 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       `;
       const allNotificationsTotalCount = Number(allNotificationsTotalCountResult[0]?.count ?? 0);
 
-      // 全体の既読数を計算
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 全体の既読数を計算
+       */
       const readCount = allNotificationsTotalCount - unreadCount;
 
+      // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * 通知リストとその未読数を返す
+       */
       return {
-        notifications,
+        notifications, // 通知リスト
         totalCount: allNotificationsTotalCount, // これはフィルター条件に応じた総件数
         unreadCount, // これは全体の未読件数
         readCount, // これは全体の既読件数
       };
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+      /**
+       * エラーが発生した場合
+       */
     } catch (error) {
       console.error("通知取得エラー:", error);
       return {

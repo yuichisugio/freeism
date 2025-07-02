@@ -121,8 +121,8 @@ function createPushNotificationResult(
  */
 function setupSuccessMocks() {
   mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
-  mockSendEmailNotification.mockResolvedValue({ success: true });
-  mockSendInAppNotification.mockResolvedValue({ success: true });
+  mockSendEmailNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
+  mockSendInAppNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -376,14 +376,16 @@ describe("auction-notification", () => {
         {
           description: "should return error when email notification fails",
           sendMethods: [NotificationSendMethod.EMAIL],
-          mockSetup: () => mockSendEmailNotification.mockResolvedValue({ success: false }),
+          mockSetup: () =>
+            mockSendEmailNotification.mockResolvedValue({ success: false, message: "通知の送信に失敗しました" }),
           expectedError: "メール通知の送信に失敗しました",
           expectedCalls: { push: 0, email: 1, inApp: 0 },
         },
         {
           description: "should return error when in-app notification fails",
           sendMethods: [NotificationSendMethod.IN_APP],
-          mockSetup: () => mockSendInAppNotification.mockResolvedValue({ success: false }),
+          mockSetup: () =>
+            mockSendInAppNotification.mockResolvedValue({ success: false, message: "通知の送信に失敗しました" }),
           expectedError: "アプリ内通知の送信に失敗しました",
           expectedCalls: { push: 0, email: 0, inApp: 1 },
         },
@@ -522,8 +524,8 @@ describe("auction-notification", () => {
       test("should handle multiple notification methods with mixed success/failure", async () => {
         // Arrange
         mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
-        mockSendEmailNotification.mockResolvedValue({ success: false });
-        mockSendInAppNotification.mockResolvedValue({ success: true });
+        mockSendEmailNotification.mockResolvedValue({ success: false, message: "通知の送信に失敗しました" });
+        mockSendInAppNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
 
         const params = createAuctionNotificationParams({
           sendMethods: [NotificationSendMethod.WEB_PUSH, NotificationSendMethod.EMAIL, NotificationSendMethod.IN_APP],
