@@ -59,12 +59,15 @@ export type RawNotificationFromDB = {
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
 /**
- * 未読通知の数を取得する - JSONB最適化版
- * @returns 未読通知の数
- * 未読の有無のみ知りたいので、1件のみ取得
+ * 未読通知の有無を取得する
+ * @param userId ユーザーID
+ * @returns 未読通知の有無
  */
 export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * キャッシュタグを設定
    */

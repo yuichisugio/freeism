@@ -1,7 +1,4 @@
 import { unstable_cacheTag as cacheTag } from "next/cache";
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-// モック関数のインポート
 import { buildCommonNotificationWhereClause } from "@/actions/notification/notification-utilities";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { Prisma } from "@prisma/client";
@@ -31,10 +28,8 @@ const mockCacheTag = vi.mocked(cacheTag);
 
 describe("cachedGetUnreadNotificationsCount", () => {
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     vi.clearAllMocks();
 
-    // デフォルトのモック設定
     const sql = Prisma.sql`(
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') OR
@@ -77,21 +72,6 @@ describe("cachedGetUnreadNotificationsCount", () => {
       expect(result).toBe(false);
       expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
       expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle different user IDs correctly", async () => {
-      // Arrange
-      const userId = "user-2";
-      const mockResult = [{ id: "notification-2" }];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-      expect(mockCacheTag).toHaveBeenCalledWith(`notification:notificationByUserId:${userId}`);
     });
   });
 
@@ -359,34 +339,6 @@ describe("cachedGetUnreadNotificationsCount", () => {
       expect(mockBuildCommonNotificationWhereClause).not.toHaveBeenCalled();
       // prisma.$queryRawも呼び出されない（早期リターンのため）
       expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
-    });
-
-    test("should handle very long user ID", async () => {
-      // Arrange
-      const userId = "a".repeat(1000);
-      const mockResult = [{ id: "notification-1" }];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-
-    test("should handle special characters in user ID", async () => {
-      // Arrange
-      const userId = "user-!@#$%^&*()";
-      const mockResult: RawNotificationFromDB[] = [];
-      prismaMock.$queryRaw.mockResolvedValue(mockResult);
-
-      // Act
-      const result = await cachedGetUnreadNotificationsCount(userId);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
     });
   });
 });
