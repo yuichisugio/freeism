@@ -185,10 +185,13 @@ export const cachedGetNotificationsAndUnreadCount = cache(
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
       /**
-       * 通知データを整形する
+       * 通知データを整形し、重複を除去する
        */
-      const notifications: NotificationData[] = allRawNotificationsFromDb.map(
-        (n: RawNotificationFromDB): NotificationData => ({
+      // 重複除去のためのMapを使用（IDをキーとして使用）
+      const uniqueNotificationsMap = new Map<string, NotificationData>();
+
+      for (const n of allRawNotificationsFromDb) {
+        const notificationData: NotificationData = {
           id: n.id,
           title: n.title ?? "",
           message: n.message ?? "",
@@ -206,8 +209,20 @@ export const cachedGetNotificationsAndUnreadCount = cache(
           userName: n.userName ?? null,
           groupName: n.groupName ?? null,
           taskName: n.taskName ?? null,
-        }),
-      );
+        };
+
+        // 重複チェック：同じIDが存在しない場合のみ追加
+        if (!uniqueNotificationsMap.has(n.id)) {
+          uniqueNotificationsMap.set(n.id, notificationData);
+        }
+      }
+
+      // MapからArrayに変換し、送信日時順でソート
+      const notifications: NotificationData[] = Array.from(uniqueNotificationsMap.values()).sort((a, b) => {
+        const dateA = a.sentAt?.getTime() ?? 0;
+        const dateB = b.sentAt?.getTime() ?? 0;
+        return dateB - dateA; // 降順（新しい順）
+      });
 
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

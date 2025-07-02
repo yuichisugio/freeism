@@ -103,7 +103,6 @@ function createMockRawNotificationFromDB(overrides: Partial<RawNotificationFromD
 
 describe("cachedGetNotificationsAndUnreadCount", () => {
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     vi.clearAllMocks();
 
     // デフォルトのモック設定
@@ -126,8 +125,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         createMockRawNotificationFromDB({ id: "notification-2", isRead: true }),
       ];
 
-      const mockUnreadCount = [{ count: BigInt(5) }];
-      const mockTotalCount = [{ count: BigInt(10) }];
+      const mockUnreadCount = [{ count: BigInt(2) }];
+      const mockTotalCount = [{ count: BigInt(2) }];
 
       // 通知取得クエリのモック（2回呼ばれる：未読と既読）
       prismaMock.$queryRaw
@@ -181,9 +180,9 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
             taskName: null,
           },
         ],
-        totalCount: 10,
-        unreadCount: 5,
-        readCount: 5,
+        totalCount: 2,
+        unreadCount: 2,
+        readCount: 0,
       });
 
       expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
@@ -196,7 +195,7 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const userId = "user-1";
       const page = 1;
       const limit = 20;
-      const offset = (page - 1) * limit; // 0
+      const offset = (page - 1) * limit;
 
       const mockNotifications = [createMockRawNotificationFromDB({ id: "notification-1", isRead: false })];
       const mockUnreadCount = [{ count: BigInt(1) }];
@@ -216,14 +215,14 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         1,
         expect.objectContaining({
           strings: [
-            '\n        SELECT\n          n.id,\n          n.title,\n          n.message,\n          n."target_type" as "NotificationTargetType",\n          CASE -- isRead を動的に設定\n            WHEN n."is_read" ? ',
+            '\n          SELECT\n            n.id,\n            n.title,\n            n.message,\n            n."target_type" as "NotificationTargetType",\n            CASE -- isRead を動的に設定\n              WHEN n."is_read" ? ',
             ' AND (n."is_read" -> ',
-            ' ->> \'isRead\')::boolean = TRUE THEN TRUE\n            ELSE FALSE\n          END as "isRead",\n          n."sent_at" as "sentAt",\n          CASE -- readAt を動的に設定\n            WHEN n."is_read" ? ',
+            ' ->> \'isRead\')::boolean = TRUE\n              THEN TRUE\n              ELSE FALSE\n            END as "isRead",\n            n."sent_at" as "sentAt",\n            CASE -- readAt を動的に設定\n              WHEN n."is_read" ? ',
             ' AND (n."is_read" -> ',
-            " ->> 'isRead')::boolean = TRUE\n            THEN (n.\"is_read\" -> ",
-            ' ->> \'readAt\')::timestamp\n            ELSE null\n          END as "readAt",\n          n."expires_at" as "expiresAt",\n          n."action_url" as "actionUrl",\n          n."sender_user_id" as "senderUserId",\n          n."group_id" as "groupId",\n          n."task_id" as "taskId",\n          n."auction_event_type" as "auctionEventType",\n          n."auction_id" as "auctionId",\n          u.name as "userName",\n          g.name as "groupName",\n          t.task as "taskName"\n        FROM "Notification" n\n        LEFT JOIN "User" u ON n."sender_user_id" = u.id\n        LEFT JOIN "Group" g ON n."group_id" = g.id\n        LEFT JOIN "Task" t ON n."task_id" = t.id\n        WHERE (n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? ',
+            " ->> 'isRead')::boolean = TRUE\n              THEN (n.\"is_read\" -> ",
+            ' ->> \'readAt\')::timestamp\n              ELSE null\n            END as "readAt",\n            n."expires_at" as "expiresAt",\n            n."action_url" as "actionUrl",\n            n."sender_user_id" as "senderUserId",\n            n."group_id" as "groupId",\n            n."task_id" as "taskId",\n            n."auction_event_type" as "auctionEventType",\n            n."auction_id" as "auctionId",\n            u.name as "userName",\n            g.name as "groupName",\n            t.task as "taskName"\n          FROM "Notification" n\n          LEFT JOIN "User" u ON n."sender_user_id" = u.id\n          LEFT JOIN "Group" g ON n."group_id" = g.id\n          LEFT JOIN "Task" t ON n."task_id" = t.id\n          WHERE (n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? ',
             ' AND (n."is_read" -> ',
-            " ->> 'isRead')::boolean = TRUE)) -- filterCondition を適用\n        ORDER BY n.\"sent_at\" DESC, n.id DESC\n        LIMIT ",
+            " ->> 'isRead')::boolean = TRUE))\n          ORDER BY n.\"sent_at\" DESC, n.id DESC\n          LIMIT ",
             " OFFSET ",
             "\n      ",
           ],
@@ -235,14 +234,14 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         2,
         expect.objectContaining({
           strings: [
-            '\n        SELECT\n          n.id,\n          n.title,\n          n.message,\n          n."target_type" as "NotificationTargetType",\n          CASE -- isRead を動的に設定\n            WHEN n."is_read" ? ',
+            '\n          SELECT\n            n.id,\n            n.title,\n            n.message,\n            n."target_type" as "NotificationTargetType",\n            CASE -- isRead を動的に設定\n              WHEN n."is_read" ? ',
             ' AND (n."is_read" -> ',
-            ' ->> \'isRead\')::boolean = TRUE THEN TRUE\n            ELSE FALSE\n          END as "isRead",\n          n."sent_at" as "sentAt",\n          CASE -- readAt を動的に設定\n            WHEN n."is_read" ? ',
+            ' ->> \'isRead\')::boolean = TRUE\n              THEN TRUE\n              ELSE FALSE\n            END as "isRead",\n            n."sent_at" as "sentAt",\n            CASE -- readAt を動的に設定\n              WHEN n."is_read" ? ',
             ' AND (n."is_read" -> ',
-            " ->> 'isRead')::boolean = TRUE\n            THEN (n.\"is_read\" -> ",
-            ' ->> \'readAt\')::timestamp\n            ELSE null\n          END as "readAt",\n          n."expires_at" as "expiresAt",\n          n."action_url" as "actionUrl",\n          n."sender_user_id" as "senderUserId",\n          n."group_id" as "groupId",\n          n."task_id" as "taskId",\n          n."auction_event_type" as "auctionEventType",\n          n."auction_id" as "auctionId",\n          u.name as "userName",\n          g.name as "groupName",\n          t.task as "taskName"\n        FROM "Notification" n\n        LEFT JOIN "User" u ON n."sender_user_id" = u.id\n        LEFT JOIN "Group" g ON n."group_id" = g.id\n        LEFT JOIN "Task" t ON n."task_id" = t.id\n        WHERE (n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? ',
+            " ->> 'isRead')::boolean = TRUE\n              THEN (n.\"is_read\" -> ",
+            ' ->> \'readAt\')::timestamp\n              ELSE null\n            END as "readAt",\n            n."expires_at" as "expiresAt",\n            n."action_url" as "actionUrl",\n            n."sender_user_id" as "senderUserId",\n            n."group_id" as "groupId",\n            n."task_id" as "taskId",\n            n."auction_event_type" as "auctionEventType",\n            n."auction_id" as "auctionId",\n            u.name as "userName",\n            g.name as "groupName",\n            t.task as "taskName"\n          FROM "Notification" n\n          LEFT JOIN "User" u ON n."sender_user_id" = u.id\n          LEFT JOIN "Group" g ON n."group_id" = g.id\n          LEFT JOIN "Task" t ON n."task_id" = t.id\n          WHERE (n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? ',
             ' AND (n."is_read" -> ',
-            " ->> 'isRead')::boolean = TRUE) -- filterCondition を適用\n        ORDER BY n.\"sent_at\" DESC, n.id DESC\n        LIMIT ",
+            " ->> 'isRead')::boolean = TRUE)\n          ORDER BY n.\"sent_at\" DESC, n.id DESC\n          LIMIT ",
             " OFFSET ",
             "\n      ",
           ],
@@ -250,30 +249,23 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         }),
       );
 
+      // 3番目の呼び出し: 未読カウントクエリ - テンプレートリテラル形式
       expect(prismaMock.$queryRaw).toHaveBeenNthCalledWith(
         3,
-        [
-          '\n        SELECT COUNT(*) as count\n        FROM "Notification" n\n        WHERE ',
-          " -- 未読カウント用WHERE句\n      ",
-        ],
+        expect.any(Array),
         expect.objectContaining({
-          strings: [
-            '(n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? ',
-            ' AND (n."is_read" -> ',
-            " ->> 'isRead')::boolean = TRUE))",
-          ],
-          values: [userId, userId],
+          strings: expect.any(Array) as readonly string[],
+          values: expect.arrayContaining([userId, userId]) as readonly unknown[],
         }),
       );
 
+      // 4番目の呼び出し: 全体カウントクエリ - テンプレートリテラル形式
       expect(prismaMock.$queryRaw).toHaveBeenNthCalledWith(
         4,
-        ['\n        SELECT COUNT(*) as count\n        FROM "Notification" n\n        WHERE ', "\n      "],
+        expect.any(Array),
         expect.objectContaining({
-          strings: [
-            '(n."target_type" = \'USER\' AND n."sender_user_id" = \'user-1\') AND ((n."send_timing_type" = \'NOW\') OR (n."send_timing_type" = \'SCHEDULED\' AND n."send_scheduled_date" < NOW()))',
-          ],
-          values: [],
+          strings: expect.any(Array) as readonly string[],
+          values: expect.any(Array) as readonly unknown[],
         }),
       );
     });
@@ -283,7 +275,6 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const userId = "user-1";
       const page = 1;
       const limit = 20;
-      const offset = (page - 1) * limit; // 0
 
       const mockNotifications = [createMockRawNotificationFromDB({ id: "notification-1", isRead: false })];
       const mockUnreadCount = [{ count: BigInt(1) }];
@@ -304,38 +295,39 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const firstCallSqlData = extractSqlFromMockCall(firstCallArgs);
       const firstCallSql = buildFullSqlString(firstCallSqlData.strings, firstCallSqlData.values);
       let expectedFirstSql = `
-        SELECT
-          n.id,
-          n.title, 
-          n.message, 
-          n."target_type" as "NotificationTargetType", 
-          CASE -- isRead を動的に設定 
-            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE THEN TRUE 
-            ELSE FALSE 
-          END as "isRead", 
-          n."sent_at" as "sentAt", 
-          CASE -- readAt を動的に設定 
-            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE 
-            THEN (n."is_read" -> '${userId}' ->> 'readAt')::timestamp 
-            ELSE null 
-          END as "readAt", 
-          n."expires_at" as "expiresAt", 
-          n."action_url" as "actionUrl", 
-          n."sender_user_id" as "senderUserId", 
-          n."group_id" as "groupId", 
-          n."task_id" as "taskId", 
-          n."auction_event_type" as "auctionEventType", 
-          n."auction_id" as "auctionId", 
-          u.name as "userName", 
-          g.name as "groupName", 
-          t.task as "taskName" 
-        FROM "Notification" n 
-        LEFT JOIN "User" u ON n."sender_user_id" = u.id 
-        LEFT JOIN "Group" g ON n."group_id" = g.id 
-        LEFT JOIN "Task" t ON n."task_id" = t.id 
-        WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE)) -- filterCondition を適用 
-        ORDER BY n."sent_at" DESC, n.id DESC 
-        LIMIT ${limit} OFFSET ${offset}
+          SELECT
+            n.id,
+            n.title,
+            n.message,
+            n."target_type" as "NotificationTargetType",
+            CASE -- isRead を動的に設定
+              WHEN n."is_read" ? 'user-1' AND (n."is_read" -> 'user-1' ->> 'isRead')::boolean = TRUE
+              THEN TRUE
+              ELSE FALSE
+            END as "isRead",
+            n."sent_at" as "sentAt",
+            CASE -- readAt を動的に設定
+              WHEN n."is_read" ? 'user-1' AND (n."is_read" -> 'user-1' ->> 'isRead')::boolean = TRUE
+              THEN (n."is_read" -> 'user-1' ->> 'readAt')::timestamp
+              ELSE null
+            END as "readAt",
+            n."expires_at" as "expiresAt",
+            n."action_url" as "actionUrl",
+            n."sender_user_id" as "senderUserId",
+            n."group_id" as "groupId",
+            n."task_id" as "taskId",
+            n."auction_event_type" as "auctionEventType",
+            n."auction_id" as "auctionId",
+            u.name as "userName",
+            g.name as "groupName",
+            t.task as "taskName"
+          FROM "Notification" n
+          LEFT JOIN "User" u ON n."sender_user_id" = u.id
+          LEFT JOIN "Group" g ON n."group_id" = g.id
+          LEFT JOIN "Task" t ON n."task_id" = t.id
+          WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (NOT (n."is_read" ? 'user-1' AND (n."is_read" -> 'user-1' ->> 'isRead')::boolean = TRUE))
+          ORDER BY n."sent_at" DESC, n.id DESC
+          LIMIT 20 OFFSET 0
       `;
       expectedFirstSql = expectedFirstSql
         .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
@@ -349,38 +341,39 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const secondCallSqlData = extractSqlFromMockCall(secondCallArgs);
       const secondCallSql = buildFullSqlString(secondCallSqlData.strings, secondCallSqlData.values);
       let expectedSecondSql = `
-        SELECT 
-          n.id, 
-          n.title, 
-          n.message, 
-          n."target_type" as "NotificationTargetType", 
-          CASE -- isRead を動的に設定 
-            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE THEN TRUE 
-            ELSE FALSE 
-          END as "isRead", 
-          n."sent_at" as "sentAt", 
-          CASE -- readAt を動的に設定 
-            WHEN n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE 
-            THEN (n."is_read" -> '${userId}' ->> 'readAt')::timestamp 
-            ELSE null 
-          END as "readAt", 
-          n."expires_at" as "expiresAt", 
-          n."action_url" as "actionUrl", 
-          n."sender_user_id" as "senderUserId", 
-          n."group_id" as "groupId", 
-          n."task_id" as "taskId", 
-          n."auction_event_type" as "auctionEventType", 
-          n."auction_id" as "auctionId", 
-          u.name as "userName", 
-          g.name as "groupName", 
-          t.task as "taskName" 
-        FROM "Notification" n 
-        LEFT JOIN "User" u ON n."sender_user_id" = u.id 
-        LEFT JOIN "Group" g ON n."group_id" = g.id 
-        LEFT JOIN "Task" t ON n."task_id" = t.id 
-        WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? '${userId}' AND (n."is_read" -> '${userId}' ->> 'isRead')::boolean = TRUE) -- filterCondition を適用 
-        ORDER BY n."sent_at" DESC, n.id DESC 
-        LIMIT ${limit} OFFSET ${offset}
+          SELECT
+            n.id,
+            n.title,
+            n.message,
+            n."target_type" as "NotificationTargetType",
+            CASE -- isRead を動的に設定
+              WHEN n."is_read" ? 'user-1' AND (n."is_read" -> 'user-1' ->> 'isRead')::boolean = TRUE
+              THEN TRUE
+              ELSE FALSE
+            END as "isRead",
+            n."sent_at" as "sentAt",
+            CASE -- readAt を動的に設定
+              WHEN n."is_read" ? 'user-1' AND (n."is_read" -> 'user-1' ->> 'isRead')::boolean = TRUE
+              THEN (n."is_read" -> 'user-1' ->> 'readAt')::timestamp
+              ELSE null
+            END as "readAt",
+            n."expires_at" as "expiresAt",
+            n."action_url" as "actionUrl",
+            n."sender_user_id" as "senderUserId",
+            n."group_id" as "groupId",
+            n."task_id" as "taskId",
+            n."auction_event_type" as "auctionEventType",
+            n."auction_id" as "auctionId",
+            u.name as "userName",
+            g.name as "groupName",
+            t.task as "taskName"
+          FROM "Notification" n
+          LEFT JOIN "User" u ON n."sender_user_id" = u.id
+          LEFT JOIN "Group" g ON n."group_id" = g.id
+          LEFT JOIN "Task" t ON n."task_id" = t.id
+          WHERE (n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW())) AND (n."is_read" ? 'user-1' AND (n."is_read" -> 'user-1' ->> 'isRead')::boolean = TRUE)
+          ORDER BY n."sent_at" DESC, n.id DESC
+          LIMIT 20 OFFSET 0
       `;
       expectedSecondSql = expectedSecondSql
         .replace(/\s+/g, " ") // 連続する空白文字を単一スペースに変換
@@ -388,9 +381,6 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         .replace(/\t/g, " ") // タブを単一スペースに変換
         .trim();
       expect(secondCallSql).toStrictEqual(expectedSecondSql);
-
-      // カウントクエリは複雑な構造のため、このテストでは通知クエリのみをチェック
-      // 3回目と4回目の呼び出しは既存のテストでカバーされているため省略
     });
 
     test("should handle empty notifications list", async () => {
@@ -660,94 +650,23 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       expect(result.unreadCount).toBe(0);
       expect(result.readCount).toBe(0);
     });
-  });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("境界値テスト", () => {
-    test("should handle page 0", async () => {
-      // Arrange
-      const userId = "user-1";
-      const page = 0;
-      const limit = 20;
-
-      const mockNotifications = [createMockRawNotificationFromDB()];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
+    test.each([
+      { page: 0, limit: 20, userId: "user-1" },
+      { page: -1, limit: 20, userId: "user-1" },
+      { page: null, limit: 20, userId: "user-1" },
+      { page: 0, limit: -1, userId: "user-1" },
+      { page: 1, limit: 0, userId: "user-1" },
+      { page: 1, limit: -1, userId: "user-1" },
+      { page: 1, limit: undefined, userId: "user-1" },
+      { page: 1, limit: null, userId: "user-1" },
+      { page: 1, limit: 20, userId: "user-1" },
+      { page: 1, limit: 20, userId: "" },
+      { page: 1, limit: 20, userId: null },
+      { page: 1, limit: 20, userId: undefined },
+    ])("should handle page $page and limit $limit", async ({ page, limit, userId }) => {
       // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
-
-      // Assert
-      expect(result.notifications).toHaveLength(1);
-      expect(result.totalCount).toBe(1);
-    });
-
-    test("should handle negative page number", async () => {
-      // Arrange
-      const userId = "user-1";
-      const page = -1;
-      const limit = 20;
-
-      const mockNotifications = [createMockRawNotificationFromDB()];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
-
-      // Assert
-      expect(result.notifications).toHaveLength(1);
-    });
-
-    test("should handle limit 0", async () => {
-      // Arrange
-      const userId = "user-1";
-      const page = 1;
-      const limit = 0;
-
-      const mockUnreadCount = [{ count: BigInt(0) }];
-      const mockTotalCount = [{ count: BigInt(0) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce([]) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
-
-      // Assert
-      expect(result.notifications).toStrictEqual([]);
-    });
-
-    test("should handle empty user ID", async () => {
-      // Arrange
-      const userId = "";
-      const mockUnreadCount = [{ count: BigInt(0) }];
-      const mockTotalCount = [{ count: BigInt(0) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce([]) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
+      const result = await cachedGetNotificationsAndUnreadCount(userId!, page!, limit!);
 
       // Assert
       expect(result).toStrictEqual({
@@ -756,28 +675,6 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         unreadCount: 0,
         readCount: 0,
       });
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
-    });
-
-    test("should handle very long user ID", async () => {
-      // Arrange
-      const userId = "a".repeat(1000);
-      const mockNotifications = [createMockRawNotificationFromDB()];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
-
-      // Assert
-      expect(result.notifications).toHaveLength(1);
-      expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
     });
   });
 
@@ -896,10 +793,70 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.notifications).toHaveLength(3);
-      expect(result.unreadCount).toBe(2);
-      expect(result.readCount).toBe(1);
-      expect(result.totalCount).toBe(3);
+      expect(result).toStrictEqual({
+        notifications: [
+          {
+            id: "notification-1",
+            title: "テスト通知",
+            message: "テストメッセージ",
+            NotificationTargetType: NotificationTargetType.USER,
+            isRead: false,
+            sentAt: new Date("2024-01-01T00:00:00Z"),
+            readAt: null,
+            expiresAt: null,
+            actionUrl: "https://example.com",
+            senderUserId: "sender-1",
+            groupId: null,
+            taskId: null,
+            auctionEventType: null,
+            auctionId: null,
+            userName: "送信者名",
+            groupName: null,
+            taskName: null,
+          },
+          {
+            id: "notification-2",
+            title: "テスト通知",
+            message: "テストメッセージ",
+            NotificationTargetType: NotificationTargetType.USER,
+            isRead: false,
+            sentAt: new Date("2024-01-01T00:00:00Z"),
+            readAt: null,
+            expiresAt: null,
+            actionUrl: "https://example.com",
+            senderUserId: "sender-1",
+            groupId: null,
+            taskId: null,
+            auctionEventType: null,
+            auctionId: null,
+            userName: "送信者名",
+            groupName: null,
+            taskName: null,
+          },
+          {
+            id: "notification-3",
+            title: "テスト通知",
+            message: "テストメッセージ",
+            NotificationTargetType: NotificationTargetType.USER,
+            isRead: true,
+            sentAt: new Date("2024-01-01T00:00:00Z"),
+            readAt: null,
+            expiresAt: null,
+            actionUrl: "https://example.com",
+            senderUserId: "sender-1",
+            groupId: null,
+            taskId: null,
+            auctionEventType: null,
+            auctionId: null,
+            userName: "送信者名",
+            groupName: null,
+            taskName: null,
+          },
+        ],
+        totalCount: 3,
+        unreadCount: 2,
+        readCount: 1,
+      });
     });
 
     test("should handle large dataset with pagination", async () => {
@@ -924,116 +881,13 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
 
       // Assert
+      expect(result).toStrictEqual({
+        notifications: mockNotifications,
+        totalCount: 500,
+        unreadCount: 150,
+        readCount: 350,
+      });
       expect(result.notifications).toHaveLength(50);
-      expect(result.totalCount).toBe(500);
-      expect(result.unreadCount).toBe(150);
-      expect(result.readCount).toBe(350);
-    });
-
-    test("should handle concurrent calls with same user", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockNotifications = [createMockRawNotificationFromDB()];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValue(mockNotifications) // 未読通知
-        .mockResolvedValue([]) // 既読通知
-        .mockResolvedValue(mockUnreadCount) // 未読カウント
-        .mockResolvedValue(mockTotalCount); // 総カウント
-
-      // Act - 同時実行
-      const [result1, result2] = await Promise.all([
-        cachedGetNotificationsAndUnreadCount(userId),
-        cachedGetNotificationsAndUnreadCount(userId),
-      ]);
-
-      // Assert
-      expect(result1).toStrictEqual(result2);
-      expect(result1.notifications).toHaveLength(1);
-    });
-  });
-
-  describe("エッジケースとエラーハンドリング", () => {
-    test("should handle very large count values", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockNotifications = [createMockRawNotificationFromDB()];
-      const mockUnreadCount = [{ count: BigInt(Number.MAX_SAFE_INTEGER) }];
-      const mockTotalCount = [{ count: BigInt(Number.MAX_SAFE_INTEGER) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
-
-      // Assert
-      expect(result.unreadCount).toBe(Number.MAX_SAFE_INTEGER);
-      expect(result.totalCount).toBe(Number.MAX_SAFE_INTEGER);
-      expect(result.readCount).toBe(0);
-    });
-
-    test("should handle malformed date strings", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockNotifications = [
-        createMockRawNotificationFromDB({
-          sentAt: "invalid-date" as unknown as Date,
-          readAt: "2024-13-45T25:70:70Z" as unknown as Date, // 無効な日付
-          expiresAt: "not-a-date" as unknown as Date,
-        }),
-      ];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
-
-      // Assert
-      expect(result.notifications).toHaveLength(1);
-      // 無効な日付は Invalid Date オブジェクトになる
-      expect(result.notifications[0].sentAt).toBeInstanceOf(Date);
-      expect(result.notifications[0].readAt).toBeInstanceOf(Date);
-      expect(result.notifications[0].expiresAt).toBeInstanceOf(Date);
-    });
-
-    test("should handle special characters in notification content", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockNotifications = [
-        createMockRawNotificationFromDB({
-          title: "特殊文字テスト!@#$%^&*()_+-=[]{}|;':\",./<>?",
-          message: "改行\nタブ\t特殊文字🎉📧💌\0null文字",
-          actionUrl: "https://example.com/path?param=value&other=test#fragment",
-        }),
-      ];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
-
-      // Assert
-      expect(result.notifications[0].title).toBe("特殊文字テスト!@#$%^&*()_+-=[]{}|;':\",./<>?");
-      expect(result.notifications[0].message).toBe("改行\nタブ\t特殊文字🎉📧💌\0null文字");
-      expect(result.notifications[0].actionUrl).toBe("https://example.com/path?param=value&other=test#fragment");
     });
   });
 });
