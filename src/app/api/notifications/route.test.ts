@@ -123,7 +123,7 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(validParams);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: true });
+      mockSendGeneralNotification.mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // Act
       const response = await POST(request);
@@ -143,7 +143,7 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(validParams);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: false, error: "通知送信に失敗しました" });
+      mockSendGeneralNotification.mockResolvedValue({ success: false, message: "通知送信に失敗しました" });
 
       // Act
       const response = await POST(request);
@@ -151,7 +151,7 @@ describe("POST /api/notifications", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(responseData).toStrictEqual({ success: false, error: "通知送信に失敗しました" });
+      expect(responseData).toStrictEqual({ success: false, message: "通知送信に失敗しました" });
       expect(mockGetAuthSession).toHaveBeenCalledOnce();
       expect(mockSendGeneralNotification).toHaveBeenCalledWith(validParams);
     });
@@ -306,7 +306,7 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(emptyParams);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: true });
+      mockSendGeneralNotification.mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // Act
       const response = await POST(request);
@@ -325,7 +325,7 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(null);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: true });
+      mockSendGeneralNotification.mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // Act
       const response = await POST(request);

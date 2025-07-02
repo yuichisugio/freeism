@@ -271,7 +271,7 @@ export function useCreateNotification(): UseCreateNotificationReturn {
           message: data.message,
           targetType: data.targetType,
           sendMethods: [NotificationSendMethod.IN_APP],
-          recipientUserIds: data.userId ? [data.userId] : null,
+          recipientUserIds: data.userId ? [data.userId] : [],
           groupId: data.groupId ?? null,
           taskId: data.taskId ?? null,
           auctionId: null,

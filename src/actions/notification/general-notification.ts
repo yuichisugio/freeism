@@ -1,7 +1,6 @@
 "use server";
 
-import type { NotificationSendTiming, NotificationTargetType } from "@prisma/client";
-import { NotificationSendMethod } from "@prisma/client";
+import { NotificationSendMethod, NotificationSendTiming, NotificationTargetType } from "@prisma/client";
 
 import type { NotificationParams } from "./email-notification";
 import { sendEmailNotification } from "./email-notification";
@@ -23,7 +22,7 @@ export type GeneralNotificationParams = {
   message: string;
   sendMethods: NotificationSendMethod[];
   targetType: NotificationTargetType;
-  recipientUserIds: string[] | null;
+  recipientUserIds: string[];
   groupId: string | null;
   taskId: string | null;
   auctionId: string | null;
@@ -39,12 +38,33 @@ export type GeneralNotificationParams = {
 /**
  * オークション以外の通知メッセージデータ
  * @param {GeneralNotificationParams} params 通知メッセージデータ
- * @returns {success: boolean, error?: string} 成功したかどうか
+ * @returns {success: boolean, message: string} 成功したかどうか
  */
 export async function sendGeneralNotification(
   params: GeneralNotificationParams,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; message: string }> {
   try {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+    /**
+     * 必須パラメータのチェック
+     */
+    if (
+      !params.title ||
+      !params.message ||
+      !params.sendMethods ||
+      params.sendMethods.length === 0 ||
+      !params.sendMethods.every((method) => Object.values(NotificationSendMethod).includes(method)) ||
+      !params.targetType ||
+      !Object.values(NotificationTargetType).includes(params.targetType) ||
+      !params.recipientUserIds ||
+      params.recipientUserIds.length === 0 ||
+      !params.sendTiming ||
+      !Object.values(NotificationSendTiming).includes(params.sendTiming)
+    ) {
+      throw new Error("必須パラメータが不足しています");
+    }
+
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
@@ -52,15 +72,14 @@ export async function sendGeneralNotification(
      */
     // 受信者のユーザーIDを取得
     const targetUserIds = await getNotificationTargetUserIds(params.targetType, {
-      userIds: params.recipientUserIds ?? undefined,
+      userIds: params.recipientUserIds,
       groupId: params.groupId ?? undefined,
       taskId: params.taskId ?? undefined,
     });
 
+    // 通知するユーザーが見つからない場合はエラー
     if (targetUserIds.length === 0) {
-      console.error("sendGeneralNotification_targetUserIds_エラー:", new Error().stack);
-      console.error("sendGeneralNotification_targetUserIds_エラー:", "通知の対象者が見つかりません");
-      return { success: false, error: "通知の対象者が見つかりません" };
+      throw new Error("通知の対象者が見つかりません");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -68,7 +87,6 @@ export async function sendGeneralNotification(
     /**
      * 通知パラメータを作成
      */
-    // 通知するユーザーIDリストを作成
     const notificationParams: NotificationParams = {
       recipientUserIds: targetUserIds,
       title: params.title,
@@ -90,17 +108,6 @@ export async function sendGeneralNotification(
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
-     * 通知するユーザーが見つからない場合はエラー
-     */
-    if (notificationParams.recipientUserIds.length === 0) {
-      console.error("sendGeneralNotification_recipientUserIds_エラー:");
-      console.error("sendGeneralNotification_recipientUserIds_エラー_stack:", new Error().stack);
-      return { success: false, error: "通知するユーザーが見つかりません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
      * アプリ内通知を送信。NOW以外でも登録する。
      * アプリ内表示は、通知のデータ表示時に制限しているので、登録しただけでは表示されない。
      * その登録したdataを元に、GitHub Actionsで送信する
@@ -108,21 +115,24 @@ export async function sendGeneralNotification(
     if (notificationParams.sendMethods.includes(NotificationSendMethod.IN_APP)) {
       const inAppNotificationResult = await sendInAppNotification(notificationParams);
       if (!inAppNotificationResult.success) {
-        console.error("sendGeneralNotification_sendInAppNotification_エラー:");
-        console.error("sendGeneralNotification_sendInAppNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "アプリ内通知の送信に失敗しました" };
+        throw new Error("アプリ内通知の送信に失敗しました");
       }
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+    // スケジュール通知の場合は、「sendScheduledDate」がある。その「sendScheduledDate」が過去の場合のみ、スケジュール通知を送信する
+    // 「NOTIFICATION_SEND_TIMING」が「SCHEDULE」で判断してはダメ。GitHub Actionsの実行時も「SCHEDULE」で判断してpush通知をスキップしてしまうため。
+    // さらに、予約送信は、すでにレコードがある状態で送るので、「notificationId」があるかどうかで判断する
+    // params.sendScheduledDate > nowの場合は、まだ通知を送るタイミングではないため、push通知やメール通知はスキップする
     const now = new Date();
-
-    // スケジュール通知の場合は、sendScheduledDateがあるため、sendScheduledDateが過去の場合は、スケジュール通知を送信する
-    // NOTIFICATION_SEND_TIMINGがSCHEDULEで判断してはダメ。GitHub Actionsの実行時もSCHEDULEで判断してpush通知をスキップしてしまうため。
-    // さらに、予約送信は、すでにレコードがある状態で送るので、notificationIdがあるかどうかで判断する
-    if (params.sendScheduledDate && params.sendScheduledDate < now && params.notificationId) {
-      return { success: true };
+    if (
+      params.notificationId &&
+      params.sendTiming === NotificationSendTiming.SCHEDULED &&
+      params.sendScheduledDate &&
+      params.sendScheduledDate > now
+    ) {
+      return { success: true, message: "スケジュール通知の登録を完了しました" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -133,9 +143,7 @@ export async function sendGeneralNotification(
     if (notificationParams.sendMethods.includes(NotificationSendMethod.WEB_PUSH)) {
       const pushNotificationResult = await sendPushNotification(notificationParams);
       if (!pushNotificationResult.success) {
-        console.error("sendGeneralNotification_sendPushNotification_エラー:");
-        console.error("sendGeneralNotification_sendPushNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "プッシュ通知の送信に失敗しました" };
+        throw new Error("プッシュ通知の送信に失敗しました");
       }
     }
 
@@ -147,9 +155,7 @@ export async function sendGeneralNotification(
     if (notificationParams.sendMethods.includes(NotificationSendMethod.EMAIL)) {
       const emailNotificationResult = await sendEmailNotification(notificationParams);
       if (!emailNotificationResult.success) {
-        console.error("sendGeneralNotification_sendEmailNotification_エラー:");
-        console.error("sendGeneralNotification_sendEmailNotification_エラー_stack:", new Error().stack);
-        return { success: false, error: "メール通知の送信に失敗しました" };
+        throw new Error("メール通知の送信に失敗しました");
       }
     }
 
@@ -158,12 +164,11 @@ export async function sendGeneralNotification(
     /**
      * 返す値は、成功したかどうかだけなので、trueを返す
      */
-    return { success: true };
+    return { success: true, message: "通知の登録を完了しました" };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
-    console.error("sendGeneralNotification_エラー:", error);
     console.error("sendGeneralNotification_エラーstack:", new Error().stack);
-    return { success: false, error: error instanceof Error ? error.message : "通知エラーが発生しました" };
+    return { success: false, message: error instanceof Error ? error.message : "通知エラーが発生しました" };
   }
 }

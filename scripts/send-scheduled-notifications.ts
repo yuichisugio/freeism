@@ -79,7 +79,7 @@ export async function sendScheduledNotifications(): Promise<number> {
           processedCount++;
           console.log(`通知(ID: ${notification.id})の送信が完了しました`);
         } else {
-          console.error(`通知(ID: ${notification.id})の送信に失敗しました: ${result.error}`);
+          console.error(`通知(ID: ${notification.id})の送信に失敗しました: ${result.message}`);
         }
       } catch (error) {
         console.error(`通知(ID: ${notification.id})の処理中にエラーが発生:`, error);

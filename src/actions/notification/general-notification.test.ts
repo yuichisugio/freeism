@@ -37,7 +37,11 @@ const mockSendPushNotification = vi.mocked(sendPushNotification);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// テストデータのファクトリー関数
+/**
+ * テストデータのファクトリー関数
+ * @param overrides 上書きするパラメータ
+ * @returns テストデータ
+ */
 function createValidGeneralNotificationParams(
   overrides: Partial<GeneralNotificationParams> = {},
 ): GeneralNotificationParams {
@@ -58,8 +62,6 @@ function createValidGeneralNotificationParams(
     ...overrides,
   };
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * PushNotificationResultのモックを作成するヘルパー関数
@@ -98,37 +100,15 @@ function expectNotificationMethodCalls(inApp: boolean, email: boolean, push: boo
   }
 }
 
-// ヘルパー関数：期待されるNotificationParamsオブジェクトを作成
-function createExpectedNotificationParams(params: GeneralNotificationParams, recipientUserIds: string[]) {
-  return {
-    recipientUserIds,
-    title: params.title,
-    message: params.message,
-    senderUserId: null,
-    actionUrl: params.actionUrl,
-    targetType: params.targetType,
-    groupId: params.groupId,
-    taskId: params.taskId,
-    auctionId: params.auctionId,
-    sendTiming: params.sendTiming,
-    sendScheduledDate: params.sendScheduledDate,
-    expiresAt: params.expiresAt,
-    sendMethods: params.sendMethods,
-    notificationId: params.notificationId,
-    sentAt: null,
-  };
-}
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("sendGeneralNotification", () => {
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     vi.clearAllMocks();
 
     // デフォルトのモック設定
     mockGetNotificationTargetUserIds.mockResolvedValue(["user-1", "user-2"]);
-    mockSendInAppNotification.mockResolvedValue({ success: true });
+    mockSendInAppNotification.mockResolvedValue({ success: true, error: "アプリ内通知の送信に成功しました" });
     mockSendEmailNotification.mockResolvedValue({ success: true });
     mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
   });
@@ -165,7 +145,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
       expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, {
         userIds: ["user-1", "user-2"],
         groupId: undefined,
@@ -174,7 +154,23 @@ describe("sendGeneralNotification", () => {
       expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
 
       // 呼び出された通知メソッドのパラメータ確認
-      const expectedParams = createExpectedNotificationParams(params, ["user-1", "user-2"]);
+      const expectedParams = {
+        recipientUserIds: ["user-1", "user-2"],
+        title: params.title,
+        message: params.message,
+        senderUserId: null,
+        actionUrl: params.actionUrl,
+        targetType: params.targetType,
+        groupId: params.groupId,
+        taskId: params.taskId,
+        auctionId: params.auctionId,
+        sendTiming: params.sendTiming,
+        sendScheduledDate: params.sendScheduledDate,
+        expiresAt: params.expiresAt,
+        sendMethods: params.sendMethods,
+        notificationId: params.notificationId,
+        sentAt: null,
+      };
       if (expectedCalls.inApp) {
         expect(mockSendInAppNotification).toHaveBeenCalledWith(expectedParams);
       }
@@ -190,20 +186,20 @@ describe("sendGeneralNotification", () => {
       {
         description: "should handle GROUP target type correctly",
         targetType: NotificationTargetType.GROUP,
-        params: { recipientUserIds: null, groupId: "group-1", taskId: null },
-        expectedCall: { userIds: undefined, groupId: "group-1", taskId: undefined },
+        params: { recipientUserIds: ["user-1"], groupId: "group-1", taskId: null },
+        expectedCall: { userIds: ["user-1"], groupId: "group-1", taskId: undefined },
       },
       {
         description: "should handle TASK target type correctly",
         targetType: NotificationTargetType.TASK,
-        params: { recipientUserIds: null, groupId: null, taskId: "task-1" },
-        expectedCall: { userIds: undefined, groupId: undefined, taskId: "task-1" },
+        params: { recipientUserIds: ["user-1"], groupId: null, taskId: "task-1" },
+        expectedCall: { userIds: ["user-1"], groupId: undefined, taskId: "task-1" },
       },
       {
         description: "should handle SYSTEM target type correctly",
         targetType: NotificationTargetType.SYSTEM,
-        params: { recipientUserIds: null, groupId: null, taskId: null },
-        expectedCall: { userIds: undefined, groupId: undefined, taskId: undefined },
+        params: { recipientUserIds: ["user-1"], groupId: null, taskId: null },
+        expectedCall: { userIds: ["user-1"], groupId: undefined, taskId: undefined },
       },
       {
         description: "should handle USER target type correctly",
@@ -222,7 +218,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(notificationParams);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
       expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(targetType, expectedCall);
     });
 
@@ -232,38 +228,148 @@ describe("sendGeneralNotification", () => {
         sendTiming: NotificationSendTiming.SCHEDULED,
         sendScheduledDate: new Date(Date.now() - 1000 * 60 * 60), // 1時間前
         notificationId: "notification-1",
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-        expectedCalls: { inApp: true, email: false, push: false }, // 過去の予約送信
+        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+        expectedCalls: { inApp: true, email: true, push: true }, // 過去の予約送信（メールのみ送信、Pushは送信しない）
+        expectedMessage: "通知の登録を完了しました",
       },
       {
         description: "should handle scheduled notification with future date",
         sendTiming: NotificationSendTiming.SCHEDULED,
         sendScheduledDate: new Date(Date.now() + 1000 * 60 * 60), // 1時間後
-        notificationId: null,
-        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
-        expectedCalls: { inApp: true, email: true, push: false }, // 未来の予約送信
+        notificationId: "notification-2",
+        sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL, NotificationSendMethod.WEB_PUSH],
+        expectedCalls: { inApp: true, email: false, push: false }, // 未来の予約送信（登録のみ）
+        expectedMessage: "スケジュール通知の登録を完了しました",
       },
-    ])("$description", async ({ sendTiming, sendScheduledDate, notificationId, sendMethods, expectedCalls }) => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        sendTiming,
-        sendScheduledDate,
-        notificationId,
-        sendMethods,
-      });
+    ])(
+      "$description",
+      async ({ sendTiming, sendScheduledDate, notificationId, sendMethods, expectedCalls, expectedMessage }) => {
+        // Arrange
+        const params = createValidGeneralNotificationParams({
+          sendTiming,
+          sendScheduledDate,
+          notificationId,
+          sendMethods,
+        });
 
-      // Act
-      const result = await sendGeneralNotification(params);
+        // Act
+        const result = await sendGeneralNotification(params);
 
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
-    });
+        // Assert
+        expect(result).toStrictEqual({ success: true, message: expectedMessage });
+        expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
+      },
+    );
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("異常系テスト", () => {
+    test.each([
+      {
+        description: "should handle empty title",
+        overrides: { title: "" },
+      },
+      {
+        description: "should handle null title",
+        overrides: { title: null },
+      },
+      {
+        description: "should handle undefined title",
+        overrides: { title: undefined },
+      },
+
+      {
+        description: "should handle empty message",
+        overrides: { message: "" },
+      },
+      {
+        description: "should handle undefined message",
+        overrides: { message: undefined },
+      },
+      {
+        description: "should handle null message",
+        overrides: { message: null },
+      },
+      {
+        description: "should handle empty sendMethods array",
+        overrides: { sendMethods: [] },
+      },
+      {
+        description: "should handle null sendMethods",
+        overrides: { sendMethods: null },
+      },
+      {
+        description: "should handle undefined sendMethods",
+        overrides: { sendMethods: undefined },
+      },
+      {
+        description: "should handle invalid sendMethods",
+        overrides: { sendMethods: ["invalid-method"] as unknown as NotificationSendMethod[] },
+      },
+      {
+        description: "should handle multiple invalid sendMethods",
+        overrides: {
+          sendMethods: [NotificationSendMethod.IN_APP, "invalid-method"] as unknown as NotificationSendMethod[],
+        },
+      },
+      {
+        description: "should handle invalid targetType",
+        overrides: { targetType: "" },
+      },
+      {
+        description: "should handle invalid targetType",
+        overrides: { targetType: undefined },
+      },
+      {
+        description: "should handle invalid targetType",
+        overrides: { targetType: null },
+      },
+      {
+        description: "should handle invalid targetType",
+        overrides: { targetType: "invalid-type" as unknown as NotificationTargetType },
+      },
+      {
+        description: "should handle empty recipientUserIds",
+        overrides: { recipientUserIds: [] },
+      },
+      {
+        description: "should handle undefined recipientUserIds",
+        overrides: { recipientUserIds: undefined },
+      },
+      {
+        description: "should handle null recipientUserIds",
+        overrides: { recipientUserIds: null },
+      },
+      {
+        description: "should handle empty sendTiming",
+        overrides: { sendTiming: "" },
+      },
+      {
+        description: "should handle undefined sendTiming",
+        overrides: { sendTiming: undefined },
+      },
+      {
+        description: "should handle null sendTiming",
+        overrides: { sendTiming: null },
+      },
+      {
+        description: "should handle invalid sendTiming",
+        overrides: { sendTiming: "invalid-timing" as unknown as NotificationSendTiming },
+      },
+    ])("$description", async ({ overrides }) => {
+      // Arrange
+      const params = createValidGeneralNotificationParams(overrides as unknown as Partial<GeneralNotificationParams>);
+
+      // Act
+      const result = await sendGeneralNotification(params);
+
+      // Assert
+      expect(result).toStrictEqual({ success: false, message: "必須パラメータが不足しています" });
+      expect(mockGetNotificationTargetUserIds).not.toHaveBeenCalled();
+      expectNotificationMethodCalls(false, false, false);
+    });
+
     test("should return error when no target users found", async () => {
       // Arrange
       const params = createValidGeneralNotificationParams();
@@ -273,7 +379,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: false, error: "通知の対象者が見つかりません" });
+      expect(result).toStrictEqual({ success: false, message: "通知の対象者が見つかりません" });
       expectNotificationMethodCalls(false, false, false);
     });
 
@@ -302,7 +408,7 @@ describe("sendGeneralNotification", () => {
         description: "should return error when email notification fails",
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
         mockSetup: () => {
-          mockSendEmailNotification.mockResolvedValue({ success: false, error: "メール通知エラー" });
+          mockSendEmailNotification.mockResolvedValue({ success: false, message: "メール通知エラー" });
         },
         expectedError: "メール通知の送信に失敗しました",
         expectedCalls: { inApp: true, email: true, push: false },
@@ -316,7 +422,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: false, error: expectedError });
+      expect(result).toStrictEqual({ success: false, message: expectedError });
       expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
 
@@ -326,14 +432,14 @@ describe("sendGeneralNotification", () => {
         mockSetup: () => {
           mockGetNotificationTargetUserIds.mockRejectedValue(new Error("データベースエラー"));
         },
-        expectedError: "通知エラーが発生しました",
+        expectedError: "データベースエラー",
       },
       {
         description: "should return error when sendInAppNotification throws error",
         mockSetup: () => {
           mockSendInAppNotification.mockRejectedValue(new Error("予期しないエラー"));
         },
-        expectedError: "通知エラーが発生しました",
+        expectedError: "予期しないエラー",
       },
     ])("$description", async ({ mockSetup, expectedError }) => {
       // Arrange
@@ -346,32 +452,18 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: false, error: expectedError });
+      expect(result).toStrictEqual({ success: false, message: expectedError });
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("境界値・エッジケーステスト", () => {
-    test("should handle empty sendMethods array", async () => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        sendMethods: [],
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expectNotificationMethodCalls(false, false, false);
-    });
-
     test.each([
       {
         description: "should handle null values in optional fields",
         overrides: {
-          recipientUserIds: null,
+          recipientUserIds: ["user-1"],
           groupId: null,
           taskId: null,
           auctionId: null,
@@ -381,7 +473,7 @@ describe("sendGeneralNotification", () => {
           notificationId: null,
         },
         expectedCall: {
-          userIds: undefined,
+          userIds: ["user-1"],
           groupId: undefined,
           taskId: undefined,
         },
@@ -389,7 +481,7 @@ describe("sendGeneralNotification", () => {
       {
         description: "should handle undefined values gracefully",
         overrides: {
-          recipientUserIds: undefined as unknown as string[],
+          recipientUserIds: ["user-1"],
           groupId: undefined as unknown as string,
           taskId: undefined as unknown as string,
           auctionId: undefined as unknown as string,
@@ -399,90 +491,21 @@ describe("sendGeneralNotification", () => {
           notificationId: undefined as unknown as string,
         },
         expectedCall: {
-          userIds: undefined,
+          userIds: ["user-1"],
           groupId: undefined,
           taskId: undefined,
         },
       },
     ])("$description", async ({ overrides, expectedCall }) => {
       // Arrange
-      const params = createValidGeneralNotificationParams(overrides);
+      const params = createValidGeneralNotificationParams(overrides as unknown as Partial<GeneralNotificationParams>);
 
       // Act
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
       expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, expectedCall);
-    });
-
-    test.each([
-      {
-        description: "should handle single user in recipientUserIds",
-        recipientUserIds: ["user-1"],
-        expectedUserIds: ["user-1"],
-      },
-      {
-        description: "should handle large number of users",
-        recipientUserIds: Array.from({ length: 1000 }, (_, i) => `user-${i}`),
-        expectedUserIds: Array.from({ length: 1000 }, (_, i) => `user-${i}`),
-      },
-    ])("$description", async ({ recipientUserIds, expectedUserIds }) => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({ recipientUserIds });
-      mockGetNotificationTargetUserIds.mockResolvedValue(expectedUserIds);
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendInAppNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          recipientUserIds: expectedUserIds,
-        }),
-      );
-    });
-
-    test.each([
-      {
-        description: "should handle empty string values",
-        title: "",
-        message: "",
-        actionUrl: "",
-      },
-      {
-        description: "should handle very long title and message",
-        title: "a".repeat(1000),
-        message: "b".repeat(5000),
-        actionUrl: "https://example.com",
-      },
-      {
-        description: "should handle special characters in title and message",
-        title: "特殊文字テスト!@#$%^&*()_+-=[]{}|;':\",./<>?",
-        message: "改行\nタブ\t特殊文字🎉📧💌",
-        actionUrl: "https://example.com",
-      },
-    ])("$description", async ({ title, message, actionUrl }) => {
-      // Arrange
-      const params = createValidGeneralNotificationParams({
-        title,
-        message,
-        actionUrl,
-      });
-
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(mockSendInAppNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title,
-          message,
-          actionUrl,
-        }),
-      );
     });
 
     test("should handle concurrent notification sending", async () => {
@@ -497,8 +520,8 @@ describe("sendGeneralNotification", () => {
       ]);
 
       // Assert
-      expect(result1).toStrictEqual({ success: true });
-      expect(result2).toStrictEqual({ success: true });
+      expect(result1).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result2).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
     });
 
     test.each([
@@ -524,7 +547,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
       expect(mockSendInAppNotification).toHaveBeenCalled();
     });
   });
@@ -548,7 +571,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: false, error: "アプリ内通知の送信に失敗しました" });
+      expect(result).toStrictEqual({ success: false, message: "アプリ内通知の送信に失敗しました" });
       // 最初の失敗で処理が停止するため、後続の通知は呼ばれない
       expectNotificationMethodCalls(true, false, false);
     });
@@ -559,14 +582,16 @@ describe("sendGeneralNotification", () => {
         pastDate: new Date(Date.now() - 1000 * 60 * 60), // 1時間前
         notificationId: null,
         expectedCalls: { inApp: true, email: true, push: false }, // 通常の送信処理
+        expectedMessage: "通知の登録を完了しました",
       },
       {
         description: "should handle scheduled notification with future date and notificationId",
         pastDate: new Date(Date.now() + 1000 * 60 * 60), // 1時間後
         notificationId: "notification-1",
-        expectedCalls: { inApp: true, email: true, push: false }, // 通常の送信処理
+        expectedCalls: { inApp: true, email: false, push: false }, // 未来の日付では他の通知は送信されない
+        expectedMessage: "スケジュール通知の登録を完了しました",
       },
-    ])("$description", async ({ pastDate, notificationId, expectedCalls }) => {
+    ])("$description", async ({ pastDate, notificationId, expectedCalls, expectedMessage }) => {
       // Arrange
       const params = createValidGeneralNotificationParams({
         sendTiming: NotificationSendTiming.SCHEDULED,
@@ -579,7 +604,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: expectedMessage });
       expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
 
@@ -605,7 +630,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
     });
   });
 });

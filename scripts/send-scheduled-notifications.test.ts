@@ -48,7 +48,7 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true });
+      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
@@ -107,7 +107,7 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true });
+      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
@@ -141,7 +141,7 @@ describe("send-scheduled-notifications", () => {
       // sendGeneralNotificationが失敗する場合
       vi.mocked(sendGeneralNotification).mockResolvedValue({
         success: false,
-        error: "送信エラー",
+        message: "送信エラー",
       });
 
       // テスト実行
@@ -187,7 +187,7 @@ describe("send-scheduled-notifications", () => {
       // sendGeneralNotificationのモック
       vi.mocked(sendGeneralNotification)
         .mockRejectedValueOnce(new Error("送信エラー"))
-        .mockResolvedValueOnce({ success: true });
+        .mockResolvedValueOnce({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
@@ -230,7 +230,7 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true });
+      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
@@ -287,7 +287,7 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true });
+      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
@@ -319,7 +319,7 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true });
+      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
@@ -364,7 +364,7 @@ describe("send-scheduled-notifications", () => {
       prismaMock.$disconnect.mockResolvedValue(undefined);
 
       // sendGeneralNotificationのモック
-      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true });
+      vi.mocked(sendGeneralNotification).mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
 
       // テスト実行
       const result = await sendScheduledNotifications();
