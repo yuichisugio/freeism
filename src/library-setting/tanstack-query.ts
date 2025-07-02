@@ -106,8 +106,10 @@ export const queryCacheKeys = {
     allGroupConditions: (tableConditions: TableConditions<AllUserGroupTable>, userId: string) =>
       [...queryCacheKeys.table.allGroup(), JSON.stringify(tableConditions), userId] as const,
     myGroup: () => [...queryCacheKeys.table.all(), "myGroup"] as const,
-    myGroupConditions: (tableConditions: TableConditions<MyGroupTable>) =>
-      [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions)] as const,
+    myGroupConditions: (tableConditions: TableConditions<MyGroupTable>, userId: string) =>
+      [...queryCacheKeys.table.myGroup(), JSON.stringify(tableConditions), userId] as const,
+    myGroupCount: (searchQuery: string | null, userId: string) =>
+      [...queryCacheKeys.table.myGroup(), "count", searchQuery ?? "", userId] as const,
     myTask: () => [...queryCacheKeys.table.all(), "myTask"] as const,
     myTaskConditions: (tableConditions: MyTaskTableConditions, currentUserId: string) =>
       [...queryCacheKeys.table.myTask(), JSON.stringify(tableConditions), currentUserId] as const,

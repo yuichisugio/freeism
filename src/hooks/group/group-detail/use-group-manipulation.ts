@@ -206,7 +206,7 @@ export function useGroupManipulation({
    * @param groupId {string} グループID
    */
   const { mutate: leaveGroupMutation, isPending: isLeavingGroup } = useMutation({
-    mutationFn: async (currentGroupId: string) => await leaveGroup(currentGroupId),
+    mutationFn: async (currentGroupId: string) => await leaveGroup(currentGroupId, userId ?? ""),
     onSuccess: async () => {
       toast.success("グループから脱退しました");
       setIsMember(false);

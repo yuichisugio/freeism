@@ -2,7 +2,7 @@
 
 import type { MyGroupTable, TableConditions } from "@/types/group-types";
 import { useCallback, useEffect, useMemo } from "react";
-import { getUserJoinGroupAndCount, leaveGroup } from "@/actions/group/my-group";
+import { getUserJoinGroup, getUserJoinGroupCount, leaveGroup } from "@/actions/group/my-group";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,12 +35,26 @@ type UseMyGroupTableReturn = {
  * @returns マイグループテーブル関連機能
  */
 export function useMyGroupTable(): UseMyGroupTableReturn {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * セッション取得
+   */
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * クエリクライアント
    */
   const queryClient = useQueryClient();
 
-  // nuqsでURLパラメータを管理
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * nuqsでURLパラメータを管理
+   */
   const [page, setPage] = useQueryState("page", { history: "push", defaultValue: 1, parse: Number, serialize: String });
   const [sortField, setSortField] = useQueryState("sort_field", { history: "push", defaultValue: "createdAt" });
   const [sortDirection, setSortDirection] = useQueryState("sort_direction", { history: "push", defaultValue: "desc" });
@@ -52,7 +66,11 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     serialize: String,
   });
 
-  // tableConditionsをuseMemoで生成
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * tableConditionsをuseMemoで生成
+   */
   const tableConditions = useMemo(
     () => ({
       sort: sortField && sortDirection ? { field: sortField as keyof MyGroupTable, direction: sortDirection } : null,
@@ -64,7 +82,11 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     [page, sortField, sortDirection, searchQuery, itemPerPage],
   );
 
-  // changeTableConditionsでset関数を呼ぶ
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * changeTableConditionsでset関数を呼ぶ
+   */
   const changeTableConditions = useCallback(
     (newTableConditions: TableConditions<MyGroupTable>) => {
       void setPage(newTableConditions.page);
@@ -81,10 +103,11 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
   /**
    * データ取得
    */
-  const { data, isFetching, isPending, isPlaceholderData } = useQuery({
-    queryKey: queryCacheKeys.table.myGroupConditions(tableConditions),
+  const { data, isPending: isUserJoinGroupPending } = useQuery({
+    queryKey: queryCacheKeys.table.myGroupConditions({ ...tableConditions }, userId ?? ""),
     queryFn: async () =>
-      await getUserJoinGroupAndCount({
+      await getUserJoinGroup({
+        userId: userId ?? "",
         page: tableConditions.page,
         sortField: tableConditions.sort?.field ?? "createdAt",
         sortDirection: tableConditions.sort?.direction ?? "desc",
@@ -94,7 +117,22 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 60 * 1, // 1 hour
-    enabled: !!tableConditions,
+    enabled: !!tableConditions && !!userId,
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ユーザーが参加しているグループ数を取得
+   * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
+   */
+  const { data: userJoinGroupCount, isPending: isUserJoinGroupCountPending } = useQuery({
+    queryKey: queryCacheKeys.table.myGroupCount(tableConditions.searchQuery ?? "", userId ?? ""),
+    queryFn: async () => await getUserJoinGroupCount(tableConditions.searchQuery ?? "", userId ?? ""),
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 60 * 1, // 1 hour
+    enabled: !!tableConditions && !!userId,
   });
 
   /// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -103,18 +141,19 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     // 現在のページ数
     const currentPage = tableConditions.page;
     // 総ページ数
-    const totalPages = Math.ceil((data?.userJoinGroupTotalCount ?? 0) / tableConditions.itemPerPage);
+    const totalPages = Math.ceil((userJoinGroupCount ?? 0) / tableConditions.itemPerPage);
 
     // データが取得されていて、かつ、現在のページ数が総ページ数より小さい場合
-    if (!isPlaceholderData && data?.returnUserJoinGroupList.length && currentPage < totalPages) {
+    if (!isUserJoinGroupCountPending && userJoinGroupCount && currentPage < totalPages) {
       // 次のページ数
       const nextPage = currentPage + 1;
 
       // 次のページをprefetch
       void queryClient.prefetchQuery({
-        queryKey: queryCacheKeys.table.myGroupConditions({ ...tableConditions, page: nextPage }),
+        queryKey: queryCacheKeys.table.myGroupConditions({ ...tableConditions, page: nextPage }, userId ?? ""),
         queryFn: async () =>
-          await getUserJoinGroupAndCount({
+          await getUserJoinGroup({
+            userId: userId ?? "",
             page: nextPage,
             sortField: tableConditions.sort?.field ?? "createdAt",
             sortDirection: tableConditions.sort?.direction ?? "desc",
@@ -123,21 +162,15 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
           }),
       });
     }
-  }, [data, tableConditions, isPlaceholderData, queryClient]);
+  }, [tableConditions, isUserJoinGroupCountPending, userJoinGroupCount, queryClient, userId]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * セッション取得
-   */
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
 
   /**
    * グループから脱退する
    */
   const { mutate: leaveGroupMutation, isPending: isLeaveLoading } = useMutation({
-    mutationFn: async (groupId: string) => await leaveGroup(groupId),
+    mutationFn: async (groupId: string) => await leaveGroup(groupId, userId ?? ""),
     onSuccess: () => {
       toast.success("グループから脱退しました");
     },
@@ -145,7 +178,9 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
       toast.error("エラーが発生しました");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroupConditions(tableConditions) });
+      await queryClient.invalidateQueries({
+        queryKey: queryCacheKeys.table.myGroupConditions({ ...tableConditions }, userId ?? ""),
+      });
       if (userId) {
         await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
       }
@@ -187,9 +222,9 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
    */
   return {
     // state
-    groups: data?.returnUserJoinGroupList ?? [],
-    totalGroupCount: data?.userJoinGroupTotalCount ?? 0,
-    isLoading: isFetching || isPending || isLeaveLoading,
+    groups: data ?? [],
+    totalGroupCount: userJoinGroupCount ?? 0,
+    isLoading: isUserJoinGroupPending || isUserJoinGroupCountPending || isLeaveLoading,
     tableConditions,
     // function
     changeTableConditions,

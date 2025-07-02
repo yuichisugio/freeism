@@ -1,7 +1,7 @@
 import type { MyGroupTable, TableConditions } from "@/types/group-types";
 import React from "react";
 // モック関数のインポート
-import { getUserJoinGroupAndCount, leaveGroup } from "@/actions/group/my-group";
+import { getUserJoinGroup, getUserJoinGroupCount, leaveGroup } from "@/actions/group/my-group";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -9,8 +9,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { useMyGroupTable } from "./use-my-group-table";
 
 // モック設定
-vi.mock("@/lib/actions/group/my-group", () => ({
-  getUserJoinGroupAndCount: vi.fn(),
+vi.mock("@/actions/group/my-group", () => ({
+  getUserJoinGroup: vi.fn(),
+  getUserJoinGroupCount: vi.fn(),
   leaveGroup: vi.fn(),
 }));
 
@@ -58,7 +59,8 @@ vi.mock("@/lib/tanstack-query", () => ({
 }));
 
 // モック関数の型定義
-const mockGetUserJoinGroupAndCount = vi.mocked(getUserJoinGroupAndCount);
+const mockGetUserJoinGroup = vi.mocked(getUserJoinGroup);
+const mockGetUserJoinGroupCount = vi.mocked(getUserJoinGroupCount);
 const mockLeaveGroup = vi.mocked(leaveGroup);
 
 // テストデータ
@@ -74,11 +76,6 @@ const mockGroupData: MyGroupTable[] = [
     isGroupOwner: true,
   },
 ];
-
-const mockApiResponse = {
-  returnUserJoinGroupList: mockGroupData,
-  userJoinGroupTotalCount: 1,
-};
 
 // テスト用のQueryClientを作成
 const createTestQueryClient = () =>
@@ -106,7 +103,8 @@ describe("useMyGroupTable", () => {
     vi.clearAllMocks();
 
     // APIのモック設定
-    mockGetUserJoinGroupAndCount.mockResolvedValue(mockApiResponse);
+    mockGetUserJoinGroup.mockResolvedValue(mockGroupData);
+    mockGetUserJoinGroupCount.mockResolvedValue(1);
     mockLeaveGroup.mockResolvedValue({ success: true, message: "Leave group successfully" });
   });
 
@@ -218,7 +216,7 @@ describe("useMyGroupTable", () => {
   describe("異常系", () => {
     test("should handle API error gracefully", async () => {
       // Arrange
-      mockGetUserJoinGroupAndCount.mockRejectedValue(new Error("API Error"));
+      mockGetUserJoinGroup.mockRejectedValue(new Error("API Error"));
 
       // Act
       const { result } = renderHook(() => useMyGroupTable(), {
