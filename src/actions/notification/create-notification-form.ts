@@ -24,10 +24,9 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
   if (
     isAppOwner === undefined ||
     isGroupOwner === undefined ||
-    userId === undefined ||
     isAppOwner === null ||
     isGroupOwner === null ||
-    userId === null
+    !userId
   ) {
     throw new Error("Invalid parameters");
   }
@@ -43,7 +42,6 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
     const usersFromDb = await prisma.user.findMany({
       select: {
         id: true,
-        name: true,
         settings: {
           select: {
             username: true,
@@ -51,13 +49,15 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
         },
       },
       orderBy: {
-        name: "asc",
+        settings: {
+          username: "asc",
+        },
       },
     });
 
     users = usersFromDb.map((user) => ({
       id: user.id,
-      name: user.settings?.username ?? user.name ?? "未設定",
+      name: user.settings?.username ?? `未設定_${user.id}`,
     }));
   }
 
@@ -66,7 +66,7 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
   /**
    * グループ一覧を取得
    */
-  let groups: { id: string; name: string }[] = [];
+  let groups: UserForForm[] = [];
   // アプリオーナーの場合は全てのグループを取得
   if (isAppOwner) {
     groups = await prisma.group.findMany({
@@ -75,7 +75,7 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
         name: true,
       },
       orderBy: {
-        createdAt: "asc",
+        name: "asc",
       },
     });
     // グループオーナーの場合は自分がオーナーのグループを取得
@@ -94,7 +94,7 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
         name: true,
       },
       orderBy: {
-        createdAt: "asc",
+        name: "asc",
       },
     });
   }
@@ -113,7 +113,7 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
         task: true,
       },
       orderBy: {
-        createdAt: "desc",
+        task: "asc",
       },
     });
     // グループオーナーの場合は自分がオーナーのグループのタスクを取得
@@ -134,7 +134,7 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
         task: true,
       },
       orderBy: {
-        createdAt: "desc",
+        task: "asc",
       },
     });
   }
