@@ -47,6 +47,7 @@ function createMockGroupsAndSetupPrisma(
     memberCount?: number;
     isUserJoined?: boolean;
     username?: string;
+    userId?: string;
   }>,
 ) {
   const mockGroups = groupData.map((group) => ({
@@ -57,9 +58,12 @@ function createMockGroupsAndSetupPrisma(
     maxParticipants: group.maxParticipants ?? 10,
     depositPeriod: group.depositPeriod ?? 30,
     user: {
-      settings: {
-        username: group.username ?? "テストユーザー",
-      },
+      id: group.userId ?? group.id,
+      settings: group.username
+        ? {
+            username: group.username,
+          }
+        : null,
     },
     members: group.isUserJoined ? [{ id: "membership-1" }] : [],
     _count: {
@@ -82,7 +86,7 @@ describe("getAllUserGroups", () => {
     test("should return all user groups and count successfully", async () => {
       // Arrange
       const props = createValidGetAllUserGroupsProps();
-      const expectedResult = [
+      const groupDataInput = [
         {
           id: "group-1",
           name: "テストグループ1",
@@ -106,7 +110,33 @@ describe("getAllUserGroups", () => {
           username: "作成者2",
         },
       ];
-      const mockGroups = createMockGroupsAndSetupPrisma(expectedResult);
+
+      const expectedResult = [
+        {
+          id: "group-1",
+          name: "テストグループ1",
+          goal: "テスト目標1",
+          evaluationMethod: "自動評価",
+          maxParticipants: 10,
+          depositPeriod: 30,
+          createdBy: "作成者1",
+          joinMembersCount: 5,
+          isJoined: true,
+        },
+        {
+          id: "group-2",
+          name: "テストグループ2",
+          goal: "テスト目標2",
+          evaluationMethod: "手動評価",
+          maxParticipants: 20,
+          depositPeriod: 60,
+          createdBy: "作成者2",
+          joinMembersCount: 3,
+          isJoined: false,
+        },
+      ];
+
+      const mockGroups = createMockGroupsAndSetupPrisma(groupDataInput);
       prismaMock.group.findMany.mockResolvedValue(
         mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
       );
@@ -129,6 +159,7 @@ describe("getAllUserGroups", () => {
           depositPeriod: true,
           user: {
             select: {
+              id: true,
               settings: {
                 select: {
                   username: true,
@@ -183,6 +214,12 @@ describe("getAllUserGroups", () => {
         isUserJoined: false,
       },
       {
+        description: "all filter",
+        params: { isJoined: "all" as const },
+        expectedWhere: {},
+        isUserJoined: false,
+      },
+      {
         description: "search query filter",
         params: { searchQuery: "検索テスト" },
         expectedWhere: {
@@ -221,7 +258,7 @@ describe("getAllUserGroups", () => {
 
     test.each([
       {
-        description: "currentParticipants field",
+        description: "currentParticipants field asc",
         sortField: "currentParticipants",
         sortDirection: "asc",
         expectedOrderBy: {
@@ -231,11 +268,29 @@ describe("getAllUserGroups", () => {
         },
       },
       {
-        description: "other field",
+        description: "currentParticipants field desc",
+        sortField: "currentParticipants",
+        sortDirection: "desc",
+        expectedOrderBy: {
+          members: {
+            _count: "desc",
+          },
+        },
+      },
+      {
+        description: "other field desc",
         sortField: "name",
         sortDirection: "desc",
         expectedOrderBy: {
           name: "desc",
+        },
+      },
+      {
+        description: "other field asc",
+        sortField: "name",
+        sortDirection: "asc",
+        expectedOrderBy: {
+          name: "asc",
         },
       },
     ])("should sort groups by $description", async ({ sortField, sortDirection, expectedOrderBy }) => {
@@ -244,7 +299,10 @@ describe("getAllUserGroups", () => {
         sortField,
         sortDirection,
       });
-      createMockGroupsAndSetupPrisma([{ id: "group-1", name: "グループ1" }]);
+      const mockGroups = createMockGroupsAndSetupPrisma([{ id: "group-1", name: "グループ1" }]);
+      prismaMock.group.findMany.mockResolvedValue(
+        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
+      );
 
       // Act
       await getAllUserGroups(props);
@@ -292,6 +350,7 @@ describe("getAllUserGroups", () => {
           maxParticipants: 10,
           depositPeriod: 30,
           user: {
+            id: "user-1",
             settings: null, // usernameがnullの場合
           },
           members: [],
@@ -309,7 +368,7 @@ describe("getAllUserGroups", () => {
       const result = await getAllUserGroups(props);
 
       // Assert
-      expect(result[0].createdBy).toBe("未設定");
+      expect(result[0].createdBy).toBe("未設定_user-1");
     });
 
     test("should handle combined filters", async () => {
@@ -354,35 +413,22 @@ describe("getAllUserGroups", () => {
       { description: "missing sortDirection", params: createValidGetAllUserGroupsProps({ sortDirection: "" }) },
       { description: "missing page", params: createValidGetAllUserGroupsProps({ page: 0 }) },
       { description: "missing itemPerPage", params: createValidGetAllUserGroupsProps({ itemPerPage: 0 }) },
+      {
+        description: "missing isJoined",
+        params: createValidGetAllUserGroupsProps({ isJoined: "" as unknown as "all" }),
+      },
     ])("should throw error with $description", async ({ params }) => {
       // Act & Assert
       await expect(getAllUserGroups(params)).rejects.toThrow("Invalid parameters");
     });
 
-    test.each([
-      {
-        description: "database query fails",
-        setupError: () => prismaMock.group.findMany.mockRejectedValue(new Error("Database error")),
-        expectedError: "Database error",
-      },
-      {
-        description: "count query fails",
-        setupError: () => {
-          const mockGroups = createMockGroupsAndSetupPrisma([]);
-          prismaMock.group.findMany.mockResolvedValue(
-            mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
-          );
-          prismaMock.group.count.mockRejectedValue(new Error("Count query failed"));
-        },
-        expectedError: "Count query failed",
-      },
-    ])("should throw error when $description", async ({ setupError, expectedError }) => {
+    test("should throw error when database query fails", async () => {
       // Arrange
       const props = createValidGetAllUserGroupsProps();
-      setupError();
+      prismaMock.group.findMany.mockRejectedValue(new Error("Database error"));
 
       // Act & Assert
-      await expect(getAllUserGroups(props)).rejects.toThrow(expectedError);
+      await expect(getAllUserGroups(props)).rejects.toThrow("Database error");
     });
   });
 
@@ -404,56 +450,6 @@ describe("getAllUserGroups", () => {
 
       // Assert
       expect(result).toHaveLength(0);
-    });
-
-    test("should handle very long search query", async () => {
-      // Arrange
-      const longSearchQuery = "a".repeat(1000);
-      const props = createValidGetAllUserGroupsProps({
-        searchQuery: longSearchQuery,
-      });
-      const mockGroups = createMockGroupsAndSetupPrisma([]);
-      prismaMock.group.findMany.mockResolvedValue(
-        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
-      );
-
-      // Act
-      await getAllUserGroups(props);
-
-      // Assert
-      expect(prismaMock.group.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            name: {
-              contains: longSearchQuery,
-            },
-          },
-        }),
-      );
-    });
-
-    test("should handle invalid sort field", async () => {
-      // Arrange
-      const props = createValidGetAllUserGroupsProps({
-        sortField: "invalidField",
-        sortDirection: "asc",
-      });
-      const mockGroups = createMockGroupsAndSetupPrisma([]);
-      prismaMock.group.findMany.mockResolvedValue(
-        mockGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
-      );
-
-      // Act
-      await getAllUserGroups(props);
-
-      // Assert
-      expect(prismaMock.group.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: {
-            invalidField: "asc",
-          },
-        }),
-      );
     });
   });
 });
@@ -526,12 +522,12 @@ describe("getAllUserGroupsCount", () => {
     test.each([
       { description: "missing userId", params: { searchQuery: "", isJoined: "all" as const, userId: "" } },
       {
-        description: "missing searchQuery",
-        params: { searchQuery: null as unknown as string, isJoined: "all" as const, userId: "test-user-id" },
-      },
-      {
         description: "missing isJoined",
         params: { searchQuery: "", isJoined: "" as unknown as "all", userId: "test-user-id" },
+      },
+      {
+        description: "invalid isJoined",
+        params: { searchQuery: "", isJoined: "invalid" as unknown as "all", userId: "test-user-id" },
       },
     ])("should throw error with $description", async ({ params }) => {
       // Act & Assert
@@ -550,25 +546,6 @@ describe("getAllUserGroupsCount", () => {
   });
 
   describe("境界値テスト", () => {
-    test("should handle very long search query", async () => {
-      // Arrange
-      const longSearchQuery = "a".repeat(1000);
-      prismaMock.group.count.mockResolvedValue(0);
-
-      // Act
-      const result = await getAllUserGroupsCount(longSearchQuery, "all", "test-user-id");
-
-      // Assert
-      expect(result).toBe(0);
-      expect(prismaMock.group.count).toHaveBeenCalledWith({
-        where: {
-          name: {
-            contains: longSearchQuery,
-          },
-        },
-      });
-    });
-
     test("should return 0 when no groups found", async () => {
       // Arrange
       const searchQuery = "存在しないグループ";

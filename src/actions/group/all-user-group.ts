@@ -126,6 +126,7 @@ export async function getAllUserGroups({
       depositPeriod: true,
       user: {
         select: {
+          id: true,
           settings: {
             select: {
               username: true,
@@ -163,7 +164,7 @@ export async function getAllUserGroups({
     evaluationMethod: group.evaluationMethod,
     maxParticipants: group.maxParticipants,
     depositPeriod: group.depositPeriod,
-    createdBy: group.user?.settings?.username ?? "未設定",
+    createdBy: group.user?.settings?.username ?? `未設定_${group.user?.id}`,
     joinMembersCount: group._count.members,
     isJoined: group.members.length > 0,
   }));
