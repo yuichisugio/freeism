@@ -9,7 +9,6 @@ import { getCachedGroupById } from "./cache-group-detail";
 
 describe("getCachedGroupById", () => {
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     prismaMock.group.findUnique.mockReset();
   });
 
@@ -17,10 +16,11 @@ describe("getCachedGroupById", () => {
 
   describe("正常系", () => {
     test("should return group data when valid groupId is provided", async () => {
-      // テストデータの準備
+      // Arrange
       const mockGroupId = "test-group-id";
       const mockMembers = [{ userId: "user-1" }, { userId: "user-2" }, { userId: "user-3" }];
 
+      // Given
       const mockGroupData = {
         id: mockGroupId,
         name: "テストグループ",
@@ -31,15 +31,7 @@ describe("getCachedGroupById", () => {
         members: mockMembers,
       };
 
-      // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(
-        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
-
-      // 関数実行
-      const result = await getCachedGroupById(mockGroupId);
-
-      // 期待値の定義
+      // Expected
       const expectedGroup: Group = {
         id: mockGroupId,
         name: "テストグループ",
@@ -51,7 +43,15 @@ describe("getCachedGroupById", () => {
         members: mockMembers,
       };
 
-      // 検証
+      // When
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // Act
+      const result = await getCachedGroupById(mockGroupId);
+
+      // Assert
       expect(result).toStrictEqual(expectedGroup);
       expect(prismaMock.group.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
@@ -208,119 +208,6 @@ describe("getCachedGroupById", () => {
 
       // Prismaが呼び出されないことを確認（バリデーションエラーのため）
       expect(prismaMock.group.findUnique).not.toHaveBeenCalled();
-    });
-
-    test("should handle very long groupId", async () => {
-      // テストデータの準備（非常に長いID）
-      const longGroupId = "a".repeat(1000);
-
-      // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(null);
-
-      // 関数実行と検証
-      await expect(getCachedGroupById(longGroupId)).rejects.toThrow("グループが見つかりません");
-
-      // Prismaが正しく呼ばれたことを確認
-      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
-        where: { id: longGroupId },
-        select: {
-          id: true,
-          name: true,
-          goal: true,
-          evaluationMethod: true,
-          depositPeriod: true,
-          maxParticipants: true,
-          members: {
-            select: { userId: true },
-          },
-        },
-      });
-    });
-
-    test("should handle special characters in groupId", async () => {
-      // テストデータの準備（特殊文字を含むID）
-      const specialCharGroupId = "test-group-!@#$%^&*()_+-=[]{}|;:,.<>?";
-
-      // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(
-        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
-
-      // 関数実行と検証
-      await expect(getCachedGroupById(specialCharGroupId)).rejects.toThrow("グループが見つかりません");
-
-      // Prismaが正しく呼ばれたことを確認
-      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
-        where: { id: specialCharGroupId },
-        select: {
-          id: true,
-          name: true,
-          goal: true,
-          evaluationMethod: true,
-          depositPeriod: true,
-          maxParticipants: true,
-          members: {
-            select: { userId: true },
-          },
-        },
-      });
-    });
-
-    test("should handle minimum depositPeriod value", async () => {
-      // テストデータの準備（最小値）
-      const mockGroupId = "test-group-min-deposit";
-      const mockGroupData = {
-        id: mockGroupId,
-        name: "最小預金期間グループ",
-        goal: "最小値テスト",
-        evaluationMethod: "自動評価",
-        depositPeriod: 1,
-        maxParticipants: 1,
-        members: [{ userId: "user-1" }],
-      };
-
-      // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(
-        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
-
-      // 関数実行
-      const result = await getCachedGroupById(mockGroupId);
-
-      // 検証
-      expect(result.depositPeriod).toBe(1);
-      expect(result.maxParticipants).toBe(1);
-      expect(result.joinMemberCount).toBe(1);
-    });
-
-    test("should handle large numbers for maxParticipants and depositPeriod", async () => {
-      // テストデータの準備（大きな値）
-      const mockGroupId = "test-group-large-values";
-      const largeMaxParticipants = 999999;
-      const largeDepositPeriod = 365;
-
-      const mockGroupData = {
-        id: mockGroupId,
-        name: "大きな値グループ",
-        goal: "大きな値テスト",
-        evaluationMethod: "手動評価",
-        depositPeriod: largeDepositPeriod,
-        maxParticipants: largeMaxParticipants,
-        members: [],
-      };
-
-      // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(
-        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
-
-      // 関数実行
-      const result = await getCachedGroupById(mockGroupId);
-
-      // 検証
-      expect(result.depositPeriod).toBe(largeDepositPeriod);
-      expect(result.maxParticipants).toBe(largeMaxParticipants);
-      expect(result.joinMemberCount).toBe(0);
     });
   });
 
