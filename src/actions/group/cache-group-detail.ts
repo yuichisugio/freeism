@@ -13,14 +13,18 @@ import { prisma } from "@/library-setting/prisma";
 export async function getCachedGroupById(groupId: string): Promise<Group> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループIDがあるかチェック
+  /**
+   * グループIDがあるかチェック
+   */
   if (!groupId) {
     throw new Error("グループIDがありません");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // グループ情報を取得
+  /**
+   * グループ情報を取得
+   */
   const group = await prisma.group.findUnique({
     where: { id: groupId },
     select: {
@@ -36,12 +40,20 @@ export async function getCachedGroupById(groupId: string): Promise<Group> {
     },
   });
 
-  // グループが見つからない場合はエラー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループが見つからない場合はエラー
+   */
   if (!group) {
     throw new Error("グループが見つかりません");
   }
 
-  // グループ情報を整形
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ情報を整形
+   */
   const returnGroup: Group = {
     id: group.id,
     name: group.name,
@@ -55,6 +67,10 @@ export async function getCachedGroupById(groupId: string): Promise<Group> {
     })),
   };
 
-  // グループ情報を返却
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ情報を返却
+   */
   return returnGroup;
 }
