@@ -1,64 +1,25 @@
 "use server";
 
+import type { AllUserGroupTable } from "@/types/group-types";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
+import { sortDirectionArray } from "@/types/auction-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * getAllUserGroupsAndCountのpropsの型
  */
-type getAllUserGroupsAndCountProps = {
+type getAllUserGroupsProps = {
   page: number;
   sortField: string;
   sortDirection: string;
-  searchQuery: string;
-  isJoined: "isJoined" | "notJoined" | "all";
+  searchQuery: string | null;
+  isJoined: (typeof isJoinedArray)[number];
   itemPerPage: number;
   userId: string;
 };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * グループ一覧・ユーザーの参加しているグループ一覧を取得する関数
- * userごとなので、サーバー側でキャッシュしない
- * TanStack QueryのuseQueryで使用するため、一つの関数にまとめる。
- * @returns グループ一覧
- */
-export async function getAllUserGroupsAndCount({
-  page,
-  sortField,
-  sortDirection,
-  searchQuery,
-  isJoined,
-  itemPerPage,
-  userId,
-}: getAllUserGroupsAndCountProps) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // ユーザーIDがあるかチェック
-  if (!userId || !sortField || !sortDirection || searchQuery == null || !itemPerPage || !page) {
-    throw new Error("Invalid parameters");
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループ一覧と総数を取得
-   */
-  const [AllUserGroupList, AllUserGroupTotalCount] = await Promise.all([
-    getAllUserGroups(page, sortField, sortDirection, searchQuery, isJoined, userId, itemPerPage),
-    getAllUserGroupsCount(searchQuery, isJoined, userId),
-  ]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * グループ一覧を返す
-   */
-  return { AllUserGroupList, AllUserGroupTotalCount };
-}
+const isJoinedArray = ["isJoined", "notJoined", "all"] as const;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -66,21 +27,35 @@ export async function getAllUserGroupsAndCount({
  * ユーザーの参加しているグループ一覧を取得する関数
  * @returns ユーザーの参加しているグループ一覧
  */
-async function getAllUserGroups(
-  page: number,
-  sortField: string,
-  sortDirection: string,
-  searchQuery: string,
-  isJoined: "isJoined" | "notJoined" | "all",
-  userId: string,
-  itemPerPage: number,
-) {
+export async function getAllUserGroups({
+  page,
+  sortField,
+  sortDirection,
+  searchQuery,
+  isJoined,
+  userId,
+  itemPerPage,
+}: getAllUserGroupsProps): Promise<AllUserGroupTable[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // パラメータの検証
-  if (!page || !sortField || !sortDirection || searchQuery == null || !itemPerPage || !userId) {
+  /**
+   * パラメータの検証
+   */
+  if (
+    !page ||
+    page < 1 ||
+    !sortField ||
+    !sortDirection ||
+    !sortDirectionArray.includes(sortDirection) ||
+    !itemPerPage ||
+    itemPerPage < 1 ||
+    !userId ||
+    !isJoinedArray.includes(isJoined)
+  ) {
     throw new Error("Invalid parameters");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループ一覧のsortの条件
@@ -181,7 +156,7 @@ async function getAllUserGroups(
   /**
    * グループ一覧のデータを整える
    * */
-  const AllUserGroupList = prismaReturnGroups.map((group) => ({
+  const AllUserGroupList: AllUserGroupTable[] = prismaReturnGroups.map((group) => ({
     id: group.id,
     name: group.name,
     goal: group.goal,
@@ -195,6 +170,9 @@ async function getAllUserGroups(
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * グループ一覧を返す
+   */
   return AllUserGroupList;
 }
 
@@ -205,16 +183,20 @@ async function getAllUserGroups(
  * @returns ユーザーの参加しているグループ一覧の総数
  */
 export async function getAllUserGroupsCount(
-  searchQuery: string,
-  isJoined: "isJoined" | "notJoined" | "all",
+  searchQuery: string | null,
+  isJoined: (typeof isJoinedArray)[number],
   userId: string,
-) {
+): Promise<number> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ユーザーIDがあるかチェック
-  if (!userId || searchQuery == null || !isJoined) {
+  /**
+   * パラメータの検証
+   */
+  if (!userId || !isJoinedArray.includes(isJoined)) {
     throw new Error("Invalid parameters");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * グループ一覧のwhereの条件
@@ -252,9 +234,19 @@ export async function getAllUserGroupsCount(
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  return prisma.group.count({
+  /**
+   * グループ一覧の総数を取得
+   */
+  const count = await prisma.group.count({
     where: where,
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループ一覧の総数を返す
+   */
+  return count;
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
