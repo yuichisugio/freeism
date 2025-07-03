@@ -90,7 +90,10 @@ export async function createGroup(data: CreateGroupFormData): Promise<{ success:
      * エラーを返す
      */
     console.error("createGroup unexpected error:", error);
-    return { success: false, error: "エラーが発生しました" };
+    return {
+      success: false,
+      error: `createGroup中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+    };
   }
 }
 
@@ -516,13 +519,13 @@ export async function getGroupMembers(groupId: string): Promise<GetGroupMembers[
 /**
  * グループからメンバーを削除する関数
  * @param groupId - グループID
- * @param userId - 削除するユーザーID
+ * @param removeUserId - 削除するユーザーID
  * @param addToBlackList - ブラックリストに追加するかどうか
  * @returns 処理結果を含むオブジェクト
  */
 export async function removeMember(
   groupId: string,
-  userId: string,
+  removeUserId: string,
   addToBlackList: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -531,8 +534,8 @@ export async function removeMember(
     /**
      * グループIDがあるかチェック
      */
-    if (!groupId || !userId || addToBlackList === undefined || addToBlackList === null) {
-      throw new Error("グループIDまたはユーザーIDがありません");
+    if (!groupId || !removeUserId || addToBlackList === undefined || addToBlackList === null) {
+      throw new Error("invalid parameters");
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -557,7 +560,7 @@ export async function removeMember(
     /**
      * 対象ユーザーのメンバーシップ確認
      */
-    const membership = await checkGroupMembership(userId, groupId);
+    const membership = await checkGroupMembership(removeUserId, groupId);
     if (!membership) {
       throw new Error("指定されたユーザーはグループに参加していません");
     }
@@ -567,7 +570,7 @@ export async function removeMember(
     /**
      * 操作者自身を削除対象にできないようにする
      */
-    if (userId === currentUserId) {
+    if (removeUserId === currentUserId) {
       throw new Error("自分自身を削除することはできません");
     }
 
@@ -599,7 +602,7 @@ export async function removeMember(
         });
 
         const blackList = (group?.isBlackList as Record<string, boolean>) ?? {};
-        blackList[userId] = true;
+        blackList[removeUserId] = true;
 
         await tx.group.update({
           where: { id: groupId },

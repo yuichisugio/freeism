@@ -1,7 +1,6 @@
 import { type CreateGroupFormData } from "@/components/form/create-group-form";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { createInvalidGroupData, groupFactory, groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { type GroupMembership } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -72,363 +71,442 @@ describe("group.test.ts", () => {
   });
 
   describe("createGroup", () => {
-    test("should create group successfully with valid data", async () => {
-      // Arrange
-      const expectedGroup = groupFactory.build(validGroupData);
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.create.mockResolvedValue(expectedGroup);
+    describe("正常系", () => {
+      test("should create group successfully with valid data", async () => {
+        // Arrange
+        const expectedGroup = groupFactory.build(validGroupData);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.create.mockResolvedValue(expectedGroup);
 
-      // Act
-      const result = await createGroup(validGroupData);
+        // Act
+        const result = await createGroup(validGroupData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.group.create).toHaveBeenCalledWith({
-        data: {
-          ...validGroupData,
-          createdBy: testUsers.user1,
-          members: {
-            create: {
-              userId: testUsers.user1,
-              isGroupOwner: true,
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(prismaMock.group.create).toHaveBeenCalledWith({
+          data: {
+            ...validGroupData,
+            createdBy: testUsers.user1,
+            members: {
+              create: {
+                userId: testUsers.user1,
+                isGroupOwner: true,
+              },
             },
           },
-        },
+        });
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
       });
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
     });
 
-    test("should return error when authentication fails", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
+    describe("異常系", () => {
+      test("should return error when authentication fails", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-      // Act
-      const result = await createGroup(validGroupData);
+        // Act
+        const result = await createGroup(validGroupData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "エラーが発生しました" });
-      expect(prismaMock.group.create).not.toHaveBeenCalled();
-    });
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "createGroup中にエラーが発生しました: Authentication failed",
+        });
+        expect(prismaMock.group.create).not.toHaveBeenCalled();
+      });
 
-    test("should return validation error for invalid data", async () => {
-      // Arrange
-      const invalidData = { name: "", goal: "", evaluationMethod: "" };
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+      test("should return validation error for invalid data", async () => {
+        // Arrange
+        const invalidData = { name: "", goal: "", evaluationMethod: "" };
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
 
-      // Act
-      const result = await createGroup(invalidData as unknown as CreateGroupFormData);
+        // Act
+        const result = await createGroup(invalidData as unknown as CreateGroupFormData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
-      expect(prismaMock.group.create).not.toHaveBeenCalled();
-    });
+        // Assert
+        expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
+        expect(prismaMock.group.create).not.toHaveBeenCalled();
+      });
 
-    test("should handle database error during group creation", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.create.mockRejectedValue(new Error("Database error"));
+      test("should handle database error during group creation", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.create.mockRejectedValue(new Error("Database error"));
 
-      // Act
-      const result = await createGroup(validGroupData);
+        // Act
+        const result = await createGroup(validGroupData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "エラーが発生しました" });
-    });
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "createGroup中にエラーが発生しました: Database error",
+        });
+      });
 
-    test("should handle missing required fields", async () => {
-      // Arrange
-      const invalidData = createInvalidGroupData();
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+      test("should handle missing required fields", async () => {
+        // Arrange
+        const invalidData = createInvalidGroupData();
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
 
-      // Act
-      const result = await createGroup(invalidData as unknown as CreateGroupFormData);
+        // Act
+        const result = await createGroup(invalidData as unknown as CreateGroupFormData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
-    });
+        // Assert
+        expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
+      });
 
-    test("should handle boundary values for maxParticipants", async () => {
-      // Arrange
-      const boundaryData = { ...validGroupData, maxParticipants: 1 };
-      const expectedGroup = groupFactory.build(boundaryData);
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.create.mockResolvedValue(expectedGroup);
+      test("should handle unique constraint error", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.create.mockRejectedValue({ code: "P2002" });
 
-      // Act
-      const result = await createGroup(boundaryData);
+        // Act
+        const result = await createGroup(validGroupData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: true });
+        // Assert
+        expect(result).toStrictEqual({ success: false, error: "このグループ名は既に使用されています" });
+      });
+
+      test("should handle boundary values for maxParticipants", async () => {
+        // Arrange
+        const boundaryData = { ...validGroupData, maxParticipants: 1 };
+        const expectedGroup = groupFactory.build(boundaryData);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.create.mockResolvedValue(expectedGroup);
+
+        // Act
+        const result = await createGroup(boundaryData);
+
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+      });
     });
   });
 
   describe("joinGroup", () => {
-    test("should join group successfully", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, maxParticipants: 10 });
-      const membership = groupMembershipFactory.build();
+    describe("正常系", () => {
+      test("should join group successfully", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, maxParticipants: 10 });
+        const membership = groupMembershipFactory.build();
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      mockCheckGroupMembership.mockResolvedValue(null);
-      prismaMock.groupMembership.count.mockResolvedValue(5);
-      prismaMock.groupMembership.create.mockResolvedValue(membership);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckGroupMembership.mockResolvedValue(null);
+        prismaMock.groupMembership.count.mockResolvedValue(5);
+        prismaMock.groupMembership.create.mockResolvedValue(membership);
 
-      // Act
-      const result = await joinGroup(testGroupId);
+        // Act
+        const result = await joinGroup(testGroupId);
 
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.groupMembership.create).toHaveBeenCalledWith({
-        data: {
-          userId: testUsers.user1,
-          groupId: testGroupId,
-        },
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(prismaMock.groupMembership.create).toHaveBeenCalledWith({
+          data: {
+            userId: testUsers.user1,
+            groupId: testGroupId,
+          },
+        });
+        expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+        });
+        expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUsers.user1, testGroupId);
+        expect(prismaMock.groupMembership.count).toHaveBeenCalledWith({
+          where: { groupId: testGroupId },
+        });
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
       });
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
     });
 
-    test("should return error when group not found", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(null);
+    describe("異常系", () => {
+      test("should return error when groupId is not provided", async () => {
+        // Arrange
+        const result = await joinGroup("");
 
-      // Act
-      const result = await joinGroup(testGroupId);
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: グループIDがありません",
+        });
+      });
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "グループが見つかりません" });
-      expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
-    });
+      test("should return error when group not found", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(null);
 
-    test("should return error when user already joined", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId });
-      const existingMembership = groupMembershipFactory.build();
+        // Act
+        const result = await joinGroup(testGroupId);
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      mockCheckGroupMembership.mockResolvedValue(existingMembership);
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: グループが見つかりません",
+        });
+        expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
+      });
 
-      // Act
-      const result = await joinGroup(testGroupId);
+      test("should return error when user already joined", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId });
+        const existingMembership = groupMembershipFactory.build();
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "既に参加済みです" });
-      expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
-    });
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckGroupMembership.mockResolvedValue(existingMembership);
 
-    test("should return error when group is full", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, maxParticipants: 5 });
+        // Act
+        const result = await joinGroup(testGroupId);
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      mockCheckGroupMembership.mockResolvedValue(null);
-      prismaMock.groupMembership.count.mockResolvedValue(5);
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: 既に参加済みです",
+        });
+        expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
+      });
 
-      // Act
-      const result = await joinGroup(testGroupId);
+      test("should return error when group is full", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, maxParticipants: 5 });
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "参加人数が上限に達しています" });
-      expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
-    });
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckGroupMembership.mockResolvedValue(null);
+        prismaMock.groupMembership.count.mockResolvedValue(5);
 
-    test("should handle authentication failure", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
+        // Act
+        const result = await joinGroup(testGroupId);
 
-      // Act
-      const result = await joinGroup(testGroupId);
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: 参加人数が上限に達しています",
+        });
+        expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
+      });
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "エラーが発生しました" });
-    });
+      test("should handle authentication failure", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-    test("should handle database error during join", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, maxParticipants: 10 });
+        // Act
+        const result = await joinGroup(testGroupId);
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      mockCheckGroupMembership.mockResolvedValue(null);
-      prismaMock.groupMembership.count.mockResolvedValue(5);
-      prismaMock.groupMembership.create.mockRejectedValue(new Error("Database error"));
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: Authentication failed",
+        });
+      });
 
-      // Act
-      const result = await joinGroup(testGroupId);
+      test("should handle database error during join", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, maxParticipants: 10 });
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "エラーが発生しました" });
-    });
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckGroupMembership.mockResolvedValue(null);
+        prismaMock.groupMembership.count.mockResolvedValue(5);
+        prismaMock.groupMembership.create.mockRejectedValue(new Error("Database error"));
 
-    test("should handle boundary case when group is exactly at capacity", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, maxParticipants: 1 });
+        // Act
+        const result = await joinGroup(testGroupId);
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      mockCheckGroupMembership.mockResolvedValue(null);
-      prismaMock.groupMembership.count.mockResolvedValue(1);
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: Database error",
+        });
+      });
 
-      // Act
-      const result = await joinGroup(testGroupId);
+      test("should handle boundary case when group is exactly at capacity", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, maxParticipants: 1 });
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "参加人数が上限に達しています" });
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckGroupMembership.mockResolvedValue(null);
+        prismaMock.groupMembership.count.mockResolvedValue(1);
+
+        // Act
+        const result = await joinGroup(testGroupId);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "joinGroup中にエラーが発生しました: 参加人数が上限に達しています",
+        });
+      });
     });
   });
 
   describe("deleteGroup", () => {
-    test("should delete group successfully", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, createdBy: testUsers.user1 });
+    describe("正常系", () => {
+      test("should delete group successfully", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, createdBy: testUsers.user1 });
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      prismaMock.group.delete.mockResolvedValue(group);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります" });
+        prismaMock.group.delete.mockResolvedValue(group);
 
-      // Act
-      const result = await deleteGroup(testGroupId);
+        // Act
+        const result = await deleteGroup(testGroupId);
 
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.group.delete).toHaveBeenCalledWith({
-        where: { id: testGroupId },
-      });
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
-    });
-
-    test("should return error when group not found", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(null);
-
-      // Act
-      const result = await deleteGroup(testGroupId);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "グループが見つかりません" });
-      expect(prismaMock.group.delete).not.toHaveBeenCalled();
-    });
-
-    test("should return error when user is not group creator", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, createdBy: "other-user" });
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-
-      // Act
-      const result = await deleteGroup(testGroupId);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "グループの削除権限がありません" });
-      expect(prismaMock.group.delete).not.toHaveBeenCalled();
-    });
-
-    test("should handle authentication failure", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
-
-      // Act
-      const result = await deleteGroup(testGroupId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "グループの削除中にエラーが発生しました",
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalled();
+        expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+          select: {
+            createdBy: true,
+          },
+        });
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.user1, testGroupId, undefined, false);
+        expect(prismaMock.group.delete).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+        });
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
       });
     });
 
-    test("should handle database error during deletion", async () => {
-      // Arrange
-      const group = groupFactory.build({ id: testGroupId, createdBy: testUsers.user1 });
+    describe("異常系", () => {
+      test("should return error when groupId is not provided", async () => {
+        // Arrange
+        const result = await deleteGroup("");
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      prismaMock.group.delete.mockRejectedValue(new Error("Database error"));
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "deleteGroup中にエラーが発生しました: グループIDがありません",
+        });
+      });
 
-      // Act
-      const result = await deleteGroup(testGroupId);
+      test("should return error when group not found", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(null);
 
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "グループの削除中にエラーが発生しました",
+        // Act
+        const result = await deleteGroup(testGroupId);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "deleteGroup中にエラーが発生しました: グループが見つかりません",
+        });
+        expect(prismaMock.group.delete).not.toHaveBeenCalled();
+      });
+
+      test("should return error when user is not group creator", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, createdBy: "other-user" });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "グループの削除権限がありません" });
+
+        // Act
+        const result = await deleteGroup(testGroupId);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "deleteGroup中にエラーが発生しました: グループの削除権限がありません",
+        });
+        expect(prismaMock.group.delete).not.toHaveBeenCalled();
+      });
+
+      test("should handle authentication failure", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
+
+        // Act
+        const result = await deleteGroup(testGroupId);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "deleteGroup中にエラーが発生しました: Authentication failed",
+        });
+      });
+
+      test("should handle database error during deletion", async () => {
+        // Arrange
+        const group = groupFactory.build({ id: testGroupId, createdBy: testUsers.user1 });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります" });
+        prismaMock.group.delete.mockRejectedValue(new Error("Database error"));
+
+        // Act
+        const result = await deleteGroup(testGroupId);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "deleteGroup中にエラーが発生しました: Database error",
+        });
       });
     });
   });
 
   describe("checkGroupExistByName", () => {
-    test("should return true when group exists", async () => {
-      // Arrange
-      const groupName = "既存グループ";
-      const existingGroup = groupFactory.build({ name: groupName });
-      prismaMock.group.findFirst.mockResolvedValue(existingGroup);
+    describe("正常系", () => {
+      test("should return true when group exists", async () => {
+        // Arrange
+        const groupName = "既存グループ";
+        const existingGroup = groupFactory.build({ name: groupName });
+        prismaMock.group.findFirst.mockResolvedValue(existingGroup);
 
-      // Act
-      const result = await checkGroupExistByName(groupName);
+        // Act
+        const result = await checkGroupExistByName(groupName);
 
-      // Assert
-      expect(result).toBe(true);
-      expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
-        where: { name: groupName },
+        // Assert
+        expect(result).toBe(true);
+        expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
+          where: { name: groupName },
+        });
+      });
+
+      test("should return false when group does not exist", async () => {
+        // Arrange
+        const groupName = "存在しないグループ";
+        prismaMock.group.findFirst.mockResolvedValue(null);
+
+        // Act
+        const result = await checkGroupExistByName(groupName);
+
+        // Assert
+        expect(result).toBe(false);
+        expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
+          where: { name: groupName },
+        });
       });
     });
 
-    test("should return false when group does not exist", async () => {
-      // Arrange
-      const groupName = "存在しないグループ";
-      prismaMock.group.findFirst.mockResolvedValue(null);
+    describe("異常系", () => {
+      test("should throw error when database error occurs", async () => {
+        // Arrange
+        const groupName = "テストグループ";
+        const dbError = new Error("Database connection failed");
+        prismaMock.group.findFirst.mockRejectedValue(dbError);
 
-      // Act
-      const result = await checkGroupExistByName(groupName);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
-        where: { name: groupName },
+        // Act & Assert
+        await expect(checkGroupExistByName(groupName)).rejects.toThrow("Database connection failed");
       });
-    });
 
-    test("should throw error when database error occurs", async () => {
-      // Arrange
-      const groupName = "テストグループ";
-      const dbError = new Error("Database connection failed");
-      prismaMock.group.findFirst.mockRejectedValue(dbError);
+      test("should handle empty string name", async () => {
+        // Arrange
+        const groupName = "";
 
-      // Act & Assert
-      await expect(checkGroupExistByName(groupName)).rejects.toThrow("Database connection failed");
-    });
-
-    test("should handle empty string name", async () => {
-      // Arrange
-      const groupName = "";
-      prismaMock.group.findFirst.mockResolvedValue(null);
-
-      // Act
-      const result = await checkGroupExistByName(groupName);
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    test("should handle special characters in name", async () => {
-      // Arrange
-      const groupName = "テスト@#$%グループ";
-      prismaMock.group.findFirst.mockResolvedValue(null);
-
-      // Act
-      const result = await checkGroupExistByName(groupName);
-
-      // Assert
-      expect(result).toBe(false);
-      expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
-        where: { name: groupName },
+        // Act & Assert
+        await expect(checkGroupExistByName(groupName)).rejects.toThrow("グループ名がありません");
       });
     });
   });
@@ -442,475 +520,563 @@ describe("group.test.ts", () => {
       evaluationMethod: "手動評価",
     };
 
-    test("should update group successfully", async () => {
-      // Arrange
-      const existingGroup = groupFactory.build({
-        id: testGroupId,
-        createdBy: testUsers.user1,
-        name: "元のグループ名",
+    describe("正常系", () => {
+      test("should update group successfully", async () => {
+        // Arrange
+        const existingGroup = groupFactory.build({
+          id: testGroupId,
+          createdBy: testUsers.user1,
+          name: "元のグループ名",
+        });
+        const updatedGroup = groupFactory.build({ ...validUpdateData, id: testGroupId });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
+        prismaMock.group.findUnique.mockResolvedValue(existingGroup);
+        prismaMock.group.findFirst.mockResolvedValue(null);
+        prismaMock.group.update.mockResolvedValue(updatedGroup);
+
+        // Act
+        const result = await updateGroup(testGroupId, validUpdateData);
+
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(prismaMock.group.update).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+          data: validUpdateData,
+        });
+        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalled();
+        expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+          select: {
+            name: true,
+          },
+        });
+        expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
+          where: {
+            name: validUpdateData.name,
+            NOT: {
+              id: testGroupId,
+            },
+          },
+        });
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.user1, testGroupId, undefined, false);
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
+        expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
       });
-      const updatedGroup = groupFactory.build({ ...validUpdateData, id: testGroupId });
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(existingGroup);
-      prismaMock.group.findFirst.mockResolvedValue(null);
-      prismaMock.group.update.mockResolvedValue(updatedGroup);
-
-      // Act
-      const result = await updateGroup(testGroupId, validUpdateData);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.group.update).toHaveBeenCalledWith({
-        where: { id: testGroupId },
-        data: validUpdateData,
-      });
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/group-list");
-      expect(mockRevalidatePath).toHaveBeenCalledWith("/dashboard/my-groups");
     });
 
-    test("should return error when group not found", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(null);
+    describe("異常系", () => {
+      test("should return error when groupId is not provided", async () => {
+        // Arrange
+        const result = await updateGroup("", validUpdateData);
 
-      // Act
-      const result = await updateGroup(testGroupId, validUpdateData);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "グループが見つかりません" });
-      expect(prismaMock.group.update).not.toHaveBeenCalled();
-    });
-
-    test("should return error when user is not group creator", async () => {
-      // Arrange
-      const existingGroup = groupFactory.build({
-        id: testGroupId,
-        createdBy: "other-user",
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "updateGroup中にエラーが発生しました: グループIDがありません",
+        });
       });
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(existingGroup);
+      test("should return error when group not found", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(null);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
 
-      // Act
-      const result = await updateGroup(testGroupId, validUpdateData);
+        // Act
+        const result = await updateGroup(testGroupId, validUpdateData);
 
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "グループの編集権限がありません" });
-      expect(prismaMock.group.update).not.toHaveBeenCalled();
-    });
-
-    test("should return error when group name already exists", async () => {
-      // Arrange
-      const existingGroup = groupFactory.build({
-        id: testGroupId,
-        createdBy: testUsers.user1,
-        name: "元のグループ名",
-      });
-      const duplicateGroup = groupFactory.build({
-        id: "other-group",
-        name: validUpdateData.name,
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "updateGroup中にエラーが発生しました: グループが見つかりません",
+        });
+        expect(prismaMock.group.update).not.toHaveBeenCalled();
       });
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(existingGroup);
-      prismaMock.group.findFirst.mockResolvedValue(duplicateGroup);
+      test("should return error when user is not group creator", async () => {
+        // Arrange
+        const existingGroup = groupFactory.build({
+          id: testGroupId,
+          createdBy: "other-user",
+        });
 
-      // Act
-      const result = await updateGroup(testGroupId, validUpdateData);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(existingGroup);
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "グループの編集権限がありません" });
 
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "このグループ名は既に使用されています",
-      });
-      expect(prismaMock.group.update).not.toHaveBeenCalled();
-    });
+        // Act
+        const result = await updateGroup(testGroupId, validUpdateData);
 
-    test("should allow updating with same name", async () => {
-      // Arrange
-      const existingGroup = groupFactory.build({
-        id: testGroupId,
-        createdBy: testUsers.user1,
-        name: validUpdateData.name,
-      });
-      const updateDataWithSameName = { ...validUpdateData };
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(existingGroup);
-      prismaMock.group.update.mockResolvedValue(existingGroup);
-
-      // Act
-      const result = await updateGroup(testGroupId, updateDataWithSameName);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.group.findFirst).not.toHaveBeenCalled();
-    });
-
-    test("should return validation error for invalid data", async () => {
-      // Arrange
-      const existingGroup = groupFactory.build({
-        id: testGroupId,
-        createdBy: testUsers.user1,
-      });
-      const invalidData = { name: "", goal: "", evaluationMethod: "" };
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(existingGroup);
-
-      // Act
-      const result = await updateGroup(testGroupId, invalidData as unknown as CreateGroupFormData);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
-      expect(prismaMock.group.update).not.toHaveBeenCalled();
-    });
-
-    test("should handle database error during update", async () => {
-      // Arrange
-      const existingGroup = groupFactory.build({
-        id: testGroupId,
-        createdBy: testUsers.user1,
-        name: "元のグループ名",
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "updateGroup中にエラーが発生しました: グループの編集権限がありません",
+        });
+        expect(prismaMock.group.update).not.toHaveBeenCalled();
       });
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-      prismaMock.group.findUnique.mockResolvedValue(existingGroup);
-      prismaMock.group.findFirst.mockResolvedValue(null);
-      prismaMock.group.update.mockRejectedValue(new Error("Database error"));
+      test("should return error when group name already exists", async () => {
+        // Arrange
+        const existingGroup = groupFactory.build({
+          id: testGroupId,
+          createdBy: testUsers.user1,
+          name: "元のグループ名",
+        });
+        const duplicateGroup = groupFactory.build({
+          id: "other-group",
+          name: validUpdateData.name,
+        });
 
-      // Act
-      const result = await updateGroup(testGroupId, validUpdateData);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(existingGroup);
+        prismaMock.group.findFirst.mockResolvedValue(duplicateGroup);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
 
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "グループの更新中にエラーが発生しました",
+        // Act
+        const result = await updateGroup(testGroupId, validUpdateData);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "updateGroup中にエラーが発生しました: このグループ名は既に使用されています",
+        });
+        expect(prismaMock.group.update).not.toHaveBeenCalled();
+      });
+
+      test("should allow updating with same name", async () => {
+        // Arrange
+        const existingGroup = groupFactory.build({
+          id: testGroupId,
+          createdBy: testUsers.user1,
+          name: validUpdateData.name,
+        });
+        const updateDataWithSameName = { ...validUpdateData };
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(existingGroup);
+        prismaMock.group.update.mockResolvedValue(existingGroup);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
+        // Act
+        const result = await updateGroup(testGroupId, updateDataWithSameName);
+
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(prismaMock.group.findFirst).not.toHaveBeenCalled();
+      });
+
+      test("should return validation error for invalid data", async () => {
+        // Arrange
+        const invalidData = { name: "", goal: "", evaluationMethod: "" };
+
+        // Act
+        const result = await updateGroup(testGroupId, invalidData as unknown as CreateGroupFormData);
+
+        // Assert
+        expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
+        expect(prismaMock.group.update).not.toHaveBeenCalled();
+      });
+
+      test("should handle database error during update", async () => {
+        // Arrange
+        const existingGroup = groupFactory.build({
+          id: testGroupId,
+          createdBy: testUsers.user1,
+          name: "元のグループ名",
+        });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
+        prismaMock.group.findUnique.mockResolvedValue(existingGroup);
+        prismaMock.group.findFirst.mockResolvedValue(null);
+        prismaMock.group.update.mockRejectedValue(new Error("Database error"));
+
+        // Act
+        const result = await updateGroup(testGroupId, validUpdateData);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "updateGroup中にエラーが発生しました: Database error",
+        });
       });
     });
   });
 
   describe("getGroupMembers", () => {
-    test("should return group members successfully", async () => {
-      // Arrange
-      const mockMembers = [
-        {
-          isGroupOwner: true,
-          user: { id: "user-1", name: "オーナーユーザー" },
-        },
-        {
-          isGroupOwner: false,
-          user: { id: "user-2", name: "一般ユーザー" },
-        },
-        {
-          isGroupOwner: false,
-          user: { id: "user-3", name: null },
-        },
-      ];
+    describe("正常系", () => {
+      test("should return group members successfully", async () => {
+        // Arrange
+        const mockMembers = [
+          {
+            isGroupOwner: true,
+            user: { id: "user-1", settings: { username: "オーナーユーザー" } },
+          },
+          {
+            isGroupOwner: false,
+            user: { id: "user-2", settings: { username: "一般ユーザー" } },
+          },
+          {
+            isGroupOwner: false,
+            user: { id: "user-3", settings: null },
+          },
+        ];
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(
-        mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-      );
+        prismaMock.groupMembership.findMany.mockResolvedValue(
+          mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+        );
 
-      // Act
-      const result = await getGroupMembers(testGroupId);
+        // Act
+        const result = await getGroupMembers(testGroupId);
 
-      // Assert
-      expect(result).toStrictEqual([
-        {
-          isGroupOwner: true,
-          userId: "user-1",
-          appUserName: "オーナーユーザー",
-        },
-        {
-          isGroupOwner: false,
-          userId: "user-2",
-          appUserName: "一般ユーザー",
-        },
-        {
-          isGroupOwner: false,
-          userId: "user-3",
-          appUserName: "未設定",
-        },
-      ]);
+        // Assert
+        expect(result).toStrictEqual([
+          {
+            isGroupOwner: true,
+            userId: "user-1",
+            appUserName: "オーナーユーザー",
+          },
+          {
+            isGroupOwner: false,
+            userId: "user-2",
+            appUserName: "一般ユーザー",
+          },
+          {
+            isGroupOwner: false,
+            userId: "user-3",
+            appUserName: "未設定_user-3",
+          },
+        ]);
 
-      expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
-        where: { groupId: testGroupId },
-        select: {
-          isGroupOwner: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
+        expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
+          where: { groupId: testGroupId },
+          select: {
+            isGroupOwner: true,
+            user: {
+              select: {
+                id: true,
+                settings: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
             },
           },
-        },
-        orderBy: {
-          joinedAt: "asc",
-        },
+          orderBy: {
+            joinedAt: "asc",
+          },
+        });
+      });
+
+      test("should return empty array when no members found", async () => {
+        // Arrange
+        prismaMock.groupMembership.findMany.mockResolvedValue([]);
+
+        // Act
+        const result = await getGroupMembers(testGroupId);
+
+        // Assert
+        expect(result).toStrictEqual([]);
       });
     });
 
-    test("should return empty array when no members found", async () => {
-      // Arrange
-      prismaMock.groupMembership.findMany.mockResolvedValue([]);
+    describe("異常系", () => {
+      test("should return error when groupId is not provided", async () => {
+        // Arrange & Act & Assert
+        await expect(getGroupMembers("")).rejects.toThrow("グループIDがありません");
+      });
 
-      // Act
-      const result = await getGroupMembers(testGroupId);
+      test("should throw error when database error occurs", async () => {
+        // Arrange
+        const dbError = new Error("Database connection failed");
+        prismaMock.groupMembership.findMany.mockRejectedValue(dbError);
 
-      // Assert
-      expect(result).toStrictEqual([]);
-    });
+        // Act & Assert
+        await expect(getGroupMembers(testGroupId)).rejects.toThrow("Database connection failed");
+      });
 
-    test("should throw error when database error occurs", async () => {
-      // Arrange
-      const dbError = new Error("Database connection failed");
-      prismaMock.groupMembership.findMany.mockRejectedValue(dbError);
+      test("should handle members with null names", async () => {
+        // Arrange
+        const mockMembers = [
+          {
+            isGroupOwner: false,
+            user: { id: "user-1", settings: null },
+          },
+        ];
 
-      // Act & Assert
-      await expect(getGroupMembers(testGroupId)).rejects.toThrow("Database connection failed");
-    });
+        prismaMock.groupMembership.findMany.mockResolvedValue(
+          mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+        );
 
-    test("should handle members with null names", async () => {
-      // Arrange
-      const mockMembers = [
-        {
-          isGroupOwner: false,
-          user: { id: "user-1", name: null },
-        },
-      ];
+        // Act
+        const result = await getGroupMembers(testGroupId);
 
-      prismaMock.groupMembership.findMany.mockResolvedValue(
-        mockMembers as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
-      );
-
-      // Act
-      const result = await getGroupMembers(testGroupId);
-
-      // Assert
-      expect(result).toStrictEqual([
-        {
-          isGroupOwner: false,
-          userId: "user-1",
-          appUserName: "未設定",
-        },
-      ]);
+        // Assert
+        expect(result).toStrictEqual([
+          {
+            isGroupOwner: false,
+            userId: "user-1",
+            appUserName: "未設定_user-1",
+          },
+        ]);
+      });
     });
   });
 
   describe("removeMember", () => {
-    test("should remove member successfully without blacklist", async () => {
-      // Arrange
-      const membership = groupMembershipFactory.build({
-        id: "membership-1",
-        userId: testUsers.target,
-        isGroupOwner: false,
+    describe("正常系", () => {
+      test("should remove member successfully without blacklist", async () => {
+        // Arrange
+        const membership = groupMembershipFactory.build({
+          id: "membership-1",
+          userId: testUsers.target,
+          isGroupOwner: false,
+        });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(membership);
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(prismaMock);
+        });
+        prismaMock.groupMembership.delete.mockResolvedValue(membership);
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, false);
+
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledWith();
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.owner, testGroupId, undefined, false);
+        expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUsers.target, testGroupId);
+        expect(prismaMock.groupMembership.delete).toHaveBeenCalledWith({
+          where: { id: membership.id },
+        });
+        expect(prismaMock.group.update).not.toHaveBeenCalled();
+        expect(prismaMock.group.findUnique).not.toHaveBeenCalled();
+        expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroupId}`);
       });
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(membership);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        return await callback(prismaMock);
-      });
-      prismaMock.groupMembership.delete.mockResolvedValue(membership);
+      test("should remove member and add to blacklist", async () => {
+        // Arrange
+        const membership = groupMembershipFactory.build({
+          id: "membership-1",
+          userId: testUsers.target,
+          isGroupOwner: false,
+        });
+        const group = groupFactory.build({
+          id: testGroupId,
+          isBlackList: { "other-user": true },
+        });
 
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, false);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(membership);
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(prismaMock);
+        });
+        prismaMock.groupMembership.delete.mockResolvedValue(membership);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        prismaMock.group.update.mockResolvedValue(group);
 
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.groupMembership.delete).toHaveBeenCalledWith({
-        where: { id: membership.id },
-      });
-      expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroupId}`);
-    });
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, true);
 
-    test("should remove member and add to blacklist", async () => {
-      // Arrange
-      const membership = groupMembershipFactory.build({
-        id: "membership-1",
-        userId: testUsers.target,
-        isGroupOwner: false,
-      });
-      const group = groupFactory.build({
-        id: testGroupId,
-        isBlackList: { "other-user": true },
-      });
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(membership);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        return await callback(prismaMock);
-      });
-      prismaMock.groupMembership.delete.mockResolvedValue(membership);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      prismaMock.group.update.mockResolvedValue(group);
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, true);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.group.update).toHaveBeenCalledWith({
-        where: { id: testGroupId },
-        data: {
-          isBlackList: {
-            "other-user": true,
-            [testUsers.target]: true,
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledWith();
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.owner, testGroupId, undefined, false);
+        expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUsers.target, testGroupId);
+        expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+          select: { isBlackList: true },
+        });
+        expect(prismaMock.group.update).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+          data: {
+            isBlackList: {
+              "other-user": true,
+              [testUsers.target]: true,
+            },
           },
-        },
-      });
-    });
-
-    test("should return error when user is not owner", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, false);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "グループメンバーを削除する権限がありません",
-      });
-      expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-    });
-
-    test("should return error when target user is not member", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(null);
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, false);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "指定されたユーザーはグループに参加していません",
-      });
-      expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-    });
-
-    test("should return error when trying to remove self", async () => {
-      // Arrange
-      const membership = groupMembershipFactory.build({
-        userId: testUsers.owner,
-        isGroupOwner: false,
+        });
       });
 
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(membership);
+      test("should handle blacklist with null initial value", async () => {
+        // Arrange
+        const membership = groupMembershipFactory.build({
+          userId: testUsers.target,
+          isGroupOwner: false,
+        });
+        const group = groupFactory.build({
+          id: testGroupId,
+          isBlackList: null,
+        });
 
-      // Act
-      const result = await removeMember(testGroupId, testUsers.owner, false);
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(membership);
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+          return await callback(prismaMock);
+        });
+        prismaMock.groupMembership.delete.mockResolvedValue(membership);
+        prismaMock.group.findUnique.mockResolvedValue(group);
+        prismaMock.group.update.mockResolvedValue(group);
 
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "自分自身を削除することはできません",
-      });
-      expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-    });
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, true);
 
-    test("should return error when trying to remove group owner", async () => {
-      // Arrange
-      const ownerMembership = groupMembershipFactory.build({
-        userId: testUsers.target,
-        isGroupOwner: true,
-      });
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(ownerMembership);
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, false);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "グループオーナーを削除することはできません",
-      });
-      expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
-    });
-
-    test("should handle authentication failure", async () => {
-      // Arrange
-      mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, false);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メンバー削除中にエラーが発生しました",
-      });
-    });
-
-    test("should handle database error during transaction", async () => {
-      // Arrange
-      const membership = groupMembershipFactory.build({
-        userId: testUsers.target,
-        isGroupOwner: false,
-      });
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(membership);
-      prismaMock.$transaction.mockRejectedValue(new Error("Transaction failed"));
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, false);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        error: "メンバー削除中にエラーが発生しました",
-      });
-    });
-
-    test("should handle blacklist with null initial value", async () => {
-      // Arrange
-      const membership = groupMembershipFactory.build({
-        userId: testUsers.target,
-        isGroupOwner: false,
-      });
-      const group = groupFactory.build({
-        id: testGroupId,
-        isBlackList: null,
-      });
-
-      mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-      mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-      mockCheckGroupMembership.mockResolvedValue(membership);
-      prismaMock.$transaction.mockImplementation(async (callback) => {
-        return await callback(prismaMock);
-      });
-      prismaMock.groupMembership.delete.mockResolvedValue(membership);
-      prismaMock.group.findUnique.mockResolvedValue(group);
-      prismaMock.group.update.mockResolvedValue(group);
-
-      // Act
-      const result = await removeMember(testGroupId, testUsers.target, true);
-
-      // Assert
-      expect(result).toStrictEqual({ success: true });
-      expect(prismaMock.group.update).toHaveBeenCalledWith({
-        where: { id: testGroupId },
-        data: {
-          isBlackList: {
-            [testUsers.target]: true,
+        // Assert
+        expect(result).toStrictEqual({ success: true });
+        expect(prismaMock.group.update).toHaveBeenCalledWith({
+          where: { id: testGroupId },
+          data: {
+            isBlackList: {
+              [testUsers.target]: true,
+            },
           },
-        },
+        });
+      });
+    });
+
+    describe("異常系", () => {
+      test.each([
+        { groupId: "", removeUserId: testUsers.target, addToBlackList: false },
+        { groupId: testGroupId, removeUserId: "", addToBlackList: false },
+        { groupId: testGroupId, removeUserId: testUsers.target, addToBlackList: undefined },
+        { groupId: testGroupId, removeUserId: testUsers.target, addToBlackList: null },
+      ])("should return error when groupId is not provided", async ({ groupId, removeUserId, addToBlackList }) => {
+        // Arrange
+        const result = await removeMember(groupId, removeUserId, addToBlackList!);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: invalid parameters",
+        });
+      });
+
+      test("should return error when user is not owner", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({
+          success: false,
+          message: "グループメンバーを削除する権限がありません",
+        });
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, false);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: グループメンバーを削除する権限がありません",
+        });
+        expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledWith();
+        expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.owner, testGroupId, undefined, false);
+        expect(mockCheckGroupMembership).not.toHaveBeenCalled();
+        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
+        expect(prismaMock.group.update).not.toHaveBeenCalled();
+        expect(prismaMock.group.findUnique).not.toHaveBeenCalled();
+        expect(mockRevalidatePath).not.toHaveBeenCalled();
+      });
+
+      test("should return error when target user is not member", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(null);
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, false);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: 指定されたユーザーはグループに参加していません",
+        });
+        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
+      });
+
+      test("should return error when trying to remove self", async () => {
+        // Arrange
+        const membership = groupMembershipFactory.build({
+          userId: testUsers.owner,
+          isGroupOwner: false,
+        });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(membership);
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.owner, false);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: 自分自身を削除することはできません",
+        });
+        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
+      });
+
+      test("should return error when trying to remove group owner", async () => {
+        // Arrange
+        const ownerMembership = groupMembershipFactory.build({
+          userId: testUsers.target,
+          isGroupOwner: true,
+        });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(ownerMembership);
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, false);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: グループオーナーを削除することはできません",
+        });
+        expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
+      });
+
+      test("should handle authentication failure", async () => {
+        // Arrange
+        mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, false);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: Authentication failed",
+        });
+      });
+
+      test("should handle database error during transaction", async () => {
+        // Arrange
+        const membership = groupMembershipFactory.build({
+          userId: testUsers.target,
+          isGroupOwner: false,
+        });
+
+        mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckGroupMembership.mockResolvedValue(membership);
+        prismaMock.$transaction.mockRejectedValue(new Error("Transaction failed"));
+
+        // Act
+        const result = await removeMember(testGroupId, testUsers.target, false);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          error: "メンバー削除中にエラーが発生しました: Transaction failed",
+        });
       });
     });
   });
