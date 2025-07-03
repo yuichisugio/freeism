@@ -43,8 +43,8 @@ export function usePagination({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   // 表示するページ番号を生成
-  const pageNumbers = useMemo(() => {
-    const pages = [];
+  const pageNumbers: number[] = useMemo(() => {
+    const pages: number[] = [];
 
     // paginationの表示するページ数が、総ページ数より少ない場合
     if (totalPages <= maxPageToShow) {

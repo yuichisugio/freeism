@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect } from "react";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -29,6 +31,8 @@ export type ShortcutConfig = {
  * @param configs ショートカットキーの設定の配列
  */
 export const useShortcut = (configs: ShortcutConfig[]) => {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * キーダウンイベントを処理するコールバック関数をメモ化
    * @param event キーダウンイベント
@@ -52,14 +56,22 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
 
         // 押されたキーが設定されたキーと一致するか確認 (大文字・小文字を区別しない)
         const codeMatch = event.code?.toLowerCase() === config.code?.toLowerCase();
+
+        // キーが一致しない場合、次のショートカット設定へ
+        if (!codeMatch) {
+          continue;
+        }
+
         // CtrlキーまたはMetaキーの条件が一致するか確認
         // config.ctrlOrMetaがtrueの場合、event.ctrlKeyまたはevent.metaKeyのどちらかがtrueである必要がある
         // config.ctrlOrMetaがfalseまたは未定義の場合、event.ctrlKeyとevent.metaKeyの両方がfalseである必要がある
         const ctrlOrMetaMatch = config.ctrlOrMeta ? event.ctrlKey || event.metaKey : !event.ctrlKey && !event.metaKey;
+
         // Shiftキーの条件が一致するか確認
         // config.shiftがtrueの場合、event.shiftKeyがtrueである必要がある
         // config.shiftがfalseまたは未定義の場合、event.shiftKeyがfalseである必要がある
         const shiftMatch = config.shift ? event.shiftKey : !event.shiftKey;
+
         // Altキーの条件が一致するか確認
         // config.altがtrueの場合、event.altKeyがtrueである必要がある
         // config.altがfalseまたは未定義の場合、event.altKeyがfalseである必要がある
@@ -80,6 +92,8 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
     },
     [configs], // configs配列が変更された場合のみhandleKeyDown関数を再生成
   );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 副作用フックを使用して、コンポーネントのマウント時とアンマウント時にイベントリスナーを操作

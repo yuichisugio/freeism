@@ -33,18 +33,6 @@ const createKeyboardEvent = (options: {
   return event;
 };
 
-/**
- * DOM要素をモック化するヘルパー関数
- */
-const mockActiveElement = (tagName: string, isContentEditable = false) => {
-  const element = {
-    tagName: tagName.toUpperCase(),
-    isContentEditable,
-  } as HTMLElement;
-
-  vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
-};
-
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("useShortcut", () => {
@@ -52,19 +40,11 @@ describe("useShortcut", () => {
   const mockCallback1 = vi.fn();
   const mockCallback2 = vi.fn();
 
-  // コンソールログのモック（グローバルモックを上書き）
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
     // activeElementをリセット
     vi.spyOn(document, "activeElement", "get").mockReturnValue(null);
-
-    // グローバルなconsole.logモックを上書きして、呼び出しを追跡可能にする
-    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
-      // テスト用のコンソールログモック - 何もしない
-    });
   });
 
   afterEach(() => {
@@ -92,7 +72,6 @@ describe("useShortcut", () => {
       });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
-      expect(consoleSpy).toHaveBeenCalledWith("src/hooks/shortcut/use-shortcut.ts_handleKeyDown_start_render", event);
     });
 
     test("should handle multiple shortcuts", () => {
@@ -377,7 +356,12 @@ describe("useShortcut", () => {
       renderHook(() => useShortcut(configs));
 
       // INPUT要素にフォーカスがある状態をモック
-      mockActiveElement("INPUT");
+      const element = {
+        tagName: "INPUT",
+        isContentEditable: false,
+      } as HTMLElement;
+
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
       act(() => {
         window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
@@ -398,7 +382,12 @@ describe("useShortcut", () => {
       renderHook(() => useShortcut(configs));
 
       // TEXTAREA要素にフォーカスがある状態をモック
-      mockActiveElement("TEXTAREA");
+      const element = {
+        tagName: "TEXTAREA",
+        isContentEditable: false,
+      } as HTMLElement;
+
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
       act(() => {
         window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
@@ -419,7 +408,12 @@ describe("useShortcut", () => {
       renderHook(() => useShortcut(configs));
 
       // contentEditable要素にフォーカスがある状態をモック
-      mockActiveElement("DIV", true);
+      const element = {
+        tagName: "DIV",
+        isContentEditable: true,
+      } as HTMLElement;
+
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
       act(() => {
         window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
@@ -440,7 +434,12 @@ describe("useShortcut", () => {
       renderHook(() => useShortcut(configs));
 
       // INPUT要素にフォーカスがある状態でもショートカットが動作する
-      mockActiveElement("INPUT");
+      const element = {
+        tagName: "INPUT",
+        isContentEditable: false,
+      } as HTMLElement;
+
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
       act(() => {
         window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
@@ -460,7 +459,12 @@ describe("useShortcut", () => {
       renderHook(() => useShortcut(configs));
 
       // INPUT要素にフォーカスがある状態でもショートカットが動作する
-      mockActiveElement("INPUT");
+      const element = {
+        tagName: "INPUT",
+        isContentEditable: false,
+      } as HTMLElement;
+
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
       act(() => {
         window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
@@ -481,7 +485,12 @@ describe("useShortcut", () => {
       renderHook(() => useShortcut(configs));
 
       // DIV要素にフォーカスがある状態（contentEditableではない）
-      mockActiveElement("DIV", false);
+      const element = {
+        tagName: "DIV",
+        isContentEditable: false,
+      } as HTMLElement;
+
+      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
       act(() => {
         window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
