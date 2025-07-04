@@ -33,6 +33,45 @@ const createKeyboardEvent = (options: {
   return event;
 };
 
+/**
+ * イベント発火とact処理を統合するヘルパー関数
+ */
+const triggerShortcut = (eventOptions: Parameters<typeof createKeyboardEvent>[0]) => {
+  const event = createKeyboardEvent(eventOptions);
+  act(() => {
+    window.dispatchEvent(event);
+  });
+  return event;
+};
+
+/**
+ * 要素タイプの定義
+ */
+const INPUT_ELEMENTS = [
+  { tagName: "INPUT", isContentEditable: false, description: "INPUT element" },
+  { tagName: "TEXTAREA", isContentEditable: false, description: "TEXTAREA element" },
+  { tagName: "DIV", isContentEditable: true, description: "contentEditable element" },
+] as const;
+
+/**
+ * 修飾キーの組み合わせ定義
+ */
+const MODIFIER_COMBINATIONS = [
+  { config: { ctrlOrMeta: true }, event: { ctrlKey: true }, description: "Ctrl+S" },
+  { config: { ctrlOrMeta: true }, event: { metaKey: true }, description: "Meta+S (Mac)" },
+  { config: { shift: true }, event: { shiftKey: true }, description: "Shift+S" },
+  { config: { alt: true }, event: { altKey: true }, description: "Alt+S" },
+] as const;
+
+/**
+ * 異常値の定義
+ */
+const INVALID_CODES = [
+  { value: undefined, description: "undefined" },
+  { value: null, description: "null" },
+  { value: "", description: "empty string" },
+] as const;
+
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 describe("useShortcut", () => {
@@ -56,148 +95,53 @@ describe("useShortcut", () => {
 
   describe("基本的なショートカット機能", () => {
     test("should register and trigger simple shortcut", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
-
+      const configs = [{ code: "KeyS", callback: mockCallback1 }];
       renderHook(() => useShortcut(configs));
 
-      // KeySを押下
-      const event = createKeyboardEvent({ code: "KeyS" });
-      act(() => {
-        window.dispatchEvent(event);
-      });
+      triggerShortcut({ code: "KeyS" });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
 
     test("should handle multiple shortcuts", () => {
       const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-        {
-          code: "KeyA",
-          callback: mockCallback2,
-        },
+        { code: "KeyS", callback: mockCallback1 },
+        { code: "KeyA", callback: mockCallback2 },
       ];
-
       renderHook(() => useShortcut(configs));
 
-      // KeySを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      // KeyAを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyA" }));
-      });
+      triggerShortcut({ code: "KeyS" });
+      triggerShortcut({ code: "KeyA" });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
       expect(mockCallback2).toHaveBeenCalledTimes(1);
     });
 
     test("should not trigger callback for non-matching keys", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
-
+      const configs = [{ code: "KeyS", callback: mockCallback1 }];
       renderHook(() => useShortcut(configs));
 
-      // 異なるキーを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyA" }));
-      });
+      triggerShortcut({ code: "KeyA" });
 
-      expect(mockCallback1).not.toHaveBeenCalled();
+      expect(mockCallback1).toHaveBeenCalledTimes(0);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("修飾キーの組み合わせ", () => {
-    test("should handle Ctrl+S shortcut", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          ctrlOrMeta: true,
-          callback: mockCallback1,
-        },
-      ];
+    test("should handle modifier key combinations", () => {
+      MODIFIER_COMBINATIONS.forEach(({ config, event }) => {
+        const configs = [{ code: "KeyS", ...config, callback: mockCallback1 }];
+        renderHook(() => useShortcut(configs));
 
-      renderHook(() => useShortcut(configs));
+        triggerShortcut({ code: "KeyS", ...event });
 
-      // Ctrl+Sを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", ctrlKey: true }));
+        expect(mockCallback1).toHaveBeenCalledTimes(1);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle Meta+S shortcut (Mac)", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          ctrlOrMeta: true,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // Meta+Sを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", metaKey: true }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle Shift+S shortcut", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          shift: true,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // Shift+Sを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", shiftKey: true }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle Alt+S shortcut", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          alt: true,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // Alt+Sを押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", altKey: true }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
 
     test("should handle complex modifier combination (Ctrl+Shift+Alt+S)", () => {
@@ -210,19 +154,13 @@ describe("useShortcut", () => {
           callback: mockCallback1,
         },
       ];
-
       renderHook(() => useShortcut(configs));
 
-      // Ctrl+Shift+Alt+Sを押下
-      act(() => {
-        window.dispatchEvent(
-          createKeyboardEvent({
-            code: "KeyS",
-            ctrlKey: true,
-            shiftKey: true,
-            altKey: true,
-          }),
-        );
+      triggerShortcut({
+        code: "KeyS",
+        ctrlKey: true,
+        shiftKey: true,
+        altKey: true,
       });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
@@ -237,287 +175,137 @@ describe("useShortcut", () => {
           callback: mockCallback1,
         },
       ];
-
       renderHook(() => useShortcut(configs));
 
-      // Ctrlのみ（Shiftが不足）
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", ctrlKey: true }));
+      // 各種不完全な修飾キーの組み合わせをテスト
+      const incompleteModifiers = [
+        { ctrlKey: true }, // Shiftが不足
+        { shiftKey: true }, // Ctrlが不足
+        {}, // 修飾キーなし
+      ];
+
+      incompleteModifiers.forEach((modifiers) => {
+        triggerShortcut({ code: "KeyS", ...modifiers });
       });
 
-      // Shiftのみ（Ctrlが不足）
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", shiftKey: true }));
-      });
-
-      // 修飾キーなし
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
+      expect(mockCallback1).toHaveBeenCalledTimes(0);
     });
 
     test("should not trigger when unwanted modifiers are present", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1, // 修飾キーなしのショートカット
-        },
-      ];
-
+      const configs = [{ code: "KeyS", callback: mockCallback1 }];
       renderHook(() => useShortcut(configs));
 
-      // 不要なCtrlキーが押されている
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS", ctrlKey: true }));
-      });
+      triggerShortcut({ code: "KeyS", ctrlKey: true });
 
-      expect(mockCallback1).not.toHaveBeenCalled();
+      expect(mockCallback1).toHaveBeenCalledTimes(0);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("preventDefault機能", () => {
-    test("should call preventDefault when configured", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          ctrlOrMeta: true,
-          preventDefault: true,
-          callback: mockCallback1,
-        },
+    test("should handle preventDefault configuration", () => {
+      const preventDefaultCases = [
+        { preventDefault: true, shouldPrevent: true, description: "when configured" },
+        { preventDefault: false, shouldPrevent: false, description: "when explicitly set to false" },
+        { preventDefault: undefined, shouldPrevent: false, description: "when not configured" },
       ];
 
-      renderHook(() => useShortcut(configs));
+      preventDefaultCases.forEach(({ preventDefault, shouldPrevent }) => {
+        const configs = [
+          {
+            code: "KeyS",
+            ctrlOrMeta: true,
+            preventDefault,
+            callback: mockCallback1,
+          },
+        ];
+        renderHook(() => useShortcut(configs));
 
-      const event = createKeyboardEvent({ code: "KeyS", ctrlKey: true });
-      act(() => {
-        window.dispatchEvent(event);
+        const event = triggerShortcut({ code: "KeyS", ctrlKey: true });
+
+        if (shouldPrevent) {
+          expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        } else {
+          expect(event.preventDefault).not.toHaveBeenCalled();
+        }
+        expect(mockCallback1).toHaveBeenCalledTimes(1);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(event.preventDefault).toHaveBeenCalledTimes(1);
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should not call preventDefault when not configured", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      const event = createKeyboardEvent({ code: "KeyS" });
-      act(() => {
-        window.dispatchEvent(event);
-      });
-
-      expect(event.preventDefault).not.toHaveBeenCalled();
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should not call preventDefault when explicitly set to false", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          preventDefault: false,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      const event = createKeyboardEvent({ code: "KeyS" });
-      act(() => {
-        window.dispatchEvent(event);
-      });
-
-      expect(event.preventDefault).not.toHaveBeenCalled();
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("disableOnInputs機能", () => {
-    test("should disable shortcut when focused on INPUT element", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          disableOnInputs: true,
-          callback: mockCallback1,
-        },
-      ];
+    test("should disable shortcut when focused on input elements", () => {
+      INPUT_ELEMENTS.forEach(({ tagName, isContentEditable }) => {
+        const configs = [
+          {
+            code: "KeyS",
+            disableOnInputs: true,
+            callback: mockCallback1,
+          },
+        ];
+        renderHook(() => useShortcut(configs));
 
-      renderHook(() => useShortcut(configs));
+        // 要素にフォーカスがある状態をモック
+        const element = { tagName, isContentEditable } as HTMLElement;
+        vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
-      // INPUT要素にフォーカスがある状態をモック
-      const element = {
-        tagName: "INPUT",
-        isContentEditable: false,
-      } as HTMLElement;
+        triggerShortcut({ code: "KeyS" });
 
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
+        expect(mockCallback1).toHaveBeenCalledTimes(0);
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
     });
 
-    test("should disable shortcut when focused on TEXTAREA element", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          disableOnInputs: true,
-          callback: mockCallback1,
-        },
+    test("should work normally when disableOnInputs is configured differently", () => {
+      const disableOnInputsCases = [
+        { disableOnInputs: false, shouldWork: true, description: "when disableOnInputs is false" },
+        { disableOnInputs: undefined, shouldWork: true, description: "when disableOnInputs is not configured" },
       ];
 
-      renderHook(() => useShortcut(configs));
+      disableOnInputsCases.forEach(({ disableOnInputs, shouldWork }) => {
+        const configs = [{ code: "KeyS", disableOnInputs, callback: mockCallback1 }];
+        renderHook(() => useShortcut(configs));
 
-      // TEXTAREA要素にフォーカスがある状態をモック
-      const element = {
-        tagName: "TEXTAREA",
-        isContentEditable: false,
-      } as HTMLElement;
+        // INPUT要素にフォーカスがある状態でもショートカットが動作する
+        const element = { tagName: "INPUT", isContentEditable: false } as HTMLElement;
+        vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
+        triggerShortcut({ code: "KeyS" });
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
+        expect(mockCallback1).toHaveBeenCalledTimes(shouldWork ? 1 : 0);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
     });
 
-    test("should disable shortcut when focused on contentEditable element", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          disableOnInputs: true,
-          callback: mockCallback1,
-        },
+    test("should work normally when focused on non-input elements or no element", () => {
+      const focusStates = [
+        { element: { tagName: "DIV", isContentEditable: false } as HTMLElement, description: "non-input element" },
+        { element: null, description: "no element focused" },
       ];
 
-      renderHook(() => useShortcut(configs));
+      focusStates.forEach(({ element }) => {
+        const configs = [{ code: "KeyS", disableOnInputs: true, callback: mockCallback1 }];
+        renderHook(() => useShortcut(configs));
 
-      // contentEditable要素にフォーカスがある状態をモック
-      const element = {
-        tagName: "DIV",
-        isContentEditable: true,
-      } as HTMLElement;
+        vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
 
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
+        triggerShortcut({ code: "KeyS" });
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
+        expect(mockCallback1).toHaveBeenCalledTimes(1);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
-    });
-
-    test("should work normally when disableOnInputs is false", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          disableOnInputs: false,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // INPUT要素にフォーカスがある状態でもショートカットが動作する
-      const element = {
-        tagName: "INPUT",
-        isContentEditable: false,
-      } as HTMLElement;
-
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should work normally when disableOnInputs is not configured", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // INPUT要素にフォーカスがある状態でもショートカットが動作する
-      const element = {
-        tagName: "INPUT",
-        isContentEditable: false,
-      } as HTMLElement;
-
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should work normally when focused on non-input elements", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          disableOnInputs: true,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // DIV要素にフォーカスがある状態（contentEditableではない）
-      const element = {
-        tagName: "DIV",
-        isContentEditable: false,
-      } as HTMLElement;
-
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(element);
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should work normally when no element is focused", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          disableOnInputs: true,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // activeElementがnullの状態
-      vi.spyOn(document, "activeElement", "get").mockReturnValue(null);
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -525,103 +313,61 @@ describe("useShortcut", () => {
 
   describe("大文字小文字の区別", () => {
     test("should handle case-insensitive key codes", () => {
-      const configs = [
-        {
-          code: "keys", // 小文字
-          callback: mockCallback1,
-        },
+      const caseCombinations = [
+        { configCode: "keys", eventCode: "KeyS", description: "lowercase config, uppercase event" },
+        { configCode: "KEYS", eventCode: "keys", description: "uppercase config, lowercase event" },
       ];
 
-      renderHook(() => useShortcut(configs));
+      caseCombinations.forEach(({ configCode, eventCode }) => {
+        const configs = [{ code: configCode, callback: mockCallback1 }];
+        renderHook(() => useShortcut(configs));
 
-      // 大文字のKeyCodeで押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
+        triggerShortcut({ code: eventCode });
+
+        expect(mockCallback1).toHaveBeenCalledTimes(1);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle uppercase key codes in config", () => {
-      const configs = [
-        {
-          code: "KEYS", // 大文字
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      // 小文字のKeyCodeで押下
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "keys" }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("特殊キーのテスト", () => {
-    test("should handle Enter key", () => {
-      const configs = [
-        {
-          code: "Enter",
-          callback: mockCallback1,
-        },
+    test("should handle special keys", () => {
+      const specialKeys = [
+        { code: "Enter", description: "Enter key" },
+        { code: "ArrowUp", description: "Arrow up key" },
+        { code: "ArrowDown", description: "Arrow down key" },
+        { code: "Escape", description: "Escape key" },
       ];
 
-      renderHook(() => useShortcut(configs));
+      specialKeys.forEach(({ code }) => {
+        const configs = [{ code, callback: mockCallback1 }];
+        renderHook(() => useShortcut(configs));
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "Enter" }));
+        triggerShortcut({ code });
+
+        expect(mockCallback1).toHaveBeenCalledTimes(1);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
 
-    test("should handle Arrow keys", () => {
+    test("should handle multiple arrow keys", () => {
       const configs = [
-        {
-          code: "ArrowUp",
-          callback: mockCallback1,
-        },
-        {
-          code: "ArrowDown",
-          callback: mockCallback2,
-        },
+        { code: "ArrowUp", callback: mockCallback1 },
+        { code: "ArrowDown", callback: mockCallback2 },
       ];
-
       renderHook(() => useShortcut(configs));
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "ArrowUp" }));
-      });
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "ArrowDown" }));
-      });
+      triggerShortcut({ code: "ArrowUp" });
+      triggerShortcut({ code: "ArrowDown" });
 
       expect(mockCallback1).toHaveBeenCalledTimes(1);
       expect(mockCallback2).toHaveBeenCalledTimes(1);
-    });
-
-    test("should handle Escape key", () => {
-      const configs = [
-        {
-          code: "Escape",
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "Escape" }));
-      });
-
-      expect(mockCallback1).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -630,113 +376,52 @@ describe("useShortcut", () => {
   describe("エッジケースと異常系", () => {
     test("should handle empty configs array", () => {
       const configs: ShortcutConfig[] = [];
-
       renderHook(() => useShortcut(configs));
 
-      // 何かキーを押下しても何も起こらない
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
+      triggerShortcut({ code: "KeyS" });
 
-      // エラーが発生しないことを確認
-      expect(mockCallback1).not.toHaveBeenCalled();
+      expect(mockCallback1).toHaveBeenCalledTimes(0);
     });
 
-    test("should handle undefined code in config", () => {
-      const configs = [
-        {
-          code: undefined as unknown as string,
-          callback: mockCallback1,
-        },
-      ];
+    test("should handle invalid code values", () => {
+      INVALID_CODES.forEach(({ value }) => {
+        const configs = [{ code: value as unknown as string, callback: mockCallback1 }];
+        renderHook(() => useShortcut(configs));
 
-      renderHook(() => useShortcut(configs));
+        triggerShortcut({ code: "KeyS" });
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
+        expect(mockCallback1).toHaveBeenCalledTimes(0);
+
+        // 次のテストのためにモックをリセット
+        vi.clearAllMocks();
       });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
-    });
-
-    test("should handle null code in config", () => {
-      const configs = [
-        {
-          code: null as unknown as string,
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
-    });
-
-    test("should handle empty string code in config", () => {
-      const configs = [
-        {
-          code: "",
-          callback: mockCallback1,
-        },
-      ];
-
-      renderHook(() => useShortcut(configs));
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
-
-      expect(mockCallback1).not.toHaveBeenCalled();
     });
 
     test("should handle event without code property", () => {
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
-
+      const configs = [{ code: "KeyS", callback: mockCallback1 }];
       renderHook(() => useShortcut(configs));
 
       // codeプロパティがないイベントを作成
-      const event = new KeyboardEvent("keydown", {
-        bubbles: true,
-        cancelable: true,
-      });
-
+      const event = new KeyboardEvent("keydown", { bubbles: true, cancelable: true });
       act(() => {
         window.dispatchEvent(event);
       });
 
-      expect(mockCallback1).not.toHaveBeenCalled();
+      expect(mockCallback1).toHaveBeenCalledTimes(0);
     });
 
     test("should stop at first matching shortcut", () => {
       const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-        {
-          code: "KeyS", // 同じキーの設定
-          callback: mockCallback2,
-        },
+        { code: "KeyS", callback: mockCallback1 },
+        { code: "KeyS", callback: mockCallback2 }, // 同じキーの設定
       ];
-
       renderHook(() => useShortcut(configs));
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "KeyS" }));
-      });
+      triggerShortcut({ code: "KeyS" });
 
       // 最初のコールバックのみが呼ばれる
       expect(mockCallback1).toHaveBeenCalledTimes(1);
-      expect(mockCallback2).not.toHaveBeenCalled();
+      expect(mockCallback2).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -745,12 +430,7 @@ describe("useShortcut", () => {
   describe("イベントリスナーの管理", () => {
     test("should add event listener on mount", () => {
       const addEventListenerSpy = vi.spyOn(window, "addEventListener");
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
+      const configs = [{ code: "KeyS", callback: mockCallback1 }];
 
       renderHook(() => useShortcut(configs));
 
@@ -759,15 +439,9 @@ describe("useShortcut", () => {
 
     test("should remove event listener on unmount", () => {
       const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
-      const configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
+      const configs = [{ code: "KeyS", callback: mockCallback1 }];
 
       const { unmount } = renderHook(() => useShortcut(configs));
-
       unmount();
 
       expect(removeEventListenerSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
@@ -777,26 +451,14 @@ describe("useShortcut", () => {
       const addEventListenerSpy = vi.spyOn(window, "addEventListener");
       const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
 
-      let configs = [
-        {
-          code: "KeyS",
-          callback: mockCallback1,
-        },
-      ];
-
+      let configs = [{ code: "KeyS", callback: mockCallback1 }];
       const { rerender } = renderHook(() => useShortcut(configs));
 
       // 初回レンダリング
       expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
 
       // configsを変更
-      configs = [
-        {
-          code: "KeyA",
-          callback: mockCallback2,
-        },
-      ];
-
+      configs = [{ code: "KeyA", callback: mockCallback2 }];
       rerender();
 
       // 古いリスナーが削除され、新しいリスナーが追加される
@@ -819,13 +481,9 @@ describe("useShortcut", () => {
           callback: saveCallback,
         },
       ];
-
       renderHook(() => useShortcut(configs));
 
-      const event = createKeyboardEvent({ code: "KeyS", ctrlKey: true });
-      act(() => {
-        window.dispatchEvent(event);
-      });
+      const event = triggerShortcut({ code: "KeyS", ctrlKey: true });
 
       expect(saveCallback).toHaveBeenCalledTimes(1);
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -835,25 +493,13 @@ describe("useShortcut", () => {
       const nextCallback = vi.fn();
       const prevCallback = vi.fn();
       const configs = [
-        {
-          code: "ArrowRight",
-          callback: nextCallback,
-        },
-        {
-          code: "ArrowLeft",
-          callback: prevCallback,
-        },
+        { code: "ArrowRight", callback: nextCallback },
+        { code: "ArrowLeft", callback: prevCallback },
       ];
-
       renderHook(() => useShortcut(configs));
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "ArrowRight" }));
-      });
-
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "ArrowLeft" }));
-      });
+      triggerShortcut({ code: "ArrowRight" });
+      triggerShortcut({ code: "ArrowLeft" });
 
       expect(nextCallback).toHaveBeenCalledTimes(1);
       expect(prevCallback).toHaveBeenCalledTimes(1);
@@ -861,18 +507,10 @@ describe("useShortcut", () => {
 
     test("should handle modal close shortcut (Escape)", () => {
       const closeCallback = vi.fn();
-      const configs = [
-        {
-          code: "Escape",
-          callback: closeCallback,
-        },
-      ];
-
+      const configs = [{ code: "Escape", callback: closeCallback }];
       renderHook(() => useShortcut(configs));
 
-      act(() => {
-        window.dispatchEvent(createKeyboardEvent({ code: "Escape" }));
-      });
+      triggerShortcut({ code: "Escape" });
 
       expect(closeCallback).toHaveBeenCalledTimes(1);
     });
