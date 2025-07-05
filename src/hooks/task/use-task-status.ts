@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { updateTaskStatus } from "@/actions/task/task";
 import { TaskStatus } from "@prisma/client";
 import { toast } from "sonner";
@@ -20,17 +20,18 @@ export const taskStatuses = [
   { label: "固定評価者による評価完了", value: TaskStatus.FIXED_EVALUATED },
   { label: "ポイント付与完了", value: TaskStatus.POINTS_AWARDED },
   { label: "アーカイブ済み", value: TaskStatus.ARCHIVED },
-  { label: "キャンセル済み", value: TaskStatus.AUCTION_CANCELED },
+  { label: "オークションキャンセル", value: TaskStatus.AUCTION_CANCELED },
 ];
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * タスクステータス管理のためのカスタムフック
+ * @param onDataChange - データが変更されたときに呼び出されるコールバック関数
  * @returns タスクステータス管理機能
  */
 export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: (data: T[]) => void) {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * state
@@ -38,7 +39,7 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
   // コンボボックスの開閉状態
   const [openStatus, setOpenStatus] = useState<string | null>(null);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * タスクステータス変更処理
@@ -46,30 +47,35 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
    * @param newStatus - 新しいステータス
    * @param data - 現在のテーブルデータ
    */
-  const handleStatusChange = async (taskId: string, newStatus: TaskStatus, data: T[]) => {
-    try {
-      const result = await updateTaskStatus(taskId, newStatus);
+  const handleStatusChange = useCallback(
+    async (taskId: string, newStatus: TaskStatus, data: T[]): Promise<void> => {
+      try {
+        const result = await updateTaskStatus(taskId, newStatus);
 
-      if (result.success) {
-        if (onDataChange) {
-          // データが変更されたときにコールバックを呼び出す
-          onDataChange(data.map((row) => (row.id === taskId ? { ...row, status: newStatus } : row)));
+        if (result.success) {
+          if (onDataChange) {
+            // データが変更されたときにコールバックを呼び出す
+            onDataChange(data.map((row) => (row.id === taskId ? { ...row, status: newStatus } : row)));
+          }
+          toast.success("ステータスを更新しました");
+        } else if (!result.success && result.message) {
+          toast.error(result.message);
         }
-        toast.success("ステータスを更新しました");
-      } else if (!result.success && result.message) {
-        toast.error(result.message);
+      } catch (error) {
+        console.error(error);
+        toast.error("ステータスの更新に失敗しました");
+      } finally {
+        setOpenStatus(null);
       }
+    },
+    [onDataChange],
+  );
 
-      setOpenStatus(null);
-    } catch (error) {
-      console.error(error);
-      toast.error("ステータスの更新に失敗しました");
-      setOpenStatus(null);
-    }
-  };
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
+  /**
+   * タスクステータス管理機能を返す
+   */
   return {
     // state
     openStatus,

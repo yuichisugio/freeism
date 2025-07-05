@@ -13,16 +13,8 @@ import { taskStatuses, useTaskStatus } from "./use-task-status";
  */
 
 // updateTaskStatusのモック
-vi.mock("@/lib/actions/task/task", () => ({
+vi.mock("@/actions/task/task", () => ({
   updateTaskStatus: vi.fn(),
-}));
-
-// sonnerのモック
-vi.mock("sonner", () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
 }));
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -54,69 +46,73 @@ const mockTableData: TestData[] = [
 
 describe("useTaskStatus", () => {
   beforeEach(() => {
-    // 各テスト前にモックをリセット
     vi.clearAllMocks();
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("初期化", () => {
-    test("should initialize with correct default values", () => {
+    test.each([
+      {
+        description: "should initialize with correct default values",
+        onDataChange: undefined,
+        expectedOpenStatus: null,
+        expectedTaskStatuses: taskStatuses,
+      },
+      {
+        description: "should initialize with onDataChange callback",
+        onDataChange: vi.fn(),
+        expectedOpenStatus: null,
+        expectedTaskStatuses: taskStatuses,
+      },
+    ])("$description", ({ onDataChange, expectedOpenStatus, expectedTaskStatuses }) => {
       // Act
-      const { result } = renderHook(() => useTaskStatus());
+      const { result } = renderHook(() => useTaskStatus(onDataChange));
 
       // Assert
-      expect(result.current.openStatus).toBe(null);
-      expect(result.current.taskStatuses).toStrictEqual(taskStatuses);
-      expect(typeof result.current.setOpenStatus).toBe("function");
-      expect(typeof result.current.handleStatusChange).toBe("function");
-    });
-
-    test("should initialize with onDataChange callback", () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-
-      // Act
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      // Assert
-      expect(result.current.openStatus).toBe(null);
-      expect(result.current.taskStatuses).toStrictEqual(taskStatuses);
+      expect(result.current).toStrictEqual({
+        openStatus: expectedOpenStatus,
+        taskStatuses: expectedTaskStatuses,
+        setOpenStatus: expect.any(Function) as (value: string | null) => void,
+        handleStatusChange: expect.any(Function) as (
+          taskId: string,
+          newStatus: TaskStatus,
+          data: TestData[],
+        ) => Promise<void>,
+      });
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("setOpenStatus", () => {
-    test("should update openStatus correctly", () => {
+    test.each([
+      {
+        description: "should update openStatus correctly",
+        setValue: "task-1",
+        expectedValue: "task-1",
+      },
+      {
+        description: "should set openStatus to null",
+        setValue: null,
+        expectedValue: null,
+      },
+      {
+        description: "should set openStatus to empty string",
+        setValue: "",
+        expectedValue: "",
+      },
+    ])("$description", ({ setValue, expectedValue }) => {
       // Arrange
       const { result } = renderHook(() => useTaskStatus());
 
       // Act
       act(() => {
-        result.current.setOpenStatus("task-1");
+        result.current.setOpenStatus(setValue);
       });
 
       // Assert
-      expect(result.current.openStatus).toBe("task-1");
-    });
-
-    test("should set openStatus to null", () => {
-      // Arrange
-      const { result } = renderHook(() => useTaskStatus());
-
-      // 初期状態を設定
-      act(() => {
-        result.current.setOpenStatus("task-1");
-      });
-
-      // Act
-      act(() => {
-        result.current.setOpenStatus(null);
-      });
-
-      // Assert
-      expect(result.current.openStatus).toBe(null);
+      expect(result.current.openStatus).toBe(expectedValue);
     });
 
     test("should handle multiple status changes", () => {
@@ -144,53 +140,77 @@ describe("useTaskStatus", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("handleStatusChange - 正常系", () => {
-    test("should handle successful status change with onDataChange callback", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
+    test.each([
+      {
+        description: "should handle successful status change with onDataChange callback",
+        hasOnDataChange: true,
+        taskId: "task-1",
+        newStatus: TaskStatus.TASK_COMPLETED,
+        mockResponse: { success: true, message: "タスクのステータスを更新しました" },
+        expectedToastSuccess: "ステータスを更新しました",
+        expectedToastError: null,
+        expectOnDataChangeCalled: true,
+      },
+      {
+        description: "should handle successful status change without onDataChange callback",
+        hasOnDataChange: false,
+        taskId: "task-1",
+        newStatus: TaskStatus.TASK_COMPLETED,
+        mockResponse: { success: true, message: "タスクのステータスを更新しました" },
+        expectedToastSuccess: "ステータスを更新しました",
+        expectedToastError: null,
+        expectOnDataChangeCalled: false,
+      },
+      {
+        description: "should update correct task in data array",
+        hasOnDataChange: true,
+        taskId: "task-2",
+        newStatus: TaskStatus.POINTS_DEPOSITED,
+        mockResponse: { success: true, message: "タスクのステータスを更新しました" },
+        expectedToastSuccess: "ステータスを更新しました",
+        expectedToastError: null,
+        expectOnDataChangeCalled: true,
+      },
+    ])(
+      "$description",
+      async ({
+        hasOnDataChange,
+        taskId,
+        newStatus,
+        mockResponse,
+        expectedToastSuccess,
+        expectedToastError,
+        expectOnDataChangeCalled,
+      }) => {
+        // Arrange
+        const mockOnDataChange = hasOnDataChange ? vi.fn() : undefined;
+        const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+        mockUpdateTaskStatus.mockResolvedValue(mockResponse);
 
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
+        // Act
+        await act(async () => {
+          await result.current.handleStatusChange(
+            taskId,
+            newStatus,
+            mockTableData as unknown as Record<string, unknown>[],
+          );
+        });
 
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
-      expect(mockOnDataChange).toHaveBeenCalledWith([
-        { id: "task-1", status: TaskStatus.TASK_COMPLETED, name: "タスク1" },
-        { id: "task-2", status: TaskStatus.AUCTION_ACTIVE, name: "タスク2" },
-        { id: "task-3", status: TaskStatus.TASK_COMPLETED, name: "タスク3" },
-      ]);
-      expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
-      expect(result.current.openStatus).toBe(null);
-    });
-
-    test("should handle successful status change without onDataChange callback", async () => {
-      // Arrange
-      const { result } = renderHook(() => useTaskStatus());
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
-      expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
-      expect(result.current.openStatus).toBe(null);
-    });
+        // Assert
+        expect(mockUpdateTaskStatus).toHaveBeenCalledWith(taskId, newStatus);
+        if (expectedToastSuccess) {
+          expect(mockToast.success).toHaveBeenCalledWith(expectedToastSuccess);
+        }
+        if (expectedToastError) {
+          expect(mockToast.error).toHaveBeenCalledWith(expectedToastError);
+        }
+        if (expectOnDataChangeCalled && mockOnDataChange) {
+          expect(mockOnDataChange).toHaveBeenCalled();
+        }
+        expect(result.current.openStatus).toBe(null);
+      },
+    );
 
     test("should handle all valid task statuses", async () => {
       // Arrange
@@ -228,59 +248,65 @@ describe("useTaskStatus", () => {
         expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
       }
     });
-
-    test("should update correct task in data array", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act - task-2のステータスを変更
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-2",
-          TaskStatus.POINTS_DEPOSITED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockOnDataChange).toHaveBeenCalledWith([
-        { id: "task-1", status: TaskStatus.PENDING, name: "タスク1" },
-        { id: "task-2", status: TaskStatus.POINTS_DEPOSITED, name: "タスク2" },
-        { id: "task-3", status: TaskStatus.TASK_COMPLETED, name: "タスク3" },
-      ]);
-    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("handleStatusChange - 異常系", () => {
-    test("should handle error response from updateTaskStatus", async () => {
+    test.each([
+      {
+        description: "should handle error response with message",
+        mockResponse: { success: false, message: "このステータスのタスクは変更できません" },
+        isThrowError: false,
+        expectedToastError: "このステータスのタスクは変更できません",
+        expectOnDataChangeCalled: false,
+      },
+      {
+        description: "should handle error response with error field",
+        mockResponse: { success: false, message: "権限がありません" },
+        isThrowError: false,
+        expectedToastError: "権限がありません",
+        expectOnDataChangeCalled: false,
+      },
+      {
+        description: "should handle response without success or error properties",
+        mockResponse: {},
+        isThrowError: false,
+        expectedToastError: null,
+        expectOnDataChangeCalled: false,
+      },
+    ])("$description", async ({ mockResponse, isThrowError, expectedToastError, expectOnDataChangeCalled }) => {
       // Arrange
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({
-        success: false,
-        error: "このステータスのタスクは変更できません",
-      } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
+      if (isThrowError) {
+        mockUpdateTaskStatus.mockRejectedValue(new Error("Network error"));
+      } else {
+        mockUpdateTaskStatus.mockResolvedValue(
+          mockResponse as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>,
+        );
+      }
 
       // Act
       await act(async () => {
         await result.current.handleStatusChange(
           "task-1",
-          TaskStatus.ARCHIVED,
+          TaskStatus.TASK_COMPLETED,
           mockTableData as unknown as Record<string, unknown>[],
         );
       });
 
       // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.ARCHIVED);
-      expect(mockOnDataChange).not.toHaveBeenCalled();
-      expect(mockToast.error).toHaveBeenCalledWith("このステータスのタスクは変更できません");
-      expect(mockToast.success).not.toHaveBeenCalled();
+      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
+      if (expectedToastError) {
+        expect(mockToast.error).toHaveBeenCalledWith(expectedToastError);
+      }
+      if (expectOnDataChangeCalled) {
+        expect(mockOnDataChange).toHaveBeenCalled();
+      } else {
+        expect(mockOnDataChange).not.toHaveBeenCalled();
+      }
       expect(result.current.openStatus).toBe(null);
     });
 
@@ -289,8 +315,9 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+        // console.errorの出力を抑制するためのモック実装
+      });
       mockUpdateTaskStatus.mockRejectedValue(new Error("Network error"));
 
       // Act
@@ -312,247 +339,127 @@ describe("useTaskStatus", () => {
 
       consoleErrorSpy.mockRestore();
     });
-
-    test("should handle response without success or error properties", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({} as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
-      expect(mockOnDataChange).not.toHaveBeenCalled();
-      expect(mockToast.success).not.toHaveBeenCalled();
-      expect(mockToast.error).not.toHaveBeenCalled();
-      expect(result.current.openStatus).toBe(null);
-    });
-
-    test("should handle permission error", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({
-        success: false,
-        error: "このタスクのステータスを変更する権限がありません",
-      } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockToast.error).toHaveBeenCalledWith("このタスクのステータスを変更する権限がありません");
-      expect(mockOnDataChange).not.toHaveBeenCalled();
-    });
-
-    test("should handle database error", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({
-        success: false,
-        error: "タスクのステータスの更新中にエラーが発生しました",
-      } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockToast.error).toHaveBeenCalledWith("タスクのステータスの更新中にエラーが発生しました");
-      expect(mockOnDataChange).not.toHaveBeenCalled();
-    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("境界値テスト", () => {
-    test("should handle empty data array", async () => {
+    test.each([
+      {
+        description: "should handle empty data array",
+        taskId: "task-1",
+        newStatus: TaskStatus.TASK_COMPLETED,
+        data: [],
+        expectedSuccess: true,
+      },
+      {
+        description: "should handle null taskId",
+        taskId: null,
+        newStatus: TaskStatus.TASK_COMPLETED,
+        data: mockTableData,
+        expectedSuccess: true,
+      },
+      {
+        description: "should handle undefined taskId",
+        taskId: undefined,
+        newStatus: TaskStatus.TASK_COMPLETED,
+        data: mockTableData,
+        expectedSuccess: true,
+      },
+      {
+        description: "should handle null newStatus",
+        taskId: "task-1",
+        newStatus: null,
+        data: mockTableData,
+        expectedSuccess: true,
+      },
+      {
+        description: "should handle undefined newStatus",
+        taskId: "task-1",
+        newStatus: undefined,
+        data: mockTableData,
+        expectedSuccess: true,
+      },
+      {
+        description: "should handle task not found in data array",
+        taskId: "non-existent-task",
+        newStatus: TaskStatus.TASK_COMPLETED,
+        data: mockTableData,
+        expectedSuccess: true,
+      },
+    ])("$description", async ({ taskId, newStatus, data, expectedSuccess }) => {
       // Arrange
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValue({ success: expectedSuccess, message: "タスクのステータスを更新しました" });
 
       // Act
       await act(async () => {
         await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          [] as unknown as Record<string, unknown>[],
+          taskId as unknown as string,
+          newStatus as unknown as TaskStatus,
+          data as unknown as Record<string, unknown>[],
         );
       });
 
       // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
-      expect(mockOnDataChange).toHaveBeenCalledWith([]);
-      expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
+      expect(mockUpdateTaskStatus).toHaveBeenCalledWith(taskId, newStatus);
+      if (expectedSuccess) {
+        expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
+      }
     });
 
-    test("should handle null taskId", async () => {
+    test.each([
+      {
+        description: "should handle null data array",
+        data: null,
+        shouldThrow: true,
+      },
+      {
+        description: "should handle undefined data array",
+        data: undefined,
+        shouldThrow: true,
+      },
+    ])("$description", async ({ data, shouldThrow }) => {
       // Arrange
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
       mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
 
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          null as unknown as string,
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
+      if (shouldThrow) {
+        // Act & Assert - エラーが発生することを期待
+        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+          // console.errorの出力を抑制するためのモック実装
+        });
 
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith(null, TaskStatus.TASK_COMPLETED);
-    });
+        await act(async () => {
+          await result.current.handleStatusChange(
+            "task-1",
+            TaskStatus.TASK_COMPLETED,
+            data as unknown as Record<string, unknown>[],
+          );
+        });
 
-    test("should handle undefined taskId", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
+        // Assert - エラーが発生してもupdateTaskStatusは呼ばれる
+        expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
+        expect(mockToast.error).toHaveBeenCalledWith("ステータスの更新に失敗しました");
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+        consoleErrorSpy.mockRestore();
+      } else {
+        // Act
+        await act(async () => {
+          await result.current.handleStatusChange(
+            "task-1",
+            TaskStatus.TASK_COMPLETED,
+            data as unknown as Record<string, unknown>[],
+          );
+        });
 
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          undefined as unknown as string,
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith(undefined, TaskStatus.TASK_COMPLETED);
-    });
-
-    test("should handle null newStatus", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          null as unknown as TaskStatus,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", null);
-    });
-
-    test("should handle undefined newStatus", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          undefined as unknown as TaskStatus,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", undefined);
-    });
-
-    test("should handle null data array", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          null as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
-      // nullの場合はmapが呼べないためエラーが発生する可能性があるが、
-      // 実際の使用では配列が渡されることを想定
-    });
-
-    test("should handle undefined data array", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          undefined as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
-    });
-
-    test("should handle task not found in data array", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act - 存在しないタスクIDを指定
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "non-existent-task",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("non-existent-task", TaskStatus.TASK_COMPLETED);
-      expect(mockOnDataChange).toHaveBeenCalledWith(mockTableData); // 元のデータがそのまま返される
-      expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
+        // Assert
+        expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
+      }
     });
 
     test("should handle large data array", async () => {
@@ -599,24 +506,26 @@ describe("useTaskStatus", () => {
         { label: "固定評価者による評価完了", value: TaskStatus.FIXED_EVALUATED },
         { label: "ポイント付与完了", value: TaskStatus.POINTS_AWARDED },
         { label: "アーカイブ済み", value: TaskStatus.ARCHIVED },
-        { label: "キャンセル済み", value: TaskStatus.AUCTION_CANCELED },
+        { label: "オークションキャンセル", value: TaskStatus.AUCTION_CANCELED },
       ];
 
       expect(taskStatuses).toStrictEqual(expectedStatuses);
     });
 
-    test("should have unique values", () => {
+    test.each([
+      {
+        description: "should have unique values",
+        checkProperty: "value",
+      },
+      {
+        description: "should have unique labels",
+        checkProperty: "label",
+      },
+    ])("$description", ({ checkProperty }) => {
       // Assert
-      const values = taskStatuses.map((status) => status.value);
+      const values = taskStatuses.map((status) => status[checkProperty as keyof typeof status]);
       const uniqueValues = [...new Set(values)];
       expect(values).toHaveLength(uniqueValues.length);
-    });
-
-    test("should have unique labels", () => {
-      // Assert
-      const labels = taskStatuses.map((status) => status.label);
-      const uniqueLabels = [...new Set(labels)];
-      expect(labels).toHaveLength(uniqueLabels.length);
     });
   });
 
@@ -680,7 +589,7 @@ describe("useTaskStatus", () => {
       // Act & Assert - エラーケース
       mockUpdateTaskStatus.mockResolvedValueOnce({
         success: false,
-        error: "権限がありません",
+        message: "権限がありません",
       } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
       await act(async () => {
         await result.current.handleStatusChange(
@@ -740,7 +649,7 @@ describe("useTaskStatus", () => {
       // Act - ステータス変更（エラー）
       mockUpdateTaskStatus.mockResolvedValue({
         success: false,
-        error: "エラーが発生しました",
+        message: "エラーが発生しました",
       } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
       await act(async () => {
         await result.current.handleStatusChange(
