@@ -68,7 +68,7 @@ export function ShareTableFilter({ filter, fullScreenProps }: ShareTableFilterPr
   useShortcut([
     {
       code: "KeyF",
-      alt: true,
+      altOrOption: true,
       callback: () => toggleFullScreen(),
       preventDefault: true,
     },

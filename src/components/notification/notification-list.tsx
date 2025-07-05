@@ -82,7 +82,7 @@ const FilterTabs = memo(function FilterTabs({
   useShortcut([
     {
       code: "ArrowLeft",
-      alt: true,
+      altOrOption: true,
       preventDefault: true,
       callback: () => {
         const currentIndex = filters.indexOf(activeFilter);
@@ -92,7 +92,7 @@ const FilterTabs = memo(function FilterTabs({
     },
     {
       code: "ArrowRight",
-      alt: true,
+      altOrOption: true,
       callback: () => {
         const currentIndex = filters.indexOf(activeFilter);
         const nextIndex = (currentIndex + 1) % filters.length; // 次のフィルターへ（配列の末尾に来たら先頭へ）

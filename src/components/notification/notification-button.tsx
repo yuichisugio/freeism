@@ -38,7 +38,7 @@ export const NotificationButton = memo(function NotificationButton() {
   useShortcut([
     {
       code: "KeyN",
-      alt: true,
+      altOrOption: true,
       callback: () => setIsOpen(true),
       preventDefault: true,
     },

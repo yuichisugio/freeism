@@ -11,11 +11,11 @@ export type ShortcutConfig = {
   // 押されるべきキー（例: 's', 'Enter', 'ArrowUp'など）
   code: string;
   // Ctrlキー（Windows/Linux）またはCommandキー（Mac）が押されている必要があるか
-  ctrlOrMeta?: boolean;
+  ctrlOrCommand?: boolean;
   // Shiftキーが押されている必要があるか
   shift?: boolean;
   // Altキー（Optionキー）が押されている必要があるか
-  alt?: boolean;
+  altOrOption?: boolean;
   // ショートカットが発動したときに実行されるコールバック関数
   callback: () => void;
   // trueの場合、イベントのデフォルトの動作（例: Ctrl+Sでのブラウザの保存ダイアログ表示）を防ぎます
@@ -65,7 +65,9 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
         // CtrlキーまたはMetaキーの条件が一致するか確認
         // config.ctrlOrMetaがtrueの場合、event.ctrlKeyまたはevent.metaKeyのどちらかがtrueである必要がある
         // config.ctrlOrMetaがfalseまたは未定義の場合、event.ctrlKeyとevent.metaKeyの両方がfalseである必要がある
-        const ctrlOrMetaMatch = config.ctrlOrMeta ? event.ctrlKey || event.metaKey : !event.ctrlKey && !event.metaKey;
+        const ctrlOrMetaMatch = config.ctrlOrCommand
+          ? event.ctrlKey || event.metaKey
+          : !event.ctrlKey && !event.metaKey;
 
         // Shiftキーの条件が一致するか確認
         // config.shiftがtrueの場合、event.shiftKeyがtrueである必要がある
@@ -75,7 +77,7 @@ export const useShortcut = (configs: ShortcutConfig[]) => {
         // Altキーの条件が一致するか確認
         // config.altがtrueの場合、event.altKeyがtrueである必要がある
         // config.altがfalseまたは未定義の場合、event.altKeyがfalseである必要がある
-        const altMatch = config.alt ? event.altKey : !event.altKey;
+        const altMatch = config.altOrOption ? event.altKey : !event.altKey;
 
         // すべての条件（キー、Ctrl/Meta、Shift、Alt）が一致した場合
         if (codeMatch && ctrlOrMetaMatch && shiftMatch && altMatch) {
