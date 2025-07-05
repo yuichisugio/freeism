@@ -69,12 +69,10 @@ export const AuctionPagination = memo(function AuctionPagination({
    * カスタムフックからページネーションロジックを取得
    * @param currentPage 現在のページ
    * @param totalPages 総ページ数
-   * @param totalCount 総件数
    */
   const { pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
     currentPage: listingsConditions.page,
     totalPages: totalPages,
-    totalCount: totalAuctionsCount,
     maxPageToShow: AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE,
   });
 

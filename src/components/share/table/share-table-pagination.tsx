@@ -55,7 +55,6 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
     totalPages: calculatedTotalPages,
     currentPage: currentPage ?? 1,
     maxPageToShow: 6,
-    totalCount: totalRowCount ?? 0,
   });
   // 表示アイテム範囲の計算
   const startItem = totalRowCount > 0 ? (currentPage - 1) * itemPerPage + 1 : 0;
