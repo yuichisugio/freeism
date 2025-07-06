@@ -203,7 +203,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({
         editTask: false,
         deleteTask: {
           canDelete: (row: GroupDetailTask) => canDeleteTask(row),
-          onDelete: async (rowId: string) => await handleDeleteTask(rowId),
+          onDelete: async (rowId: string) => handleDeleteTask(rowId),
         },
         joinGroupModal: false,
         leaveGroupModal: false,

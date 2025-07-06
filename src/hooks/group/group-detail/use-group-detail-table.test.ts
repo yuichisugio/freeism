@@ -392,7 +392,7 @@ describe("useGroupDetailTable", () => {
       // Act
       await waitFor(async () => {
         await act(async () => {
-          await result.current.handleDeleteTask("test-task-id");
+          result.current.handleDeleteTask("test-task-id");
           // onSuccessコールバックを手動で呼び出す
           if (onSuccessCallback) {
             await onSuccessCallback();
@@ -616,7 +616,7 @@ describe("useGroupDetailTable", () => {
       // Act
       await waitFor(async () => {
         await act(async () => {
-          await result.current.handleDeleteTask("test-task-id");
+          result.current.handleDeleteTask("test-task-id");
           // onErrorコールバックを手動で呼び出す
           if (onErrorCallback) {
             onErrorCallback(new Error("削除エラー"));
@@ -765,7 +765,7 @@ describe("useGroupDetailTable", () => {
       // Act
       await waitFor(async () => {
         await act(async () => {
-          await result.current.handleDeleteTask(nullTaskId);
+          result.current.handleDeleteTask(nullTaskId);
         });
       });
 
@@ -795,7 +795,7 @@ describe("useGroupDetailTable", () => {
       // Act
       await waitFor(async () => {
         await act(async () => {
-          await result.current.handleDeleteTask(undefinedTaskId);
+          result.current.handleDeleteTask(undefinedTaskId);
         });
       });
 

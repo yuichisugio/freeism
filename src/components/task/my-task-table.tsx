@@ -206,7 +206,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         editTask: false,
         deleteTask: {
           canDelete: (row: MyTaskTable) => canDeleteTask(row),
-          onDelete: async (rowId: string) => await handleDeleteTask(rowId),
+          onDelete: async (rowId: string) => handleDeleteTask(rowId),
         },
         joinGroupModal: false,
         leaveGroupModal: false,

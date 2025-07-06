@@ -46,7 +46,7 @@ export const BidForm = memo(function BidForm({
       <form
         onSubmit={async (event) => {
           event.preventDefault();
-          await onSubmit({ auctionId, amount: bidAmount, isAutoBid: false });
+          onSubmit({ auctionId, amount: bidAmount, isAutoBid: false });
         }}
       >
         <CardContent className="pt-4">
