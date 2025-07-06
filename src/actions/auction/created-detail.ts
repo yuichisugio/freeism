@@ -5,6 +5,7 @@ import { revalidateTag } from "next/cache";
 import { checkIsPermission } from "@/actions/permission/permission";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import { TaskStatus } from "@prisma/client";
 
 import { getCachedAuctionHistoryCreatedDetail } from "./cache/cache-auction-history";
@@ -16,7 +17,7 @@ import { getCachedAuctionHistoryCreatedDetail } from "./cache/cache-auction-hist
  * @param auctionId 出品商品のID
  * @returns 出品商品の詳細
  */
-export async function getAuctionHistoryCreatedDetail(auctionId: string): Promise<AuctionHistoryCreatedDetail> {
+export async function getAuctionHistoryCreatedDetail(auctionId: string): PromiseResult<AuctionHistoryCreatedDetail> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -39,7 +40,11 @@ export async function getAuctionHistoryCreatedDetail(auctionId: string): Promise
  * @param taskId タスクID
  * @param deliveryMethod 提供方法
  */
-export async function updateDeliveryMethod(taskId: string, deliveryMethod: string, userId: string) {
+export async function updateDeliveryMethod(
+  taskId: string,
+  deliveryMethod: string,
+  userId: string,
+): PromiseResult<null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -55,7 +60,11 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
    * 提供方法が入力されていない場合
    */
   if (!deliveryMethod.trim()) {
-    throw new Error("提供方法を入力してください");
+    return {
+      success: false,
+      message: "タスクの提供方法を入力してください",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -66,7 +75,11 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
   const { success, message: error } = await checkIsPermission(userId, undefined, taskId, true);
 
   if (!success) {
-    throw new Error(error ?? "このタスクを編集する権限がありません");
+    return {
+      success: false,
+      message: error ?? "このタスクを編集する権限がありません",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -74,7 +87,7 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
   /**
    * 提供方法を更新
    */
-  const updatedTask = await prisma.task.update({
+  await prisma.task.update({
     where: {
       id: taskId,
     },
@@ -95,7 +108,11 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
   /**
    * 提供方法を更新
    */
-  return updatedTask;
+  return {
+    success: true,
+    message: "提供方法を更新しました",
+    data: null,
+  };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -104,20 +121,14 @@ export async function updateDeliveryMethod(taskId: string, deliveryMethod: strin
  * タスク完了処理アクション
  * @param taskId タスクID
  */
-export async function completeTaskDelivery(
-  taskId: string,
-  userId: string,
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
+export async function completeTaskDelivery(taskId: string, userId: string): PromiseResult<null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * タスクID、ユーザーIDがない場合
    */
   if (!taskId || !userId) {
-    throw new Error("タスクID、ユーザーIDが必要です");
+    throw new Error("タスク完了処理: タスクID、ユーザーIDが必要です");
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -127,7 +138,11 @@ export async function completeTaskDelivery(
    */
   const { success, message: error } = await checkIsPermission(userId, undefined, taskId, true);
   if (!success) {
-    throw new Error(error ?? "このタスクを編集する権限がありません");
+    return {
+      success: false,
+      message: error ?? "タスク完了処理: このタスクを編集する権限がありません",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -153,7 +168,12 @@ export async function completeTaskDelivery(
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * タスク完了処理に成功しました
+   */
   return {
     success: true,
+    message: "タスク完了処理に成功しました",
+    data: null,
   };
 }

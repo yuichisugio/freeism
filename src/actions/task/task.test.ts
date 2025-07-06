@@ -100,7 +100,11 @@ describe("task.ts", () => {
         // Arrange
         const taskData = { id: testTask.id, groupId: testGroup.id };
 
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
         prismaMock.task.findUnique.mockResolvedValue(
           taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
         );
@@ -125,7 +129,7 @@ describe("task.ts", () => {
     describe("異常系", () => {
       test("should return error when user has no permission", async () => {
         // Arrange
-        mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
+        mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
         // Act
         const result = await deleteTask(testTask.id, testUser.id);
@@ -142,7 +146,11 @@ describe("task.ts", () => {
 
       test("should return error when task not found", async () => {
         // Arrange
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
         prismaMock.task.findUnique.mockResolvedValue(null);
 
         // Act
@@ -158,7 +166,11 @@ describe("task.ts", () => {
 
       test("should handle database error gracefully", async () => {
         // Arrange
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
         prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));
 
         // Act
@@ -201,7 +213,11 @@ describe("task.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue(
           taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
         );
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
         prismaMock.task.update.mockResolvedValue(testTask);
 
         // Act
@@ -242,7 +258,11 @@ describe("task.ts", () => {
             prismaMock.task.findUnique.mockResolvedValue(
               taskData as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
             );
-            mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
+            mockCheckIsPermission.mockResolvedValue({
+              success: false,
+              message: "Permission check failed",
+              data: false,
+            });
           },
           errorMessage: "このタスクのステータスを変更する権限がありません",
         },

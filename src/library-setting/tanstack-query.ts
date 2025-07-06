@@ -1,9 +1,11 @@
 import type { AuctionCreatedTabFilter, AuctionListingsConditions, FilterCondition } from "@/types/auction-types";
+import type { Result } from "@/types/general-types";
 import type { AllUserGroupTable, MyGroupTable, MyTaskTableConditions, TableConditions } from "@/types/group-types";
 import type { ReviewPosition } from "@prisma/client";
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { type PersistedClient, type Persister } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
+import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -164,9 +166,70 @@ export const queryCacheKeys = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * Tanstack QueryのuseQueryエラーハンドリング
+ * useQueryでエラーが発生した際に、デフォの挙動を指定する
+ * useQueryは、それぞれにonErrorを指定できず、ここで指定することで、複数箇所で同じキャッシュキーのエラー処理のトースト重複を避けられるらしい
+ */
+const appQueryCache = new QueryCache({
+  onError: (error: Error) => {
+    console.error(error);
+    toast.error(error.message);
+  },
+  onSuccess: (data: unknown) => {
+    // dataがResult型であることを確認してから処理
+    if (data && typeof data === "object" && "success" in data && "message" in data) {
+      const result = data as Result<unknown>;
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    }
+  },
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * Tanstack QueryのuseMutationエラーハンドリング
+ */
+const appMutationCache = new MutationCache({
+  onError: (error: Error) => {
+    // 想定外のエラーを出力
+    console.error(error);
+    toast.error(error.message);
+  },
+  onSuccess: (data: unknown) => {
+    // dataがResult型であることを確認してから処理
+    if (data && typeof data === "object" && "success" in data && "message" in data) {
+      const result = data as Result<unknown>;
+      // 成功時はトーストを表示
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        // バリデーションエラーなどの想定内のエラーを通知
+        toast.error(result.message);
+      }
+    }
+  },
+  onSettled: (_data, _error, _variables, _context, mutation) => {
+    // metaタグに渡したキャッシュキーをinvalidateする
+    if (mutation?.meta?.invalidateCacheKeys && Array.isArray(mutation.meta.invalidateCacheKeys)) {
+      mutation.meta.invalidateCacheKeys.forEach((key: { queryKey: readonly unknown[]; exact: boolean }) => {
+        void queryClient.invalidateQueries(key);
+      });
+    }
+  },
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * Tanstack Queryの設定
  */
 export const queryClient = new QueryClient({
+  queryCache: appQueryCache,
+  mutationCache: appMutationCache,
   defaultOptions: {
     queries: {
       gcTime: Infinity,
@@ -175,11 +238,12 @@ export const queryClient = new QueryClient({
       refetchOnMount: true,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
-      retry: 3,
-      retryDelay: 1000,
-      retryOnMount: true,
+      retry: false,
+      retryDelay: 0,
+      retryOnMount: false,
       refetchInterval: false,
       refetchIntervalInBackground: false,
+      throwOnError: true,
     },
   },
 });

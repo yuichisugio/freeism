@@ -112,14 +112,14 @@ function setupCommonMocks() {
  * createGroup成功時のモック設定
  */
 function setupCreateGroupSuccess() {
-  mockCreateGroup.mockResolvedValue({ success: true });
+  mockCreateGroup.mockResolvedValue({ success: true, message: "グループを作成しました", data: null });
 }
 
 /**
  * createGroup失敗時のモック設定
  */
 function setupCreateGroupError(error: string) {
-  mockCreateGroup.mockResolvedValue({ success: false, error });
+  mockCreateGroup.mockResolvedValue({ success: false, message: error, data: null });
 }
 
 /**

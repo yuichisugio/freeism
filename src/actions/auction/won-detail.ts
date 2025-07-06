@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import { TaskStatus } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -9,10 +10,7 @@ import { TaskStatus } from "@prisma/client";
  * タスク完了処理アクション
  * @param taskId タスクID
  */
-export async function completeTaskDelivery(taskId: string): Promise<{
-  success: boolean;
-  error: string | null;
-}> {
+export async function completeTaskDelivery(taskId: string): PromiseResult<null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -37,7 +35,8 @@ export async function completeTaskDelivery(taskId: string): Promise<{
 
     return {
       success: true,
-      error: null, // エラーがない場合はnullを返す
+      message: "タスク完了処理に成功しました",
+      data: null,
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -45,7 +44,8 @@ export async function completeTaskDelivery(taskId: string): Promise<{
     console.error("completeTaskDelivery: タスク完了処理アクションに失敗しました", error);
     return {
       success: false,
-      error: `completeTaskDelivery: タスク完了処理アクションに失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+      message: `completeTaskDelivery: タスク完了処理アクションに失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+      data: null,
     };
   }
 }

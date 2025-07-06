@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { checkGroupMembership } from "@/actions/permission/permission";
 import { prisma } from "@/library-setting/prisma";
 import { sortDirectionArray } from "@/types/auction-types";
+import { type PromiseResult } from "@/types/general-types";
+import { type MyGroupTable } from "@/types/group-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -28,7 +30,7 @@ export type GetUserJoinGroupProps = {
  * .lengthではLIMITの件数しか返ってこないのでCountとして使えない
  * @returns ユーザーの参加しているグループ一覧
  */
-export async function getUserJoinGroup(props: GetUserJoinGroupProps) {
+export async function getUserJoinGroup(props: GetUserJoinGroupProps): PromiseResult<MyGroupTable[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -146,7 +148,7 @@ export async function getUserJoinGroup(props: GetUserJoinGroupProps) {
   /**
    * グループ一覧を整える
    */
-  const returnUserJoinGroupList = userJoinGroup.map((group) => ({
+  const returnUserJoinGroupList: MyGroupTable[] = userJoinGroup.map((group) => ({
     id: group.group.id,
     groupName: group.group.name,
     groupGoal: group.group.goal,
@@ -162,16 +164,22 @@ export async function getUserJoinGroup(props: GetUserJoinGroupProps) {
   /**
    * グループ一覧を返す
    */
-  return returnUserJoinGroupList;
+  return {
+    success: true,
+    message: "ユーザーの参加しているグループ一覧を取得しました",
+    data: returnUserJoinGroupList,
+  };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * ユーザーの参加しているグループ一覧の総数を取得する関数
+ * @param searchQuery - 検索クエリ
+ * @param userId - ユーザーID
  * @returns ユーザーの参加しているグループ一覧の総数
  */
-export async function getUserJoinGroupCount(searchQuery: string | null, userId: string) {
+export async function getUserJoinGroupCount(searchQuery: string | null, userId: string): PromiseResult<number> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -196,7 +204,9 @@ export async function getUserJoinGroupCount(searchQuery: string | null, userId: 
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // 検索クエリがある場合
+  /**
+   * 検索クエリがある場合
+   */
   if (searchQuery && searchQuery.trim() !== "") {
     where = {
       ...where,
@@ -220,7 +230,11 @@ export async function getUserJoinGroupCount(searchQuery: string | null, userId: 
   /**
    * ユーザーの参加しているグループ一覧の総数を返す
    */
-  return userJoinGroupTotalCount;
+  return {
+    success: true,
+    message: "ユーザーの参加しているグループ一覧の総数を取得しました",
+    data: userJoinGroupTotalCount,
+  };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -230,65 +244,55 @@ export async function getUserJoinGroupCount(searchQuery: string | null, userId: 
  * @param groupId - 脱退するグループのID
  * @returns 処理結果を含むオブジェクト
  */
-export async function leaveGroup(groupId: string, userId: string) {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export async function leaveGroup(groupId: string, userId: string): PromiseResult<null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * パラメータの検証
-     */
-    if (!groupId) {
-      throw new Error("グループIDがありません");
-    }
+  /**
+   * パラメータの検証
+   */
+  if (!groupId) {
+    throw new Error("グループIDがありません");
+  }
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * メンバーシップの存在確認
-     */
-    const membership = await checkGroupMembership(userId, groupId);
-    if (!membership) {
-      throw new Error("グループに参加していません");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループから脱退
-     */
-    await prisma.groupMembership.delete({
-      where: {
-        id: membership.id,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * パスを再検証
-     */
-    revalidatePath("/dashboard/group-list");
-    revalidatePath("/dashboard/my-groups");
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 処理結果を返す
-     */
-    return { success: true, message: "グループから脱退しました" };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * エラー処理
-     */
-  } catch (error) {
-    console.error("[LEAVE_GROUP]", error);
+  /**
+   * メンバーシップの存在確認
+   */
+  const membership = await checkGroupMembership(userId, groupId);
+  if (!membership.success) {
     return {
       success: false,
-      message: `グループから脱退中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+      message: membership.message,
+      data: null,
     };
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループから脱退
+   */
+  await prisma.groupMembership.delete({
+    where: {
+      id: membership.data?.id,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パスを再検証
+   */
+  revalidatePath("/dashboard/group-list");
+  revalidatePath("/dashboard/my-groups");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 処理結果を返す
+   */
+  return { success: true, message: "グループから脱退しました", data: null };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReviewSearchTab } from "@/lib/constants";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { RatingStar } from "@/components/auction/common/rating-star";
 import { Error } from "@/components/share/share-error";
 import { Badge } from "@/components/ui/badge";
@@ -398,17 +398,20 @@ export const EditableReviewCard = memo(function EditableReviewCard({
     }
   }, [review.isEditing, review.rating, review.comment]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onUpdateReview(review.id, editRating, editComment.trim() || null);
-  };
+  }, [review.id, editRating, editComment, onUpdateReview]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setEditRating(review.rating);
     setEditComment(review.comment ?? "");
     onToggleEdit(review.id);
-  };
+  }, [review.id, review.rating, review.comment, onToggleEdit]);
 
-  const isUpdated = review.updatedAt.getTime() !== review.createdAt.getTime();
+  const isUpdated = useMemo(
+    () => review.updatedAt.getTime() !== review.createdAt.getTime(),
+    [review.updatedAt, review.createdAt],
+  );
 
   return (
     <Card className="transition-shadow hover:shadow-md">

@@ -88,6 +88,7 @@ function createTestMyTaskTable(overrides: Partial<MyTaskTable> = {}): MyTaskTabl
     groupName: "テストグループ",
     auctionId: "auction-1",
     group: { id: "group-1", name: "テストグループ" },
+    isGroupOwner: false,
     ...overrides,
   };
 }

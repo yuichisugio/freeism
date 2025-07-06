@@ -16,7 +16,7 @@ import {
 } from "@/actions/review-search/review-search";
 import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -25,13 +25,6 @@ import { useQueryState } from "nuqs";
  * レビューデータとその操作を管理するカスタムフック
  */
 export function useReviewSearch() {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * クエリクライアント
-   */
-  const queryClient = useQueryClient();
-
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -184,7 +177,7 @@ export function useReviewSearch() {
   /**
    * レビュー更新のミューテーション
    */
-  const { mutateAsync: updateReviewMutation, isPending } = useMutation({
+  const { mutate: updateReviewMutate, isPending } = useMutation({
     mutationFn: ({ reviewId, rating, comment }: { reviewId: string; rating: number; comment: string | null }) =>
       updateReview(reviewId, rating, comment, searchParams),
     onSuccess: (_updatedReview, variables) => {
@@ -194,16 +187,23 @@ export function useReviewSearch() {
         newSet.delete(variables.reviewId);
         return newSet;
       });
-      // 関連するキャッシュを無効化（他のタブのデータも更新）
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.review.all(),
-        exact: false,
-      });
     },
-    onError: (error) => {
-      console.error("Failed to update review:", error);
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.review.all(), exact: false }],
     },
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * レビュー更新のハンドラー関数
+   */
+  const handleUpdateReview = useCallback(
+    (reviewId: string, rating: number, comment: string | null) => {
+      updateReviewMutate({ reviewId, rating, comment });
+    },
+    [updateReviewMutate],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -312,22 +312,6 @@ export function useReviewSearch() {
       });
     },
     [setEditingReviews],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * レビューを更新する関数
-   */
-  const handleUpdateReview = useCallback(
-    async (reviewId: string, rating: number, comment: string | null) => {
-      try {
-        await updateReviewMutation({ reviewId, rating, comment });
-      } catch (error) {
-        console.error("Failed to update review:", error);
-      }
-    },
-    [updateReviewMutation],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

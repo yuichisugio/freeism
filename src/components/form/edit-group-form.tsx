@@ -9,6 +9,7 @@ import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { createGroupSchema } from "@/library-setting/zod-schema";
+import { type PromiseResult } from "@/types/general-types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -62,11 +63,13 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
   /**
    * グループオーナー権限の取得
    */
-  const { data: isGroupOwner = false } = useQuery({
+  const { data: isGroupOwner } = useQuery({
     queryKey: queryCacheKeys.permission.groupOwner(group.id, userId ?? ""),
-    queryFn: async () => await checkIsPermission(userId ?? "", group.id),
+    placeholderData: { success: false, data: false, message: "データが読み込まれていません" },
+    queryFn: async (): PromiseResult<boolean> => await checkIsPermission(userId ?? "", group.id),
     enabled: !!userId && !!group.id,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -112,10 +115,10 @@ export const EditGroupForm = memo(function EditGroupForm({ group, onCloseAction 
           toast.success("グループ情報を更新しました");
           if (onCloseAction) onCloseAction(); // ダイアログを閉じる
           router.refresh(); // 画面を更新
-        } else if (result.error) {
-          toast.error(result.error);
-          console.error(result.error);
-          form.setError("root", { message: result.error });
+        } else if (result.message) {
+          toast.error(result.message);
+          console.error(result.message);
+          form.setError("root", { message: result.message });
         }
       } catch (error) {
         console.error(error);

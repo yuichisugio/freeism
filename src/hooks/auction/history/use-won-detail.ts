@@ -6,10 +6,9 @@ import { useRouter } from "next/navigation";
 import { getAuctionWonDetail } from "@/actions/auction/auction-won-detail";
 import { completeTaskDelivery } from "@/actions/auction/won-detail";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
-import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -51,13 +50,6 @@ export function useWonDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * TanStack Query のクエリクライアントインスタンス。キャッシュの無効化などに使用します。
-   */
-  const queryClient = useQueryClient();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * クエリ有効化の条件
    */
   const auctionQueryEnabled = useMemo(() => {
@@ -77,11 +69,7 @@ export function useWonDetail(auctionId: string) {
   } = useQuery<GetAuctionWonDetailReturn["auctionWonDetail"], Error>({
     queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId),
     queryFn: async () => {
-      const result = await getAuctionWonDetail(auctionId, userId);
-      if (!result.success) {
-        throw new Error(result.message);
-      }
-      return result.auctionWonDetail;
+      return (await getAuctionWonDetail(auctionId, userId)).auctionWonDetail;
     },
     enabled: auctionQueryEnabled,
   });
@@ -100,13 +88,10 @@ export function useWonDetail(auctionId: string) {
       await completeTaskDelivery(auction.taskId);
     },
     onSuccess: async () => {
-      toast.success("商品の受け取りを完了しました");
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId) });
       router.refresh();
     },
-    onError: (error) => {
-      console.error("完了処理に失敗しました", error);
-      toast.error(error.message || "完了処理に失敗しました");
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId), exact: true }],
     },
   });
 

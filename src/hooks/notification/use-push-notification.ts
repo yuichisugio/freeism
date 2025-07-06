@@ -751,8 +751,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           throw new Error("プッシュ通知の購読に失敗しました。通知が許可されていないか、ブラウザが対応していません。");
         }
         // 購読成功、DBを更新
-        const result = await updateUserSettingToggle({ userId, isEnabled: true, column: "isPushEnabled" });
-        return result;
+        return await updateUserSettingToggle({ userId, isEnabled: true, column: "isPushEnabled" });
       } else {
         // トグルをOFFにする場合
         if (subscriptionState) {
@@ -760,8 +759,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           await unsubscribe();
         }
         // 購読解除後 (または元々未購読)、DBを更新
-        const result = await updateUserSettingToggle({ userId, isEnabled: false, column: "isPushEnabled" });
-        return result;
+        return await updateUserSettingToggle({ userId, isEnabled: false, column: "isPushEnabled" });
       }
     },
     onMutate: async (newPushEnabledState: boolean) => {
@@ -779,14 +777,7 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       // contextとして以前の値を返す
       return { previousIsEnabled };
     },
-    onSuccess: () => {
-      toast.success("プッシュ通知設定を更新しました");
-      // isEnabled は onMutate で更新済み。
-      // onSettled で invalidateQueries を呼び出し、サーバーの最新状態でUIが最終同期される。
-      // 必要であれば、ここで syncEnabledStateWithBrowser() を呼び出し、ブラウザ状態を即時反映も可能。
-    },
-    onError: (error: Error, newPushEnabledState, context) => {
-      toast.error(error.message || "プッシュ通知設定の更新に失敗しました。");
+    onError: (_error: Error, newPushEnabledState, context) => {
       // オプティミスティックアップデートをロールバック
       if (context?.previousIsEnabled !== undefined) {
         dispatch({ type: "SET_IS_ENABLED", payload: context.previousIsEnabled });
@@ -797,13 +788,8 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
       // エラー後もブラウザの最新状態にUIを同期
       syncEnabledStateWithBrowser();
     },
-    onSettled: async () => {
-      // 成功・失敗に関わらず、サーバーの最新の状態で関連クエリを無効化して再フェッチ
-      if (userId) {
-        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
-      }
-      // 再フェッチ後、新しい initialIsPushEnabled が渡され、useEffect を通じて isEnabled が更新され、
-      // syncEnabledStateWithBrowser によりブラウザの実際の状態と最終同期される。
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId ?? ""), exact: true }],
     },
   });
 

@@ -68,7 +68,6 @@ mockUseQuery.mockReturnValue({
 
 mockUseMutation.mockReturnValue({
   mutate: vi.fn(),
-  mutateAsync: vi.fn(),
   isPending: false,
   isLoading: false,
   isError: false,

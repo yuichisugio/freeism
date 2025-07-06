@@ -64,16 +64,16 @@ export const CreateGroupForm = memo(function CreateGroupForm(): JSX.Element {
         if (result.success) {
           toast.success("グループを作成しました");
           router.push("/dashboard/group-list");
-        } else if (result.error) {
+        } else if (result.message) {
           // 重複エラーの場合はフォームにエラーを表示
-          if (result.error === "このグループ名は既に使用されています") {
+          if (result.message === "このグループ名は既に使用されています") {
             form.setError("name", {
-              message: result.error,
+              message: result.message,
             });
           } else {
-            toast.error(result.error);
-            console.error(result.error);
-            form.setError("root", { message: result.error });
+            toast.error(result.message);
+            console.error(result.message);
+            form.setError("root", { message: result.message });
           }
         }
       } catch (error) {

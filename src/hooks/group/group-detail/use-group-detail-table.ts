@@ -42,7 +42,7 @@ type UseGroupDetailTableReturn = {
   isTaskEditModalOpen: boolean;
 
   // functions
-  handleDeleteTask: (taskId: string) => Promise<void>;
+  handleDeleteTask: (taskId: string) => void;
   canDeleteTask: (task: GroupDetailTask) => boolean;
   canEditTask: (task: GroupDetailTask) => boolean;
   handleTaskEdited: () => void;
@@ -161,26 +161,26 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
       itemPerPage,
     }),
     queryFn: async (): Promise<TasksQueryResult> => {
-      const {
-        page,
-        sort,
-        searchQuery,
-        contributionType: contributionTypeFilter,
-        status: statusFilter,
-        itemPerPage,
-      } = tableConditions;
       return await getGroupTaskAndCount({
-        groupId,
-        page,
-        sortField: (sort?.field as string) ?? "createdAt",
-        sortDirection: sort?.direction ?? "desc",
-        searchQuery: searchQuery ?? "",
-        contributionTypeFilter: contributionTypeFilter ?? "ALL",
-        statusFilter: statusFilter ?? "ALL",
-        itemPerPage,
+        groupId: groupId,
+        page: tableConditions.page,
+        sortField: tableConditions.sort?.field ?? "createdAt",
+        sortDirection: tableConditions.sort?.direction ?? "desc",
+        searchQuery: tableConditions.searchQuery ?? "",
+        contributionTypeFilter: tableConditions.contributionType ?? "ALL",
+        statusFilter: tableConditions.status ?? "ALL",
+        itemPerPage: tableConditions.itemPerPage,
       });
     },
-    enabled: !!groupId,
+    enabled:
+      !!groupId &&
+      !!tableConditions.page &&
+      !!tableConditions.sort?.field &&
+      !!tableConditions.sort?.direction &&
+      !!tableConditions.searchQuery &&
+      !!tableConditions.contributionType &&
+      !!tableConditions.status &&
+      !!tableConditions.itemPerPage,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 30,
@@ -247,36 +247,15 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
   /**
    * タスク削除処理
    */
-  const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
+  const { mutate: deleteTaskMutate, isPending: isDeletingTask } = useMutation({
     mutationFn: (taskId: string) => deleteTask(taskId, userId),
-    onSuccess: async () => {
-      toast.success("タスクを削除しました");
-      // 条件関係なく、キャッシュを無効化する
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false });
+    onSuccess: () => {
       router.refresh();
     },
-    onError: (error) => {
-      console.error("タスク削除エラー:", error);
-      toast.error("タスクの削除中にエラーが発生しました");
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false }],
     },
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク削除処理
-   * @param taskId {string} タスクID
-   */
-  const handleDeleteTask = useCallback(
-    async (taskId: string): Promise<void> => {
-      try {
-        await deleteTaskMutateAsync(taskId);
-      } catch (error) {
-        console.error("handleDeleteTask でエラーハンドリング:", error);
-      }
-    },
-    [deleteTaskMutateAsync],
-  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -425,7 +404,7 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
     isTaskEditModalOpen,
 
     // functions
-    handleDeleteTask,
+    handleDeleteTask: deleteTaskMutate,
     canDeleteTask,
     canEditTask,
     handleTaskEdited,

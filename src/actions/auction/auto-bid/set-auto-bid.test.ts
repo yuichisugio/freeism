@@ -162,7 +162,7 @@ describe("setAutoBid", () => {
       mockExecuteAutoBid.mockResolvedValue({
         success: true,
         message: "自動入札が完了しました",
-        autoBid: {
+        data: {
           id: mockAutoBid.id,
           maxBidAmount: mockAutoBid.maxBidAmount,
           bidIncrement: mockAutoBid.bidIncrement,
@@ -176,7 +176,7 @@ describe("setAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札を設定しました",
-        autoBid: {
+        data: {
           id: autoBidId,
           maxBidAmount,
           bidIncrement,
@@ -220,7 +220,7 @@ describe("setAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札を設定しました",
-        autoBid: {
+        data: {
           id: mockAutoBid.id,
           maxBidAmount: mockAutoBid.maxBidAmount,
           bidIncrement: mockAutoBid.bidIncrement,
@@ -255,7 +255,7 @@ describe("setAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札を設定しました",
-        autoBid: {
+        data: {
           id: mockAutoBid.id,
           maxBidAmount: mockAutoBid.maxBidAmount,
           bidIncrement: mockAutoBid.bidIncrement,

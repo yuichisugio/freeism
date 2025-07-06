@@ -114,7 +114,7 @@ describe("useReviewSearch", () => {
     mockUpdateReview.mockResolvedValue({
       success: true,
       message: "レビューを更新しました",
-      review: mockReviewData,
+      data: mockReviewData,
     });
 
     // TanStack Queryのモック設定
@@ -525,9 +525,9 @@ describe("useReviewSearch", () => {
 
     test("should update review successfully", async () => {
       // Arrange
-      const mockMutateAsync = vi.fn().mockResolvedValue(mockReviewData);
+      const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
-        mutateAsync: mockMutateAsync,
+        mutate: mockMutate,
         isPending: false,
       });
 
@@ -536,23 +536,22 @@ describe("useReviewSearch", () => {
       });
 
       // Act
-      await act(async () => {
-        await result.current.handleUpdateReview("review-1", 4, "Updated comment");
+      act(() => {
+        result.current.handleUpdateReview("review-1", 4, "Updated comment");
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
     });
 
     test("should handle update review error", async () => {
       // Arrange
-
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
         // 空の実装
       });
-      const mockMutateAsync = vi.fn().mockRejectedValue(new Error("Update failed"));
+      const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
-        mutateAsync: mockMutateAsync,
+        mutate: mockMutate,
         isPending: false,
       });
 
@@ -561,13 +560,12 @@ describe("useReviewSearch", () => {
       });
 
       // Act
-      await act(async () => {
-        await result.current.handleUpdateReview("review-1", 4, "Updated comment");
+      act(() => {
+        result.current.handleUpdateReview("review-1", 4, "Updated comment");
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to update review:", expect.any(Error));
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
 
       consoleErrorSpy.mockRestore();
     });
@@ -687,9 +685,9 @@ describe("useReviewSearch", () => {
 
     test("should handle null comment in update review", async () => {
       // Arrange
-      const mockMutateAsync = vi.fn().mockResolvedValue(mockReviewData);
+      const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
-        mutateAsync: mockMutateAsync,
+        mutate: mockMutate,
         isPending: false,
       });
 
@@ -698,19 +696,19 @@ describe("useReviewSearch", () => {
       });
 
       // Act
-      await act(async () => {
-        await result.current.handleUpdateReview("review-1", 5, null);
+      act(() => {
+        result.current.handleUpdateReview("review-1", 5, null);
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith({ reviewId: "review-1", rating: 5, comment: null });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 5, comment: null });
     });
 
     test("should handle rating boundary values", async () => {
       // Arrange
-      const mockMutateAsync = vi.fn().mockResolvedValue(mockReviewData);
+      const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
-        mutateAsync: mockMutateAsync,
+        mutate: mockMutate,
         isPending: false,
       });
 
@@ -719,20 +717,20 @@ describe("useReviewSearch", () => {
       });
 
       // Act - minimum rating
-      await act(async () => {
-        await result.current.handleUpdateReview("review-1", 1, "Minimum rating");
+      act(() => {
+        result.current.handleUpdateReview("review-1", 1, "Minimum rating");
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith({ reviewId: "review-1", rating: 1, comment: "Minimum rating" });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 1, comment: "Minimum rating" });
 
       // Act - maximum rating
-      await act(async () => {
-        await result.current.handleUpdateReview("review-1", 5, "Maximum rating");
+      act(() => {
+        result.current.handleUpdateReview("review-1", 5, "Maximum rating");
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith({ reviewId: "review-1", rating: 5, comment: "Maximum rating" });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 5, comment: "Maximum rating" });
     });
 
     test("should handle page boundary values", () => {
@@ -970,9 +968,9 @@ describe("useReviewSearch", () => {
 
     test("should handle review edit workflow", async () => {
       // Arrange
-      const mockMutateAsync = vi.fn().mockResolvedValue(mockReviewData);
+      const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
-        mutateAsync: mockMutateAsync,
+        mutate: mockMutate,
         isPending: false,
       });
 
@@ -986,12 +984,12 @@ describe("useReviewSearch", () => {
       });
 
       // Act - レビュー更新
-      await act(async () => {
-        await result.current.handleUpdateReview("review-1", 4, "Updated comment");
+      act(() => {
+        result.current.handleUpdateReview("review-1", 4, "Updated comment");
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
     });
 
     test("should maintain state consistency across operations", async () => {

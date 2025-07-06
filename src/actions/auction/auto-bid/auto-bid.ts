@@ -5,6 +5,7 @@ import { validateAuction } from "@/actions/auction/bid-validation";
 import { executeBid } from "@/actions/auction/bid/bid-common";
 import { sendAuctionNotification } from "@/actions/notification/auction-notification";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import {
   NotificationSendMethod,
   NotificationSendTiming,
@@ -17,13 +18,9 @@ import {
  * 自動入札処理の応答型
  */
 export type ExecuteAutoBidReturn = {
-  success: boolean;
-  message: string;
-  autoBid: {
-    id: string;
-    maxBidAmount: number;
-    bidIncrement: number;
-  } | null;
+  id: string;
+  maxBidAmount: number;
+  bidIncrement: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -46,7 +43,7 @@ export type ExecuteAutoBidParams = {
  * @param params 自動入札処理パラメータ
  * @returns 処理結果または null（自動入札が実行されなかった場合）
  */
-export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<ExecuteAutoBidReturn> {
+export async function executeAutoBid(params: ExecuteAutoBidParams): PromiseResult<ExecuteAutoBidReturn | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -108,7 +105,7 @@ export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<Exec
       return {
         success: true,
         message: "自動入札の設定はありません。処理をスキップします",
-        autoBid: null,
+        data: null,
       };
     }
 
@@ -211,7 +208,7 @@ export async function executeAutoBid(params: ExecuteAutoBidParams): Promise<Exec
     return {
       success: true,
       message: "自動入札が完了しました",
-      autoBid: {
+      data: {
         id: highestAutoBid.id,
         maxBidAmount: highestAutoBid.maxBidAmount,
         bidIncrement: highestAutoBid.bidIncrement,

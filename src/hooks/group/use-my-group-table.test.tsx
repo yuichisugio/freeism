@@ -103,9 +103,17 @@ describe("useMyGroupTable", () => {
     vi.clearAllMocks();
 
     // APIのモック設定
-    mockGetUserJoinGroup.mockResolvedValue(mockGroupData);
-    mockGetUserJoinGroupCount.mockResolvedValue(1);
-    mockLeaveGroup.mockResolvedValue({ success: true, message: "Leave group successfully" });
+    mockGetUserJoinGroup.mockResolvedValue({
+      success: true,
+      message: "Get user join group successfully",
+      data: mockGroupData,
+    });
+    mockGetUserJoinGroupCount.mockResolvedValue({
+      success: true,
+      message: "Get user join group count successfully",
+      data: 1,
+    });
+    mockLeaveGroup.mockResolvedValue({ success: true, message: "Leave group successfully", data: null });
   });
 
   describe("正常系", () => {

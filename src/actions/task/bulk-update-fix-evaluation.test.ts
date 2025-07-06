@@ -164,7 +164,7 @@ describe("bulkUpdateFixedEvaluations", () => {
     const result = hasPermission
       ? { success: true, message: "Permission check successfully" }
       : { success: false, message: "Permission check failed" };
-    mockCheckIsPermission.mockResolvedValue(result);
+    mockCheckIsPermission.mockResolvedValue({ success: result.success, message: result.message, data: result.success });
   };
 
   beforeEach(() => {

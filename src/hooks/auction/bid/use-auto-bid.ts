@@ -1,6 +1,6 @@
 "use client";
 
-import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "@/actions/auction/auto-bid/auto-bid";
+import type { ExecuteAutoBidParams } from "@/actions/auction/auto-bid/auto-bid";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { executeAutoBid } from "@/actions/auction/auto-bid/auto-bid";
 import { cancelAutoBid } from "@/actions/auction/auto-bid/cancel-auto-bid";
@@ -39,7 +39,7 @@ export type UseAutoBidReturn = {
 
   // functions
   handleSetupAutoBid: (e: React.FormEvent) => Promise<void>;
-  cancelAutoBidding: () => Promise<boolean>;
+  cancelAutoBidding: () => void;
   setMaxBidAmount: (value: number) => void;
   setBidIncrement: (value: number) => void;
 };
@@ -94,34 +94,29 @@ export function useAutoBid(
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 1. 自動入札設定の取得 (useQuery)
+   * 1. 自動入札設定の取得
    *    画面を開いた時、またはauctionId, userId, currentHighestBidが変更された時に実行
    */
   const {
     data: fetchedAutoBidData,
-    isLoading: isLoadingInitialAutoBid,
+    isPending: isLoadingInitialAutoBid,
     error: errorInitialAutoBid,
-  } = useQuery<ExecuteAutoBidReturn | null, Error>({
+  } = useQuery({
     queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid),
     queryFn: async () => {
-      if (!auctionId || !userId) {
-        return null;
-      }
-      const result = await getAutoBidByUserId(auctionId, currentHighestBid);
-      // useQueryは成功/失敗をdata/errorで判断するため、APIの戻り値をそのまま返す
-      return result;
+      return await getAutoBidByUserId(auctionId, currentHighestBid);
     },
-    enabled: !!auctionId && !!userId,
+    enabled: !!auctionId && !!userId && !!currentHighestBid,
   });
 
   // fetchedAutoBidData の結果をローカルステートに反映
   useEffect(() => {
     if (fetchedAutoBidData) {
-      if (fetchedAutoBidData.success && fetchedAutoBidData.autoBid) {
+      if (fetchedAutoBidData.success && fetchedAutoBidData.data) {
         setDisplayAutoBidSettings({
-          id: fetchedAutoBidData.autoBid.id,
-          maxBidAmount: fetchedAutoBidData.autoBid.maxBidAmount,
-          bidIncrement: fetchedAutoBidData.autoBid.bidIncrement,
+          id: fetchedAutoBidData.data.id,
+          maxBidAmount: fetchedAutoBidData.data.maxBidAmount,
+          bidIncrement: fetchedAutoBidData.data.bidIncrement,
           isActive: true,
         });
         setIsDisplayAutoBidding(true);
@@ -140,29 +135,18 @@ export function useAutoBid(
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 2. 自動入札を設定 (useMutation)
+   * 2. 自動入札を設定
    */
   const {
     mutate: setupAutoBidMutate,
     isPending: isSetupAutoBidPending,
     error: setupAutoBidError,
-  } = useMutation<ExecuteAutoBidReturn, Error, { maxBidAmount: number; bidIncrement: number }>({
-    mutationFn: async (variables) => {
-      if (!auctionId || !userId) {
-        throw new Error("ログインが必要です");
-      }
+  } = useMutation({
+    mutationFn: async (variables: { maxBidAmount: number; bidIncrement: number }) => {
       return setAutoBid(auctionId, variables.maxBidAmount, variables.bidIncrement);
     },
     onSuccess: (result) => {
-      if (result.success && result.autoBid) {
-        toast.success(result.message || "自動入札を設定しました");
-        // キャッシュを無効化して再フェッチをトリガー
-        void queryClient.invalidateQueries({
-          queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid),
-        });
-        // オークション詳細なども更新する場合
-        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.detail(auctionId) });
-
+      if (result.success && result.data) {
         const params: ExecuteAutoBidParams = {
           auctionId,
           currentHighestBid, // この値はmutation実行前のものなので注意。最新が必要なら再取得
@@ -182,46 +166,34 @@ export function useAutoBid(
           .catch((autoError) => {
             console.error("即時の自動入札処理でエラーが発生しました", autoError);
           });
-      } else {
-        toast.error(result.message || "自動入札の設定に失敗しました");
       }
     },
-    onError: (error) => {
-      toast.error(error.message || "自動入札の設定中にエラーが発生しました");
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid), exact: true },
+        { queryKey: queryCacheKeys.auction.detail(auctionId), exact: true },
+      ],
     },
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 3. 自動入札を取り消す (useMutation)
+   * 3. 自動入札を取り消す
    */
   const {
-    mutateAsync: cancelAutoBidMutateAsync,
+    mutate: cancelAutoBidMutate,
     isPending: isCancelAutoBidPending,
     error: cancelAutoBidError,
-  } = useMutation<ExecuteAutoBidReturn, Error>({
+  } = useMutation({
     mutationFn: async () => {
-      if (!auctionId || !userId) {
-        throw new Error("ログインが必要です");
-      }
       return cancelAutoBid(auctionId, isDisplayAutoBidding);
     },
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message || "自動入札を取り消しました");
-        // キャッシュを無効化して再フェッチをトリガー
-        void queryClient.invalidateQueries({
-          queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid),
-        });
-        // オークション詳細なども更新する場合
-        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.detail(auctionId) });
-      } else {
-        toast.error(result.message || "自動入札の取り消しに失敗しました");
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "自動入札の取り消し中にエラーが発生しました");
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.auction.autoBid(auctionId, userId ?? "", currentHighestBid), exact: true },
+        { queryKey: queryCacheKeys.auction.detail(auctionId), exact: true },
+      ],
     },
   });
 
@@ -243,21 +215,6 @@ export function useAutoBid(
     },
     [maxBidAmount, bidIncrement, currentHighestBid, setupAutoBidMutate],
   );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 自動入札を取り消す関数
-   */
-  const cancelAutoBidding = useCallback(async (): Promise<boolean> => {
-    try {
-      const result = await cancelAutoBidMutateAsync();
-      return result.success;
-    } catch (error) {
-      console.error("自動入札の取り消し中にエラーが発生しました", error);
-      return false;
-    }
-  }, [cancelAutoBidMutateAsync]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -299,7 +256,7 @@ export function useAutoBid(
 
     // 関数
     handleSetupAutoBid,
-    cancelAutoBidding,
+    cancelAutoBidding: cancelAutoBidMutate,
     setMaxBidAmount,
     setBidIncrement,
   };

@@ -12,11 +12,11 @@ import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { setupSchema } from "@/library-setting/zod-schema";
+import { type PromiseResult } from "@/types/general-types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -75,22 +75,12 @@ export const SetupForm = memo(function SetupForm() {
   /**
    * ユーザー設定を取得
    */
-  const { data: userSettings, isLoading } = useQuery<
-    UserSettings | null,
-    Error,
-    UserSettings | null,
-    Readonly<[string, string]>
-  >({
+  const { data: userSettings, isLoading } = useQuery({
     queryKey: queryCacheKeys.userSettings.userAll(userId),
-    queryFn: async (): Promise<UserSettings | null> => getUserSettings(userId),
-    enabled: !!userId && isClient, // クライアントサイドでのみクエリを実行
+    queryFn: async (): PromiseResult<UserSettings | null> => getUserSettings(userId),
+    enabled: !!userId && !!isClient, // クライアントサイドでのみクエリを実行
     staleTime: Infinity,
     gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchInterval: false,
-    refetchIntervalInBackground: false,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -99,28 +89,22 @@ export const SetupForm = memo(function SetupForm() {
    * ユーザー設定を更新する
    */
   const { mutate, isPending, variables } = useMutation({
-    mutationKey: queryCacheKeys.userSettings.update(userId),
-    gcTime: Infinity,
-    mutationFn: (userSettings: SetupForm): Promise<{ success: boolean; redirectURL: string }> =>
-      updateUserSetup(userSettings, userId),
+    mutationFn: (userSettings: SetupForm): PromiseResult<null> => updateUserSetup(userSettings, userId),
     onError: (
       error: Error,
       _variables: SetupForm,
       context: { previousUserSettings: UserSettings | undefined } | undefined,
     ) => {
-      toast.error("ユーザー設定の更新に失敗しました");
-      console.error("ユーザー設定の更新に失敗しました:", error);
       form.setError("root", { message: error.message });
       if (context !== undefined) {
         queryClient.setQueryData(queryCacheKeys.userSettings.userAll(userId), context.previousUserSettings);
       }
     },
-    onSuccess: (data) => {
-      toast.success("ユーザー設定を更新しました");
-      router.push(data.redirectURL);
+    onSuccess: () => {
+      router.push("/dashboard/grouplist");
     },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId), exact: true }],
     },
   });
 
@@ -146,8 +130,8 @@ export const SetupForm = memo(function SetupForm() {
   useEffect(() => {
     if (userSettings && isClient) {
       form.reset({
-        username: userSettings.username ?? "",
-        lifeGoal: userSettings.lifeGoal ?? "",
+        username: userSettings?.data?.username ?? "",
+        lifeGoal: userSettings?.data?.lifeGoal ?? "",
       });
     }
   }, [userSettings, form, isClient]);
@@ -158,7 +142,7 @@ export const SetupForm = memo(function SetupForm() {
    * 表示データの決定
    * クライアントサイドでのみ動的なデータを表示し、サーバーサイドでは静的な状態を保持
    */
-  const displayData = isClient ? (isPending && variables ? variables : userSettings) : null;
+  const displayData = isClient ? (isPending && variables ? variables : userSettings?.data) : null;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -182,12 +166,12 @@ export const SetupForm = memo(function SetupForm() {
         <dl className="space-y-4">
           <div>
             <dt className="form-label-custom">ユーザー名</dt>
-            <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{displayData.username}</dd>
+            <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">{displayData?.username}</dd>
           </div>
           <div>
             <dt className="form-label-custom">人生の目標</dt>
             <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">
-              {displayData.lifeGoal}
+              {displayData?.lifeGoal}
             </dd>
           </div>
           {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
@@ -228,7 +212,7 @@ export const SetupForm = memo(function SetupForm() {
       {/* プッシュ通知設定 */}
       <div className="mb-8">
         <WebPushNotificationToggle
-          isPushEnabled={isClient ? userSettings?.isPushEnabled : undefined}
+          isPushEnabled={isClient ? userSettings?.data?.isPushEnabled : false}
           isLoading={!isClient || isLoading}
         />
       </div>
@@ -236,7 +220,7 @@ export const SetupForm = memo(function SetupForm() {
       {/* メール通知設定 */}
       <div className="mb-8">
         <EmailNotificationToggle
-          isEmailEnabled={isClient ? (userSettings?.isEmailEnabled ?? false) : false}
+          isEmailEnabled={isClient ? (userSettings?.data?.isEmailEnabled ?? false) : false}
           userId={userId}
           isLoading={!isClient || isLoading}
         />

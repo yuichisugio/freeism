@@ -182,6 +182,14 @@ export async function getMyTaskData(
           select: {
             id: true,
             name: true,
+            members: {
+              where: {
+                userId: userId,
+              },
+              select: {
+                isGroupOwner: true,
+              },
+            },
           },
         },
         auction: {
@@ -229,6 +237,7 @@ export async function getMyTaskData(
       groupName: task.group.name,
       auctionId: task.auction?.id ?? null,
       group: { id: task.group.id, name: task.group.name },
+      isGroupOwner: task.group.members.some((m) => m.isGroupOwner),
     }));
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

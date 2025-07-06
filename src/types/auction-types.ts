@@ -236,17 +236,7 @@ export type UpdateAuctionWithDetails = {
   extensionLimitCount: number;
   extensionTime: number;
   remainingTimeForExtension: number;
-  bidHistories: {
-    id: string;
-    amount: number;
-    createdAt: Date | string;
-    isAutoBid: boolean;
-    user: {
-      settings: {
-        username: string; // app内で表示される名前
-      } | null;
-    };
-  }[];
+  bidHistories: BidHistoryWithUser[];
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -257,6 +247,10 @@ export type UpdateAuctionWithDetails = {
 export type AuctionWithDetails = UpdateAuctionWithDetails & {
   startTime: Date;
   endTime: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  taskId: string;
+  winnerId: string | null;
   task: {
     task: string;
     detail: string | null;
@@ -294,6 +288,23 @@ export type AuctionWithDetails = UpdateAuctionWithDetails & {
       } | null;
     }[];
   };
+  // SSE用のオプション
+  options?: {
+    reconnectOnVisibility?: boolean;
+    clientId?: string;
+  };
+  // SSE用の追加フィールド
+  sellerId?: string;
+  currentHighestBidder?: unknown;
+  winner?: unknown;
+  watchlists?: unknown;
+  bid?: unknown;
+  depositPeriod?: number;
+  currentPrice?: number;
+  version?: number;
+  title?: string;
+  description?: string;
+  extensionCount?: number;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -402,5 +413,44 @@ export type AuctionHistoryCreatedDetail = {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 export type TaskRole = "SUPPLIER" | "EXECUTOR" | "REPORTER";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * 入札履歴の型（SSE用）
+ */
+export type BidHistoryWithUser = {
+  id: string;
+  amount: number;
+  createdAt: Date | string;
+  isAutoBid: boolean;
+  user: {
+    settings: {
+      username: string; // app内で表示される名前
+    } | null;
+  };
+};
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * SSE用オークションイベントタイプ
+ */
+export enum AuctionEventType {
+  NEW_BID = "NEW_BID",
+  CONNECTION_ESTABLISHED = "CONNECTION_ESTABLISHED",
+  ERROR = "ERROR",
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * SSE用オークションイベントデータ
+ */
+export type AuctionEventData = {
+  type: AuctionEventType;
+  data: AuctionWithDetails;
+  error?: string;
+};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

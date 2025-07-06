@@ -192,7 +192,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckGroupMembership.mockResolvedValue(null);
+        mockCheckGroupMembership.mockResolvedValue({
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
+        });
         prismaMock.groupMembership.count.mockResolvedValue(5);
         prismaMock.groupMembership.create.mockResolvedValue(membership);
 
@@ -254,7 +258,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckGroupMembership.mockResolvedValue(existingMembership);
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: existingMembership.id, isGroupOwner: existingMembership.isGroupOwner },
+        });
 
         // Act
         const result = await joinGroup(testGroupId);
@@ -273,7 +281,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckGroupMembership.mockResolvedValue(null);
+        mockCheckGroupMembership.mockResolvedValue({
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
+        });
         prismaMock.groupMembership.count.mockResolvedValue(5);
 
         // Act
@@ -307,7 +319,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckGroupMembership.mockResolvedValue(null);
+        mockCheckGroupMembership.mockResolvedValue({
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
+        });
         prismaMock.groupMembership.count.mockResolvedValue(5);
         prismaMock.groupMembership.create.mockRejectedValue(new Error("Database error"));
 
@@ -327,7 +343,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckGroupMembership.mockResolvedValue(null);
+        mockCheckGroupMembership.mockResolvedValue({
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
+        });
         prismaMock.groupMembership.count.mockResolvedValue(1);
 
         // Act
@@ -350,7 +370,7 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります", data: true });
         prismaMock.group.delete.mockResolvedValue(group);
 
         // Act
@@ -408,7 +428,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckIsPermission.mockResolvedValue({ success: false, message: "グループの削除権限がありません" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: false,
+          message: "グループの削除権限がありません",
+          data: false,
+        });
 
         // Act
         const result = await deleteGroup(testGroupId);
@@ -441,7 +465,7 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります", data: true });
         prismaMock.group.delete.mockRejectedValue(new Error("Database error"));
 
         // Act
@@ -531,7 +555,7 @@ describe("group.test.ts", () => {
         const updatedGroup = groupFactory.build({ ...validUpdateData, id: testGroupId });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
         prismaMock.group.findUnique.mockResolvedValue(existingGroup);
         prismaMock.group.findFirst.mockResolvedValue(null);
         prismaMock.group.update.mockResolvedValue(updatedGroup);
@@ -582,7 +606,7 @@ describe("group.test.ts", () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(null);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
 
         // Act
         const result = await updateGroup(testGroupId, validUpdateData);
@@ -604,7 +628,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(existingGroup);
-        mockCheckIsPermission.mockResolvedValue({ success: false, message: "グループの編集権限がありません" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: false,
+          message: "グループの編集権限がありません",
+          data: false,
+        });
 
         // Act
         const result = await updateGroup(testGroupId, validUpdateData);
@@ -632,7 +660,7 @@ describe("group.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(existingGroup);
         prismaMock.group.findFirst.mockResolvedValue(duplicateGroup);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
 
         // Act
         const result = await updateGroup(testGroupId, validUpdateData);
@@ -657,7 +685,7 @@ describe("group.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(existingGroup);
         prismaMock.group.update.mockResolvedValue(existingGroup);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります" });
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
         // Act
         const result = await updateGroup(testGroupId, updateDataWithSameName);
 
@@ -835,8 +863,16 @@ describe("group.test.ts", () => {
         });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(membership);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: membership.id, isGroupOwner: membership.isGroupOwner },
+        });
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
         });
@@ -871,8 +907,16 @@ describe("group.test.ts", () => {
         });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(membership);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: membership.id, isGroupOwner: membership.isGroupOwner },
+        });
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
         });
@@ -915,8 +959,16 @@ describe("group.test.ts", () => {
         });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(membership);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: membership.id, isGroupOwner: membership.isGroupOwner },
+        });
         prismaMock.$transaction.mockImplementation(async (callback) => {
           return await callback(prismaMock);
         });
@@ -963,6 +1015,7 @@ describe("group.test.ts", () => {
         mockCheckIsPermission.mockResolvedValue({
           success: false,
           message: "グループメンバーを削除する権限がありません",
+          data: false,
         });
 
         // Act
@@ -985,8 +1038,16 @@ describe("group.test.ts", () => {
       test("should return error when target user is not member", async () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(null);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
+        });
 
         // Act
         const result = await removeMember(testGroupId, testUsers.target, false);
@@ -1007,8 +1068,16 @@ describe("group.test.ts", () => {
         });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(membership);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: membership.id, isGroupOwner: membership.isGroupOwner },
+        });
 
         // Act
         const result = await removeMember(testGroupId, testUsers.owner, false);
@@ -1029,8 +1098,16 @@ describe("group.test.ts", () => {
         });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(ownerMembership);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: ownerMembership.id, isGroupOwner: ownerMembership.isGroupOwner },
+        });
 
         // Act
         const result = await removeMember(testGroupId, testUsers.target, false);
@@ -1065,8 +1142,16 @@ describe("group.test.ts", () => {
         });
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.owner);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
-        mockCheckGroupMembership.mockResolvedValue(membership);
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: membership.id, isGroupOwner: membership.isGroupOwner },
+        });
         prismaMock.$transaction.mockRejectedValue(new Error("Transaction failed"));
 
         // Act

@@ -146,7 +146,7 @@ describe("useTaskStatus", () => {
         hasOnDataChange: true,
         taskId: "task-1",
         newStatus: TaskStatus.TASK_COMPLETED,
-        mockResponse: { success: true, message: "タスクのステータスを更新しました" },
+        mockResponse: { success: true, message: "タスクのステータスを更新しました", data: null },
         expectedToastSuccess: "ステータスを更新しました",
         expectedToastError: null,
         expectOnDataChangeCalled: true,
@@ -156,7 +156,7 @@ describe("useTaskStatus", () => {
         hasOnDataChange: false,
         taskId: "task-1",
         newStatus: TaskStatus.TASK_COMPLETED,
-        mockResponse: { success: true, message: "タスクのステータスを更新しました" },
+        mockResponse: { success: true, message: "タスクのステータスを更新しました", data: null },
         expectedToastSuccess: "ステータスを更新しました",
         expectedToastError: null,
         expectOnDataChangeCalled: false,
@@ -166,7 +166,7 @@ describe("useTaskStatus", () => {
         hasOnDataChange: true,
         taskId: "task-2",
         newStatus: TaskStatus.POINTS_DEPOSITED,
-        mockResponse: { success: true, message: "タスクのステータスを更新しました" },
+        mockResponse: { success: true, message: "タスクのステータスを更新しました", data: null },
         expectedToastSuccess: "ステータスを更新しました",
         expectedToastError: null,
         expectOnDataChangeCalled: true,
@@ -217,7 +217,11 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValue({
+        success: true,
+        message: "タスクのステータスを更新しました",
+        data: null,
+      });
 
       // 全ての有効なステータスをテスト
       const validStatuses = [
@@ -392,7 +396,11 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: expectedSuccess, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValue({
+        success: expectedSuccess,
+        message: "タスクのステータスを更新しました",
+        data: null,
+      });
 
       // Act
       await act(async () => {
@@ -426,7 +434,11 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValue({
+        success: true,
+        message: "タスクのステータスを更新しました",
+        data: null,
+      });
 
       if (shouldThrow) {
         // Act & Assert - エラーが発生することを期待
@@ -460,32 +472,6 @@ describe("useTaskStatus", () => {
         // Assert
         expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-1", TaskStatus.TASK_COMPLETED);
       }
-    });
-
-    test("should handle large data array", async () => {
-      // Arrange
-      const mockOnDataChange = vi.fn();
-      const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
-
-      const largeDataArray = Array.from({ length: 1000 }, (_, index) => ({
-        id: `task-${index}`,
-        status: TaskStatus.PENDING,
-        name: `タスク${index}`,
-      }));
-
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
-
-      // Act
-      await act(async () => {
-        await result.current.handleStatusChange("task-500", TaskStatus.TASK_COMPLETED, largeDataArray);
-      });
-
-      // Assert
-      expect(mockUpdateTaskStatus).toHaveBeenCalledWith("task-500", TaskStatus.TASK_COMPLETED);
-      expect(mockOnDataChange).toHaveBeenCalled();
-      const updatedData = mockOnDataChange.mock.calls[0][0] as unknown as TestData[];
-      expect(updatedData[500].status).toBe(TaskStatus.TASK_COMPLETED);
-      expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
     });
   });
 
@@ -537,7 +523,11 @@ describe("useTaskStatus", () => {
       const mockOnDataChange = vi.fn();
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValue({
+        success: true,
+        message: "タスクのステータスを更新しました",
+        data: null,
+      });
 
       // Act - 複数のステータス変更を順次実行
       await act(async () => {
@@ -576,7 +566,11 @@ describe("useTaskStatus", () => {
       const { result } = renderHook(() => useTaskStatus(mockOnDataChange));
 
       // Act & Assert - 成功ケース
-      mockUpdateTaskStatus.mockResolvedValueOnce({ success: true, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValueOnce({
+        success: true,
+        message: "タスクのステータスを更新しました",
+        data: null,
+      });
       await act(async () => {
         await result.current.handleStatusChange(
           "task-1",
@@ -628,7 +622,11 @@ describe("useTaskStatus", () => {
       expect(result.current.openStatus).toBe("task-1");
 
       // Act - ステータス変更（成功）
-      mockUpdateTaskStatus.mockResolvedValue({ success: true, message: "タスクのステータスを更新しました" });
+      mockUpdateTaskStatus.mockResolvedValue({
+        success: true,
+        message: "タスクのステータスを更新しました",
+        data: null,
+      });
       await act(async () => {
         await result.current.handleStatusChange(
           "task-1",

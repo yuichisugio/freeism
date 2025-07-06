@@ -2,6 +2,7 @@
 
 import { validateAuction } from "@/actions/auction/bid-validation";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 import { type ExecuteAutoBidReturn } from "./auto-bid";
 
@@ -13,7 +14,10 @@ import { type ExecuteAutoBidReturn } from "./auto-bid";
  * @param isDisplayAutoBidding 自動入札中フラグ
  * @returns 処理結果
  */
-export async function cancelAutoBid(auctionId: string, isDisplayAutoBidding: boolean): Promise<ExecuteAutoBidReturn> {
+export async function cancelAutoBid(
+  auctionId: string,
+  isDisplayAutoBidding: boolean,
+): PromiseResult<ExecuteAutoBidReturn | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,7 +56,7 @@ export async function cancelAutoBid(auctionId: string, isDisplayAutoBidding: boo
       return {
         success: false,
         message: validation.message ?? "検証エラー",
-        autoBid: null,
+        data: null,
       };
     }
 
@@ -78,7 +82,7 @@ export async function cancelAutoBid(auctionId: string, isDisplayAutoBidding: boo
     return {
       success: true,
       message: "自動入札を取り消しました",
-      autoBid: {
+      data: {
         id: result.id,
         maxBidAmount: result.maxBidAmount,
         bidIncrement: result.bidIncrement,
@@ -90,8 +94,8 @@ export async function cancelAutoBid(auctionId: string, isDisplayAutoBidding: boo
     console.error("自動入札取り消しエラー:", error);
     return {
       success: false,
-      message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
-      autoBid: null,
+      message: `自動入札の取り消しに失敗しました: ${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
+      data: null,
     };
   }
 }

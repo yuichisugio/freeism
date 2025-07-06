@@ -88,7 +88,7 @@ export function useAuctionHistory() {
   const { data: bidHistoryResult, isPending: isLoadingBidHistories } = useQuery<BidHistoryItem[]>({
     queryKey: queryCacheKeys.auction.historyBids(userId!, currentPage, itemPerPage),
     queryFn: () => getUserBidHistories(currentPage, userId!, itemPerPage),
-    enabled: !!userId && activeTab === "bids",
+    enabled: !!userId && activeTab === "bids" && !!itemPerPage && !!currentPage,
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,
   });
@@ -115,7 +115,7 @@ export function useAuctionHistory() {
   const { data: wonHistoryResult, isPending: isLoadingWon } = useQuery<WonAuctionItem[]>({
     queryKey: queryCacheKeys.auction.historyWon(userId!, currentPage, itemPerPage, wonStatus),
     queryFn: () => getUserWonAuctions(currentPage, userId!, itemPerPage, wonStatus),
-    enabled: !!userId && activeTab === "won",
+    enabled: !!userId && activeTab === "won" && !!itemPerPage && !!currentPage && !!wonStatus,
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,
   });
@@ -129,7 +129,7 @@ export function useAuctionHistory() {
   const { data: wonHistoryCount, isPending: isLoadingWonCount } = useQuery<number>({
     queryKey: queryCacheKeys.auction.historyWonCount(userId!, wonStatus),
     queryFn: () => getUserWonAuctionsCount(userId!, wonStatus),
-    enabled: !!userId && activeTab === "won",
+    enabled: !!userId && activeTab === "won" && !!wonStatus,
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,
   });
@@ -142,7 +142,7 @@ export function useAuctionHistory() {
   const { data: createdHistoryResult, isPending: isLoadingCreated } = useQuery<CreatedAuctionItem[]>({
     queryKey: queryCacheKeys.auction.historyCreated(userId!, currentPage, itemPerPage, filter, filterCondition),
     queryFn: () => getUserCreatedAuctions(currentPage, userId!, itemPerPage, filter, filterCondition),
-    enabled: !!userId && activeTab === "created",
+    enabled: !!userId && activeTab === "created" && !!itemPerPage && !!currentPage && !!filter && !!filterCondition,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
@@ -157,7 +157,7 @@ export function useAuctionHistory() {
   const { data: createdHistoryCount, isPending: isLoadingCreatedCount } = useQuery<number>({
     queryKey: queryCacheKeys.auction.historyCreatedCount(userId!, filter, filterCondition),
     queryFn: () => getUserCreatedAuctionsCount(userId!, filter, filterCondition),
-    enabled: !!userId && activeTab === "created",
+    enabled: !!userId && activeTab === "created" && !!filter && !!filterCondition,
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24,
   });

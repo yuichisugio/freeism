@@ -7,7 +7,7 @@ import { deleteGroup, joinGroup, removeMember } from "@/actions/group/group";
 import { getGroupById } from "@/actions/group/group-detail";
 import { leaveGroup } from "@/actions/group/my-group";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -73,11 +73,6 @@ export function useGroupManipulation({
   groupId: string;
 }): UseGroupDetailReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * クエリクライアント
-   */
-  const queryClient = useQueryClient();
 
   /**
    * ルーター
@@ -164,17 +159,16 @@ export function useGroupManipulation({
   const { mutate: joinGroupMutation, isPending: isJoiningGroup } = useMutation({
     mutationFn: async (currentGroupId: string) => await joinGroup(currentGroupId),
     onSuccess: async () => {
-      toast.success("グループに参加しました");
       setIsMember(true);
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
       router.refresh();
     },
-    onError: (error) => {
-      toast.error(error.message || "グループへの参加に失敗しました。");
-      console.error(error);
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false },
+        { queryKey: queryCacheKeys.table.allGroup(), exact: true },
+        { queryKey: queryCacheKeys.table.myGroup(), exact: true },
+        { queryKey: queryCacheKeys.users.joinedGroupIds(userId), exact: true },
+      ],
     },
   });
 
@@ -208,19 +202,20 @@ export function useGroupManipulation({
   const { mutate: leaveGroupMutation, isPending: isLeavingGroup } = useMutation({
     mutationFn: async (currentGroupId: string) => await leaveGroup(currentGroupId, userId ?? ""),
     onSuccess: async () => {
-      toast.success("グループから脱退しました");
       setIsMember(false);
       setLeaveDialogOpen(false);
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
       router.refresh();
     },
-    onError: (error) => {
-      toast.error(error.message || "グループからの脱退に失敗しました。");
-      console.error(error);
+    onError: () => {
       setLeaveDialogOpen(false); // エラー時もダイアログを閉じる
+    },
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: true },
+        { queryKey: queryCacheKeys.table.allGroup(), exact: true },
+        { queryKey: queryCacheKeys.table.myGroup(), exact: true },
+        { queryKey: queryCacheKeys.users.joinedGroupIds(userId), exact: true },
+      ],
     },
   });
 
@@ -262,17 +257,18 @@ export function useGroupManipulation({
   const { mutate: deleteGroupMutation, isPending: isDeletingGroup } = useMutation({
     mutationFn: async (currentGroupId: string) => await deleteGroup(currentGroupId),
     onSuccess: async () => {
-      toast.success("グループを削除しました");
       setDeleteDialogOpen(false); // ダイアログを閉じる
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false }); // groupId は Hook の引数
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.allGroup() });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myGroup() });
       router.push("/dashboard/group-list");
     },
-    onError: (error) => {
-      toast.error(error.message || "グループの削除に失敗しました。");
-      console.error(error);
+    onError: () => {
       setDeleteDialogOpen(false); // エラー時もダイアログを閉じる
+    },
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: false },
+        { queryKey: queryCacheKeys.table.allGroup(), exact: true },
+        { queryKey: queryCacheKeys.table.myGroup(), exact: true },
+      ],
     },
   });
 
@@ -319,19 +315,17 @@ export function useGroupManipulation({
       return await removeMember(groupId, selectedMemberForRemoval, addToBlackList);
     },
     onSuccess: async () => {
-      toast.success("メンバーを削除しました");
       setRemoveMemberDialogOpen(false);
       setSelectedMemberForRemoval(null);
       setSelectedMemberNameForRemoval(null);
       setAddToBlackList(false);
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.permission.members(groupId) });
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.byGroupId(groupId) });
       router.refresh();
     },
-    onError: (error) => {
-      toast.error(error.message || "メンバーの削除に失敗しました。");
-      console.error(error);
-      // ダイアログは開いたままにするか、エラー内容によって閉じるか検討。今回は開いたまま。
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.permission.members(groupId), exact: true },
+        { queryKey: queryCacheKeys.tasks.byGroupId(groupId), exact: true },
+      ],
     },
   });
 

@@ -288,6 +288,7 @@ export type MyTaskTable = {
   groupName: string;
   auctionId: string | null;
   group: { id: string; name: string };
+  isGroupOwner: boolean;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

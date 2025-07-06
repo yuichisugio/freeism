@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -88,7 +87,7 @@ export type UseAuctionMessageReturn = {
 /**
  * メッセージフォームのバリデーションスキーマ
  */
-const messageFormSchema = z.object({
+export const messageFormSchema = z.object({
   message: z.string().trim().min(1, "メッセージを入力してください"),
 });
 
@@ -97,7 +96,7 @@ const messageFormSchema = z.object({
 /**
  * メッセージフォームの値の型
  */
-type MessageFormValues = z.infer<typeof messageFormSchema>;
+export type MessageFormValues = z.infer<typeof messageFormSchema>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -172,7 +171,7 @@ export function useAuctionQA(
     queryFn: async () => await getAuctionMessagesAndSellerInfo(auctionId, isDisplayAfterEnd, auctionEndDate),
     staleTime: 1000 * 60 * 30, // 30分
     gcTime: 1000 * 60 * 60 * 1, // 1時間
-    enabled: !!auctionId,
+    enabled: !!auctionId && !!isDisplayAfterEnd && !!auctionEndDate,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -196,17 +195,9 @@ export function useAuctionQA(
   /**
    * メッセージを送信する
    */
-  const { mutateAsync: sendMessageMutation, isPending: submitting } = useMutation({
+  const { mutate: sendMessageMutation, isPending: submitting } = useMutation({
     mutationFn: async (messageText: string) => {
-      if (!messageText.trim() || !auctionId || !currentUserId || recipientIds.length === 0) {
-        toast.error("メッセージ本文、オークションID、ユーザーID、または受信者IDが無効です。");
-        return { success: false, message: null };
-      }
-      const result = await sendAuctionMessage(auctionId, messageText, recipientIds, currentUserId);
-      return { success: true, message: result.message };
-    },
-    onError: (error) => {
-      toast.error(error.message);
+      return await sendAuctionMessage(auctionId, messageText, recipientIds, currentUserId);
     },
     onSuccess: (data) => {
       if (data?.success && data.message) {
@@ -236,27 +227,17 @@ export function useAuctionQA(
       }
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.auction.messages(auctionId, isEnd, auctionEndDate),
-      });
       form.reset();
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     },
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * メッセージ送信ハンドラ
-   */
-  const handleSubmit = useCallback(
-    (data: MessageFormValues) => {
-      void sendMessageMutation(data.message);
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.auction.messages(auctionId, isEnd, auctionEndDate), exact: true },
+      ],
     },
-    [sendMessageMutation],
-  );
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -269,11 +250,11 @@ export function useAuctionQA(
         e.preventDefault();
         const messageText = form.getValues("message");
         if (messageText.trim()) {
-          void form.handleSubmit(handleSubmit)();
+          void form.handleSubmit((data) => sendMessageMutation(data.message))();
         }
       }
     },
-    [form, handleSubmit],
+    [form, sendMessageMutation],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -377,7 +358,7 @@ export function useAuctionQA(
     isRefetching,
     handleReload,
     handleKeyDown,
-    handleSubmit,
+    handleSubmit: (data) => sendMessageMutation(data.message),
     getSenderInfo,
     messagesContainerProps: {
       style: {},

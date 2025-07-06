@@ -296,7 +296,6 @@ export function useAuctionFilters({
   } = useQuery({
     queryKey: queryCacheKeys.users.groups(userId),
     queryFn: async () => {
-      if (!userId) return [];
       return await getUserGroups(userId);
     },
     enabled: !!userId,

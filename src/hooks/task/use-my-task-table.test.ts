@@ -49,15 +49,15 @@ vi.mock("nuqs", () => ({
 }));
 
 // アクション関数のモック
-vi.mock("@/lib/actions/permission", () => ({
-  checkIsOwner: vi.fn(),
+vi.mock("@/actions/permission/permission", () => ({
+  checkIsPermission: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/task/my-task-table", () => ({
+vi.mock("@/actions/task/my-task-table", () => ({
   getMyTaskData: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/task/task", () => ({
+vi.mock("@/actions/task/task", () => ({
   deleteTask: vi.fn(),
 }));
 
@@ -118,6 +118,7 @@ const createMockMyTaskTable = (overrides: Partial<MyTaskTable> = {}): MyTaskTabl
   groupName: testGroup.name,
   auctionId: null,
   group: { id: testGroup.id, name: testGroup.name },
+  isGroupOwner: false,
   ...overrides,
 });
 
@@ -129,84 +130,108 @@ const mockTasksData = [
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-describe("useMyTaskTable", () => {
-  beforeEach(() => {
-    // 各テスト前にモックをリセット
-    vi.clearAllMocks();
-
-    // セッションのモック設定
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: testUser.id,
-          email: "test@example.com",
-          name: "Test User",
-        },
+/**
+ * テストヘルパー関数
+ */
+const setupDefaultMocks = () => {
+  // セッションのモック設定
+  mockUseSession.mockReturnValue({
+    data: {
+      user: {
+        id: testUser.id,
+        email: "test@example.com",
+        name: "Test User",
       },
-      status: "authenticated",
-    });
+    },
+    status: "authenticated",
+  });
 
-    // デフォルトのモック設定
-    mockGetMyTaskData.mockResolvedValue({
+  // デフォルトのモック設定
+  mockGetMyTaskData.mockResolvedValue({
+    tasks: mockTasksData,
+    totalTaskCount: 3,
+  });
+
+  mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully", data: true });
+  mockDeleteTask.mockResolvedValue({ success: true, message: "タスクを削除しました", data: null });
+
+  // TanStack Queryのモック設定
+  mockUseQuery.mockReturnValue({
+    data: {
       tasks: mockTasksData,
       totalTaskCount: 3,
-    });
+    },
+    isPending: false,
+    isLoading: false,
+    isPlaceholderData: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  });
 
-    mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
-    mockDeleteTask.mockResolvedValue({ success: true, message: "タスクを削除しました" });
+  // デフォルトのmutation設定（成功パターン）
+  mockUseMutation.mockReturnValue({
+    mutateAsync: vi.fn().mockResolvedValue({ success: true, message: "タスクを削除しました" }),
+    isPending: false,
+    isLoading: false,
+    isError: false,
+    error: null,
+    reset: vi.fn(),
+    data: undefined,
+    mutate: vi.fn(),
+  });
 
-    // TanStack Queryのモック設定
-    mockUseQuery.mockReturnValue({
-      data: {
-        tasks: mockTasksData,
-        totalTaskCount: 3,
-      },
-      isPending: false,
-      isLoading: false,
-      isPlaceholderData: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+  mockUseQueryClient.mockReturnValue({
+    invalidateQueries: vi.fn(),
+    setQueryData: vi.fn(),
+    getQueryData: vi.fn(),
+    removeQueries: vi.fn(),
+    clear: vi.fn(),
+    prefetchQuery: vi.fn(),
+  });
+};
 
-    // デフォルトのmutation設定（成功パターン）
-    mockUseMutation.mockReturnValue({
-      mutateAsync: vi.fn().mockResolvedValue({ success: true, message: "タスクを削除しました" }),
-      isPending: false,
-      isLoading: false,
-      isError: false,
-      error: null,
-      reset: vi.fn(),
-      data: undefined,
-      mutate: vi.fn(),
-    });
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    mockUseQueryClient.mockReturnValue({
-      invalidateQueries: vi.fn(),
-      setQueryData: vi.fn(),
-      getQueryData: vi.fn(),
-      removeQueries: vi.fn(),
-      clear: vi.fn(),
-      prefetchQuery: vi.fn(),
-    });
+describe("useMyTaskTable", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupDefaultMocks();
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("初期化", () => {
     test("should initialize with correct default values", async () => {
-      // Act
+      // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
 
-      // Assert
+      // Act & Assert
       await waitFor(() => {
-        expect(result.current.tasks).toStrictEqual(mockTasksData);
-        expect(result.current.totalTaskCount).toBe(3);
-        expect(result.current.userId).toBe(testUser.id);
-        expect(result.current.editingTaskId).toBe(null);
-        expect(result.current.isTaskEditModalOpen).toBe(false);
+        expect(mockUseQuery).toHaveBeenCalled();
+        expect(result.current).toStrictEqual({
+          isLoading: false,
+          tasks: mockTasksData,
+          userId: testUser.id,
+          tableConditions: {
+            sort: { field: "id", direction: "desc" },
+            page: 1,
+            searchQuery: null,
+            taskStatus: "ALL",
+            contributionType: "ALL",
+            itemPerPage: 10,
+            isJoined: "all",
+          },
+          totalTaskCount: 3,
+          router: {
+            push: mockPush,
+            refresh: mockRefresh,
+          },
+          editingTaskId: null,
+          isTaskEditModalOpen: false,
+        });
         expect(typeof result.current.canEditTask).toBe("function");
         expect(typeof result.current.handleTaskEdited).toBe("function");
         expect(typeof result.current.canDeleteTask).toBe("function");
@@ -218,49 +243,28 @@ describe("useMyTaskTable", () => {
         expect(typeof result.current.resetSort).toBe("function");
       });
     });
-
-    test("should initialize with correct table conditions", async () => {
-      // Act
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.tableConditions).toStrictEqual({
-          sort: { field: "id", direction: "desc" },
-          page: 1,
-          searchQuery: null,
-          taskStatus: "ALL",
-          contributionType: "ALL",
-          itemPerPage: 10,
-        });
-      });
-    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("データフェッチ", () => {
-    test("should fetch task data with correct parameters", async () => {
-      // Act
-      renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockUseQuery).toHaveBeenCalled();
-      });
-    });
-
-    test("should handle empty task data", async () => {
+    test.each([
+      {
+        description: "empty task data",
+        mockData: { tasks: [], totalTaskCount: 0 },
+        expectedTasks: [],
+        expectedCount: 0,
+      },
+      {
+        description: "undefined data",
+        mockData: undefined,
+        expectedTasks: [],
+        expectedCount: 0,
+      },
+    ])("should handle $description", async ({ mockData, expectedTasks, expectedCount }) => {
       // Arrange
       mockUseQuery.mockReturnValue({
-        data: {
-          tasks: [],
-          totalTaskCount: 0,
-        },
+        data: mockData,
         isPending: false,
         isLoading: false,
         isPlaceholderData: false,
@@ -269,15 +273,15 @@ describe("useMyTaskTable", () => {
         refetch: vi.fn(),
       });
 
-      // Act
+      // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
 
-      // Assert
+      // Act & Assert
       await waitFor(() => {
-        expect(result.current.tasks).toStrictEqual([]);
-        expect(result.current.totalTaskCount).toBe(0);
+        expect(result.current.tasks).toStrictEqual(expectedTasks);
+        expect(result.current.totalTaskCount).toBe(expectedCount);
       });
     });
 
@@ -298,7 +302,7 @@ describe("useMyTaskTable", () => {
         wrapper: AllTheProviders,
       });
 
-      // Assert
+      // Assert。waitForで待たない場合、isLoadingがtrueになる
       expect(result.current.isLoading).toBe(true);
     });
   });
@@ -363,6 +367,7 @@ describe("useMyTaskTable", () => {
       });
 
       // Assert
+      expect(mockUseQueryClient).toHaveBeenCalled();
       expect(mockToastSuccess).toHaveBeenCalledWith("タスクデータを更新しました");
       expect(mockRefresh).toHaveBeenCalled();
       expect(result.current.isTaskEditModalOpen).toBe(false);
@@ -372,33 +377,83 @@ describe("useMyTaskTable", () => {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("タスク編集権限", () => {
-    test("should return true when user can edit task", async () => {
+  describe("権限チェック", () => {
+    test.each([
+      {
+        description: "should return true when user can edit task",
+        functionName: "canEditTask" as const,
+        taskStatus: TaskStatus.PENDING,
+        permissionSuccess: true,
+        expectedResult: true,
+      },
+      {
+        description: "should return false when user cannot edit task due to permissions",
+        functionName: "canEditTask" as const,
+        taskStatus: TaskStatus.PENDING,
+        permissionSuccess: false,
+        expectedResult: false,
+      },
+      {
+        description: "should return false when task status is not PENDING for edit",
+        functionName: "canEditTask" as const,
+        taskStatus: TaskStatus.TASK_COMPLETED,
+        permissionSuccess: true,
+        expectedResult: false,
+      },
+      {
+        description: "should return true when user can delete task",
+        functionName: "canDeleteTask" as const,
+        taskStatus: TaskStatus.PENDING,
+        permissionSuccess: true,
+        expectedResult: true,
+      },
+      {
+        description: "should return false when user cannot delete task due to permissions",
+        functionName: "canDeleteTask" as const,
+        taskStatus: TaskStatus.PENDING,
+        permissionSuccess: false,
+        expectedResult: false,
+      },
+      {
+        description: "should return false when task status is not PENDING for delete",
+        functionName: "canDeleteTask" as const,
+        taskStatus: TaskStatus.TASK_COMPLETED,
+        permissionSuccess: true,
+        expectedResult: false,
+      },
+    ])("$description", async ({ functionName, taskStatus, permissionSuccess, expectedResult }) => {
       // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
-      const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
+      const testTask = createMockMyTaskTable({ taskStatus });
+      mockCheckIsOwner.mockResolvedValue({
+        success: permissionSuccess,
+        message: permissionSuccess ? "Permission check successfully" : "Permission check failed",
+        data: permissionSuccess,
+      });
 
       // Act
-      let canEdit = false;
+      let canPerformAction = !expectedResult; // 期待値の逆を初期値にして、確実に変更を検証
       await waitFor(async () => {
-        canEdit = await result.current.canEditTask(testTask);
+        canPerformAction = await result.current[functionName](testTask);
       });
 
       // Assert
-      expect(canEdit).toBe(true);
+      expect(canPerformAction).toBe(expectedResult);
       expect(mockCheckIsOwner).toHaveBeenCalledWith(testUser.id, testTask.groupId, testTask.id, true);
     });
 
-    test("should return false when user cannot edit task due to permissions", async () => {
+    test.each([
+      { status: TaskStatus.FIXED_EVALUATED, description: "FIXED_EVALUATED" },
+      { status: TaskStatus.POINTS_AWARDED, description: "POINTS_AWARDED" },
+      { status: TaskStatus.ARCHIVED, description: "ARCHIVED" },
+    ])("should return false when task status is immutable ($description)", async ({ status }) => {
       // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
-      const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
+      const testTask = createMockMyTaskTable({ taskStatus: status });
 
       // Act
       let canEdit = true;
@@ -408,87 +463,6 @@ describe("useMyTaskTable", () => {
 
       // Assert
       expect(canEdit).toBe(false);
-    });
-
-    test("should return false when task status is immutable", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-
-      const immutableStatuses = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED, TaskStatus.ARCHIVED];
-
-      for (const status of immutableStatuses) {
-        const testTask = createMockMyTaskTable({ taskStatus: status });
-
-        // Act
-        let canEdit = true;
-        await waitFor(async () => {
-          canEdit = await result.current.canEditTask(testTask);
-        });
-
-        // Assert
-        expect(canEdit).toBe(false);
-      }
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("タスク削除権限", () => {
-    test("should return true when user can delete task", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
-
-      // Act
-      let canDelete = false;
-      await waitFor(async () => {
-        canDelete = await result.current.canDeleteTask(testTask);
-      });
-
-      // Assert
-      expect(canDelete).toBe(true);
-      expect(mockCheckIsOwner).toHaveBeenCalledWith(testUser.id, testTask.groupId, testTask.id, true);
-    });
-
-    test("should return false when user cannot delete task due to permissions", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.PENDING });
-      mockCheckIsOwner.mockResolvedValue({ success: false, message: "Permission check failed" });
-
-      // Act
-      let canDelete = true;
-      await waitFor(async () => {
-        canDelete = await result.current.canDeleteTask(testTask);
-      });
-
-      // Assert
-      expect(canDelete).toBe(false);
-    });
-
-    test("should return false when task status is not PENDING", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const testTask = createMockMyTaskTable({ taskStatus: TaskStatus.TASK_COMPLETED });
-      mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully" });
-
-      // Act
-      let canDelete = true;
-      await waitFor(async () => {
-        canDelete = await result.current.canDeleteTask(testTask);
-      });
-
-      // Assert
-      expect(canDelete).toBe(false);
     });
   });
 
@@ -524,21 +498,32 @@ describe("useMyTaskTable", () => {
 
       // Act
       await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(taskId);
+        act(() => {
+          result.current.handleDeleteTask(taskId);
         });
       });
 
       // Assert
       expect(mockMutateAsync).toHaveBeenCalledWith(taskId);
       expect(mockToastSuccess).toHaveBeenCalledWith("タスクを削除しました");
+      expect(mockUseQueryClient).toHaveBeenCalled();
       expect(mockRefresh).toHaveBeenCalled();
     });
 
-    test("should handle delete task error", async () => {
+    test.each([
+      {
+        description: "should handle delete task error",
+        mockError: new Error("削除エラー"),
+        expectError: true,
+      },
+      {
+        description: "should handle network timeout in handleDeleteTask",
+        mockError: new Error("TIMEOUT"),
+        expectError: true,
+      },
+    ])("$description", async ({ mockError, expectError }) => {
       // Arrange
-      const error = new Error("削除エラー");
-      const mockMutateAsync = vi.fn().mockRejectedValue(error);
+      const mockMutateAsync = vi.fn().mockRejectedValue(mockError);
 
       mockUseMutation.mockReturnValue({
         mutateAsync: vi.fn().mockImplementation(async (taskId: string): Promise<{ success: boolean }> => {
@@ -552,8 +537,8 @@ describe("useMyTaskTable", () => {
         }),
         isPending: false,
         isLoading: false,
-        isError: true,
-        error: error,
+        isError: expectError,
+        error: mockError,
         reset: vi.fn(),
         data: undefined,
         mutate: vi.fn(),
@@ -570,14 +555,15 @@ describe("useMyTaskTable", () => {
 
       // Act
       await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(taskId);
+        act(() => {
+          result.current.handleDeleteTask(taskId);
         });
       });
 
       // Assert
       expect(mockMutateAsync).toHaveBeenCalledWith(taskId);
       expect(mockToastError).toHaveBeenCalledWith("タスクの削除中にエラーが発生しました");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("handleDeleteTask でエラーハンドリング:", expect.any(Error));
 
       consoleErrorSpy.mockRestore();
     });
@@ -612,8 +598,8 @@ describe("useMyTaskTable", () => {
 
       // Act
       await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(taskId);
+        act(() => {
+          result.current.handleDeleteTask(taskId);
         });
       });
 
@@ -685,12 +671,28 @@ describe("useMyTaskTable", () => {
       expect(mockSetSortDirection).toHaveBeenCalledWith("desc");
       expect(mockSetSearchQuery).toHaveBeenCalledWith(null);
     });
-  });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("フィルターとソートのリセット", () => {
-    test("should reset filters correctly", async () => {
+    test.each([
+      {
+        description: "should reset filters correctly",
+        functionName: "resetFilters" as const,
+        expectedCalls: [
+          { mock: mockSetSearchQuery, value: null },
+          { mock: mockSetTaskStatus, value: "ALL" },
+          { mock: mockSetContributionType, value: "ALL" },
+          { mock: mockSetPage, value: 1 },
+        ],
+      },
+      {
+        description: "should reset sort correctly",
+        functionName: "resetSort" as const,
+        expectedCalls: [
+          { mock: mockSetSortField, value: "id" },
+          { mock: mockSetSortDirection, value: "desc" },
+          { mock: mockSetPage, value: 1 },
+        ],
+      },
+    ])("$description", async ({ functionName, expectedCalls }) => {
       // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
@@ -699,67 +701,60 @@ describe("useMyTaskTable", () => {
       // Act
       await waitFor(() => {
         act(() => {
-          result.current.resetFilters();
+          result.current[functionName]();
         });
       });
 
       // Assert
-      expect(mockSetSearchQuery).toHaveBeenCalledWith(null);
-      expect(mockSetTaskStatus).toHaveBeenCalledWith("ALL");
-      expect(mockSetContributionType).toHaveBeenCalledWith("ALL");
-      expect(mockSetPage).toHaveBeenCalledWith(1);
-    });
-
-    test("should reset sort correctly", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
+      expectedCalls.forEach(({ mock, value }) => {
+        expect(mock).toHaveBeenCalledWith(value);
       });
-
-      // Act
-      await waitFor(() => {
-        act(() => {
-          result.current.resetSort();
-        });
-      });
-
-      // Assert
-      expect(mockSetSortField).toHaveBeenCalledWith("id");
-      expect(mockSetSortDirection).toHaveBeenCalledWith("desc");
-      expect(mockSetPage).toHaveBeenCalledWith(1);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("境界値テスト", () => {
-    test("should handle null task in canEditTask", async () => {
+    test.each([
+      {
+        description: "should handle null task in canEditTask",
+        functionName: "canEditTask" as const,
+        taskValue: null,
+        shouldThrow: true,
+      },
+      {
+        description: "should handle undefined task in canDeleteTask",
+        functionName: "canDeleteTask" as const,
+        taskValue: undefined,
+        shouldThrow: true,
+      },
+    ])("$description", async ({ functionName, taskValue, shouldThrow }) => {
       // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
-      const nullTask = null as unknown as MyTaskTable;
+      const invalidTask = taskValue as unknown as MyTaskTable;
 
       // Act & Assert
-      await waitFor(async () => {
-        await expect(result.current.canEditTask(nullTask)).rejects.toThrow();
-      });
+      if (shouldThrow) {
+        await waitFor(async () => {
+          await expect(result.current[functionName](invalidTask)).rejects.toThrow();
+        });
+      }
     });
 
-    test("should handle undefined task in canDeleteTask", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const undefinedTask = undefined as unknown as MyTaskTable;
-
-      // Act & Assert
-      await waitFor(async () => {
-        await expect(result.current.canDeleteTask(undefinedTask)).rejects.toThrow();
-      });
-    });
-
-    test("should handle empty string taskId in handleDeleteTask", async () => {
+    test.each([
+      {
+        description: "should handle empty string taskId in handleDeleteTask",
+        taskId: "",
+        expectedValue: "",
+      },
+      {
+        description: "should handle null taskId in handleDeleteTask",
+        taskId: null,
+        expectedValue: null,
+      },
+    ])("$description", async ({ taskId, expectedValue }) => {
       // Arrange
       const mockMutateAsync = vi.fn().mockResolvedValue({ success: true });
       mockUseMutation.mockReturnValue({
@@ -776,104 +771,63 @@ describe("useMyTaskTable", () => {
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
-      const emptyTaskId = "";
+      const invalidTaskId = taskId as unknown as string;
 
       // Act
       await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(emptyTaskId);
+        act(() => {
+          result.current.handleDeleteTask(invalidTaskId);
         });
       });
 
       // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith("");
+      expect(mockMutateAsync).toHaveBeenCalledWith(expectedValue);
     });
 
-    test("should handle null taskId in handleDeleteTask", async () => {
-      // Arrange
-      const mockMutateAsync = vi.fn().mockResolvedValue({ success: true });
-      mockUseMutation.mockReturnValue({
-        mutateAsync: mockMutateAsync,
-        isPending: false,
-        isLoading: false,
-        isError: false,
-        error: null,
-        reset: vi.fn(),
-        data: undefined,
-        mutate: vi.fn(),
-      });
-
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const nullTaskId = null as unknown as string;
-
-      // Act
-      await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(nullTaskId);
-        });
-      });
-
-      // Assert
-      expect(mockMutateAsync).toHaveBeenCalledWith(null);
-    });
-
-    test("should handle large page number", async () => {
+    test.each([
+      {
+        description: "should handle large page number",
+        conditionKey: "page",
+        conditionValue: 999999,
+        expectedMock: mockSetPage,
+        expectedValue: 999999,
+      },
+      {
+        description: "should handle very long search query",
+        conditionKey: "searchQuery",
+        conditionValue: "a".repeat(1000),
+        expectedMock: mockSetSearchQuery,
+        expectedValue: "a".repeat(1000),
+      },
+    ])("$description", async ({ conditionKey, conditionValue, expectedMock, expectedValue }) => {
       // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
 
-      const largePageConditions = {
+      const conditions = {
         sort: { field: "id" as keyof MyTaskTable, direction: "desc" as const },
-        page: 999999,
+        page: 1,
         searchQuery: null,
         taskStatus: "ALL" as const,
         contributionType: "ALL" as const,
         itemPerPage: 10,
+        [conditionKey]: conditionValue,
       };
 
       // Act
       await waitFor(() => {
         act(() => {
-          result.current.changeTableConditions(largePageConditions);
+          result.current.changeTableConditions(conditions);
         });
       });
 
       // Assert
-      expect(mockSetPage).toHaveBeenCalledWith(999999);
-    });
-
-    test("should handle very long search query", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-
-      const longSearchQuery = "a".repeat(1000);
-      const longSearchConditions = {
-        sort: { field: "id" as keyof MyTaskTable, direction: "desc" as const },
-        page: 1,
-        searchQuery: longSearchQuery,
-        taskStatus: "ALL" as const,
-        contributionType: "ALL" as const,
-        itemPerPage: 10,
-      };
-
-      // Act
-      await waitFor(() => {
-        act(() => {
-          result.current.changeTableConditions(longSearchConditions);
-        });
-      });
-
-      // Assert
-      expect(mockSetSearchQuery).toHaveBeenCalledWith(longSearchQuery);
+      expect(expectedMock).toHaveBeenCalledWith(expectedValue);
     });
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("異常系テスト", () => {
     test("should handle getMyTaskData error", async () => {
@@ -900,79 +854,29 @@ describe("useMyTaskTable", () => {
       });
     });
 
-    test("should handle checkIsOwner error in canEditTask", async () => {
+    test.each([
+      {
+        description: "should handle checkIsOwner error in canEditTask",
+        functionName: "canEditTask" as const,
+        errorMessage: "権限チェックエラー",
+      },
+      {
+        description: "should handle checkIsOwner error in canDeleteTask",
+        functionName: "canDeleteTask" as const,
+        errorMessage: "権限チェックエラー",
+      },
+    ])("$description", async ({ functionName, errorMessage }) => {
       // Arrange
       const { result } = renderHook(() => useMyTaskTable(), {
         wrapper: AllTheProviders,
       });
       const testTask = createMockMyTaskTable();
-      mockCheckIsOwner.mockRejectedValue(new Error("権限チェックエラー"));
+      mockCheckIsOwner.mockRejectedValue(new Error(errorMessage));
 
       // Act & Assert
       await waitFor(async () => {
-        await expect(result.current.canEditTask(testTask)).rejects.toThrow("権限チェックエラー");
+        await expect(result.current[functionName](testTask)).rejects.toThrow(errorMessage);
       });
-    });
-
-    test("should handle checkIsOwner error in canDeleteTask", async () => {
-      // Arrange
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const testTask = createMockMyTaskTable();
-      mockCheckIsOwner.mockRejectedValue(new Error("権限チェックエラー"));
-
-      // Act & Assert
-      await waitFor(async () => {
-        await expect(result.current.canDeleteTask(testTask)).rejects.toThrow("権限チェックエラー");
-      });
-    });
-
-    test("should handle network timeout in handleDeleteTask", async () => {
-      // Arrange
-      const error = new Error("TIMEOUT");
-      const mockMutateAsync = vi.fn().mockRejectedValue(error);
-
-      mockUseMutation.mockReturnValue({
-        mutateAsync: vi.fn().mockImplementation(async (taskId: string): Promise<{ success: boolean }> => {
-          try {
-            return (await mockMutateAsync(taskId)) as { success: boolean };
-          } catch (err) {
-            // onErrorコールバックを直接実行
-            mockToastError("タスクの削除中にエラーが発生しました");
-            throw err;
-          }
-        }),
-        isPending: false,
-        isLoading: false,
-        isError: true,
-        error: error,
-        reset: vi.fn(),
-        data: undefined,
-        mutate: vi.fn(),
-      });
-
-      const { result } = renderHook(() => useMyTaskTable(), {
-        wrapper: AllTheProviders,
-      });
-      const taskId = "task-1";
-
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // コンソールエラーをモック
-      });
-
-      // Act
-      await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(taskId);
-        });
-      });
-
-      // Assert
-      expect(mockToastError).toHaveBeenCalledWith("タスクの削除中にエラーが発生しました");
-      expect(consoleErrorSpy).toHaveBeenCalledWith("handleDeleteTask でエラーハンドリング:", expect.any(Error));
-
-      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -1034,8 +938,8 @@ describe("useMyTaskTable", () => {
 
       // Act & Assert - タスク削除
       await waitFor(async () => {
-        await act(async () => {
-          await result.current.handleDeleteTask(testTask.id);
+        act(() => {
+          result.current.handleDeleteTask(testTask.id);
         });
       });
       expect(mockMutateAsync).toHaveBeenCalledWith(testTask.id);

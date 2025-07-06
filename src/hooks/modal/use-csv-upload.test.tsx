@@ -259,7 +259,11 @@ describe("useCsvUpload", () => {
   describe("権限チェック", () => {
     test("should check permissions when modal opens", async () => {
       const { checkIsPermission: checkIsOwner } = await import("@/actions/permission/permission");
-      vi.mocked(checkIsOwner).mockResolvedValue({ success: true, message: "Permission check successfully" });
+      vi.mocked(checkIsOwner).mockResolvedValue({
+        success: true,
+        message: "Permission check successfully",
+        data: true,
+      });
 
       renderHook(() => useCsvUpload(defaultProps));
 
@@ -270,7 +274,11 @@ describe("useCsvUpload", () => {
 
     test("should handle permission check success", async () => {
       const { checkIsPermission: checkIsOwner } = await import("@/actions/permission/permission");
-      vi.mocked(checkIsOwner).mockResolvedValue({ success: true, message: "Permission check successfully" });
+      vi.mocked(checkIsOwner).mockResolvedValue({
+        success: true,
+        message: "Permission check successfully",
+        data: true,
+      });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
 
@@ -281,7 +289,7 @@ describe("useCsvUpload", () => {
 
     test("should handle permission check failure", async () => {
       const { checkIsPermission: checkIsOwner } = await import("@/actions/permission/permission");
-      vi.mocked(checkIsOwner).mockResolvedValue({ success: false, message: "Permission check failed" });
+      vi.mocked(checkIsOwner).mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
 
@@ -342,7 +350,11 @@ describe("useCsvUpload", () => {
 
     test("should return isAuthorized for FIXED_CONTRIBUTION type when authorized", async () => {
       const { checkIsPermission: checkIsOwner } = await import("@/actions/permission/permission");
-      vi.mocked(checkIsOwner).mockResolvedValue({ success: true, message: "Permission check successfully" });
+      vi.mocked(checkIsOwner).mockResolvedValue({
+        success: true,
+        message: "Permission check successfully",
+        data: true,
+      });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
 
@@ -353,7 +365,7 @@ describe("useCsvUpload", () => {
 
     test("should return false for FIXED_CONTRIBUTION type when not authorized", async () => {
       const { checkIsPermission: checkIsOwner } = await import("@/actions/permission/permission");
-      vi.mocked(checkIsOwner).mockResolvedValue({ success: false, message: "Permission check failed" });
+      vi.mocked(checkIsOwner).mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
 
@@ -799,7 +811,7 @@ describe("パフォーマンステスト", () => {
 describe("統合テスト", () => {
   test("should work with all upload types in sequence", async () => {
     const { checkIsPermission: checkIsOwner } = await import("@/actions/permission/permission");
-    vi.mocked(checkIsOwner).mockResolvedValue({ success: true, message: "Permission check successfully" });
+    vi.mocked(checkIsOwner).mockResolvedValue({ success: true, message: "Permission check successfully", data: true });
 
     const { result } = renderHook(() =>
       useCsvUpload({

@@ -330,7 +330,11 @@ describe("my-group.ts", () => {
     describe("正常系", () => {
       test("should leave group successfully", async () => {
         // Arrange
-        mockCheckGroupMembership.mockResolvedValue(testGroupMembership1);
+        mockCheckGroupMembership.mockResolvedValue({
+          success: true,
+          message: "グループメンバーシップを取得しました",
+          data: { id: testGroupMembership1.id, isGroupOwner: testGroupMembership1.isGroupOwner },
+        });
         prismaMock.groupMembership.delete.mockResolvedValue(testGroupMembership1);
 
         // Act
@@ -367,7 +371,11 @@ describe("my-group.ts", () => {
         [
           "user is not a member",
           () => {
-            mockCheckGroupMembership.mockResolvedValue(null);
+            mockCheckGroupMembership.mockResolvedValue({
+              success: false,
+              message: "グループメンバーシップが存在しません",
+              data: null,
+            });
           },
           { success: false, message: "グループから脱退中にエラーが発生しました: グループに参加していません" },
           false,
@@ -383,7 +391,11 @@ describe("my-group.ts", () => {
         [
           "database delete failure",
           () => {
-            mockCheckGroupMembership.mockResolvedValue(testGroupMembership1);
+            mockCheckGroupMembership.mockResolvedValue({
+              success: true,
+              message: "グループメンバーシップを取得しました",
+              data: { id: testGroupMembership1.id, isGroupOwner: testGroupMembership1.isGroupOwner },
+            });
             setupDatabaseError("delete");
           },
           { success: false, message: "グループから脱退中にエラーが発生しました: Database error" },

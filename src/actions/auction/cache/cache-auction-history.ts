@@ -4,6 +4,7 @@ import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { unstable_cacheTag as cacheTag } from "next/cache";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -12,7 +13,9 @@ import { prisma } from "@/library-setting/prisma";
  * @param auctionId 出品商品のID
  * @returns 出品商品の詳細
  */
-export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): Promise<AuctionHistoryCreatedDetail> {
+export async function getCachedAuctionHistoryCreatedDetail(
+  auctionId: string,
+): PromiseResult<AuctionHistoryCreatedDetail> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -104,5 +107,5 @@ export async function getCachedAuctionHistoryCreatedDetail(auctionId: string): P
   /**
    * 出品商品の詳細を返却
    */
-  return auction;
+  return { success: true, message: "出品商品の詳細を取得しました", data: auction };
 }

@@ -31,6 +31,8 @@ describe("completeTaskDelivery", () => {
       // 結果の検証
       expect(result).toStrictEqual({
         success: true,
+        message: "タスク完了処理に成功しました",
+        data: null,
         error: null,
       });
 
@@ -60,6 +62,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: true,
+        message: "タスク完了処理に成功しました",
+        data: null,
         error: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
@@ -86,6 +90,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: true,
+        message: "タスク完了処理に成功しました",
+        data: null,
         error: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
@@ -113,7 +119,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Record to update not found",
+        data: null,
+        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Record to update not found",
       });
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
@@ -138,7 +145,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Database connection failed",
+        data: null,
+        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Database connection failed",
       });
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
@@ -155,7 +163,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Unique constraint failed",
+        data: null,
+        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Unique constraint failed",
       });
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
@@ -172,6 +181,7 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
+        data: null,
         error:
           "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
       });
@@ -194,7 +204,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: true,
-        error: null,
+        message: "タスク完了処理に成功しました",
+        data: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
         where: {
@@ -220,7 +231,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: true,
-        error: null,
+        message: "タスク完了処理に成功しました",
+        data: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
         where: {
@@ -246,7 +258,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: true,
-        error: null,
+        message: "タスク完了処理に成功しました",
+        data: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
         where: {
@@ -278,7 +291,8 @@ describe("completeTaskDelivery", () => {
         results.forEach((result) => {
           expect(result).toStrictEqual({
             success: true,
-            error: null,
+            message: "タスク完了処理に成功しました",
+            data: null,
           });
         });
 
@@ -297,7 +311,8 @@ describe("completeTaskDelivery", () => {
 
         expect(result).toStrictEqual({
           success: false,
-          error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Operation timed out",
+          data: null,
+          message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Operation timed out",
         });
 
         expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
@@ -321,8 +336,8 @@ describe("completeTaskDelivery", () => {
         expect(typeof result).toBe("object");
         expect(typeof result.success).toBe("boolean");
         expect(result.success).toBe(true);
-        expect(result.error).toBeNull();
-        expect(Object.keys(result)).toStrictEqual(["success", "error"]);
+        expect(result.data).toBeNull();
+        expect(Object.keys(result)).toStrictEqual(["success", "message", "data"]);
       });
 
       test("should return error field in success case", async () => {
@@ -339,10 +354,11 @@ describe("completeTaskDelivery", () => {
 
         expect(result).toStrictEqual({
           success: true,
-          error: null,
+          message: "タスク完了処理に成功しました",
+          data: null,
         });
-        expect("error" in result).toBe(true);
-        expect(result.error).toBeNull();
+        expect("data" in result).toBe(true);
+        expect(result.data).toBeNull();
       });
     });
   });
@@ -354,7 +370,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error:
+        data: null,
+        message:
           "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
       });
 
@@ -367,6 +384,7 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
+        data: null,
         error:
           "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
       });
@@ -385,7 +403,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
+        data: null,
+        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
       });
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
@@ -401,7 +420,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
+        data: null,
+        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
       });
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
@@ -417,7 +437,8 @@ describe("completeTaskDelivery", () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
+        data: null,
+        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
       });
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);

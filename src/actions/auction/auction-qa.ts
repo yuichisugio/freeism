@@ -2,6 +2,7 @@
 
 import { revalidateTag } from "next/cache";
 import { sendAuctionNotification } from "@/actions/notification/auction-notification";
+import { messageFormSchema } from "@/hooks/auction/bid/use-auction-qa";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
 import { AuctionEventType, NotificationSendMethod, NotificationSendTiming } from "@prisma/client";
@@ -105,7 +106,7 @@ export async function sendAuctionMessage(
       throw new Error("パラメータが不正です");
     }
 
-    if (message.trim() === "") {
+    if (message.trim() === "" || !messageFormSchema.safeParse({ message: message }).success) {
       throw new Error("メッセージが空です");
     }
 

@@ -62,7 +62,7 @@ describe("bulkUpdateTaskStatus", () => {
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
-    mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+    mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully", data: true });
   });
 
   describe("正常系", () => {
@@ -178,7 +178,7 @@ describe("bulkUpdateTaskStatus", () => {
       prismaMock.task.findUnique.mockResolvedValue(
         task as unknown as Awaited<ReturnType<typeof prismaMock.task.findUnique>>,
       );
-      mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed" });
+      mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
       // Act
       const result = await bulkUpdateTaskStatus([{ taskId: "task-1", status: TaskStatus.PENDING }], testUserId);

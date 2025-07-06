@@ -735,7 +735,7 @@ describe("bid-common.test.ts", () => {
         mockProcessAutoBid.mockResolvedValue({
           success: true,
           message: "自動入札が実行されました",
-          autoBid: {
+          data: {
             id: "auto-bid-1",
             maxBidAmount: 200,
             bidIncrement: 10,

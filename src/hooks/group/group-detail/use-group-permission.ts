@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { getGroupMembers } from "@/actions/group/group";
 import { checkIsPermission, grantOwnerPermission } from "@/actions/permission/permission";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -63,13 +63,6 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * クエリクライアント
-   */
-  const queryClient = useQueryClient();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * state
    */
   // 権限付与ダイアログ
@@ -120,11 +113,13 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   /**
    * グループメンバーの取得
    */
-  const { data: groupMembers = [], refetch: refetchGroupMembers } = useQuery<GetGroupMembers[], Error>({
+  const { data: groupMembers, refetch: refetchGroupMembers } = useQuery({
     queryKey: queryCacheKeys.permission.members(groupId),
     queryFn: async () => await getGroupMembers(groupId),
-    enabled: false,
+    enabled: !!groupId,
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 60 * 24, // 24時間
+    gcTime: 1000 * 60 * 60 * 24, // 24時間
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -160,22 +155,17 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
     },
     onSuccess: async (result) => {
       if (result.success) {
-        toast.success("権限を付与しました");
         setShowPermissionDialog(false);
         setSelectedUserId(null);
         setSelectedUserName(null);
         setIsComboboxOpen(false);
-        // グループオーナー権限とメンバーリストのキャッシュを無効化して再取得
-        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.permission.groupOwner(groupId, userId) });
-        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.permission.members(groupId) });
-        // router.refresh();
-      } else if (result.message) {
-        toast.error(result.message);
       }
     },
-    onError: (error) => {
-      toast.error(error.message || "エラーが発生しました");
-      console.error(error);
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.permission.groupOwner(groupId, userId), exact: true },
+        { queryKey: queryCacheKeys.permission.members(groupId), exact: true },
+      ],
     },
   });
 
@@ -204,7 +194,7 @@ export function useGroupPermission({ groupId }: UseGroupPermissionProps): UseGro
   return {
     // state
     isOwner: isOwner?.success ?? false,
-    groupMembers,
+    groupMembers: groupMembers?.data ?? [],
     showPermissionDialog,
     selectedUserId,
     selectedUserName,

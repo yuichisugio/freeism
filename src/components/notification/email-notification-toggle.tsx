@@ -6,9 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -29,19 +28,11 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   /**
    * メール通知設定の更新
    */
-  const queryClient = useQueryClient();
   const { mutate, variables, isPending } = useMutation({
     mutationFn: async (isEmailEnabled: boolean) =>
       await updateUserSettingToggle({ userId, isEnabled: isEmailEnabled, column: "isEmailEnabled" }),
-    onSuccess: () => {
-      toast.success("メール通知設定を更新しました。");
-    },
-    onError: (error: Error) => {
-      toast.error(`メール通知設定の更新に失敗しました`);
-      console.error("メール通知設定の更新に失敗しました:", error);
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId), exact: true }],
     },
   });
 

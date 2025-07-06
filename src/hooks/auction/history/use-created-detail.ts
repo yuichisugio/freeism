@@ -1,6 +1,5 @@
 "use client";
 
-import type { AuctionHistoryCreatedDetail } from "@/types/auction-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -9,10 +8,9 @@ import {
   updateDeliveryMethod,
 } from "@/actions/auction/created-detail";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
-import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -50,13 +48,6 @@ export function useCreatedDetail(auctionId: string) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 初期化
-   */
-  const queryClient = useQueryClient();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * state
    */
   const [deliveryMethod, setDeliveryMethod] = useState("");
@@ -81,18 +72,20 @@ export function useCreatedDetail(auctionId: string) {
     data: auction,
     isPending: isAuctionQueryPending,
     error: auctionError,
-  } = useQuery<AuctionHistoryCreatedDetail | null>({
+  } = useQuery({
     queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
     queryFn: async () => {
       return await getAuctionHistoryCreatedDetail(auctionId);
     },
     enabled: auctionQueryEnabled,
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
   });
 
   // auction データが変更されたら deliveryMethod を更新
   useEffect(() => {
-    if (auction?.task && typeof auction.task.deliveryMethod === "string") {
-      setDeliveryMethod(auction.task.deliveryMethod);
+    if (auction?.data && typeof auction.data.task.deliveryMethod === "string") {
+      setDeliveryMethod(auction.data.task.deliveryMethod);
     }
   }, [auction]);
 
@@ -107,22 +100,13 @@ export function useCreatedDetail(auctionId: string) {
     error: completeError,
   } = useMutation({
     mutationFn: () => {
-      return completeTaskDelivery(auction?.task.id ?? "", userId);
+      return completeTaskDelivery(auction?.data.task.id ?? "", userId);
     },
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success("商品の提供を完了しました");
-        void queryClient.invalidateQueries({
-          queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId),
-        });
-        router.refresh();
-      } else {
-        toast.error(result.error ?? "商品の提供を完了に失敗しました");
-      }
+    onSuccess: () => {
+      router.refresh();
     },
-    onError: (error: Error) => {
-      console.error("完了処理に失敗しました", error);
-      toast.error(error.message || "完了処理に失敗しました");
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId), exact: true }],
     },
   });
 
@@ -137,19 +121,18 @@ export function useCreatedDetail(auctionId: string) {
     error: updateDeliveryMethodError,
   } = useMutation({
     mutationFn: (newDeliveryMethod: string) => {
-      return updateDeliveryMethod(auction?.task.id ?? "", newDeliveryMethod, userId);
+      return updateDeliveryMethod(auction?.data.task.id ?? "", newDeliveryMethod, userId);
     },
     onSuccess: (_, newDeliveryMethod) => {
-      toast.success("提供方法を更新しました");
       setIsEditingDelivery(false);
       setDeliveryMethod(newDeliveryMethod);
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId) });
-      void queryClient.invalidateQueries({ queryKey: queryCacheKeys.tasks.all() });
       router.refresh();
     },
-    onError: (error: Error) => {
-      console.error("提供方法の更新に失敗しました", error);
-      toast.error(error.message || "提供方法の更新に失敗しました");
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.auction.historyCreatedDetail(userId, auctionId), exact: true },
+        { queryKey: queryCacheKeys.tasks.all(), exact: true },
+      ],
     },
   });
 
@@ -160,8 +143,8 @@ export function useCreatedDetail(auctionId: string) {
    */
   const cancelEditingDelivery = useCallback(() => {
     setIsEditingDelivery(false);
-    if (auction?.task && typeof auction.task.deliveryMethod === "string") {
-      setDeliveryMethod(auction.task.deliveryMethod);
+    if (auction?.data && typeof auction.data.task.deliveryMethod === "string") {
+      setDeliveryMethod(auction.data.task.deliveryMethod);
     }
   }, [auction]);
 

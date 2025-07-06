@@ -125,6 +125,7 @@ describe("edit-task-modal.ts", () => {
         >);
         mockCheckIsPermission.mockResolvedValue({
           success: true,
+          data: true,
           message: "Permission check successfully",
         });
         prismaMock.$transaction.mockImplementation(async (callback) => {
@@ -143,6 +144,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
+          data: true,
           message: "タスクが更新されました",
         });
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
@@ -179,6 +181,7 @@ describe("edit-task-modal.ts", () => {
         >);
         mockCheckIsPermission.mockResolvedValue({
           success: true,
+          data: true,
           message: "Permission check successfully",
         });
         prismaMock.$transaction.mockImplementation(async (callback) => {
@@ -193,6 +196,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
+          data: true,
           message: "タスクが更新されました",
         });
         expect(prismaMock.taskReporter.deleteMany).not.toHaveBeenCalled();
@@ -215,6 +219,7 @@ describe("edit-task-modal.ts", () => {
             ReturnType<typeof prismaMock.task.findUnique>
           >);
           mockCheckIsPermission.mockResolvedValue({
+            data: true,
             success: true,
             message: "Permission check successfully",
           });
@@ -235,6 +240,7 @@ describe("edit-task-modal.ts", () => {
           // Assert
           expect(result).toStrictEqual({
             success: true,
+            data: true,
             message: "タスクが更新されました",
           });
           expect(prismaMock.auction.create).toHaveBeenCalledWith({
@@ -269,6 +275,7 @@ describe("edit-task-modal.ts", () => {
             ReturnType<typeof prismaMock.task.findUnique>
           >);
           mockCheckIsPermission.mockResolvedValue({
+            data: true,
             success: true,
             message: "Permission check successfully",
           });
@@ -291,6 +298,7 @@ describe("edit-task-modal.ts", () => {
           // Assert
           expect(result).toStrictEqual({
             success: true,
+            data: true,
             message: "タスクが更新されました",
           });
           expect(prismaMock.bidHistory.findFirst).toHaveBeenCalledWith({
@@ -319,6 +327,7 @@ describe("edit-task-modal.ts", () => {
             ReturnType<typeof prismaMock.task.findUnique>
           >);
           mockCheckIsPermission.mockResolvedValue({
+            data: true,
             success: true,
             message: "Permission check successfully",
           });
@@ -346,6 +355,7 @@ describe("edit-task-modal.ts", () => {
           // Assert
           expect(result).toStrictEqual({
             success: true,
+            data: true,
             message: "タスクが更新されました",
           });
           expect(prismaMock.bidHistory.findFirst).toHaveBeenCalledWith({
@@ -374,6 +384,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "タスクIDが指定されていません",
         });
       });
@@ -391,6 +402,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "更新対象のタスクが見つかりません",
         });
         expect(mockCheckIsPermission).not.toHaveBeenCalled();
@@ -410,6 +422,7 @@ describe("edit-task-modal.ts", () => {
           ReturnType<typeof prismaMock.task.findUnique>
         >);
         mockCheckIsPermission.mockResolvedValue({
+          data: true,
           success: false,
           message: "Permission check failed",
         });
@@ -420,6 +433,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "Permission check failed",
         });
         expect(prismaMock.$transaction).not.toHaveBeenCalled();
@@ -437,7 +451,11 @@ describe("edit-task-modal.ts", () => {
         prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as Awaited<
           ReturnType<typeof prismaMock.task.findUnique>
         >);
-        mockCheckIsPermission.mockResolvedValue({ success: true, message: "Permission check successfully" });
+        mockCheckIsPermission.mockResolvedValue({
+          success: true,
+          message: "Permission check successfully",
+          data: true,
+        });
         prismaMock.$transaction.mockRejectedValue(new Error("データベースエラー"));
 
         // Act
@@ -446,6 +464,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "データベースエラー",
         });
       });
@@ -512,8 +531,8 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
+          data: mockTaskData,
           message: "タスクが取得されました",
-          task: mockTaskData,
         });
 
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
@@ -609,7 +628,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result.success).toBe(true);
         expect(result.message).toBe("タスクが取得されました");
-        expect(result.task?.auction).toBeNull();
+        expect(result.data?.auction).toBeNull();
       });
     });
 
@@ -626,8 +645,8 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "タスクが見つかりません",
-          task: null,
         });
       });
 
@@ -642,8 +661,8 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "データベースエラー",
-          task: null,
         });
       });
 
@@ -654,8 +673,8 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "タスクIDが指定されていません",
-          task: null,
         });
       });
     });

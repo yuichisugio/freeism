@@ -1,3 +1,4 @@
+import type { TaskDetailWithRelations } from "@/actions/task/edit-task-modal";
 import type { TaskParticipant } from "@/types/group-types";
 import type { UseQueryOptions } from "@tanstack/react-query";
 import { getTaskById, updateTaskAction } from "@/actions/task/edit-task-modal";
@@ -174,11 +175,12 @@ describe("useTaskEditModal", () => {
     vi.mocked(getTaskById).mockResolvedValue({
       success: false,
       message: "タスクが見つかりません",
-      task: null,
+      data: {} as TaskDetailWithRelations,
     });
     vi.mocked(updateTaskAction).mockResolvedValue({
       success: false,
       message: "更新に失敗しました",
+      data: null,
     });
   });
 
@@ -499,7 +501,7 @@ describe("useTaskEditModal", () => {
       vi.mocked(getTaskById).mockResolvedValue({
         success: false,
         message: "タスクが見つかりません",
-        task: null,
+        data: {} as TaskDetailWithRelations,
       });
 
       const props = createDefaultProps();
@@ -806,7 +808,7 @@ describe("useTaskEditModal", () => {
       vi.mocked(getTaskById).mockResolvedValue({
         success: true,
         message: "タスクが取得されました",
-        task: mockTask,
+        data: mockTask,
       });
 
       const props = createDefaultProps();

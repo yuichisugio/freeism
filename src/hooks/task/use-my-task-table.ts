@@ -1,6 +1,7 @@
 "use client";
 
 import type { MyTaskTable, MyTaskTableConditions } from "@/types/group-types";
+import type { ContributionType } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { checkIsPermission } from "@/actions/permission/permission";
@@ -8,7 +9,7 @@ import { getMyTaskData } from "@/actions/task/my-task-table";
 import { deleteTask as deleteTaskAction } from "@/actions/task/task";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { type ContributionType, type TaskStatus } from "@prisma/client";
+import { TaskStatus } from "@prisma/client";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
@@ -29,18 +30,26 @@ type UseMyTaskTableReturn = {
   editingTaskId: string | null;
   isTaskEditModalOpen: boolean;
   router: ReturnType<typeof useRouter>;
+  errorMessage: string | undefined;
 
   // functions
   canEditTask: (task: MyTaskTable) => Promise<boolean>;
   handleTaskEdited: () => void;
   canDeleteTask: (task: MyTaskTable) => Promise<boolean>;
-  handleDeleteTask: (taskId: string) => Promise<void>;
+  handleDeleteTask: (taskId: string) => void;
   openTaskEditModal: (task: MyTaskTable) => void;
   closeTaskEditModal: () => void;
   changeTableConditions: (newTableConditions: MyTaskTableConditions) => void;
   resetFilters: () => void;
   resetSort: () => void;
 };
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * タスクデータの型
+ */
+type TasksQueryResult = Awaited<ReturnType<typeof getMyTaskData>>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -123,12 +132,11 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   /**
    * データフェッチ
    */
-  type TasksQueryResult = Awaited<ReturnType<typeof getMyTaskData>>;
-
   const {
     data: tasksResult,
     isPending: isLoadingTasks,
     isPlaceholderData,
+    error,
   } = useQuery({
     queryKey: queryCacheKeys.table.myTaskConditions(tableConditions, currentUserId),
     queryFn: async () => await getMyTaskData(tableConditions, currentUserId),
@@ -178,8 +186,10 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   const canEditTask = useCallback(
     async (task: MyTaskTable): Promise<boolean> => {
       const status = task.taskStatus;
-      const immutableStatuses = ["FIXED_EVALUATED", "POINTS_AWARDED", "ARCHIVED"];
-      if (immutableStatuses.includes(status as string)) return false; // taskStatusがenumなのでstringにキャスト
+      const immutableStatuses = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED, TaskStatus.ARCHIVED];
+      if (immutableStatuses.includes(status as (typeof immutableStatuses)[number])) return false;
+
+      if (task.isGroupOwner) return true;
 
       const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
 
@@ -193,16 +203,13 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   /**
    * タスク削除
    */
-  const { mutateAsync: deleteTaskMutateAsync, isPending: isDeletingTask } = useMutation({
+  const { mutate: deleteTaskMutate, isPending: isDeletingTask } = useMutation({
     mutationFn: (taskId: string) => deleteTaskAction(taskId, currentUserId),
     onSuccess: async () => {
-      toast.success("タスクを削除しました");
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myTask(), exact: false });
       router.refresh();
     },
-    onError: (error) => {
-      console.error("タスク削除エラー:", error);
-      toast.error("タスクの削除中にエラーが発生しました");
+    meta: {
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.table.myTask(), exact: false }],
     },
   });
 
@@ -211,26 +218,12 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   /**
    * タスク削除
    */
-  const handleDeleteTask = useCallback(
-    async (taskId: string): Promise<void> => {
-      try {
-        await deleteTaskMutateAsync(taskId);
-      } catch (error) {
-        console.error("handleDeleteTask でエラーハンドリング:", error);
-      }
-    },
-    [deleteTaskMutateAsync],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク削除
-   */
   const canDeleteTask = useCallback(
     async (task: MyTaskTable): Promise<boolean> => {
+      if (task.isGroupOwner && task.taskStatus === TaskStatus.PENDING) return true;
+
       const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
-      return isOwner.success && task.taskStatus === "PENDING";
+      return isOwner.success && task.taskStatus === TaskStatus.PENDING;
     },
     [currentUserId],
   );
@@ -241,8 +234,8 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * タスク編集
    */
   const handleTaskEdited = useCallback(() => {
-    toast.success("タスクデータを更新しました");
     void queryClient.invalidateQueries({ queryKey: queryCacheKeys.table.myTask(), exact: false });
+    toast.success("タスクデータを更新しました");
     router.refresh();
     setIsTaskEditModalOpen(false);
     setEditingTaskId(null);
@@ -279,18 +272,10 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 認証リダイレクト
-   */
-  if (!currentUserId && typeof window !== "undefined") {
-    redirect("/auth/signin");
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 戻り値
    */
   return {
+    // state
     isLoading: isLoadingTasks || isDeletingTask || isPlaceholderData,
     tasks: tasksResult?.tasks ?? [],
     userId: currentUserId ?? null,
@@ -299,11 +284,13 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     editingTaskId,
     isTaskEditModalOpen,
     router,
+    errorMessage: error?.message,
 
+    // functions
     canEditTask,
     handleTaskEdited,
     canDeleteTask,
-    handleDeleteTask,
+    handleDeleteTask: deleteTaskMutate,
     openTaskEditModal: (task: MyTaskTable) => {
       setEditingTaskId(task.id);
       setIsTaskEditModalOpen(true);

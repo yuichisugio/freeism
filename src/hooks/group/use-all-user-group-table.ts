@@ -9,7 +9,6 @@ import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
-import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -126,7 +125,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     placeholderData: keepPreviousData, // 前のデータを保持して、新しいデータが取得されるまで表示。Loading状態を表示しないことで、チラつきをなくす
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
-    enabled: !!tableConditions,
+    enabled: !!tableConditions && !!userId,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -140,7 +139,7 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
       await getAllUserGroupsCount(tableConditions.searchQuery ?? "", tableConditions.isJoined, userId),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
-    enabled: !!tableConditions,
+    enabled: !!tableConditions && !!userId,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -185,17 +184,11 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   const { mutate: handleJoin, isPending: isJoinLoading } = useMutation({
     mutationFn: async (groupId: string) => await joinGroup(groupId),
-    onSuccess: () => {
-      toast.success("グループに参加しました");
-    },
-    onError: () => {
-      toast.error("エラーが発生しました");
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.table.allGroupConditions(tableConditions, userId),
-      }); //TableConditionsの条件関係なしに、全てのキャッシュを無効化
-      await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId ?? "") });
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.table.allGroupConditions(tableConditions, userId), exact: true },
+        { queryKey: queryCacheKeys.users.joinedGroupIds(userId ?? ""), exact: true },
+      ],
     },
   });
 

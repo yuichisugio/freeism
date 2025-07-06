@@ -39,7 +39,6 @@ describe("useAutoBid", () => {
   // モック関数
   const mockInvalidateQueries = vi.fn();
   const mockMutate = vi.fn();
-  const mockMutateAsync = vi.fn();
 
   beforeEach(() => {
     // 各テスト前にモックをリセット
@@ -72,7 +71,6 @@ describe("useAutoBid", () => {
     // デフォルトのuseMutationモック設定
     mockUseMutation.mockReturnValue({
       mutate: mockMutate,
-      mutateAsync: mockMutateAsync,
       isPending: false,
       error: null,
     });
@@ -254,7 +252,6 @@ describe("useAutoBid", () => {
       // useMutationのモックを設定（setupAutoBidMutate用）
       mockUseMutation.mockReturnValueOnce({
         mutate: mockMutate,
-        mutateAsync: mockMutateAsync,
         isPending: false,
         error: null,
       });
@@ -311,7 +308,6 @@ describe("useAutoBid", () => {
       // Arrange
       mockUseMutation.mockReturnValueOnce({
         mutate: mockMutate,
-        mutateAsync: mockMutateAsync,
         isPending: true, // ローディング状態
         error: null,
       });
@@ -331,7 +327,6 @@ describe("useAutoBid", () => {
       const mockError = new Error("設定エラー");
       mockUseMutation.mockReturnValueOnce({
         mutate: mockMutate,
-        mutateAsync: mockMutateAsync,
         isPending: false,
         error: mockError,
       });
@@ -355,13 +350,11 @@ describe("useAutoBid", () => {
       mockUseMutation
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: mockMutateAsync,
           isPending: false,
           error: null,
         })
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: vi.fn().mockResolvedValue({ success: true }),
           isPending: false,
           error: null,
         });
@@ -372,13 +365,10 @@ describe("useAutoBid", () => {
       );
 
       // Act
-      let cancelResult: boolean;
-      await act(async () => {
-        cancelResult = await result.current.cancelAutoBidding();
-      });
+      result.current.cancelAutoBidding();
 
       // Assert
-      expect(cancelResult!).toBe(true);
+      expect(mockMutate).toHaveBeenCalled();
     });
 
     test("should handle cancel auto bid failure", async () => {
@@ -386,13 +376,11 @@ describe("useAutoBid", () => {
       mockUseMutation
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: mockMutateAsync,
           isPending: false,
           error: null,
         })
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: vi.fn().mockResolvedValue({ success: false }),
           isPending: false,
           error: null,
         });
@@ -403,13 +391,10 @@ describe("useAutoBid", () => {
       );
 
       // Act
-      let cancelResult: boolean;
-      await act(async () => {
-        cancelResult = await result.current.cancelAutoBidding();
-      });
+      result.current.cancelAutoBidding();
 
       // Assert
-      expect(cancelResult!).toBe(false);
+      expect(mockMutate).toHaveBeenCalled();
     });
 
     test("should handle cancel auto bid error", async () => {
@@ -417,13 +402,11 @@ describe("useAutoBid", () => {
       mockUseMutation
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: mockMutateAsync,
           isPending: false,
           error: null,
         })
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: vi.fn().mockRejectedValue(new Error("取り消しエラー")),
           isPending: false,
           error: null,
         });
@@ -434,13 +417,10 @@ describe("useAutoBid", () => {
       );
 
       // Act
-      let cancelResult: boolean;
-      await act(async () => {
-        cancelResult = await result.current.cancelAutoBidding();
-      });
+      result.current.cancelAutoBidding();
 
       // Assert
-      expect(cancelResult!).toBe(false);
+      expect(mockMutate).toHaveBeenCalled();
     });
 
     test("should handle cancel auto bid loading state", () => {
@@ -448,13 +428,11 @@ describe("useAutoBid", () => {
       mockUseMutation
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: mockMutateAsync,
           isPending: false,
           error: null,
         })
         .mockReturnValueOnce({
           mutate: mockMutate,
-          mutateAsync: mockMutateAsync,
           isPending: true, // ローディング状態
           error: null,
         });
@@ -758,7 +736,6 @@ describe("useAutoBid", () => {
 
       mockUseMutation.mockReturnValue({
         mutate: mockMutate,
-        mutateAsync: mockMutateAsync,
         isPending: false,
         error: mutationError,
       });
@@ -785,7 +762,6 @@ describe("useAutoBid", () => {
 
       mockUseMutation.mockReturnValue({
         mutate: mockMutate,
-        mutateAsync: mockMutateAsync,
         isPending: false,
         error: mutationError,
       });
@@ -816,7 +792,6 @@ describe("useAutoBid", () => {
 
       mockUseMutation.mockReturnValue({
         mutate: mockMutate,
-        mutateAsync: mockMutateAsync,
         isPending: false,
         error: null,
       });

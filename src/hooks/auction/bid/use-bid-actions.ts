@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { executeBid } from "@/actions/auction/bid/bid-common";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -19,7 +19,7 @@ type UseBidActionsResult = {
   setBidAmount: React.Dispatch<React.SetStateAction<number>>;
   incrementBid: () => void;
   decrementBid: () => void;
-  onSubmit: (bidRequest: BidRequest) => Promise<BidResponse>;
+  onSubmit: (bidRequest: BidRequest) => void;
 };
 
 /**
@@ -29,14 +29,6 @@ type BidRequest = {
   auctionId: string;
   amount: number;
   isAutoBid: boolean;
-};
-
-/**
- * 入札レスポンスの型
- */
-type BidResponse = {
-  success: boolean;
-  message: string;
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -50,9 +42,6 @@ type BidResponse = {
 export function useBidActions(auctionId: string, currentHighestBid: number): UseBidActionsResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // TanStack Query クライアント
-  const queryClient = useQueryClient();
-
   // 入札額を管理するuseState
   const [bidAmount, setBidAmount] = useState(currentHighestBid + 1);
 
@@ -65,11 +54,11 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
    * TanStack Query v5 の useMutation を使用した入札処理
    */
   const {
-    mutateAsync: placeBidMutation,
+    mutate: placeBidMutation,
     isPending: submitting,
     reset: resetMutation,
     error,
-  } = useMutation<BidResponse, Error, BidRequest>({
+  } = useMutation({
     onMutate: () => {
       resetMutation();
     },
@@ -81,46 +70,18 @@ export function useBidActions(auctionId: string, currentHighestBid: number): Use
           message: "入札額が最低入札額未満です",
         };
       }
-
-      const result = await executeBid(bidRequest.auctionId, bidRequest.amount, bidRequest.isAutoBid);
-      if (!result.success) {
-        throw new Error(result.message ?? "入札に失敗しました");
-      }
-
-      return result;
+      return await executeBid(bidRequest.auctionId, bidRequest.amount, bidRequest.isAutoBid);
     },
-    onSuccess: (data: BidResponse) => {
-      // 関連するキャッシュを無効化
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.auction.detail(auctionId),
-        exact: false,
-      });
-
-      // 入札履歴関連のクエリも無効化
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.auction.history(),
-        exact: false,
-      });
-
-      // 入札関連のクエリも無効化
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.auction.bid(auctionId),
-        exact: false,
-      });
-
-      // 警告メッセージがある場合は設定、そうでなければ成功メッセージ
-      if (data.message) {
-        toast.warning(data.message);
-      } else {
-        toast.success("入札が完了しました");
-      }
-
+    onSuccess: () => {
       // 入札成功後、前回の入札額に1ポイント加算した金額を入札額に設定
       setBidAmount(bidAmount + 1);
     },
-    onError: (error: Error) => {
-      console.error("src/hooks/auction/bid/use-bid-actions.ts_onError:", error);
-      toast.error(error.message || "入札処理中にエラーが発生しました");
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.auction.detail(auctionId), exact: false },
+        { queryKey: queryCacheKeys.auction.history(), exact: false },
+        { queryKey: queryCacheKeys.auction.bid(auctionId), exact: false },
+      ],
     },
   });
 

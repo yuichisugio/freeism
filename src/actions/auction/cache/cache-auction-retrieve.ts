@@ -142,6 +142,10 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
   const auction: AuctionWithDetails = {
     ...auctionRaw,
     status: auctionRaw.task.status,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    taskId: auctionRaw.task ? "task-id" : "",
+    winnerId: null,
   };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

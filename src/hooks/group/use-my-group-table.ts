@@ -8,7 +8,6 @@ import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
-import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -141,7 +140,7 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
     // 現在のページ数
     const currentPage = tableConditions.page;
     // 総ページ数
-    const totalPages = Math.ceil((userJoinGroupCount ?? 0) / tableConditions.itemPerPage);
+    const totalPages = Math.ceil((userJoinGroupCount?.data ?? 0) / tableConditions.itemPerPage);
 
     // データが取得されていて、かつ、現在のページ数が総ページ数より小さい場合
     if (!isUserJoinGroupCountPending && userJoinGroupCount && currentPage < totalPages) {
@@ -171,19 +170,11 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
    */
   const { mutate: leaveGroupMutation, isPending: isLeaveLoading } = useMutation({
     mutationFn: async (groupId: string) => await leaveGroup(groupId, userId ?? ""),
-    onSuccess: () => {
-      toast.success("グループから脱退しました");
-    },
-    onError: () => {
-      toast.error("エラーが発生しました");
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.table.myGroupConditions({ ...tableConditions }, userId ?? ""),
-      });
-      if (userId) {
-        await queryClient.invalidateQueries({ queryKey: queryCacheKeys.users.joinedGroupIds(userId) });
-      }
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.table.myGroupConditions({ ...tableConditions }, userId ?? ""), exact: true },
+        { queryKey: queryCacheKeys.users.joinedGroupIds(userId ?? ""), exact: true },
+      ],
     },
   });
 
@@ -222,8 +213,8 @@ export function useMyGroupTable(): UseMyGroupTableReturn {
    */
   return {
     // state
-    groups: data ?? [],
-    totalGroupCount: userJoinGroupCount ?? 0,
+    groups: data?.data ?? [],
+    totalGroupCount: userJoinGroupCount?.data ?? 0,
     isLoading: isUserJoinGroupPending || isUserJoinGroupCountPending || isLeaveLoading,
     tableConditions,
     // function

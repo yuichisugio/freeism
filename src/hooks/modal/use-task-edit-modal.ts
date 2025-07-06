@@ -10,9 +10,8 @@ import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { taskFormSchema } from "@/library-setting/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContributionType } from "@prisma/client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -121,7 +120,6 @@ export function useTaskEditModal({
    * ルーター
    */
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -158,13 +156,7 @@ export function useTaskEditModal({
   const { data: task, isPending: isLoadingTask } = useQuery({
     queryKey: queryCacheKeys.tasks.taskById(taskId),
     queryFn: async () => {
-      if (!taskId) return null;
-      const result = await getTaskById(taskId);
-      if (!result.success) {
-        toast.error(result.message);
-        return null;
-      }
-      return result.task;
+      return (await getTaskById(taskId)).data;
     },
     enabled: !!taskId,
   });
@@ -204,13 +196,13 @@ export function useTaskEditModal({
    */
   useEffect(() => {
     if (task) {
-      const taskName = typeof task.task === "string" ? task.task : "";
-      const taskDetail = typeof task.detail === "string" ? task.detail : "";
-      const taskReference = typeof task.reference === "string" ? task.reference : "";
-      const taskInfo = typeof task.info === "string" ? task.info : "";
-      const taskImageUrl = typeof task.imageUrl === "string" ? task.imageUrl : "";
+      const taskName = task.task ?? "";
+      const taskDetail = task.detail ?? "";
+      const taskReference = task.reference ?? "";
+      const taskInfo = task.info ?? "";
+      const taskImageUrl = task.imageUrl ?? "";
       const taskContributionType = task.contributionType;
-      const taskCategory = typeof task.category === "string" ? task.category : "その他";
+      const taskCategory = task.category ?? "その他";
 
       form.reset({
         task: taskName,
@@ -374,18 +366,17 @@ export function useTaskEditModal({
       return updateTaskAction(taskId, data);
     },
     onSuccess: async () => {
-      toast.success("タスクが更新されました");
-      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      await queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       onOpenChangeAction(false);
       if (onTaskUpdated) {
         onTaskUpdated();
       }
       router.refresh();
     },
-    onError: (error) => {
-      console.error("タスク更新エラー:", error);
-      toast.error("タスクの更新に失敗しました");
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.tasks.taskById(taskId), exact: true },
+        { queryKey: queryCacheKeys.tasks.taskById(taskId), exact: false },
+      ],
     },
   });
 

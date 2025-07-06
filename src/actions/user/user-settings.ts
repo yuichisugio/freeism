@@ -4,6 +4,7 @@ import type { SetupForm } from "@/components/setting/setup-form";
 import type { UserSettings } from "@prisma/client";
 import { cache } from "react";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -22,12 +23,9 @@ export type UpdateUserSettingToggleParams = {
  * ユーザー設定の更新結果
  */
 type UpdateUserSettingToggleResult = {
-  success: boolean;
-  data: {
-    id: string;
-    userId: string;
-  } & Record<"isEmailEnabled" | "isPushEnabled", boolean>;
-};
+  id: string;
+  userId: string;
+} & Record<"isEmailEnabled" | "isPushEnabled", boolean>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -40,7 +38,7 @@ type UpdateUserSettingToggleResult = {
  */
 export async function updateUserSettingToggle(
   params: UpdateUserSettingToggleParams,
-): Promise<UpdateUserSettingToggleResult> {
+): PromiseResult<UpdateUserSettingToggleResult> {
   /**
    * パラメータの検証
    */
@@ -88,12 +86,13 @@ export async function updateUserSettingToggle(
    * 更新結果を返す
    */
   return {
-    success: true,
     data: {
       id: userSettings.id,
       userId: userSettings.userId,
       [column]: isEnabled,
-    } as UpdateUserSettingToggleResult["data"],
+    } as UpdateUserSettingToggleResult,
+    message: "ユーザー設定を更新しました",
+    success: true,
   };
 }
 
@@ -104,10 +103,9 @@ export async function updateUserSettingToggle(
  * @param data - フォームから送信されたデータ
  * @returns 処理結果を含むオブジェクト
  */
-export async function updateUserSetup(
-  data: SetupForm,
-  userId: string,
-): Promise<{ success: boolean; redirectURL: string }> {
+export async function updateUserSetup(data: SetupForm, userId: string): PromiseResult<null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * パラメータの検証
    */
@@ -140,7 +138,7 @@ export async function updateUserSetup(
   /**
    * 保存が成功した場合
    */
-  return { success: true, redirectURL: "/dashboard/grouplist" };
+  return { success: true, data: null, message: "ユーザー設定を更新しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -148,7 +146,7 @@ export async function updateUserSetup(
 /**
  * ユーザー設定を取得
  */
-export const getUserSettings = cache(async (userId: string): Promise<UserSettings | null> => {
+export const getUserSettings = cache(async (userId: string): PromiseResult<UserSettings | null> => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -172,5 +170,5 @@ export const getUserSettings = cache(async (userId: string): Promise<UserSetting
   /**
    * ユーザー設定を返す
    */
-  return userSettings;
+  return { success: true, data: userSettings, message: "ユーザー設定を取得しました" };
 });

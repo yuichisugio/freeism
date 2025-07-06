@@ -97,7 +97,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
    */
   return (
     <>
-      <h1 className="mb-6 text-2xl font-bold">＜出品履歴＞ {auction.task.task}</h1>
+      <h1 className="mb-6 text-2xl font-bold">＜出品履歴＞ {auction.data.task.task}</h1>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-4 grid w-full grid-cols-4">
           <TabsTrigger value="info">
@@ -106,10 +106,10 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
           <TabsTrigger value="bids">
             <History className="mr-2 h-4 w-4" /> 入札履歴
           </TabsTrigger>
-          <TabsTrigger value="chat-before-end" disabled={!auction.winner}>
+          <TabsTrigger value="chat-before-end" disabled={!auction.data.winner}>
             <MessageSquare className="mr-2 h-4 w-4" /> メッセージ(出品中)
           </TabsTrigger>
-          <TabsTrigger value="chat-after-end" disabled={!auction.winner}>
+          <TabsTrigger value="chat-after-end" disabled={!auction.data.winner}>
             <MessageSquare className="mr-2 h-4 w-4" /> メッセージ(落札後)
           </TabsTrigger>
         </TabsList>
@@ -124,15 +124,15 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                   <CardHeader>
                     <CardTitle className="text-2xl">オークション情報</CardTitle>
                     <CardDescription className="flex items-center gap-2">
-                      <TaskStatusBadge status={auction.task.status} />
+                      <TaskStatusBadge status={auction.data.task.status} />
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {auction.task.imageUrl && (
+                    {auction.data.task.imageUrl && (
                       <div className="relative mb-6 h-64 w-full">
                         <Image
-                          src={auction.task.imageUrl}
-                          alt={auction.task.task}
+                          src={auction.data.task.imageUrl}
+                          alt={auction.data.task.task}
                           fill
                           className="rounded-lg object-contain"
                         />
@@ -143,34 +143,36 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                       <div>
                         <h3 className="mb-2 text-lg font-medium">商品説明</h3>
                         <p className="whitespace-pre-wrap text-gray-700">
-                          {auction.task.detail ?? "商品詳細はありません"}
+                          {auction.data.task.detail ?? "商品詳細はありません"}
                         </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                         <div>
                           <p className="text-sm text-gray-500">現在/落札額</p>
-                          <p className="text-lg font-bold">{auction.currentHighestBid.toLocaleString()} ポイント</p>
+                          <p className="text-lg font-bold">
+                            {auction.data.currentHighestBid.toLocaleString()} ポイント
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">開始日時</p>
-                          <p>{format(new Date(auction.startTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
+                          <p>{format(new Date(auction.data.startTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">終了日時</p>
-                          <p>{format(new Date(auction.endTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
+                          <p>{format(new Date(auction.data.endTime), "yyyy/MM/dd HH:mm", { locale: ja })}</p>
                         </div>
                       </div>
 
                       <div>
                         <div className="mb-2 flex items-center justify-between">
                           <h3 className="text-lg font-medium">提供方法</h3>
-                          {!isEditingDelivery && auction.task.status !== TaskStatus.SUPPLIER_DONE && (
+                          {!isEditingDelivery && auction.data.task.status !== TaskStatus.SUPPLIER_DONE && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={startEditingDelivery}
-                              disabled={!auction.task.id}
+                              disabled={!auction.data.task.id}
                             >
                               <Edit className="mr-1 h-4 w-4" /> 編集
                             </Button>
@@ -199,16 +201,18 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                             </div>
                           </div>
                         ) : (
-                          <p className="whitespace-pre-wrap text-gray-700">{auction.task.deliveryMethod ?? "未設定"}</p>
+                          <p className="whitespace-pre-wrap text-gray-700">
+                            {auction.data.task.deliveryMethod ?? "未設定"}
+                          </p>
                         )}
                       </div>
                     </div>
                   </CardContent>
-                  {auction.winner && auction.task.status !== TaskStatus.SUPPLIER_DONE && (
+                  {auction.data.winner && auction.data.task.status !== TaskStatus.SUPPLIER_DONE && (
                     <CardFooter>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button className="w-full" disabled={isCompleting || !auction.task.id}>
+                          <Button className="w-full" disabled={isCompleting || !auction.data.task.id}>
                             {isCompleting ? <>処理中...</> : <>商品提供を完了する</>}
                           </Button>
                         </AlertDialogTrigger>
@@ -227,7 +231,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                       </AlertDialog>
                     </CardFooter>
                   )}
-                  {auction.winner && auction.task.status === TaskStatus.SUPPLIER_DONE && (
+                  {auction.data.winner && auction.data.task.status === TaskStatus.SUPPLIER_DONE && (
                     <CardFooter>
                       <Button className="w-full" disabled={true}>
                         完了済み
@@ -238,7 +242,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
               </div>
 
               <div>
-                {auction.winner ? (
+                {auction.data.winner ? (
                   <>
                     <QARating auctionId={auctionId} text="出品画面" />
                   </>
@@ -248,7 +252,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                       <CardTitle className="text-lg">落札状況</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {auction.task.status === "AUCTION_ENDED" ? (
+                      {auction.data.task.status === "AUCTION_ENDED" ? (
                         <div className="py-4 text-center text-gray-500">落札者はいません</div>
                       ) : (
                         <div className="py-4 text-center text-gray-500">オークションはまだ終了していません</div>
@@ -267,7 +271,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
               <CardDescription>このオークションの出品情報です</CardDescription>
             </CardHeader>
             <CardContent>
-              {auction.bidHistories.length === 0 ? (
+              {auction.data.bidHistories.length === 0 ? (
                 <div className="py-4 text-center text-gray-500">まだ入札はありません</div>
               ) : (
                 <Table>
@@ -280,7 +284,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {auction.bidHistories.map((bid) => (
+                    {auction.data.bidHistories.map((bid) => (
                       <TableRow key={bid.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
@@ -289,7 +293,7 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
                               <AvatarFallback>{bid.user.name?.[0] ?? "入"}</AvatarFallback>
                             </Avatar>
                             <span>{bid.user.name ?? "入札者"}</span>
-                            {auction.winner?.id === bid.user.id && (
+                            {auction.data.winner?.id === bid.user.id && (
                               <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">落札者</span>
                             )}
                           </div>
@@ -310,34 +314,34 @@ export function AuctionCreatedDetail({ auctionId }: { auctionId: string }) {
 
         <TabsContent value="chat-before-end">
           <AuctionQA
-            auctionId={auction.id}
+            auctionId={auction.data.id}
             isDisplayAfterEnd={false}
-            auctionEndDate={auction.endTime}
+            auctionEndDate={auction.data.endTime}
             isEnd={
-              auction.task.status === TaskStatus.AUCTION_ENDED ||
-              auction.task.status === TaskStatus.SUPPLIER_DONE ||
-              auction.task.status === TaskStatus.TASK_COMPLETED ||
-              auction.task.status === TaskStatus.FIXED_EVALUATED ||
-              auction.task.status === TaskStatus.POINTS_AWARDED ||
-              auction.task.status === TaskStatus.POINTS_DEPOSITED ||
-              auction.task.status === TaskStatus.ARCHIVED
+              auction.data.task.status === TaskStatus.AUCTION_ENDED ||
+              auction.data.task.status === TaskStatus.SUPPLIER_DONE ||
+              auction.data.task.status === TaskStatus.TASK_COMPLETED ||
+              auction.data.task.status === TaskStatus.FIXED_EVALUATED ||
+              auction.data.task.status === TaskStatus.POINTS_AWARDED ||
+              auction.data.task.status === TaskStatus.POINTS_DEPOSITED ||
+              auction.data.task.status === TaskStatus.ARCHIVED
             }
           />
         </TabsContent>
 
         <TabsContent value="chat-after-end">
           <AuctionQA
-            auctionId={auction.id}
+            auctionId={auction.data.id}
             isDisplayAfterEnd={true}
-            auctionEndDate={auction.endTime}
+            auctionEndDate={auction.data.endTime}
             isEnd={
-              auction.task.status === TaskStatus.AUCTION_ENDED ||
-              auction.task.status === TaskStatus.SUPPLIER_DONE ||
-              auction.task.status === TaskStatus.TASK_COMPLETED ||
-              auction.task.status === TaskStatus.FIXED_EVALUATED ||
-              auction.task.status === TaskStatus.POINTS_AWARDED ||
-              auction.task.status === TaskStatus.POINTS_DEPOSITED ||
-              auction.task.status === TaskStatus.ARCHIVED
+              auction.data.task.status === TaskStatus.AUCTION_ENDED ||
+              auction.data.task.status === TaskStatus.SUPPLIER_DONE ||
+              auction.data.task.status === TaskStatus.TASK_COMPLETED ||
+              auction.data.task.status === TaskStatus.FIXED_EVALUATED ||
+              auction.data.task.status === TaskStatus.POINTS_AWARDED ||
+              auction.data.task.status === TaskStatus.POINTS_DEPOSITED ||
+              auction.data.task.status === TaskStatus.ARCHIVED
             }
           />
         </TabsContent>

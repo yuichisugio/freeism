@@ -2,6 +2,7 @@
 
 import { validateAuction } from "@/actions/auction/bid-validation";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 import type { ExecuteAutoBidParams, ExecuteAutoBidReturn } from "./auto-bid";
 import { executeAutoBid } from "./auto-bid";
@@ -19,7 +20,7 @@ export async function setAutoBid(
   auctionId: string,
   maxBidAmount: number,
   bidIncrement: number,
-): Promise<ExecuteAutoBidReturn> {
+): PromiseResult<ExecuteAutoBidReturn | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -132,7 +133,7 @@ export async function setAutoBid(
     return {
       success: true,
       message: "自動入札を設定しました",
-      autoBid: {
+      data: {
         id: upsertAutoBid.id,
         maxBidAmount: upsertAutoBid.maxBidAmount,
         bidIncrement: upsertAutoBid.bidIncrement,
@@ -145,7 +146,7 @@ export async function setAutoBid(
     return {
       success: false,
       message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
-      autoBid: null,
+      data: null,
     };
   }
 }

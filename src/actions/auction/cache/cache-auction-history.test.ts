@@ -177,9 +177,9 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result.bidHistories).toHaveLength(2);
-        expect(result.bidHistories[0].amount).toBe(1000);
-        expect(result.bidHistories[1].amount).toBe(500);
+        expect(result.data.bidHistories).toHaveLength(2);
+        expect(result.data.bidHistories[0].amount).toBe(1000);
+        expect(result.data.bidHistories[1].amount).toBe(500);
       });
 
       test("100件の入札履歴がある場合（制限値）", async () => {
@@ -204,7 +204,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result.bidHistories).toHaveLength(100);
+        expect(result.data.bidHistories).toHaveLength(100);
       });
 
       test("キャッシュタグが正しく設定される", async () => {
@@ -236,8 +236,8 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.winner).toBeNull();
-        expect(result.winnerId).toBeNull();
+        expect(result.data.winner).toBeNull();
+        expect(result.data.winnerId).toBeNull();
       });
 
       test("bidHistoriesが空の場合", async () => {
@@ -252,7 +252,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.bidHistories).toHaveLength(0);
+        expect(result.data.bidHistories).toHaveLength(0);
       });
 
       test("task.detailがnullの場合", async () => {
@@ -279,7 +279,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.task.detail).toBeNull();
+        expect(result.data.task.detail).toBeNull();
       });
 
       test("task.imageUrlがnullの場合", async () => {
@@ -306,7 +306,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.task.imageUrl).toBeNull();
+        expect(result.data.task.imageUrl).toBeNull();
       });
 
       test("task.deliveryMethodがnullの場合", async () => {
@@ -333,7 +333,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.task.deliveryMethod).toBeNull();
+        expect(result.data.task.deliveryMethod).toBeNull();
       });
 
       test("executorsが空の場合", async () => {
@@ -360,7 +360,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.task.executors).toHaveLength(0);
+        expect(result.data.task.executors).toHaveLength(0);
       });
 
       test("reportersが空の場合", async () => {
@@ -387,7 +387,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.task.reporters).toHaveLength(0);
+        expect(result.data.task.reporters).toHaveLength(0);
       });
     });
 
@@ -471,7 +471,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.currentHighestBid).toBe(0);
+        expect(result.data.currentHighestBid).toBe(0);
       });
 
       test("currentHighestBidが最大値の場合", async () => {
@@ -486,7 +486,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.currentHighestBid).toBe(Number.MAX_SAFE_INTEGER);
+        expect(result.data.currentHighestBid).toBe(Number.MAX_SAFE_INTEGER);
       });
 
       test("過去の日付の場合", async () => {
@@ -505,8 +505,8 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.startTime).toStrictEqual(pastDate);
-        expect(result.endTime).toStrictEqual(pastDate);
+        expect(result.data.startTime).toStrictEqual(pastDate);
+        expect(result.data.endTime).toStrictEqual(pastDate);
       });
 
       test("未来の日付の場合", async () => {
@@ -525,8 +525,8 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.startTime).toStrictEqual(futureDate);
-        expect(result.endTime).toStrictEqual(futureDate);
+        expect(result.data.startTime).toStrictEqual(futureDate);
+        expect(result.data.endTime).toStrictEqual(futureDate);
       });
 
       test("task.statusがTASK_COMPLETEDの場合", async () => {
@@ -553,7 +553,7 @@ describe("cache-auction-history", () => {
 
         // Assert
         expect(result).toStrictEqual(mockData);
-        expect(result.task.status).toBe(TaskStatus.TASK_COMPLETED);
+        expect(result.data.task.status).toBe(TaskStatus.TASK_COMPLETED);
       });
     });
   });

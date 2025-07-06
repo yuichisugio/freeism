@@ -3,6 +3,7 @@
 import { sendAuctionNotification } from "@/actions/notification/auction-notification";
 import { getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import {
   BidStatus,
   NotificationSendMethod,
@@ -16,16 +17,6 @@ import type { ExecuteAutoBidParams } from "../auto-bid/auto-bid";
 import { validateAuction } from "../bid-validation";
 import { sendEventToAuctionSubscribers } from "../server-sent-events-broadcast";
 import { processAuctionExtension } from "./extend-auction-time";
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * 共通入札処理の結果型
- */
-type ExecuteBidReturn = {
-  success: boolean;
-  message: string;
-};
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -59,7 +50,7 @@ export async function executeBid(
   amount: number,
   isAutoBid = false,
   autoBidUserId?: string,
-): Promise<ExecuteBidReturn> {
+): PromiseResult<null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -84,6 +75,7 @@ export async function executeBid(
       return {
         success: false,
         message: validation.message ?? "入札に失敗しました",
+        data: null,
       };
     }
 
@@ -100,6 +92,7 @@ export async function executeBid(
       return {
         success: false,
         message: "入札者の情報を取得できませんでした",
+        data: null,
       };
     }
 
@@ -330,6 +323,7 @@ export async function executeBid(
     return {
       success: true,
       message: isAutoBid ? `${amount}ポイントで自動入札しました` : "入札が完了しました",
+      data: null,
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -337,7 +331,8 @@ export async function executeBid(
     console.error("入札処理中にエラーが発生しました", error);
     return {
       success: false,
-      message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
+      message: `入札に失敗しました: ${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
+      data: null,
     };
   }
 }

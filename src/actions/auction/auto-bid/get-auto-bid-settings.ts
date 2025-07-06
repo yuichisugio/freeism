@@ -2,6 +2,7 @@
 
 import { validateAuction } from "@/actions/auction/bid-validation";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 import type { ExecuteAutoBidReturn } from "./auto-bid";
 
@@ -13,7 +14,10 @@ import type { ExecuteAutoBidReturn } from "./auto-bid";
  * @param currentHighestBid 現在の最高入札額
  * @returns 処理結果
  */
-export async function getAutoBidByUserId(auctionId: string, currentHighestBid: number): Promise<ExecuteAutoBidReturn> {
+export async function getAutoBidByUserId(
+  auctionId: string,
+  currentHighestBid: number,
+): PromiseResult<ExecuteAutoBidReturn | null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -43,7 +47,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
       return {
         success: false,
         message: validation.message ?? "検証エラー",
-        autoBid: null,
+        data: null,
       };
     }
 
@@ -75,7 +79,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
       return {
         success: true,
         message: "自動入札設定が見つかりませんでした",
-        autoBid: null,
+        data: null,
       };
     }
 
@@ -87,7 +91,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     return {
       success: true,
       message: "自動入札設定を取得しました",
-      autoBid: {
+      data: {
         id: autoBid.id,
         maxBidAmount: autoBid.maxBidAmount,
         bidIncrement: autoBid.bidIncrement,
@@ -104,7 +108,7 @@ export async function getAutoBidByUserId(auctionId: string, currentHighestBid: n
     return {
       success: false,
       message: `${error instanceof Error ? error.message : "不明なエラーが発生しました"}`,
-      autoBid: null,
+      data: null,
     };
   }
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -19,7 +20,7 @@ export async function checkIsPermission(
   propsGroupId?: string,
   propsTaskId?: string,
   isRoleCheck?: boolean,
-): Promise<{ success: boolean; message: string }> {
+): PromiseResult<boolean> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -39,7 +40,7 @@ export async function checkIsPermission(
     if (isRoleCheck) {
       // タスクIDが指定されていない場合はエラーを返す
       if (!propsTaskId) {
-        return { success: false, message: "タスクIDが指定されていません" };
+        return { success: false, data: false, message: "タスクIDが指定されていません" };
       }
 
       // タスクの詳細情報を取得
@@ -74,7 +75,7 @@ export async function checkIsPermission(
 
       // タスクが見つからない場合はエラーを返す
       if (!task) {
-        return { success: false, message: "タスクが見つかりません" };
+        return { success: false, data: false, message: "タスクが見つかりません" };
       }
 
       // タスクの作成者、タスクの報告者、タスクの実行者のいずれかがユーザーIDと一致する場合はtrueを返す
@@ -82,7 +83,7 @@ export async function checkIsPermission(
       const isReporter = task.reporters.find((reporter) => reporter.id);
       const isExecutor = task.executors.find((executor) => executor.id);
       if (isCreator || isReporter || isExecutor) {
-        return { success: true, message: "タスクの作成者or報告者or実行者の権限があります" };
+        return { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" };
       }
     }
 
@@ -107,7 +108,7 @@ export async function checkIsPermission(
      * Appオーナー権限がある場合はtrueを返す
      */
     if (appOwner) {
-      return { success: true, message: "Appオーナー権限があります" };
+      return { success: true, data: true, message: "Appオーナー権限があります" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -116,7 +117,7 @@ export async function checkIsPermission(
      * グループIDとタスクIDが指定されていない場合はエラーを返す
      */
     if (!propsGroupId && !propsTaskId) {
-      return { success: false, message: "グループIDとタスクIDが指定されていません" };
+      return { success: false, data: false, message: "グループIDとタスクIDが指定されていません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -136,7 +137,7 @@ export async function checkIsPermission(
 
       // タスクが見つからない場合はエラーを返す
       if (!task) {
-        return { success: false, message: "タスクが見つかりません" };
+        return { success: false, data: false, message: "タスクが見つかりません" };
       }
 
       // タスクのグループIDを取得
@@ -165,7 +166,7 @@ export async function checkIsPermission(
      * Groupオーナー権限がない場合はfalseを返す
      */
     if (!membership) {
-      return { success: false, message: "グループオーナー権限がありません" };
+      return { success: false, data: false, message: "グループオーナー権限がありません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -173,11 +174,12 @@ export async function checkIsPermission(
     /**
      * Groupオーナー権限がある場合はtrueを返す
      */
-    return { success: !!membership, message: "Groupオーナー権限があります" };
+    return { success: !!membership, data: true, message: "Groupオーナー権限があります" };
   } catch (error) {
     console.error("[CHECK_GROUP_OWNER]", error);
     return {
       success: false,
+      data: false,
       message: `権限のチェック中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
     };
   }
@@ -191,10 +193,7 @@ export async function checkIsPermission(
  * @param userId - 権限を付与するユーザーのID
  * @returns 処理結果を含むオブジェクト
  */
-export async function grantOwnerPermission(
-  groupId: string,
-  userId: string,
-): Promise<{ success: boolean; message: string }> {
+export async function grantOwnerPermission(groupId: string, userId: string): PromiseResult<boolean> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -212,7 +211,7 @@ export async function grantOwnerPermission(
      */
     const isOwner = await checkIsPermission(userId, groupId, undefined, false);
     if (!isOwner.success) {
-      return { success: false, message: "アプリオーナー or グループオーナー権限がありません" };
+      return { success: false, data: false, message: "アプリオーナー or グループオーナー権限がありません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -222,7 +221,7 @@ export async function grantOwnerPermission(
      */
     const targetMembership = await checkGroupMembership(userId, groupId);
     if (!targetMembership) {
-      return { success: false, message: "指定されたユーザーはグループに参加していません" };
+      return { success: false, data: false, message: "指定されたユーザーはグループに参加していません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -230,8 +229,8 @@ export async function grantOwnerPermission(
     /**
      * 既にオーナー権限を持っている場合
      */
-    if (targetMembership.isGroupOwner) {
-      return { success: false, message: "指定されたユーザーは既にグループオーナーです" };
+    if (targetMembership.data?.isGroupOwner) {
+      return { success: false, data: false, message: "指定されたユーザーは既にグループオーナーです" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -241,7 +240,7 @@ export async function grantOwnerPermission(
      */
     await prisma.groupMembership.update({
       where: {
-        id: targetMembership.id,
+        id: targetMembership.data?.id,
       },
       data: {
         isGroupOwner: true,
@@ -254,13 +253,14 @@ export async function grantOwnerPermission(
      * パスを再検証
      */
     revalidatePath(`/dashboard/group/${groupId}`);
-    return { success: true, message: "グループオーナー権限を付与しました" };
+    return { success: true, data: true, message: "グループオーナー権限を付与しました" };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[GRANT_OWNER_PERMISSION]", error);
     return {
       success: false,
+      data: false,
       message: `グループオーナー権限の付与中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
     };
   }
@@ -277,7 +277,7 @@ export async function grantOwnerPermission(
 export async function checkGroupMembership(
   userId: string,
   groupId: string,
-): Promise<{
+): PromiseResult<{
   id: string;
   isGroupOwner: boolean;
 } | null> {
@@ -313,7 +313,7 @@ export async function checkGroupMembership(
      * グループメンバーシップが存在しない場合はnullを返す
      */
     if (!membership) {
-      return null;
+      return { success: false, data: null, message: "グループメンバーシップが存在しません" };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -322,14 +322,18 @@ export async function checkGroupMembership(
      * グループメンバーシップを返す
      */
     return {
-      id: membership.id,
-      isGroupOwner: membership.isGroupOwner,
+      success: true,
+      data: {
+        id: membership.id,
+        isGroupOwner: membership.isGroupOwner,
+      },
+      message: "グループメンバーシップを取得しました",
     };
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
   } catch (error) {
     console.error("[CHECK_GROUP_MEMBERSHIP]", error);
-    return null;
+    return { success: false, data: null, message: "グループメンバーシップのチェック中にエラーが発生しました" };
   }
 }
 
@@ -341,7 +345,7 @@ export async function checkGroupMembership(
  * @param userId - チェックするユーザーのID
  * @returns グループオーナー権限があればtrue、なければfalse
  */
-export async function checkOneGroupOwner(userId: string): Promise<{ success: boolean; message: string }> {
+export async function checkOneGroupOwner(userId: string): PromiseResult<boolean> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -372,7 +376,7 @@ export async function checkOneGroupOwner(userId: string): Promise<{ success: boo
    * グループオーナー権限があるかどうかを返す
    */
   if (userGroupMemberships) {
-    return { success: true, message: "グループオーナー権限があります" };
+    return { success: true, data: true, message: "グループオーナー権限があります" };
   }
-  return { success: false, message: "グループオーナー権限がありません" };
+  return { success: false, data: false, message: "グループオーナー権限がありません" };
 }

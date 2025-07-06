@@ -9,7 +9,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { Textarea } from "@/components/ui/textarea";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { ReviewPosition } from "@prisma/client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,13 +43,6 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * クエリクライアント
-   */
-  const queryClient = useQueryClient();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 評価送信
    */
   const { mutate: createAuctionReviewMutation, isPending: isSubmittingReview } = useMutation({
@@ -57,20 +50,15 @@ function UserRatingCard({ user, reviewPosition }: { user: DisplayUserInfo; revie
       return createAuctionReview(user.auctionId, user.userId, params.rating, params.comment, reviewPosition);
     },
     onSuccess: () => {
-      toast.success("評価を送信しました");
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition),
-      });
       setRating(0);
       setComment("");
       setHasReviewed(true);
     },
-    onError: (error: Error) => {
-      console.error("評価の送信に失敗しました：", error.message);
-      toast.error("評価の送信に失敗しました");
+    meta: {
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.auction.historyCreatedDetail(user.userId ?? "", user.auctionId), exact: true },
+        { queryKey: queryCacheKeys.auction.displayUserInfo(user.auctionId, reviewPosition), exact: true },
+      ],
     },
   });
 
