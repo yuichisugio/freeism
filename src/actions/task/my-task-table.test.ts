@@ -154,6 +154,10 @@ const testFilter = async (
         select: {
           id: true,
           name: true,
+          members: {
+            select: { isGroupOwner: true },
+            where: { userId: testUser.id },
+          },
         },
       },
       auction: {
@@ -217,6 +221,10 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: {
+            select: { isGroupOwner: true },
+            where: { userId: testUser.id },
+          },
         },
         auction: {
           id: testAuction.id,
@@ -233,30 +241,34 @@ describe("getMyTaskData", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        tasks: [
-          {
-            id: testTask.id,
-            taskName: testTask.task,
-            taskDetail: testTask.detail,
-            taskStatus: testTask.status,
-            taskContributionType: testTask.contributionType,
-            taskFixedContributionPoint: testTask.fixedContributionPoint,
-            taskFixedEvaluator: "評価者ユーザー",
-            taskFixedEvaluationLogic: testTask.fixedEvaluationLogic,
-            taskCreatorName: testUserSettings.username,
-            taskReporterUserIds: [],
-            taskExecutorUserIds: [],
-            taskReporterUserNames: "",
-            taskExecutorUserNames: "",
-            reporters: [],
-            executors: [],
-            groupId: testGroup.id,
-            groupName: testGroup.name,
-            auctionId: testAuction.id,
-            group: { id: testGroup.id, name: testGroup.name },
-          },
-        ],
-        totalTaskCount: 1,
+        success: true,
+        message: "データを取得しました",
+        data: {
+          tasks: [
+            {
+              id: testTask.id,
+              taskName: testTask.task,
+              taskDetail: testTask.detail,
+              taskStatus: testTask.status,
+              taskContributionType: testTask.contributionType,
+              taskFixedContributionPoint: testTask.fixedContributionPoint,
+              taskFixedEvaluator: "評価者ユーザー",
+              taskFixedEvaluationLogic: testTask.fixedEvaluationLogic,
+              taskCreatorName: testUserSettings.username,
+              taskReporterUserIds: [],
+              taskExecutorUserIds: [],
+              taskReporterUserNames: "",
+              taskExecutorUserNames: "",
+              reporters: [],
+              executors: [],
+              groupId: testGroup.id,
+              groupName: testGroup.name,
+              auctionId: testAuction.id,
+              group: { id: testGroup.id, name: testGroup.name },
+            },
+          ],
+          totalTaskCount: 1,
+        },
       });
 
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
@@ -328,6 +340,10 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: {
+            select: { isGroupOwner: true },
+            where: { userId: testUser.id },
+          },
         },
         auction: null,
       };
@@ -362,8 +378,12 @@ describe("getMyTaskData", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        tasks: [],
-        totalTaskCount: 0,
+        success: true,
+        message: "データを取得しました",
+        data: {
+          tasks: [],
+          totalTaskCount: 0,
+        },
       });
     });
 
@@ -386,6 +406,10 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: {
+            select: { isGroupOwner: true },
+            where: { userId: testUser.id },
+          },
         },
         auction: null,
       };
@@ -495,6 +519,10 @@ describe("getMyTaskData", () => {
         ],
         group: {
           id: testGroup.id,
+          members: {
+            select: { isGroupOwner: true },
+            where: { userId: testUser.id },
+          },
           name: testGroup.name,
         },
         auction: null,
@@ -816,19 +844,19 @@ describe("異常系・バリデーション", () => {
   test.each([
     {
       name: "findMany fails",
+      errorMessage: "データベースエラー",
       setup: () => prismaMock.task.findMany.mockRejectedValue(new Error("データベースエラー")),
     },
     {
       name: "count fails",
+      errorMessage: "カウントエラー",
       setup: () => {
         prismaMock.task.findMany.mockResolvedValue([]);
         prismaMock.task.count.mockRejectedValue(new Error("カウントエラー"));
       },
     },
-  ])("should handle database errors when findMany or count fails", async ({ setup }) => {
+  ])("should handle database errors when findMany or count fails", async ({ setup, errorMessage }) => {
     setup();
-    await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(
-      "タスク情報の取得中にエラーが発生しました",
-    );
+    await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(errorMessage);
   });
 });

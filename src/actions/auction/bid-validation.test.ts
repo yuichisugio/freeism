@@ -67,23 +67,18 @@ describe("bid-common.test.ts", () => {
           // モックの設定（認証失敗時はredirectが呼ばれるため、エラーをthrowする）
           mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-          // テスト実行
-          const result = await validateAuction(mockAuctionId, {
-            checkSelfListing: null,
-            checkEndTime: null,
-            checkCurrentBid: null,
-            currentBid: null,
-            requireActive: null,
-            executeBid: null,
-          });
+          // テスト実行とエラーの検証
+          await expect(
+            validateAuction(mockAuctionId, {
+              checkSelfListing: null,
+              checkEndTime: null,
+              checkCurrentBid: null,
+              currentBid: null,
+              requireActive: null,
+              executeBid: null,
+            }),
+          ).rejects.toThrow("Authentication failed");
 
-          // 検証
-          expect(result).toStrictEqual({
-            success: false,
-            message: "オークションの検証中にエラーが発生しました",
-            userId: "",
-            auction: null,
-          });
           expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
         });
       });
@@ -112,8 +107,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "オークションが見つかりません",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
       });
@@ -163,8 +160,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "自分の出品に対して操作はできません",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
 
@@ -209,8 +208,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "自分の出品に対して操作はできません",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
       });
@@ -260,8 +261,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "このオークションは終了しています",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
 
@@ -306,8 +309,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "このオークションは終了しています",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
       });
@@ -357,8 +362,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "このオークションはアクティブではありません",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
 
@@ -403,8 +410,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "このオークションはアクティブではありません",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
       });
@@ -440,12 +449,12 @@ describe("bid-common.test.ts", () => {
             mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
           );
 
-          // テスト実行（現在の最高入札額と同額で入札）
+          // テスト実行
           const result = await validateAuction(mockAuctionId, {
             checkSelfListing: null,
             checkEndTime: null,
             checkCurrentBid: true,
-            currentBid: 100, // 現在の最高入札額と同額
+            currentBid: 50, // 現在の最高入札額より低い
             requireActive: null,
             executeBid: null,
           });
@@ -454,8 +463,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "現在の最高入札額（100ポイント）より高い額で入札してください",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
 
@@ -486,12 +497,12 @@ describe("bid-common.test.ts", () => {
             mockAuction as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
           );
 
-          // テスト実行（現在の最高入札額と同額で入札）
+          // テスト実行
           const result = await validateAuction(mockAuctionId, {
             checkSelfListing: null,
             checkEndTime: null,
             checkCurrentBid: null,
-            currentBid: 100, // 現在の最高入札額と同額
+            currentBid: 50, // 現在の最高入札額より低い
             requireActive: null,
             executeBid: true,
           });
@@ -500,8 +511,10 @@ describe("bid-common.test.ts", () => {
           expect(result).toStrictEqual({
             success: false,
             message: "現在の最高入札額（100ポイント）より高い額で入札してください",
-            userId: mockUserId,
-            auction: null,
+            data: {
+              userId: mockUserId,
+              auction: null,
+            },
           });
         });
       });
@@ -555,8 +568,10 @@ describe("bid-common.test.ts", () => {
         expect(result).toStrictEqual({
           success: true,
           message: "オークションの検証が完了しました",
-          userId: mockUserId,
-          auction: mockAuction,
+          data: {
+            userId: mockUserId,
+            auction: mockAuction,
+          },
         });
       });
 
@@ -605,8 +620,10 @@ describe("bid-common.test.ts", () => {
         expect(result).toStrictEqual({
           success: true,
           message: "オークションの検証が完了しました",
-          userId: mockUserId,
-          auction: mockAuction,
+          data: {
+            userId: mockUserId,
+            auction: mockAuction,
+          },
         });
       });
     });
@@ -619,23 +636,17 @@ describe("bid-common.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
         prismaMock.auction.findUnique.mockRejectedValue(new Error("Database error"));
 
-        // テスト実行
-        const result = await validateAuction(mockAuctionId, {
-          checkSelfListing: null,
-          checkEndTime: null,
-          checkCurrentBid: null,
-          currentBid: null,
-          requireActive: null,
-          executeBid: null,
-        });
-
-        // 検証
-        expect(result).toStrictEqual({
-          success: false,
-          message: "オークションの検証中にエラーが発生しました",
-          userId: "",
-          auction: null,
-        });
+        // テスト実行とエラーの検証
+        await expect(
+          validateAuction(mockAuctionId, {
+            checkSelfListing: null,
+            checkEndTime: null,
+            checkCurrentBid: null,
+            currentBid: null,
+            requireActive: null,
+            executeBid: null,
+          }),
+        ).rejects.toThrow("Database error");
       });
     });
 
@@ -687,8 +698,10 @@ describe("bid-common.test.ts", () => {
         expect(result).toStrictEqual({
           success: true,
           message: "オークションの検証が完了しました",
-          userId: mockUserId,
-          auction: mockAuction,
+          data: {
+            userId: mockUserId,
+            auction: mockAuction,
+          },
         });
       });
     });

@@ -219,11 +219,8 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       // Arrange
       prismaMock.user.findMany.mockRejectedValue(error);
 
-      // Act
+      // Act & Assert
       await expect(getCachedAllUsers()).rejects.toThrow(error.message);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith("Error fetching users:", error);
     });
   });
 

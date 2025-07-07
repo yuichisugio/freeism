@@ -103,7 +103,7 @@ function createExpectedErrorResponse(message: string) {
   return {
     success: false,
     message,
-    autoBid: null,
+    data: null,
   };
 }
 
@@ -409,11 +409,8 @@ describe("setAutoBid", () => {
       // Arrange
       mockValidateAuction.mockRejectedValue(new Error("Database error"));
 
-      // Act
-      const result = await setAutoBid(testAuctionId, 200, 10);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedErrorResponse("Database error"));
+      // Act & Assert
+      await expect(setAutoBid(testAuctionId, 200, 10)).rejects.toThrow("Database error");
     });
 
     test("should handle database transaction error", async () => {
@@ -425,11 +422,8 @@ describe("setAutoBid", () => {
       });
       prismaMock.autoBid.upsert.mockRejectedValue(new Error("Transaction failed"));
 
-      // Act
-      const result = await setAutoBid(testAuctionId, 200, 10);
-
-      // Assert
-      expect(result).toStrictEqual(createExpectedErrorResponse("Transaction failed"));
+      // Act & Assert
+      await expect(setAutoBid(testAuctionId, 200, 10)).rejects.toThrow("Transaction failed");
     });
 
     test("should handle empty auction ID", async () => {

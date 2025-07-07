@@ -53,18 +53,19 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, false);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, undefined, undefined, false);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should call cachedExportGroupTask with startDate when provided", async () => {
@@ -72,18 +73,19 @@ describe("exportGroupTask", () => {
       const groupId = "test-group-id";
       const startDate = new Date("2024-01-01");
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, startDate, undefined, false);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, startDate, undefined, false);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should call cachedExportGroupTask with endDate when provided", async () => {
@@ -91,18 +93,19 @@ describe("exportGroupTask", () => {
       const groupId = "test-group-id";
       const endDate = new Date("2024-12-31");
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, endDate, false);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, undefined, endDate, false);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should call cachedExportGroupTask with both startDate and endDate when provided", async () => {
@@ -111,36 +114,38 @@ describe("exportGroupTask", () => {
       const startDate = new Date("2024-01-01");
       const endDate = new Date("2024-12-31");
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, startDate, endDate, false);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, startDate, endDate, false);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should call cachedExportGroupTask with onlyTaskCompleted=true when provided", async () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, true);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, undefined, undefined, true);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should call cachedExportGroupTask with all parameters when provided", async () => {
@@ -150,35 +155,37 @@ describe("exportGroupTask", () => {
       const endDate = new Date("2024-12-31");
       const onlyTaskCompleted = true;
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, startDate, endDate, onlyTaskCompleted);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, startDate, endDate, onlyTaskCompleted);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should return empty array when cachedExportGroupTask returns empty array", async () => {
       // テストデータの準備
       const groupId = "test-group-id";
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: [],
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, false);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, undefined, undefined, false);
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual(mockResult);
     });
   });
 
@@ -228,36 +235,38 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, null as unknown as Date, null as unknown as Date);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, null, null, false);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
 
     test("should handle false value for onlyTaskCompleted correctly", async () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue({
+      const mockResult = {
         success: true,
         message: "データを取得しました",
         data: mockData,
-      });
+      };
+      mockCachedExportGroupTaskFn.mockResolvedValue(mockResult);
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, false);
 
       // 検証
       expect(mockCachedExportGroupTaskFn).toHaveBeenCalledWith(groupId, undefined, undefined, false);
-      expect(result).toStrictEqual(mockData);
+      expect(result).toStrictEqual(mockResult);
     });
   });
 });

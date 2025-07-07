@@ -179,12 +179,16 @@ describe("created-auction", () => {
             filters: [] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
-              task: {
-                OR: [
-                  { creatorId: TEST_CONSTANTS.USER_ID },
-                  { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                  { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                ],
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                task: {
+                  OR: [
+                    { creatorId: TEST_CONSTANTS.USER_ID },
+                    { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                    { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                  ],
+                },
               },
             },
           },
@@ -193,7 +197,11 @@ describe("created-auction", () => {
             filters: ["creator"] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
-              task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] },
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] },
+              },
             },
           },
           {
@@ -201,7 +209,11 @@ describe("created-auction", () => {
             filters: ["creator"] as AuctionCreatedTabFilter[],
             condition: "or" as FilterCondition,
             expected: {
-              task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] },
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] },
+              },
             },
           },
           {
@@ -209,11 +221,15 @@ describe("created-auction", () => {
             filters: ["creator", "executor"] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
-              task: {
-                AND: [
-                  { creatorId: TEST_CONSTANTS.USER_ID },
-                  { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                ],
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                task: {
+                  AND: [
+                    { creatorId: TEST_CONSTANTS.USER_ID },
+                    { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                  ],
+                },
               },
             },
           },
@@ -222,11 +238,15 @@ describe("created-auction", () => {
             filters: ["creator", "executor"] as AuctionCreatedTabFilter[],
             condition: "or" as FilterCondition,
             expected: {
-              task: {
-                OR: [
-                  { creatorId: TEST_CONSTANTS.USER_ID },
-                  { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                ],
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                task: {
+                  OR: [
+                    { creatorId: TEST_CONSTANTS.USER_ID },
+                    { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                  ],
+                },
               },
             },
           },
@@ -290,7 +310,11 @@ describe("created-auction", () => {
         ])("should handle $description", async ({ status, expectedStatuses }) => {
           const result = await getUserCreatedAuctionsWhereCondition(TEST_CONSTANTS.USER_ID, status, "and");
           expect(result).toStrictEqual({
-            AND: [createDefaultRoleCondition(TEST_CONSTANTS.USER_ID), createStatusCondition(expectedStatuses)],
+            success: true,
+            message: "Where条件を取得しました",
+            data: {
+              AND: [createDefaultRoleCondition(TEST_CONSTANTS.USER_ID), createStatusCondition(expectedStatuses)],
+            },
           });
         });
       });
@@ -302,10 +326,14 @@ describe("created-auction", () => {
             filters: ["creator", "active"] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
-              AND: [
-                { task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] } },
-                createStatusCondition([TaskStatus.AUCTION_ACTIVE]),
-              ],
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                AND: [
+                  { task: { AND: [{ creatorId: TEST_CONSTANTS.USER_ID }] } },
+                  createStatusCondition([TaskStatus.AUCTION_ACTIVE]),
+                ],
+              },
             },
           },
           {
@@ -313,10 +341,14 @@ describe("created-auction", () => {
             filters: ["creator", "active"] as AuctionCreatedTabFilter[],
             condition: "or" as FilterCondition,
             expected: {
-              OR: [
-                { task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] } },
-                createStatusCondition([TaskStatus.AUCTION_ACTIVE]),
-              ],
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                OR: [
+                  { task: { OR: [{ creatorId: TEST_CONSTANTS.USER_ID }] } },
+                  createStatusCondition([TaskStatus.AUCTION_ACTIVE]),
+                ],
+              },
             },
           },
           {
@@ -332,27 +364,31 @@ describe("created-auction", () => {
             ] as AuctionCreatedTabFilter[],
             condition: "and" as FilterCondition,
             expected: {
-              AND: [
-                {
-                  task: {
-                    AND: [
-                      { creatorId: TEST_CONSTANTS.USER_ID },
-                      { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                      { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
-                    ],
+              success: true,
+              message: "Where条件を取得しました",
+              data: {
+                AND: [
+                  {
+                    task: {
+                      AND: [
+                        { creatorId: TEST_CONSTANTS.USER_ID },
+                        { executors: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                        { reporters: { some: { userId: TEST_CONSTANTS.USER_ID } } },
+                      ],
+                    },
                   },
-                },
-                createStatusCondition([
-                  TaskStatus.AUCTION_ACTIVE,
-                  TaskStatus.AUCTION_ENDED,
-                  TaskStatus.POINTS_DEPOSITED,
-                  TaskStatus.PENDING,
-                  TaskStatus.SUPPLIER_DONE,
-                  TaskStatus.TASK_COMPLETED,
-                  TaskStatus.FIXED_EVALUATED,
-                  TaskStatus.POINTS_AWARDED,
-                ]),
-              ],
+                  createStatusCondition([
+                    TaskStatus.AUCTION_ACTIVE,
+                    TaskStatus.AUCTION_ENDED,
+                    TaskStatus.POINTS_DEPOSITED,
+                    TaskStatus.PENDING,
+                    TaskStatus.SUPPLIER_DONE,
+                    TaskStatus.TASK_COMPLETED,
+                    TaskStatus.FIXED_EVALUATED,
+                    TaskStatus.POINTS_AWARDED,
+                  ]),
+                ],
+              },
             },
           },
         ])("should handle $description", async ({ filters, condition, expected }) => {

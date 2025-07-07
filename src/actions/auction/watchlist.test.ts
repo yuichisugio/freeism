@@ -30,7 +30,11 @@ describe("watchlist", () => {
         const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
         // 検証
-        expect(result).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
         expect(prismaMock.taskWatchList.create).toHaveBeenCalledWith({
           data: {
             userId,
@@ -58,7 +62,11 @@ describe("watchlist", () => {
         const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
         // 検証
-        expect(result).toBe(false);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ウォッチリストから削除しました",
+          data: false,
+        });
         expect(prismaMock.taskWatchList.delete).toHaveBeenCalledWith({
           where: {
             userId_auctionId: {
@@ -88,7 +96,11 @@ describe("watchlist", () => {
         const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
         // 検証
-        expect(result).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
         expect(prismaMock.taskWatchList.create).toHaveBeenCalledWith({
           data: {
             userId,
@@ -114,7 +126,11 @@ describe("watchlist", () => {
         const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
         // 検証
-        expect(result).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
         expect(prismaMock.taskWatchList.create).toHaveBeenCalledWith({
           data: {
             userId,
@@ -147,8 +163,16 @@ describe("watchlist", () => {
         ]);
 
         // 検証 - 1つは成功、1つは失敗
-        expect(result1).toBe(true);
-        expect(result2).toBe(false);
+        expect(result1).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
+        expect(result2).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
         expect(prismaMock.taskWatchList.create).toHaveBeenCalledTimes(2);
       });
 
@@ -170,7 +194,11 @@ describe("watchlist", () => {
         const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
         // 検証
-        expect(result).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
         expect(prismaMock.taskWatchList.create).toHaveBeenCalledWith({
           data: {
             userId,
@@ -187,12 +215,10 @@ describe("watchlist", () => {
         const userId = "user-1";
         const isWatchlisted = false;
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", expect.any(Error));
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow(
+          "serverToggleWatchlist: オークションIDまたはユーザーIDが存在しません",
+        );
         expect(prismaMock.taskWatchList.create).not.toHaveBeenCalled();
         expect(prismaMock.taskWatchList.delete).not.toHaveBeenCalled();
       });
@@ -203,12 +229,10 @@ describe("watchlist", () => {
         const userId = "";
         const isWatchlisted = false;
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", expect.any(Error));
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow(
+          "serverToggleWatchlist: オークションIDまたはユーザーIDが存在しません",
+        );
         expect(prismaMock.taskWatchList.create).not.toHaveBeenCalled();
         expect(prismaMock.taskWatchList.delete).not.toHaveBeenCalled();
       });
@@ -223,12 +247,10 @@ describe("watchlist", () => {
         // モックの設定
         prismaMock.taskWatchList.create.mockRejectedValue(dbError);
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", dbError);
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow(
+          "Create operation failed",
+        );
         expect(prismaMock.taskWatchList.create).toHaveBeenCalled();
       });
 
@@ -242,12 +264,10 @@ describe("watchlist", () => {
         // モックの設定
         prismaMock.taskWatchList.delete.mockRejectedValue(dbError);
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", dbError);
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow(
+          "Delete operation failed",
+        );
         expect(prismaMock.taskWatchList.delete).toHaveBeenCalled();
       });
 
@@ -257,12 +277,10 @@ describe("watchlist", () => {
         const userId = "user-1";
         const isWatchlisted = false;
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", expect.any(Error));
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow(
+          "serverToggleWatchlist: オークションIDまたはユーザーIDが存在しません",
+        );
       });
 
       test("should handle undefined auctionId parameter", async () => {
@@ -271,12 +289,10 @@ describe("watchlist", () => {
         const userId = "user-1";
         const isWatchlisted = false;
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", expect.any(Error));
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow(
+          "serverToggleWatchlist: オークションIDまたはユーザーIDが存在しません",
+        );
       });
 
       // 新しいテストケース: Prismaの制約エラーのテスト
@@ -298,12 +314,9 @@ describe("watchlist", () => {
         // モックの設定
         prismaMock.taskWatchList.create.mockRejectedValue(prismaError);
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", prismaError);
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow();
+        expect(prismaMock.taskWatchList.create).toHaveBeenCalled();
       });
 
       test("should handle Prisma record not found error during delete", async () => {
@@ -324,12 +337,9 @@ describe("watchlist", () => {
         // モックの設定
         prismaMock.taskWatchList.delete.mockRejectedValue(prismaError);
 
-        // 実行
-        const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
-
-        // 検証
-        expect(result).toBe(false);
-        expect(console.error).toHaveBeenCalledWith("ウォッチリスト操作エラー:", prismaError);
+        // 実行と検証
+        await expect(serverToggleWatchlist(auctionId, userId, isWatchlisted)).rejects.toThrow();
+        expect(prismaMock.taskWatchList.delete).toHaveBeenCalled();
       });
 
       // 新しいテストケース: 空白文字のテスト
@@ -350,7 +360,11 @@ describe("watchlist", () => {
         const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
         // 検証 - 空白文字は有効な文字列として扱われる（JavaScriptの仕様）
-        expect(result).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ウォッチリストに追加しました",
+          data: true,
+        });
       });
     });
   });
@@ -373,7 +387,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(true);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: true,
+      });
     });
 
     test("should return false when auction is not in watchlist", async () => {
@@ -388,7 +406,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(false);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: false,
+      });
     });
 
     test("should return false when database error occurs", async () => {
@@ -400,12 +422,9 @@ describe("watchlist", () => {
       // モックの設定
       prismaMock.taskWatchList.findFirst.mockRejectedValue(dbError);
 
-      // 実行
-      const result = await serverIsAuctionWatched(auctionId, userId);
-
-      // 検証
-      expect(result).toBe(false);
-      expect(console.error).toHaveBeenCalledWith("ウォッチリスト状態確認エラー:", dbError);
+      // 実行と検証
+      await expect(serverIsAuctionWatched(auctionId, userId)).rejects.toThrow("Database connection error");
+      expect(prismaMock.taskWatchList.findFirst).toHaveBeenCalled();
     });
 
     test("should handle empty string parameters", async () => {
@@ -413,14 +432,10 @@ describe("watchlist", () => {
       const auctionId = "";
       const userId = "";
 
-      // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(null);
-
-      // 実行
-      const result = await serverIsAuctionWatched(auctionId, userId);
-
-      // 検証
-      expect(result).toBe(false);
+      // 実行と検証
+      await expect(serverIsAuctionWatched(auctionId, userId)).rejects.toThrow(
+        "serverIsAuctionWatched: オークションIDまたはユーザーIDが存在しません",
+      );
     });
 
     test("should handle null parameters", async () => {
@@ -428,16 +443,10 @@ describe("watchlist", () => {
       const auctionId = null as unknown as string;
       const userId = null as unknown as string;
 
-      // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(
-        null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>,
+      // 実行と検証
+      await expect(serverIsAuctionWatched(auctionId, userId)).rejects.toThrow(
+        "serverIsAuctionWatched: オークションIDまたはユーザーIDが存在しません",
       );
-
-      // 実行
-      const result = await serverIsAuctionWatched(auctionId, userId);
-
-      // 検証
-      expect(result).toBe(false);
     });
 
     test("should handle undefined parameters", async () => {

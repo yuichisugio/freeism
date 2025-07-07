@@ -257,7 +257,8 @@ describe("getCachedDisplayUserInfo", () => {
           where: { auctionId, revieweeId: { in: [winnerId] }, reviewPosition },
           select: { revieweeId: true, comment: true },
         });
-        expect(result).toHaveLength(1);
+        expect(result.success).toBe(true);
+        expect(result.data).toHaveLength(1);
         expect(result.data[0]).toStrictEqual(
           createExpectedUserInfo({
             userId: winnerId,
@@ -290,7 +291,8 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
         // Assert
-        expect(result).toHaveLength(1);
+        expect(result.success).toBe(true);
+        expect(result.data).toHaveLength(1);
         expect(result.data[0]).toStrictEqual(
           createExpectedUserInfo({
             userId: winnerId,
@@ -318,7 +320,11 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          data: [],
+          message: "ユーザー情報を取得しました",
+        });
         expect(vi.mocked(prismaMock.auctionReview.findMany)).not.toHaveBeenCalled();
       });
     });
@@ -349,7 +355,8 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
         // Assert
-        expect(result).toHaveLength(3);
+        expect(result.success).toBe(true);
+        expect(result.data).toHaveLength(3);
 
         const creatorResult = result.data.find((r) => r.userId === creatorId);
         expect(creatorResult).toStrictEqual(
@@ -414,7 +421,8 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
         // Assert
-        expect(result).toHaveLength(1);
+        expect(result.success).toBe(true);
+        expect(result.data).toHaveLength(1);
         expect(result.data).toStrictEqual([
           createExpectedUserInfo({
             userId,
@@ -455,7 +463,8 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
         // Assert
-        expect(result).toHaveLength(1);
+        expect(result.success).toBe(true);
+        expect(result.data).toHaveLength(1);
         expect(result.data[0]).toStrictEqual(
           createExpectedUserInfo({
             userId: creatorId,
@@ -484,7 +493,11 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          data: [],
+          message: "ユーザー情報を取得しました",
+        });
         expect(vi.mocked(prismaMock.auctionReview.findMany)).not.toHaveBeenCalled();
       });
     });
@@ -546,7 +559,8 @@ describe("getCachedDisplayUserInfo", () => {
           const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
           // Assert
-          expect(result).toHaveLength(1);
+          expect(result.success).toBe(true);
+          expect(result.data).toHaveLength(1);
           expect(result.data[0].rating).toBe(expectedRating);
           expect(result.data[0].ratingCount).toBe(expectedCount);
           expect(Number.isInteger(result.data[0].rating)).toBe(true);
@@ -570,11 +584,13 @@ describe("getCachedDisplayUserInfo", () => {
           name: "no winner exists (SELLER_TO_BUYER)",
           reviewPosition: ReviewPosition.SELLER_TO_BUYER,
           mockData: { id: auctionId, winner: null },
+          expectedMessage: "ユーザー情報を取得しました",
         },
         {
           name: "no task exists (BUYER_TO_SELLER)",
           reviewPosition: ReviewPosition.BUYER_TO_SELLER,
           mockData: { id: auctionId, task: null },
+          expectedMessage: "ユーザー情報を取得しました",
         },
         {
           name: "empty task data (BUYER_TO_SELLER)",
@@ -584,11 +600,13 @@ describe("getCachedDisplayUserInfo", () => {
             reporters: [],
             executors: [],
           }),
+          expectedMessage: "ユーザー情報はありませんでした",
         },
         {
           name: "null auction result",
           reviewPosition: ReviewPosition.SELLER_TO_BUYER,
           mockData: null,
+          expectedMessage: "ユーザー情報はありませんでした",
         },
       ];
 
@@ -603,7 +621,11 @@ describe("getCachedDisplayUserInfo", () => {
         const result = await getCachedDisplayUserInfo(auctionId, testCase.reviewPosition);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          data: [],
+          message: testCase.expectedMessage,
+        });
         expect(vi.mocked(prismaMock.auctionReview.findMany)).not.toHaveBeenCalled();
       }
     });
@@ -678,7 +700,8 @@ describe("getCachedDisplayUserInfo", () => {
       const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
       // Assert
-      expect(result).toHaveLength(1);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
       expect(result.data[0]).toStrictEqual(expectedResult);
     });
 
@@ -720,7 +743,8 @@ describe("getCachedDisplayUserInfo", () => {
       const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
       // Assert
-      expect(result).toHaveLength(1);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
       expect(result.data[0].reviewComment).toBe(reviewComment === undefined ? null : reviewComment);
       expect(result.data[0].hasReviewed).toBe(expectedHasReviewed);
     });
@@ -746,7 +770,8 @@ describe("getCachedDisplayUserInfo", () => {
       const result = await getCachedDisplayUserInfo(auctionId, reviewPosition);
 
       // Assert
-      expect(result).toHaveLength(1);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
       // ratingが必ずnumber型であることを確認
       expect(typeof result.data[0].rating).toBe("number");
       expect(result.data[0].rating).toBe(0); // 評価がない場合は0になることを確認

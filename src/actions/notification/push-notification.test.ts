@@ -150,9 +150,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        sent: 2,
-        failed: 0,
-        totalTargets: 2,
+        data: {
+          sent: 2,
+          failed: 0,
+          totalTargets: 2,
+        },
         message: "通知の送信に成功しました",
       });
       expect(prismaMock.userSettings.findMany).toHaveBeenCalledWith({
@@ -193,9 +195,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        sent: 1,
-        failed: 0,
-        totalTargets: 1,
+        data: {
+          sent: 1,
+          failed: 0,
+          totalTargets: 1,
+        },
         message: "通知の送信に成功しました",
       });
       expect(prismaMock.pushSubscription.findMany).toHaveBeenCalledWith({
@@ -239,9 +243,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        sent: 1,
-        failed: 0,
-        totalTargets: 2,
+        data: {
+          sent: 1,
+          failed: 0,
+          totalTargets: 2,
+        },
         message: "通知の送信に成功しました",
       });
       expect(mockWebPush.sendNotification).toHaveBeenCalledTimes(1);
@@ -309,9 +315,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        sent: 0,
-        failed: 0,
-        totalTargets: 0,
+        data: {
+          sent: 0,
+          failed: 0,
+          totalTargets: 0,
+        },
         message: "プッシュ通知設定が見つかりません",
       });
       expect(prismaMock.pushSubscription.findMany).not.toHaveBeenCalled();
@@ -333,9 +341,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        sent: 0,
-        failed: 0,
-        totalTargets: 0,
+        data: {
+          sent: 0,
+          failed: 0,
+          totalTargets: 0,
+        },
         message: "VAPIDキーが設定されていません。",
       });
     });
@@ -354,9 +364,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        sent: 0,
-        failed: 0,
-        totalTargets: 0,
+        data: {
+          sent: 0,
+          failed: 0,
+          totalTargets: 0,
+        },
         message: "有効な購読者が見つかりませんでした",
       });
     });
@@ -389,9 +401,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false, // 修正: 送信が1件も成功していないため、successはfalse
-        sent: 0,
-        failed: 1,
-        totalTargets: 1,
+        data: {
+          sent: 0,
+          failed: 1,
+          totalTargets: 1,
+        },
         message: "通知の送信に成功しました",
       });
       expect(prismaMock.pushSubscription.delete).toHaveBeenCalledWith({
@@ -422,9 +436,11 @@ describe("sendPushNotification", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false, // 修正: 送信が1件も成功していないため、successはfalse
-        sent: 0,
-        failed: 1,
-        totalTargets: 1,
+        data: {
+          sent: 0,
+          failed: 1,
+          totalTargets: 1,
+        },
         message: "通知の送信に成功しました",
       });
       expect(mockWebPush.sendNotification).not.toHaveBeenCalled();
@@ -435,17 +451,8 @@ describe("sendPushNotification", () => {
       const params = createValidNotificationParams();
       prismaMock.userSettings.findMany.mockRejectedValue(new Error("Database error"));
 
-      // Act
-      const result = await sendPushNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        sent: 0,
-        failed: 0,
-        totalTargets: 0,
-        message: "通知の送信に失敗しました: Database error",
-      });
+      // Act & Assert
+      await expect(sendPushNotification(params)).rejects.toThrow("Database error");
     });
   });
 
@@ -460,9 +467,11 @@ describe("sendPushNotification", () => {
       const emptyResult = await sendPushNotification(emptyRecipientsParams);
       expect(emptyResult).toStrictEqual({
         success: false,
-        sent: 0,
-        failed: 0,
-        totalTargets: 0,
+        data: {
+          sent: 0,
+          failed: 0,
+          totalTargets: 0,
+        },
         message: "プッシュ通知設定が見つかりません",
       });
     });
@@ -478,9 +487,11 @@ describe("sendPushNotification", () => {
       const deviceIdResult = await sendPushNotification(params);
       expect(deviceIdResult).toStrictEqual({
         success: false, // deviceIdがnullの場合は送信対象が空になりsuccessCountが0のため、successはfalse
-        sent: 0,
-        failed: 0,
-        totalTargets: 1,
+        data: {
+          sent: 0,
+          failed: 0,
+          totalTargets: 1,
+        },
         message: "通知の送信に成功しました",
       });
     });
@@ -518,7 +529,7 @@ describe("getRecordId", () => {
       const nullResult = await getRecordId(validEndpoint);
 
       // Assert
-      expect(nullResult).toStrictEqual({ success: false, data: null, message: "購読情報が見つかりません" });
+      expect(nullResult).toStrictEqual({ success: true, data: null, message: "購読情報のIDを取得しました" });
     });
   });
 
@@ -566,7 +577,11 @@ describe("saveSubscription", () => {
       const result = await saveSubscription(subscription);
 
       // Assert
-      expect(result).toStrictEqual(createdSubscription);
+      expect(result).toStrictEqual({
+        success: true,
+        data: createdSubscription,
+        message: "購読情報を保存しました",
+      });
       expect(prismaMock.pushSubscription.create).toHaveBeenCalledWith({
         data: {
           userId: "test-user-id",
@@ -590,7 +605,11 @@ describe("saveSubscription", () => {
       const result = await saveSubscription(subscription);
 
       // Assert
-      expect(result).toStrictEqual(updatedSubscription);
+      expect(result).toStrictEqual({
+        success: true,
+        data: updatedSubscription,
+        message: "購読情報を保存しました",
+      });
       expect(prismaMock.pushSubscription.update).toHaveBeenCalledWith({
         where: { id: subscription.recordId! },
         data: expect.objectContaining({
@@ -615,7 +634,11 @@ describe("saveSubscription", () => {
         const nullResult = await saveSubscription(subscription2);
 
         // Assert
-        expect(nullResult).toStrictEqual(createdSubscription);
+        expect(nullResult).toStrictEqual({
+          success: true,
+          data: createdSubscription,
+          message: "購読情報を保存しました",
+        });
       },
     );
 
@@ -632,7 +655,11 @@ describe("saveSubscription", () => {
       const getRecordIdResult = await saveSubscription(noRecordId);
 
       // Assert
-      expect(getRecordIdResult).toStrictEqual(createdSubscription);
+      expect(getRecordIdResult).toStrictEqual({
+        success: true,
+        data: createdSubscription,
+        message: "購読情報を保存しました",
+      });
       expect(prismaMock.pushSubscription.findUnique).toHaveBeenCalledWith({
         where: { endpoint: noRecordId.endpoint },
         select: { id: true },
@@ -647,7 +674,7 @@ describe("saveSubscription", () => {
       const subscription = createSubscriptionData();
 
       // Act & Assert
-      await expect(saveSubscription(subscription)).rejects.toThrow("購読情報の保存に失敗しました: Auth error");
+      await expect(saveSubscription(subscription)).rejects.toThrow("Auth error");
     });
 
     test("should throw error when database operation fails", async () => {
@@ -658,7 +685,7 @@ describe("saveSubscription", () => {
       prismaMock.pushSubscription.create.mockRejectedValue(new Error("Database error"));
 
       // Act & Assert
-      await expect(saveSubscription(subscription)).rejects.toThrow("購読情報の保存に失敗しました: Database error");
+      await expect(saveSubscription(subscription)).rejects.toThrow("Database error");
     });
 
     test("should throw error when result is undefined", async () => {
@@ -677,9 +704,7 @@ describe("saveSubscription", () => {
       const incompleteSubscription = createSubscriptionData({ endpoint: "" });
 
       // Act & Assert
-      await expect(saveSubscription(incompleteSubscription)).rejects.toThrow(
-        "購読情報の保存に失敗しました: 購読情報が不完全です",
-      );
+      await expect(saveSubscription(incompleteSubscription)).rejects.toThrow("購読情報が不完全です");
     });
   });
 });
@@ -699,7 +724,7 @@ describe("deleteSubscription", () => {
 
       prismaMock.pushSubscription.delete.mockResolvedValue(deletedSubscription);
       const successResult = await deleteSubscription(validEndpoint);
-      expect(successResult).toStrictEqual({ success: true });
+      expect(successResult).toStrictEqual({ success: true, data: null, message: "購読情報を削除しました" });
     });
 
     test("should handle record not found (P2025) as success", async () => {
@@ -710,7 +735,7 @@ describe("deleteSubscription", () => {
       prismaMock.pushSubscription.delete.mockRejectedValue(notFoundError);
 
       const notFoundResult = await deleteSubscription(validEndpoint);
-      expect(notFoundResult).toStrictEqual({ success: true });
+      expect(notFoundResult).toStrictEqual({ success: true, data: null, message: "購読情報を削除しました" });
     });
   });
 

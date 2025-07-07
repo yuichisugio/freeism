@@ -114,7 +114,7 @@ describe("task.ts", () => {
         const result = await deleteTask(testTask.id, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: "タスクを削除しました" });
+        expect(result).toStrictEqual({ success: true, message: "タスクを削除しました", data: null });
         expect(mockCheckIsPermission).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
           where: { id: testTask.id },
@@ -138,6 +138,7 @@ describe("task.ts", () => {
         expect(result).toStrictEqual({
           success: false,
           message: "このタスクを削除する権限がありません",
+          data: null,
         });
         expect(result.success).toBe(false);
         expect(prismaMock.task.findUnique).not.toHaveBeenCalled();
@@ -153,14 +154,8 @@ describe("task.ts", () => {
         });
         prismaMock.task.findUnique.mockResolvedValue(null);
 
-        // Act
-        const result = await deleteTask(testTask.id, testUser.id);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          message: "タスクが見つかりません",
-        });
+        // Act & Assert
+        await expect(deleteTask(testTask.id, testUser.id)).rejects.toThrow("タスクが見つかりません");
         expect(prismaMock.task.delete).not.toHaveBeenCalled();
       });
 
@@ -173,30 +168,17 @@ describe("task.ts", () => {
         });
         prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));
 
-        // Act
-        const result = await deleteTask(testTask.id, testUser.id);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          message: "タスクの削除中にエラーが発生しました: Database error",
-        });
-        expect(result.success).toBe(false);
+        // Act & Assert
+        await expect(deleteTask(testTask.id, testUser.id)).rejects.toThrow("Database error");
+        expect(prismaMock.task.delete).not.toHaveBeenCalled();
       });
 
       test.each(deleteTaskBoundaryTestCases)("should handle $description $param", async ({ value, param }) => {
-        // Act
+        // Act & Assert
         const taskId = param === "taskId" ? value : testTask.id;
         const userId = param === "userId" ? value : testUser.id;
 
-        const result = await deleteTask(taskId, userId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          message: "タスクの削除中にエラーが発生しました: タスクID or ユーザーIDが指定されていません",
-        });
-        expect(result.success).toBe(false);
+        await expect(deleteTask(taskId, userId)).rejects.toThrow("タスクID or ユーザーIDが指定されていません");
       });
     });
   });
@@ -224,7 +206,7 @@ describe("task.ts", () => {
         const result = await updateTaskStatus(testTask.id, TaskStatus.AUCTION_ACTIVE);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: "タスクのステータスを更新しました" });
+        expect(result).toStrictEqual({ success: true, message: "タスクのステータスを更新しました", data: null });
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
           where: { id: testTask.id },
           select: {
@@ -249,6 +231,7 @@ describe("task.ts", () => {
             prismaMock.task.findUnique.mockResolvedValue(null);
           },
           errorMessage: "タスクが見つかりません",
+          shouldThrow: true,
         },
         {
           name: "should return error when user has no permission",
@@ -265,6 +248,7 @@ describe("task.ts", () => {
             });
           },
           errorMessage: "このタスクのステータスを変更する権限がありません",
+          shouldThrow: false,
         },
         {
           name: "should handle database error gracefully",
@@ -273,36 +257,48 @@ describe("task.ts", () => {
             prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));
           },
           errorMessage: "Database error",
+          shouldThrow: true,
         },
       ];
 
-      test.each(commonErrorTestCases)("$name", async ({ setup, errorMessage }) => {
+      test.each(commonErrorTestCases)("$name", async ({ setup, errorMessage, shouldThrow }) => {
         // Arrange
         setup();
 
-        // Act
-        const result = await updateTaskStatus(testTask.id, TaskStatus.AUCTION_ACTIVE);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          message: errorMessage,
-        });
+        if (shouldThrow) {
+          // Act & Assert
+          await expect(updateTaskStatus(testTask.id, TaskStatus.AUCTION_ACTIVE)).rejects.toThrow(errorMessage);
+        } else {
+          // Act
+          const result = await updateTaskStatus(testTask.id, TaskStatus.AUCTION_ACTIVE);
+          // Assert
+          expect(result).toStrictEqual({
+            success: false,
+            message: errorMessage,
+            data: null,
+          });
+        }
         expect(prismaMock.task.update).not.toHaveBeenCalled();
       });
 
       test.each(statusBoundaryTestCases)(
         "should return error when status is $description",
         async ({ value, errorMessage }) => {
-          // Act
-          const result = await updateTaskStatus(testTask.id, value);
-
-          // Assert
-          expect(result).toStrictEqual({
-            success: false,
-            message: errorMessage,
-          });
-          expect(result.success).toBe(false);
+          // FIXED_EVALUATEDとPOINTS_AWARDEDの場合はエラーオブジェクトを返す
+          if (value === TaskStatus.FIXED_EVALUATED || value === TaskStatus.POINTS_AWARDED) {
+            // Act
+            const result = await updateTaskStatus(testTask.id, value);
+            // Assert
+            expect(result).toStrictEqual({
+              success: false,
+              message: errorMessage,
+              data: null,
+            });
+          } else {
+            // その他の無効なステータスの場合は例外をスロー
+            // Act & Assert
+            await expect(updateTaskStatus(testTask.id, value)).rejects.toThrow(errorMessage);
+          }
         },
       );
 
@@ -317,15 +313,8 @@ describe("task.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         prismaMock.task.findUnique.mockResolvedValue(null);
 
-        // Act
-        const result = await updateTaskStatus(value, TaskStatus.AUCTION_ACTIVE);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          message: "タスクが見つかりません",
-        });
-        expect(result.success).toBe(false);
+        // Act & Assert
+        await expect(updateTaskStatus(value, TaskStatus.AUCTION_ACTIVE)).rejects.toThrow("タスクが見つかりません");
       });
     });
   });

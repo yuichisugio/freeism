@@ -27,7 +27,11 @@ export async function setAutoBid(
    * 1. 入札単位・上限入札額が正の整数か確認
    */
   if (bidIncrement < 1 || maxBidAmount < 1) {
-    throw new Error("入札単位・上限入札額は1以上の整数で設定してください");
+    return {
+      success: false,
+      message: "入札単位・上限入札額は1以上の整数で設定してください",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -36,7 +40,11 @@ export async function setAutoBid(
    * 2. オークションIDが有効か確認
    */
   if (!auctionId) {
-    throw new Error("オークションIDが無効です");
+    return {
+      success: false,
+      message: "オークションIDが無効です",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -68,7 +76,11 @@ export async function setAutoBid(
 
   // オークション情報が取得できなかった場合はエラーを返す
   if (!auction) {
-    throw new Error("オークション情報が取得できませんでした");
+    return {
+      success: false,
+      message: "オークション情報が取得できませんでした",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

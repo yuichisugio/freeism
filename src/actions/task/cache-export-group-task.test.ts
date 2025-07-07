@@ -117,7 +117,11 @@ describe("cachedExportGroupTask", () => {
       const result = await cachedExportGroupTask(groupId);
 
       // 検証
-      expect(result).toStrictEqual([createExpectedCsvItem()]);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "タスク情報のエクスポートが完了しました",
+        data: [createExpectedCsvItem()],
+      });
 
       // Prismaの呼び出し検証
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
@@ -195,17 +199,21 @@ describe("cachedExportGroupTask", () => {
       const result = await cachedExportGroupTask(groupId);
 
       // 検証 - null値が適切にデフォルト値に変換されているか
-      expect(result.data?.[0]).toStrictEqual(
-        createExpectedCsvItem({
-          参照: "",
-          証拠情報: "",
-          貢献ポイント: 0,
-          評価者: "",
-          作成者: "未設定",
-          報告者: "",
-          実行者: "",
-        }),
-      );
+      expect(result).toStrictEqual({
+        success: true,
+        message: "タスク情報のエクスポートが完了しました",
+        data: [
+          createExpectedCsvItem({
+            参照: "",
+            証拠情報: "",
+            貢献ポイント: 0,
+            評価者: "",
+            作成者: "未設定",
+            報告者: "",
+            実行者: "",
+          }),
+        ],
+      });
     });
 
     test("should handle reporters and executors without user association", async () => {
@@ -343,38 +351,42 @@ describe("cachedExportGroupTask", () => {
     test("should throw error when groupId is empty", async () => {
       const groupId = "";
 
-      await expect(cachedExportGroupTask(groupId)).rejects.toThrow(
-        "グループのTask情報のエクスポート中にエラーが発生しました: グループIDが指定されていません",
-      );
+      await expect(cachedExportGroupTask(groupId)).rejects.toThrow("グループIDが指定されていません");
     });
 
-    test("should throw error when no tasks are found", async () => {
+    test("should return error response when no tasks are found", async () => {
       const groupId = "non-existent-group";
       setupPrismaMockEmpty();
 
-      await expect(cachedExportGroupTask(groupId)).rejects.toThrow(
-        "グループのTask情報のエクスポート中にエラーが発生しました: タスクが見つかりません",
-      );
+      const result = await cachedExportGroupTask(groupId);
+
+      expect(result).toStrictEqual({
+        success: false,
+        message: "タスクが見つかりません",
+        data: [],
+      });
     });
 
-    test("should throw error when tasks is null", async () => {
+    test("should return error response when tasks is null", async () => {
       const groupId = "test-group-id";
       prismaMock.task.findMany.mockResolvedValue(
         null as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
       );
 
-      await expect(cachedExportGroupTask(groupId)).rejects.toThrow(
-        "グループのTask情報のエクスポート中にエラーが発生しました: タスクが見つかりません",
-      );
+      const result = await cachedExportGroupTask(groupId);
+
+      expect(result).toStrictEqual({
+        success: false,
+        message: "タスクが見つかりません",
+        data: [],
+      });
     });
 
     test("should throw error when database error occurs", async () => {
       const groupId = "test-group-id";
       setupPrismaMockError(new Error("Database connection error"));
 
-      await expect(cachedExportGroupTask(groupId)).rejects.toThrow(
-        "グループのTask情報のエクスポート中にエラーが発生しました: Database connection error",
-      );
+      await expect(cachedExportGroupTask(groupId)).rejects.toThrow("Database connection error");
     });
   });
 
@@ -387,9 +399,7 @@ describe("cachedExportGroupTask", () => {
     test("should handle undefined groupId", async () => {
       const groupId = undefined as unknown as string;
 
-      await expect(cachedExportGroupTask(groupId)).rejects.toThrow(
-        "グループのTask情報のエクスポート中にエラーが発生しました: グループIDが指定されていません",
-      );
+      await expect(cachedExportGroupTask(groupId)).rejects.toThrow("グループIDが指定されていません");
     });
 
     test("should handle tasks with empty arrays for reporters and executors", async () => {

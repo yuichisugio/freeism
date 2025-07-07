@@ -172,10 +172,17 @@ describe("notification-utilities", () => {
     const userId = TEST_DATA.userIds.user1;
 
     test.each([
-      { hasUnread: true, expected: true, description: "未読通知がある場合はtrueを返す" },
-      { hasUnread: false, expected: false, description: "未読通知がない場合はfalseを返す" },
-    ])("$description", async ({ hasUnread, expected }) => {
+      {
+        description: "未読通知がある場合はtrueを返す",
+        hasUnread: true,
+      },
+      {
+        description: "未読通知がない場合はfalseを返す",
+        hasUnread: false,
+      },
+    ])("$description", async ({ hasUnread }) => {
       // Arrange
+      const expected = hasUnread;
       mockCachedGetUnreadNotificationsCount.mockResolvedValue({
         success: true,
         message: "未読通知数を取得しました",
@@ -186,7 +193,11 @@ describe("notification-utilities", () => {
       const result = await getUnreadNotificationsCount(userId);
 
       // Assert
-      expect(result).toBe(expected);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "未読通知数を取得しました",
+        data: expected,
+      });
       expect(mockCachedGetUnreadNotificationsCount).toHaveBeenCalledWith(userId);
     });
 
@@ -276,20 +287,21 @@ describe("notification-utilities", () => {
       const result = await updateNotificationStatus(updates, userId);
 
       // Assert
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({
+        success: true,
+        message: "通知状態を更新しました",
+        data: null,
+      });
       expect(prismaMock.$transaction).toHaveBeenCalled();
     });
 
-    test("トランザクションが失敗した場合はエラーレスポンスを返す", async () => {
+    test("トランザクションが失敗した場合はエラーを再スローする", async () => {
       // Arrange
       const updates = [{ notificationId: TEST_DATA.notificationIds.notification1, isRead: true }];
       prismaMock.$transaction.mockRejectedValue(new Error("トランザクションエラー"));
 
-      // Act
-      const result = await updateNotificationStatus(updates, userId);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false });
+      // Act & Assert
+      await expect(updateNotificationStatus(updates, userId)).rejects.toThrow("トランザクションエラー");
     });
 
     describe("SQL全文検証テスト", () => {
@@ -444,12 +456,8 @@ describe("notification-utilities", () => {
           return await callback(mockTransaction as unknown as Parameters<typeof callback>[0]);
         });
 
-        // Act
-        const result = await updateNotificationStatus(updates, userId);
-
-        // Assert
-        expect(result).toStrictEqual({ success: false });
-        expect(mockExecuteRaw).not.toHaveBeenCalled();
+        // Act & Assert
+        await expect(updateNotificationStatus(updates, userId)).rejects.toThrow("通知IDまたは既読状態が不正です");
       });
 
       test("空の更新データでSQL実行されないことを確認する", async () => {
@@ -468,7 +476,11 @@ describe("notification-utilities", () => {
         const result = await updateNotificationStatus(updates, userId);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知状態を更新しました",
+          data: null,
+        });
         expect(mockExecuteRaw).not.toHaveBeenCalled();
       });
 
@@ -609,7 +621,11 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: [TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3],
+        });
         expect(prismaMock.user.findMany).toHaveBeenCalledWith({
           select: { id: true },
         });
@@ -625,7 +641,11 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual(userIds);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: userIds,
+        });
       });
 
       test("GROUP対象タイプの場合はグループメンバーIDを返す", async () => {
@@ -641,7 +661,11 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: [TEST_DATA.userIds.user1, TEST_DATA.userIds.user2],
+        });
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
           where: { groupId: TEST_DATA.groupIds.group1 },
           select: { userId: true },
@@ -676,7 +700,11 @@ describe("notification-utilities", () => {
 
         // Assert
         // 重複を除去して返される
-        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: [TEST_DATA.userIds.user1, TEST_DATA.userIds.user2, TEST_DATA.userIds.user3],
+        });
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
           where: { id: TEST_DATA.taskIds.task1 },
           select: {
@@ -710,7 +738,11 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: [],
+        });
       });
 
       test("重複ユーザーIDを除去する", async () => {
@@ -737,7 +769,11 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual([TEST_DATA.userIds.user1, TEST_DATA.userIds.user2]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: [TEST_DATA.userIds.user1, TEST_DATA.userIds.user2],
+        });
       });
     });
 
@@ -806,7 +842,11 @@ describe("notification-utilities", () => {
         const result = await getNotificationTargetUserIds(targetType, params);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: [],
+        });
       });
     });
   });

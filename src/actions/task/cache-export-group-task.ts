@@ -48,7 +48,7 @@ export async function cachedExportGroupTask(
   /**
    * グループIDが指定されているか確認
    */
-  if (!groupId || onlyTaskCompleted === undefined || onlyTaskCompleted === null) {
+  if (!groupId) {
     throw new Error("グループIDが指定されていません");
   }
 
@@ -197,6 +197,4 @@ export async function cachedExportGroupTask(
     message: "タスク情報のエクスポートが完了しました",
     data: formattedTasks,
   };
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 }

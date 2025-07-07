@@ -103,7 +103,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが10分延長されました",
       });
     });
@@ -126,7 +126,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        newEndTime: null,
+        data: null,
         message: "延長不可のオークションです",
       });
     });
@@ -149,7 +149,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        newEndTime: null,
+        data: null,
         message: "延長回数の上限に達しています",
       });
     });
@@ -179,7 +179,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        newEndTime: null,
+        data: null,
         message: "延長トリガーの条件を満たしていません",
       });
     });
@@ -207,15 +207,8 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       const dbError = new Error("Database connection failed");
       prismaMock.auction.update.mockRejectedValue(dbError);
 
-      // Act
-      const result = await processAuctionExtension(params);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        newEndTime: null,
-        message: "Database connection failed",
-      });
+      // Act & Assert
+      await expect(processAuctionExtension(params)).rejects.toThrow("Database connection failed");
     });
   });
 
@@ -266,7 +259,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが10分延長されました",
       });
     });
@@ -289,7 +282,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        newEndTime: null,
+        data: null,
         message: "延長回数の上限に達しています",
       });
     });
@@ -340,7 +333,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが3分延長されました",
       });
     });
@@ -391,7 +384,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが1440分延長されました",
       });
     });
@@ -496,7 +489,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが10分延長されました",
       });
     });
@@ -547,7 +540,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが10分延長されました",
       });
     });
@@ -598,7 +591,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが10分延長されました",
       });
     });
@@ -625,15 +618,8 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // モックで非Errorオブジェクトを投げる
       prismaMock.auction.update.mockRejectedValue("String error");
 
-      // Act
-      const result = await processAuctionExtension(params);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        newEndTime: null,
-        message: "オークション延長中に不明なエラーが発生しました",
-      });
+      // Act & Assert
+      await expect(processAuctionExtension(params)).rejects.toThrow("String error");
     });
 
     test("should handle extension with maximum limit count", async () => {
@@ -682,7 +668,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが10分延長されました",
       });
     });
@@ -733,7 +719,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        newEndTime: expect.any(Date) as Date,
+        data: expect.any(Date) as Date,
         message: "オークションが1分延長されました",
       });
     });

@@ -1,6 +1,7 @@
 import { type CreateGroupFormData } from "@/components/form/create-group-form";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { createInvalidGroupData, groupFactory, groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import { type GroupMembership } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -82,7 +83,11 @@ describe("group.test.ts", () => {
         const result = await createGroup(validGroupData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループを作成しました",
+          data: null,
+        });
         expect(prismaMock.group.create).toHaveBeenCalledWith({
           data: {
             ...validGroupData,
@@ -104,14 +109,10 @@ describe("group.test.ts", () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-        // Act
-        const result = await createGroup(validGroupData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "createGroup中にエラーが発生しました: Authentication failed",
-        });
+        // Act & Assert
+        await expect(createGroup(validGroupData)).rejects.toThrow(
+          "createGroup中にエラーが発生しました: Authentication failed",
+        );
         expect(prismaMock.group.create).not.toHaveBeenCalled();
       });
 
@@ -124,7 +125,11 @@ describe("group.test.ts", () => {
         const result = await createGroup(invalidData as unknown as CreateGroupFormData);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
+        expect(result).toStrictEqual({
+          success: false,
+          message: "入力内容に誤りがあります",
+          data: null,
+        });
         expect(prismaMock.group.create).not.toHaveBeenCalled();
       });
 
@@ -133,14 +138,10 @@ describe("group.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.create.mockRejectedValue(new Error("Database error"));
 
-        // Act
-        const result = await createGroup(validGroupData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "createGroup中にエラーが発生しました: Database error",
-        });
+        // Act & Assert
+        await expect(createGroup(validGroupData)).rejects.toThrow(
+          "createGroup中にエラーが発生しました: Database error",
+        );
       });
 
       test("should handle missing required fields", async () => {
@@ -152,7 +153,11 @@ describe("group.test.ts", () => {
         const result = await createGroup(invalidData as unknown as CreateGroupFormData);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
+        expect(result).toStrictEqual({
+          success: false,
+          message: "入力内容に誤りがあります",
+          data: null,
+        });
       });
 
       test("should handle unique constraint error", async () => {
@@ -164,7 +169,11 @@ describe("group.test.ts", () => {
         const result = await createGroup(validGroupData);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, error: "このグループ名は既に使用されています" });
+        expect(result).toStrictEqual({
+          success: false,
+          message: "このグループ名は既に使用されています",
+          data: null,
+        });
       });
 
       test("should handle boundary values for maxParticipants", async () => {
@@ -178,7 +187,11 @@ describe("group.test.ts", () => {
         const result = await createGroup(boundaryData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループを作成しました",
+          data: null,
+        });
       });
     });
   });
@@ -192,10 +205,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
+        // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: false,
-          message: "グループメンバーシップが存在しません",
-          data: null,
+          success: true,
+          message: "メンバーの存在を確認しました",
+          data: false as unknown as GroupMembership,
         });
         prismaMock.groupMembership.count.mockResolvedValue(5);
         prismaMock.groupMembership.create.mockResolvedValue(membership);
@@ -204,7 +218,11 @@ describe("group.test.ts", () => {
         const result = await joinGroup(testGroupId);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループに参加しました",
+          data: null,
+        });
         expect(prismaMock.groupMembership.create).toHaveBeenCalledWith({
           data: {
             userId: testUsers.user1,
@@ -225,14 +243,8 @@ describe("group.test.ts", () => {
 
     describe("異常系", () => {
       test("should return error when groupId is not provided", async () => {
-        // Arrange
-        const result = await joinGroup("");
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "joinGroup中にエラーが発生しました: グループIDがありません",
-        });
+        // Act & Assert
+        await expect(joinGroup("")).rejects.toThrow("グループIDがありません");
       });
 
       test("should return error when group not found", async () => {
@@ -240,14 +252,8 @@ describe("group.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(null);
 
-        // Act
-        const result = await joinGroup(testGroupId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "joinGroup中にエラーが発生しました: グループが見つかりません",
-        });
+        // Act & Assert
+        await expect(joinGroup(testGroupId)).rejects.toThrow("グループが見つかりません");
         expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
       });
 
@@ -258,10 +264,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
+        // checkGroupMembershipが truthy を返すようにモック（既に参加している状態）
         mockCheckGroupMembership.mockResolvedValue({
           success: true,
-          message: "グループメンバーシップを取得しました",
-          data: { id: existingMembership.id, isGroupOwner: existingMembership.isGroupOwner },
+          message: "メンバーの存在を確認しました",
+          data: existingMembership as unknown as GroupMembership,
         });
 
         // Act
@@ -270,7 +277,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "joinGroup中にエラーが発生しました: 既に参加済みです",
+          message: "既に参加済みです",
+          data: null,
         });
         expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
       });
@@ -281,10 +289,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
+        // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: false,
-          message: "グループメンバーシップが存在しません",
-          data: null,
+          success: true,
+          message: "メンバーの存在を確認しました",
+          data: false as unknown as GroupMembership,
         });
         prismaMock.groupMembership.count.mockResolvedValue(5);
 
@@ -294,7 +303,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "joinGroup中にエラーが発生しました: 参加人数が上限に達しています",
+          message: "参加人数が上限に達しています",
+          data: null,
         });
         expect(prismaMock.groupMembership.create).not.toHaveBeenCalled();
       });
@@ -303,14 +313,8 @@ describe("group.test.ts", () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-        // Act
-        const result = await joinGroup(testGroupId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "joinGroup中にエラーが発生しました: Authentication failed",
-        });
+        // Act & Assert
+        await expect(joinGroup(testGroupId)).rejects.toThrow("Authentication failed");
       });
 
       test("should handle database error during join", async () => {
@@ -319,22 +323,17 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
+        // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: false,
-          message: "グループメンバーシップが存在しません",
-          data: null,
+          success: true,
+          message: "メンバーの存在を確認しました",
+          data: false as unknown as GroupMembership,
         });
         prismaMock.groupMembership.count.mockResolvedValue(5);
         prismaMock.groupMembership.create.mockRejectedValue(new Error("Database error"));
 
-        // Act
-        const result = await joinGroup(testGroupId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "joinGroup中にエラーが発生しました: Database error",
-        });
+        // Act & Assert
+        await expect(joinGroup(testGroupId)).rejects.toThrow("Database error");
       });
 
       test("should handle boundary case when group is exactly at capacity", async () => {
@@ -343,10 +342,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
+        // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: false,
-          message: "グループメンバーシップが存在しません",
-          data: null,
+          success: true,
+          message: "メンバーの存在を確認しました",
+          data: false as unknown as GroupMembership,
         });
         prismaMock.groupMembership.count.mockResolvedValue(1);
 
@@ -356,7 +356,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "joinGroup中にエラーが発生しました: 参加人数が上限に達しています",
+          message: "参加人数が上限に達しています",
+          data: null,
         });
       });
     });
@@ -377,7 +378,11 @@ describe("group.test.ts", () => {
         const result = await deleteGroup(testGroupId);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループを削除しました",
+          data: null,
+        });
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalled();
         expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
           where: { id: testGroupId },
@@ -396,14 +401,8 @@ describe("group.test.ts", () => {
 
     describe("異常系", () => {
       test("should return error when groupId is not provided", async () => {
-        // Arrange
-        const result = await deleteGroup("");
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "deleteGroup中にエラーが発生しました: グループIDがありません",
-        });
+        // Act & Assert
+        await expect(deleteGroup("")).rejects.toThrow("グループIDがありません");
       });
 
       test("should return error when group not found", async () => {
@@ -411,14 +410,8 @@ describe("group.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(null);
 
-        // Act
-        const result = await deleteGroup(testGroupId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "deleteGroup中にエラーが発生しました: グループが見つかりません",
-        });
+        // Act & Assert
+        await expect(deleteGroup(testGroupId)).rejects.toThrow("グループが見つかりません");
         expect(prismaMock.group.delete).not.toHaveBeenCalled();
       });
 
@@ -440,7 +433,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "deleteGroup中にエラーが発生しました: グループの削除権限がありません",
+          message: "グループの削除権限がありません",
+          data: null,
         });
         expect(prismaMock.group.delete).not.toHaveBeenCalled();
       });
@@ -449,14 +443,8 @@ describe("group.test.ts", () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-        // Act
-        const result = await deleteGroup(testGroupId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "deleteGroup中にエラーが発生しました: Authentication failed",
-        });
+        // Act & Assert
+        await expect(deleteGroup(testGroupId)).rejects.toThrow("Authentication failed");
       });
 
       test("should handle database error during deletion", async () => {
@@ -468,14 +456,8 @@ describe("group.test.ts", () => {
         mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの削除権限があります", data: true });
         prismaMock.group.delete.mockRejectedValue(new Error("Database error"));
 
-        // Act
-        const result = await deleteGroup(testGroupId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "deleteGroup中にエラーが発生しました: Database error",
-        });
+        // Act & Assert
+        await expect(deleteGroup(testGroupId)).rejects.toThrow("Database error");
       });
     });
   });
@@ -492,7 +474,11 @@ describe("group.test.ts", () => {
         const result = await checkGroupExistByName(groupName);
 
         // Assert
-        expect(result).toBe(true);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループ名の重複をチェックしました",
+          data: true,
+        });
         expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
           where: { name: groupName },
         });
@@ -507,7 +493,11 @@ describe("group.test.ts", () => {
         const result = await checkGroupExistByName(groupName);
 
         // Assert
-        expect(result).toBe(false);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループ名の重複をチェックしました",
+          data: false,
+        });
         expect(prismaMock.group.findFirst).toHaveBeenCalledWith({
           where: { name: groupName },
         });
@@ -564,7 +554,11 @@ describe("group.test.ts", () => {
         const result = await updateGroup(testGroupId, validUpdateData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループを更新しました",
+          data: null,
+        });
         expect(prismaMock.group.update).toHaveBeenCalledWith({
           where: { id: testGroupId },
           data: validUpdateData,
@@ -592,14 +586,8 @@ describe("group.test.ts", () => {
 
     describe("異常系", () => {
       test("should return error when groupId is not provided", async () => {
-        // Arrange
-        const result = await updateGroup("", validUpdateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "updateGroup中にエラーが発生しました: グループIDがありません",
-        });
+        // Act & Assert
+        await expect(updateGroup("", validUpdateData)).rejects.toThrow("グループIDがありません");
       });
 
       test("should return error when group not found", async () => {
@@ -608,14 +596,8 @@ describe("group.test.ts", () => {
         prismaMock.group.findUnique.mockResolvedValue(null);
         mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
 
-        // Act
-        const result = await updateGroup(testGroupId, validUpdateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "updateGroup中にエラーが発生しました: グループが見つかりません",
-        });
+        // Act & Assert
+        await expect(updateGroup(testGroupId, validUpdateData)).rejects.toThrow("グループが見つかりません");
         expect(prismaMock.group.update).not.toHaveBeenCalled();
       });
 
@@ -640,7 +622,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "updateGroup中にエラーが発生しました: グループの編集権限がありません",
+          message: "グループの編集権限がありません",
+          data: null,
         });
         expect(prismaMock.group.update).not.toHaveBeenCalled();
       });
@@ -662,14 +645,8 @@ describe("group.test.ts", () => {
         prismaMock.group.findFirst.mockResolvedValue(duplicateGroup);
         mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
 
-        // Act
-        const result = await updateGroup(testGroupId, validUpdateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "updateGroup中にエラーが発生しました: このグループ名は既に使用されています",
-        });
+        // Act & Assert
+        await expect(updateGroup(testGroupId, validUpdateData)).rejects.toThrow("このグループ名は既に使用されています");
         expect(prismaMock.group.update).not.toHaveBeenCalled();
       });
 
@@ -690,7 +667,11 @@ describe("group.test.ts", () => {
         const result = await updateGroup(testGroupId, updateDataWithSameName);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループを更新しました",
+          data: null,
+        });
         expect(prismaMock.group.findFirst).not.toHaveBeenCalled();
       });
 
@@ -698,11 +679,8 @@ describe("group.test.ts", () => {
         // Arrange
         const invalidData = { name: "", goal: "", evaluationMethod: "" };
 
-        // Act
-        const result = await updateGroup(testGroupId, invalidData as unknown as CreateGroupFormData);
-
-        // Assert
-        expect(result).toStrictEqual({ success: false, error: "入力内容に誤りがあります" });
+        // Act & Assert
+        await expect(updateGroup(testGroupId, invalidData as unknown as CreateGroupFormData)).rejects.toThrow();
         expect(prismaMock.group.update).not.toHaveBeenCalled();
       });
 
@@ -718,15 +696,10 @@ describe("group.test.ts", () => {
         prismaMock.group.findUnique.mockResolvedValue(existingGroup);
         prismaMock.group.findFirst.mockResolvedValue(null);
         prismaMock.group.update.mockRejectedValue(new Error("Database error"));
+        mockCheckIsPermission.mockResolvedValue({ success: true, message: "グループの編集権限があります", data: true });
 
-        // Act
-        const result = await updateGroup(testGroupId, validUpdateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "updateGroup中にエラーが発生しました: Database error",
-        });
+        // Act & Assert
+        await expect(updateGroup(testGroupId, validUpdateData)).rejects.toThrow("Database error");
       });
     });
   });
@@ -758,23 +731,27 @@ describe("group.test.ts", () => {
         const result = await getGroupMembers(testGroupId);
 
         // Assert
-        expect(result).toStrictEqual([
-          {
-            isGroupOwner: true,
-            userId: "user-1",
-            appUserName: "オーナーユーザー",
-          },
-          {
-            isGroupOwner: false,
-            userId: "user-2",
-            appUserName: "一般ユーザー",
-          },
-          {
-            isGroupOwner: false,
-            userId: "user-3",
-            appUserName: "未設定_user-3",
-          },
-        ]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループメンバーを取得しました",
+          data: [
+            {
+              isGroupOwner: true,
+              userId: "user-1",
+              appUserName: "オーナーユーザー",
+            },
+            {
+              isGroupOwner: false,
+              userId: "user-2",
+              appUserName: "一般ユーザー",
+            },
+            {
+              isGroupOwner: false,
+              userId: "user-3",
+              appUserName: "未設定_user-3",
+            },
+          ],
+        });
 
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
           where: { groupId: testGroupId },
@@ -805,7 +782,11 @@ describe("group.test.ts", () => {
         const result = await getGroupMembers(testGroupId);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループメンバーを取得しました",
+          data: [],
+        });
       });
     });
 
@@ -841,13 +822,17 @@ describe("group.test.ts", () => {
         const result = await getGroupMembers(testGroupId);
 
         // Assert
-        expect(result).toStrictEqual([
-          {
-            isGroupOwner: false,
-            userId: "user-1",
-            appUserName: "未設定_user-1",
-          },
-        ]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループメンバーを取得しました",
+          data: [
+            {
+              isGroupOwner: false,
+              userId: "user-1",
+              appUserName: "未設定_user-1",
+            },
+          ],
+        });
       });
     });
   });
@@ -1011,14 +996,8 @@ describe("group.test.ts", () => {
         { groupId: testGroupId, removeUserId: testUsers.target, addToBlackList: undefined },
         { groupId: testGroupId, removeUserId: testUsers.target, addToBlackList: null },
       ])("should return error when groupId is not provided", async ({ groupId, removeUserId, addToBlackList }) => {
-        // Arrange
-        const result = await removeMember(groupId, removeUserId, addToBlackList!);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "メンバー削除中にエラーが発生しました: invalid parameters",
-        });
+        // Act & Assert
+        await expect(removeMember(groupId, removeUserId, addToBlackList!)).rejects.toThrow("invalid parameters");
       });
 
       test("should return error when user is not owner", async () => {
@@ -1036,7 +1015,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "メンバー削除中にエラーが発生しました: グループメンバーを削除する権限がありません",
+          message: "グループメンバーを削除する権限がありません",
+          data: null,
         });
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledWith();
         expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.owner, testGroupId, undefined, false);
@@ -1055,10 +1035,11 @@ describe("group.test.ts", () => {
           message: "Permission check successfully",
           data: true,
         });
+        // checkGroupMembershipが false を返すようにモック（参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: false,
-          message: "グループメンバーシップが存在しません",
-          data: null,
+          success: true,
+          message: "メンバーの存在を確認しました",
+          data: false as unknown as GroupMembership,
         });
 
         // Act
@@ -1067,7 +1048,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "メンバー削除中にエラーが発生しました: 指定されたユーザーはグループに参加していません",
+          message: "指定されたユーザーはグループに参加していません",
+          data: null,
         });
         expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
       });
@@ -1085,6 +1067,7 @@ describe("group.test.ts", () => {
           message: "Permission check successfully",
           data: true,
         });
+        // checkGroupMembershipがメンバーシップを返すようにモック
         mockCheckGroupMembership.mockResolvedValue({
           success: true,
           message: "グループメンバーシップを取得しました",
@@ -1097,7 +1080,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "メンバー削除中にエラーが発生しました: 自分自身を削除することはできません",
+          message: "自分自身を削除することはできません",
+          data: null,
         });
         expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
       });
@@ -1115,6 +1099,7 @@ describe("group.test.ts", () => {
           message: "Permission check successfully",
           data: true,
         });
+        // checkGroupMembershipがオーナーメンバーシップを返すようにモック
         mockCheckGroupMembership.mockResolvedValue({
           success: true,
           message: "グループメンバーシップを取得しました",
@@ -1127,7 +1112,8 @@ describe("group.test.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          error: "メンバー削除中にエラーが発生しました: グループオーナーを削除することはできません",
+          message: "グループオーナーを削除することはできません",
+          data: null,
         });
         expect(prismaMock.groupMembership.delete).not.toHaveBeenCalled();
       });
@@ -1136,14 +1122,8 @@ describe("group.test.ts", () => {
         // Arrange
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
 
-        // Act
-        const result = await removeMember(testGroupId, testUsers.target, false);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "メンバー削除中にエラーが発生しました: Authentication failed",
-        });
+        // Act & Assert
+        await expect(removeMember(testGroupId, testUsers.target, false)).rejects.toThrow("Authentication failed");
       });
 
       test("should handle database error during transaction", async () => {
@@ -1166,14 +1146,8 @@ describe("group.test.ts", () => {
         });
         prismaMock.$transaction.mockRejectedValue(new Error("Transaction failed"));
 
-        // Act
-        const result = await removeMember(testGroupId, testUsers.target, false);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "メンバー削除中にエラーが発生しました: Transaction failed",
-        });
+        // Act & Assert
+        await expect(removeMember(testGroupId, testUsers.target, false)).rejects.toThrow("Transaction failed");
       });
     });
   });

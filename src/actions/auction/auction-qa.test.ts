@@ -177,8 +177,11 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          messages: mockMessages,
-          sellerInfo: mockSellerInfo,
+          data: {
+            messages: mockMessages,
+            sellerInfo: mockSellerInfo,
+          },
+          message: "オークションQAを取得しました",
         });
 
         expect(mockGetCachedAuctionMessageContents).toHaveBeenCalledWith(testAuctionId, false, testAuctionEndDate);
@@ -216,8 +219,11 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          data: [],
-          message: "メッセージを取得しました",
+          data: {
+            messages: [],
+            sellerInfo: mockSellerInfo,
+          },
+          message: "オークションQAを取得しました",
         });
       });
     });
@@ -232,7 +238,7 @@ describe("auction-qa", () => {
         { isDisplayAfterEnd: "", auctionId: testAuctionId, auctionEndDate: testAuctionEndDate },
         { auctionEndDate: undefined, auctionId: testAuctionId, isDisplayAfterEnd: false },
         { auctionEndDate: null, auctionId: testAuctionId, isDisplayAfterEnd: false },
-        { auctionEndDate: "", auctionId: testAuctionId, isDisplayAfterEnd: false },
+        { auctionEndDate: new Date("invalid-date"), auctionId: testAuctionId, isDisplayAfterEnd: false },
       ])("should handle invalid parameters", async ({ auctionId, isDisplayAfterEnd, auctionEndDate }) => {
         // Act & Assert
         await expect(
@@ -241,7 +247,7 @@ describe("auction-qa", () => {
             isDisplayAfterEnd as unknown as boolean,
             auctionEndDate as unknown as Date,
           ),
-        ).rejects.toThrow("メッセージの取得に失敗しました:");
+        ).rejects.toThrow("パラメータが不正です");
       });
 
       test("should handle messages cache failure", async () => {
@@ -260,7 +266,7 @@ describe("auction-qa", () => {
 
         // Act & Assert
         await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
-          "メッセージの取得に失敗しました:",
+          "メッセージの取得に失敗しました",
         );
       });
 
@@ -280,7 +286,7 @@ describe("auction-qa", () => {
 
         // Act & Assert
         await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
-          "メッセージの取得に失敗しました:",
+          "出品者情報の取得に失敗しました",
         );
       });
 
@@ -301,7 +307,7 @@ describe("auction-qa", () => {
 
         // Act & Assert
         await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
-          "メッセージの取得に失敗しました:",
+          "メッセージエラー",
         );
       });
 
@@ -316,7 +322,7 @@ describe("auction-qa", () => {
 
         // Act & Assert
         await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
-          "メッセージの取得に失敗しました: Database connection error",
+          "Database connection error",
         );
       });
 
@@ -335,7 +341,7 @@ describe("auction-qa", () => {
 
         // Act & Assert
         await expect(getAuctionMessagesAndSellerInfo(testAuctionId, false, testAuctionEndDate)).rejects.toThrow(
-          "メッセージの取得に失敗しました: オークションが見つかりません",
+          "オークションが見つかりません",
         );
       });
     });
@@ -354,7 +360,12 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          message: mockAuctionMessage,
+          data: {
+            messageId: mockAuctionMessage.id,
+            messageContent: mockAuctionMessage.message,
+            createdAt: mockAuctionMessage.createdAt,
+          },
+          message: "メッセージを送信しました",
         });
 
         expect(mockRevalidateTag).toHaveBeenCalledWith(`auctionQa:auctionByAuctionId:${testAuctionId}`);
@@ -381,7 +392,12 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          message: mockAuctionMessage,
+          data: {
+            messageId: mockAuctionMessage.id,
+            messageContent: mockAuctionMessage.message,
+            createdAt: mockAuctionMessage.createdAt,
+          },
+          message: "メッセージを送信しました",
         });
         // 送信者は通知を受け取らない
         expect(mockSendAuctionNotification).toHaveBeenCalledTimes(1);
@@ -401,7 +417,12 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          message: mockAuctionMessage,
+          data: {
+            messageId: mockAuctionMessage.id,
+            messageContent: mockAuctionMessage.message,
+            createdAt: mockAuctionMessage.createdAt,
+          },
+          message: "メッセージを送信しました",
         });
         expect(mockSendAuctionNotification).toHaveBeenCalledTimes(3);
       });
@@ -417,7 +438,12 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          message: mockAuctionMessage,
+          data: {
+            messageId: mockAuctionMessage.id,
+            messageContent: mockAuctionMessage.message,
+            createdAt: mockAuctionMessage.createdAt,
+          },
+          message: "メッセージを送信しました",
         });
         expect(mockSendAuctionNotification).not.toHaveBeenCalled();
       });

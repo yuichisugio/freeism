@@ -144,49 +144,53 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        notifications: [
-          {
-            id: "notification-1",
-            title: "テスト通知",
-            message: "テストメッセージ",
-            NotificationTargetType: NotificationTargetType.USER,
-            isRead: false,
-            sentAt: new Date("2024-01-01T00:00:00Z"),
-            readAt: null,
-            expiresAt: null,
-            actionUrl: "https://example.com",
-            senderUserId: "sender-1",
-            groupId: null,
-            taskId: null,
-            auctionEventType: null,
-            auctionId: null,
-            userName: "送信者名",
-            groupName: null,
-            taskName: null,
-          },
-          {
-            id: "notification-2",
-            title: "テスト通知",
-            message: "テストメッセージ",
-            NotificationTargetType: NotificationTargetType.USER,
-            isRead: true,
-            sentAt: new Date("2024-01-01T00:00:00Z"),
-            readAt: null,
-            expiresAt: null,
-            actionUrl: "https://example.com",
-            senderUserId: "sender-1",
-            groupId: null,
-            taskId: null,
-            auctionEventType: null,
-            auctionId: null,
-            userName: "送信者名",
-            groupName: null,
-            taskName: null,
-          },
-        ],
-        totalCount: 2,
-        unreadCount: 2,
-        readCount: 0,
+        success: true,
+        message: "通知リストを取得しました",
+        data: {
+          notifications: [
+            {
+              id: "notification-1",
+              title: "テスト通知",
+              message: "テストメッセージ",
+              NotificationTargetType: NotificationTargetType.USER,
+              isRead: false,
+              sentAt: new Date("2024-01-01T00:00:00Z"),
+              readAt: null,
+              expiresAt: null,
+              actionUrl: "https://example.com",
+              senderUserId: "sender-1",
+              groupId: null,
+              taskId: null,
+              auctionEventType: null,
+              auctionId: null,
+              userName: "送信者名",
+              groupName: null,
+              taskName: null,
+            },
+            {
+              id: "notification-2",
+              title: "テスト通知",
+              message: "テストメッセージ",
+              NotificationTargetType: NotificationTargetType.USER,
+              isRead: true,
+              sentAt: new Date("2024-01-01T00:00:00Z"),
+              readAt: null,
+              expiresAt: null,
+              actionUrl: "https://example.com",
+              senderUserId: "sender-1",
+              groupId: null,
+              taskId: null,
+              auctionEventType: null,
+              auctionId: null,
+              userName: "送信者名",
+              groupName: null,
+              taskName: null,
+            },
+          ],
+          totalCount: 2,
+          unreadCount: 2,
+          readCount: 0,
+        },
       });
 
       expect(mockBuildCommonNotificationWhereClause).toHaveBeenCalledWith(userId, true);
@@ -404,10 +408,14 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        notifications: [],
-        totalCount: 0,
-        unreadCount: 0,
-        readCount: 0,
+        success: true,
+        message: "通知リストを取得しました",
+        data: {
+          notifications: [],
+          totalCount: 0,
+          unreadCount: 0,
+          readCount: 0,
+        },
       });
     });
 
@@ -584,18 +592,12 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
     test("should return empty result when database query throws error", async () => {
       // Arrange
       const userId = "user-1";
-      prismaMock.$queryRaw.mockRejectedValue(new Error("データベースエラー"));
 
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
+      // buildCommonNotificationWhereClauseがエラーを返す場合をテスト
+      mockBuildCommonNotificationWhereClause.mockRejectedValue(new Error("データベースエラー"));
 
-      // Assert
-      expect(result).toStrictEqual({
-        notifications: [],
-        totalCount: 0,
-        unreadCount: 0,
-        readCount: 0,
-      });
+      // Act & Assert
+      await expect(cachedGetNotificationsAndUnreadCount(userId)).rejects.toThrow("データベースエラー");
     });
 
     test("should return empty result when buildCommonNotificationWhereClause throws error", async () => {
@@ -603,16 +605,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const userId = "user-1";
       mockBuildCommonNotificationWhereClause.mockRejectedValue(new Error("WHERE句構築エラー"));
 
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        notifications: [],
-        totalCount: 0,
-        unreadCount: 0,
-        readCount: 0,
-      });
+      // Act & Assert
+      await expect(cachedGetNotificationsAndUnreadCount(userId)).rejects.toThrow("WHERE句構築エラー");
     });
 
     test("should handle null count results", async () => {
@@ -658,27 +652,49 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
     test.each([
       { page: 0, limit: 20, userId: "user-1" },
       { page: -1, limit: 20, userId: "user-1" },
-      { page: null, limit: 20, userId: "user-1" },
-      { page: 0, limit: -1, userId: "user-1" },
-      { page: 1, limit: 0, userId: "user-1" },
+      { page: null as unknown as number, limit: 20, userId: "user-1" },
       { page: 1, limit: -1, userId: "user-1" },
-      { page: 1, limit: undefined, userId: "user-1" },
-      { page: 1, limit: null, userId: "user-1" },
-      { page: 1, limit: 20, userId: "user-1" },
+      { page: 1, limit: 0, userId: "user-1" },
+      { page: 1, limit: null as unknown as number, userId: "user-1" },
       { page: 1, limit: 20, userId: "" },
-      { page: 1, limit: 20, userId: null },
-      { page: 1, limit: 20, userId: undefined },
-    ])("should handle page $page and limit $limit", async ({ page, limit, userId }) => {
-      // Act
-      const result = await cachedGetNotificationsAndUnreadCount(userId!, page!, limit!);
+      { page: 1, limit: 20, userId: null as unknown as string },
+      { page: 1, limit: 20, userId: undefined as unknown as string },
+    ])(
+      "should handle invalid parameters: page $page, limit $limit, userId $userId",
+      async ({ page, limit, userId }) => {
+        // Act & Assert
+        await expect(cachedGetNotificationsAndUnreadCount(userId, page, limit)).rejects.toThrow("Invalid parameters");
+      },
+    );
+
+    test("should handle undefined limit parameter", async () => {
+      // Act & Assert
+      await expect(cachedGetNotificationsAndUnreadCount("user-1", 1, undefined as unknown as number)).rejects.toThrow(
+        "Invalid parameters",
+      );
+    });
+
+    test("should handle default parameters", async () => {
+      // Arrange
+      const userId = "user-1";
+      const mockNotifications = [createMockRawNotificationFromDB()];
+      const mockUnreadCount = [{ count: BigInt(1) }];
+      const mockTotalCount = [{ count: BigInt(1) }];
+
+      prismaMock.$queryRaw
+        .mockResolvedValueOnce(mockNotifications) // 未読通知
+        .mockResolvedValueOnce([]) // 既読通知
+        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
+        .mockResolvedValueOnce(mockTotalCount); // 総カウント
+
+      // Act - pageとlimitを指定しない
+      const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result).toStrictEqual({
-        notifications: [],
-        totalCount: 0,
-        unreadCount: 0,
-        readCount: 0,
-      });
+      expect(result.data.notifications).toHaveLength(1);
+      expect(result.data.totalCount).toBe(1);
+      expect(result.data.unreadCount).toBe(1);
+      expect(result.data.readCount).toBe(0);
     });
   });
 
@@ -755,29 +771,6 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         });
       }
     });
-
-    test("should handle default parameters", async () => {
-      // Arrange
-      const userId = "user-1";
-      const mockNotifications = [createMockRawNotificationFromDB()];
-      const mockUnreadCount = [{ count: BigInt(1) }];
-      const mockTotalCount = [{ count: BigInt(1) }];
-
-      prismaMock.$queryRaw
-        .mockResolvedValueOnce(mockNotifications) // 未読通知
-        .mockResolvedValueOnce([]) // 既読通知
-        .mockResolvedValueOnce(mockUnreadCount) // 未読カウント
-        .mockResolvedValueOnce(mockTotalCount); // 総カウント
-
-      // Act - pageとlimitを指定しない
-      const result = await cachedGetNotificationsAndUnreadCount(userId);
-
-      // Assert
-      expect(result.data.notifications).toHaveLength(1);
-      expect(result.data.totalCount).toBe(1);
-      expect(result.data.unreadCount).toBe(1);
-      expect(result.data.readCount).toBe(0);
-    });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -806,68 +799,72 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        notifications: [
-          {
-            id: "notification-1",
-            title: "テスト通知",
-            message: "テストメッセージ",
-            NotificationTargetType: NotificationTargetType.USER,
-            isRead: false,
-            sentAt: new Date("2024-01-01T00:00:00Z"),
-            readAt: null,
-            expiresAt: null,
-            actionUrl: "https://example.com",
-            senderUserId: "sender-1",
-            groupId: null,
-            taskId: null,
-            auctionEventType: null,
-            auctionId: null,
-            userName: "送信者名",
-            groupName: null,
-            taskName: null,
-          },
-          {
-            id: "notification-2",
-            title: "テスト通知",
-            message: "テストメッセージ",
-            NotificationTargetType: NotificationTargetType.USER,
-            isRead: false,
-            sentAt: new Date("2024-01-01T00:00:00Z"),
-            readAt: null,
-            expiresAt: null,
-            actionUrl: "https://example.com",
-            senderUserId: "sender-1",
-            groupId: null,
-            taskId: null,
-            auctionEventType: null,
-            auctionId: null,
-            userName: "送信者名",
-            groupName: null,
-            taskName: null,
-          },
-          {
-            id: "notification-3",
-            title: "テスト通知",
-            message: "テストメッセージ",
-            NotificationTargetType: NotificationTargetType.USER,
-            isRead: true,
-            sentAt: new Date("2024-01-01T00:00:00Z"),
-            readAt: null,
-            expiresAt: null,
-            actionUrl: "https://example.com",
-            senderUserId: "sender-1",
-            groupId: null,
-            taskId: null,
-            auctionEventType: null,
-            auctionId: null,
-            userName: "送信者名",
-            groupName: null,
-            taskName: null,
-          },
-        ],
-        totalCount: 3,
-        unreadCount: 2,
-        readCount: 1,
+        success: true,
+        message: "通知リストを取得しました",
+        data: {
+          notifications: [
+            {
+              id: "notification-1",
+              title: "テスト通知",
+              message: "テストメッセージ",
+              NotificationTargetType: NotificationTargetType.USER,
+              isRead: false,
+              sentAt: new Date("2024-01-01T00:00:00Z"),
+              readAt: null,
+              expiresAt: null,
+              actionUrl: "https://example.com",
+              senderUserId: "sender-1",
+              groupId: null,
+              taskId: null,
+              auctionEventType: null,
+              auctionId: null,
+              userName: "送信者名",
+              groupName: null,
+              taskName: null,
+            },
+            {
+              id: "notification-2",
+              title: "テスト通知",
+              message: "テストメッセージ",
+              NotificationTargetType: NotificationTargetType.USER,
+              isRead: false,
+              sentAt: new Date("2024-01-01T00:00:00Z"),
+              readAt: null,
+              expiresAt: null,
+              actionUrl: "https://example.com",
+              senderUserId: "sender-1",
+              groupId: null,
+              taskId: null,
+              auctionEventType: null,
+              auctionId: null,
+              userName: "送信者名",
+              groupName: null,
+              taskName: null,
+            },
+            {
+              id: "notification-3",
+              title: "テスト通知",
+              message: "テストメッセージ",
+              NotificationTargetType: NotificationTargetType.USER,
+              isRead: true,
+              sentAt: new Date("2024-01-01T00:00:00Z"),
+              readAt: null,
+              expiresAt: null,
+              actionUrl: "https://example.com",
+              senderUserId: "sender-1",
+              groupId: null,
+              taskId: null,
+              auctionEventType: null,
+              auctionId: null,
+              userName: "送信者名",
+              groupName: null,
+              taskName: null,
+            },
+          ],
+          totalCount: 3,
+          unreadCount: 2,
+          readCount: 1,
+        },
       });
     });
 
@@ -895,7 +892,7 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        message: "通知と未読カウントを取得しました",
+        message: "通知リストを取得しました",
         data: {
           notifications: mockNotifications,
           totalCount: 500,

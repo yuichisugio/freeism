@@ -96,7 +96,11 @@ const createSuccessfulReviewTest = async (
   expect(mockRevalidateTag).toHaveBeenCalledWith(
     `auctionRating:auctionByAuctionId:${TEST_AUCTION_ID}:${reviewPosition}`,
   );
-  expect(result).toStrictEqual(expectedReview);
+  expect(result).toStrictEqual({
+    success: true,
+    data: expectedReview,
+    message: "レビューを作成しました",
+  });
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -254,7 +258,7 @@ describe("createAuctionReview", () => {
           rating: null!,
           comment: "テスト",
           position: ReviewPosition.SELLER_TO_BUYER,
-          error: "評価は必須です",
+          error: "評価は0から5の間の整数で指定してください",
         },
         {
           auctionId: TEST_AUCTION_ID,
@@ -262,7 +266,7 @@ describe("createAuctionReview", () => {
           rating: undefined!,
           comment: "テスト",
           position: ReviewPosition.SELLER_TO_BUYER,
-          error: "評価は必須です",
+          error: "評価は0から5の間の整数で指定してください",
         },
         {
           auctionId: TEST_AUCTION_ID,
