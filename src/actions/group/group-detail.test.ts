@@ -39,7 +39,11 @@ describe("getGroupById", () => {
       };
 
       // Act
-      mockGetCachedGroupById.mockResolvedValue(expectedGroup);
+      mockGetCachedGroupById.mockResolvedValue({
+        success: true,
+        message: "グループ情報を取得しました",
+        data: expectedGroup,
+      });
 
       const result = await getGroupById(mockGroupId);
 

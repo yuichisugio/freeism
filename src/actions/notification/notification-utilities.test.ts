@@ -176,7 +176,11 @@ describe("notification-utilities", () => {
       { hasUnread: false, expected: false, description: "未読通知がない場合はfalseを返す" },
     ])("$description", async ({ hasUnread, expected }) => {
       // Arrange
-      mockCachedGetUnreadNotificationsCount.mockResolvedValue(hasUnread);
+      mockCachedGetUnreadNotificationsCount.mockResolvedValue({
+        success: true,
+        message: "未読通知数を取得しました",
+        data: hasUnread,
+      });
 
       // Act
       const result = await getUnreadNotificationsCount(userId);
@@ -212,13 +216,21 @@ describe("notification-utilities", () => {
         unreadCount: 1,
         readCount: 0,
       };
-      mockCachedGetNotificationsAndUnreadCount.mockResolvedValue(mockResult);
+      mockCachedGetNotificationsAndUnreadCount.mockResolvedValue({
+        success: true,
+        message: "通知データと未読数を取得しました",
+        data: mockResult,
+      });
 
       // Act
       const result = await getNotificationsAndUnreadCount(userId, page, limit);
 
       // Assert
-      expect(result).toStrictEqual(mockResult);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "通知データと未読数を取得しました",
+        data: mockResult,
+      });
       expect(mockCachedGetNotificationsAndUnreadCount).toHaveBeenCalledWith(userId, page, limit);
     });
 
@@ -941,7 +953,7 @@ describe("notification-utilities", () => {
         const result = await buildCommonNotificationWhereClause(userId, true);
 
         // Assert
-        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const actualSqlString = result.data.sql.replace(/\s+/g, " ").trim();
         const expectedSqlString = `(
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
@@ -966,7 +978,7 @@ describe("notification-utilities", () => {
         const result = await buildCommonNotificationWhereClause(userId, false);
 
         // Assert
-        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const actualSqlString = result.data.sql.replace(/\s+/g, " ").trim();
         const expectedSqlString = `(
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
@@ -994,7 +1006,7 @@ describe("notification-utilities", () => {
         const result = await buildCommonNotificationWhereClause(userId, true);
 
         // Assert
-        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const actualSqlString = result.data.sql.replace(/\s+/g, " ").trim();
         const expectedSqlString = `(
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
@@ -1022,7 +1034,7 @@ describe("notification-utilities", () => {
         const result = await buildCommonNotificationWhereClause(userId, true);
 
         // Assert
-        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const actualSqlString = result.data.sql.replace(/\s+/g, " ").trim();
         const expectedSqlString = `(
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR
@@ -1050,7 +1062,7 @@ describe("notification-utilities", () => {
         const result = await buildCommonNotificationWhereClause(userId, true);
 
         // Assert
-        const actualSqlString = result.sql.replace(/\s+/g, " ").trim();
+        const actualSqlString = result.data.sql.replace(/\s+/g, " ").trim();
         const expectedSqlString = `(
       (n."target_type" = 'SYSTEM') OR
       (n."target_type" = 'USER' AND n."sender_user_id" = ?) OR

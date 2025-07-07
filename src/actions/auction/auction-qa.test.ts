@@ -135,7 +135,11 @@ const setupSuccessfulMocks = () => {
  */
 const setupSendMessageSuccessMocks = () => {
   prismaMock.auctionMessage.create.mockResolvedValue(mockAuctionMessage);
-  mockSendAuctionNotification.mockResolvedValue({ success: true, message: "通知の送信に成功しました" });
+  mockSendAuctionNotification.mockResolvedValue({
+    success: true,
+    message: "通知の送信に成功しました",
+    data: null,
+  });
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

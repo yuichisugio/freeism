@@ -67,13 +67,21 @@ function createValidGeneralNotificationParams(
  * PushNotificationResultのモックを作成するヘルパー関数
  */
 function createPushNotificationResult(
-  overrides: Partial<{ success: boolean; sent: number; failed: number; totalTargets: number; message: string }> = {},
+  overrides: Partial<{
+    success: boolean;
+    sent: number;
+    failed: number;
+    totalTargets: number;
+    message: string;
+  }> = {},
 ) {
   return {
     success: true,
-    sent: 1,
-    failed: 0,
-    totalTargets: 1,
+    data: {
+      sent: overrides.sent ?? 1,
+      failed: overrides.failed ?? 0,
+      totalTargets: overrides.totalTargets ?? 1,
+    },
     message: "通知の送信に成功しました",
     ...overrides,
   };
@@ -107,9 +115,13 @@ describe("sendGeneralNotification", () => {
     vi.clearAllMocks();
 
     // デフォルトのモック設定
-    mockGetNotificationTargetUserIds.mockResolvedValue(["user-1", "user-2"]);
-    mockSendInAppNotification.mockResolvedValue({ success: true, message: "通知を作成しました" });
-    mockSendEmailNotification.mockResolvedValue({ success: true, message: "メール通知を送信しました" });
+    mockGetNotificationTargetUserIds.mockResolvedValue({
+      success: true,
+      message: "通知対象のユーザーIDを取得しました",
+      data: ["user-1", "user-2"],
+    });
+    mockSendInAppNotification.mockResolvedValue({ success: true, data: null, message: "通知を作成しました" });
+    mockSendEmailNotification.mockResolvedValue({ success: true, data: null, message: "メール通知を送信しました" });
     mockSendPushNotification.mockResolvedValue(createPushNotificationResult());
   });
 
@@ -373,7 +385,11 @@ describe("sendGeneralNotification", () => {
     test("should return error when no target users found", async () => {
       // Arrange
       const params = createValidGeneralNotificationParams();
-      mockGetNotificationTargetUserIds.mockResolvedValue([]);
+      mockGetNotificationTargetUserIds.mockResolvedValue({
+        success: true,
+        message: "通知対象のユーザーIDを取得しました",
+        data: [],
+      });
 
       // Act
       const result = await sendGeneralNotification(params);
@@ -388,7 +404,7 @@ describe("sendGeneralNotification", () => {
         description: "should return error when in-app notification fails",
         sendMethods: [NotificationSendMethod.IN_APP],
         mockSetup: () => {
-          mockSendInAppNotification.mockResolvedValue({ success: false, message: "アプリ内通知エラー" });
+          mockSendInAppNotification.mockResolvedValue({ success: false, data: null, message: "アプリ内通知エラー" });
         },
         expectedError: "アプリ内通知の送信に失敗しました",
         expectedCalls: { inApp: true, email: false, push: false },
@@ -408,7 +424,7 @@ describe("sendGeneralNotification", () => {
         description: "should return error when email notification fails",
         sendMethods: [NotificationSendMethod.IN_APP, NotificationSendMethod.EMAIL],
         mockSetup: () => {
-          mockSendEmailNotification.mockResolvedValue({ success: false, message: "メール通知エラー" });
+          mockSendEmailNotification.mockResolvedValue({ success: false, data: null, message: "メール通知エラー" });
         },
         expectedError: "メール通知の送信に失敗しました",
         expectedCalls: { inApp: true, email: true, push: false },
@@ -564,6 +580,7 @@ describe("sendGeneralNotification", () => {
       // 最初のアプリ内通知が失敗
       mockSendInAppNotification.mockResolvedValue({
         success: false,
+        data: null,
         message: "アプリ内通知エラー",
       });
 

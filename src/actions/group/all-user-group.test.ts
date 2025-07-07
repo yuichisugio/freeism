@@ -145,7 +145,11 @@ describe("getAllUserGroups", () => {
       const result = await getAllUserGroups(props);
 
       // Assert
-      expect(result).toStrictEqual(expectedResult);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "グループ一覧を取得しました",
+        data: expectedResult,
+      });
 
       expect(prismaMock.group.findMany).toHaveBeenCalledWith({
         skip: 0,
@@ -247,8 +251,8 @@ describe("getAllUserGroups", () => {
       const result = await getAllUserGroups(props);
 
       // Assert
-      expect(result).toHaveLength(1);
-      expect(result[0].isJoined).toBe(isUserJoined);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].isJoined).toBe(isUserJoined);
       expect(prismaMock.group.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expectedWhere,
@@ -368,7 +372,9 @@ describe("getAllUserGroups", () => {
       const result = await getAllUserGroups(props);
 
       // Assert
-      expect(result[0].createdBy).toBe("未設定_user-1");
+      expect(result.data[0].createdBy).toBe("未設定_user-1");
+      expect(result.success).toBe(true);
+      expect(result.message).toBe("グループ一覧を取得しました");
     });
 
     test("should handle combined filters", async () => {
@@ -449,7 +455,7 @@ describe("getAllUserGroups", () => {
       const result = await getAllUserGroups(props);
 
       // Assert
-      expect(result).toHaveLength(0);
+      expect(result.data).toHaveLength(0);
     });
   });
 });

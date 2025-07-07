@@ -4,6 +4,7 @@ import type { AllUserGroupTable } from "@/types/group-types";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
 import { sortDirectionArray } from "@/types/auction-types";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -35,7 +36,7 @@ export async function getAllUserGroups({
   isJoined,
   userId,
   itemPerPage,
-}: getAllUserGroupsProps): Promise<AllUserGroupTable[]> {
+}: getAllUserGroupsProps): PromiseResult<AllUserGroupTable[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -174,7 +175,11 @@ export async function getAllUserGroups({
   /**
    * グループ一覧を返す
    */
-  return AllUserGroupList;
+  return {
+    success: true,
+    message: "グループ一覧を取得しました",
+    data: AllUserGroupList,
+  };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -187,7 +192,7 @@ export async function getAllUserGroupsCount(
   searchQuery: string | null,
   isJoined: (typeof isJoinedArray)[number],
   userId: string,
-): Promise<number> {
+): PromiseResult<number> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -247,7 +252,11 @@ export async function getAllUserGroupsCount(
   /**
    * グループ一覧の総数を返す
    */
-  return count;
+  return {
+    success: true,
+    message: "グループ一覧の総数を取得しました",
+    data: count,
+  };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -76,7 +76,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "タスクの作成者or報告者or実行者の権限があります" },
+        expectedResult: { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValue({
             creator: { id: testUser.id },
@@ -91,7 +91,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "タスクの作成者or報告者or実行者の権限があります" },
+        expectedResult: { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValue({
             creator: { id: "other-user" },
@@ -106,7 +106,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "タスクの作成者or報告者or実行者の権限があります" },
+        expectedResult: { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValue({
             creator: { id: "other-user" },
@@ -122,7 +122,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValueOnce({
             creator: { id: "other-user" },
@@ -148,7 +148,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "Groupオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Groupオーナー権限があります" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValueOnce({
             creator: { id: "other-user" },
@@ -182,7 +182,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "タスクが見つかりません" },
+        expectedResult: { success: false, data: false, message: "タスクが見つかりません" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValueOnce(null);
         },
@@ -193,7 +193,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "グループオーナー権限がありません" },
+        expectedResult: { success: false, data: false, message: "グループオーナー権限がありません" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValueOnce({
             creator: { id: "other-user" },
@@ -211,7 +211,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "タスクの作成者or報告者or実行者の権限があります" },
+        expectedResult: { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.task.findUnique.mockResolvedValue({
@@ -232,7 +232,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "タスクの作成者or報告者or実行者の権限があります" },
+        expectedResult: { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" },
         mockSetup: () => {
           prismaMock.task.findUnique.mockResolvedValue({
             creator: { id: testUser.id },
@@ -247,7 +247,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "タスクIDが指定されていません" },
+        expectedResult: { success: false, data: false, message: "タスクIDが指定されていません" },
         mockSetup: () => {
           expect(prismaMock.task.findUnique).not.toHaveBeenCalled();
         },
@@ -258,7 +258,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValueOnce(testAppOwner);
         },
@@ -279,7 +279,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Groupオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Groupオーナー権限があります" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValueOnce(null);
           prismaMock.groupMembership.findFirst.mockResolvedValueOnce(testGroupMembership);
@@ -296,7 +296,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "グループオーナー権限がありません" },
+        expectedResult: { success: false, data: false, message: "グループオーナー権限がありません" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.groupMembership.findFirst.mockResolvedValue(null);
@@ -308,7 +308,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
@@ -324,7 +324,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
           prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
@@ -351,7 +351,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Groupオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Groupオーナー権限があります" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.task.findUnique.mockResolvedValue({ groupId: testGroup.id } as unknown as Awaited<
@@ -389,7 +389,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "タスクが見つかりません" },
+        expectedResult: { success: false, data: false, message: "タスクが見つかりません" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.task.findUnique.mockResolvedValue(null);
@@ -415,7 +415,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "グループIDとタスクIDが指定されていません" },
+        expectedResult: { success: false, data: false, message: "グループIDとタスクIDが指定されていません" },
         mockSetup: () => {
           expect(prismaMock.task.findUnique).not.toHaveBeenCalled();
         },
@@ -426,7 +426,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: undefined,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "タスクIDが指定されていません" },
+        expectedResult: { success: false, data: false, message: "タスクIDが指定されていません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
         },
@@ -441,7 +441,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "グループIDとタスクIDが指定されていません" },
+        expectedResult: { success: false, data: false, message: "グループIDとタスクIDが指定されていません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.task.findUnique.mockResolvedValue(null);
@@ -457,7 +457,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: undefined,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
         },
@@ -477,7 +477,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: undefined,
-        expectedResult: { success: true, message: "Groupオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Groupオーナー権限があります" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.groupMembership.findFirst.mockResolvedValue(testGroupMembership);
@@ -489,7 +489,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: undefined,
-        expectedResult: { success: false, message: "グループオーナー権限がありません" },
+        expectedResult: { success: false, data: false, message: "グループオーナー権限がありません" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.groupMembership.findFirst.mockResolvedValue(null);
@@ -502,7 +502,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
@@ -518,7 +518,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Groupオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Groupオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(null);
@@ -535,7 +535,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "グループオーナー権限がありません" },
+        expectedResult: { success: false, data: false, message: "グループオーナー権限がありません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(null);
@@ -552,7 +552,7 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: undefined,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
@@ -568,7 +568,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
@@ -587,7 +587,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: true, message: "Groupオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Groupオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(null);
@@ -607,7 +607,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "グループオーナー権限がありません" },
+        expectedResult: { success: false, data: false, message: "グループオーナー権限がありません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(null);
@@ -627,7 +627,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "タスクが見つかりません" },
+        expectedResult: { success: false, data: false, message: "タスクが見つかりません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.task.findUnique.mockResolvedValue(null);
@@ -643,7 +643,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: undefined,
-        expectedResult: { success: true, message: "Appオーナー権限があります" },
+        expectedResult: { success: true, data: true, message: "Appオーナー権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(testAppOwner);
@@ -659,7 +659,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: true, message: "タスクの作成者or報告者or実行者の権限があります" },
+        expectedResult: { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.task.findUnique.mockResolvedValue({
@@ -679,7 +679,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "タスクが見つかりません" },
+        expectedResult: { success: false, data: false, message: "タスクが見つかりません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.task.findUnique.mockResolvedValue(null);
@@ -695,7 +695,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: undefined,
         isRoleCheck: undefined,
-        expectedResult: { success: false, message: "グループIDとタスクIDが指定されていません" },
+        expectedResult: { success: false, data: false, message: "グループIDとタスクIDが指定されていません" },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
         },
@@ -716,7 +716,7 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: undefined,
         isRoleCheck: undefined,
-        expectedResult: { success: false, message: "グループIDとタスクIDが指定されていません" },
+        expectedResult: { success: false, data: false, message: "グループIDとタスクIDが指定されていません" },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockResolvedValue(testUser.id);
           prismaMock.user.findUnique.mockResolvedValue(null);
@@ -757,7 +757,11 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Authentication failed" },
+        expectedResult: {
+          success: false,
+          data: false,
+          message: "権限のチェック中にエラーが発生しました: Authentication failed",
+        },
         mockSetup: () => {
           mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("Authentication failed"));
         },
@@ -768,7 +772,11 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
+        expectedResult: {
+          success: false,
+          data: false,
+          message: "権限のチェック中にエラーが発生しました: Database error",
+        },
         mockSetup: () => {
           prismaMock.user.findUnique.mockRejectedValue(new Error("Database error"));
         },
@@ -779,7 +787,11 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: testTask.id,
         isRoleCheck: true,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
+        expectedResult: {
+          success: false,
+          data: false,
+          message: "権限のチェック中にエラーが発生しました: Database error",
+        },
         mockSetup: () => {
           prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));
         },
@@ -790,7 +802,11 @@ describe("checkIsPermission", () => {
         propsGroupId: testGroup.id,
         propsTaskId: undefined,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
+        expectedResult: {
+          success: false,
+          data: false,
+          message: "権限のチェック中にエラーが発生しました: Database error",
+        },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.groupMembership.findFirst.mockRejectedValue(new Error("Database error"));
@@ -802,7 +818,11 @@ describe("checkIsPermission", () => {
         propsGroupId: undefined,
         propsTaskId: testTask.id,
         isRoleCheck: false,
-        expectedResult: { success: false, message: "権限のチェック中にエラーが発生しました: Database error" },
+        expectedResult: {
+          success: false,
+          data: false,
+          message: "権限のチェック中にエラーが発生しました: Database error",
+        },
         mockSetup: () => {
           prismaMock.user.findUnique.mockResolvedValue(null);
           prismaMock.task.findUnique.mockRejectedValue(new Error("Database error"));

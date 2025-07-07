@@ -96,14 +96,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       const request = createMockRequest(validRequestBody);
 
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: validRequestBody.newSubscription.endpoint,
-        p256dh: validRequestBody.newSubscription.keys.p256dh,
-        auth: validRequestBody.newSubscription.keys.auth,
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: validRequestBody.newSubscription.endpoint,
+          p256dh: validRequestBody.newSubscription.keys.p256dh,
+          auth: validRequestBody.newSubscription.keys.auth,
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);
@@ -216,7 +220,7 @@ describe("POST /api/push-notification/subscription-update", () => {
       // Arrange
       const request = createMockRequest(validRequestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue(null);
+      mockGetRecordId.mockResolvedValue({ success: false, data: null, message: "Old subscription not found" });
 
       // Act
       const response = await POST(request);
@@ -233,7 +237,7 @@ describe("POST /api/push-notification/subscription-update", () => {
       // Arrange
       const request = createMockRequest(validRequestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockRejectedValue(new Error("Database error"));
 
       // Act
@@ -308,14 +312,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       };
       const request = createMockRequest(requestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: requestBody.newSubscription.endpoint,
-        p256dh: requestBody.newSubscription.keys.p256dh,
-        auth: requestBody.newSubscription.keys.auth,
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: requestBody.newSubscription.endpoint,
+          p256dh: requestBody.newSubscription.keys.p256dh,
+          auth: requestBody.newSubscription.keys.auth,
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);
@@ -351,14 +359,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       };
       const request = createMockRequest(requestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: requestBody.newSubscription.endpoint,
-        p256dh: requestBody.newSubscription.keys.p256dh,
-        auth: requestBody.newSubscription.keys.auth,
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: requestBody.newSubscription.endpoint,
+          p256dh: requestBody.newSubscription.keys.p256dh,
+          auth: requestBody.newSubscription.keys.auth,
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);
@@ -416,14 +428,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       };
       const request = createMockRequest(requestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: longEndpoint,
-        p256dh: requestBody.newSubscription.keys.p256dh,
-        auth: requestBody.newSubscription.keys.auth,
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: longEndpoint,
+          p256dh: requestBody.newSubscription.keys.p256dh,
+          auth: requestBody.newSubscription.keys.auth,
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);
@@ -453,14 +469,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       };
       const request = createMockRequest(requestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: requestBody.newSubscription.endpoint,
-        p256dh: "",
-        auth: "",
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: requestBody.newSubscription.endpoint,
+          p256dh: "",
+          auth: "",
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);
@@ -490,14 +510,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       };
       const request = createMockRequest(requestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: requestBody.newSubscription.endpoint,
-        p256dh: requestBody.newSubscription.keys.p256dh,
-        auth: requestBody.newSubscription.keys.auth,
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: requestBody.newSubscription.endpoint,
+          p256dh: requestBody.newSubscription.keys.p256dh,
+          auth: requestBody.newSubscription.keys.auth,
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);
@@ -527,14 +551,18 @@ describe("POST /api/push-notification/subscription-update", () => {
       };
       const request = createMockRequest(requestBody);
       mockGetAuthSession.mockResolvedValue(mockSession);
-      mockGetRecordId.mockResolvedValue("test-record-id");
+      mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
       mockSaveSubscription.mockResolvedValue({
-        id: "test-subscription-id",
-        endpoint: requestBody.newSubscription.endpoint,
-        p256dh: requestBody.newSubscription.keys.p256dh,
-        auth: requestBody.newSubscription.keys.auth,
-        userId: mockSession.user?.id,
-      } as PushSubscription);
+        success: true,
+        message: "",
+        data: {
+          id: "test-subscription-id",
+          endpoint: requestBody.newSubscription.endpoint,
+          p256dh: requestBody.newSubscription.keys.p256dh,
+          auth: requestBody.newSubscription.keys.auth,
+          userId: mockSession.user?.id,
+        } as PushSubscription,
+      });
 
       // Act
       const response = await POST(request);

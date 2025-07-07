@@ -52,7 +52,12 @@ export async function POST(req: NextRequest) {
     // レコードの情報を更新するために、DBに保存しているendpointからレコードIDを取得
     let recordId: string | null = null;
     if (oldEndpoint) {
-      recordId = await getRecordId(oldEndpoint);
+      const result = await getRecordId(oldEndpoint);
+      if (result.success && result.data) {
+        recordId = result.data;
+      } else {
+        return NextResponse.json({ error: "Old subscription not found" }, { status: 400 });
+      }
     }
     if (!recordId) {
       return NextResponse.json({ error: "Old subscription not found" }, { status: 400 });
@@ -70,14 +75,14 @@ export async function POST(req: NextRequest) {
     });
 
     // 結果に基づいてレスポンスを返す
-    if ("error" in result) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: result.message }, { status: 400 });
     }
 
     return NextResponse.json({
       success: true,
       message: "購読情報が更新されました",
-      subscription: result,
+      subscription: result.data,
     });
   } catch (error) {
     console.error("購読更新中にエラーが発生しました:", error);

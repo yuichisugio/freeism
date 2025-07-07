@@ -80,7 +80,7 @@ export function useNotificationButton(): NotificationButtonReturn {
       queryFn: async () => {
         const result = await getNotificationsAndUnreadCount(userId, 1, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
-        const processedNotifications: NotificationData[] = result.notifications.map(
+        const processedNotifications: NotificationData[] = result.data.notifications.map(
           (notification: NotificationData) => ({
             ...notification,
             sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
@@ -91,9 +91,9 @@ export function useNotificationButton(): NotificationButtonReturn {
 
         const pageData: QueryFnReturnType = {
           notifications: processedNotifications,
-          totalCount: result.totalCount,
-          unreadCount: result.unreadCount,
-          readCount: result.readCount,
+          totalCount: result.data.totalCount,
+          unreadCount: result.data.unreadCount,
+          readCount: result.data.readCount,
         };
         return {
           pages: [pageData],
@@ -108,7 +108,7 @@ export function useNotificationButton(): NotificationButtonReturn {
   return {
     // state
     isOpen,
-    hasUnreadNotifications: hasUnreadNotifications ?? false,
+    hasUnreadNotifications: hasUnreadNotifications?.data ?? false,
 
     // function
     setIsOpen,

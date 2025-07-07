@@ -506,7 +506,7 @@ describe("getRecordId", () => {
       const validResult = await getRecordId(validEndpoint);
 
       // Assert
-      expect(validResult).toBe(expectedId);
+      expect(validResult).toStrictEqual({ success: true, data: expectedId, message: "購読情報のIDを取得しました" });
     });
 
     test("should handle edge cases: record not found", async () => {
@@ -518,7 +518,7 @@ describe("getRecordId", () => {
       const nullResult = await getRecordId(validEndpoint);
 
       // Assert
-      expect(nullResult).toBeNull();
+      expect(nullResult).toStrictEqual({ success: false, data: null, message: "購読情報が見つかりません" });
     });
   });
 

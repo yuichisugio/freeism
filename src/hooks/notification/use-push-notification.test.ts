@@ -230,9 +230,9 @@ describe("usePushNotification", () => {
 
     // デフォルトのモック設定
     mockUseSession.mockReturnValue(mockSession);
-    mockSaveSubscription.mockResolvedValue(mockPushSubscription);
-    mockDeleteSubscription.mockResolvedValue({ success: true });
-    mockGetRecordId.mockResolvedValue("test-record-id");
+    mockSaveSubscription.mockResolvedValue({ success: true, message: "", data: mockPushSubscription });
+    mockDeleteSubscription.mockResolvedValue({ success: true, message: "", data: null });
+    mockGetRecordId.mockResolvedValue({ success: true, data: "test-record-id", message: "" });
 
     // Service Worker関連のモック設定
     vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(null);

@@ -348,12 +348,16 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
 
         const result = await saveSubscription(subscriptionData);
 
-        if (!("error" in result)) {
+        if (result.success) {
           const updatedRecordId = await getRecordId(newSubscription.endpoint);
-          dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId });
-          recordIdRef.current = updatedRecordId;
+          if (updatedRecordId.success && updatedRecordId.data) {
+            dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId.data });
+            recordIdRef.current = updatedRecordId.data;
+          } else {
+            console.error("購読情報のレコードID取得に失敗しました:", updatedRecordId.message);
+          }
         } else {
-          console.error("購読情報のサーバー保存(更新)に失敗しました:", result.error);
+          console.error("購読情報のサーバー保存(更新)に失敗しました:", result.message);
         }
       } catch (err) {
         console.error("購読情報の更新処理に失敗しました:", err);
@@ -416,9 +420,14 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           let currentRecordId = recordIdRef.current; // Ref から最新の値を取得
           // 必要であれば getRecordId を再度呼ぶ
           if (!currentRecordId && subscriptionState.endpoint) {
-            currentRecordId ??= await getRecordId(subscriptionState.endpoint);
-            recordIdRef.current = currentRecordId; // Ref を更新
-            dispatch({ type: "SET_RECORD_ID", payload: currentRecordId }); // State も更新
+            const result = await getRecordId(subscriptionState.endpoint);
+            if (result.success && result.data) {
+              currentRecordId = result.data;
+              recordIdRef.current = currentRecordId; // Ref を更新
+              dispatch({ type: "SET_RECORD_ID", payload: currentRecordId }); // State も更新
+            } else {
+              console.error("購読情報のレコードID取得に失敗しました:", result.message);
+            }
           }
 
           const subscriptionData = formatSubscriptionForServer(
@@ -428,16 +437,20 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
           );
           if (subscriptionData) {
             const result = await saveSubscription(subscriptionData);
-            if ("error" in result) {
-              console.error("Failed to sync subscription on userId change:", result.error);
+            if (!result.success) {
+              console.error("Failed to sync subscription on userId change:", result.message);
               // エラーを state に反映させるか検討
               // dispatch({ type: 'SET_ERROR', payload: new Error(`Failed to sync subscription: ${result.error}`) });
             } else {
               // 同期成功後、最新の recordId を再取得・更新
               const updatedRecordId = await getRecordId(subscriptionState.endpoint);
-              if (updatedRecordId !== currentRecordId) {
-                recordIdRef.current = updatedRecordId;
-                dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId });
+              if (updatedRecordId.success && updatedRecordId.data) {
+                if (updatedRecordId.data !== currentRecordId) {
+                  recordIdRef.current = updatedRecordId.data;
+                  dispatch({ type: "SET_RECORD_ID", payload: updatedRecordId.data });
+                }
+              } else {
+                console.error("購読情報のレコードID取得に失敗しました:", updatedRecordId.message);
               }
             }
           }
@@ -510,7 +523,12 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
         if (userIdRef.current && existingSubscription?.endpoint) {
           // ★ userIdRef を使用
           try {
-            currentRecordId ??= await getRecordId(existingSubscription.endpoint);
+            const result = await getRecordId(existingSubscription.endpoint);
+            if (result.success && result.data) {
+              currentRecordId = result.data;
+            } else {
+              console.error("購読情報のレコードID取得に失敗しました:", result.message);
+            }
             const subscriptionData = formatSubscriptionForServer(
               existingSubscription,
               currentRecordId ?? undefined,
@@ -518,10 +536,15 @@ export function usePushNotification(initialIsPushEnabled?: boolean) {
             );
             if (subscriptionData) {
               const result = await saveSubscription(subscriptionData);
-              if ("error" in result) {
-                syncError = new Error(`Failed to sync subscription: ${String(result.error)}`);
+              if (!result.success) {
+                syncError = new Error(`Failed to sync subscription: ${String(result.message)}`);
               } else {
-                currentRecordId ??= await getRecordId(existingSubscription.endpoint);
+                const updatedRecordId = await getRecordId(existingSubscription.endpoint);
+                if (updatedRecordId.success && updatedRecordId.data) {
+                  currentRecordId = updatedRecordId.data;
+                } else {
+                  console.error("購読情報のレコードID取得に失敗しました:", result.message);
+                }
               }
             } else {
               syncError = new Error("Failed to format subscription data for sync.");

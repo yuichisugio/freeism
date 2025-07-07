@@ -6,6 +6,7 @@ import { unstable_cacheTag as cacheTag } from "next/cache";
 import { buildCommonNotificationWhereClause } from "@/actions/notification/notification-utilities";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import { Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -65,7 +66,7 @@ export type RawNotificationFromDB = {
  * @param userId ユーザーID
  * @returns 未読通知の有無
  */
-export const cachedGetUnreadNotificationsCount = cache(async (userId: string): Promise<boolean> => {
+export const cachedGetUnreadNotificationsCount = cache(async (userId: string): PromiseResult<boolean> => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -75,42 +76,48 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  /**
+   * ユーザーIDが存在しない場合はエラーを返す
+   */
+  if (!userId) {
+    throw new Error("userId is required");
+  }
 
-    if (!userId) {
-      throw new Error("userId is required");
-    }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  /**
+   * 共通のWHERE句を取得 (タスク条件を含む)
+   */
+  const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
 
-    // 共通のWHERE句を取得 (タスク条件を含む)
-    const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  /**
+   * 未読条件を追加
+   */
+  const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
+  const whereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
 
-    // 未読条件を追加
-    const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
-    const whereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // PostgreSQLのJSONB演算子を使用した効率的なクエリ
-    const countResult = await prisma.$queryRaw<{ id: string }[]>`
+  /**
+   * PostgreSQLのJSONB演算子を使用した効率的なクエリ
+   */
+  const countResult = await prisma.$queryRaw<{ id: string }[]>`
       SELECT id
       FROM "Notification" n
       WHERE ${whereClause} -- 結合したWHERE句を使用
       LIMIT 1
     `;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // 未読通知があるかどうかを返す
-    return countResult.length > 0;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("未読通知カウントエラー:", error);
-    return false;
-  }
+  /**
+   * 未読通知があるかどうかを返す
+   */
+  return {
+    success: true,
+    message: "未読通知カウントを取得しました",
+    data: countResult.length > 0,
+  };
 });
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

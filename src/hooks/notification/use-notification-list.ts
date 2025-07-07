@@ -133,7 +133,7 @@ export function useNotificationList(): NotificationManagerResult {
         const result = await getNotificationsAndUnreadCount(userId, pageParam, NOTIFICATION_CONSTANTS.ITEMS_PER_PAGE);
 
         // 日付文字列をDateオブジェクトに変換する
-        const processedNotifications: NotificationData[] = result.notifications.map((notification) => ({
+        const processedNotifications: NotificationData[] = result.data.notifications.map((notification) => ({
           ...notification, // サーバーから来たnotificationは日付が文字列化されている
           sentAt: notification.sentAt ? new Date(notification.sentAt as unknown as string) : null,
           readAt: notification.readAt ? new Date(notification.readAt as unknown as string) : null,
@@ -143,9 +143,9 @@ export function useNotificationList(): NotificationManagerResult {
 
         return {
           notifications: processedNotifications,
-          totalCount: result.totalCount,
-          unreadCount: result.unreadCount,
-          readCount: result.readCount,
+          totalCount: result.data.totalCount,
+          unreadCount: result.data.unreadCount,
+          readCount: result.data.readCount,
         };
       },
       initialPageParam: 1,

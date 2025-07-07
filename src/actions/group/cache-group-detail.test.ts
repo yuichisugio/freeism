@@ -105,8 +105,8 @@ describe("getCachedGroupById", () => {
 
       // 検証
       expect(result).toStrictEqual(expectedGroup);
-      expect(result.joinMemberCount).toBe(0);
-      expect(result.members).toHaveLength(0);
+      expect(result.data.joinMemberCount).toBe(0);
+      expect(result.data.members).toHaveLength(0);
     });
 
     test("should return group data with maximum members when group is full", async () => {
@@ -134,9 +134,9 @@ describe("getCachedGroupById", () => {
       const result = await getCachedGroupById(mockGroupId);
 
       // 検証
-      expect(result.joinMemberCount).toBe(maxParticipants);
-      expect(result.maxParticipants).toBe(maxParticipants);
-      expect(result.members).toHaveLength(maxParticipants);
+      expect(result.data.joinMemberCount).toBe(maxParticipants);
+      expect(result.data.maxParticipants).toBe(maxParticipants);
+      expect(result.data.members).toHaveLength(maxParticipants);
     });
   });
 
@@ -244,12 +244,12 @@ describe("getCachedGroupById", () => {
       const result = await getCachedGroupById(mockGroupId);
 
       // 検証
-      expect(result.members).toHaveLength(5);
-      expect(result.joinMemberCount).toBe(5);
-      expect(result.members).toStrictEqual(mockMembers);
+      expect(result.data.members).toHaveLength(5);
+      expect(result.data.joinMemberCount).toBe(5);
+      expect(result.data.members).toStrictEqual(mockMembers);
 
       // 各メンバーの構造を確認
-      result.members.forEach((member, index) => {
+      result.data.members.forEach((member, index) => {
         expect(member).toHaveProperty("userId");
         expect(member.userId).toBe(`user-00${index + 1}`);
       });
@@ -279,9 +279,9 @@ describe("getCachedGroupById", () => {
       const result = await getCachedGroupById(mockGroupId);
 
       // 検証
-      expect(result.joinMemberCount).toBe(7);
-      expect(result.members).toHaveLength(7);
-      expect(result.joinMemberCount).toBe(result.members.length);
+      expect(result.data.joinMemberCount).toBe(7);
+      expect(result.data.members).toHaveLength(7);
+      expect(result.data.joinMemberCount).toBe(result.data.members.length);
     });
   });
 
@@ -310,17 +310,17 @@ describe("getCachedGroupById", () => {
       const result = await getCachedGroupById(mockGroupId);
 
       // 型安全性の検証
-      expect(typeof result.id).toBe("string");
-      expect(typeof result.name).toBe("string");
-      expect(typeof result.goal).toBe("string");
-      expect(typeof result.evaluationMethod).toBe("string");
-      expect(typeof result.joinMemberCount).toBe("number");
-      expect(typeof result.maxParticipants).toBe("number");
-      expect(typeof result.depositPeriod).toBe("number");
-      expect(Array.isArray(result.members)).toBe(true);
+      expect(typeof result.data.id).toBe("string");
+      expect(typeof result.data.name).toBe("string");
+      expect(typeof result.data.goal).toBe("string");
+      expect(typeof result.data.evaluationMethod).toBe("string");
+      expect(typeof result.data.joinMemberCount).toBe("number");
+      expect(typeof result.data.maxParticipants).toBe("number");
+      expect(typeof result.data.depositPeriod).toBe("number");
+      expect(Array.isArray(result.data.members)).toBe(true);
 
       // メンバー配列の型確認
-      result.members.forEach((member) => {
+      result.data.members.forEach((member) => {
         expect(typeof member.userId).toBe("string");
         expect(Object.keys(member)).toStrictEqual(["userId"]);
       });

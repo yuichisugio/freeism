@@ -117,12 +117,7 @@ describe("prepareCreateNotificationForm", () => {
         const result = await prepareCreateNotificationForm(false, true, testUserId);
 
         // 結果を検証
-        expect(result.users).toStrictEqual([]);
-        expect(result).toStrictEqual({
-          users: [],
-          groups: groupsFromDb,
-          tasks: tasksFromDb,
-        });
+        expect(result.data).toStrictEqual({ users: [], groups: groupsFromDb, tasks: tasksFromDb });
 
         // Prismaの呼び出しを検証
         expect(prismaMock.user.findMany).not.toHaveBeenCalled();
@@ -202,9 +197,11 @@ describe("prepareCreateNotificationForm", () => {
         const result = await prepareCreateNotificationForm(true, true, testUserId);
 
         // 結果を検証 - アプリオーナーの権限が優先される
-        expect(result.users).toStrictEqual([{ id: testUserId, name: testUserSettings.username }]);
-        expect(result.groups).toStrictEqual(groupsFromDb);
-        expect(result.tasks).toStrictEqual(tasksFromDb);
+        expect(result.data).toStrictEqual({
+          users: [{ id: testUserId, name: testUserSettings.username }],
+          groups: groupsFromDb,
+          tasks: tasksFromDb,
+        });
 
         // アプリオーナー用のクエリが実行される
         expect(prismaMock.user.findMany).toHaveBeenCalledWith({

@@ -882,7 +882,11 @@ describe("group.test.ts", () => {
         const result = await removeMember(testGroupId, testUsers.target, false);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "メンバーを削除しました",
+          data: null,
+        });
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledWith();
         expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.owner, testGroupId, undefined, false);
         expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUsers.target, testGroupId);
@@ -928,7 +932,11 @@ describe("group.test.ts", () => {
         const result = await removeMember(testGroupId, testUsers.target, true);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "メンバーを削除しました",
+          data: null,
+        });
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledWith();
         expect(mockCheckIsPermission).toHaveBeenCalledWith(testUsers.owner, testGroupId, undefined, false);
         expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUsers.target, testGroupId);
@@ -980,7 +988,11 @@ describe("group.test.ts", () => {
         const result = await removeMember(testGroupId, testUsers.target, true);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "メンバーを削除しました",
+          data: null,
+        });
         expect(prismaMock.group.update).toHaveBeenCalledWith({
           where: { id: testGroupId },
           data: {

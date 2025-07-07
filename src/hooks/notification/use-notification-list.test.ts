@@ -284,13 +284,17 @@ describe("useNotificationList", () => {
 
     // デフォルトのモック設定
     mockGetNotificationsAndUnreadCount.mockResolvedValue({
-      notifications: [testNotifications.unread, testNotifications.read, testNotifications.auction],
-      totalCount: 3,
-      unreadCount: 2,
-      readCount: 1,
+      success: true,
+      message: "",
+      data: {
+        notifications: [testNotifications.unread, testNotifications.read, testNotifications.auction],
+        totalCount: 3,
+        unreadCount: 2,
+        readCount: 1,
+      },
     });
 
-    mockUpdateNotificationStatus.mockResolvedValue({ success: true });
+    mockUpdateNotificationStatus.mockResolvedValue({ success: true, message: "", data: null });
 
     // useInfiniteQueryのデフォルトモック設定
     setupInfiniteQueryMock([testNotifications.unread, testNotifications.read, testNotifications.auction]);

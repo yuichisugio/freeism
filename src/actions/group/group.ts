@@ -343,7 +343,11 @@ export async function updateGroup(groupId: string, data: CreateGroupFormData): P
    */
   const isOwner = await checkIsPermission(userId, groupId, undefined, false);
   if (!isOwner.success) {
-    throw new Error("グループの編集権限がありません");
+    return {
+      success: false,
+      message: "グループの編集権限がありません",
+      data: null,
+    };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

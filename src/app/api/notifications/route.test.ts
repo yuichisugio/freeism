@@ -123,7 +123,11 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(validParams);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
+      mockSendGeneralNotification.mockResolvedValue({
+        success: true,
+        message: "通知の登録を完了しました",
+        data: null,
+      });
 
       // Act
       const response = await POST(request);
@@ -143,7 +147,11 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(validParams);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: false, message: "通知送信に失敗しました" });
+      mockSendGeneralNotification.mockResolvedValue({
+        success: false,
+        message: "通知送信に失敗しました",
+        data: null,
+      });
 
       // Act
       const response = await POST(request);
@@ -306,7 +314,11 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(emptyParams);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
+      mockSendGeneralNotification.mockResolvedValue({
+        success: true,
+        message: "通知の登録を完了しました",
+        data: null,
+      });
 
       // Act
       const response = await POST(request);
@@ -325,7 +337,11 @@ describe("POST /api/notifications", () => {
       const request = createMockRequest(null);
 
       mockGetAuthSession.mockResolvedValue(validSession);
-      mockSendGeneralNotification.mockResolvedValue({ success: true, message: "通知の登録を完了しました" });
+      mockSendGeneralNotification.mockResolvedValue({
+        success: true,
+        message: "通知の登録を完了しました",
+        data: null,
+      });
 
       // Act
       const response = await POST(request);

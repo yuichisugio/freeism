@@ -99,7 +99,7 @@ describe("useNotificationButton", () => {
 
     // デフォルトのモック設定
     mockUseSession.mockReturnValue(mockSession);
-    mockGetUnreadNotificationsCount.mockResolvedValue(true);
+    mockGetUnreadNotificationsCount.mockResolvedValue({ success: true, data: true, message: "" });
     mockGetNotificationsAndUnreadCount.mockResolvedValue(
       mockNotificationsData as unknown as Awaited<ReturnType<typeof getNotificationsAndUnreadCount>>,
     );
@@ -267,7 +267,7 @@ describe("useNotificationButton", () => {
   describe("未読通知の状態管理", () => {
     test("should return true when there are unread notifications", async () => {
       // Arrange
-      mockGetUnreadNotificationsCount.mockResolvedValue(true);
+      mockGetUnreadNotificationsCount.mockResolvedValue({ success: true, data: true, message: "" });
 
       // Act
       const { result } = renderHook(() => useNotificationButton(), {
@@ -282,7 +282,7 @@ describe("useNotificationButton", () => {
 
     test("should return false when there are no unread notifications", async () => {
       // Arrange
-      mockGetUnreadNotificationsCount.mockResolvedValue(false);
+      mockGetUnreadNotificationsCount.mockResolvedValue({ success: true, data: false, message: "" });
       mockUseQuery.mockReturnValue({
         data: false,
         isLoading: false,
@@ -304,7 +304,11 @@ describe("useNotificationButton", () => {
 
     test("should handle undefined response from getUnreadNotificationsCount", async () => {
       // Arrange
-      mockGetUnreadNotificationsCount.mockResolvedValue(undefined as unknown as boolean);
+      mockGetUnreadNotificationsCount.mockResolvedValue({
+        success: true,
+        data: undefined,
+        message: "",
+      } as unknown as Awaited<ReturnType<typeof getUnreadNotificationsCount>>);
       mockUseQuery.mockReturnValue({
         data: undefined,
         isLoading: false,
@@ -326,7 +330,11 @@ describe("useNotificationButton", () => {
 
     test("should handle null response from getUnreadNotificationsCount", async () => {
       // Arrange
-      mockGetUnreadNotificationsCount.mockResolvedValue(null as unknown as boolean);
+      mockGetUnreadNotificationsCount.mockResolvedValue({
+        success: true,
+        data: null,
+        message: "",
+      } as unknown as Awaited<ReturnType<typeof getUnreadNotificationsCount>>);
       mockUseQuery.mockReturnValue({
         data: null,
         isLoading: false,

@@ -76,7 +76,7 @@ describe("sendEmailNotification", () => {
         },
       });
 
-      expect(result).toStrictEqual({ success: true, message: "メール通知を送信しました" });
+      expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
     });
 
     test("should return success with message when no email notification settings found", async () => {
@@ -100,7 +100,7 @@ describe("sendEmailNotification", () => {
       });
 
       // 結果を検証
-      expect(result).toStrictEqual({ success: true, message: "メール通知設定が見つかりません" });
+      expect(result).toStrictEqual({ success: true, data: null, message: "メール通知設定が見つかりません" });
     });
 
     test("should handle optional parameters as null", async () => {
@@ -136,7 +136,7 @@ describe("sendEmailNotification", () => {
           isEmailEnabled: true,
         },
       });
-      expect(result).toStrictEqual({ success: true, message: "メール通知を送信しました" });
+      expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
     });
 
     test.each([{ targetType: NotificationTargetType.USER }, { targetType: NotificationTargetType.GROUP }])(

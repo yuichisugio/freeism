@@ -153,7 +153,11 @@ describe("my-group.ts", () => {
         });
 
         // Assert
-        expect(result).toStrictEqual(expectedResult);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループ一覧を取得しました",
+          data: expectedResult,
+        });
       });
 
       test.each([
@@ -195,7 +199,11 @@ describe("my-group.ts", () => {
         }
 
         // Assert
-        expect(result).toStrictEqual(expectedResult);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループ一覧を取得しました",
+          data: expectedResult,
+        });
         expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith({
           skip: 0,
           take: 10,
@@ -341,7 +349,11 @@ describe("my-group.ts", () => {
         const result = await leaveGroup(groupId, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: "グループから脱退しました" });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "グループから脱退しました",
+          data: null,
+        });
         expect(mockCheckGroupMembership).toHaveBeenCalledWith(testUser.id, groupId);
         expect(prismaMock.groupMembership.delete).toHaveBeenCalledWith({
           where: { id: testGroupMembership1.id },

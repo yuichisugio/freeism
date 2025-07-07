@@ -36,7 +36,11 @@ describe("cachedGetUnreadNotificationsCount", () => {
       (n."target_type" = 'GROUP' AND n."group_id" = ANY(${"[group-1]"}))
       OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${"[task-1]"}))
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
-    mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
+    mockBuildCommonNotificationWhereClause.mockResolvedValue({
+      success: true,
+      message: "通知対象のユーザーIDを取得しました",
+      data: sql,
+    });
     mockCacheTag.mockReturnValue(undefined);
   });
 
@@ -91,7 +95,11 @@ describe("cachedGetUnreadNotificationsCount", () => {
       OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${["task-1"]}))
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
 
-      mockBuildCommonNotificationWhereClause.mockResolvedValue(commonWhereClause);
+      mockBuildCommonNotificationWhereClause.mockResolvedValue({
+        success: true,
+        message: "通知対象のユーザーIDを取得しました",
+        data: commonWhereClause,
+      });
       prismaMock.$queryRaw.mockResolvedValue(mockResult);
 
       // Act
@@ -181,7 +189,11 @@ describe("cachedGetUnreadNotificationsCount", () => {
       OR (n."target_type" = 'TASK' AND n."task_id" = ANY(${["task-1", "task-2"]}))
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
 
-      mockBuildCommonNotificationWhereClause.mockResolvedValue(commonWhereClause);
+      mockBuildCommonNotificationWhereClause.mockResolvedValue({
+        success: true,
+        message: "通知対象のユーザーIDを取得しました",
+        data: commonWhereClause,
+      });
       prismaMock.$queryRaw.mockResolvedValue(mockResult);
 
       // Act
@@ -230,7 +242,11 @@ describe("cachedGetUnreadNotificationsCount", () => {
       (n."target_type" = 'GROUP' AND n."group_id" = ANY(${["00000000-0000-0000-0000-000000000000"]}))
     ) AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
 
-      mockBuildCommonNotificationWhereClause.mockResolvedValue(commonWhereClause);
+      mockBuildCommonNotificationWhereClause.mockResolvedValue({
+        success: true,
+        message: "通知対象のユーザーIDを取得しました",
+        data: commonWhereClause,
+      });
       prismaMock.$queryRaw.mockResolvedValue(mockResult);
 
       // Act

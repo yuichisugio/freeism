@@ -152,10 +152,10 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
     const currentPage = tableConditions.page;
 
     // 総ページ数
-    const totalPages = Math.ceil((allUserGroupsCount ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE);
+    const totalPages = Math.ceil((allUserGroupsCount?.data ?? 0) / TABLE_CONSTANTS.ITEMS_PER_PAGE);
 
     // データが取得されていて、かつ、現在のページ数が総ページ数より小さい場合
-    if (!isAllUserGroupsPlaceholderData && allUserGroupsCount && currentPage < totalPages) {
+    if (!isAllUserGroupsPlaceholderData && allUserGroupsCount?.data && currentPage < totalPages) {
       // 次のページ数
       const nextPage = currentPage + 1;
 
@@ -226,8 +226,8 @@ export function useAllUserGroupTable(): UseAllUserGroupTableReturn {
    */
   return {
     // state
-    groups: data ?? [],
-    totalGroupCount: allUserGroupsCount ?? 0,
+    groups: data?.data ?? [],
+    totalGroupCount: allUserGroupsCount?.data ?? 0,
     isLoading: isAllUserGroupsPending || isAllUserGroupsCountPending || isJoinLoading,
     tableConditions,
 

@@ -47,7 +47,12 @@ export async function bulkUpdateFixedEvaluations(data: FixedEvaluationData[], gr
     const isPermission = await checkIsPermission(userId, groupId, undefined, false);
 
     if (!isPermission.success) {
-      throw new Error("この操作を行う権限がありません");
+      revalidatePath(`/dashboard/group/${groupId}`);
+      return {
+        success: false,
+        message: "この操作を行う権限がありません",
+        data: null,
+      };
     }
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -107,7 +107,11 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
     // デフォルトのモック設定
     const sql = Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
-    mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
+    mockBuildCommonNotificationWhereClause.mockResolvedValue({
+      success: true,
+      message: "通知対象のユーザーIDを取得しました",
+      data: sql,
+    });
     mockCacheTag.mockReturnValue(undefined);
   });
 
@@ -428,10 +432,10 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId, page, limit);
 
       // Assert
-      expect(result.notifications).toHaveLength(1);
-      expect(result.totalCount).toBe(10);
-      expect(result.unreadCount).toBe(3);
-      expect(result.readCount).toBe(7);
+      expect(result.data.notifications).toHaveLength(1);
+      expect(result.data.totalCount).toBe(10);
+      expect(result.data.unreadCount).toBe(3);
+      expect(result.data.readCount).toBe(7);
     });
 
     test("should handle notifications with all fields populated", async () => {
@@ -472,7 +476,7 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.notifications[0]).toStrictEqual({
+      expect(result.data.notifications[0]).toStrictEqual({
         id: "notification-1",
         title: "完全な通知",
         message: "すべてのフィールドが設定された通知",
@@ -529,7 +533,7 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.notifications[0]).toStrictEqual({
+      expect(result.data.notifications[0]).toStrictEqual({
         id: "notification-1",
         title: "",
         message: "",
@@ -569,8 +573,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.notifications).toHaveLength(1); // 重複が除去されている
-      expect(result.notifications[0].id).toBe("notification-1");
+      expect(result.data.notifications).toHaveLength(1); // 重複が除去されている
+      expect(result.data.notifications[0].id).toBe("notification-1");
     });
   });
 
@@ -626,9 +630,9 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.unreadCount).toBe(0);
-      expect(result.totalCount).toBe(0);
-      expect(result.readCount).toBe(0);
+      expect(result.data.unreadCount).toBe(0);
+      expect(result.data.totalCount).toBe(0);
+      expect(result.data.readCount).toBe(0);
     });
 
     test("should handle non-array result from database", async () => {
@@ -645,10 +649,10 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.notifications).toStrictEqual([]);
-      expect(result.totalCount).toBe(0);
-      expect(result.unreadCount).toBe(0);
-      expect(result.readCount).toBe(0);
+      expect(result.data.notifications).toStrictEqual([]);
+      expect(result.data.totalCount).toBe(0);
+      expect(result.data.unreadCount).toBe(0);
+      expect(result.data.readCount).toBe(0);
     });
 
     test.each([
@@ -706,12 +710,16 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         const result = await cachedGetNotificationsAndUnreadCount(userId);
 
         // Assert
-        expect(result.notifications[0].NotificationTargetType).toBe(targetType);
+        expect(result.data.notifications[0].NotificationTargetType).toBe(targetType);
 
         // モックをリセット
         vi.clearAllMocks();
         const sql = Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
-        mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
+        mockBuildCommonNotificationWhereClause.mockResolvedValue({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: sql,
+        });
       }
     });
 
@@ -735,12 +743,16 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
         const result = await cachedGetNotificationsAndUnreadCount(userId);
 
         // Assert
-        expect(result.notifications[0].auctionEventType).toBe(eventType);
+        expect(result.data.notifications[0].auctionEventType).toBe(eventType);
 
         // モックをリセット
         vi.clearAllMocks();
         const sql = Prisma.sql`(n."target_type" = 'USER' AND n."sender_user_id" = 'user-1') AND ((n."send_timing_type" = 'NOW') OR (n."send_timing_type" = 'SCHEDULED' AND n."send_scheduled_date" < NOW()))`;
-        mockBuildCommonNotificationWhereClause.mockResolvedValue(sql);
+        mockBuildCommonNotificationWhereClause.mockResolvedValue({
+          success: true,
+          message: "通知対象のユーザーIDを取得しました",
+          data: sql,
+        });
       }
     });
 
@@ -761,10 +773,10 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const result = await cachedGetNotificationsAndUnreadCount(userId);
 
       // Assert
-      expect(result.notifications).toHaveLength(1);
-      expect(result.totalCount).toBe(1);
-      expect(result.unreadCount).toBe(1);
-      expect(result.readCount).toBe(0);
+      expect(result.data.notifications).toHaveLength(1);
+      expect(result.data.totalCount).toBe(1);
+      expect(result.data.unreadCount).toBe(1);
+      expect(result.data.readCount).toBe(0);
     });
   });
 
@@ -882,12 +894,16 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        notifications: mockNotifications,
-        totalCount: 500,
-        unreadCount: 150,
-        readCount: 350,
+        success: true,
+        message: "通知と未読カウントを取得しました",
+        data: {
+          notifications: mockNotifications,
+          totalCount: 500,
+          unreadCount: 150,
+          readCount: 350,
+        },
       });
-      expect(result.notifications).toHaveLength(50);
+      expect(result.data.notifications).toHaveLength(50);
     });
   });
 });

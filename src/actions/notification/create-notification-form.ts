@@ -1,10 +1,13 @@
 "use server";
 
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-// ユーザー情報の型定義
+/**
+ * ユーザー情報の型定義
+ */
 export type UserForForm = {
   id: string;
   name: string;
@@ -15,7 +18,11 @@ export type UserForForm = {
 /**
  * 通知作成フォームを準備する
  */
-export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroupOwner: boolean, userId: string) {
+export async function prepareCreateNotificationForm(
+  isAppOwner: boolean,
+  isGroupOwner: boolean,
+  userId: string,
+): PromiseResult<{ users: UserForForm[]; groups: UserForForm[]; tasks: { id: string; task: string }[] }> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -144,5 +151,9 @@ export async function prepareCreateNotificationForm(isAppOwner: boolean, isGroup
   /**
    * データを返す
    */
-  return { users, groups, tasks };
+  return {
+    success: true,
+    message: "通知作成フォームを準備しました",
+    data: { users, groups, tasks },
+  };
 }

@@ -2,6 +2,7 @@
 
 import type { Group } from "@/types/group-types";
 import { getCachedGroupById } from "@/actions/group/cache-group-detail";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,7 +11,7 @@ import { getCachedGroupById } from "@/actions/group/cache-group-detail";
  * @param groupId {string} グループID
  * @returns {Promise<Group>} グループ情報
  */
-export async function getGroupById(groupId: string): Promise<Group> {
+export async function getGroupById(groupId: string): PromiseResult<Group> {
   return await getCachedGroupById(groupId);
 }
 

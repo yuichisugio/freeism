@@ -234,7 +234,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe("この操作を行う権限がありません");
         expect(result.failedData).toHaveLength(2);
-        expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
+        expect(result.failedData?.every((item) => item.error === "システムエラー")).toBe(true);
       });
 
       test.each([
@@ -327,7 +327,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         expect(result.success).toBe(true);
         expect(result.successData).toHaveLength(0);
         expect(result.failedData).toHaveLength(1);
-        expect(result.failedData[0].error).toBe(expectedError);
+        expect(result.failedData?.[0].error).toBe(expectedError);
       });
     });
 
@@ -342,7 +342,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         // Assert
         expect(result.success).toBe(true);
         expect(result.failedData).toHaveLength(1);
-        expect(result.failedData[0].error).toBe("指定されたタスクが見つかりません");
+        expect(result.failedData?.[0].error).toBe("指定されたタスクが見つかりません");
       });
 
       test("タスクのステータスが不正な場合", async () => {
@@ -355,7 +355,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         // Assert
         expect(result.success).toBe(true);
         expect(result.failedData).toHaveLength(1);
-        expect(result.failedData[0].error).toBe("タスクのステータスが「タスク完了」でないため更新できません");
+        expect(result.failedData?.[0].error).toBe("タスクのステータスが「タスク完了」でないため更新できません");
       });
     });
 
@@ -371,7 +371,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe("Database error");
         expect(result.failedData).toHaveLength(2);
-        expect(result.failedData.every((item) => item.error === "システムエラー")).toBe(true);
+        expect(result.failedData?.every((item) => item.error === "システムエラー")).toBe(true);
       });
 
       test("個別のタスク更新でエラーが発生した場合", async () => {
@@ -386,7 +386,7 @@ describe("bulkUpdateFixedEvaluations", () => {
         // Assert
         expect(result.success).toBe(true);
         expect(result.failedData).toHaveLength(1);
-        expect(result.failedData[0].error).toBe("エラー: Task update failed");
+        expect(result.failedData?.[0].error).toBe("エラー: Task update failed");
       });
     });
 
@@ -400,7 +400,7 @@ describe("bulkUpdateFixedEvaluations", () => {
       // Assert
       expect(result.success).toBe(true);
       expect(result.failedData).toHaveLength(1);
-      expect(result.failedData[0].error).toBe("エラー: 不明なエラー");
+      expect(result.failedData?.[0].error).toBe("エラー: 不明なエラー");
     });
   });
 
@@ -464,9 +464,9 @@ describe("bulkUpdateFixedEvaluations", () => {
         expect(result.success).toBe(true);
         expect(result.successData).toHaveLength(2);
         expect(result.failedData).toHaveLength(1);
-        expect(result.successData[0].id).toBe("task-1");
-        expect(result.successData[1].id).toBe("task-2");
-        expect(result.failedData[0].id).toBe("");
+        expect(result.successData?.[0].id).toBe("task-1");
+        expect(result.successData?.[1].id).toBe("task-2");
+        expect(result.failedData?.[0].id).toBe("");
         expect(result.message).toBe("2件のタスクが正常に更新されました。1件の更新に失敗しました。");
       });
     });

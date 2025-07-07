@@ -363,7 +363,8 @@ describe("sendInAppNotification", () => {
       // 検証
       expect(result).toStrictEqual({
         success: false,
-        error: expectedError,
+        data: null,
+        message: expectedError,
       });
       expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", originalError);
 
@@ -436,7 +437,8 @@ describe("sendInAppNotification", () => {
       // 検証
       expect(result).toStrictEqual({
         success: false,
-        error: expectedError,
+        data: null,
+        message: expectedError,
       });
       expect(consoleSpy).toHaveBeenCalled();
 

@@ -60,12 +60,12 @@ export async function updateDeliveryMethod(
   /**
    * 自分が作成したタスクかチェック
    */
-  const { success, message: error } = await checkIsPermission(userId, undefined, taskId, true);
+  const { success, message } = await checkIsPermission(userId, undefined, taskId, true);
 
   if (!success) {
     return {
       success: false,
-      message: error ?? "このタスクを編集する権限がありません",
+      message: message ?? "このタスクを編集する権限がありません",
       data: null,
     };
   }
@@ -124,11 +124,11 @@ export async function completeTaskDelivery(taskId: string, userId: string): Prom
   /**
    * 自分が出品者のタスクかチェック
    */
-  const { success, message: error } = await checkIsPermission(userId, undefined, taskId, true);
+  const { success, message } = await checkIsPermission(userId, undefined, taskId, true);
   if (!success) {
     return {
       success: false,
-      message: error ?? "タスク完了処理: このタスクを編集する権限がありません",
+      message: message ?? "タスク完了処理: このタスクを編集する権限がありません",
       data: null,
     };
   }

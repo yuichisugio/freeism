@@ -2,6 +2,7 @@
 
 import type { Group } from "@/types/group-types";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,7 +11,7 @@ import { prisma } from "@/library-setting/prisma";
  * @param groupId {string} グループID
  * @returns {Promise<Group>} グループ情報
  */
-export async function getCachedGroupById(groupId: string): Promise<Group> {
+export async function getCachedGroupById(groupId: string): PromiseResult<Group> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -72,5 +73,9 @@ export async function getCachedGroupById(groupId: string): Promise<Group> {
   /**
    * グループ情報を返却
    */
-  return returnGroup;
+  return {
+    success: true,
+    message: "グループ情報を取得しました",
+    data: returnGroup,
+  };
 }

@@ -108,7 +108,7 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: "グループオーナー権限を付与しました" });
+        expect(result).toStrictEqual({ success: true, data: true, message: "グループオーナー権限を付与しました" });
         expect(prismaMock.groupMembership.update).toHaveBeenCalledWith({
           where: { id: targetMembership.id },
           data: { isGroupOwner: true },
@@ -139,7 +139,7 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: "グループオーナー権限を付与しました" });
+        expect(result).toStrictEqual({ success: true, data: true, message: "グループオーナー権限を付与しました" });
         expect(prismaMock.groupMembership.update).toHaveBeenCalledWith({
           where: { id: targetMembership.id },
           data: { isGroupOwner: true },
@@ -179,7 +179,11 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, message: "アプリオーナー or グループオーナー権限がありません" });
+        expect(result).toStrictEqual({
+          success: false,
+          data: false,
+          message: "アプリオーナー or グループオーナー権限がありません",
+        });
       });
 
       test("should return error when target user is not group member", async () => {
@@ -198,7 +202,11 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, message: "指定されたユーザーはグループに参加していません" });
+        expect(result).toStrictEqual({
+          success: false,
+          data: false,
+          message: "指定されたユーザーはグループに参加していません",
+        });
       });
 
       test("should return error when target user is already owner", async () => {
@@ -224,7 +232,11 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, targetUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, message: "指定されたユーザーは既にグループオーナーです" });
+        expect(result).toStrictEqual({
+          success: false,
+          data: false,
+          message: "指定されたユーザーは既にグループオーナーです",
+        });
       });
 
       test("should handle database error gracefully", async () => {
@@ -253,6 +265,7 @@ describe("permission.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "グループオーナー権限の付与中にエラーが発生しました: Database error",
         });
       });
@@ -286,6 +299,7 @@ describe("permission.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
+          data: false,
           message: "グループオーナー権限の付与中にエラーが発生しました: 不明なエラー",
         });
       });
@@ -317,7 +331,11 @@ describe("permission.ts", () => {
         const result = await grantOwnerPermission(testGroup.id, sameUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, message: "指定されたユーザーは既にグループオーナーです" });
+        expect(result).toStrictEqual({
+          success: false,
+          data: false,
+          message: "指定されたユーザーは既にグループオーナーです",
+        });
       });
     });
   });
@@ -404,7 +422,7 @@ describe("permission.ts", () => {
         const result = await checkOneGroupOwner(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: "グループオーナー権限があります" });
+        expect(result).toStrictEqual({ success: true, data: true, message: "グループオーナー権限があります" });
         expect(prismaMock.groupMembership.findFirst).toHaveBeenCalledWith({
           where: {
             userId: testUser.id,
@@ -424,7 +442,7 @@ describe("permission.ts", () => {
         const result = await checkOneGroupOwner(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: false, message: "グループオーナー権限がありません" });
+        expect(result).toStrictEqual({ success: false, data: false, message: "グループオーナー権限がありません" });
       });
     });
 

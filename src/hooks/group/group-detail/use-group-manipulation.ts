@@ -141,14 +141,14 @@ export function useGroupManipulation({
 
       // ユーザーがグループのメンバーかどうかチェック
       // tasksが初期状態で空またはgroupが存在しない場合を考慮
-      if (group?.members) {
-        const memberIds = group.members.map((member: { userId: string }) => member.userId);
+      if (group?.data?.members) {
+        const memberIds = group.data.members.map((member: { userId: string }) => member.userId);
         setIsMember(memberIds.includes(userId));
       }
     }
 
     void checkPermissions();
-  }, [groupId, userId, group?.members]);
+  }, [groupId, userId, group?.data?.members]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -354,7 +354,7 @@ export function useGroupManipulation({
    */
   return {
     // state
-    group: group ?? null,
+    group: group?.data ?? null,
     isLoadingGroup,
     isMember,
     deleteDialogOpen,

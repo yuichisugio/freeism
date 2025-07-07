@@ -21,168 +21,159 @@ export async function checkIsPermission(
   propsTaskId?: string,
   isRoleCheck?: boolean,
 ): PromiseResult<boolean> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * ユーザーIDを取得
-     */
-    let userId = propsUserId;
-    if (!propsUserId) {
-      userId = await getAuthenticatedSessionUserId();
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * isRoleCheckがtrueの場合は、creater,reporter,executorでも権限ありとする
-     */
-    if (isRoleCheck) {
-      // タスクIDが指定されていない場合はエラーを返す
-      if (!propsTaskId) {
-        return { success: false, data: false, message: "タスクIDが指定されていません" };
-      }
-
-      // タスクの詳細情報を取得
-      const task = await prisma.task.findUnique({
-        where: { id: propsTaskId },
-        select: {
-          creator: {
-            select: {
-              id: true,
-            },
-          },
-          reporters: {
-            where: {
-              userId: userId,
-              taskId: propsTaskId,
-            },
-            select: {
-              id: true,
-            },
-          },
-          executors: {
-            where: {
-              userId: userId,
-              taskId: propsTaskId,
-            },
-            select: {
-              id: true,
-            },
-          },
-        },
-      });
-
-      // タスクが見つからない場合はエラーを返す
-      if (!task) {
-        return { success: false, data: false, message: "タスクが見つかりません" };
-      }
-
-      // タスクの作成者、タスクの報告者、タスクの実行者のいずれかがユーザーIDと一致する場合はtrueを返す
-      const isCreator = task.creator.id === userId;
-      const isReporter = task.reporters.find((reporter) => reporter.id);
-      const isExecutor = task.executors.find((executor) => executor.id);
-      if (isCreator || isReporter || isExecutor) {
-        return { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" };
-      }
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Appオーナー権限があるかチェック
-     */
-    const appOwner = await prisma.user.findUnique({
-      where: {
-        id: userId,
-        isAppOwner: true,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Appオーナー権限がある場合はtrueを返す
-     */
-    if (appOwner) {
-      return { success: true, data: true, message: "Appオーナー権限があります" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループIDとタスクIDが指定されていない場合はエラーを返す
-     */
-    if (!propsGroupId && !propsTaskId) {
-      return { success: false, data: false, message: "グループIDとタスクIDが指定されていません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループIDが指定されていない && タスクIDが指定されている場合は、タスクIDからグループIDを取得
-     */
-
-    if (!propsGroupId && propsTaskId) {
-      // タスクIDからグループIDを取得
-      const task = await prisma.task.findUnique({
-        where: { id: propsTaskId },
-        select: {
-          groupId: true,
-        },
-      });
-
-      // タスクが見つからない場合はエラーを返す
-      if (!task) {
-        return { success: false, data: false, message: "タスクが見つかりません" };
-      }
-
-      // タスクのグループIDを取得
-      propsGroupId = task.groupId;
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Groupオーナー権限があるかチェック
-     */
-    const membership = await prisma.groupMembership.findFirst({
-      where: {
-        userId,
-        groupId: propsGroupId,
-        isGroupOwner: true,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Groupオーナー権限がない場合はfalseを返す
-     */
-    if (!membership) {
-      return { success: false, data: false, message: "グループオーナー権限がありません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * Groupオーナー権限がある場合はtrueを返す
-     */
-    return { success: !!membership, data: true, message: "Groupオーナー権限があります" };
-  } catch (error) {
-    console.error("[CHECK_GROUP_OWNER]", error);
-    return {
-      success: false,
-      data: false,
-      message: `権限のチェック中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
-    };
+  /**
+   * ユーザーIDを取得
+   */
+  let userId = propsUserId;
+  if (!propsUserId) {
+    userId = await getAuthenticatedSessionUserId();
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * isRoleCheckがtrueの場合は、creater,reporter,executorでも権限ありとする
+   */
+  if (isRoleCheck) {
+    // タスクIDが指定されていない場合はエラーを返す
+    if (!propsTaskId) {
+      return { success: false, data: false, message: "タスクIDが指定されていません" };
+    }
+
+    // タスクの詳細情報を取得
+    const task = await prisma.task.findUnique({
+      where: { id: propsTaskId },
+      select: {
+        creator: {
+          select: {
+            id: true,
+          },
+        },
+        reporters: {
+          where: {
+            userId: userId,
+            taskId: propsTaskId,
+          },
+          select: {
+            id: true,
+          },
+        },
+        executors: {
+          where: {
+            userId: userId,
+            taskId: propsTaskId,
+          },
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    // タスクが見つからない場合はエラーを返す
+    if (!task) {
+      return { success: false, data: false, message: "タスクが見つかりません" };
+    }
+
+    // タスクの作成者、タスクの報告者、タスクの実行者のいずれかがユーザーIDと一致する場合はtrueを返す
+    const isCreator = task.creator.id === userId;
+    const isReporter = task.reporters.find((reporter) => reporter.id);
+    const isExecutor = task.executors.find((executor) => executor.id);
+    if (isCreator || isReporter || isExecutor) {
+      return { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" };
+    }
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Appオーナー権限があるかチェック
+   */
+  const appOwner = await prisma.user.findUnique({
+    where: {
+      id: userId,
+      isAppOwner: true,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Appオーナー権限がある場合はtrueを返す
+   */
+  if (appOwner) {
+    return { success: true, data: true, message: "Appオーナー権限があります" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループIDとタスクIDが指定されていない場合はエラーを返す
+   */
+  if (!propsGroupId && !propsTaskId) {
+    return { success: false, data: false, message: "グループIDとタスクIDが指定されていません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループIDが指定されていない && タスクIDが指定されている場合は、タスクIDからグループIDを取得
+   */
+
+  if (!propsGroupId && propsTaskId) {
+    // タスクIDからグループIDを取得
+    const task = await prisma.task.findUnique({
+      where: { id: propsTaskId },
+      select: {
+        groupId: true,
+      },
+    });
+
+    // タスクが見つからない場合はエラーを返す
+    if (!task) {
+      return { success: false, data: false, message: "タスクが見つかりません" };
+    }
+
+    // タスクのグループIDを取得
+    propsGroupId = task.groupId;
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Groupオーナー権限があるかチェック
+   */
+  const membership = await prisma.groupMembership.findFirst({
+    where: {
+      userId,
+      groupId: propsGroupId,
+      isGroupOwner: true,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Groupオーナー権限がない場合はfalseを返す
+   */
+  if (!membership) {
+    return { success: false, data: false, message: "グループオーナー権限がありません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Groupオーナー権限がある場合はtrueを返す
+   */
+  return { success: !!membership, data: true, message: "Groupオーナー権限があります" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -194,76 +185,71 @@ export async function checkIsPermission(
  * @returns 処理結果を含むオブジェクト
  */
 export async function grantOwnerPermission(groupId: string, userId: string): PromiseResult<boolean> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * パラメータの検証
-     */
-    if (!groupId || !userId) {
-      throw new Error("無効なパラメータが指定されました");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 操作者（認証されているユーザー）がグループオーナーかチェック
-     */
-    const isOwner = await checkIsPermission(userId, groupId, undefined, false);
-    if (!isOwner.success) {
-      return { success: false, data: false, message: "アプリオーナー or グループオーナー権限がありません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 対象ユーザーのグループメンバーシップを取得
-     */
-    const targetMembership = await checkGroupMembership(userId, groupId);
-    if (!targetMembership) {
-      return { success: false, data: false, message: "指定されたユーザーはグループに参加していません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 既にオーナー権限を持っている場合
-     */
-    if (targetMembership.data?.isGroupOwner) {
-      return { success: false, data: false, message: "指定されたユーザーは既にグループオーナーです" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループオーナー権限を付与
-     */
-    await prisma.groupMembership.update({
-      where: {
-        id: targetMembership.data?.id,
-      },
-      data: {
-        isGroupOwner: true,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * パスを再検証
-     */
-    revalidatePath(`/dashboard/group/${groupId}`);
-    return { success: true, data: true, message: "グループオーナー権限を付与しました" };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("[GRANT_OWNER_PERMISSION]", error);
-    return {
-      success: false,
-      data: false,
-      message: `グループオーナー権限の付与中にエラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
-    };
+  /**
+   * パラメータの検証
+   */
+  if (!groupId || !userId) {
+    throw new Error("無効なパラメータが指定されました");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 操作者（認証されているユーザー）がグループオーナーかチェック
+   */
+  const isOwner = await checkIsPermission(userId, groupId, undefined, false);
+  if (!isOwner.success) {
+    return { success: false, data: false, message: "アプリオーナー or グループオーナー権限がありません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 対象ユーザーのグループメンバーシップを取得
+   */
+  const targetMembership = await checkGroupMembership(userId, groupId);
+  if (!targetMembership) {
+    return { success: false, data: false, message: "指定されたユーザーはグループに参加していません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 既にオーナー権限を持っている場合
+   */
+  if (targetMembership.data?.isGroupOwner) {
+    return { success: false, data: false, message: "指定されたユーザーは既にグループオーナーです" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループオーナー権限を付与
+   */
+  await prisma.groupMembership.update({
+    where: {
+      id: targetMembership.data?.id,
+    },
+    data: {
+      isGroupOwner: true,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パスを再検証
+   */
+  revalidatePath(`/dashboard/group/${groupId}`);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 結果を返却
+   */
+  return { success: true, data: true, message: "グループオーナー権限を付与しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -281,60 +267,53 @@ export async function checkGroupMembership(
   id: string;
   isGroupOwner: boolean;
 } | null> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * パラメータの検証
-     */
-    if (!userId || !groupId) {
-      throw new Error("無効なパラメータが指定されました");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループメンバーシップを取得
-     */
-    const membership = await prisma.groupMembership.findFirst({
-      where: {
-        userId,
-        groupId,
-      },
-      select: {
-        id: true,
-        isGroupOwner: true,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループメンバーシップが存在しない場合はnullを返す
-     */
-    if (!membership) {
-      return { success: false, data: null, message: "グループメンバーシップが存在しません" };
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * グループメンバーシップを返す
-     */
-    return {
-      success: true,
-      data: {
-        id: membership.id,
-        isGroupOwner: membership.isGroupOwner,
-      },
-      message: "グループメンバーシップを取得しました",
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("[CHECK_GROUP_MEMBERSHIP]", error);
-    return { success: false, data: null, message: "グループメンバーシップのチェック中にエラーが発生しました" };
+  /**
+   * パラメータの検証
+   */
+  if (!userId || !groupId) {
+    throw new Error("無効なパラメータが指定されました");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループメンバーシップを取得
+   */
+  const membership = await prisma.groupMembership.findFirst({
+    where: {
+      userId,
+      groupId,
+    },
+    select: {
+      id: true,
+      isGroupOwner: true,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループメンバーシップが存在しない場合はnullを返す
+   */
+  if (!membership) {
+    return { success: false, data: null, message: "グループメンバーシップが存在しません" };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループメンバーシップを返す
+   */
+  return {
+    success: true,
+    data: {
+      id: membership.id,
+      isGroupOwner: membership.isGroupOwner,
+    },
+    message: "グループメンバーシップを取得しました",
+  };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -378,5 +357,11 @@ export async function checkOneGroupOwner(userId: string): PromiseResult<boolean>
   if (userGroupMemberships) {
     return { success: true, data: true, message: "グループオーナー権限があります" };
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * グループオーナー権限がない場合はfalseを返す
+   */
   return { success: false, data: false, message: "グループオーナー権限がありません" };
 }
