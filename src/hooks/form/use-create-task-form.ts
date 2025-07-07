@@ -178,15 +178,13 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
   /**
    * タスク作成フォームのデータを取得
    */
-  const {
-    data: { groups, users },
-    isLoading: isLoadingFormData,
-  } = useQuery({
+  const { data: queryData, isLoading: isLoadingFormData } = useQuery({
     queryKey: queryCacheKeys.tasks.prepareCreateTaskForm(),
     queryFn: () => prepareCreateTaskForm(),
-    initialData: {
-      groups: [],
-      users: [],
+    placeholderData: {
+      success: true,
+      message: "データを取得しました",
+      data: { groups: [], users: [] },
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
@@ -235,7 +233,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
     (userId?: string, name?: string) => {
       if (userId) {
         // 登録済みユーザーの場合
-        const user = users.find((u: User) => u.id === userId);
+        const user = queryData?.data?.users.find((u: User) => u.id === userId);
         if (user && !executors.some((e) => e.userId === userId)) {
           const newExecutors = [...executors, { userId, name: user.name }];
           setExecutors(newExecutors);
@@ -249,7 +247,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
         setNonRegisteredExecutor("");
       }
     },
-    [executors, form, users, setNonRegisteredExecutor],
+    [executors, form, queryData?.data?.users, setNonRegisteredExecutor],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -270,7 +268,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
           setNonRegisteredReporter("");
         }
       } else if (userId) {
-        const user = users.find((u: User) => u.id === userId);
+        const user = queryData?.data?.users.find((u: User) => u.id === userId);
         if (user && !reporters.some((r) => r.userId === userId)) {
           newParticipant = { userId, name: user.name };
         }
@@ -282,7 +280,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
         form.setValue("reporters", newReportersList);
       }
     },
-    [reporters, form, users, setNonRegisteredReporter],
+    [reporters, form, queryData?.data?.users, setNonRegisteredReporter],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -410,7 +408,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
         return;
       }
 
-      const user = users.find((u: User) => u.id === userId);
+      const user = queryData?.data?.users.find((u: User) => u.id === userId);
       if (user) {
         const isAlreadyAdded = reporters.some((r) => r.userId === userId);
         if (!isAlreadyAdded) {
@@ -423,7 +421,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
         setReporterComboboxOpen(false);
       }
     },
-    [users, reporters, form, selectedReporterId, setSelectedReporterId, setReporterComboboxOpen],
+    [queryData?.data?.users, reporters, form, selectedReporterId, setSelectedReporterId, setReporterComboboxOpen],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -448,7 +446,7 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
         return;
       }
 
-      const user = users.find((u: User) => u.id === userId);
+      const user = queryData?.data?.users.find((u: User) => u.id === userId);
       if (user) {
         const isAlreadyAdded = executors.some((r) => r.userId === userId);
         if (!isAlreadyAdded) {
@@ -461,14 +459,18 @@ export function useTaskInputForm(): UseTaskInputFormReturn {
         setExecutorsComboboxOpen(false);
       }
     },
-    [users, executors, form, selectedExecutorId, setSelectedExecutorId, setExecutorsComboboxOpen],
+    [queryData?.data?.users, executors, form, selectedExecutorId, setSelectedExecutorId, setExecutorsComboboxOpen],
   );
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * 戻り値
+   */
   return {
     // state
-    groups,
-    users,
+    groups: queryData?.data?.groups ?? [],
+    users: queryData?.data?.users ?? [],
     form,
     open,
     categoryOpen,

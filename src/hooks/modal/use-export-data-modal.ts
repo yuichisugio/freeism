@@ -285,11 +285,11 @@ export function useExportDataModal({
             const onlyTaskCompleted = state.exportPurpose === "ANALYSIS";
             const taskData = await exportGroupTask(groupId, start, end, onlyTaskCompleted);
 
-            if (taskData) {
+            if (taskData.data && taskData.success) {
               const filename = `${groupName}_tasks_${state.exportPurpose === "ANALYSIS" ? "analysis" : "all"}_${format(new Date(), "yyyyMMdd")}.csv`;
 
               // CSVに変換してダウンロード
-              const csv = Papa.unparse(taskData);
+              const csv = Papa.unparse(taskData.data);
               const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
               saveAs(blob, filename);
 
@@ -327,7 +327,7 @@ export function useExportDataModal({
           if (evaluatorNames.length === 1) {
             // 単一の評価者のデータの場合は、そのままCSVとして保存
             const singleEvaluatorName = evaluatorNames[0];
-            const singleEvaluatorData = resultData[singleEvaluatorName];
+            const singleEvaluatorData = resultData.data[singleEvaluatorName];
             const filename = `${baseFilename}_${singleEvaluatorName}.csv`;
 
             // CSVに変換してダウンロード
@@ -341,7 +341,7 @@ export function useExportDataModal({
 
             // 各評価者のデータをCSVに変換して、Zipファイルに追加
             for (const evaluatorName of evaluatorNames) {
-              const evaluatorData = resultData[evaluatorName];
+              const evaluatorData = resultData.data[evaluatorName];
               const filename = `${evaluatorName}.csv`;
               const csv = Papa.unparse(evaluatorData);
               // TextEncoderを使ってUTF-8でエンコード

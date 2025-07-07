@@ -90,7 +90,11 @@ describe("getGroupTaskAndCount", () => {
         totalTaskCount: 2,
       });
 
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(expectedResponse);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: expectedResponse,
+      });
 
       // Act
       const result = await getGroupTaskAndCount(testProps);
@@ -119,7 +123,11 @@ describe("getGroupTaskAndCount", () => {
         totalTaskCount: 0,
       });
 
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(expectedResponse);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: expectedResponse,
+      });
 
       // Act
       const result = await getGroupTaskAndCount(testProps);
@@ -136,7 +144,11 @@ describe("getGroupTaskAndCount", () => {
         contributionTypeFilter: "ALL",
       });
       const responseWithAll = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseWithAll);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseWithAll,
+      });
 
       // Act & Assert - ALL filter
       await getGroupTaskAndCount(propsWithAll);
@@ -147,7 +159,11 @@ describe("getGroupTaskAndCount", () => {
         contributionTypeFilter: ContributionType.REWARD,
       });
       const responseWithReward = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseWithReward);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseWithReward,
+      });
 
       // Act & Assert - REWARD filter
       await getGroupTaskAndCount(propsWithReward);
@@ -158,7 +174,11 @@ describe("getGroupTaskAndCount", () => {
         contributionTypeFilter: ContributionType.NON_REWARD,
       });
       const responseWithNonReward = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseWithNonReward);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseWithNonReward,
+      });
 
       // Act & Assert - NON_REWARD filter
       await getGroupTaskAndCount(propsWithNonReward);
@@ -171,7 +191,11 @@ describe("getGroupTaskAndCount", () => {
         statusFilter: "ALL",
       });
       const responseWithAll = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseWithAll);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseWithAll,
+      });
 
       // Act & Assert - ALL status
       await getGroupTaskAndCount(propsWithAll);
@@ -182,7 +206,11 @@ describe("getGroupTaskAndCount", () => {
         statusFilter: TaskStatus.PENDING,
       });
       const responseWithPending = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseWithPending);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseWithPending,
+      });
 
       // Act & Assert - PENDING status
       await getGroupTaskAndCount(propsWithPending);
@@ -193,7 +221,11 @@ describe("getGroupTaskAndCount", () => {
         statusFilter: TaskStatus.TASK_COMPLETED,
       });
       const responseWithCompleted = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseWithCompleted);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseWithCompleted,
+      });
 
       // Act & Assert - TASK_COMPLETED status
       await getGroupTaskAndCount(propsWithCompleted);
@@ -207,7 +239,11 @@ describe("getGroupTaskAndCount", () => {
         sortDirection: "desc",
       });
       const responseCreatedAtDesc = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseCreatedAtDesc);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseCreatedAtDesc,
+      });
 
       // Act & Assert - createdAt desc
       await getGroupTaskAndCount(propsCreatedAtDesc);
@@ -219,7 +255,11 @@ describe("getGroupTaskAndCount", () => {
         sortDirection: "asc",
       });
       const responseTaskAsc = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseTaskAsc);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseTaskAsc,
+      });
 
       // Act & Assert - task asc
       await getGroupTaskAndCount(propsTaskAsc);
@@ -231,7 +271,11 @@ describe("getGroupTaskAndCount", () => {
         sortDirection: "desc",
       });
       const responsePointDesc = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responsePointDesc);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responsePointDesc,
+      });
 
       // Act & Assert - taskFixedContributionPoint desc
       await getGroupTaskAndCount(propsPointDesc);
@@ -245,7 +289,11 @@ describe("getGroupTaskAndCount", () => {
         itemPerPage: 10,
       });
       const responsePage1 = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responsePage1);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responsePage1,
+      });
 
       // Act & Assert - page 1
       await getGroupTaskAndCount(propsPage1);
@@ -257,7 +305,11 @@ describe("getGroupTaskAndCount", () => {
         itemPerPage: 50,
       });
       const responsePage5 = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responsePage5);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responsePage5,
+      });
 
       // Act & Assert - page 5
       await getGroupTaskAndCount(propsPage5);
@@ -270,7 +322,11 @@ describe("getGroupTaskAndCount", () => {
         searchQuery: "",
       });
       const responseEmptySearch = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseEmptySearch);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseEmptySearch,
+      });
 
       // Act & Assert - empty search
       await getGroupTaskAndCount(propsEmptySearch);
@@ -281,7 +337,11 @@ describe("getGroupTaskAndCount", () => {
         searchQuery: "テストタスク",
       });
       const responseJapaneseSearch = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseJapaneseSearch);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseJapaneseSearch,
+      });
 
       // Act & Assert - Japanese search
       await getGroupTaskAndCount(propsJapaneseSearch);
@@ -292,7 +352,11 @@ describe("getGroupTaskAndCount", () => {
         searchQuery: "test task",
       });
       const responseEnglishSearch = createTestResponse();
-      mockGetCachedGroupTaskAndCount.mockResolvedValue(responseEnglishSearch);
+      mockGetCachedGroupTaskAndCount.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: responseEnglishSearch,
+      });
 
       // Act & Assert - English search
       await getGroupTaskAndCount(propsEnglishSearch);

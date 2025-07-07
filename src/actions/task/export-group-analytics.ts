@@ -1,5 +1,7 @@
 "use server";
 
+import { type PromiseResult } from "@/types/general-types";
+
 import type { GroupAnalyticsExportReturn } from "./cache-export-group-analytics";
 import { cachedExportGroupAnalytics } from "./cache-export-group-analytics";
 
@@ -18,6 +20,6 @@ export async function exportGroupAnalytics(
   page = 1,
   onlyFixed = false,
   onlyTaskCompleted = false,
-): Promise<GroupAnalyticsExportReturn> {
+): PromiseResult<GroupAnalyticsExportReturn> {
   return cachedExportGroupAnalytics(groupId, page, onlyFixed, onlyTaskCompleted);
 }

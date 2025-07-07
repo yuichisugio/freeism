@@ -160,7 +160,7 @@ describe("create-task-form.ts", () => {
         const result = await prepareCreateTaskForm();
 
         // Assert
-        expect(result.users).toStrictEqual([{ id: testUser.id, name: `未設定_${testUser.id}` }]);
+        expect(result.data.users).toStrictEqual([{ id: testUser.id, name: `未設定_${testUser.id}` }]);
       });
     });
 

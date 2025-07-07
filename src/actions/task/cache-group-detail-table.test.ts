@@ -341,7 +341,7 @@ describe("getMyTaskData", () => {
       const result = await getMyTaskData(defaultTableConditions, testUser.id);
 
       // Assert
-      expect(result.tasks[0]).toMatchObject({
+      expect(result.data?.tasks[0]).toMatchObject({
         taskReporterUserIds: ["reporter-user-id"],
         taskExecutorUserIds: ["executor-user-id"],
         taskReporterUserNames: "報告者ユーザー",
@@ -399,7 +399,7 @@ describe("getMyTaskData", () => {
       const result = await getMyTaskData(defaultTableConditions, testUser.id);
 
       // Assert
-      expect(result.tasks[0]).toMatchObject({
+      expect(result.data?.tasks[0]).toMatchObject({
         taskDetail: null,
         taskFixedContributionPoint: null,
         taskFixedEvaluator: "未設定",
@@ -509,7 +509,7 @@ describe("getMyTaskData", () => {
       const result = await getMyTaskData(defaultTableConditions, testUser.id);
 
       // Assert
-      expect(result.tasks[0]).toMatchObject({
+      expect(result.data?.tasks[0]).toMatchObject({
         taskReporterUserIds: ["reporter-1", "reporter-3"],
         taskExecutorUserIds: ["executor-1", "executor-3"],
         taskReporterUserNames: "報告者1, 報告者2",

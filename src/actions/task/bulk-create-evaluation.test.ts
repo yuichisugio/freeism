@@ -275,7 +275,7 @@ describe("bulkCreateEvaluations", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         for (const expectedText of expectedErrorContains) {
-          expect(result.error).toContain(expectedText);
+          expect(result.message).toContain(expectedText);
         }
       }
     });
@@ -307,9 +307,9 @@ describe("bulkCreateEvaluations", () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain("データ検証に失敗しました");
-        expect(result.error).toContain("1行目");
-        expect(result.error).toContain("2行目");
+        expect(result.message).toContain("データ検証に失敗しました");
+        expect(result.message).toContain("1行目");
+        expect(result.message).toContain("2行目");
       }
     });
 
@@ -339,7 +339,7 @@ describe("bulkCreateEvaluations", () => {
         const result = await bulkCreateEvaluations(data, testGroup.id, testUser.id);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error).toContain(expectedErrorContains);
+          expect(result.message).toContain(expectedErrorContains);
         }
       });
 
@@ -366,7 +366,7 @@ describe("bulkCreateEvaluations", () => {
 
           expect(result.success).toBe(false);
           if (!result.success) {
-            expect(result.error).toBe(testCase.expectedError);
+            expect(result.message).toBe(testCase.expectedError);
           }
         }
       });
@@ -399,7 +399,7 @@ describe("bulkCreateEvaluations", () => {
         // Assert
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error).toBe("データ作成エラー");
+          expect(result.message).toBe("データ作成エラー");
         }
       });
     });

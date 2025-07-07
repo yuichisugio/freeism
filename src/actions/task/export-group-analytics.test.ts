@@ -31,32 +31,36 @@ describe("exportGroupAnalytics", () => {
       const onlyFixed = true;
       const onlyTaskCompleted = true;
       const expectedResult = {
+        success: true,
+        message: "データを取得しました",
         data: {
-          評価者1: [
-            {
-              分析ID: "analysis-1",
-              タスクID: "task-1",
-              貢献ポイント: 100,
-              評価ロジック: "自動評価",
-              評価者ID: "evaluator-1",
-              評価者名: "評価者1",
-              タスク内容: "テストタスク",
-              参照情報: "https://example.com",
-              証拠情報: "証拠情報",
-              ステータス: "POINTS_AWARDED",
-              貢献タイプ: "REWARD",
-              タスク報告者: "報告者1",
-              タスク実行者: "実行者1",
-              タスク作成者: "作成者1",
-              グループ目標: "テスト目標",
-              評価方法: "自動評価",
-              作成日: "2024-01-15",
-              評価日: "2024-01-16",
-            },
-          ],
+          data: {
+            評価者1: [
+              {
+                分析ID: "analysis-1",
+                タスクID: "task-1",
+                貢献ポイント: 100,
+                評価ロジック: "自動評価",
+                評価者ID: "evaluator-1",
+                評価者名: "評価者1",
+                タスク内容: "テストタスク",
+                参照情報: "https://example.com",
+                証拠情報: "証拠情報",
+                ステータス: "POINTS_AWARDED",
+                貢献タイプ: "REWARD",
+                タスク報告者: "報告者1",
+                タスク実行者: "実行者1",
+                タスク作成者: "作成者1",
+                グループ目標: "テスト目標",
+                評価方法: "自動評価",
+                作成日: "2024-01-15",
+                評価日: "2024-01-16",
+              },
+            ],
+          },
+          totalPages: 5,
+          currentPage: 2,
         },
-        totalPages: 5,
-        currentPage: 2,
       };
 
       // モックの設定
@@ -77,9 +81,13 @@ describe("exportGroupAnalytics", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const expectedResult = {
-        data: {},
-        totalPages: 1,
-        currentPage: 1,
+        success: true,
+        message: "データを取得しました",
+        data: {
+          data: {},
+          totalPages: 1,
+          currentPage: 1,
+        },
       };
 
       // モックの設定
@@ -101,31 +109,35 @@ describe("exportGroupAnalytics", () => {
       const groupId = "test-group-id";
       const page = 3;
       const expectedResult = {
+        success: true,
+        message: "データを取得しました",
         data: {
-          未割り当て: [
-            {
-              分析ID: "analysis-2",
-              タスクID: "task-2",
-              貢献ポイント: 50,
-              評価ロジック: "",
-              評価者ID: "",
-              評価者名: "未割り当て",
-              タスク内容: "テストタスク2",
-              参照情報: "",
-              証拠情報: "",
-              ステータス: "TASK_COMPLETED",
-              貢献タイプ: "NON_REWARD",
-              タスク報告者: "",
-              タスク実行者: "",
-              タスク作成者: "作成者2",
-              グループ目標: null,
-              評価方法: null,
-              作成日: "2024-01-17",
-            },
-          ],
+          data: {
+            未割り当て: [
+              {
+                分析ID: "analysis-2",
+                タスクID: "task-2",
+                貢献ポイント: 50,
+                評価ロジック: "",
+                評価者ID: "",
+                評価者名: "未割り当て",
+                タスク内容: "テストタスク2",
+                参照情報: "",
+                証拠情報: "",
+                ステータス: "TASK_COMPLETED",
+                貢献タイプ: "NON_REWARD",
+                タスク報告者: "",
+                タスク実行者: "",
+                タスク作成者: "作成者2",
+                グループ目標: null,
+                評価方法: null,
+                作成日: "2024-01-17",
+              },
+            ],
+          },
+          totalPages: 10,
+          currentPage: 3,
         },
-        totalPages: 10,
-        currentPage: 3,
       };
 
       // モックの設定
@@ -149,9 +161,13 @@ describe("exportGroupAnalytics", () => {
       const onlyFixed = true;
       const onlyTaskCompleted = false;
       const expectedResult = {
-        data: {},
-        totalPages: 0,
-        currentPage: 1,
+        success: true,
+        message: "データを取得しました",
+        data: {
+          data: {},
+          totalPages: 0,
+          currentPage: 1,
+        },
       };
 
       // モックの設定
@@ -175,31 +191,35 @@ describe("exportGroupAnalytics", () => {
       const onlyFixed = false;
       const onlyTaskCompleted = true;
       const expectedResult = {
+        success: true,
+        message: "データを取得しました",
         data: {
-          評価者A: [
-            {
-              分析ID: "analysis-3",
-              タスクID: "task-3",
-              貢献ポイント: 75,
-              評価ロジック: "手動評価",
-              評価者ID: "evaluator-a",
-              評価者名: "評価者A",
-              タスク内容: "テストタスク3",
-              参照情報: "https://test.com",
-              証拠情報: "テスト証拠",
-              ステータス: "TASK_COMPLETED",
-              貢献タイプ: "REWARD",
-              タスク報告者: "報告者A",
-              タスク実行者: "実行者A",
-              タスク作成者: "作成者A",
-              グループ目標: "テスト目標A",
-              評価方法: "手動評価",
-              作成日: "2024-01-18",
-            },
-          ],
+          data: {
+            評価者A: [
+              {
+                分析ID: "analysis-3",
+                タスクID: "task-3",
+                貢献ポイント: 75,
+                評価ロジック: "手動評価",
+                評価者ID: "evaluator-a",
+                評価者名: "評価者A",
+                タスク内容: "テストタスク3",
+                参照情報: "https://test.com",
+                証拠情報: "テスト証拠",
+                ステータス: "TASK_COMPLETED",
+                貢献タイプ: "REWARD",
+                タスク報告者: "報告者A",
+                タスク実行者: "実行者A",
+                タスク作成者: "作成者A",
+                グループ目標: "テスト目標A",
+                評価方法: "手動評価",
+                作成日: "2024-01-18",
+              },
+            ],
+          },
+          totalPages: 3,
+          currentPage: 1,
         },
-        totalPages: 3,
-        currentPage: 1,
       };
 
       // モックの設定

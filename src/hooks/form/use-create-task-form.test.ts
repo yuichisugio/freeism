@@ -601,7 +601,11 @@ describe("useTaskInputForm", () => {
     });
 
     test("should submit form successfully", async () => {
-      vi.mocked(createTask).mockResolvedValue({ success: true });
+      vi.mocked(createTask).mockResolvedValue({
+        success: true,
+        message: "タスクを保存しました",
+        data: null,
+      });
 
       const { result } = renderHook(() => useTaskInputForm(), {
         wrapper: AllTheProviders,
@@ -644,7 +648,11 @@ describe("useTaskInputForm", () => {
     });
 
     test("should handle form submission error", async () => {
-      vi.mocked(createTask).mockResolvedValue({ success: false });
+      vi.mocked(createTask).mockResolvedValue({
+        success: false,
+        message: "エラーが発生しました",
+        data: null,
+      });
 
       const { result } = renderHook(() => useTaskInputForm(), {
         wrapper: AllTheProviders,
@@ -674,6 +682,11 @@ describe("useTaskInputForm", () => {
 
     test("should handle form submission exception", async () => {
       vi.mocked(createTask).mockRejectedValue(new Error("ネットワークエラー"));
+      vi.mocked(createTask).mockResolvedValue({
+        success: false,
+        message: "タスクの保存に失敗しました",
+        data: null,
+      });
 
       const { result } = renderHook(() => useTaskInputForm(), {
         wrapper: AllTheProviders,
@@ -702,7 +715,11 @@ describe("useTaskInputForm", () => {
     });
 
     test("should submit form with executors and reporters", async () => {
-      vi.mocked(createTask).mockResolvedValue({ success: true });
+      vi.mocked(createTask).mockResolvedValue({
+        success: true,
+        message: "タスクを保存しました",
+        data: null,
+      });
 
       const { result } = renderHook(() => useTaskInputForm(), {
         wrapper: AllTheProviders,
@@ -742,7 +759,11 @@ describe("useTaskInputForm", () => {
     });
 
     test("should submit form with NON_REWARD contribution type", async () => {
-      vi.mocked(createTask).mockResolvedValue({ success: true });
+      vi.mocked(createTask).mockResolvedValue({
+        success: true,
+        message: "タスクを保存しました",
+        data: null,
+      });
 
       const { result } = renderHook(() => useTaskInputForm(), {
         wrapper: AllTheProviders,

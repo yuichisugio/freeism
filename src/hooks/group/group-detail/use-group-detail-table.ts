@@ -192,9 +192,9 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
    * 次のページをprefetch
    */
   useEffect(() => {
-    if (!isPlaceholderData && tasksResult?.returnTasks.length) {
+    if (!isPlaceholderData && tasksResult?.data?.returnTasks.length) {
       const currentPage = tableConditions.page;
-      const totalPages = Math.ceil((tasksResult?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
+      const totalPages = Math.ceil((tasksResult?.data?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
       if (currentPage < totalPages) {
         const nextPage = currentPage + 1;
         const {
@@ -396,10 +396,10 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
   return {
     // state
     isLoading: isLoadingTasks || isLoadingUsers || isDeletingTask || isPlaceholderData,
-    tasks: tasksResult?.returnTasks ?? [],
+    tasks: tasksResult?.data?.returnTasks ?? [],
     users: usersData ?? [],
     tableConditions,
-    totalTaskCount: tasksResult?.totalTaskCount ?? 0,
+    totalTaskCount: tasksResult?.data?.totalTaskCount ?? 0,
     editingTaskId,
     isTaskEditModalOpen,
 

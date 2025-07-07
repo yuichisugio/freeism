@@ -225,9 +225,9 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId);
 
       // 検証 - 未割り当ての評価者が正しく処理されているか
-      expect(result.data).toHaveProperty("未設定_null");
-      expect(result.data["未設定_null"][0].評価者名).toBe("未設定_null");
-      expect(result.data["未設定_null"][0].評価者ID).toBe("");
+      expect(result.data?.data).toHaveProperty("未設定_null");
+      expect(result.data?.data?.["未設定_null"][0].評価者名).toBe("未設定_null");
+      expect(result.data?.data?.["未設定_null"][0].評価者ID).toBe("");
     });
 
     test("should add evaluation date when onlyFixed is true and fixedEvaluationDate exists", async () => {
@@ -265,7 +265,9 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId, 1, true);
 
       // 検証 - 評価日が追加されているか
-      expect(result.data["未設定_null"][0]).toHaveProperty("評価日", "2024-01-20");
+      expect(result.data?.data?.[0]).toHaveProperty("評価日", "2024-01-20");
+      expect(result.data?.data?.[0]).toHaveProperty("評価者名", "評価者1");
+      expect(result.data?.data?.[0]).toHaveProperty("評価者ID", "evaluator-1");
     });
 
     test("should handle tasks with reporters and executors correctly", async () => {
@@ -335,10 +337,10 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId);
 
       // 検証 - 報告者と実行者の名前が正しく結合されているか
-      expect(result.data["評価者1"][0].タスク報告者).toBe("報告者1, 報告者2");
-      expect(result.data["評価者1"][0].タスク実行者).toBe("実行者1, 実行者2");
-      expect(result.data["評価者1"][0].評価者名).toBe("評価者1");
-      expect(result.data["評価者1"][0].タスク作成者).toBe("作成者1");
+      expect(result.data?.data?.["評価者1"][0].タスク報告者).toBe("報告者1, 報告者2");
+      expect(result.data?.data?.["評価者1"][0].タスク実行者).toBe("実行者1, 実行者2");
+      expect(result.data?.data?.["評価者1"][0].評価者名).toBe("評価者1");
+      expect(result.data?.data?.["評価者1"][0].タスク作成者).toBe("作成者1");
     });
 
     test("should handle multiple evaluators correctly", async () => {
@@ -442,32 +444,32 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId);
 
       // 検証 - 評価者ごとにデータが正しくグループ化されているか
-      expect(Object.keys(result.data)).toHaveLength(3);
-      expect(result.data).toHaveProperty("評価者1");
-      expect(result.data).toHaveProperty("評価者2");
-      expect(result.data).toHaveProperty("評価者3");
+      expect(Object.keys(result.data?.data)).toHaveLength(3);
+      expect(result.data?.data).toHaveProperty("評価者1");
+      expect(result.data?.data).toHaveProperty("評価者2");
+      expect(result.data?.data).toHaveProperty("評価者3");
 
       // 評価者1のタスクが2件あることを確認
-      expect(result.data["評価者1"]).toHaveLength(2);
-      expect(result.data["評価者1"][0].タスク内容).toBe("タスク1");
-      expect(result.data["評価者1"][1].タスク内容).toBe("タスク3");
-      expect(result.data["評価者1"][0].貢献ポイント).toBe(100);
-      expect(result.data["評価者1"][1].貢献ポイント).toBe(150);
+      expect(result.data?.data?.["評価者1"]).toHaveLength(2);
+      expect(result.data?.data?.["評価者1"][0].タスク内容).toBe("タスク1");
+      expect(result.data?.data?.["評価者1"][1].タスク内容).toBe("タスク3");
+      expect(result.data?.data?.["評価者1"][0].貢献ポイント).toBe(100);
+      expect(result.data?.data?.["評価者1"][1].貢献ポイント).toBe(150);
 
       // 評価者2のタスクが1件あることを確認
-      expect(result.data["評価者2"]).toHaveLength(1);
-      expect(result.data["評価者2"][0].タスク内容).toBe("タスク2");
-      expect(result.data["評価者2"][0].貢献ポイント).toBe(200);
+      expect(result.data?.data?.["評価者2"]).toHaveLength(1);
+      expect(result.data?.data?.["評価者2"][0].タスク内容).toBe("タスク2");
+      expect(result.data?.data?.["評価者2"][0].貢献ポイント).toBe(200);
 
       // 評価者3のタスクが1件あることを確認
-      expect(result.data["評価者3"]).toHaveLength(1);
-      expect(result.data["評価者3"][0].タスク内容).toBe("タスク4");
-      expect(result.data["評価者3"][0].貢献ポイント).toBe(300);
+      expect(result.data?.data?.["評価者3"]).toHaveLength(1);
+      expect(result.data?.data?.["評価者3"][0].タスク内容).toBe("タスク4");
+      expect(result.data?.data?.["評価者3"][0].貢献ポイント).toBe(300);
 
       // 各評価者のデータが正しい評価者名を持っていることを確認
-      expect(result.data["評価者1"][0].評価者名).toBe("評価者1");
-      expect(result.data["評価者2"][0].評価者名).toBe("評価者2");
-      expect(result.data["評価者3"][0].評価者名).toBe("評価者3");
+      expect(result.data?.data?.["評価者1"][0].評価者名).toBe("評価者1");
+      expect(result.data?.data?.["評価者2"][0].評価者名).toBe("評価者2");
+      expect(result.data?.data?.["評価者3"][0].評価者名).toBe("評価者3");
     });
   });
 
@@ -610,7 +612,7 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId);
 
       // 検証 - totalPagesが正しく計算されているか
-      expect(result.totalPages).toBe(1); // 200 / 200 = 1ページ
+      expect(result.data?.totalPages).toBe(1); // 200 / 200 = 1ページ
     });
 
     test("should handle tasks count of 201", async () => {
@@ -628,7 +630,7 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId);
 
       // 検証 - totalPagesが正しく計算されているか
-      expect(result.totalPages).toBe(2); // Math.ceil(201 / 200) = 2ページ
+      expect(result.data?.totalPages).toBe(2); // Math.ceil(201 / 200) = 2ページ
     });
   });
 });

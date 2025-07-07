@@ -53,7 +53,11 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, false);
@@ -68,7 +72,11 @@ describe("exportGroupTask", () => {
       const groupId = "test-group-id";
       const startDate = new Date("2024-01-01");
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, startDate, undefined, false);
@@ -83,7 +91,11 @@ describe("exportGroupTask", () => {
       const groupId = "test-group-id";
       const endDate = new Date("2024-12-31");
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, endDate, false);
@@ -99,7 +111,11 @@ describe("exportGroupTask", () => {
       const startDate = new Date("2024-01-01");
       const endDate = new Date("2024-12-31");
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, startDate, endDate, false);
@@ -113,7 +129,11 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, true);
@@ -130,7 +150,11 @@ describe("exportGroupTask", () => {
       const endDate = new Date("2024-12-31");
       const onlyTaskCompleted = true;
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, startDate, endDate, onlyTaskCompleted);
@@ -143,7 +167,11 @@ describe("exportGroupTask", () => {
     test("should return empty array when cachedExportGroupTask returns empty array", async () => {
       // テストデータの準備
       const groupId = "test-group-id";
-      mockCachedExportGroupTaskFn.mockResolvedValue([]);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: [],
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, false);
@@ -164,7 +192,11 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const errorMessage = "データベースエラー";
-      mockCachedExportGroupTaskFn.mockRejectedValue(new Error(errorMessage));
+      mockCachedExportGroupTaskFn.mockRejectedValue({
+        success: false,
+        message: errorMessage,
+        data: null,
+      });
 
       // 関数実行と検証
       await expect(exportGroupTask(groupId, undefined, undefined, false)).rejects.toThrow(errorMessage);
@@ -196,7 +228,11 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, null as unknown as Date, null as unknown as Date);
@@ -210,7 +246,11 @@ describe("exportGroupTask", () => {
       // テストデータの準備
       const groupId = "test-group-id";
       const mockData = createMockCsvData();
-      mockCachedExportGroupTaskFn.mockResolvedValue(mockData);
+      mockCachedExportGroupTaskFn.mockResolvedValue({
+        success: true,
+        message: "データを取得しました",
+        data: mockData,
+      });
 
       // 関数実行
       const result = await exportGroupTask(groupId, undefined, undefined, false);

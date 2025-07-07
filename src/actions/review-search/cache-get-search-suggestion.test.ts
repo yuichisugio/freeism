@@ -138,7 +138,7 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
       const result = await getCachedSearchSuggestions(query);
 
       // Assert
-      expect(result.length).toBeLessThanOrEqual(20);
+      expect(result.data).toHaveLength(20);
     });
 
     test("should remove duplicate suggestions", async () => {
@@ -181,7 +181,7 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
       const result = await getCachedSearchSuggestions(query);
 
       // Assert
-      const userSuggestions = result.filter((s) => s.label.startsWith("ユーザー: テストユーザー"));
+      const userSuggestions = result.data.filter((s) => s.label.startsWith("ユーザー: テストユーザー"));
       expect(userSuggestions.length).toBe(1);
     });
 
@@ -222,11 +222,11 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
       const result = await getCachedSearchSuggestions(query);
 
       // Assert
-      const userSuggestion = result.find((s) => s.value === longUsername);
-      const groupSuggestion = result.find((s) => s.value === longGroupName);
-      const taskSuggestion = result.find((s) => s.value === longTaskName);
-      const commentSuggestion = result.find((s) => s.value === longComment);
-      const shortUserSuggestion = result.find((s) => s.value === shortUsername);
+      const userSuggestion = result.data.find((s) => s.value === longUsername);
+      const groupSuggestion = result.data.find((s) => s.value === longGroupName);
+      const taskSuggestion = result.data.find((s) => s.value === longTaskName);
+      const commentSuggestion = result.data.find((s) => s.value === longComment);
+      const shortUserSuggestion = result.data.find((s) => s.value === shortUsername);
 
       // 長いラベルは省略記号付きで表示される
       expect(userSuggestion?.label).toBe(`ユーザー: テストユーザー名が非常に長い場合のテストケースですが、ちゃん...`);

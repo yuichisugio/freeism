@@ -5,12 +5,12 @@ import type {
   ReviewSearchResult,
   SearchSuggestion,
 } from "@/components/review-search/review-search";
+import type { PromiseResult } from "@/types/general-types";
 import type { AuctionReview } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
-import { type PromiseResult } from "@/types/general-types";
 
 import { getCachedAllReviews } from "./cache-get-all-review";
 import { getCachedMyReviews } from "./cache-get-my-review";
@@ -19,20 +19,20 @@ import { getCachedUserReviews } from "./cache-get-user-reviews";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-export async function getSearchSuggestions(query: string): Promise<SearchSuggestion[]> {
+export async function getSearchSuggestions(query: string): PromiseResult<SearchSuggestion[]> {
   return await getCachedSearchSuggestions(query);
 }
 
-export async function getAllReviews(searchParams: ReviewSearchParams | null): Promise<ReviewSearchResult> {
+export async function getAllReviews(searchParams: ReviewSearchParams | null): PromiseResult<ReviewSearchResult> {
   return await getCachedAllReviews(searchParams);
 }
 
-export async function getUserReviews(searchParams: ReviewSearchParams | null): Promise<ReviewSearchResult> {
+export async function getUserReviews(searchParams: ReviewSearchParams | null): PromiseResult<ReviewSearchResult> {
   const userId = await getAuthenticatedSessionUserId();
   return await getCachedUserReviews(searchParams, userId);
 }
 
-export async function getMyReviews(searchParams: ReviewSearchParams | null): Promise<ReviewSearchResult> {
+export async function getMyReviews(searchParams: ReviewSearchParams | null): PromiseResult<ReviewSearchResult> {
   const userId = await getAuthenticatedSessionUserId();
   return await getCachedMyReviews(searchParams, userId);
 }

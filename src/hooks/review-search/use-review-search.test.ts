@@ -107,10 +107,21 @@ describe("useReviewSearch", () => {
     vi.clearAllMocks();
     // デフォルトのモック設定
     setupUseQueryStateMock();
-    mockGetAllReviews.mockResolvedValue(mockReviewSearchResult);
-    mockGetMyReviews.mockResolvedValue(mockReviewSearchResult);
-    mockGetUserReviews.mockResolvedValue(mockReviewSearchResult);
-    mockGetSearchSuggestions.mockResolvedValue(mockSuggestions);
+    const mockReviewSearchResultWithPromise = {
+      success: true,
+      message: "レビューを取得しました",
+      data: mockReviewSearchResult,
+    };
+    const mockSuggestionsResultWithPromise = {
+      success: true,
+      message: "サジェストを取得しました",
+      data: mockSuggestions,
+    };
+
+    mockGetAllReviews.mockResolvedValue(mockReviewSearchResultWithPromise);
+    mockGetMyReviews.mockResolvedValue(mockReviewSearchResultWithPromise);
+    mockGetUserReviews.mockResolvedValue(mockReviewSearchResultWithPromise);
+    mockGetSearchSuggestions.mockResolvedValue(mockSuggestionsResultWithPromise);
     mockUpdateReview.mockResolvedValue({
       success: true,
       message: "レビューを更新しました",
@@ -119,7 +130,7 @@ describe("useReviewSearch", () => {
 
     // TanStack Queryのモック設定
     mockUseQuery.mockReturnValue({
-      data: mockReviewSearchResult,
+      data: mockReviewSearchResultWithPromise,
       isPending: false,
       error: null,
       refetch: vi.fn(),
@@ -136,15 +147,26 @@ describe("useReviewSearch", () => {
   describe("初期化", () => {
     test("should initialize with correct default values", () => {
       // Arrange - サジェスト用のuseQueryモックを設定
+      const mockReviewSearchResultWithPromise = {
+        success: true,
+        message: "レビューを取得しました",
+        data: mockReviewSearchResult,
+      };
+      const emptySuggestionsResult = {
+        success: false,
+        message: "サジェストが見つかりません",
+        data: [],
+      };
+
       mockUseQuery
         .mockReturnValueOnce({
-          data: mockReviewSearchResult,
+          data: mockReviewSearchResultWithPromise,
           isPending: false,
           error: null,
           refetch: vi.fn(),
         })
         .mockReturnValueOnce({
-          data: [],
+          data: emptySuggestionsResult,
           isPending: false,
           error: null,
           refetch: vi.fn(),
@@ -579,15 +601,26 @@ describe("useReviewSearch", () => {
       vi.useFakeTimers();
 
       // サジェスト用のuseQueryモックを設定
+      const mockReviewSearchResultWithPromise = {
+        success: true,
+        message: "レビューを取得しました",
+        data: mockReviewSearchResult,
+      };
+      const mockSuggestionsResultWithPromise = {
+        success: true,
+        message: "サジェストを取得しました",
+        data: mockSuggestions,
+      };
+
       mockUseQuery
         .mockReturnValueOnce({
-          data: mockReviewSearchResult,
+          data: mockReviewSearchResultWithPromise,
           isPending: false,
           error: null,
           refetch: vi.fn(),
         })
         .mockReturnValueOnce({
-          data: mockSuggestions,
+          data: mockSuggestionsResultWithPromise,
           isPending: false,
           error: null,
           refetch: vi.fn(),
@@ -776,8 +809,13 @@ describe("useReviewSearch", () => {
           };
         }
         // メインのレビューデータクエリ
-        return {
+        const mockReviewSearchResultWithPromise = {
+          success: true,
+          message: "レビューを取得しました",
           data: mockReviewSearchResult,
+        };
+        return {
+          data: mockReviewSearchResultWithPromise,
           isPending: false,
           error: null,
           refetch: vi.fn(),
@@ -799,12 +837,18 @@ describe("useReviewSearch", () => {
 
     test("should handle empty reviews array", async () => {
       // Arrange
-      mockUseQuery.mockReturnValue({
+      const emptyReviewSearchResult = {
+        success: true,
+        message: "レビューが見つかりません",
         data: {
           reviews: [],
           totalCount: 0,
           totalPages: 0,
         },
+      };
+
+      mockUseQuery.mockReturnValue({
+        data: emptyReviewSearchResult,
         isPending: false,
         error: null,
         refetch: vi.fn(),
@@ -850,9 +894,15 @@ describe("useReviewSearch", () => {
 
     test("should handle suggestion API error gracefully", async () => {
       // Arrange
+      const mockReviewSearchResultWithPromise = {
+        success: true,
+        message: "レビューを取得しました",
+        data: mockReviewSearchResult,
+      };
+
       mockUseQuery
         .mockReturnValueOnce({
-          data: mockReviewSearchResult,
+          data: mockReviewSearchResultWithPromise,
           isPending: false,
           error: null,
           refetch: vi.fn(),

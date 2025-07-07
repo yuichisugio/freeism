@@ -165,7 +165,7 @@ export function useReviewSearch() {
   /**
    * サジェストデータを取得するクエリ
    */
-  const { data: suggestions = [] } = useQuery({
+  const { data: suggestionsResponse } = useQuery({
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
     queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
     enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions,
@@ -333,11 +333,12 @@ export function useReviewSearch() {
    * 編集可能なレビューデータを作成
    */
   const editableReviews: EditableReviewData[] = useMemo(() => {
-    return (reviewData?.reviews ?? []).map((review) => ({
+    const reviews = reviewData?.data?.reviews ?? [];
+    return reviews.map((review) => ({
       ...review,
       isEditing: editingReviews.has(review.id),
     }));
-  }, [reviewData?.reviews, editingReviews]);
+  }, [reviewData?.data?.reviews, editingReviews]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -347,9 +348,9 @@ export function useReviewSearch() {
   return {
     // データ
     reviews: editableReviews,
-    totalCount: reviewData?.totalCount ?? 0,
-    totalPages: reviewData?.totalPages ?? 0,
-    suggestions,
+    totalCount: reviewData?.data?.totalCount ?? 0,
+    totalPages: reviewData?.data?.totalPages ?? 0,
+    suggestions: suggestionsResponse?.data ?? [],
 
     // 状態
     searchParams,

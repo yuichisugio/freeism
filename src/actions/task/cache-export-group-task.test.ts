@@ -195,7 +195,7 @@ describe("cachedExportGroupTask", () => {
       const result = await cachedExportGroupTask(groupId);
 
       // 検証 - null値が適切にデフォルト値に変換されているか
-      expect(result[0]).toStrictEqual(
+      expect(result.data?.[0]).toStrictEqual(
         createExpectedCsvItem({
           参照: "",
           証拠情報: "",
@@ -221,8 +221,8 @@ describe("cachedExportGroupTask", () => {
       const result = await cachedExportGroupTask(groupId);
 
       // 検証 - 名前のみの報告者・実行者が正しく処理されているか
-      expect(result[0].報告者).toBe("報告者名前のみ");
-      expect(result[0].実行者).toBe("実行者名前のみ");
+      expect(result.data?.[0].報告者).toBe("報告者名前のみ");
+      expect(result.data?.[0].実行者).toBe("実行者名前のみ");
     });
 
     test("should handle multiple reporters and executors", async () => {
@@ -238,8 +238,8 @@ describe("cachedExportGroupTask", () => {
       const result = await cachedExportGroupTask(groupId);
 
       // 検証 - 複数の報告者・実行者が正しく結合されているか
-      expect(result[0].報告者).toBe("報告者1ユーザー, 報告者2ユーザー");
-      expect(result[0].実行者).toBe("実行者1ユーザー, 実行者2ユーザー");
+      expect(result.data?.[0].報告者).toBe("報告者1ユーザー, 報告者2ユーザー");
+      expect(result.data?.[0].実行者).toBe("実行者1ユーザー, 実行者2ユーザー");
     });
 
     describe("フィルタリング機能", () => {
@@ -402,8 +402,8 @@ describe("cachedExportGroupTask", () => {
 
       const result = await cachedExportGroupTask(groupId);
 
-      expect(result[0].報告者).toBe("");
-      expect(result[0].実行者).toBe("");
+      expect(result.data?.[0].報告者).toBe("");
+      expect(result.data?.[0].実行者).toBe("");
     });
 
     test("should handle edge case date values", async () => {
@@ -416,8 +416,8 @@ describe("cachedExportGroupTask", () => {
 
       const result = await cachedExportGroupTask(groupId);
 
-      expect(result[0].作成日).toBe("1970-01-01");
-      expect(result[0].更新日).toBe("2099-12-31");
+      expect(result.data?.[0].作成日).toBe("1970-01-01");
+      expect(result.data?.[0].更新日).toBe("2099-12-31");
     });
   });
 });

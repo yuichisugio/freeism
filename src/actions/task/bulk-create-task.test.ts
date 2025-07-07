@@ -76,7 +76,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.tasks).toBeDefined();
+      expect(result.data).toBeDefined();
       expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
         where: { id: testGroupId },
         select: { id: true },
@@ -182,7 +182,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("パラメータが不正です");
+      expect(result.message).toBe("パラメータが不正です");
     });
 
     test("should return error when group does not exist", async () => {
@@ -194,7 +194,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("指定されたグループが見つかりません");
+      expect(result.message).toBe("指定されたグループが見つかりません");
       expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
         where: { id: testGroupId },
         select: { id: true },
@@ -212,7 +212,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Database error");
+      expect(result.message).toBe("Database error");
     });
 
     test("should handle general error", async () => {
@@ -226,7 +226,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("タスクの一括登録中にエラーが発生しました");
+      expect(result.message).toBe("タスクの一括登録中にエラーが発生しました");
     });
   });
 
@@ -241,7 +241,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.tasks).toBeDefined();
+      expect(result.data).toBeDefined();
     });
 
     test("should handle tasks with minimal data", async () => {
@@ -258,7 +258,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.tasks).toBeDefined();
+      expect(result.data).toBeDefined();
     });
 
     test("should handle large number of tasks", async () => {
@@ -274,7 +274,7 @@ describe("bulkCreateTask", () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.tasks).toBeDefined();
+      expect(result.data).toBeDefined();
     });
   });
 });

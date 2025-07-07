@@ -70,6 +70,12 @@ describe("review-search", () => {
     { value: "suggestion2", label: "サジェスト2" },
   ];
 
+  const mockSearchSuggestionsResult = {
+    success: true,
+    message: "検索サジェストを取得しました",
+    data: testSearchSuggestions,
+  };
+
   const mockReviewSearchResult: ReviewSearchResult = {
     reviews: [
       {
@@ -105,6 +111,12 @@ describe("review-search", () => {
     totalPages: 1,
   };
 
+  const mockReviewSearchResultWithPromise = {
+    success: true,
+    message: "レビューを取得しました",
+    data: mockReviewSearchResult,
+  };
+
   beforeEach(() => {
     // 各テスト前にモックをリセット
     vi.clearAllMocks();
@@ -129,7 +141,7 @@ describe("review-search", () => {
         updatedAt: new Date(),
       });
       prismaMock.auctionReview.update.mockResolvedValue(updatedReview);
-      return { success: true, message: "レビューを更新しました", review: updatedReview };
+      return { success: true, message: "レビューを更新しました", data: updatedReview };
     } else {
       prismaMock.auctionReview.findFirst.mockResolvedValue(null);
       return null;
@@ -140,12 +152,28 @@ describe("review-search", () => {
 
   describe("getSearchSuggestions", () => {
     test.each([
-      { query: "テスト", expected: testSearchSuggestions },
-      { query: "", expected: [] },
-      { query: null as unknown as string, expected: [] },
-      { query: undefined as unknown as string, expected: [] },
-    ])("should return search suggestions for various query types", async ({ query, expected }) => {
-      mockGetCachedSearchSuggestions.mockResolvedValue(expected as unknown as SearchSuggestion[]);
+      {
+        query: "テスト",
+        mockReturn: mockSearchSuggestionsResult,
+        expected: mockSearchSuggestionsResult,
+      },
+      {
+        query: "",
+        mockReturn: { success: false, message: "検索クエリが空文字列または2文字未満です", data: [] },
+        expected: { success: false, message: "検索クエリが空文字列または2文字未満です", data: [] },
+      },
+      {
+        query: null as unknown as string,
+        mockReturn: { success: false, message: "検索クエリが空文字列または2文字未満です", data: [] },
+        expected: { success: false, message: "検索クエリが空文字列または2文字未満です", data: [] },
+      },
+      {
+        query: undefined as unknown as string,
+        mockReturn: { success: false, message: "検索クエリが空文字列または2文字未満です", data: [] },
+        expected: { success: false, message: "検索クエリが空文字列または2文字未満です", data: [] },
+      },
+    ])("should return search suggestions for various query types", async ({ query, mockReturn, expected }) => {
+      mockGetCachedSearchSuggestions.mockResolvedValue(mockReturn);
 
       const result = await getSearchSuggestions(query);
 
@@ -168,9 +196,9 @@ describe("review-search", () => {
 
   describe("getAllReviews", () => {
     test.each([
-      { searchParams: testSearchParams, expected: mockReviewSearchResult },
-      { searchParams: null, expected: mockReviewSearchResult },
-      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResult },
+      { searchParams: testSearchParams, expected: mockReviewSearchResultWithPromise },
+      { searchParams: null, expected: mockReviewSearchResultWithPromise },
+      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
     ])("should return all reviews for various search params", async ({ searchParams, expected }) => {
       const mockResult = { ...expected };
       mockGetCachedAllReviews.mockResolvedValue(mockResult);
@@ -196,9 +224,9 @@ describe("review-search", () => {
 
   describe("getUserReviews", () => {
     test.each([
-      { searchParams: testSearchParams, expected: mockReviewSearchResult },
-      { searchParams: null, expected: mockReviewSearchResult },
-      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResult },
+      { searchParams: testSearchParams, expected: mockReviewSearchResultWithPromise },
+      { searchParams: null, expected: mockReviewSearchResultWithPromise },
+      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
     ])("should return user reviews for various search params", async ({ searchParams, expected }) => {
       const mockResult = { ...expected };
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
@@ -237,9 +265,9 @@ describe("review-search", () => {
 
   describe("getMyReviews", () => {
     test.each([
-      { searchParams: testSearchParams, expected: mockReviewSearchResult },
-      { searchParams: null, expected: mockReviewSearchResult },
-      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResult },
+      { searchParams: testSearchParams, expected: mockReviewSearchResultWithPromise },
+      { searchParams: null, expected: mockReviewSearchResultWithPromise },
+      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
     ])("should return my reviews for various search params", async ({ searchParams, expected }) => {
       const mockResult = { ...expected };
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);

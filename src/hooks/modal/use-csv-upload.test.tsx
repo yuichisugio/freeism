@@ -1,3 +1,4 @@
+import type { Task } from "@prisma/client";
 import { mockToastError, mockUseSession } from "@/test/setup/setup";
 import { ContributionType } from "@prisma/client";
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -415,7 +416,11 @@ describe("useCsvUpload", () => {
 
     test("should handle successful task upload", async () => {
       const { bulkCreateTask } = await import("@/actions/task/bulk-create-task");
-      vi.mocked(bulkCreateTask).mockResolvedValue({ success: true, tasks: [] });
+      vi.mocked(bulkCreateTask).mockResolvedValue({
+        success: true,
+        message: "タスクを保存しました",
+        data: [] as Task[],
+      });
 
       const { result } = renderHook(() => useCsvUpload(defaultProps));
 

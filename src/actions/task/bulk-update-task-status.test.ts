@@ -82,8 +82,8 @@ describe("bulkUpdateTaskStatus", () => {
       expect(prismaMock.task.findUnique).toHaveBeenCalledTimes(validStatusData.length);
       expect(prismaMock.task.update).toHaveBeenCalledTimes(validStatusData.length);
       expect(result.success).toBe(true);
-      expect(result.updatedCount).toBe(2);
-      expect(result.failedCount).toBe(0);
+      expect(result.data?.updatedCount).toBe(2);
+      expect(result.data?.failedCount).toBe(0);
       expect(mockCheckIsPermission).toHaveBeenCalledTimes(validStatusData.length);
     });
 
@@ -101,8 +101,8 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.updatedCount).toBe(1);
-      expect(result.failedCount).toBe(0);
+      expect(result.data?.updatedCount).toBe(1);
+      expect(result.data?.failedCount).toBe(0);
     });
   });
 
@@ -113,7 +113,7 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("データが指定されていません");
+      expect(result.message).toBe("データが指定されていません");
     });
 
     test("should handle missing task ID", async () => {
@@ -125,9 +125,9 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.updatedCount).toBe(0);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("タスクIDが指定されていません");
+      expect(result.data?.updatedCount).toBe(0);
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("タスクIDが指定されていません");
     });
 
     test("should handle missing status", async () => {
@@ -139,9 +139,9 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.updatedCount).toBe(0);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("ステータスが指定されていません");
+      expect(result.data?.updatedCount).toBe(0);
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("ステータスが指定されていません");
     });
 
     test("should handle invalid status", async () => {
@@ -153,9 +153,9 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.updatedCount).toBe(0);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("無効なステータスです: INVALID_STATUS");
+      expect(result.data?.updatedCount).toBe(0);
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("無効なステータスです: INVALID_STATUS");
     });
 
     test("should handle task not found", async () => {
@@ -168,8 +168,8 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("タスクが見つかりません");
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("タスクが見つかりません");
     });
 
     test("should handle permission denied", async () => {
@@ -185,8 +185,8 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("このタスクのステータスを変更する権限がありません");
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("このタスクのステータスを変更する権限がありません");
     });
 
     test("should handle FIXED_EVALUATED status (immutable)", async () => {
@@ -201,8 +201,8 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("このステータス(FIXED_EVALUATED)のタスクは変更できません");
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("このステータス(FIXED_EVALUATED)のタスクは変更できません");
     });
 
     test("should handle POINTS_AWARDED status (immutable)", async () => {
@@ -217,8 +217,8 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("このステータス(POINTS_AWARDED)のタスクは変更できません");
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("このステータス(POINTS_AWARDED)のタスクは変更できません");
     });
 
     test("should handle database error during individual task update", async () => {
@@ -234,9 +234,9 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.updatedCount).toBe(0);
-      expect(result.failedCount).toBe(1);
-      expect(result.failedData![0].error).toBe("Database update error");
+      expect(result.data?.updatedCount).toBe(0);
+      expect(result.data?.failedCount).toBe(1);
+      expect(result.data?.failedData?.[0].error).toBe("Database update error");
     });
 
     test("should handle missing userId with redirect", async () => {
@@ -248,7 +248,7 @@ describe("bulkUpdateTaskStatus", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe("NEXT_REDIRECT");
+      expect(result.message).toBe("NEXT_REDIRECT");
     });
   });
 });

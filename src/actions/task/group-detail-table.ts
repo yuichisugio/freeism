@@ -1,5 +1,7 @@
 "use server";
 
+import { type PromiseResult } from "@/types/general-types";
+
 import type { GetGroupTaskAndCountReturn, GetTasksByGroupIdProps } from "./cache-group-detail-table";
 import { getCachedGroupTaskAndCount } from "./cache-group-detail-table";
 
@@ -10,7 +12,7 @@ import { getCachedGroupTaskAndCount } from "./cache-group-detail-table";
  * @param groupId - グループID
  * @returns グループの詳細情報と総タスク数
  */
-export async function getGroupTaskAndCount(params: GetTasksByGroupIdProps): Promise<GetGroupTaskAndCountReturn> {
+export async function getGroupTaskAndCount(params: GetTasksByGroupIdProps): PromiseResult<GetGroupTaskAndCountReturn> {
   return await getCachedGroupTaskAndCount(params);
 }
 

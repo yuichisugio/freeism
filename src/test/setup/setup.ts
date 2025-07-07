@@ -244,3 +244,15 @@ vi.mock("@/lib/actions/notification/create-notification-form", () => ({
 vi.mock("next-themes", () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+// next/cacheのモック
+export const mockRevalidateTag = vi.fn();
+export const mockRevalidatePath = vi.fn();
+export const mockUnstable_cache = vi.fn();
+
+vi.mock("next/cache", () => ({
+  revalidateTag: mockRevalidateTag,
+  revalidatePath: mockRevalidatePath,
+  unstable_cache: mockUnstable_cache,
+  unstable_cacheTag: vi.fn(),
+}));

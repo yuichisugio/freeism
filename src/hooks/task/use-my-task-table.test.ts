@@ -148,8 +148,12 @@ const setupDefaultMocks = () => {
 
   // デフォルトのモック設定
   mockGetMyTaskData.mockResolvedValue({
-    tasks: mockTasksData,
-    totalTaskCount: 3,
+    success: true,
+    message: "データを取得しました",
+    data: {
+      tasks: mockTasksData,
+      totalTaskCount: 3,
+    },
   });
 
   mockCheckIsOwner.mockResolvedValue({ success: true, message: "Permission check successfully", data: true });

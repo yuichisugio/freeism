@@ -1,5 +1,7 @@
 "use server";
 
+import { type PromiseResult } from "@/types/general-types";
+
 import type { GroupTaskCsvDataItem } from "./cache-export-group-task";
 import { cachedExportGroupTask } from "./cache-export-group-task";
 
@@ -18,6 +20,6 @@ export async function exportGroupTask(
   startDate?: Date,
   endDate?: Date,
   onlyTaskCompleted = false,
-): Promise<GroupTaskCsvDataItem[]> {
+): PromiseResult<GroupTaskCsvDataItem[]> {
   return cachedExportGroupTask(groupId, startDate, endDate, onlyTaskCompleted);
 }

@@ -164,8 +164,8 @@ describe("cache-review-search", () => {
 
         const result = await getCachedMyReviews(null, userId);
 
-        expect(result.reviews[0].reviewer).toBeNull();
-        expect(result.reviews[0].reviewee).toBeNull();
+        expect(result.data.reviews[0].reviewer).toBeNull();
+        expect(result.data.reviews[0].reviewee).toBeNull();
       });
 
       test("should handle missing username in reviewee settings for my reviews", async () => {
@@ -208,7 +208,7 @@ describe("cache-review-search", () => {
 
         const result = await getCachedMyReviews(null, userId);
 
-        expect(result.reviews[0].reviewee?.username).toBe("未設定:reviewee-1");
+        expect(result.data.reviews[0].reviewee?.username).toBe("未設定:reviewee-1");
       });
 
       test("should handle search query for my reviews", async () => {
@@ -384,7 +384,7 @@ describe("cache-review-search", () => {
         const result = await getCachedMyReviews(null, userId);
 
         // Assert
-        expect(result.reviews[0].reviewee?.username).toBe("未設定:reviewee-1");
+        expect(result.data.reviews[0].reviewee?.username).toBe("未設定:reviewee-1");
       });
     });
 
@@ -517,7 +517,7 @@ describe("cache-review-search", () => {
 
           // Act
           const result1 = await getCachedMyReviews(null, userId);
-          expect(result1.totalPages).toBe(0);
+          expect(result1.data.totalPages).toBe(0);
         });
 
         test("totalCount = ITEMS_PER_PAGE丁度の場合", async () => {
@@ -532,7 +532,7 @@ describe("cache-review-search", () => {
 
           // Act
           const result = await getCachedMyReviews(null, userId);
-          expect(result.totalPages).toBe(1);
+          expect(result.data.totalPages).toBe(1);
         });
 
         test("totalCount = ITEMS_PER_PAGE + 1の場合", async () => {
@@ -549,7 +549,7 @@ describe("cache-review-search", () => {
           const result = await getCachedMyReviews(null, userId);
 
           // Assert
-          expect(result.totalPages).toBe(2);
+          expect(result.data.totalPages).toBe(2);
         });
       });
 
@@ -593,8 +593,8 @@ describe("cache-review-search", () => {
 
         const result = await getCachedMyReviews(null, userId);
 
-        expect(result.reviews).toHaveLength(1);
-        expect(result.reviews[0]).toStrictEqual({
+        expect(result.data.reviews).toHaveLength(1);
+        expect(result.data.reviews[0]).toStrictEqual({
           id: "complex-review-1",
           rating: 3,
           comment: "複雑なレビューデータのテスト\n改行\tタブ\"クォート'シングル",

@@ -152,9 +152,9 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
    * データのプリフェッチ
    */
   useEffect(() => {
-    if (!isPlaceholderData && tasksResult?.tasks.length) {
+    if (!isPlaceholderData && tasksResult?.data?.tasks.length) {
       const currentPage = tableConditions.page;
-      const totalPages = Math.ceil((tasksResult?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
+      const totalPages = Math.ceil((tasksResult?.data?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
       if (currentPage < totalPages) {
         const nextPage = currentPage + 1;
         void queryClient.prefetchQuery<
@@ -277,10 +277,10 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   return {
     // state
     isLoading: isLoadingTasks || isDeletingTask || isPlaceholderData,
-    tasks: tasksResult?.tasks ?? [],
+    tasks: tasksResult?.data?.tasks ?? [],
     userId: currentUserId ?? null,
     tableConditions,
-    totalTaskCount: tasksResult?.totalTaskCount ?? 0,
+    totalTaskCount: tasksResult?.data?.totalTaskCount ?? 0,
     editingTaskId,
     isTaskEditModalOpen,
     router,
