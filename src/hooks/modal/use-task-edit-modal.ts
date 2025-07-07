@@ -145,7 +145,7 @@ export function useTaskEditModal({
   const { data: users, isPending: isLoadingUsers } = useQuery({
     queryKey: queryCacheKeys.users.all(),
     queryFn: getAllUsers,
-    select: (data) => data ?? [],
+    select: (data) => data?.data ?? [],
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

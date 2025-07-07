@@ -397,7 +397,7 @@ export function useGroupDetailTable({ groupId, isOwner }: UseGroupDetailTablePro
     // state
     isLoading: isLoadingTasks || isLoadingUsers || isDeletingTask || isPlaceholderData,
     tasks: tasksResult?.data?.returnTasks ?? [],
-    users: usersData ?? [],
+    users: usersData?.data ?? [],
     tableConditions,
     totalTaskCount: tasksResult?.data?.totalTaskCount ?? 0,
     editingTaskId,

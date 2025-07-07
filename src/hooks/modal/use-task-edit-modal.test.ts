@@ -171,7 +171,11 @@ describe("useTaskEditModal", () => {
       setQueriesData: vi.fn(),
     });
 
-    vi.mocked(getAllUsers).mockResolvedValue([]);
+    vi.mocked(getAllUsers).mockResolvedValue({
+      success: true,
+      message: "ユーザー一覧を取得しました",
+      data: [],
+    });
     vi.mocked(getTaskById).mockResolvedValue({
       success: false,
       message: "タスクが見つかりません",

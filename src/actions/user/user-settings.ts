@@ -39,6 +39,8 @@ type UpdateUserSettingToggleResult = {
 export async function updateUserSettingToggle(
   params: UpdateUserSettingToggleParams,
 ): PromiseResult<UpdateUserSettingToggleResult> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * パラメータの検証
    */

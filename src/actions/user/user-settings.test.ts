@@ -235,7 +235,7 @@ describe("user-settings.test.ts", () => {
         const result = await getUserSettings(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual(testUserSettings);
+        expect(result.data).toStrictEqual(testUserSettings);
         expect(prismaMock.userSettings.findUnique).toHaveBeenCalledWith({
           where: { userId: testUser.id },
         });
@@ -249,7 +249,7 @@ describe("user-settings.test.ts", () => {
         const result = await getUserSettings(testUser.id);
 
         // Assert
-        expect(result).toBeNull();
+        expect(result.data).toBeNull();
         expect(prismaMock.userSettings.findUnique).toHaveBeenCalledWith({
           where: { userId: testUser.id },
         });
@@ -291,7 +291,7 @@ describe("user-settings.test.ts", () => {
 
           const result = await getUserSettings(testCase.userId);
 
-          expect(result).toStrictEqual(testCase.settings);
+          expect(result.data).toStrictEqual(testCase.settings);
           expect(prismaMock.userSettings.findUnique).toHaveBeenCalledWith({
             where: { userId: testCase.userId },
           });

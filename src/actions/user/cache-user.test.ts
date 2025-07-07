@@ -72,7 +72,7 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       const result = await getCachedAllUsers();
 
       // Assert
-      expect(result).toStrictEqual(expectedResult);
+      expect(result.data).toStrictEqual(expectedResult);
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         select: {
           settings: {
@@ -99,7 +99,7 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       const result = await getCachedAllUsers();
 
       // Assert
-      expect(result).toStrictEqual([]);
+      expect(result.data).toStrictEqual([]);
       expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1);
     });
 
@@ -129,7 +129,7 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       const result = await getCachedAllUsers();
 
       // Assert
-      expect(result).toStrictEqual(expectedResult);
+      expect(result.data).toStrictEqual(expectedResult);
       expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1);
     });
 
@@ -191,7 +191,7 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       const result = await getCachedAllUsers();
 
       // Assert
-      expect(result).toStrictEqual(expectedResult);
+      expect(result.data).toStrictEqual(expectedResult);
     });
   });
 
@@ -260,7 +260,7 @@ describe("cache-user.ts_getCachedAllUsers", () => {
       const result = await getCachedAllUsers();
 
       // Assert
-      expect(result).toStrictEqual(expectedResult);
+      expect(result.data).toStrictEqual(expectedResult);
     });
   });
 });

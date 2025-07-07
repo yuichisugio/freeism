@@ -3,6 +3,7 @@
 import type { TaskParticipant } from "@/types/group-types";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -10,7 +11,7 @@ import { prisma } from "@/library-setting/prisma";
  * 全ユーザーの一覧を取得する関数
  * @returns ユーザー一覧
  */
-export async function getCachedAllUsers(): Promise<TaskParticipant[]> {
+export async function getCachedAllUsers(): PromiseResult<TaskParticipant[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -20,44 +21,41 @@ export async function getCachedAllUsers(): Promise<TaskParticipant[]> {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  try {
-    /**
-     * 全ユーザーの一覧を取得
-     */
-    const users = await prisma.user.findMany({
-      select: {
-        settings: {
-          select: {
-            username: true,
-          },
+  /**
+   * 全ユーザーの一覧を取得
+   */
+  const users = await prisma.user.findMany({
+    select: {
+      settings: {
+        select: {
+          username: true,
         },
-        id: true,
       },
-      orderBy: {
-        name: "asc",
-      },
-    });
+      id: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * ユーザー一覧を返す
-     */
-    const returnUsers = users.map((user) => ({
-      appUserId: user.id,
-      appUserName: user.settings?.username ?? `未設定_${user.id}`,
-    }));
+  /**
+   * ユーザー一覧を返す
+   */
+  const returnUsers = users.map((user) => ({
+    appUserId: user.id,
+    appUserName: user.settings?.username ?? `未設定_${user.id}`,
+  }));
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * ユーザー一覧を返す
-     */
-    return returnUsers;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
+  /**
+   * ユーザー一覧を返す
+   */
+  return {
+    success: true,
+    message: "ユーザー一覧を取得しました",
+    data: returnUsers,
+  };
 }
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

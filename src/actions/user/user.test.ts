@@ -60,9 +60,9 @@ describe("getAllUsers", () => {
 
       // Assert
       expect(mockGetCachedAllUsers).toHaveBeenCalledTimes(1);
-      expect(result).toStrictEqual(mockUsers);
-      expect(result).toHaveLength(3);
-      expect(result[0]).toStrictEqual({
+      expect(result.data).toStrictEqual(mockUsers);
+      expect(result.data).toHaveLength(3);
+      expect(result.data[0]).toStrictEqual({
         appUserId: "user-1",
         appUserName: "テストユーザー1",
       });
@@ -84,7 +84,7 @@ describe("getAllUsers", () => {
 
       // Assert
       expect(mockGetCachedAllUsers).toHaveBeenCalledTimes(1);
-      expect(result).toStrictEqual([]);
+      expect(result.data).toStrictEqual([]);
     });
 
     test("should throw error when getCachedAllUsers throws an error", async () => {
