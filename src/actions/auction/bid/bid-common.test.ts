@@ -164,7 +164,7 @@ function setupTransactionMock(
   const defaultExtensionResult = extensionResult ?? { success: true, message: "延長処理完了" };
   mockProcessAuctionExtension.mockResolvedValue({
     success: defaultExtensionResult.success,
-    newEndTime: defaultExtensionResult.success ? new Date(Date.now() + 600000) : null,
+    data: defaultExtensionResult.success ? new Date(Date.now() + 600000) : null,
     message: defaultExtensionResult.message,
   });
 
@@ -201,8 +201,10 @@ function setupValidationSuccessMock(auctionDataOverrides: Partial<AuctionValidat
   mockValidateAuction.mockResolvedValue({
     success: true,
     message: "オークションの検証が完了しました",
-    userId: TEST_CONSTANTS.USER_ID,
-    auction: mockAuctionData,
+    data: {
+      userId: TEST_CONSTANTS.USER_ID,
+      auction: mockAuctionData,
+    },
   });
 }
 
@@ -213,8 +215,10 @@ function setupValidationFailureMock(message: string | null) {
   mockValidateAuction.mockResolvedValue({
     success: false,
     message: message ?? "入札に失敗しました",
-    userId: TEST_CONSTANTS.USER_ID,
-    auction: null,
+    data: {
+      userId: TEST_CONSTANTS.USER_ID,
+      auction: null,
+    },
   });
 }
 

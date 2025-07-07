@@ -175,9 +175,19 @@ const appQueryCache = new QueryCache({
     console.error(error);
     toast.error(error.message);
   },
-  onSuccess: (data: unknown) => {
+  onSuccess: (data: unknown, meta: unknown) => {
     // dataがResult型であることを確認してから処理
-    if (data && typeof data === "object" && "success" in data && "message" in data) {
+    // meta.toastがtrueの場合のみトーストを表示する
+    if (
+      meta &&
+      typeof meta === "object" &&
+      "toast" in meta &&
+      meta.toast === true &&
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "message" in data
+    ) {
       const result = data as Result<unknown>;
       if (result.success) {
         toast.success(result.message);

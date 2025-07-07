@@ -258,7 +258,7 @@ describe("getCachedDisplayUserInfo", () => {
           select: { revieweeId: true, comment: true },
         });
         expect(result).toHaveLength(1);
-        expect(result[0]).toStrictEqual(
+        expect(result.data[0]).toStrictEqual(
           createExpectedUserInfo({
             userId: winnerId,
             appUserName: "落札者ユーザー",
@@ -291,7 +291,7 @@ describe("getCachedDisplayUserInfo", () => {
 
         // Assert
         expect(result).toHaveLength(1);
-        expect(result[0]).toStrictEqual(
+        expect(result.data[0]).toStrictEqual(
           createExpectedUserInfo({
             userId: winnerId,
             appUserName: "未設定",
@@ -351,7 +351,7 @@ describe("getCachedDisplayUserInfo", () => {
         // Assert
         expect(result).toHaveLength(3);
 
-        const creatorResult = result.find((r) => r.userId === creatorId);
+        const creatorResult = result.data.find((r) => r.userId === creatorId);
         expect(creatorResult).toStrictEqual(
           createExpectedUserInfo({
             userId: creatorId,
@@ -365,7 +365,7 @@ describe("getCachedDisplayUserInfo", () => {
           }),
         );
 
-        const reporterResult = result.find((r) => r.userId === reporterId);
+        const reporterResult = result.data.find((r) => r.userId === reporterId);
         expect(reporterResult).toStrictEqual(
           createExpectedUserInfo({
             userId: reporterId,
@@ -379,7 +379,7 @@ describe("getCachedDisplayUserInfo", () => {
           }),
         );
 
-        const executorResult = result.find((r) => r.userId === executorId);
+        const executorResult = result.data.find((r) => r.userId === executorId);
         expect(executorResult).toStrictEqual(
           createExpectedUserInfo({
             userId: executorId,
@@ -415,7 +415,7 @@ describe("getCachedDisplayUserInfo", () => {
 
         // Assert
         expect(result).toHaveLength(1);
-        expect(result).toStrictEqual([
+        expect(result.data).toStrictEqual([
           createExpectedUserInfo({
             userId,
             appUserName: "マルチロールユーザー",
@@ -456,7 +456,7 @@ describe("getCachedDisplayUserInfo", () => {
 
         // Assert
         expect(result).toHaveLength(1);
-        expect(result[0]).toStrictEqual(
+        expect(result.data[0]).toStrictEqual(
           createExpectedUserInfo({
             userId: creatorId,
             appUserName: "作成者のみ",
@@ -547,10 +547,10 @@ describe("getCachedDisplayUserInfo", () => {
 
           // Assert
           expect(result).toHaveLength(1);
-          expect(result[0].rating).toBe(expectedRating);
-          expect(result[0].ratingCount).toBe(expectedCount);
-          expect(Number.isInteger(result[0].rating)).toBe(true);
-          expect(result[0].rating).toBeGreaterThanOrEqual(0);
+          expect(result.data[0].rating).toBe(expectedRating);
+          expect(result.data[0].ratingCount).toBe(expectedCount);
+          expect(Number.isInteger(result.data[0].rating)).toBe(true);
+          expect(result.data[0].rating).toBeGreaterThanOrEqual(0);
         },
       );
     });
@@ -679,7 +679,7 @@ describe("getCachedDisplayUserInfo", () => {
 
       // Assert
       expect(result).toHaveLength(1);
-      expect(result[0]).toStrictEqual(expectedResult);
+      expect(result.data[0]).toStrictEqual(expectedResult);
     });
 
     test.each([
@@ -721,8 +721,8 @@ describe("getCachedDisplayUserInfo", () => {
 
       // Assert
       expect(result).toHaveLength(1);
-      expect(result[0].reviewComment).toBe(reviewComment === undefined ? null : reviewComment);
-      expect(result[0].hasReviewed).toBe(expectedHasReviewed);
+      expect(result.data[0].reviewComment).toBe(reviewComment === undefined ? null : reviewComment);
+      expect(result.data[0].hasReviewed).toBe(expectedHasReviewed);
     });
   });
 
@@ -748,10 +748,10 @@ describe("getCachedDisplayUserInfo", () => {
       // Assert
       expect(result).toHaveLength(1);
       // ratingが必ずnumber型であることを確認
-      expect(typeof result[0].rating).toBe("number");
-      expect(result[0].rating).toBe(0); // 評価がない場合は0になることを確認
-      expect(result[0].rating).not.toBeUndefined();
-      expect(result[0].rating).not.toBeNull();
+      expect(typeof result.data[0].rating).toBe("number");
+      expect(result.data[0].rating).toBe(0); // 評価がない場合は0になることを確認
+      expect(result.data[0].rating).not.toBeUndefined();
+      expect(result.data[0].rating).not.toBeNull();
     });
   });
 

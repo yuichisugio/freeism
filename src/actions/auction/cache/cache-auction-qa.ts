@@ -4,6 +4,7 @@ import type { AuctionMessage, AuctionPersonInfo } from "@/hooks/auction/bid/use-
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import { type Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -17,8 +18,8 @@ export async function getCachedAuctionMessageContents(
   auctionId: string,
   isDisplayAfterEnd: boolean,
   auctionEndDate: Date,
-): Promise<{ success: boolean; error: string; messages: AuctionMessage[] }> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+): PromiseResult<AuctionMessage[]> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * キャッシュの設定
@@ -26,6 +27,11 @@ export async function getCachedAuctionMessageContents(
   cacheTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId).join(":"));
   cacheLife("hours");
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * パラメータのバリデーション
+   */
   if (!auctionId || typeof isDisplayAfterEnd !== "boolean" || !auctionEndDate?.getTime()) {
     throw new Error("パラメータが不正です");
   }
@@ -95,7 +101,7 @@ export async function getCachedAuctionMessageContents(
   /**
    * 成功
    */
-  return { success: true, messages: formattedMessages, error: "" };
+  return { success: true, data: formattedMessages, message: "オークションQAを取得しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -105,11 +111,12 @@ export async function getCachedAuctionMessageContents(
  * @param auctionId オークションID
  * @returns 出品者ID
  */
-export async function getCachedAuctionSellerInfo(
-  auctionId: string,
-): Promise<{ success: boolean; error: string; auctionPersonInfo: AuctionPersonInfo | null }> {
+export async function getCachedAuctionSellerInfo(auctionId: string): PromiseResult<AuctionPersonInfo | null> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * パラメータのバリデーション
+   */
   if (!auctionId) {
     throw new Error("パラメータが不正です");
   }
@@ -186,7 +193,7 @@ export async function getCachedAuctionSellerInfo(
   /**
    * 成功
    */
-  return { success: true, auctionPersonInfo: formattedAuctionPersonInfo, error: "" };
+  return { success: true, data: formattedAuctionPersonInfo, message: "オークション情報を取得しました" };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 }

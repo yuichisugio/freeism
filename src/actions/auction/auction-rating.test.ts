@@ -113,12 +113,20 @@ describe("getDisplayUserInfo", () => {
     test("should return display user info for both review positions", async () => {
       const expectedDisplayUserInfo = [createMockDisplayUserInfo()];
 
-      mockGetCachedDisplayUserInfo.mockResolvedValue(expectedDisplayUserInfo);
+      mockGetCachedDisplayUserInfo.mockResolvedValue({
+        success: true,
+        message: "ユーザー情報を取得しました",
+        data: expectedDisplayUserInfo,
+      });
 
       const result = await getDisplayUserInfo(TEST_AUCTION_ID, ReviewPosition.SELLER_TO_BUYER);
 
       expect(mockGetCachedDisplayUserInfo).toHaveBeenCalledWith(TEST_AUCTION_ID, ReviewPosition.SELLER_TO_BUYER);
-      expect(result).toStrictEqual(expectedDisplayUserInfo);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ユーザー情報を取得しました",
+        data: expectedDisplayUserInfo,
+      });
     });
   });
 

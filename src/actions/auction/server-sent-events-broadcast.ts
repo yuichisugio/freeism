@@ -1,15 +1,51 @@
 "use server";
 
 import type { UpdateAuctionWithDetails } from "@/types/auction-types";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * UpdateAuctionWithDetailsの必須フィールドをバリデーションする
- * @param data バリデーション対象のデータ
- * @throws Error 必須フィールドが不足している場合
+ * オークションイベントをRedis Pub/Subに発行する
+ * @param auctionId オークションID
+ * @param data イベントデータ (オークション詳細など)
+ * @throws Error バリデーションエラー、環境変数エラー、ネットワークエラー、HTTPエラーの場合
  */
-function validateUpdateAuctionWithDetails(data: UpdateAuctionWithDetails): void {
+export async function sendEventToAuctionSubscribers(
+  auctionId: string,
+  data: UpdateAuctionWithDetails,
+): PromiseResult<null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 基本的なバリデーション
+   */
+  if (!auctionId || typeof auctionId !== "string") {
+    throw new Error("auctionId must be a non-empty string");
+  }
+
+  if (!data || typeof data !== "object") {
+    throw new Error("data must be a valid object");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 環境変数の存在確認
+   */
+  if (!process.env.UPSTASH_REDIS_REST_URL) {
+    throw new Error("UPSTASH_REDIS_REST_URL environment variable is required");
+  }
+
+  if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
+    throw new Error("UPSTASH_REDIS_REST_TOKEN environment variable is required");
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * UpdateAuctionWithDetailsの必須フィールドをバリデーション
+   */
   const requiredFields = [
     { field: "id", value: data.id },
     { field: "currentHighestBid", value: data.currentHighestBid },
@@ -54,56 +90,12 @@ function validateUpdateAuctionWithDetails(data: UpdateAuctionWithDetails): void 
   if (data.remainingTimeForExtension < 0) {
     throw new Error("remainingTimeForExtension must be a non-negative number");
   }
-}
-
-/**
- * 環境変数の存在を確認する
- * @throws Error 必要な環境変数が設定されていない場合
- */
-function validateEnvironmentVariables(): void {
-  if (!process.env.UPSTASH_REDIS_REST_URL) {
-    throw new Error("UPSTASH_REDIS_REST_URL environment variable is required");
-  }
-
-  if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
-    throw new Error("UPSTASH_REDIS_REST_TOKEN environment variable is required");
-  }
-}
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * オークションイベントをRedis Pub/Subに発行する
- * @param auctionId オークションID
- * @param data イベントデータ (オークション詳細など)
- * @throws Error バリデーションエラー、環境変数エラー、ネットワークエラー、HTTPエラーの場合
- */
-export async function sendEventToAuctionSubscribers(auctionId: string, data: UpdateAuctionWithDetails): Promise<void> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // 基本的なバリデーション
-  if (!auctionId || typeof auctionId !== "string") {
-    throw new Error("auctionId must be a non-empty string");
-  }
-
-  if (!data || typeof data !== "object") {
-    throw new Error("data must be a valid object");
-  }
-
-  // 環境変数の存在確認
-  validateEnvironmentVariables();
-
-  // UpdateAuctionWithDetailsの必須フィールドをバリデーション
-  validateUpdateAuctionWithDetails(data);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  // オークションIDをキーにRedis Pub/Subチャンネルを作成
-  const redisPubSubChannel = `auction:${auctionId}:events`;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  // Pub/Subで送信するデータ構造 (SSEの data: 部分とは少し違う)
+  /**
+   * Pub/Subで送信するデータ構造 (SSEの data: 部分とは少し違う)
+   */
   const eventPayload = {
     data: data, // 送信するデータ本体
     timestamp: Date.now(),
@@ -111,46 +103,58 @@ export async function sendEventToAuctionSubscribers(auctionId: string, data: Upd
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  try {
-    // メッセージをJSON形式に変換
-    const message = JSON.stringify(eventPayload);
+  /**
+   * メッセージをJSON形式に変換
+   */
+  const message = JSON.stringify(eventPayload);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // Redisクライアントキーを作成
-    const redisClientKey = `auction:${auctionId}:events`;
-    const channel = encodeURIComponent(redisClientKey);
+  /**
+   * Redisクライアントキーを作成
+   */
+  const redisClientKey = `auction:${auctionId}:events`;
+  const channel = encodeURIComponent(redisClientKey);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // Redis REST APIのURLを作成
-    const redisRestUrl = `${process.env.UPSTASH_REDIS_REST_URL}/publish/${channel}`;
+  /**
+   * Redis REST APIのURLを作成
+   */
+  const redisRestUrl = `${process.env.UPSTASH_REDIS_REST_URL}/publish/${channel}`;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // Redis REST APIにメッセージを送信
-    const response = await fetch(redisRestUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-        Accept: "text/event-stream",
-      },
-      body: message,
-      cache: "no-cache",
-    });
+  /**
+   * Redis REST APIにメッセージを送信
+   */
+  const response = await fetch(redisRestUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      Accept: "text/event-stream",
+    },
+    body: message,
+    cache: "no-cache",
+  });
 
-    // HTTPエラーステータスをチェック
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-    }
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error(
-      `src/lib/auction/action/server-sent-events-broadcast.ts_sendEventToAuctionSubscribers_PubSub送信エラー: [PubSub] Failed to publish event to ${redisPubSubChannel}:`,
-      error,
-    );
-    // エラーを呼び出し元に伝える
-    throw error;
+  /**
+   * HTTPエラーステータスをチェック
+   */
+  if (!response.ok) {
+    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 結果を返す
+   */
+  return {
+    success: true,
+    message: "オークションイベントをRedis Pub/Subに発行しました",
+    data: null,
+  };
 }

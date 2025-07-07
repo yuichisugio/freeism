@@ -85,8 +85,12 @@ const createAuctionListingsParams = (
  * テストヘルパー関数：空の結果を作成
  */
 const createEmptyResult = (count = 0) => ({
-  listings: [] as AuctionListingResult,
-  count,
+  success: true,
+  message: "オークションリストを取得しました",
+  data: {
+    listings: [] as AuctionListingResult,
+    count,
+  },
 });
 
 /**
@@ -145,8 +149,12 @@ describe("auction-listing", () => {
         });
         const params = createAuctionListingsParams(listingsConditions);
         const expectedResult = {
-          listings: createSampleAuctionResult(),
-          count: 1,
+          success: true,
+          message: "オークションリストを取得しました",
+          data: {
+            listings: createSampleAuctionResult(),
+            count: 1,
+          },
         };
 
         mockCachedGetAuctionListingsAndCount.mockResolvedValue(expectedResult);
@@ -173,8 +181,8 @@ describe("auction-listing", () => {
 
         // Assert
         expect(result).toStrictEqual(expectedResult);
-        expect(result.listings).toStrictEqual([]);
-        expect(result.count).toBe(0);
+        expect(result.data.listings).toStrictEqual([]);
+        expect(result.data.count).toBe(0);
         expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
       });
 
@@ -225,8 +233,12 @@ describe("auction-listing", () => {
       test("should handle [0, 0]", async () => {
         // Arrange
         mockCachedGetAuctionListingsAndCount.mockResolvedValue({
-          listings: [],
-          count: 0,
+          success: true,
+          message: "オークションリストを取得しました",
+          data: {
+            listings: [],
+            count: 0,
+          },
         });
         const listingsConditions = createBaseListingsConditions();
         const params = createAuctionListingsParams(listingsConditions);
@@ -236,8 +248,12 @@ describe("auction-listing", () => {
 
         // Assert
         expect(result).toStrictEqual({
-          listings: [],
-          count: 0,
+          success: true,
+          message: "オークションリストを取得しました",
+          data: {
+            listings: [],
+            count: 0,
+          },
         });
         expect(mockCachedGetAuctionListingsAndCount).toHaveBeenCalledWith(params);
       });
@@ -251,7 +267,11 @@ describe("auction-listing", () => {
         const query = "プログラミング";
         const expectedSuggestions = createSampleSuggestions(query);
 
-        mockCachedGetSearchSuggestions.mockResolvedValue(expectedSuggestions);
+        mockCachedGetSearchSuggestions.mockResolvedValue({
+          success: true,
+          message: "サジェストを取得しました",
+          data: expectedSuggestions,
+        });
 
         // Act
         const result = await getSearchSuggestions({ query, userId: testUserId, userGroupIds: [] });
@@ -281,7 +301,11 @@ describe("auction-listing", () => {
         const userId = testUserId;
         const expectedSuggestions: Suggestion[] = [];
 
-        mockCachedGetSearchSuggestions.mockResolvedValue(expectedSuggestions);
+        mockCachedGetSearchSuggestions.mockResolvedValue({
+          success: true,
+          message: "サジェストを取得しました",
+          data: expectedSuggestions,
+        });
 
         // Act
         const result = await getSearchSuggestions({ query, userId, userGroupIds: [] });

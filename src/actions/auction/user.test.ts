@@ -124,11 +124,11 @@ describe("user.ts", () => {
           // Assert - 型安全性の確認
           expect(typeof result).toBe("object");
           expect(Array.isArray(result)).toBe(true);
-          if (result.length > 0) {
-            expect(typeof result[0].group.id).toBe("string");
-            expect(typeof result[0].group.name).toBe("string");
-            expect(result[0].group).toHaveProperty("id");
-            expect(result[0].group).toHaveProperty("name");
+          if (result.data.length > 0) {
+            expect(typeof result.data[0].id).toBe("string");
+            expect(typeof result.data[0].name).toBe("string");
+            expect(result.data[0].id).toBe(testGroup1.id);
+            expect(result.data[0].name).toBe(testGroup1.name);
           }
         });
       });

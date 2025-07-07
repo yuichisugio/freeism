@@ -200,16 +200,20 @@ describe("qARating_auciton-rating.tsx", () => {
       });
 
       vi.mocked(createAuctionReview).mockResolvedValue({
-        id: "review-1",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        auctionId: "auction-1",
-        reviewerId: "user-1",
-        revieweeId: "user-2",
-        rating: 4,
-        comment: "素晴らしい取引でした",
-        completionProofUrl: null,
-        reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+        success: true,
+        message: "評価を送信しました",
+        data: {
+          id: "review-1",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          auctionId: "auction-1",
+          reviewerId: "user-1",
+          revieweeId: "user-2",
+          rating: 4,
+          comment: "素晴らしい取引でした",
+          completionProofUrl: null,
+          reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+        },
       });
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -544,16 +548,20 @@ describe("qARating_auciton-rating.tsx", () => {
       });
 
       vi.mocked(createAuctionReview).mockResolvedValue({
-        id: "review-1",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        auctionId: "auction-1",
-        reviewerId: "user-1",
-        revieweeId: "user-2",
-        rating: 5,
-        comment: "a".repeat(1000),
-        completionProofUrl: null,
-        reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+        success: true,
+        message: "評価を送信しました",
+        data: {
+          id: "review-1",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          auctionId: "auction-1",
+          reviewerId: "user-1",
+          revieweeId: "user-2",
+          rating: 5,
+          comment: "a".repeat(1000),
+          completionProofUrl: null,
+          reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+        },
       });
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);
@@ -601,16 +609,20 @@ describe("qARating_auciton-rating.tsx", () => {
       });
 
       vi.mocked(createAuctionReview).mockResolvedValue({
-        id: "review-1",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        auctionId: "auction-1",
-        reviewerId: "user-1",
-        revieweeId: "user-2",
-        rating: 3,
-        comment: "",
-        completionProofUrl: null,
-        reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+        success: true,
+        message: "評価を送信しました",
+        data: {
+          id: "review-1",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          auctionId: "auction-1",
+          reviewerId: "user-1",
+          revieweeId: "user-2",
+          rating: 3,
+          comment: "",
+          completionProofUrl: null,
+          reviewPosition: ReviewPosition.SELLER_TO_BUYER,
+        },
       });
 
       renderWithProviders(<QARating auctionId="auction-1" text="出品画面" />);

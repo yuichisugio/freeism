@@ -1,5 +1,6 @@
 "use server";
 
+import type { PromiseResult } from "@/types/general-types";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
 import { type AuctionCreatedTabFilter, type CreatedAuctionItem, type FilterCondition } from "@/types/auction-types";
@@ -14,7 +15,7 @@ export async function getUserCreatedAuctionsWhereCondition(
   userId: string,
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
-): Promise<Prisma.AuctionWhereInput> {
+): PromiseResult<Prisma.AuctionWhereInput> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -115,7 +116,7 @@ export async function getUserCreatedAuctionsWhereCondition(
   /**
    * 条件を返却
    */
-  return whereCondition;
+  return { success: true, message: "Where条件を取得しました", data: whereCondition };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -135,7 +136,7 @@ export async function getUserCreatedAuctions(
   itemPerPage: number,
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
-): Promise<CreatedAuctionItem[]> {
+): PromiseResult<CreatedAuctionItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -158,7 +159,7 @@ export async function getUserCreatedAuctions(
    * データを取得
    */
   const createdAuctionsData = await prisma.auction.findMany({
-    where: whereCondition,
+    where: whereCondition.data,
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * itemPerPage,
     take: itemPerPage,
@@ -188,7 +189,7 @@ export async function getUserCreatedAuctions(
    * データがない場合は空配列を返却
    */
   if (createdAuctionsData.length === 0) {
-    return [];
+    return { success: true, message: "データがありません", data: [] };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -227,7 +228,7 @@ export async function getUserCreatedAuctions(
   /**
    * データを返却
    */
-  return returnCreatedAuctions;
+  return { success: true, message: "データを取得しました", data: returnCreatedAuctions };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -244,7 +245,7 @@ export async function getUserCreatedAuctionsCount(
   userId: string,
   filter: AuctionCreatedTabFilter[],
   filterCondition: FilterCondition,
-): Promise<number> {
+): PromiseResult<number> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -266,7 +267,7 @@ export async function getUserCreatedAuctionsCount(
   /**
    * データの件数を取得
    */
-  const count = await prisma.auction.count({ where: whereCondition });
+  const count = await prisma.auction.count({ where: whereCondition.data });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -274,7 +275,7 @@ export async function getUserCreatedAuctionsCount(
    * データがない場合は0を返却
    */
   if (count === 0) {
-    return 0;
+    return { success: true, message: "データがありません", data: 0 };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -282,5 +283,5 @@ export async function getUserCreatedAuctionsCount(
   /**
    * データを返却
    */
-  return count;
+  return { success: true, message: "データを取得しました", data: count };
 }

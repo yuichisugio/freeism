@@ -1,5 +1,6 @@
 "use server";
 
+import type { PromiseResult } from "@/types/general-types";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/library-setting/prisma";
 import { type WonAuctionItem } from "@/types/auction-types";
@@ -16,9 +17,12 @@ import { ReviewPosition, TaskStatus } from "@prisma/client";
 export async function getUserWonAuctionsWhereCondition(
   userId: string,
   wonStatus?: string,
-): Promise<Prisma.AuctionWhereInput> {
+): PromiseResult<Prisma.AuctionWhereInput> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  /**
+   * パラメータが不足している場合はエラーを返却
+   */
   if (!userId) {
     throw new Error("userId is required");
   }
@@ -65,8 +69,12 @@ export async function getUserWonAuctionsWhereCondition(
    * Where条件を返却
    */
   return {
-    winnerId: userId,
-    task: { status: { in: statusIn } },
+    success: true,
+    message: "Where条件を取得しました",
+    data: {
+      winnerId: userId,
+      task: { status: { in: statusIn } },
+    },
   };
 }
 
@@ -85,7 +93,7 @@ export async function getUserWonAuctions(
   userId: string,
   itemPerPage: number,
   wonStatus?: string,
-): Promise<WonAuctionItem[]> {
+): PromiseResult<WonAuctionItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -108,7 +116,7 @@ export async function getUserWonAuctions(
    * データを取得
    */
   const wonAuctionsData = await prisma.auction.findMany({
-    where: whereCondition,
+    where: whereCondition.data,
     orderBy: { endTime: "desc" },
     skip: (page - 1) * itemPerPage,
     take: itemPerPage,
@@ -141,7 +149,7 @@ export async function getUserWonAuctions(
    * データがない場合は空配列を返却
    */
   if (wonAuctionsData.length === 0) {
-    return [];
+    return { success: true, message: "データがありません", data: [] };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -169,7 +177,7 @@ export async function getUserWonAuctions(
   /**
    * データを返却
    */
-  return returnWonAuctions;
+  return { success: true, message: "データを取得しました", data: returnWonAuctions };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -181,7 +189,7 @@ export async function getUserWonAuctions(
  * @param wonStatus ステータスフィルター
  * @returns 落札したオークションの件数
  */
-export async function getUserWonAuctionsCount(userId: string, wonStatus?: string): Promise<number> {
+export async function getUserWonAuctionsCount(userId: string, wonStatus?: string): PromiseResult<number> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -204,7 +212,7 @@ export async function getUserWonAuctionsCount(userId: string, wonStatus?: string
    * データの件数を取得
    */
   const count = await prisma.auction.count({
-    where: whereCondition,
+    where: whereCondition.data,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -213,7 +221,7 @@ export async function getUserWonAuctionsCount(userId: string, wonStatus?: string
    * データがない場合は0を返却
    */
   if (count === 0) {
-    return 0;
+    return { success: true, message: "データがありません", data: 0 };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -221,5 +229,5 @@ export async function getUserWonAuctionsCount(userId: string, wonStatus?: string
   /**
    * データを返却
    */
-  return count;
+  return { success: true, message: "データを取得しました", data: count };
 }

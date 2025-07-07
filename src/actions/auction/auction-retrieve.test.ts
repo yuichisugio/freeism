@@ -262,11 +262,11 @@ describe("auction-retrieve", () => {
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
 
         // Assert
-        expect(result?.bidHistories).toHaveLength(2);
-        expect(result?.bidHistories[0].amount).toBe(200);
-        expect(result?.bidHistories[0].isAutoBid).toBe(true);
-        expect(result?.bidHistories[1].amount).toBe(150);
-        expect(result?.bidHistories[1].isAutoBid).toBe(false);
+        expect(result?.data?.bidHistories).toHaveLength(2);
+        expect(result?.data?.bidHistories[0].amount).toBe(200);
+        expect(result?.data?.bidHistories[0].isAutoBid).toBe(true);
+        expect(result?.data?.bidHistories[1].amount).toBe(150);
+        expect(result?.data?.bidHistories[1].isAutoBid).toBe(false);
       });
 
       test.each([
@@ -290,7 +290,7 @@ describe("auction-retrieve", () => {
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
 
         // Assert
-        expect(result?.status).toBe(status);
+        expect(result?.data?.status).toBe(status);
       });
 
       test("should handle large number of bid histories", async () => {
@@ -320,9 +320,9 @@ describe("auction-retrieve", () => {
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
 
         // Assert
-        expect(result?.bidHistories).toHaveLength(100);
-        expect(result?.bidHistories[0].amount).toBe(100);
-        expect(result?.bidHistories[99].amount).toBe(199);
+        expect(result?.data?.bidHistories).toHaveLength(100);
+        expect(result?.data?.bidHistories[0].amount).toBe(100);
+        expect(result?.data?.bidHistories[99].amount).toBe(199);
       });
     });
 
@@ -351,7 +351,7 @@ describe("auction-retrieve", () => {
         const result = await getUpdatedAuctionByAuctionId(testAuctionId);
 
         // Assert
-        expect(result?.bidHistories[0].user.settings).toBeNull();
+        expect(result?.data?.bidHistories[0].user.settings).toBeNull();
       });
     });
 
@@ -387,7 +387,11 @@ describe("auction-retrieve", () => {
       test("should return auction data when cache returns data", async () => {
         // Arrange
         const mockAuctionWithDetails = createMockAuctionWithDetails();
-        mockGetCachedAuctionByAuctionId.mockResolvedValue(mockAuctionWithDetails);
+        mockGetCachedAuctionByAuctionId.mockResolvedValue({
+          success: true,
+          message: "オークション情報を取得しました",
+          data: mockAuctionWithDetails,
+        });
 
         // Act
         const result = await getAuctionByAuctionId(testAuctionId);
@@ -399,7 +403,11 @@ describe("auction-retrieve", () => {
 
       test.each(["", null, undefined])("should return null for invalid auctionId values", async (invalidId) => {
         // Arrange
-        mockGetCachedAuctionByAuctionId.mockResolvedValue(null as unknown as AuctionWithDetails);
+        mockGetCachedAuctionByAuctionId.mockResolvedValue({
+          success: true,
+          message: "オークション情報を取得しました",
+          data: null as unknown as AuctionWithDetails,
+        });
 
         // Act
         const result = await getAuctionByAuctionId(invalidId as unknown as string);

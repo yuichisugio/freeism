@@ -498,8 +498,8 @@ describe("cachedGetAuctionListingsAndCount", () => {
         const result = await cachedGetAuctionListingsAndCount(input as GetAuctionListingsParams);
 
         // Assert
-        expect(result.listings).toStrictEqual(expectedResult.listings);
-        expect(result.count).toBe(expectedResult.count);
+        expect(result.data.listings).toStrictEqual(expectedResult.listings);
+        expect(result.data.count).toBe(expectedResult.count);
 
         if (shouldCallConsoleError && consoleErrorSpy) {
           expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -527,7 +527,8 @@ describe("cachedGetAuctionListingsAndCount", () => {
       const result = await cachedGetAuctionListingsAndCount(params);
 
       // Assert
-      expect(result).toStrictEqual({ listings: [], count: 0 });
+      expect(result.data.listings).toStrictEqual([]);
+      expect(result.data.count).toBe(0);
       expect(prisma.$queryRaw).not.toHaveBeenCalled();
     });
 
@@ -545,7 +546,8 @@ describe("cachedGetAuctionListingsAndCount", () => {
       const result = await cachedGetAuctionListingsAndCount(params);
 
       // Assert
-      expect(result).toStrictEqual({ listings: [], count: 0 });
+      expect(result.data.listings).toStrictEqual([]);
+      expect(result.data.count).toBe(0);
       expect(prisma.$queryRaw).not.toHaveBeenCalled();
     });
 
@@ -652,11 +654,11 @@ describe("cachedGetAuctionListingsAndCount", () => {
       // Assert
       if (name.includes("JSON parsing error")) {
         // JSONパースエラーの場合は、処理が継続されて結果が返される
-        expect(result.listings.length).toBeGreaterThanOrEqual(0);
-        expect(result.count).toBeGreaterThanOrEqual(0);
+        expect(result.data.listings.length).toBeGreaterThanOrEqual(0);
+        expect(result.data.count).toBeGreaterThanOrEqual(0);
       } else {
-        expect(result.listings).toStrictEqual([]);
-        expect(result.count).toBe(0);
+        expect(result.data.listings).toStrictEqual([]);
+        expect(result.data.count).toBe(0);
       }
     });
   });

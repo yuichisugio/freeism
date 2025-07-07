@@ -122,9 +122,9 @@ export function useAuctionCard({ auction }: { auction: AuctionCard }): UseAuctio
           return { messages: [], sellerId: null, sellerInfo: null };
         }
         return {
-          messages: result.messages ?? [],
-          sellerId: result.sellerInfo?.creator.id ?? null,
-          sellerInfo: result.sellerInfo ?? null,
+          messages: result.data.messages ?? [],
+          sellerId: result.data.sellerInfo?.creator.id ?? null,
+          sellerInfo: result.data.sellerInfo ?? null,
         };
       },
       staleTime: 1000 * 60 * 30, // 30分

@@ -369,7 +369,7 @@ describe("cache-auction-retrieve", () => {
 
         // Assert
         expect(result).not.toBeNull();
-        assertions(result);
+        assertions(result?.data);
       });
 
       test("should handle auction with multiple bid histories", async () => {
@@ -410,11 +410,11 @@ describe("cache-auction-retrieve", () => {
 
         // Assert
         expect(result).not.toBeNull();
-        expect(result?.bidHistories).toHaveLength(2);
-        expect(result?.bidHistories[0].amount).toBe(500);
-        expect(result?.bidHistories[1].amount).toBe(400);
-        expect(result?.bidHistories[0].isAutoBid).toBe(false);
-        expect(result?.bidHistories[1].isAutoBid).toBe(true);
+        expect(result?.data?.bidHistories).toHaveLength(2);
+        expect(result?.data?.bidHistories[0].amount).toBe(500);
+        expect(result?.data?.bidHistories[1].amount).toBe(400);
+        expect(result?.data?.bidHistories[0].isAutoBid).toBe(false);
+        expect(result?.data?.bidHistories[1].isAutoBid).toBe(true);
       });
     });
 

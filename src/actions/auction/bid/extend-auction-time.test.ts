@@ -441,7 +441,7 @@ describe("extend-auction-time.ts_processAuctionExtension", () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.newEndTime).toBeInstanceOf(Date);
+      expect(result.data).toBeInstanceOf(Date);
     });
   });
 

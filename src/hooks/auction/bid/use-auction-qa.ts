@@ -180,15 +180,15 @@ export function useAuctionQA(
    * 受信者ID
    */
   const recipientIds = useMemo((): string[] => {
-    if (!queryData?.sellerInfo?.creator.id) return [];
+    if (!queryData?.data?.sellerInfo?.creator.id) return [];
     const isNonNullString = (id: string | null): id is string => id !== null;
     const recipientIds = [
-      queryData.sellerInfo.creator.id,
-      ...queryData.sellerInfo.reporters.map((r) => r.id).filter(isNonNullString),
-      ...queryData.sellerInfo.executors.map((e) => e.id).filter(isNonNullString),
+      queryData.data.sellerInfo.creator.id,
+      ...queryData.data.sellerInfo.reporters.map((r) => r.id).filter(isNonNullString),
+      ...queryData.data.sellerInfo.executors.map((e) => e.id).filter(isNonNullString),
     ];
     return Array.from(new Set(recipientIds));
-  }, [queryData?.sellerInfo]);
+  }, [queryData?.data?.sellerInfo]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -203,13 +203,13 @@ export function useAuctionQA(
       if (data?.success && data.message) {
         // AuctionMessage型に整形
         const formattedMessage: AuctionMessage = {
-          messageId: data.message.id,
-          messageContent: data.message.message,
-          createdAt: data.message.createdAt,
+          messageId: data.data.messageId,
+          messageContent: data.data.messageContent,
+          createdAt: data.data.createdAt,
           person: {
             sender: {
               id: currentUserId,
-              appUserName: session?.user?.name ?? "未設定",
+              appUserName: session?.user?.name ?? `未設定_${currentUserId}`,
               image: session?.user?.image ?? null,
             },
           },
@@ -263,9 +263,11 @@ export function useAuctionQA(
    * 送信順（createdAt昇順）でソートされたメッセージ配列
    */
   const sortedMessages = useMemo(() => {
-    if (!queryData?.messages) return [];
-    return [...queryData.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  }, [queryData?.messages]);
+    if (!queryData?.data?.messages) return [];
+    return [...queryData.data.messages].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  }, [queryData?.data?.messages]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -273,19 +275,19 @@ export function useAuctionQA(
    * メッセージがロード後に最下部にスクロール
    */
   useEffect(() => {
-    if (!loading && !submitting && !isRefetching && queryData?.messages && queryData.messages.length > 0) {
+    if (!loading && !submitting && !isRefetching && queryData?.data?.messages && queryData.data.messages.length > 0) {
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [loading, submitting, isRefetching, queryData?.messages?.length, queryData]);
+  }, [loading, submitting, isRefetching, queryData?.data?.messages?.length, queryData]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 自分が出品者かどうか
    */
-  const sellerId = queryData?.sellerInfo?.creator.id ?? null;
+  const sellerId = queryData?.data?.sellerInfo?.creator.id ?? null;
   const isSeller = !!currentUserId && !!sellerId && currentUserId === sellerId;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -347,7 +349,7 @@ export function useAuctionQA(
    */
   return {
     messages: sortedMessages,
-    auctionPersonInfo: queryData?.sellerInfo ?? null,
+    auctionPersonInfo: queryData?.data?.sellerInfo ?? null,
     loading,
     error: queryError?.message ?? null,
     submitting,

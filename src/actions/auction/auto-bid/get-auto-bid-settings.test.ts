@@ -4,6 +4,7 @@ import { autoBidFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import type { ValidateAuctionResult } from "../bid-validation";
 import { getAutoBidByUserId } from "./get-auto-bid-settings";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -77,7 +78,11 @@ describe("getAutoBidByUserId", () => {
   describe("正常系", () => {
     test("should return auto bid when found", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
 
       const mockAutoBid = autoBidFactory.build({
         id: "auto-bid-1",
@@ -117,7 +122,11 @@ describe("getAutoBidByUserId", () => {
 
     test("should return null when no auto bid found", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.findFirst.mockResolvedValue(null);
 
       // Act
@@ -133,7 +142,11 @@ describe("getAutoBidByUserId", () => {
 
     test("should call validateAuction with correct parameters", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.findFirst.mockResolvedValue(null);
 
       // Act
@@ -157,8 +170,7 @@ describe("getAutoBidByUserId", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "認証が必要です",
-        userId: "",
-        auction: null,
+        data: null as unknown as ValidateAuctionResult,
       });
 
       // Act
@@ -178,8 +190,7 @@ describe("getAutoBidByUserId", () => {
       mockValidateAuction.mockResolvedValue({
         success: true,
         message: "検証成功",
-        userId: "", // userIdが空文字
-        auction: mockValidationSuccess.auction,
+        data: mockValidationSuccess,
       });
 
       // Act
@@ -188,7 +199,7 @@ describe("getAutoBidByUserId", () => {
       // Assert
       expect(result).toStrictEqual({
         success: false,
-        message: "検証成功", // 実際のvalidation.messageが返される
+        message: "検証成功",
         autoBid: null,
       });
     });
@@ -210,7 +221,11 @@ describe("getAutoBidByUserId", () => {
 
     test("should handle prisma exception and return error message", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.findFirst.mockRejectedValue(new Error("Prisma error"));
 
       // Act
@@ -261,7 +276,11 @@ describe("getAutoBidByUserId", () => {
 
     test("should handle currentHighestBid of 0 as valid", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.findFirst.mockResolvedValue(null);
 
       // Act

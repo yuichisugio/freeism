@@ -102,7 +102,11 @@ describe("auction-data API Route", () => {
   describe("正常系", () => {
     test("should return auction data when valid API key and auction ID are provided", async () => {
       // Arrange
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(mockAuctionData);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: mockAuctionData,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -122,7 +126,11 @@ describe("auction-data API Route", () => {
 
     test("should return 400 when auction is not found", async () => {
       // Arrange
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(null);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: null,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -177,7 +185,11 @@ describe("auction-data API Route", () => {
 
     test("should return 500 when getUpdatedAuctionByAuctionId throws error", async () => {
       // Arrange
-      mockGetUpdatedAuctionByAuctionId.mockRejectedValue(new Error("Database error"));
+      mockGetUpdatedAuctionByAuctionId.mockRejectedValue({
+        success: false,
+        message: "オークション情報を取得できませんでした",
+        data: null,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -219,7 +231,11 @@ describe("auction-data API Route", () => {
 
     test("should handle null auction data", async () => {
       // Arrange
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(null);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: null,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -233,7 +249,11 @@ describe("auction-data API Route", () => {
     test("should handle very long auction ID", async () => {
       // Arrange
       const longAuctionId = "a".repeat(1000);
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(null);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: null,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(longAuctionId);
 
@@ -251,7 +271,11 @@ describe("auction-data API Route", () => {
         ...mockAuctionData,
         bidHistories: [],
       };
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(auctionDataWithNullBids);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: auctionDataWithNullBids,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -283,7 +307,11 @@ describe("auction-data API Route", () => {
           ...mockAuctionData,
           status: status,
         };
-        mockGetUpdatedAuctionByAuctionId.mockResolvedValue(auctionDataWithStatus);
+        mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+          success: true,
+          message: "オークション情報を取得しました",
+          data: auctionDataWithStatus,
+        });
         const request = createMockRequest({ "x-internal-secret": testApiSecret });
         const params = createMockParams(testAuctionId);
 
@@ -308,7 +336,11 @@ describe("auction-data API Route", () => {
         currentHighestBidderId: null,
         currentHighestBid: 0,
       };
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(auctionDataWithNullBidder);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: auctionDataWithNullBidder,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -341,7 +373,11 @@ describe("auction-data API Route", () => {
           },
         ],
       };
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(auctionDataWithNullUserSettings);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: auctionDataWithNullUserSettings,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 
@@ -367,7 +403,11 @@ describe("auction-data API Route", () => {
         extensionTime: 10,
         remainingTimeForExtension: 2,
       };
-      mockGetUpdatedAuctionByAuctionId.mockResolvedValue(auctionDataWithExtension);
+      mockGetUpdatedAuctionByAuctionId.mockResolvedValue({
+        success: true,
+        message: "オークション情報を取得しました",
+        data: auctionDataWithExtension,
+      });
       const request = createMockRequest({ "x-internal-secret": testApiSecret });
       const params = createMockParams(testAuctionId);
 

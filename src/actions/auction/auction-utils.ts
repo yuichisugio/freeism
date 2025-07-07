@@ -1,3 +1,5 @@
+import { type Result } from "@/types/general-types";
+
 /**
  * オークション実行者のJSON形式データ（データベースから取得）
  */
@@ -25,14 +27,28 @@ export type ExecutorJsonItem = {
  * @param obj - 判定対象のオブジェクト
  * @returns オブジェクトがExecutorJsonItemFromDB型かどうか
  */
-export function isExecutorObjectFromDB(obj: unknown): obj is ExecutorJsonItemFromDB {
-  // オブジェクトでない場合は、falseを返却
+export function isExecutorObjectFromDB(obj: unknown): Result<ExecutorJsonItemFromDB | null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オブジェクトでない場合は、falseを返却
+   */
   if (typeof obj !== "object" || obj === null) {
-    return false;
+    return { success: false, message: "オブジェクトではありません", data: null };
   }
-  // オブジェクトの場合は、id, user_id, user_image, username, ratingがあるかどうかをチェック。ある場合はtrueを返却
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オブジェクトの場合は、id, user_id, user_image, username, ratingがあるかどうかをチェック。ある場合はtrueを返却
+   */
   const potentialExec = obj as Record<string, unknown>;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * チェック
+   */
   const result =
     // idがあるかどうかをチェック。ある場合は、stringかnullかどうかをチェック
     "id" in potentialExec &&
@@ -50,6 +66,14 @@ export function isExecutorObjectFromDB(obj: unknown): obj is ExecutorJsonItemFro
     "rating" in potentialExec &&
     (typeof potentialExec.rating === "number" || potentialExec.rating === null);
 
-  // オブジェクトがExecutorJsonItemFromDB型かどうかを返却。ある場合はtrueを返却
-  return result;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * オブジェクトがExecutorJsonItemFromDB型かどうかを返却。ある場合はtrueを返却
+   */
+  return {
+    success: result,
+    message: "オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました",
+    data: result ? (obj as ExecutorJsonItemFromDB) : null,
+  };
 }

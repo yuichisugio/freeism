@@ -198,8 +198,8 @@ describe("won-auction", () => {
         const result = await getUserWonAuctions(CONSTANTS.testPage, CONSTANTS.testUserId, CONSTANTS.testItemPerPage);
 
         // Assert
-        expect(result).toHaveLength(1);
-        expect(result[0]).toStrictEqual({
+        expect(result.data).toHaveLength(1);
+        expect(result.data[0]).toStrictEqual({
           auctionId: mockWonAuctions[0].id,
           currentHighestBid: mockWonAuctions[0].currentHighestBid,
           auctionEndTime: mockWonAuctions[0].endTime,
@@ -252,7 +252,7 @@ describe("won-auction", () => {
         const result = await getUserWonAuctions(CONSTANTS.testPage, CONSTANTS.testUserId, CONSTANTS.testItemPerPage);
 
         // Assert
-        expect(result[0].rating).toBeNull();
+        expect(result.data[0].rating).toBeNull();
       });
 
       test("should return empty array when no data found", async () => {
@@ -263,7 +263,7 @@ describe("won-auction", () => {
         const result = await getUserWonAuctions(CONSTANTS.testPage, CONSTANTS.testUserId, CONSTANTS.testItemPerPage);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result.data).toStrictEqual([]);
       });
 
       test("should handle pagination correctly", async () => {
@@ -337,7 +337,7 @@ describe("won-auction", () => {
         const result = await getUserWonAuctionsCount(CONSTANTS.testUserId);
 
         // Assert
-        expect(result).toBe(5);
+        expect(result.data).toBe(5);
       });
 
       test("should return 0 when count is 0", async () => {
@@ -348,7 +348,7 @@ describe("won-auction", () => {
         const result = await getUserWonAuctionsCount(CONSTANTS.testUserId);
 
         // Assert
-        expect(result).toBe(0);
+        expect(result.data).toBe(0);
       });
 
       test.each([
@@ -378,7 +378,7 @@ describe("won-auction", () => {
         const result = await getUserWonAuctionsCount(CONSTANTS.testUserId, wonStatus);
 
         // Assert
-        expect(result).toBe(expectedCount);
+        expect(result.data).toBe(expectedCount);
         expect(prismaMock.auction.count).toHaveBeenCalledWith({
           where: {
             winnerId: CONSTANTS.testUserId,

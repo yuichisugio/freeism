@@ -447,7 +447,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.bidHistoryResult?.[0]?.currentHighestBid).toBe(0);
+        expect(result.current.bidHistoryResult?.data?.[0]?.currentHighestBid).toBe(0);
         expect(result.current.currentDataCount).toBe(1);
       });
     });
@@ -525,7 +525,7 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.wonHistoryResult?.[0]?.rating).toBeNull();
+        expect(result.current.wonHistoryResult?.data?.[0]?.rating).toBeNull();
       });
     });
 
@@ -603,8 +603,8 @@ describe("useAuctionHistory", () => {
         });
 
         // Assert
-        expect(result.current.createdHistoryResult?.[0]?.winnerId).toBeNull();
-        expect(result.current.createdHistoryResult?.[0]?.winnerName).toBeNull();
+        expect(result.current.createdHistoryResult?.data?.[0]?.winnerId).toBeNull();
+        expect(result.current.createdHistoryResult?.data?.[0]?.winnerName).toBeNull();
       });
     });
 

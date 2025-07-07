@@ -50,7 +50,10 @@ export function useWatchlist(auctionId: string, initialData: boolean | null): Us
    */
   const { data: isWatchlistedQueryData, isPending: isLoading } = useQuery({
     queryKey: queryCacheKeys.watchlist.userAuction(userId, auctionId),
-    queryFn: () => serverIsAuctionWatched(auctionId, userId),
+    queryFn: async () => {
+      const result = await serverIsAuctionWatched(auctionId, userId);
+      return result.data;
+    },
     initialData: initialData,
     staleTime: Infinity,
     gcTime: Infinity,

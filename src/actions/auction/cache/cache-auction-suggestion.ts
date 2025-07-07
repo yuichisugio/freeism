@@ -3,6 +3,7 @@
 import type { Suggestion } from "@/types/auction-types";
 import { cache } from "react";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import { Prisma } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -27,49 +28,49 @@ export type GetSearchSuggestionsParams = {
  * @param limit 取得件数
  * @returns オークション検索提案
  */
-export const cachedGetSearchSuggestions = cache(async (params: GetSearchSuggestionsParams): Promise<Suggestion[]> => {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export const cachedGetSearchSuggestions = cache(
+  async (params: GetSearchSuggestionsParams): PromiseResult<Suggestion[]> => {
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * 引数を分解
-   */
-  const { query, userId, userGroupIds, limit = 10 } = params;
+    /**
+     * 引数を分解
+     */
+    const { query, userId, userGroupIds, limit = 10 } = params;
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * クエリがない場合は空配列を返す
-   * ユーザーが参加しているグループがない場合は空配列を返す
-   */
-  if (
-    typeof query !== "string" ||
-    typeof userId !== "string" ||
-    !Array.isArray(userGroupIds) ||
-    typeof limit !== "number" ||
-    !userId ||
-    !userGroupIds ||
-    !query ||
-    query.trim().length < 1 ||
-    userGroupIds.length === 0 ||
-    limit < 1
-  ) {
-    return [];
-  }
+    /**
+     * クエリがない場合は空配列を返す
+     * ユーザーが参加しているグループがない場合は空配列を返す
+     */
+    if (
+      typeof query !== "string" ||
+      typeof userId !== "string" ||
+      !Array.isArray(userGroupIds) ||
+      typeof limit !== "number" ||
+      !userId ||
+      !userGroupIds ||
+      !query ||
+      query.trim().length < 1 ||
+      userGroupIds.length === 0 ||
+      limit < 1
+    ) {
+      return { success: true, data: [], message: "オークション検索提案を取得しました" };
+    }
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * クエリを正規化
-   */
-  const normalizedQuery = query.trim().replace(/\s+/g, " OR ");
+    /**
+     * クエリを正規化
+     */
+    const normalizedQuery = query.trim().replace(/\s+/g, " OR ");
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * SQL クエリの組み立て
-   * pgroonga の前方一致 (&^) を使用
-   */
-  try {
+    /**
+     * SQL クエリの組み立て
+     * pgroonga の前方一致 (&^) を使用
+     */
     const sql = Prisma.sql`
         SELECT
           t.id,
@@ -91,31 +92,20 @@ export const cachedGetSearchSuggestions = cache(async (params: GetSearchSuggesti
           ${limit}
       `;
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * Rawクエリ実行
      */
     const suggestions: Suggestion[] = await prisma.$queryRaw<Suggestion[]>(sql);
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * コンソール
-     */
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
     /**
      * 結果の整形
      */
-    return suggestions;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("src/lib/auction/action/cache-auction-listing.ts_getSearchSuggestions_error", error);
-    return [];
-  }
-});
+    return { success: true, data: suggestions, message: "オークション検索提案を取得しました" };
+  },
+);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

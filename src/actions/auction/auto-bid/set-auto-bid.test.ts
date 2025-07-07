@@ -147,7 +147,11 @@ describe("setAutoBid", () => {
       },
     ])("should successfully set auto bid - $description", async ({ maxBidAmount, bidIncrement, autoBidId }) => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
 
       const mockAutoBid = autoBidFactory.build({
         id: autoBidId,
@@ -201,7 +205,11 @@ describe("setAutoBid", () => {
         },
       };
 
-      mockValidateAuction.mockResolvedValue(mockValidationWithSameUser);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationWithSameUser,
+      });
 
       const mockAutoBid = autoBidFactory.build({
         id: "same-user-auto-bid",
@@ -232,7 +240,11 @@ describe("setAutoBid", () => {
 
     test("should handle auto bid execution error gracefully", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
 
       const mockAutoBid = autoBidFactory.build({
         id: "error-handling-auto-bid",
@@ -294,7 +306,11 @@ describe("setAutoBid", () => {
       "should return error for invalid parameters - $description",
       async ({ maxBidAmount, bidIncrement, expectedMessage }) => {
         // Arrange
-        mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+        mockValidateAuction.mockResolvedValue({
+          success: true,
+          message: "検証成功",
+          data: mockValidationSuccess,
+        });
 
         // Act
         const result = await setAutoBid(testAuctionId, maxBidAmount, bidIncrement);
@@ -317,7 +333,11 @@ describe("setAutoBid", () => {
       },
     ])("should return error for invalid max bid amount - $description", async ({ maxBidAmount, expectedMessage }) => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
 
       // Act
       const result = await setAutoBid(testAuctionId, maxBidAmount, 10);
@@ -369,7 +389,14 @@ describe("setAutoBid", () => {
       },
     ])("should handle validation errors - $description", async ({ validationResponse, expectedMessage }) => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(validationResponse);
+      mockValidateAuction.mockResolvedValue({
+        success: validationResponse.success,
+        message: validationResponse.message,
+        data: {
+          userId: validationResponse.userId,
+          auction: validationResponse.auction,
+        },
+      });
 
       // Act
       const result = await setAutoBid(testAuctionId, 200, 10);
@@ -391,7 +418,11 @@ describe("setAutoBid", () => {
 
     test("should handle database transaction error", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.upsert.mockRejectedValue(new Error("Transaction failed"));
 
       // Act
@@ -403,7 +434,11 @@ describe("setAutoBid", () => {
 
     test("should handle empty auction ID", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
 
       // Act
       const result = await setAutoBid("", 200, 10);

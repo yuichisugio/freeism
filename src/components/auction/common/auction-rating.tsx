@@ -187,8 +187,13 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
   /**
    * ユーザー情報
    */
-  const { data: displayUserInfo = [], isPending: isLoadingDisplayUserInfo } = useQuery({
+  const { data: displayUserInfo, isPending: isLoadingDisplayUserInfo } = useQuery({
     queryKey: queryCacheKeys.auction.displayUserInfo(auctionId, reviewPosition),
+    placeholderData: {
+      success: true,
+      message: "ユーザー情報を取得しました",
+      data: [],
+    },
     queryFn: () => getDisplayUserInfo(auctionId, reviewPosition),
     staleTime: Infinity,
     gcTime: Infinity,
@@ -212,9 +217,9 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
       </CardHeader>
       <CardContent>
         {/* ページインジケータ */}
-        {displayUserInfo.length > 0 && (
+        {displayUserInfo?.success && displayUserInfo?.data.length > 0 && (
           <div className="mb-4 flex justify-center gap-2">
-            {displayUserInfo.map((user, idx) => (
+            {displayUserInfo.data.map((user, idx) => (
               <div key={user.userId} className="flex flex-col items-center">
                 <button
                   type="button"
@@ -245,12 +250,12 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
                     <Loader2 className="h-4 w-4 animate-spin" data-testid="loading-spinner" />
                   </div>
                 </CarouselItem>
-              ) : displayUserInfo.length === 0 ? (
+              ) : displayUserInfo?.data.length === 0 ? (
                 <CarouselItem>
                   <div className="p-1">表示対象者はまだ存在しません</div>
                 </CarouselItem>
               ) : (
-                displayUserInfo.map((user) => (
+                displayUserInfo?.data.map((user) => (
                   <CarouselItem key={user.userId}>
                     <div className="p-1">
                       <UserRatingCard user={user} reviewPosition={reviewPosition} />
@@ -259,12 +264,12 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
                 ))
               )}
             </CarouselContent>
-            {displayUserInfo.length > 1 && (
+            {displayUserInfo?.success && displayUserInfo?.data.length > 1 && (
               <>
                 <button
                   type="button"
                   onClick={() =>
-                    setCurrentIndex((prev) => (prev - 1 + displayUserInfo.length) % displayUserInfo.length)
+                    setCurrentIndex((prev) => (prev - 1 + displayUserInfo.data.length) % displayUserInfo.data.length)
                   }
                   className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full border bg-white p-2 shadow"
                   aria-label="前へ"
@@ -274,7 +279,7 @@ export const QARating = memo(function QARating(props: QARatingProps): JSX.Elemen
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCurrentIndex((prev) => (prev + 1) % displayUserInfo.length)}
+                  onClick={() => setCurrentIndex((prev) => (prev + 1) % displayUserInfo.data.length)}
                   className="absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full border bg-white p-2 shadow"
                   aria-label="次へ"
                 >

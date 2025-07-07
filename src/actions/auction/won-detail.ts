@@ -11,41 +11,39 @@ import { TaskStatus } from "@prisma/client";
  * @param taskId タスクID
  */
 export async function completeTaskDelivery(taskId: string): PromiseResult<null> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    // タスクIDが存在しない場合はエラーを返す
-    if (!taskId) {
-      throw new Error("completeTaskDelivery: タスクIDが存在しません");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    // タスク完了ステータスに更新
-    await prisma.task.update({
-      where: {
-        id: taskId,
-      },
-      data: {
-        status: TaskStatus.TASK_COMPLETED,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    return {
-      success: true,
-      message: "タスク完了処理に成功しました",
-      data: null,
-    };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("completeTaskDelivery: タスク完了処理アクションに失敗しました", error);
-    return {
-      success: false,
-      message: `completeTaskDelivery: タスク完了処理アクションに失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
-      data: null,
-    };
+  /**
+   * タスクIDが存在しない場合はエラーを返す
+   */
+  if (!taskId) {
+    throw new Error("completeTaskDelivery: タスクIDが存在しません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク完了ステータスに更新
+   */
+  await prisma.task.update({
+    where: {
+      id: taskId,
+    },
+    data: {
+      status: TaskStatus.TASK_COMPLETED,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク完了処理に成功しました
+   */
+  return {
+    success: true,
+    message: "タスク完了処理に成功しました",
+    data: null,
+  };
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 }

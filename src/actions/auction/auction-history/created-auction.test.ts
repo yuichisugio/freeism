@@ -481,7 +481,7 @@ describe("created-auction", () => {
           "and",
         );
 
-        expect(result).toStrictEqual([]);
+        expect(result.data).toStrictEqual([]);
       });
 
       describe("オークションデータの整形", () => {
@@ -516,8 +516,8 @@ describe("created-auction", () => {
             isReporter: false,
             taskRole: ["SUPPLIER", "EXECUTOR"] as ("SUPPLIER" | "EXECUTOR" | "REPORTER")[],
           });
-          expect(result).toHaveLength(1);
-          expect(result[0]).toStrictEqual(expected);
+          expect(result.data).toHaveLength(1);
+          expect(result.data[0]).toStrictEqual(expected);
         });
 
         test("should handle auction with no winner", async () => {
@@ -548,8 +548,8 @@ describe("created-auction", () => {
             isReporter: true,
             taskRole: ["REPORTER"] as ("SUPPLIER" | "EXECUTOR" | "REPORTER")[],
           });
-          expect(result).toHaveLength(1);
-          expect(result[0]).toStrictEqual(expected);
+          expect(result.data).toHaveLength(1);
+          expect(result.data[0]).toStrictEqual(expected);
         });
 
         test("should handle multiple task roles correctly", async () => {
@@ -576,8 +576,8 @@ describe("created-auction", () => {
             isExecutor: true,
             isReporter: true,
           });
-          expect(result).toHaveLength(1);
-          expect(result[0]).toStrictEqual(expected);
+          expect(result.data).toHaveLength(1);
+          expect(result.data[0]).toStrictEqual(expected);
         });
       });
 
@@ -641,7 +641,7 @@ describe("created-auction", () => {
 
         const result = await getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, [], "and");
 
-        expect(result).toBe(count);
+        expect(result.data).toBe(count);
       });
 
       describe("フィルター条件での件数取得", () => {
@@ -662,7 +662,7 @@ describe("created-auction", () => {
 
           const result = await getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, ["creator", "ended"], "or");
 
-          expect(result).toBe(5);
+          expect(result.data).toBe(5);
           expect(prismaMock.auction.count).toHaveBeenCalledWith({
             where: expect.objectContaining({
               OR: expect.any(Array) as Prisma.AuctionWhereInput[],

@@ -169,19 +169,28 @@ export function useAuctionFilters({
 
   // サジェスト取得用のuseQuery
   const {
-    data: suggestions = [],
+    data: suggestions,
     error: suggestionsError,
     isLoading: isSuggestionsLoading,
   } = useQuery({
-    queryKey: queryCacheKeys.auction.suggestions(debouncedSearchQuery ?? "", userId, userGroupIds ?? []),
+    queryKey: queryCacheKeys.auction.suggestions(debouncedSearchQuery ?? "", userId, userGroupIds?.data ?? []),
+    placeholderData: {
+      success: true,
+      message: "サジェストを取得しました",
+      data: [],
+    },
     queryFn: async () => {
       if (!debouncedSearchQuery?.trim() || !userId) {
-        return [];
+        return {
+          success: true,
+          message: "サジェストを取得しました",
+          data: [],
+        };
       }
       return await getSearchSuggestions({
         query: debouncedSearchQuery,
         userId,
-        userGroupIds: userGroupIds ?? [],
+        userGroupIds: userGroupIds?.data ?? [],
       } as unknown as GetSearchSuggestionsParams);
     },
     enabled: !!debouncedSearchQuery?.trim() && !!userId,
@@ -289,12 +298,13 @@ export function useAuctionFilters({
   /**
    * ユーザーグループ情報を取得（TanStack Query v5使用）
    */
-  const {
-    data: userGroups = [],
-    error: userGroupsError,
-    isLoading: isUserGroupsLoading,
-  } = useQuery({
+  const { data: userGroups, isLoading: isUserGroupsLoading } = useQuery({
     queryKey: queryCacheKeys.users.groups(userId),
+    placeholderData: {
+      success: true,
+      message: "ユーザーグループ情報を取得しました",
+      data: [],
+    },
     queryFn: async () => {
       return await getUserGroups(userId);
     },
@@ -303,18 +313,11 @@ export function useAuctionFilters({
     gcTime: 30 * 60 * 1000, // 30分間ガベージコレクション
   });
 
-  // ユーザーグループのエラーログ出力
-  useEffect(() => {
-    if (userGroupsError) {
-      console.error("ユーザーグループ情報の取得に失敗しました", userGroupsError);
-    }
-  }, [userGroupsError]);
-
   // ユーザーグループデータの整形
   const joinTypeinedGroupList = useMemo(() => {
-    return userGroups.map((membership) => ({
-      id: membership.group.id,
-      name: membership.group.name,
+    return userGroups?.data?.map((membership) => ({
+      id: membership.id,
+      name: membership.name,
     }));
   }, [userGroups]);
 
@@ -325,14 +328,14 @@ export function useAuctionFilters({
    */
   const areAllGroupsSelected = useMemo(() => {
     // draftConditions.groupIdsがない場合、またはjoinTypeinedGroupListがない場合はtrue
-    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0 || joinTypeinedGroupList.length === 0) {
+    if (!draftConditions.groupIds || draftConditions.groupIds.length === 0 || joinTypeinedGroupList?.length === 0) {
       return true;
     }
 
     // すべてのグループIDが選択されているかチェック
     // draftConditions.groupIdsは、ユーザーが参加している全てのGroupが常に入っている
     // そのため、joinTypeinedGroupList（参加している全てのGroupIDが入った配列）で、draftConditions.groupIdsをチェックする
-    return joinTypeinedGroupList.every((group) => {
+    return joinTypeinedGroupList?.every((group) => {
       return draftConditions.groupIds?.includes(group.id);
     });
   }, [draftConditions.groupIds, joinTypeinedGroupList]);
@@ -575,23 +578,23 @@ export function useAuctionFilters({
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       // サジェストがある場合
-      if (suggestions.length > 0) {
+      if (suggestions?.success && suggestions?.data?.length > 0) {
         switch (event.key) {
           // ↓キーでハイライトを下に移動
           case "ArrowDown":
             event.preventDefault(); // デフォルトのカーソル移動を防止
-            setHighlightedIndex((prevIndex) => (prevIndex + 1) % suggestions.length);
+            setHighlightedIndex((prevIndex) => (prevIndex + 1) % suggestions.data.length);
             break;
           // ↑キーでハイライトを上に移動
           case "ArrowUp":
             event.preventDefault(); // デフォルトのカーソル移動を防止
-            setHighlightedIndex((prevIndex) => (prevIndex - 1 + suggestions.length) % suggestions.length);
+            setHighlightedIndex((prevIndex) => (prevIndex - 1 + suggestions.data.length) % suggestions.data.length);
             break;
           // Enterキーでサジェストを選択
           case "Enter":
-            if (highlightedIndex >= 0 && suggestions[highlightedIndex]) {
+            if (highlightedIndex >= 0 && suggestions.data[highlightedIndex]) {
               event.preventDefault();
-              selectSuggestion(suggestions[highlightedIndex].text);
+              selectSuggestion(suggestions.data[highlightedIndex].text);
             } else if (event.metaKey || event.ctrlKey) {
               event.preventDefault();
               handleSearchQueryEnter(changingSearchQuery ?? "");
@@ -869,8 +872,8 @@ export function useAuctionFilters({
     openGroupCombobox,
     changingSearchQuery,
     categoriesList,
-    areAllGroupsSelected,
-    joinTypeinedGroupList,
+    areAllGroupsSelected: areAllGroupsSelected ?? false,
+    joinTypeinedGroupList: joinTypeinedGroupList ?? [],
 
     // loading states
     isSuggestionsLoading,
@@ -901,7 +904,7 @@ export function useAuctionFilters({
     applyAllFilters,
 
     // サジェスト関連
-    suggestions,
+    suggestions: suggestions?.data ?? [],
     highlightedIndex,
     selectSuggestion,
     handleKeyDown,

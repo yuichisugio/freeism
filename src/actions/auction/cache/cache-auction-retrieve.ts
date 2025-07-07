@@ -3,6 +3,7 @@
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { prisma } from "@/library-setting/prisma";
 import { type AuctionWithDetails } from "@/types/auction-types";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -11,7 +12,7 @@ import { type AuctionWithDetails } from "@/types/auction-types";
  * @param auctionId オークションID
  * @returns オークション情報
  */
-export async function getCachedAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails> {
+export async function getCachedAuctionByAuctionId(auctionId: string): PromiseResult<AuctionWithDetails> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -153,7 +154,7 @@ export async function getCachedAuctionByAuctionId(auctionId: string): Promise<Au
   /**
    * オークション情報を返す
    */
-  return auction;
+  return { success: true, data: auction, message: "オークション情報を取得しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -118,13 +118,13 @@ const mockSellerInfo = {
 const setupSuccessfulMocks = () => {
   mockGetCachedAuctionMessageContents.mockResolvedValue({
     success: true,
-    messages: mockMessages,
-    error: "",
+    data: mockMessages,
+    message: "メッセージを取得しました",
   });
   mockGetCachedAuctionSellerInfo.mockResolvedValue({
     success: true,
-    auctionPersonInfo: mockSellerInfo,
-    error: "",
+    data: mockSellerInfo,
+    message: "出品者情報を取得しました",
   });
 };
 
@@ -197,13 +197,13 @@ describe("auction-qa", () => {
         // Arrange
         mockGetCachedAuctionMessageContents.mockResolvedValue({
           success: true,
-          messages: [],
-          error: "",
+          data: [],
+          message: "メッセージを取得しました",
         });
         mockGetCachedAuctionSellerInfo.mockResolvedValue({
           success: true,
-          auctionPersonInfo: mockSellerInfo,
-          error: "",
+          data: mockSellerInfo,
+          message: "出品者情報を取得しました",
         });
 
         // Act
@@ -212,8 +212,8 @@ describe("auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          messages: [],
-          sellerInfo: mockSellerInfo,
+          data: [],
+          message: "メッセージを取得しました",
         });
       });
     });
@@ -245,13 +245,13 @@ describe("auction-qa", () => {
         const errorMessage = "メッセージの取得に失敗しました";
         mockGetCachedAuctionMessageContents.mockResolvedValue({
           success: false,
-          messages: [],
-          error: errorMessage,
+          data: [],
+          message: errorMessage,
         });
         mockGetCachedAuctionSellerInfo.mockResolvedValue({
           success: true,
-          auctionPersonInfo: mockSellerInfo,
-          error: "",
+          data: mockSellerInfo,
+          message: "出品者情報を取得しました",
         });
 
         // Act & Assert
@@ -265,13 +265,13 @@ describe("auction-qa", () => {
         const errorMessage = "出品者情報の取得に失敗しました";
         mockGetCachedAuctionMessageContents.mockResolvedValue({
           success: true,
-          messages: mockMessages,
-          error: "",
+          data: mockMessages,
+          message: "メッセージを取得しました",
         });
         mockGetCachedAuctionSellerInfo.mockResolvedValue({
           success: false,
-          auctionPersonInfo: null,
-          error: errorMessage,
+          data: null,
+          message: errorMessage,
         });
 
         // Act & Assert
@@ -286,13 +286,13 @@ describe("auction-qa", () => {
         const sellerError = "出品者エラー";
         mockGetCachedAuctionMessageContents.mockResolvedValue({
           success: false,
-          messages: [],
-          error: messagesError,
+          data: [],
+          message: messagesError,
         });
         mockGetCachedAuctionSellerInfo.mockResolvedValue({
           success: false,
-          auctionPersonInfo: null,
-          error: sellerError,
+          data: null,
+          message: sellerError,
         });
 
         // Act & Assert
@@ -306,8 +306,8 @@ describe("auction-qa", () => {
         mockGetCachedAuctionMessageContents.mockRejectedValue(new Error("Database connection error"));
         mockGetCachedAuctionSellerInfo.mockResolvedValue({
           success: true,
-          auctionPersonInfo: mockSellerInfo,
-          error: "",
+          data: mockSellerInfo,
+          message: "出品者情報を取得しました",
         });
 
         // Act & Assert
@@ -320,13 +320,13 @@ describe("auction-qa", () => {
         // Arrange
         mockGetCachedAuctionMessageContents.mockResolvedValue({
           success: true,
-          messages: mockMessages,
-          error: "",
+          data: mockMessages,
+          message: "メッセージを取得しました",
         });
         mockGetCachedAuctionSellerInfo.mockResolvedValue({
           success: true,
-          auctionPersonInfo: null,
-          error: "",
+          data: null,
+          message: "出品者情報を取得しました",
         });
 
         // Act & Assert

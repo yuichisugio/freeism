@@ -18,19 +18,7 @@ import { getCachedAuctionHistoryCreatedDetail } from "./cache/cache-auction-hist
  * @returns 出品商品の詳細
  */
 export async function getAuctionHistoryCreatedDetail(auctionId: string): PromiseResult<AuctionHistoryCreatedDetail> {
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品商品の詳細を取得
-   */
-  const auction = await getCachedAuctionHistoryCreatedDetail(auctionId);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 出品商品の詳細を返却
-   */
-  return auction;
+  return await getCachedAuctionHistoryCreatedDetail(auctionId);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

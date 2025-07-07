@@ -148,7 +148,8 @@ describe("cachedGetSearchSuggestions", () => {
 
       // Assert
       expect(result).toHaveLength(1);
-      expect(result[0].score).toBe(score);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].score).toBe(score);
       expect(prismaMock.$queryRaw).toHaveBeenCalled();
     });
 

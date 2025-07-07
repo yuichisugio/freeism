@@ -7,13 +7,7 @@ import { getUserCreatedAuctions, getUserCreatedAuctionsCount } from "@/actions/a
 import { getUserWonAuctions, getUserWonAuctionsCount } from "@/actions/auction/auction-history/won-auction";
 import { AUCTION_HISTORY_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import {
-  type AuctionCreatedTabFilter,
-  type BidHistoryItem,
-  type CreatedAuctionItem,
-  type FilterCondition,
-  type WonAuctionItem,
-} from "@/types/auction-types";
+import { type AuctionCreatedTabFilter, type FilterCondition } from "@/types/auction-types";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
@@ -85,7 +79,7 @@ export function useAuctionHistory() {
   /**
    * 入札したオークションの履歴を取得
    */
-  const { data: bidHistoryResult, isPending: isLoadingBidHistories } = useQuery<BidHistoryItem[]>({
+  const { data: bidHistoryResult, isPending: isLoadingBidHistories } = useQuery({
     queryKey: queryCacheKeys.auction.historyBids(userId!, currentPage, itemPerPage),
     queryFn: () => getUserBidHistories(currentPage, userId!, itemPerPage),
     enabled: !!userId && activeTab === "bids" && !!itemPerPage && !!currentPage,
@@ -99,7 +93,7 @@ export function useAuctionHistory() {
    * 入札したオークションの件数を取得
    * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
    */
-  const { data: bidHistoryCount, isPending: isLoadingBidHistoriesCount } = useQuery<number>({
+  const { data: bidHistoryCount, isPending: isLoadingBidHistoriesCount } = useQuery({
     queryKey: queryCacheKeys.auction.historyBidsCount(userId!),
     queryFn: () => getUserBidHistoriesCount(userId!),
     enabled: !!userId && activeTab === "bids",
@@ -112,7 +106,7 @@ export function useAuctionHistory() {
   /**
    * 落札履歴を取得
    */
-  const { data: wonHistoryResult, isPending: isLoadingWon } = useQuery<WonAuctionItem[]>({
+  const { data: wonHistoryResult, isPending: isLoadingWon } = useQuery({
     queryKey: queryCacheKeys.auction.historyWon(userId!, currentPage, itemPerPage, wonStatus),
     queryFn: () => getUserWonAuctions(currentPage, userId!, itemPerPage, wonStatus),
     enabled: !!userId && activeTab === "won" && !!itemPerPage && !!currentPage && !!wonStatus,
@@ -126,7 +120,7 @@ export function useAuctionHistory() {
    * 落札履歴の件数を取得
    * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
    */
-  const { data: wonHistoryCount, isPending: isLoadingWonCount } = useQuery<number>({
+  const { data: wonHistoryCount, isPending: isLoadingWonCount } = useQuery({
     queryKey: queryCacheKeys.auction.historyWonCount(userId!, wonStatus),
     queryFn: () => getUserWonAuctionsCount(userId!, wonStatus),
     enabled: !!userId && activeTab === "won" && !!wonStatus,
@@ -139,7 +133,7 @@ export function useAuctionHistory() {
   /**
    * 出品履歴を取得
    */
-  const { data: createdHistoryResult, isPending: isLoadingCreated } = useQuery<CreatedAuctionItem[]>({
+  const { data: createdHistoryResult, isPending: isLoadingCreated } = useQuery({
     queryKey: queryCacheKeys.auction.historyCreated(userId!, currentPage, itemPerPage, filter, filterCondition),
     queryFn: () => getUserCreatedAuctions(currentPage, userId!, itemPerPage, filter, filterCondition),
     enabled: !!userId && activeTab === "created" && !!itemPerPage && !!currentPage && !!filter && !!filterCondition,
@@ -154,7 +148,7 @@ export function useAuctionHistory() {
    * 出品履歴の件数を取得
    * 件数とデータを別々に取得することで、ページを跨ぐごとに件数を取得しないので、サーバー負荷を少なくする
    */
-  const { data: createdHistoryCount, isPending: isLoadingCreatedCount } = useQuery<number>({
+  const { data: createdHistoryCount, isPending: isLoadingCreatedCount } = useQuery({
     queryKey: queryCacheKeys.auction.historyCreatedCount(userId!, filter, filterCondition),
     queryFn: () => getUserCreatedAuctionsCount(userId!, filter, filterCondition),
     enabled: !!userId && activeTab === "created" && !!filter && !!filterCondition,
@@ -199,8 +193,8 @@ export function useAuctionHistory() {
     switch (activeTab) {
       case "bids":
         void prefetchLogic(
-          bidHistoryCount,
-          !!bidHistoryResult && bidHistoryResult.length > 0,
+          bidHistoryCount?.data,
+          !!bidHistoryResult && bidHistoryResult.data.length > 0,
           queryCacheKeys.auction.historyBids,
           getUserBidHistories,
           [userId, nextPage, itemPerPage] as [string, number, number],
@@ -209,8 +203,8 @@ export function useAuctionHistory() {
         break;
       case "won":
         void prefetchLogic(
-          wonHistoryCount,
-          !!wonHistoryResult && wonHistoryResult.length > 0,
+          wonHistoryCount?.data,
+          !!wonHistoryResult && wonHistoryResult.data.length > 0,
           queryCacheKeys.auction.historyWon,
           getUserWonAuctions,
           [userId, nextPage, itemPerPage, wonStatus] as [string, number, number, string],
@@ -219,8 +213,8 @@ export function useAuctionHistory() {
         break;
       case "created":
         void prefetchLogic(
-          createdHistoryCount,
-          !!createdHistoryResult && createdHistoryResult.length > 0,
+          createdHistoryCount?.data,
+          !!createdHistoryResult && createdHistoryResult.data.length > 0,
           queryCacheKeys.auction.historyCreated,
           getUserCreatedAuctions,
           [userId, nextPage, itemPerPage, filter, filterCondition] as [
@@ -267,11 +261,11 @@ export function useAuctionHistory() {
   const currentDataCount = useMemo(() => {
     switch (activeTab) {
       case "bids":
-        return bidHistoryCount ?? 0;
+        return bidHistoryCount?.data ?? 0;
       case "won":
-        return wonHistoryCount ?? 0;
+        return wonHistoryCount?.data ?? 0;
       case "created":
-        return createdHistoryCount ?? 0;
+        return createdHistoryCount?.data ?? 0;
       default:
         return 0;
     }
@@ -431,6 +425,7 @@ export function useAuctionHistory() {
     isLoadingCurrentTab,
     userId,
     VALID_UI_FILTERS,
+
     // function
     handleItemClick,
     handleWonItemClick,

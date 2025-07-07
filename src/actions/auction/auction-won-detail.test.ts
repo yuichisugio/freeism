@@ -275,13 +275,13 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.auctionWonDetail?.creator).toStrictEqual({
+      expect(result.data?.creator).toStrictEqual({
         creatorUserId: TEST_IDS.creatorId,
         creatorAppUserName: "未設定",
         creatorUserImage: null,
       });
-      expect(result.auctionWonDetail?.reporters).toStrictEqual([]);
-      expect(result.auctionWonDetail?.executors).toStrictEqual([]);
+      expect(result.data?.reporters).toStrictEqual([]);
+      expect(result.data?.executors).toStrictEqual([]);
     });
 
     test("should handle missing reporter and executor user data with default values", async () => {
@@ -306,14 +306,14 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.auctionWonDetail?.reporters).toStrictEqual([
+      expect(result.data?.reporters).toStrictEqual([
         {
           reporterUserId: "未登録ユーザー",
           reporterAppUserName: "未設定",
           reporterUserImage: null,
         },
       ]);
-      expect(result.auctionWonDetail?.executors).toStrictEqual([
+      expect(result.data?.executors).toStrictEqual([
         {
           executorUserId: TEST_IDS.executorId,
           executorAppUserName: "未設定",
@@ -336,14 +336,14 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.auctionWonDetail?.reporters).toStrictEqual([
+      expect(result.data?.reporters).toStrictEqual([
         {
           reporterUserId: "未登録ユーザー",
           reporterAppUserName: "未設定",
           reporterUserImage: null,
         },
       ]);
-      expect(result.auctionWonDetail?.executors).toStrictEqual([
+      expect(result.data?.executors).toStrictEqual([
         {
           executorUserId: "未登録ユーザー",
           executorAppUserName: "未設定",
@@ -378,8 +378,8 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.auctionWonDetail?.reviews).toHaveLength(2);
-      expect(result.auctionWonDetail?.reviews).toStrictEqual([mockReview1, mockReview2]);
+      expect(result.data?.reviews).toHaveLength(2);
+      expect(result.data?.reviews).toStrictEqual([mockReview1, mockReview2]);
     });
 
     test("should handle null values in task data", async () => {
@@ -396,8 +396,8 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
 
       // Assert
-      expect(result.auctionWonDetail?.taskDetail).toBe(null);
-      expect(result.auctionWonDetail?.taskImageUrl).toBe(null);
+      expect(result.data?.taskDetail).toBe(null);
+      expect(result.data?.taskImageUrl).toBe(null);
     });
 
     test("should return success when auction is not found", async () => {

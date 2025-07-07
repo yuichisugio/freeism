@@ -257,9 +257,9 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     isPending,
     isPlaceholderData,
   } = useQuery({
-    queryKey: queryCacheKeys.auction.userAllListings(userId, listingsConditions, userGroupIds ?? []),
+    queryKey: queryCacheKeys.auction.userAllListings(userId, listingsConditions, userGroupIds?.data ?? []),
     queryFn: async () =>
-      await getAuctionListingsAndCount({ listingsConditions, userId, userGroupIds: userGroupIds ?? [] }),
+      await getAuctionListingsAndCount({ listingsConditions, userId, userGroupIds: userGroupIds?.data ?? [] }),
     staleTime: 1000 * 60 * 60 * 1, // 1時間
     gcTime: 1000 * 60 * 60 * 1, // 1時間
     enabled: !!listingsConditions && !!userId && !!userGroupIds, // userGroupIdsも有効になってから実行
@@ -275,10 +275,10 @@ export function useAuctionListings(): UseAuctionListingsReturn {
     const currentPage = listingsConditions.page;
 
     // 総ページ数
-    const totalPages = Math.ceil((auctionListings?.count ?? 0) / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
+    const totalPages = Math.ceil((auctionListings?.data.count ?? 0) / AUCTION_CONSTANTS.DISPLAY.PAGE_SIZE);
 
     // データが取得されていて、かつ、現在のページ数が総ページ数より小さい場合
-    if (!isPlaceholderData && !isPending && auctionListings?.count && currentPage < totalPages) {
+    if (!isPlaceholderData && !isPending && auctionListings?.data?.count && currentPage < totalPages) {
       // 次のページ数
       const nextPage = currentPage + 1;
 
@@ -287,13 +287,13 @@ export function useAuctionListings(): UseAuctionListingsReturn {
         queryKey: queryCacheKeys.auction.userAllListings(
           userId,
           { ...listingsConditions, page: nextPage },
-          userGroupIds ?? [],
+          userGroupIds?.data ?? [],
         ),
         queryFn: async () =>
           await getAuctionListingsAndCount({
             listingsConditions: { ...listingsConditions, page: nextPage },
             userId,
-            userGroupIds: userGroupIds ?? [],
+            userGroupIds: userGroupIds?.data ?? [],
           }),
       });
     }
@@ -303,8 +303,8 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 
   return {
     // state
-    auctions: auctionListings?.listings ?? [],
-    totalAuctionsCount: auctionListings?.count ?? 0,
+    auctions: auctionListings?.data?.listings ?? [],
+    totalAuctionsCount: auctionListings?.data?.count ?? 0,
     listingsConditions: {
       ...listingsConditions,
       searchQuery: listingsConditions.searchQuery === undefined ? null : listingsConditions.searchQuery,

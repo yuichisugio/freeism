@@ -5,6 +5,7 @@ import type { Prisma } from "@prisma/client";
 import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from "next/cache";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 import { ReviewPosition } from "@prisma/client";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -36,7 +37,7 @@ type UserRoleAndUserId = { role: Role; user: UserWithSettings };
 export async function getCachedDisplayUserInfo(
   auctionId: string,
   reviewPosition: ReviewPosition,
-): Promise<DisplayUserInfo[]> {
+): PromiseResult<DisplayUserInfo[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -127,8 +128,10 @@ export async function getCachedDisplayUserInfo(
   /**
    * 2. データがない場合は空配列を返す
    */
-  if (reviewPosition === ReviewPosition.SELLER_TO_BUYER && !auction?.winner) return [];
-  if (reviewPosition === ReviewPosition.BUYER_TO_SELLER && !auction?.task) return [];
+  if (reviewPosition === ReviewPosition.SELLER_TO_BUYER && !auction?.winner)
+    return { success: true, data: [], message: "ユーザー情報を取得しました" };
+  if (reviewPosition === ReviewPosition.BUYER_TO_SELLER && !auction?.task)
+    return { success: true, data: [], message: "ユーザー情報を取得しました" };
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -186,7 +189,7 @@ export async function getCachedDisplayUserInfo(
   // .keys()でuserIdのみの配列を作成
   const userIds = Array.from(nonDuplicateUserMap.keys());
   // 表示するユーザーがいない場合（reviewPositionがSELLER_TO_BUYERの場合は、まだ落札者がいない場合）は空配列を返す
-  if (userIds.length === 0) return [];
+  if (userIds.length === 0) return { success: true, data: [], message: "ユーザー情報はありませんでした" };
 
   // 表示するユーザーのレビューを取得
   const reviews = await prisma.auctionReview.findMany({
@@ -251,5 +254,5 @@ export async function getCachedDisplayUserInfo(
   /**
    * 9. 返却
    */
-  return returnValue;
+  return { success: true, data: returnValue, message: "ユーザー情報を取得しました" };
 }

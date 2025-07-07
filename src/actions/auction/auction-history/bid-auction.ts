@@ -1,5 +1,6 @@
 "use server";
 
+import type { PromiseResult } from "@/types/general-types";
 import { prisma } from "@/library-setting/prisma";
 import { type BidHistoryItem } from "@/types/auction-types";
 
@@ -12,7 +13,11 @@ import { type BidHistoryItem } from "@/types/auction-types";
  * @param itemPerPage 1ページあたりのアイテム数
  * @returns 入札履歴
  */
-export async function getUserBidHistories(page = 1, userId: string, itemPerPage: number): Promise<BidHistoryItem[]> {
+export async function getUserBidHistories(
+  page = 1,
+  userId: string,
+  itemPerPage: number,
+): PromiseResult<BidHistoryItem[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -59,7 +64,7 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
    * データがない場合は空配列を返却
    */
   if (allBids.length === 0) {
-    return [];
+    return { success: true, message: "データがありません", data: [] };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -83,7 +88,7 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
   /**
    * データを返却
    */
-  return returnBidedAuctionPerPage;
+  return { success: true, message: "データを取得しました", data: returnBidedAuctionPerPage };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -94,7 +99,7 @@ export async function getUserBidHistories(page = 1, userId: string, itemPerPage:
  * @param userId ユーザーID
  * @returns 入札したオークションの件数
  */
-export async function getUserBidHistoriesCount(userId: string): Promise<number> {
+export async function getUserBidHistoriesCount(userId: string): PromiseResult<number> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -134,7 +139,7 @@ export async function getUserBidHistoriesCount(userId: string): Promise<number> 
    * データがない場合は空配列を返却
    */
   if (!count || count === 0) {
-    return 0;
+    return { success: true, message: "データがありません", data: 0 };
   }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -142,5 +147,5 @@ export async function getUserBidHistoriesCount(userId: string): Promise<number> 
   /**
    * データを返却
    */
-  return count;
+  return { success: true, message: "データを取得しました", data: count };
 }

@@ -3,6 +3,7 @@ import { autoBidFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { TaskStatus } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import type { ValidateAuctionResult } from "../bid-validation";
 import { validateAuction } from "../bid-validation";
 import { cancelAutoBid } from "./cancel-auto-bid";
 
@@ -85,7 +86,11 @@ describe("cancelAutoBid", () => {
   describe("正常系", () => {
     test("should cancel auto bid successfully", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
 
       const existingAutoBid = autoBidFactory.build({
         id: "auto-bid-1",
@@ -140,8 +145,7 @@ describe("cancelAutoBid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: "認証が必要です",
-        userId: "",
-        auction: null,
+        data: null as unknown as ValidateAuctionResult,
       });
 
       // Act
@@ -163,8 +167,7 @@ describe("cancelAutoBid", () => {
       mockValidateAuction.mockResolvedValue({
         success: false,
         message: null as unknown as string, // 型アサーションでnullを渡す
-        userId: "",
-        auction: null,
+        data: null as unknown as ValidateAuctionResult,
       });
 
       // Act
@@ -183,8 +186,7 @@ describe("cancelAutoBid", () => {
       mockValidateAuction.mockResolvedValue({
         success: true,
         message: "検証成功",
-        userId: "",
-        auction: mockValidationSuccess.auction,
+        data: mockValidationSuccess,
       });
 
       // Act
@@ -200,7 +202,11 @@ describe("cancelAutoBid", () => {
 
     test("should handle database error", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.update.mockRejectedValue(new Error("Database error"));
 
       // Act
@@ -216,7 +222,11 @@ describe("cancelAutoBid", () => {
 
     test("should handle unknown error", async () => {
       // Arrange
-      mockValidateAuction.mockResolvedValue(mockValidationSuccess);
+      mockValidateAuction.mockResolvedValue({
+        success: true,
+        message: "検証成功",
+        data: mockValidationSuccess,
+      });
       prismaMock.autoBid.update.mockRejectedValue("Unknown error");
 
       // Act

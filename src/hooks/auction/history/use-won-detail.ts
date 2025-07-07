@@ -1,6 +1,5 @@
 "use client";
 
-import type { GetAuctionWonDetailReturn } from "@/actions/auction/auction-won-detail";
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getAuctionWonDetail } from "@/actions/auction/auction-won-detail";
@@ -66,10 +65,10 @@ export function useWonDetail(auctionId: string) {
     data: auction,
     isPending: isAuctionQueryPending,
     error: auctionError,
-  } = useQuery<GetAuctionWonDetailReturn["auctionWonDetail"], Error>({
+  } = useQuery({
     queryKey: queryCacheKeys.auction.wonDetail(auctionId, userId),
     queryFn: async () => {
-      return (await getAuctionWonDetail(auctionId, userId)).auctionWonDetail;
+      return (await getAuctionWonDetail(auctionId, userId)).data;
     },
     enabled: auctionQueryEnabled,
   });

@@ -4,6 +4,7 @@ import { getCachedAuctionByAuctionId } from "@/actions/auction/cache/cache-aucti
 import { AUCTION_CONSTANTS, getAuctionUpdateSelect } from "@/lib/constants";
 import { prisma } from "@/library-setting/prisma";
 import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/types/auction-types";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -13,69 +14,62 @@ import { type AuctionWithDetails, type UpdateAuctionWithDetails } from "@/types/
  * @param auctionId オークションID
  * @returns オークション情報
  */
-export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<UpdateAuctionWithDetails | null> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+export async function getUpdatedAuctionByAuctionId(auctionId: string): PromiseResult<UpdateAuctionWithDetails | null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * オークションIDが指定されていない場合はエラーを返す
-     */
-    if (!auctionId) throw new Error("オークションIDが指定されていません");
+  /**
+   * オークションIDが指定されていない場合はエラーを返す
+   */
+  if (!auctionId) throw new Error("オークションIDが指定されていません");
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * オークション情報を取得
-     */
-    const updatedAuctionRaw = await prisma.auction.findUnique({
-      where: { id: auctionId },
-      select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
-    });
+  /**
+   * オークション情報を取得
+   */
+  const updatedAuctionRaw = await prisma.auction.findUnique({
+    where: { id: auctionId },
+    select: getAuctionUpdateSelect(AUCTION_CONSTANTS.DISPLAY.BID_HISTORY_LIMIT + 1),
+  });
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * オークション情報が見つからない場合
-     */
-    if (!updatedAuctionRaw) throw new Error("オークション情報が見つかりません");
+  /**
+   * オークション情報が見つからない場合
+   */
+  if (!updatedAuctionRaw) throw new Error("オークション情報が見つかりません");
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * オークション情報を更新
-     */
-    const updatedAuction: UpdateAuctionWithDetails = {
-      id: updatedAuctionRaw.id,
-      currentHighestBid: updatedAuctionRaw.currentHighestBid,
-      currentHighestBidderId: updatedAuctionRaw.currentHighestBidderId,
-      status: updatedAuctionRaw.task.status, // TaskStatusで統一
-      extensionTotalCount: updatedAuctionRaw.extensionTotalCount,
-      extensionLimitCount: updatedAuctionRaw.extensionLimitCount,
-      extensionTime: updatedAuctionRaw.extensionTime,
-      remainingTimeForExtension: updatedAuctionRaw.remainingTimeForExtension,
-      bidHistories: updatedAuctionRaw.bidHistories.map((bid) => {
-        return bid as unknown as {
-          id: string;
-          amount: number;
-          createdAt: Date | string;
-          isAutoBid: boolean;
-          user: { settings: { username: string } | null };
-        };
-      }),
-    };
+  /**
+   * オークション情報を更新
+   */
+  const updatedAuction: UpdateAuctionWithDetails = {
+    id: updatedAuctionRaw.id,
+    currentHighestBid: updatedAuctionRaw.currentHighestBid,
+    currentHighestBidderId: updatedAuctionRaw.currentHighestBidderId,
+    status: updatedAuctionRaw.task.status, // TaskStatusで統一
+    extensionTotalCount: updatedAuctionRaw.extensionTotalCount,
+    extensionLimitCount: updatedAuctionRaw.extensionLimitCount,
+    extensionTime: updatedAuctionRaw.extensionTime,
+    remainingTimeForExtension: updatedAuctionRaw.remainingTimeForExtension,
+    bidHistories: updatedAuctionRaw.bidHistories.map((bid) => {
+      return bid as unknown as {
+        id: string;
+        amount: number;
+        createdAt: Date | string;
+        isAutoBid: boolean;
+        user: { settings: { username: string } | null };
+      };
+    }),
+  };
 
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * オークション情報を返す
-     */
-    return updatedAuction;
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    console.error("src/lib/auction/action/auction-retrieve.ts_getUpdatedAuctionByAuctionId_error", error);
-    throw new Error(`${error instanceof Error ? error.message : "不明なエラーが発生しました"}`);
-  }
+  /**
+   * オークション情報を返す
+   */
+  return { success: true, data: updatedAuction, message: "オークション情報を取得しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -87,7 +81,7 @@ export async function getUpdatedAuctionByAuctionId(auctionId: string): Promise<U
  * @param auctionId オークションID
  * @returns オークション情報
  */
-export async function getAuctionByAuctionId(auctionId: string): Promise<AuctionWithDetails> {
+export async function getAuctionByAuctionId(auctionId: string): PromiseResult<AuctionWithDetails> {
   return await getCachedAuctionByAuctionId(auctionId);
 }
 

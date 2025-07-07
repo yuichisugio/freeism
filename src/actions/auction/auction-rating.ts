@@ -1,10 +1,12 @@
 "use server";
 
-import type { ReviewPosition } from "@prisma/client";
+import type { DisplayUserInfo } from "@/components/auction/common/auction-rating";
+import type { AuctionReview, ReviewPosition } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { getAuthenticatedSessionUserId } from "@/lib/utils";
 import { useCacheKeys } from "@/library-setting/nextjs-use-cache";
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 import { getCachedDisplayUserInfo } from "./cache/cache-auction-rating";
 
@@ -16,7 +18,10 @@ import { getCachedDisplayUserInfo } from "./cache/cache-auction-rating";
  * @param reviewPosition レビューの向き
  * @returns DisplayUserInfo[]
  */
-export async function getDisplayUserInfo(auctionId: string, reviewPosition: ReviewPosition) {
+export async function getDisplayUserInfo(
+  auctionId: string,
+  reviewPosition: ReviewPosition,
+): PromiseResult<DisplayUserInfo[]> {
   return await getCachedDisplayUserInfo(auctionId, reviewPosition);
 }
 
@@ -36,7 +41,7 @@ export async function createAuctionReview(
   rating: number,
   comment: string | null,
   reviewPosition: ReviewPosition,
-) {
+): PromiseResult<AuctionReview> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -54,18 +59,12 @@ export async function createAuctionReview(
     throw new Error("レビューポジションは必須です");
   }
 
-  // if (!rating)は0を偽値として扱うため、評価0が無効になるので、nullやundefinedを明示的に指定してチェックする
-  if (rating === null || rating === undefined) {
-    throw new Error("評価は必須です");
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   /**
    * 評価が0から5の間の「整数」であることを確認する
    * Number.isInteger(rating)は、ratingが整数であるかどうかを確認する関数
+   * if (!rating)は0を偽値として扱うため、評価0が無効になるので、nullやundefinedを明示的に指定してチェックする
    */
-  if (rating < 0 || 5 < rating || !Number.isInteger(rating)) {
+  if (rating === null || rating === undefined || rating < 0 || 5 < rating || !Number.isInteger(rating)) {
     throw new Error("評価は0から5の間の整数で指定してください");
   }
 
@@ -99,7 +98,12 @@ export async function createAuctionReview(
    */
   revalidateTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition).join(":"));
 
-  return review;
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 成功
+   */
+  return { success: true, data: review, message: "レビューを作成しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

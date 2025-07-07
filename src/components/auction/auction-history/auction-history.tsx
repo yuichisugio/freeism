@@ -343,7 +343,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
         <TabsContent value="bids" forceMount={activeTab === "bids" ? undefined : true} hidden={activeTab !== "bids"}>
           {/* 入札履歴（重複なしのオークション単位での履歴を表示） */}
           <HistoryGrid
-            items={bidHistoryResult ?? []}
+            items={bidHistoryResult?.data ?? []}
             renderItem={renderBidItem}
             emptyMessage="入札履歴はありません"
             loading={isLoadingCurrentTab}
@@ -387,7 +387,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
             </Label>
           </div>
           <HistoryGrid
-            items={wonHistoryResult ?? []}
+            items={wonHistoryResult?.data ?? []}
             renderItem={renderWonItem}
             emptyMessage="落札履歴はありません"
             loading={isLoadingCurrentTab}
@@ -446,7 +446,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
             </div>
           </div>
           <HistoryGrid
-            items={createdHistoryResult ?? []}
+            items={createdHistoryResult?.data ?? []}
             renderItem={renderCreatedItem}
             emptyMessage="出品履歴はありません"
             loading={isLoadingCurrentTab}
@@ -455,7 +455,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
       </Tabs>
 
       {/* ページネーション部分は一時的にコメントアウトしてLinterエラーを回避 */}
-      {!isLoadingCurrentTab && currentDataCount > 0 && (
+      {!isLoadingCurrentTab && currentDataCount && currentDataCount > 0 && (
         <AuctionHistoryPagination
           pagination={{
             currentPage: currentPage,

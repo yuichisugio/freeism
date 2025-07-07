@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/library-setting/prisma";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -9,7 +10,7 @@ import { prisma } from "@/library-setting/prisma";
  * @param userId ユーザーID
  * @returns ユーザーが参加しているグループID
  */
-export async function getUserGroupIds(userId: string) {
+export async function getUserGroupIds(userId: string): PromiseResult<string[]> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -41,5 +42,5 @@ export async function getUserGroupIds(userId: string) {
   /**
    * ユーザーが参加しているグループIDを返す
    */
-  return returnData;
+  return { success: true, data: returnData, message: "ユーザーが参加しているグループIDを取得しました" };
 }

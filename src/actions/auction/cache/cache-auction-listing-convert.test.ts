@@ -23,13 +23,14 @@ function convertExecutorsJson(executorsJsonString: string | null): ExecutorJsonI
 
         taskExecutors = parsedExecutors
           .map((exec: unknown): ExecutorJsonItem | null => {
-            if (isExecutorObjectFromDB(exec)) {
+            const validationResult = isExecutorObjectFromDB(exec);
+            if (validationResult.success && validationResult.data) {
               return {
-                id: exec.id,
-                rating: exec.rating,
-                userId: exec.user_id,
-                userImage: exec.user_image,
-                userSettingsUsername: exec.username ?? "未設定",
+                id: validationResult.data.id,
+                rating: validationResult.data.rating,
+                userId: validationResult.data.user_id,
+                userImage: validationResult.data.user_image,
+                userSettingsUsername: validationResult.data.username ?? "未設定",
               };
             }
             return null;

@@ -80,7 +80,7 @@ export default function AuctionDetailWrapper({ auctionId }: { auctionId: string 
 
   return (
     <Suspense fallback={<LoadingDisplay />}>
-      <AuctionDetailClient initialAuction={initialAuction} />
+      <AuctionDetailClient initialAuction={initialAuction.data} />
     </Suspense>
   );
 }

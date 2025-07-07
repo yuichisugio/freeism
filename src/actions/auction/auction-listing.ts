@@ -10,6 +10,7 @@ import type { AuctionListingResult, Suggestion } from "@/types/auction-types";
 import { cache } from "react";
 import { cachedGetAuctionListingsAndCount } from "@/actions/auction/cache/cache-auction-listing";
 import { cachedGetSearchSuggestions } from "@/actions/auction/cache/cache-auction-suggestion";
+import { type PromiseResult } from "@/types/general-types";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -20,7 +21,7 @@ import { cachedGetSearchSuggestions } from "@/actions/auction/cache/cache-auctio
  * @returns オークション一覧と総件数
  */
 export const getAuctionListingsAndCount = cache(
-  async (params: GetAuctionListingsParams): Promise<{ listings: AuctionListingResult; count: number }> => {
+  async (params: GetAuctionListingsParams): PromiseResult<{ listings: AuctionListingResult; count: number }> => {
     return await cachedGetAuctionListingsAndCount(params);
   },
 );
@@ -34,7 +35,7 @@ export const getAuctionListingsAndCount = cache(
  * @param limit 取得件数
  * @returns オークション検索サジェスト
  */
-export const getSearchSuggestions = cache(async (params: GetSearchSuggestionsParams): Promise<Suggestion[]> => {
+export const getSearchSuggestions = cache(async (params: GetSearchSuggestionsParams): PromiseResult<Suggestion[]> => {
   return await cachedGetSearchSuggestions(params);
 });
 

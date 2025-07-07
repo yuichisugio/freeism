@@ -116,8 +116,8 @@ describe("bid-auction", () => {
         );
 
         // Assert
-        expect(result).toHaveLength(1);
-        expect(result[0]).toStrictEqual(createExpectedResult(mockBidHistory));
+        expect(result.data).toHaveLength(1);
+        expect(result.data[0]).toStrictEqual(createExpectedResult(mockBidHistory));
         expectPrismaFindManyCall(TEST_CONSTANTS.page, TEST_CONSTANTS.userId, TEST_CONSTANTS.itemPerPage);
       });
 
@@ -152,9 +152,9 @@ describe("bid-auction", () => {
         );
 
         // Assert
-        expect(result).toHaveLength(2);
-        expect(result[0]).toStrictEqual(createExpectedResult(mockBidHistories[0]));
-        expect(result[1]).toStrictEqual(createExpectedResult(mockBidHistories[1]));
+        expect(result.data).toHaveLength(2);
+        expect(result.data[0]).toStrictEqual(createExpectedResult(mockBidHistories[0]));
+        expect(result.data[1]).toStrictEqual(createExpectedResult(mockBidHistories[1]));
       });
 
       test("should return empty array when no bid histories", async () => {
@@ -171,7 +171,7 @@ describe("bid-auction", () => {
         );
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result.data).toStrictEqual([]);
       });
     });
 
@@ -241,7 +241,7 @@ describe("bid-auction", () => {
         const result = await getUserBidHistoriesCount(TEST_CONSTANTS.userId);
 
         // Assert
-        expect(result).toBe(count);
+        expect(result.data).toBe(count);
         expect(prismaMock.$queryRaw).toHaveBeenCalledWith(expect.anything(), TEST_CONSTANTS.userId);
       });
     });
