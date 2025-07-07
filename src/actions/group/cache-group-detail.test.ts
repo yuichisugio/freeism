@@ -52,7 +52,11 @@ describe("getCachedGroupById", () => {
       const result = await getCachedGroupById(mockGroupId);
 
       // Assert
-      expect(result).toStrictEqual(expectedGroup);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "グループ情報を取得しました",
+        data: expectedGroup,
+      });
       expect(prismaMock.group.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
         where: { id: mockGroupId },
@@ -104,7 +108,11 @@ describe("getCachedGroupById", () => {
       };
 
       // 検証
-      expect(result).toStrictEqual(expectedGroup);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "グループ情報を取得しました",
+        data: expectedGroup,
+      });
       expect(result.data.joinMemberCount).toBe(0);
       expect(result.data.members).toHaveLength(0);
     });

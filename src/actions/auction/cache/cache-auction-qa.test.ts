@@ -223,8 +223,8 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          messages: [mockFormattedMessage],
-          error: "",
+          data: [mockFormattedMessage],
+          message: "オークションQAを取得しました",
         });
 
         expect(prismaMock.auctionMessage.findMany).toHaveBeenCalledWith({
@@ -266,8 +266,8 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          messages: [],
-          error: "",
+          data: [],
+          message: "オークションQAを取得しました",
         });
       });
 
@@ -295,8 +295,8 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          messages: [mockFormattedMessage, mockFormattedMessage2],
-          error: "",
+          data: [mockFormattedMessage, mockFormattedMessage2],
+          message: "オークションQAを取得しました",
         });
       });
 
@@ -340,8 +340,8 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          messages: [mockFormattedMessageWithDefaultUsername],
-          error: "",
+          data: [mockFormattedMessageWithDefaultUsername],
+          message: "オークションQAを取得しました",
         });
       });
     });
@@ -361,8 +361,8 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          auctionPersonInfo: mockFormattedAuctionPersonInfo,
-          error: "",
+          data: mockFormattedAuctionPersonInfo,
+          message: "オークション情報を取得しました",
         });
 
         expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
@@ -415,14 +415,14 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          auctionPersonInfo: {
+          data: {
             creator: {
               id: undefined,
             },
             reporters: undefined,
             executors: undefined,
           },
-          error: "",
+          message: "オークション情報を取得しました",
         });
       });
 
@@ -448,14 +448,14 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          auctionPersonInfo: {
+          data: {
             creator: {
               id: VALID_CREATOR_ID,
             },
             reporters: [],
             executors: [],
           },
-          error: "",
+          message: "オークション情報を取得しました",
         });
       });
 
@@ -481,14 +481,14 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          auctionPersonInfo: {
+          data: {
             creator: {
               id: VALID_CREATOR_ID,
             },
             reporters: [{ id: null }],
             executors: [{ id: null }],
           },
-          error: "",
+          message: "オークション情報を取得しました",
         });
       });
 
@@ -514,14 +514,14 @@ describe("cache-auction-qa", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          auctionPersonInfo: {
+          data: {
             creator: {
               id: VALID_CREATOR_ID,
             },
             reporters: [{ id: "reporter-1" }, { id: "reporter-2" }],
             executors: [{ id: "executor-1" }, { id: "executor-2" }],
           },
-          error: "",
+          message: "オークション情報を取得しました",
         });
       });
     });

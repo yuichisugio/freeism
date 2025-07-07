@@ -155,7 +155,11 @@ describe("created-detail.ts", () => {
         const result = await updateDeliveryMethod(testTask.id, newDeliveryMethod, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual(updatedTask);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "提供方法を更新しました",
+          data: null,
+        });
         expect(mockCheckIsPermission).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
         expect(prismaMock.task.update).toHaveBeenCalledWith({
           where: { id: testTask.id },
@@ -181,7 +185,11 @@ describe("created-detail.ts", () => {
         const result = await updateDeliveryMethod(testTask.id, newDeliveryMethod, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual(updatedTask);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "提供方法を更新しました",
+          data: null,
+        });
         expect(prismaMock.task.update).toHaveBeenCalledWith({
           where: { id: testTask.id },
           data: { deliveryMethod: trimmedDeliveryMethod },
@@ -211,32 +219,47 @@ describe("created-detail.ts", () => {
         );
       });
 
-      test("should throw error when deliveryMethod is only whitespace", async () => {
-        // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "   ", testUser.id)).rejects.toThrow(
-          "提供方法を入力してください",
-        );
+      test("should return error when deliveryMethod is only whitespace", async () => {
+        // Act
+        const result = await updateDeliveryMethod(testTask.id, "   ", testUser.id);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          message: "タスクの提供方法を入力してください",
+          data: null,
+        });
       });
 
-      test("should throw error when user has no permission with error message", async () => {
+      test("should return error when user has no permission with error message", async () => {
         // Arrange
         mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
-        // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
-          "Permission check failed",
-        );
+        // Act
+        const result = await updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          message: "Permission check failed",
+          data: null,
+        });
         expect(prismaMock.task.update).not.toHaveBeenCalled();
       });
 
-      test("should throw error when checkIsOwner fails without error message", async () => {
+      test("should return error when checkIsOwner fails without error message", async () => {
         // Arrange
         mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
-        // Act & Assert
-        await expect(updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id)).rejects.toThrow(
-          "Permission check failed",
-        );
+        // Act
+        const result = await updateDeliveryMethod(testTask.id, "新しい提供方法", testUser.id);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          message: "Permission check failed",
+          data: null,
+        });
       });
 
       test("should throw error when task.update fails", async () => {
@@ -272,7 +295,11 @@ describe("created-detail.ts", () => {
         const result = await completeTaskDelivery(testTask.id, testUser.id);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "タスク完了処理に成功しました",
+          data: null,
+        });
         expect(mockCheckIsPermission).toHaveBeenCalledWith(testUser.id, undefined, testTask.id, true);
         expect(prismaMock.task.update).toHaveBeenCalledWith({
           where: { id: testTask.id },
@@ -285,29 +312,47 @@ describe("created-detail.ts", () => {
     describe("異常系", () => {
       test("should throw error when taskId is missing", async () => {
         // Act & Assert
-        await expect(completeTaskDelivery("", testUser.id)).rejects.toThrow("タスクID、ユーザーIDが必要です");
+        await expect(completeTaskDelivery("", testUser.id)).rejects.toThrow(
+          "タスク完了処理: タスクID、ユーザーIDが必要です",
+        );
       });
 
       test("should throw error when userId is missing", async () => {
         // Act & Assert
-        await expect(completeTaskDelivery(testTask.id, "")).rejects.toThrow("タスクID、ユーザーIDが必要です");
+        await expect(completeTaskDelivery(testTask.id, "")).rejects.toThrow(
+          "タスク完了処理: タスクID、ユーザーIDが必要です",
+        );
       });
 
-      test("should throw error when user has no permission", async () => {
+      test("should return error when user has no permission", async () => {
         // Arrange
         mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
-        // Act & Assert
-        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("Permission check failed");
+        // Act
+        const result = await completeTaskDelivery(testTask.id, testUser.id);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          message: "Permission check failed",
+          data: null,
+        });
         expect(prismaMock.task.update).not.toHaveBeenCalled();
       });
 
-      test("should throw error when checkIsOwner fails without error message", async () => {
+      test("should return error when checkIsOwner fails without error message", async () => {
         // Arrange
         mockCheckIsPermission.mockResolvedValue({ success: false, message: "Permission check failed", data: false });
 
-        // Act & Assert
-        await expect(completeTaskDelivery(testTask.id, testUser.id)).rejects.toThrow("Permission check failed");
+        // Act
+        const result = await completeTaskDelivery(testTask.id, testUser.id);
+
+        // Assert
+        expect(result).toStrictEqual({
+          success: false,
+          message: "Permission check failed",
+          data: null,
+        });
       });
 
       test("should throw error when task.update fails", async () => {

@@ -156,23 +156,22 @@ describe("watchlist", () => {
           message: "Unique constraint failed",
         });
 
-        // 実行 - 同時に2つの操作を実行
-        const [result1, result2] = await Promise.all([
+        // 実行 - 同時に2つの操作を実行してエラーをキャッチ
+        const [result1, result2] = await Promise.allSettled([
           serverToggleWatchlist(auctionId, userId, isWatchlisted),
           serverToggleWatchlist(auctionId, userId, isWatchlisted),
         ]);
 
         // 検証 - 1つは成功、1つは失敗
-        expect(result1).toStrictEqual({
-          success: true,
-          message: "ウォッチリストに追加しました",
-          data: true,
-        });
-        expect(result2).toStrictEqual({
-          success: true,
-          message: "ウォッチリストに追加しました",
-          data: true,
-        });
+        expect(result1.status).toBe("fulfilled");
+        if (result1.status === "fulfilled") {
+          expect(result1.value).toStrictEqual({
+            success: true,
+            message: "ウォッチリストに追加しました",
+            data: true,
+          });
+        }
+        expect(result2.status).toBe("rejected");
         expect(prismaMock.taskWatchList.create).toHaveBeenCalledTimes(2);
       });
 
@@ -454,16 +453,10 @@ describe("watchlist", () => {
       const auctionId = undefined as unknown as string;
       const userId = undefined as unknown as string;
 
-      // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(
-        null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>,
+      // 実行と検証
+      await expect(serverIsAuctionWatched(auctionId, userId)).rejects.toThrow(
+        "serverIsAuctionWatched: オークションIDまたはユーザーIDが存在しません",
       );
-
-      // 実行
-      const result = await serverIsAuctionWatched(auctionId, userId);
-
-      // 検証
-      expect(result).toBe(false);
     });
 
     test("should return true when watchlist item has only id field", async () => {
@@ -481,7 +474,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(true);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: true,
+      });
     });
 
     test("should handle very long string parameters", async () => {
@@ -490,15 +487,17 @@ describe("watchlist", () => {
       const userId = "u".repeat(1000);
 
       // モックの設定
-      prismaMock.taskWatchList.findFirst.mockResolvedValue(
-        null as unknown as Awaited<ReturnType<typeof prismaMock.taskWatchList.findFirst>>,
-      );
+      prismaMock.taskWatchList.findFirst.mockResolvedValue(null);
 
       // 実行
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(false);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: false,
+      });
     });
 
     // 新しいテストケース: Prismaのタイムアウトエラー
@@ -514,12 +513,9 @@ describe("watchlist", () => {
       // モックの設定
       prismaMock.taskWatchList.findFirst.mockRejectedValue(timeoutError);
 
-      // 実行
-      const result = await serverIsAuctionWatched(auctionId, userId);
-
-      // 検証
-      expect(result).toBe(false);
-      expect(console.error).toHaveBeenCalledWith("ウォッチリスト状態確認エラー:", timeoutError);
+      // 実行と検証
+      await expect(serverIsAuctionWatched(auctionId, userId)).rejects.toThrow("Operations timed out after 10000ms");
+      expect(prismaMock.taskWatchList.findFirst).toHaveBeenCalled();
     });
 
     // 新しいテストケース: 特殊文字を含むIDでの検索
@@ -540,7 +536,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(true);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: true,
+      });
     });
 
     // 新しいテストケース: 複数の同時検索
@@ -565,8 +565,8 @@ describe("watchlist", () => {
       ]);
 
       // 検証
-      expect(result1).toBe(true);
-      expect(result2).toBe(false);
+      expect(result1.data).toBe(true);
+      expect(result2.data).toBe(false);
     });
 
     // 新しいテストケース: 空白文字のパラメータ
@@ -582,7 +582,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(false);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: false,
+      });
     });
 
     // 新しいテストケース: 数値のみのID
@@ -603,7 +607,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(true);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: true,
+      });
     });
   });
 
@@ -624,15 +632,15 @@ describe("watchlist", () => {
 
       // 実行 - 追加操作
       const addResult = await serverToggleWatchlist(auctionId, userId, false);
-      expect(addResult).toBe(true);
+      expect(addResult.data).toBe(true);
 
       // 実行 - 削除操作
       const removeResult = await serverToggleWatchlist(auctionId, userId, true);
-      expect(removeResult).toBe(false);
+      expect(removeResult.data).toBe(false);
 
       // 実行 - 再度追加操作
       const addAgainResult = await serverToggleWatchlist(auctionId, userId, false);
-      expect(addAgainResult).toBe(true);
+      expect(addAgainResult.data).toBe(true);
     });
 
     test("should handle multiple rapid search operations", async () => {
@@ -657,7 +665,7 @@ describe("watchlist", () => {
       // 検証
       expect(results).toHaveLength(20);
       results.forEach((result, index) => {
-        expect(result).toBe(index % 2 === 0);
+        expect(result.data).toBe(index % 2 === 0);
       });
     });
   });
@@ -681,7 +689,7 @@ describe("watchlist", () => {
       const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
       // 検証 - 文字列"true"はtruthyなので削除操作が実行される
-      expect(result).toBe(false);
+      expect(result.data).toBe(false);
     });
 
     test("should handle zero as auctionId", async () => {
@@ -701,7 +709,7 @@ describe("watchlist", () => {
       const result = await serverToggleWatchlist(auctionId, userId, isWatchlisted);
 
       // 検証 - "0"は有効な文字列なので成功
-      expect(result).toBe(true);
+      expect(result.data).toBe(true);
     });
 
     test("should handle negative numbers as IDs", async () => {
@@ -721,7 +729,11 @@ describe("watchlist", () => {
       const result = await serverIsAuctionWatched(auctionId, userId);
 
       // 検証
-      expect(result).toBe(true);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "ウォッチリストの状態を確認しました",
+        data: true,
+      });
     });
   });
 });

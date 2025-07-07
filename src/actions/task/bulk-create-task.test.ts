@@ -177,24 +177,29 @@ describe("bulkCreateTask", () => {
       ["data is null", testGroupId, testUserId, null as unknown as typeof validTaskData],
       ["data is empty array", testGroupId, testUserId, []],
     ])("should return error when %s", async (_description, groupId, userId, data) => {
-      // Act
-      const result = await bulkCreateTask(data, groupId, userId);
-
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("パラメータが不正です");
+      // Act & Assert
+      try {
+        await bulkCreateTask(data, groupId, userId);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("パラメータが不正です");
+      }
     });
 
     test("should return error when group does not exist", async () => {
       // Arrange
       prismaMock.group.findUnique.mockResolvedValue(null);
 
-      // Act
-      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
+      // Act & Assert
+      try {
+        await bulkCreateTask(validTaskData, testGroupId, testUserId);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("指定されたグループが見つかりません");
+      }
 
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("指定されたグループが見つかりません");
       expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
         where: { id: testGroupId },
         select: { id: true },
@@ -207,12 +212,14 @@ describe("bulkCreateTask", () => {
       prismaMock.group.findUnique.mockResolvedValue(group);
       prismaMock.$transaction.mockRejectedValue(new Error("Database error"));
 
-      // Act
-      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
-
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("Database error");
+      // Act & Assert
+      try {
+        await bulkCreateTask(validTaskData, testGroupId, testUserId);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("Database error");
+      }
     });
 
     test("should handle general error", async () => {
@@ -221,12 +228,13 @@ describe("bulkCreateTask", () => {
       prismaMock.group.findUnique.mockResolvedValue(group);
       prismaMock.$transaction.mockRejectedValue("Non-error object");
 
-      // Act
-      const result = await bulkCreateTask(validTaskData, testGroupId, testUserId);
-
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("タスクの一括登録中にエラーが発生しました");
+      // Act & Assert
+      try {
+        await bulkCreateTask(validTaskData, testGroupId, testUserId);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBe("Non-error object");
+      }
     });
   });
 

@@ -159,14 +159,8 @@ describe("permission.ts", () => {
           { groupId: undefined as unknown as string, userId: "valid-user-id", description: "groupId is undefined" },
           { groupId: "valid-group-id", userId: undefined as unknown as string, description: "userId is undefined" },
         ])("should return error when $description", async ({ groupId, userId }) => {
-          // Act
-          const result = await grantOwnerPermission(groupId, userId);
-
-          // Assert
-          expect(result).toStrictEqual({
-            success: false,
-            message: "グループオーナー権限の付与中にエラーが発生しました: 無効なパラメータが指定されました",
-          });
+          // Act & Assert
+          await expect(grantOwnerPermission(groupId, userId)).rejects.toThrow("無効なパラメータが指定されました");
         });
       });
 
@@ -259,15 +253,8 @@ describe("permission.ts", () => {
           .mockResolvedValueOnce(targetMembership);
         prismaMock.groupMembership.update.mockRejectedValue(new Error("Database error"));
 
-        // Act
-        const result = await grantOwnerPermission(testGroup.id, targetUser.id);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "グループオーナー権限の付与中にエラーが発生しました: Database error",
-        });
+        // Act & Assert
+        await expect(grantOwnerPermission(testGroup.id, targetUser.id)).rejects.toThrow("Database error");
       });
 
       test("should handle unknown error gracefully", async () => {
@@ -293,15 +280,8 @@ describe("permission.ts", () => {
         // prisma.groupMembership.updateで未知のエラーを発生させる
         prismaMock.groupMembership.update.mockRejectedValue("Unknown error");
 
-        // Act
-        const result = await grantOwnerPermission(testGroup.id, targetUser.id);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "グループオーナー権限の付与中にエラーが発生しました: 不明なエラー",
-        });
+        // Act & Assert
+        await expect(grantOwnerPermission(testGroup.id, targetUser.id)).rejects.toThrow();
       });
     });
 
@@ -356,7 +336,11 @@ describe("permission.ts", () => {
         const result = await checkGroupMembership(testUser.id, testGroup.id);
 
         // Assert
-        expect(result).toStrictEqual(expectedMembership);
+        expect(result).toStrictEqual({
+          success: true,
+          data: expectedMembership,
+          message: "グループメンバーシップを取得しました",
+        });
         expect(prismaMock.groupMembership.findFirst).toHaveBeenCalledWith({
           where: {
             userId: testUser.id,
@@ -377,7 +361,11 @@ describe("permission.ts", () => {
         const result = await checkGroupMembership(testUser.id, testGroup.id);
 
         // Assert
-        expect(result).toBeNull();
+        expect(result).toStrictEqual({
+          success: false,
+          data: null,
+          message: "グループメンバーシップが存在しません",
+        });
       });
     });
 
@@ -386,11 +374,8 @@ describe("permission.ts", () => {
         // Arrange
         prismaMock.groupMembership.findFirst.mockRejectedValue(new Error("Database error"));
 
-        // Act
-        const result = await checkGroupMembership(testUser.id, testGroup.id);
-
-        // Assert
-        expect(result).toBeNull();
+        // Act & Assert
+        await expect(checkGroupMembership(testUser.id, testGroup.id)).rejects.toThrow("Database error");
       });
 
       test.each([
@@ -402,7 +387,7 @@ describe("permission.ts", () => {
         prismaMock.groupMembership.findFirst.mockResolvedValue(null);
 
         // Act & Assert
-        expect(await checkGroupMembership(userId, groupId)).toBeNull();
+        await expect(checkGroupMembership(userId, groupId)).rejects.toThrow("無効なパラメータが指定されました");
       });
     });
   });

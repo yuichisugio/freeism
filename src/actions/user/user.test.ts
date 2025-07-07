@@ -53,7 +53,11 @@ describe("getAllUsers", () => {
   describe("正常系", () => {
     test("should return all users when getCachedAllUsers returns valid data", async () => {
       // Arrange
-      mockGetCachedAllUsers.mockResolvedValue(mockUsers);
+      mockGetCachedAllUsers.mockResolvedValue({
+        success: true,
+        message: "ユーザー一覧を取得しました",
+        data: mockUsers,
+      });
 
       // Act
       const result = await getAllUsers();
@@ -77,7 +81,11 @@ describe("getAllUsers", () => {
   describe("異常系", () => {
     test("should return empty array when getCachedAllUsers returns empty array", async () => {
       // Arrange
-      mockGetCachedAllUsers.mockResolvedValue([]);
+      mockGetCachedAllUsers.mockResolvedValue({
+        success: true,
+        message: "ユーザー一覧を取得しました",
+        data: [],
+      });
 
       // Act
       const result = await getAllUsers();

@@ -123,7 +123,8 @@ describe("bulkCreateEvaluations", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        analyses: [{ count: 2, message: "2件のデータを登録しました" }],
+        data: [{ count: 2, message: "2件のデータを登録しました" }],
+        message: "2件のデータを登録しました",
       });
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
     });
@@ -155,7 +156,8 @@ describe("bulkCreateEvaluations", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        analyses: [{ count: 2, message: "2件のデータを登録しました" }],
+        data: [{ count: 2, message: "2件のデータを登録しました" }],
+        message: "2件のデータを登録しました",
       });
     });
 
@@ -182,7 +184,8 @@ describe("bulkCreateEvaluations", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        analyses: [{ count: 2, message: "2件のデータを登録しました" }],
+        data: [{ count: 2, message: "2件のデータを登録しました" }],
+        message: "2件のデータを登録しました",
       });
     });
 
@@ -206,7 +209,8 @@ describe("bulkCreateEvaluations", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        analyses: [{ count: 100, message: "100件のデータを登録しました" }],
+        data: [{ count: 100, message: "100件のデータを登録しました" }],
+        message: "100件のデータを登録しました",
       });
     });
   });
@@ -219,17 +223,13 @@ describe("bulkCreateEvaluations", () => {
       { data: null as unknown as EvaluationTestData[], expectedError: "無効なパラメータが指定されました" },
     ])("should return error when rawData is empty or invalid", async ({ data, expectedError }) => {
       // Arrange & Act & Assert
-
-      const result = await bulkCreateEvaluations(
-        data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
-        testGroup.id,
-        testUser.id,
-      );
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: expectedError,
-      });
+      await expect(
+        bulkCreateEvaluations(
+          data as unknown as { taskId: string; contributionPoint: number; evaluationLogic: string }[],
+          testGroup.id,
+          testUser.id,
+        ),
+      ).rejects.toThrow(expectedError);
     });
 
     test.each([
@@ -336,11 +336,7 @@ describe("bulkCreateEvaluations", () => {
       ])("should return error when tasks not found", async ({ data, foundTasks, expectedErrorContains }) => {
         // Arrange & Act & Assert
         setupTaskNotFoundPrismaMock(foundTasks);
-        const result = await bulkCreateEvaluations(data, testGroup.id, testUser.id);
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.message).toContain(expectedErrorContains);
-        }
+        await expect(bulkCreateEvaluations(data, testGroup.id, testUser.id)).rejects.toThrow(expectedErrorContains);
       });
 
       test("should handle various database errors", async () => {
@@ -356,18 +352,15 @@ describe("bulkCreateEvaluations", () => {
         // Act & Assert
         const errorTestCases = [
           { error: new Error("データベース接続エラー"), expectedError: "データベース接続エラー" },
-          { error: "予期しないエラー", expectedError: "貢献評価の一括登録中にエラーが発生しました" },
+          { error: "予期しないエラー", expectedError: "予期しないエラー" },
         ];
 
         for (const testCase of errorTestCases) {
           prismaMock.$transaction.mockRejectedValue(testCase.error as Error);
 
-          const result = await bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id);
-
-          expect(result.success).toBe(false);
-          if (!result.success) {
-            expect(result.message).toBe(testCase.expectedError);
-          }
+          await expect(bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id)).rejects.toThrow(
+            testCase.expectedError,
+          );
         }
       });
 
@@ -393,14 +386,10 @@ describe("bulkCreateEvaluations", () => {
           return await callback(mockTx as unknown as PrismaTransaction);
         });
 
-        // Act
-        const result = await bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id);
-
-        // Assert
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.message).toBe("データ作成エラー");
-        }
+        // Act & Assert
+        await expect(bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id)).rejects.toThrow(
+          "データ作成エラー",
+        );
       });
     });
   });

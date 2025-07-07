@@ -69,31 +69,35 @@ describe("cachedExportGroupAnalytics", () => {
 
       // 検証
       expect(result).toStrictEqual({
+        success: true,
+        message: "分析データのエクスポートが完了しました",
         data: {
-          評価者1: [
-            {
-              分析ID: "task-1",
-              タスクID: "task-1",
-              貢献ポイント: 100,
-              評価ロジック: "自動評価ロジック",
-              評価者ID: "evaluator-1",
-              評価者名: "評価者1",
-              タスク内容: "テストタスク",
-              参照情報: "https://example.com",
-              証拠情報: "証拠情報",
-              ステータス: TaskStatus.TASK_COMPLETED,
-              貢献タイプ: ContributionType.REWARD,
-              タスク報告者: "",
-              タスク実行者: "",
-              タスク作成者: "作成者1",
-              グループ目標: "テスト目標",
-              評価方法: "自動評価",
-              作成日: "2024-01-15",
-            },
-          ],
+          data: {
+            評価者1: [
+              {
+                分析ID: "task-1",
+                タスクID: "task-1",
+                貢献ポイント: 100,
+                評価ロジック: "自動評価ロジック",
+                評価者ID: "evaluator-1",
+                評価者名: "評価者1",
+                タスク内容: "テストタスク",
+                参照情報: "https://example.com",
+                証拠情報: "証拠情報",
+                ステータス: TaskStatus.TASK_COMPLETED,
+                貢献タイプ: ContributionType.REWARD,
+                タスク報告者: "",
+                タスク実行者: "",
+                タスク作成者: "作成者1",
+                グループ目標: "テスト目標",
+                評価方法: "自動評価",
+                作成日: "2024-01-15",
+              },
+            ],
+          },
+          totalPages: 1,
+          currentPage: 1,
         },
-        totalPages: 1,
-        currentPage: 1,
       });
     });
 
@@ -116,9 +120,13 @@ describe("cachedExportGroupAnalytics", () => {
 
       // 検証 - ページネーションの計算
       expect(result).toStrictEqual({
-        data: {},
-        totalPages: 2, // 400 / 200 = 2ページ
-        currentPage: 2,
+        success: true,
+        message: "分析データのエクスポートが完了しました",
+        data: {
+          data: {},
+          totalPages: 2, // 400 / 200 = 2ページ
+          currentPage: 2,
+        },
       });
 
       // Prismaの呼び出し検証 - skip/takeが正しく設定されているか
@@ -265,9 +273,10 @@ describe("cachedExportGroupAnalytics", () => {
       const result = await cachedExportGroupAnalytics(groupId, 1, true);
 
       // 検証 - 評価日が追加されているか
-      expect(result.data?.data?.[0]).toHaveProperty("評価日", "2024-01-20");
-      expect(result.data?.data?.[0]).toHaveProperty("評価者名", "評価者1");
-      expect(result.data?.data?.[0]).toHaveProperty("評価者ID", "evaluator-1");
+      const evaluatorData = Object.values(result.data?.data ?? {})[0];
+      expect(evaluatorData?.[0]).toHaveProperty("評価日", "2024-01-20");
+      expect(evaluatorData?.[0]).toHaveProperty("評価者名", "未設定_null");
+      expect(evaluatorData?.[0]).toHaveProperty("評価者ID", "");
     });
 
     test("should handle tasks with reporters and executors correctly", async () => {
@@ -508,9 +517,7 @@ describe("cachedExportGroupAnalytics", () => {
       );
 
       // 関数実行とエラー検証
-      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow(
-        "分析データのエクスポート中にエラーが発生しました: グループが見つかりません",
-      );
+      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow("グループが見つかりません");
     });
 
     test("should throw error when database error occurs", async () => {
@@ -523,9 +530,7 @@ describe("cachedExportGroupAnalytics", () => {
       );
 
       // 関数実行とエラー検証
-      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow(
-        "分析データのエクスポート中にエラーが発生しました: Database connection error",
-      );
+      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow("Database connection error");
     });
 
     test("should throw error when task is not found", async () => {
@@ -540,9 +545,7 @@ describe("cachedExportGroupAnalytics", () => {
         mockGroup as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
       );
 
-      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow(
-        "分析データのエクスポート中にエラーが発生しました: タスクが見つかりません",
-      );
+      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow("タスクが見つかりません");
     });
 
     test.each([
@@ -566,7 +569,7 @@ describe("cachedExportGroupAnalytics", () => {
           onlyTaskCompleted!,
           limit as number | undefined,
         ),
-      ).rejects.toThrow(`分析データのエクスポート中にエラーが発生しました: パラメータが不正です`);
+      ).rejects.toThrow(`パラメータが不正です`);
     });
   });
 
@@ -581,9 +584,7 @@ describe("cachedExportGroupAnalytics", () => {
       const groupId = "";
 
       // 関数実行とエラー検証
-      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow(
-        "分析データのエクスポート中にエラーが発生しました: パラメータが不正です",
-      );
+      await expect(cachedExportGroupAnalytics(groupId)).rejects.toThrow("パラメータが不正です");
     });
 
     test("should throw error for page 0", async () => {
@@ -592,9 +593,7 @@ describe("cachedExportGroupAnalytics", () => {
       const page = 0;
 
       // 関数実行とエラー検証
-      await expect(cachedExportGroupAnalytics(groupId, page)).rejects.toThrow(
-        "分析データのエクスポート中にエラーが発生しました: パラメータが不正です",
-      );
+      await expect(cachedExportGroupAnalytics(groupId, page)).rejects.toThrow("パラメータが不正です");
     });
 
     test("should handle tasks count of exactly 200", async () => {

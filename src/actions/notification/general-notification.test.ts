@@ -157,7 +157,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
       expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, {
         userIds: ["user-1", "user-2"],
         groupId: undefined,
@@ -230,7 +230,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(notificationParams);
 
       // Assert
-      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
       expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(targetType, expectedCall);
     });
 
@@ -268,7 +268,7 @@ describe("sendGeneralNotification", () => {
         const result = await sendGeneralNotification(params);
 
         // Assert
-        expect(result).toStrictEqual({ success: true, message: expectedMessage });
+        expect(result).toStrictEqual({ success: true, message: expectedMessage, data: null });
         expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
       },
     );
@@ -373,11 +373,8 @@ describe("sendGeneralNotification", () => {
       // Arrange
       const params = createValidGeneralNotificationParams(overrides as unknown as Partial<GeneralNotificationParams>);
 
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, message: "必須パラメータが不足しています" });
+      // Act & Assert
+      await expect(sendGeneralNotification(params)).rejects.toThrow("必須パラメータが不足しています");
       expect(mockGetNotificationTargetUserIds).not.toHaveBeenCalled();
       expectNotificationMethodCalls(false, false, false);
     });
@@ -391,11 +388,8 @@ describe("sendGeneralNotification", () => {
         data: [],
       });
 
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, message: "通知の対象者が見つかりません" });
+      // Act & Assert
+      await expect(sendGeneralNotification(params)).rejects.toThrow("通知の対象者が見つかりません");
       expectNotificationMethodCalls(false, false, false);
     });
 
@@ -434,11 +428,8 @@ describe("sendGeneralNotification", () => {
       const params = createValidGeneralNotificationParams({ sendMethods });
       mockSetup();
 
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, message: expectedError });
+      // Act & Assert
+      await expect(sendGeneralNotification(params)).rejects.toThrow(expectedError);
       expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
 
@@ -464,11 +455,8 @@ describe("sendGeneralNotification", () => {
       });
       mockSetup();
 
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, message: expectedError });
+      // Act & Assert
+      await expect(sendGeneralNotification(params)).rejects.toThrow(expectedError);
     });
   });
 
@@ -520,7 +508,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
       expect(mockGetNotificationTargetUserIds).toHaveBeenCalledWith(NotificationTargetType.USER, expectedCall);
     });
 
@@ -536,8 +524,8 @@ describe("sendGeneralNotification", () => {
       ]);
 
       // Assert
-      expect(result1).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
-      expect(result2).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result1).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
+      expect(result2).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
     });
 
     test.each([
@@ -563,7 +551,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
       expect(mockSendInAppNotification).toHaveBeenCalled();
     });
   });
@@ -584,11 +572,8 @@ describe("sendGeneralNotification", () => {
         message: "アプリ内通知エラー",
       });
 
-      // Act
-      const result = await sendGeneralNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, message: "アプリ内通知の送信に失敗しました" });
+      // Act & Assert
+      await expect(sendGeneralNotification(params)).rejects.toThrow("アプリ内通知の送信に失敗しました");
       // 最初の失敗で処理が停止するため、後続の通知は呼ばれない
       expectNotificationMethodCalls(true, false, false);
     });
@@ -621,7 +606,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true, message: expectedMessage });
+      expect(result).toStrictEqual({ success: true, message: expectedMessage, data: null });
       expectNotificationMethodCalls(expectedCalls.inApp, expectedCalls.email, expectedCalls.push);
     });
 
@@ -647,7 +632,7 @@ describe("sendGeneralNotification", () => {
       const result = await sendGeneralNotification(params);
 
       // Assert
-      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました" });
+      expect(result).toStrictEqual({ success: true, message: "通知の登録を完了しました", data: null });
     });
   });
 });

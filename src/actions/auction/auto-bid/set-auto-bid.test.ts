@@ -259,20 +259,9 @@ describe("setAutoBid", () => {
       // executeAutoBidでエラーが発生する場合
       mockExecuteAutoBid.mockRejectedValue(new Error("Auto bid execution failed"));
 
-      // Act
-      const result = await setAutoBid(testAuctionId, 200, 10);
-
-      // Assert
-      // 自動入札処理でエラーが発生しても設定自体は成功している
-      expect(result).toStrictEqual({
-        success: true,
-        message: "自動入札を設定しました",
-        data: {
-          id: mockAutoBid.id,
-          maxBidAmount: mockAutoBid.maxBidAmount,
-          bidIncrement: mockAutoBid.bidIncrement,
-        },
-      });
+      // Act & Assert
+      // executeAutoBidでエラーが発生すると例外が投げられることを確認
+      await expect(setAutoBid(testAuctionId, 200, 10)).rejects.toThrow("Auto bid execution failed");
     });
   });
 

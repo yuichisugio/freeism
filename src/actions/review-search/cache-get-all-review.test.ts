@@ -62,38 +62,42 @@ describe("cache-review-search_getCachedAllReviews", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        reviews: [
-          {
-            id: "review-1",
-            rating: 5,
-            comment: "全体検索テスト",
-            createdAt: new Date("2024-01-01"),
-            updatedAt: new Date("2024-01-01"),
-            reviewPosition: ReviewPosition.BUYER_TO_SELLER,
-            reviewer: {
-              id: "reviewer-1",
-              username: "reviewer1",
-            },
-            reviewee: {
-              id: "reviewee-1",
-              username: "reviewee1",
-            },
-            auction: {
-              id: "auction-1",
-              task: {
-                id: "task-1",
-                task: "全体タスク",
-                category: "開発",
-                group: {
-                  id: "group-1",
-                  name: "全体グループ",
+        success: true,
+        message: "全レビューを取得しました",
+        data: {
+          reviews: [
+            {
+              id: "review-1",
+              rating: 5,
+              comment: "全体検索テスト",
+              createdAt: new Date("2024-01-01"),
+              updatedAt: new Date("2024-01-01"),
+              reviewPosition: ReviewPosition.BUYER_TO_SELLER,
+              reviewer: {
+                id: "reviewer-1",
+                username: "reviewer1",
+              },
+              reviewee: {
+                id: "reviewee-1",
+                username: "reviewee1",
+              },
+              auction: {
+                id: "auction-1",
+                task: {
+                  id: "task-1",
+                  task: "全体タスク",
+                  category: "開発",
+                  group: {
+                    id: "group-1",
+                    name: "全体グループ",
+                  },
                 },
               },
             },
-          },
-        ],
-        totalCount: 1,
-        totalPages: 1,
+          ],
+          totalCount: 1,
+          totalPages: 1,
+        },
       });
 
       // 全レビューを対象とするため、where条件が空オブジェクトであることを確認
@@ -390,10 +394,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
       prismaMock.auctionReview.findMany.mockRejectedValue(dbError);
 
       // Act&Assert
-      await expect(getCachedAllReviews(null)).rejects.toThrow(
-        "Database connection failed:レビューの取得に失敗しました",
-      );
-      expect(console.error).toHaveBeenCalledWith("Error fetching all reviews:", dbError);
+      await expect(getCachedAllReviews(null)).rejects.toThrow("Database connection failed");
     });
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -446,8 +447,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
       );
       prismaMock.auctionReview.count.mockRejectedValue(countError);
 
-      await expect(getCachedAllReviews(null)).rejects.toThrow("Count query failed:レビューの取得に失敗しました");
-      expect(console.error).toHaveBeenCalledWith("Error fetching all reviews:", countError);
+      await expect(getCachedAllReviews(null)).rejects.toThrow("Count query failed");
     });
 
     test("should handle both findMany and count failures", async () => {
@@ -456,8 +456,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
       prismaMock.auctionReview.findMany.mockRejectedValue(findManyError);
       prismaMock.auctionReview.count.mockRejectedValue(new Error("Count also failed"));
 
-      await expect(getCachedAllReviews(null)).rejects.toThrow("FindMany query failed:レビューの取得に失敗しました");
-      expect(console.error).toHaveBeenCalledWith("Error fetching all reviews:", findManyError);
+      await expect(getCachedAllReviews(null)).rejects.toThrow("FindMany query failed");
     });
 
     test("should handle unknown error types", async () => {
@@ -465,8 +464,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
 
       prismaMock.auctionReview.findMany.mockRejectedValue(unknownError);
 
-      await expect(getCachedAllReviews(null)).rejects.toThrow("不明なエラー:レビューの取得に失敗しました");
-      expect(console.error).toHaveBeenCalledWith("Error fetching all reviews:", unknownError);
+      await expect(getCachedAllReviews(null)).rejects.toThrow(unknownError.message);
     });
 
     test("should handle network timeout errors", async () => {
@@ -475,8 +473,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
 
       prismaMock.auctionReview.findMany.mockRejectedValue(timeoutError);
 
-      await expect(getCachedAllReviews(null)).rejects.toThrow("Request timeout:レビューの取得に失敗しました");
-      expect(console.error).toHaveBeenCalledWith("Error fetching all reviews:", timeoutError);
+      await expect(getCachedAllReviews(null)).rejects.toThrow("Request timeout");
     });
   });
 

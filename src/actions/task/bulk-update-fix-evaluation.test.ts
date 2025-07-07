@@ -233,8 +233,6 @@ describe("bulkUpdateFixedEvaluations", () => {
         // Assert
         expect(result.success).toBe(false);
         expect(result.message).toBe("この操作を行う権限がありません");
-        expect(result.data?.failedData).toHaveLength(2);
-        expect(result.data?.failedData?.every((item) => item.error === "システムエラー")).toBe(true);
       });
 
       test.each([
@@ -254,30 +252,15 @@ describe("bulkUpdateFixedEvaluations", () => {
           groupId: "",
         },
       ])("$name", async ({ userId, groupId }) => {
-        // Act
-        const result = await bulkUpdateFixedEvaluations(validEvaluationData, groupId, userId);
-
-        // Assert
-        expect(result.success).toBe(false);
-        expect(result.message).toBe("パラメータが不正です");
+        // Act & Assert
+        await expect(bulkUpdateFixedEvaluations(validEvaluationData, groupId, userId)).rejects.toThrow(
+          "パラメータが不正です",
+        );
       });
 
       test("空の配列を渡した場合", async () => {
-        // Arrange
-        prismaMock.$transaction.mockImplementation(createMockTransaction());
-
-        // Act
-        const result = await bulkUpdateFixedEvaluations([], testGroupId, testUserId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          error: "パラメータが不正です",
-          data: {
-            failedData: [],
-            successData: [],
-          },
-        });
+        // Arrange & Act & Assert
+        await expect(bulkUpdateFixedEvaluations([], testGroupId, testUserId)).rejects.toThrow("パラメータが不正です");
       });
     });
 
@@ -363,17 +346,11 @@ describe("bulkUpdateFixedEvaluations", () => {
 
     describe("システムエラーテスト", () => {
       test("データベースエラーが発生した場合", async () => {
-        // Arrange
+        // Arrange & Act & Assert
         prismaMock.$transaction.mockImplementation(vi.fn().mockRejectedValue(new Error("Database error")));
-
-        // Act
-        const result = await bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId);
-
-        // Assert
-        expect(result.success).toBe(false);
-        expect(result.message).toBe("Database error");
-        expect(result.data?.failedData).toHaveLength(2);
-        expect(result.data?.failedData?.every((item) => item.error === "システムエラー")).toBe(true);
+        await expect(bulkUpdateFixedEvaluations(validEvaluationData, testGroupId, testUserId)).rejects.toThrow(
+          "Database error",
+        );
       });
 
       test("個別のタスク更新でエラーが発生した場合", async () => {

@@ -115,7 +115,7 @@ describe("cancelAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札を取り消しました",
-        autoBid: {
+        data: {
           id: canceledAutoBid.id,
           maxBidAmount: canceledAutoBid.maxBidAmount,
           bidIncrement: canceledAutoBid.bidIncrement,
@@ -155,7 +155,7 @@ describe("cancelAutoBid", () => {
       expect(result).toStrictEqual({
         success: false,
         message: "認証が必要です",
-        autoBid: null,
+        data: null,
       });
 
       // Prismaが呼ばれていないことを確認
@@ -177,7 +177,7 @@ describe("cancelAutoBid", () => {
       expect(result).toStrictEqual({
         success: false,
         message: "検証エラー",
-        autoBid: null,
+        data: null,
       });
     });
 
@@ -186,7 +186,7 @@ describe("cancelAutoBid", () => {
       mockValidateAuction.mockResolvedValue({
         success: true,
         message: "検証成功",
-        data: mockValidationSuccess,
+        data: { ...mockValidationSuccess, userId: undefined as unknown as string },
       });
 
       // Act
@@ -196,7 +196,7 @@ describe("cancelAutoBid", () => {
       expect(result).toStrictEqual({
         success: false,
         message: "検証成功",
-        autoBid: null,
+        data: null,
       });
     });
 
@@ -209,15 +209,14 @@ describe("cancelAutoBid", () => {
       });
       prismaMock.autoBid.update.mockRejectedValue(new Error("Database error"));
 
-      // Act
-      const result = await cancelAutoBid(testAuctionId, true);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "Database error",
-        autoBid: null,
-      });
+      // Act & Assert
+      try {
+        await cancelAutoBid(testAuctionId, true);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("Database error");
+      }
     });
 
     test("should handle unknown error", async () => {
@@ -229,27 +228,24 @@ describe("cancelAutoBid", () => {
       });
       prismaMock.autoBid.update.mockRejectedValue("Unknown error");
 
-      // Act
-      const result = await cancelAutoBid(testAuctionId, true);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "不明なエラーが発生しました",
-        autoBid: null,
-      });
+      // Act & Assert
+      try {
+        await cancelAutoBid(testAuctionId, true);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBe("Unknown error");
+      }
     });
 
     test("should handle empty auctionId", async () => {
-      // Act
-      const result = await cancelAutoBid("", true);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "オークションIDが無効です",
-        autoBid: null,
-      });
+      // Act & Assert
+      try {
+        await cancelAutoBid("", true);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("オークションIDが無効です");
+      }
 
       // バリデーションが呼ばれていないことを確認
       expect(mockValidateAuction).not.toHaveBeenCalled();
@@ -263,7 +259,7 @@ describe("cancelAutoBid", () => {
       expect(result).toStrictEqual({
         success: false,
         message: "自動入札中フラグが無効です",
-        autoBid: null,
+        data: null,
       });
 
       // バリデーションが呼ばれていないことを確認

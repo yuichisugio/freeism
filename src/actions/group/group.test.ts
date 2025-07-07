@@ -1,7 +1,6 @@
 import { type CreateGroupFormData } from "@/components/form/create-group-form";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { createInvalidGroupData, groupFactory, groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
-import { type GroupMembership } from "@prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -207,9 +206,9 @@ describe("group.test.ts", () => {
         prismaMock.group.findUnique.mockResolvedValue(group);
         // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: true,
-          message: "メンバーの存在を確認しました",
-          data: false as unknown as GroupMembership,
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
         });
         prismaMock.groupMembership.count.mockResolvedValue(5);
         prismaMock.groupMembership.create.mockResolvedValue(membership);
@@ -264,11 +263,11 @@ describe("group.test.ts", () => {
 
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
         prismaMock.group.findUnique.mockResolvedValue(group);
-        // checkGroupMembershipが truthy を返すようにモック（既に参加している状態）
+        // checkGroupMembershipが true を返すようにモック（既に参加している状態）
         mockCheckGroupMembership.mockResolvedValue({
           success: true,
-          message: "メンバーの存在を確認しました",
-          data: existingMembership as unknown as GroupMembership,
+          message: "グループメンバーシップを取得しました",
+          data: { id: existingMembership.id, isGroupOwner: existingMembership.isGroupOwner },
         });
 
         // Act
@@ -291,9 +290,9 @@ describe("group.test.ts", () => {
         prismaMock.group.findUnique.mockResolvedValue(group);
         // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: true,
-          message: "メンバーの存在を確認しました",
-          data: false as unknown as GroupMembership,
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
         });
         prismaMock.groupMembership.count.mockResolvedValue(5);
 
@@ -325,9 +324,9 @@ describe("group.test.ts", () => {
         prismaMock.group.findUnique.mockResolvedValue(group);
         // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: true,
-          message: "メンバーの存在を確認しました",
-          data: false as unknown as GroupMembership,
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
         });
         prismaMock.groupMembership.count.mockResolvedValue(5);
         prismaMock.groupMembership.create.mockRejectedValue(new Error("Database error"));
@@ -344,9 +343,9 @@ describe("group.test.ts", () => {
         prismaMock.group.findUnique.mockResolvedValue(group);
         // checkGroupMembershipが false を返すようにモック（まだ参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: true,
-          message: "メンバーの存在を確認しました",
-          data: false as unknown as GroupMembership,
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
         });
         prismaMock.groupMembership.count.mockResolvedValue(1);
 
@@ -1037,9 +1036,9 @@ describe("group.test.ts", () => {
         });
         // checkGroupMembershipが false を返すようにモック（参加していない状態）
         mockCheckGroupMembership.mockResolvedValue({
-          success: true,
-          message: "メンバーの存在を確認しました",
-          data: false as unknown as GroupMembership,
+          success: false,
+          message: "グループメンバーシップが存在しません",
+          data: null,
         });
 
         // Act

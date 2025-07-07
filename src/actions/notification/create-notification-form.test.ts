@@ -56,12 +56,16 @@ describe("prepareCreateNotificationForm", () => {
 
         // 結果を検証
         expect(result).toStrictEqual({
-          users: [
-            { id: testUserId, name: testUserSettings.username },
-            { id: "user-2", name: "user2" },
-          ],
-          groups: groupsFromDb,
-          tasks: tasksFromDb,
+          success: true,
+          message: "通知作成フォームを準備しました",
+          data: {
+            users: [
+              { id: testUserId, name: testUserSettings.username },
+              { id: "user-2", name: "user2" },
+            ],
+            groups: groupsFromDb,
+            tasks: tasksFromDb,
+          },
         });
 
         // Prismaの呼び出しを検証
@@ -117,7 +121,11 @@ describe("prepareCreateNotificationForm", () => {
         const result = await prepareCreateNotificationForm(false, true, testUserId);
 
         // 結果を検証
-        expect(result.data).toStrictEqual({ users: [], groups: groupsFromDb, tasks: tasksFromDb });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知作成フォームを準備しました",
+          data: { users: [], groups: groupsFromDb, tasks: tasksFromDb },
+        });
 
         // Prismaの呼び出しを検証
         expect(prismaMock.user.findMany).not.toHaveBeenCalled();
@@ -165,9 +173,13 @@ describe("prepareCreateNotificationForm", () => {
 
         // 結果を検証
         expect(result).toStrictEqual({
-          users: [],
-          groups: [],
-          tasks: [],
+          success: true,
+          message: "通知作成フォームを準備しました",
+          data: {
+            users: [],
+            groups: [],
+            tasks: [],
+          },
         });
 
         // Prismaの呼び出しを検証 - 何も呼ばれない
@@ -197,10 +209,14 @@ describe("prepareCreateNotificationForm", () => {
         const result = await prepareCreateNotificationForm(true, true, testUserId);
 
         // 結果を検証 - アプリオーナーの権限が優先される
-        expect(result.data).toStrictEqual({
-          users: [{ id: testUserId, name: testUserSettings.username }],
-          groups: groupsFromDb,
-          tasks: tasksFromDb,
+        expect(result).toStrictEqual({
+          success: true,
+          message: "通知作成フォームを準備しました",
+          data: {
+            users: [{ id: testUserId, name: testUserSettings.username }],
+            groups: groupsFromDb,
+            tasks: tasksFromDb,
+          },
         });
 
         // アプリオーナー用のクエリが実行される
@@ -270,9 +286,13 @@ describe("prepareCreateNotificationForm", () => {
 
         // 結果を検証
         expect(result).toStrictEqual({
-          users: [{ id: userData.id, name: expectedName }],
-          groups: [],
-          tasks: [],
+          success: true,
+          message: "通知作成フォームを準備しました",
+          data: {
+            users: [{ id: userData.id, name: expectedName }],
+            groups: [],
+            tasks: [],
+          },
         });
         expect(prismaMock.user.findMany).toHaveBeenCalledOnce();
       });
@@ -289,9 +309,13 @@ describe("prepareCreateNotificationForm", () => {
 
       // 結果を検証
       expect(result).toStrictEqual({
-        users: [],
-        groups: [],
-        tasks: [],
+        success: true,
+        message: "通知作成フォームを準備しました",
+        data: {
+          users: [],
+          groups: [],
+          tasks: [],
+        },
       });
     });
   });

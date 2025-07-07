@@ -249,7 +249,7 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "落札したオークションの詳細を取得しました",
-        auctionWonDetail: createExpectedResult(),
+        data: createExpectedResult(),
       });
       expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(
         getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId),
@@ -409,7 +409,7 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "落札したオークションが見つかりません",
-        auctionWonDetail: null,
+        data: null,
       });
       expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(
         getExpectedPrismaQuery(TEST_IDS.auctionId, TEST_IDS.userId),
@@ -422,57 +422,33 @@ describe("auction-won-detail_getAuctionWonDetail", () => {
       ["", TEST_IDS.userId],
       [TEST_IDS.auctionId, ""],
     ])("should return error when parameters are invalid", async (auctionId, userId) => {
-      // Act
-      const result = await getAuctionWonDetail(auctionId, userId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "オークションIDまたはユーザーIDが無効です",
-        auctionWonDetail: null,
-      });
+      // Act & Assert
+      await expect(getAuctionWonDetail(auctionId, userId)).rejects.toThrow("オークションIDまたはユーザーIDが無効です");
     });
 
     test("should handle database error", async () => {
       // Arrange
       prismaMock.auction.findUnique.mockRejectedValue(new Error("Database connection error"));
 
-      // Act
-      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "Database connection error",
-        auctionWonDetail: null,
-      });
+      // Act & Assert
+      await expect(getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId)).rejects.toThrow(
+        "Database connection error",
+      );
     });
 
     test("should handle database error(null)", async () => {
       // Arrange
       prismaMock.auction.findUnique.mockRejectedValue(null);
 
-      // Act
-      const result = await getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "不明なエラーが発生しました",
-        auctionWonDetail: null,
-      });
+      // Act & Assert
+      await expect(getAuctionWonDetail(TEST_IDS.auctionId, TEST_IDS.userId)).rejects.toThrow();
     });
 
     test("should handle empty auctionId", async () => {
-      // Act
-      const result = await getAuctionWonDetail("", TEST_IDS.userId);
-
-      // Assert
-      expect(result).toStrictEqual({
-        success: false,
-        message: "オークションIDまたはユーザーIDが無効です",
-        auctionWonDetail: null,
-      });
+      // Act & Assert
+      await expect(getAuctionWonDetail("", TEST_IDS.userId)).rejects.toThrow(
+        "オークションIDまたはユーザーIDが無効です",
+      );
       // 空のauctionIdの場合、バリデーションでエラーになるためPrismaは呼ばれない
       expect(prismaMock.auction.findUnique).not.toHaveBeenCalled();
     });

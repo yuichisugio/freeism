@@ -117,9 +117,13 @@ describe("won-auction", () => {
 
         // Assert
         expect(result).toStrictEqual({
-          winnerId: CONSTANTS.testUserId,
-          task: {
-            status: { in: statusArray },
+          success: true,
+          message: "Where条件を取得しました",
+          data: {
+            winnerId: CONSTANTS.testUserId,
+            task: {
+              status: { in: statusArray },
+            },
           },
         });
       });

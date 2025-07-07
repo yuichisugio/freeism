@@ -47,7 +47,11 @@ describe("getUserGroupIds", () => {
       const result = await getUserGroupIds(TEST_CONSTANTS.USER_ID);
 
       // Assert
-      expect(result).toStrictEqual([TEST_CONSTANTS.GROUP_ID_1, TEST_CONSTANTS.GROUP_ID_2]);
+      expect(result).toStrictEqual({
+        success: true,
+        data: [TEST_CONSTANTS.GROUP_ID_1, TEST_CONSTANTS.GROUP_ID_2],
+        message: "ユーザーが参加しているグループIDを取得しました",
+      });
       expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
         where: { userId: TEST_CONSTANTS.USER_ID },
         select: { groupId: true },
@@ -62,7 +66,11 @@ describe("getUserGroupIds", () => {
       const result = await getUserGroupIds(TEST_CONSTANTS.USER_ID);
 
       // Assert
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({
+        success: true,
+        data: [],
+        message: "ユーザーが参加しているグループIDを取得しました",
+      });
       expect(prismaMock.groupMembership.findMany).toHaveBeenCalledWith({
         where: { userId: TEST_CONSTANTS.USER_ID },
         select: { groupId: true },
@@ -84,7 +92,11 @@ describe("getUserGroupIds", () => {
       const result = await getUserGroupIds(TEST_CONSTANTS.USER_ID);
 
       // Assert
-      expect(result).toStrictEqual([TEST_CONSTANTS.GROUP_ID_1]);
+      expect(result).toStrictEqual({
+        success: true,
+        data: [TEST_CONSTANTS.GROUP_ID_1],
+        message: "ユーザーが参加しているグループIDを取得しました",
+      });
     });
   });
 
@@ -145,11 +157,15 @@ describe("getUserGroupIds", () => {
       const result = await getUserGroupIds(TEST_CONSTANTS.USER_ID);
 
       // Assert
-      expect(result).toStrictEqual([
-        TEST_CONSTANTS.GROUP_ID_1,
-        TEST_CONSTANTS.GROUP_ID_1, // 重複も含めて返される
-        TEST_CONSTANTS.GROUP_ID_2,
-      ]);
+      expect(result).toStrictEqual({
+        success: true,
+        data: [
+          TEST_CONSTANTS.GROUP_ID_1,
+          TEST_CONSTANTS.GROUP_ID_1, // 重複も含めて返される
+          TEST_CONSTANTS.GROUP_ID_2,
+        ],
+        message: "ユーザーが参加しているグループIDを取得しました",
+      });
     });
 
     test("should preserve order of groups from database", async () => {
@@ -177,7 +193,11 @@ describe("getUserGroupIds", () => {
       const result = await getUserGroupIds(TEST_CONSTANTS.USER_ID);
 
       // Assert
-      expect(result).toStrictEqual([TEST_CONSTANTS.GROUP_ID_3, TEST_CONSTANTS.GROUP_ID_1, TEST_CONSTANTS.GROUP_ID_2]);
+      expect(result).toStrictEqual({
+        success: true,
+        data: [TEST_CONSTANTS.GROUP_ID_3, TEST_CONSTANTS.GROUP_ID_1, TEST_CONSTANTS.GROUP_ID_2],
+        message: "ユーザーが参加しているグループIDを取得しました",
+      });
     });
   });
 });

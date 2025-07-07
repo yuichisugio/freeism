@@ -154,7 +154,7 @@ describe("sendInAppNotification", () => {
         const result = await sendInAppNotification(notificationParams);
 
         // 検証
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({ success: true, message: "通知を作成しました", data: null });
 
         if (skipAuthCheck) {
           expect(mockGetAuthSession).not.toHaveBeenCalled();
@@ -196,7 +196,7 @@ describe("sendInAppNotification", () => {
         const result = await sendInAppNotification(notificationParams);
 
         // 検証
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({ success: true, message: "通知を更新しました", data: null });
         expect(prismaMock.notification.updateMany).toHaveBeenCalledWith({
           where: { id: "notification-123" },
           data: {
@@ -251,7 +251,7 @@ describe("sendInAppNotification", () => {
       const result = await sendInAppNotification(notificationParams);
 
       // 検証
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知を作成しました", data: null });
       expect(prismaMock.notification.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           isRead: expectedIsRead,
@@ -296,7 +296,7 @@ describe("sendInAppNotification", () => {
       const result = await sendInAppNotification(notificationParams);
 
       // 検証
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toStrictEqual({ success: true, message: "通知を作成しました", data: null });
       expect(prismaMock.notification.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           senderUserId: expectedSenderUserId,
@@ -346,30 +346,15 @@ describe("sendInAppNotification", () => {
       },
     ];
 
-    test.each(errorTestCases)("$name", async ({ setupMock, params, expectedError }) => {
+    test.each(errorTestCases)("$name", async ({ setupMock, params }) => {
       // テストデータの準備
       const notificationParams = createNotificationParams(params);
 
       // モックの設定
       const originalError = setupMock();
 
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
-      });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: expectedError,
-      });
-      expect(consoleSpy).toHaveBeenCalledWith("sendInAppNotification_エラー:", originalError);
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
+      // 関数実行と検証
+      await expect(sendInAppNotification(notificationParams)).rejects.toThrow(originalError.message);
     });
   });
 
@@ -415,7 +400,7 @@ describe("sendInAppNotification", () => {
       },
     ];
 
-    test.each(invalidDataTestCases)("$name", async ({ params, expectedError }) => {
+    test.each(invalidDataTestCases)("$name", async ({ params }) => {
       // テストデータの準備
       const mockSession = {
         user: { id: "user-123", email: "test@example.com", name: "Test User" },
@@ -426,24 +411,8 @@ describe("sendInAppNotification", () => {
       // モックの設定
       mockGetAuthSession.mockResolvedValue(mockSession);
 
-      // コンソールエラーをモック
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // エラーログのモック実装
-      });
-
-      // 関数実行
-      const result = await sendInAppNotification(notificationParams);
-
-      // 検証
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: expectedError,
-      });
-      expect(consoleSpy).toHaveBeenCalled();
-
-      // クリーンアップ
-      consoleSpy.mockRestore();
+      // 関数実行と検証
+      await expect(sendInAppNotification(notificationParams)).rejects.toThrow();
     });
   });
 });

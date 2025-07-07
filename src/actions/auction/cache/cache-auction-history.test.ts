@@ -89,6 +89,17 @@ const createBaseMockData = (overrides: Partial<AuctionHistoryCreatedDetail> = {}
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * 期待される結果構造を作成するヘルパー関数
+ */
+const createExpectedResult = (data: AuctionHistoryCreatedDetail) => ({
+  success: true,
+  message: "出品商品の詳細を取得しました",
+  data,
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 共通のPrismaクエリ期待値
  */
 const getExpectedPrismaQuery = (auctionId: string) => ({
@@ -146,7 +157,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(prismaMock.auction.findUnique).toHaveBeenCalledWith(getExpectedPrismaQuery(CONSTANTS.testAuctionId));
       });
 
@@ -235,7 +246,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.winner).toBeNull();
         expect(result.data.winnerId).toBeNull();
       });
@@ -251,7 +262,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.bidHistories).toHaveLength(0);
       });
 
@@ -278,7 +289,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.task.detail).toBeNull();
       });
 
@@ -305,7 +316,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.task.imageUrl).toBeNull();
       });
 
@@ -332,7 +343,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.task.deliveryMethod).toBeNull();
       });
 
@@ -359,7 +370,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.task.executors).toHaveLength(0);
       });
 
@@ -386,7 +397,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.task.reporters).toHaveLength(0);
       });
     });
@@ -470,7 +481,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.currentHighestBid).toBe(0);
       });
 
@@ -485,7 +496,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.currentHighestBid).toBe(Number.MAX_SAFE_INTEGER);
       });
 
@@ -504,7 +515,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.startTime).toStrictEqual(pastDate);
         expect(result.data.endTime).toStrictEqual(pastDate);
       });
@@ -524,7 +535,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.startTime).toStrictEqual(futureDate);
         expect(result.data.endTime).toStrictEqual(futureDate);
       });
@@ -552,7 +563,7 @@ describe("cache-auction-history", () => {
         const result = await getCachedAuctionHistoryCreatedDetail(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockData);
+        expect(result).toStrictEqual(createExpectedResult(mockData));
         expect(result.data.task.status).toBe(TaskStatus.TASK_COMPLETED);
       });
     });

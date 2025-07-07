@@ -111,7 +111,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札の設定はありません。処理をスキップします",
-        autoBid: null,
+        data: null,
       });
     });
 
@@ -142,7 +142,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札が完了しました",
-        autoBid: {
+        data: {
           id: mockAutoBid.id,
           maxBidAmount: mockAutoBid.maxBidAmount,
           bidIncrement: mockAutoBid.bidIncrement,
@@ -208,7 +208,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札が完了しました",
-        autoBid: {
+        data: {
           id: mockAutoBid1.id,
           maxBidAmount: mockAutoBid1.maxBidAmount,
           bidIncrement: mockAutoBid1.bidIncrement,
@@ -245,7 +245,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札が完了しました",
-        autoBid: {
+        data: {
           id: mockAutoBid.id,
           maxBidAmount: mockAutoBid.maxBidAmount,
           bidIncrement: mockAutoBid.bidIncrement,
@@ -289,7 +289,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札が完了しました",
-        autoBid: {
+        data: {
           id: mockAutoBid1.id,
           maxBidAmount: mockAutoBid1.maxBidAmount,
           bidIncrement: mockAutoBid1.bidIncrement,
@@ -327,7 +327,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札が完了しました",
-        autoBid: {
+        data: {
           id: mockAutoBid.id,
           maxBidAmount: mockAutoBid.maxBidAmount,
           bidIncrement: mockAutoBid.bidIncrement,
@@ -372,7 +372,7 @@ describe("auto-bid_executeAutoBid", () => {
       expect(result).toStrictEqual({
         success: true,
         message: "自動入札の設定はありません。処理をスキップします",
-        autoBid: null,
+        data: null,
       });
     });
   });
@@ -425,7 +425,12 @@ describe("auto-bid_executeAutoBid", () => {
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
 
       // Act & Assert
-      await expect(executeAutoBid(params)).rejects.toThrow("現在の最高入札額より高い自動入札の設定がありません");
+      const result = await executeAutoBid(params);
+      expect(result).toStrictEqual({
+        success: false,
+        message: "現在の最高入札額より高い自動入札の設定がありません",
+        data: null,
+      });
     });
 
     test("(auctionId is undefined)should return error", async () => {
@@ -446,7 +451,12 @@ describe("auto-bid_executeAutoBid", () => {
       }));
 
       // Act & Assert
-      await expect(executeAutoBid(params)).rejects.toThrow("オークションIDが無効です");
+      const result = await executeAutoBid(params);
+      expect(result).toStrictEqual({
+        success: false,
+        message: "オークションIDが無効です",
+        data: null,
+      });
     });
 
     test("(bidIncrement is negative)should return error", async () => {
@@ -469,7 +479,12 @@ describe("auto-bid_executeAutoBid", () => {
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
 
       // Act & Assert
-      await expect(executeAutoBid(params)).rejects.toThrow("現在の最高入札額が0以下か、入札単位が0以下です");
+      const result = await executeAutoBid(params);
+      expect(result).toStrictEqual({
+        success: false,
+        message: "現在の最高入札額が0以下か、入札単位が0以下です",
+        data: null,
+      });
     });
 
     test("(currentHighestBid is negative)should return error", async () => {
@@ -492,7 +507,12 @@ describe("auto-bid_executeAutoBid", () => {
       prismaMock.autoBid.findMany.mockResolvedValue([mockAutoBid]);
 
       // Act & Assert
-      await expect(executeAutoBid(params)).rejects.toThrow("現在の最高入札額が0以下か、入札単位が0以下です");
+      const result = await executeAutoBid(params);
+      expect(result).toStrictEqual({
+        success: false,
+        message: "現在の最高入札額が0以下か、入札単位が0以下です",
+        data: null,
+      });
     });
 
     test("(auctionId is null)should return error", async () => {
@@ -513,7 +533,12 @@ describe("auto-bid_executeAutoBid", () => {
       }));
 
       // Act & Assert
-      await expect(executeAutoBid(params)).rejects.toThrow("オークションIDが無効です");
+      const result = await executeAutoBid(params);
+      expect(result).toStrictEqual({
+        success: false,
+        message: "オークションIDが無効です",
+        data: null,
+      });
     });
   });
 

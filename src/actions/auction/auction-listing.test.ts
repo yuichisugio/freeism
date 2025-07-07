@@ -277,7 +277,11 @@ describe("auction-listing", () => {
         const result = await getSearchSuggestions({ query, userId: testUserId, userGroupIds: [] });
 
         // Assert
-        expect(result).toStrictEqual(expectedSuggestions);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "サジェストを取得しました",
+          data: expectedSuggestions,
+        });
         expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith({ query, userId: testUserId, userGroupIds: [] });
         expect(mockCachedGetSearchSuggestions).toHaveBeenCalledTimes(1);
       });
@@ -311,7 +315,8 @@ describe("auction-listing", () => {
         const result = await getSearchSuggestions({ query, userId, userGroupIds: [] });
 
         // Assert
-        expect(result).toStrictEqual(expectedSuggestions);
+        expect(result.success).toBe(true);
+        expect(result.data).toStrictEqual(expectedSuggestions);
         expect(mockCachedGetSearchSuggestions).toHaveBeenCalledWith({ query, userId, userGroupIds: [] });
       });
     });

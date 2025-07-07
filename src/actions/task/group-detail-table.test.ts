@@ -102,7 +102,7 @@ describe("getGroupTaskAndCount", () => {
       // Assert
       expect(mockGetCachedGroupTaskAndCount).toHaveBeenCalledTimes(1);
       expect(mockGetCachedGroupTaskAndCount).toHaveBeenCalledWith(testProps);
-      expect(result).toStrictEqual(expectedResponse);
+      expect(result.data).toStrictEqual(expectedResponse);
     });
 
     test("should handle default parameters correctly", async () => {
@@ -135,7 +135,7 @@ describe("getGroupTaskAndCount", () => {
       // Assert
       expect(mockGetCachedGroupTaskAndCount).toHaveBeenCalledTimes(1);
       expect(mockGetCachedGroupTaskAndCount).toHaveBeenCalledWith(testProps);
-      expect(result).toStrictEqual(expectedResponse);
+      expect(result.data).toStrictEqual(expectedResponse);
     });
 
     test("should handle all contribution type filters", async () => {

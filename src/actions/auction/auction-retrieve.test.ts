@@ -198,23 +198,27 @@ describe("auction-retrieve", () => {
 
         // Assert
         expect(result).toStrictEqual({
-          id: testAuctionId,
-          currentHighestBid: 100,
-          currentHighestBidderId: testUserId,
-          status: TaskStatus.AUCTION_ACTIVE,
-          extensionTotalCount: 0,
-          extensionLimitCount: 5,
-          extensionTime: 10,
-          remainingTimeForExtension: 5,
-          bidHistories: [
-            {
-              id: "bid-1",
-              amount: 100,
-              createdAt: new Date("2024-01-01T10:00:00Z"),
-              isAutoBid: false,
-              user: { settings: { username: "テストユーザー" } },
-            },
-          ],
+          success: true,
+          message: "オークション情報を取得しました",
+          data: {
+            id: testAuctionId,
+            currentHighestBid: 100,
+            currentHighestBidderId: testUserId,
+            status: TaskStatus.AUCTION_ACTIVE,
+            extensionTotalCount: 0,
+            extensionLimitCount: 5,
+            extensionTime: 10,
+            remainingTimeForExtension: 5,
+            bidHistories: [
+              {
+                id: "bid-1",
+                amount: 100,
+                createdAt: new Date("2024-01-01T10:00:00Z"),
+                isAutoBid: false,
+                user: { settings: { username: "テストユーザー" } },
+              },
+            ],
+          },
         });
 
         expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
@@ -397,7 +401,11 @@ describe("auction-retrieve", () => {
         const result = await getAuctionByAuctionId(testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(mockAuctionWithDetails);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "オークション情報を取得しました",
+          data: mockAuctionWithDetails,
+        });
         expect(mockGetCachedAuctionByAuctionId).toHaveBeenCalledWith(testAuctionId);
       });
 
@@ -413,7 +421,11 @@ describe("auction-retrieve", () => {
         const result = await getAuctionByAuctionId(invalidId as unknown as string);
 
         // Assert
-        expect(result).toBeNull();
+        expect(result).toStrictEqual({
+          success: true,
+          message: "オークション情報を取得しました",
+          data: null,
+        });
         expect(mockGetCachedAuctionByAuctionId).toHaveBeenCalledWith(invalidId);
       });
 

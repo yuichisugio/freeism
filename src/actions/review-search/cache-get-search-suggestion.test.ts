@@ -10,6 +10,7 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
   describe("正常系", () => {
     test("should return search suggestions for valid query", async () => {
       // Arrange
@@ -49,7 +50,8 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
       const result = await getCachedSearchSuggestions(query);
 
       // Assert
-      expect(result).toEqual(
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(
         expect.arrayContaining([
           {
             value: "テストユーザー1",
@@ -106,7 +108,8 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
       const result = await getCachedSearchSuggestions(query);
 
       // Assert
-      expect(result).toStrictEqual([]);
+      expect(result.success).toBe(true);
+      expect(result.data).toStrictEqual([]);
     });
 
     test("should limit suggestions to 20 items", async () => {
@@ -247,12 +250,14 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
       { query: "  a  " },
       { query: null },
       { query: undefined },
-    ])("should return empty array for $query", async ({ query }) => {
+    ])("should return error result for invalid query: $query", async ({ query }) => {
       // Act
       const result = await getCachedSearchSuggestions(query!);
 
       // Assert
-      expect(result).toStrictEqual([]);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("検索クエリが空文字列または2文字未満です");
+      expect(result.data).toStrictEqual([]);
     });
   });
 
@@ -264,12 +269,9 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
 
       prismaMock.auctionReview.findMany.mockRejectedValue(dbError);
 
-      // Act
-      const result = await getCachedSearchSuggestions(query);
-
-      // Assert
-      expect(result).toStrictEqual([]);
-      expect(console.error).toHaveBeenCalledWith("Error fetching search suggestions:", dbError);
+      // Act & Assert
+      await expect(getCachedSearchSuggestions(query)).rejects.toThrow("Database error");
+      expect(prismaMock.auctionReview.findMany).toHaveBeenCalledTimes(1);
     });
   });
 });

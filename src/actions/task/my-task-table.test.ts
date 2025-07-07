@@ -221,10 +221,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
-          members: {
-            select: { isGroupOwner: true },
-            where: { userId: testUser.id },
-          },
+          members: [{ isGroupOwner: true }],
         },
         auction: {
           id: testAuction.id,
@@ -242,7 +239,7 @@ describe("getMyTaskData", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        message: "データを取得しました",
+        message: "タスク情報の取得が完了しました",
         data: {
           tasks: [
             {
@@ -265,6 +262,7 @@ describe("getMyTaskData", () => {
               groupName: testGroup.name,
               auctionId: testAuction.id,
               group: { id: testGroup.id, name: testGroup.name },
+              isGroupOwner: true,
             },
           ],
           totalTaskCount: 1,
@@ -340,10 +338,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
-          members: {
-            select: { isGroupOwner: true },
-            where: { userId: testUser.id },
-          },
+          members: [{ isGroupOwner: true }],
         },
         auction: null,
       };
@@ -379,7 +374,7 @@ describe("getMyTaskData", () => {
       // Assert
       expect(result).toStrictEqual({
         success: true,
-        message: "データを取得しました",
+        message: "タスク情報の取得が完了しました",
         data: {
           tasks: [],
           totalTaskCount: 0,
@@ -406,10 +401,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
-          members: {
-            select: { isGroupOwner: true },
-            where: { userId: testUser.id },
-          },
+          members: [{ isGroupOwner: true }],
         },
         auction: null,
       };
@@ -519,11 +511,8 @@ describe("getMyTaskData", () => {
         ],
         group: {
           id: testGroup.id,
-          members: {
-            select: { isGroupOwner: true },
-            where: { userId: testUser.id },
-          },
           name: testGroup.name,
+          members: [{ isGroupOwner: true }],
         },
         auction: null,
       };
@@ -793,53 +782,63 @@ describe("異常系・バリデーション", () => {
       name: "userId is empty",
       userId: "",
       conditions: defaultTableConditions,
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "userId is null",
       userId: null,
       conditions: defaultTableConditions,
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "userId is undefined",
       userId: undefined,
       conditions: defaultTableConditions,
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is null",
       userId: testUser.id,
       conditions: null,
+      expectedError: "Cannot destructure property",
     },
     {
       name: "tableConditions is undefined",
       userId: testUser.id,
       conditions: undefined,
+      expectedError: "Cannot destructure property",
     },
     {
       name: "tableConditions is empty object",
       userId: testUser.id,
       conditions: {},
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is empty array",
       userId: testUser.id,
       conditions: [],
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is invalid contributionType",
       userId: testUser.id,
       conditions: { ...defaultTableConditions, contributionType: "INVALID" },
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is invalid taskStatus",
       userId: testUser.id,
       conditions: { ...defaultTableConditions, taskStatus: "INVALID" },
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
-  ])("should throw validation errors when userId or conditions is invalid", async ({ userId, conditions }) => {
-    // Act & Assert
-    await expect(getMyTaskData(conditions as MyTaskTableConditions, userId!)).rejects.toThrow(
-      "タスク情報の取得中にエラーが発生しました",
-    );
-  });
+  ])(
+    "should throw validation errors when userId or conditions is invalid",
+    async ({ userId, conditions, expectedError }) => {
+      // Act & Assert
+      await expect(getMyTaskData(conditions as MyTaskTableConditions, userId!)).rejects.toThrow(expectedError);
+    },
+  );
 
   test.each([
     {

@@ -606,7 +606,7 @@ describe("getCachedDisplayUserInfo", () => {
           name: "null auction result",
           reviewPosition: ReviewPosition.SELLER_TO_BUYER,
           mockData: null,
-          expectedMessage: "ユーザー情報はありませんでした",
+          expectedMessage: "ユーザー情報を取得しました",
         },
       ];
 

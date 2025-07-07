@@ -210,7 +210,7 @@ export async function grantOwnerPermission(groupId: string, userId: string): Pro
    * 対象ユーザーのグループメンバーシップを取得
    */
   const targetMembership = await checkGroupMembership(userId, groupId);
-  if (!targetMembership) {
+  if (!targetMembership.success) {
     return { success: false, data: false, message: "指定されたユーザーはグループに参加していません" };
   }
 

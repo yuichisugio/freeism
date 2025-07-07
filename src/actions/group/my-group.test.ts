@@ -155,7 +155,7 @@ describe("my-group.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          message: "グループ一覧を取得しました",
+          message: "ユーザーの参加しているグループ一覧を取得しました",
           data: expectedResult,
         });
       });
@@ -201,7 +201,7 @@ describe("my-group.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          message: "グループ一覧を取得しました",
+          message: "ユーザーの参加しているグループ一覧を取得しました",
           data: expectedResult,
         });
         expect(prismaMock.groupPoint.findMany).toHaveBeenCalledWith({
@@ -315,7 +315,7 @@ describe("my-group.ts", () => {
         const result = await getUserJoinGroupCount(searchQuery, testUser.id);
 
         // Assert
-        expect(result).toBe(expectedCount);
+        expect(result.data).toBe(expectedCount);
         expect(prismaMock.group.count).toHaveBeenCalledWith({ where: expectedWhere });
       });
     });
@@ -369,14 +369,8 @@ describe("my-group.ts", () => {
         ["null groupId", null],
         ["undefined groupId", undefined],
       ])("should handle %s", async (_, invalidGroupId) => {
-        // Act
-        const result = await leaveGroup(invalidGroupId!, testUser.id);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          message: "グループから脱退中にエラーが発生しました: グループIDがありません",
-        });
+        // Act & Assert
+        await expect(leaveGroup(invalidGroupId!, testUser.id)).rejects.toThrow("グループIDがありません");
       });
 
       test.each([
@@ -389,7 +383,7 @@ describe("my-group.ts", () => {
               data: null,
             });
           },
-          { success: false, message: "グループから脱退中にエラーが発生しました: グループに参加していません" },
+          { success: false, message: "グループメンバーシップが存在しません", data: null },
           false,
         ],
         [
@@ -397,7 +391,7 @@ describe("my-group.ts", () => {
           () => {
             mockCheckGroupMembership.mockRejectedValue(new Error("Database error"));
           },
-          { success: false, message: "グループから脱退中にエラーが発生しました: Database error" },
+          null,
           false,
         ],
         [
@@ -410,7 +404,7 @@ describe("my-group.ts", () => {
             });
             setupDatabaseError("delete");
           },
-          { success: false, message: "グループから脱退中にエラーが発生しました: Database error" },
+          null,
           false,
         ],
       ])("should handle %s", async (_, setupError, expectedResult, shouldCallRevalidate) => {
@@ -418,10 +412,15 @@ describe("my-group.ts", () => {
         setupError();
 
         // Act
-        const result = await leaveGroup(groupId, testUser.id);
+        if (expectedResult) {
+          const result = await leaveGroup(groupId, testUser.id);
+          // Assert
+          expect(result).toStrictEqual(expectedResult);
+        } else {
+          // エラーが投げられることを期待
+          await expect(leaveGroup(groupId, testUser.id)).rejects.toThrow("Database error");
+        }
 
-        // Assert
-        expect(result).toStrictEqual(expectedResult);
         if (!shouldCallRevalidate) {
           expect(mockRevalidatePath).not.toHaveBeenCalled();
         }

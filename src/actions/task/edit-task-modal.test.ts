@@ -56,7 +56,7 @@ const createUpdateData = (overrides = {}) => ({
   ...overrides,
 });
 
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * getTaskById用のモックタスクデータを作成するヘルパー関数
@@ -144,7 +144,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          data: true,
+          data: null,
           message: "タスクが更新されました",
         });
         expect(prismaMock.task.findUnique).toHaveBeenCalledWith({
@@ -196,7 +196,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: true,
-          data: true,
+          data: null,
           message: "タスクが更新されました",
         });
         expect(prismaMock.taskReporter.deleteMany).not.toHaveBeenCalled();
@@ -240,7 +240,7 @@ describe("edit-task-modal.ts", () => {
           // Assert
           expect(result).toStrictEqual({
             success: true,
-            data: true,
+            data: null,
             message: "タスクが更新されました",
           });
           expect(prismaMock.auction.create).toHaveBeenCalledWith({
@@ -298,7 +298,7 @@ describe("edit-task-modal.ts", () => {
           // Assert
           expect(result).toStrictEqual({
             success: true,
-            data: true,
+            data: null,
             message: "タスクが更新されました",
           });
           expect(prismaMock.bidHistory.findFirst).toHaveBeenCalledWith({
@@ -355,7 +355,7 @@ describe("edit-task-modal.ts", () => {
           // Assert
           expect(result).toStrictEqual({
             success: true,
-            data: true,
+            data: null,
             message: "タスクが更新されました",
           });
           expect(prismaMock.bidHistory.findFirst).toHaveBeenCalledWith({
@@ -378,15 +378,8 @@ describe("edit-task-modal.ts", () => {
         // Arrange
         const updateData = createUpdateData();
 
-        // Act
-        const result = await updateTaskAction(taskId!, updateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "タスクIDが指定されていません",
-        });
+        // Act & Assert
+        await expect(updateTaskAction(taskId!, updateData)).rejects.toThrow("タスクIDが指定されていません");
       });
 
       test("should return error when task not found", async () => {
@@ -396,15 +389,8 @@ describe("edit-task-modal.ts", () => {
 
         prismaMock.task.findUnique.mockResolvedValue(null);
 
-        // Act
-        const result = await updateTaskAction(taskId, updateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "更新対象のタスクが見つかりません",
-        });
+        // Act & Assert
+        await expect(updateTaskAction(taskId, updateData)).rejects.toThrow("更新対象のタスクが見つかりません");
         expect(mockCheckIsPermission).not.toHaveBeenCalled();
         expect(prismaMock.$transaction).not.toHaveBeenCalled();
       });
@@ -433,7 +419,7 @@ describe("edit-task-modal.ts", () => {
         // Assert
         expect(result).toStrictEqual({
           success: false,
-          data: false,
+          data: null,
           message: "Permission check failed",
         });
         expect(prismaMock.$transaction).not.toHaveBeenCalled();
@@ -458,15 +444,8 @@ describe("edit-task-modal.ts", () => {
         });
         prismaMock.$transaction.mockRejectedValue(new Error("データベースエラー"));
 
-        // Act
-        const result = await updateTaskAction(testTask.id, updateData);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "データベースエラー",
-        });
+        // Act & Assert
+        await expect(updateTaskAction(testTask.id, updateData)).rejects.toThrow("データベースエラー");
       });
     });
   });
@@ -639,15 +618,8 @@ describe("edit-task-modal.ts", () => {
         // Arrange
         prismaMock.task.findUnique.mockResolvedValue(null);
 
-        // Act
-        const result = await getTaskById("non-existent-task");
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "タスクが見つかりません",
-        });
+        // Act & Assert
+        await expect(getTaskById("non-existent-task")).rejects.toThrow("タスクが見つかりません");
       });
 
       test("should return error when database query fails", async () => {
@@ -655,27 +627,13 @@ describe("edit-task-modal.ts", () => {
         const taskId = "test-task-1";
         prismaMock.task.findUnique.mockRejectedValue(new Error("データベースエラー"));
 
-        // Act
-        const result = await getTaskById(taskId);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "データベースエラー",
-        });
+        // Act & Assert
+        await expect(getTaskById(taskId)).rejects.toThrow("データベースエラー");
       });
 
       test.each(["", null, undefined])("should return error when taskId is not provided", async (taskId) => {
-        // Act
-        const result = await getTaskById(taskId!);
-
-        // Assert
-        expect(result).toStrictEqual({
-          success: false,
-          data: false,
-          message: "タスクIDが指定されていません",
-        });
+        // Act & Assert
+        await expect(getTaskById(taskId!)).rejects.toThrow("タスクIDが指定されていません");
       });
     });
   });

@@ -53,8 +53,8 @@ describe("sendEmailNotification", () => {
     test("should return success when email notification settings are found", async () => {
       // モックの設定
       prismaMock.userSettings.findMany.mockResolvedValue([
-        { isEmailEnabled: true },
-        { isEmailEnabled: true },
+        { isEmailEnabled: true, user: { email: "test1@example.com" } },
+        { isEmailEnabled: true, user: { email: "test2@example.com" } },
       ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
       // 関数を実行と結果検証
@@ -96,6 +96,11 @@ describe("sendEmailNotification", () => {
         },
         select: {
           isEmailEnabled: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
         },
       });
 
@@ -122,9 +127,9 @@ describe("sendEmailNotification", () => {
       };
 
       // モックの設定
-      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
-        ReturnType<typeof prismaMock.userSettings.findMany>
-      >);
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: true, user: { email: "test@example.com" } },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
       // 関数を実行と結果検証
       const result = await sendEmailNotification(nullOptionalParams);
@@ -134,6 +139,14 @@ describe("sendEmailNotification", () => {
         where: {
           userId: { in: [testUserId1, testUserId2] },
           isEmailEnabled: true,
+        },
+        select: {
+          isEmailEnabled: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
         },
       });
       expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
@@ -145,9 +158,9 @@ describe("sendEmailNotification", () => {
         const params = { ...baseNotificationParams, targetType };
 
         // モックの設定
-        prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
-          ReturnType<typeof prismaMock.userSettings.findMany>
-        >);
+        prismaMock.userSettings.findMany.mockResolvedValue([
+          { isEmailEnabled: true, user: { email: "test@example.com" } },
+        ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
         // 関数を実行と結果検証
         const result = await sendEmailNotification(params);
@@ -157,8 +170,16 @@ describe("sendEmailNotification", () => {
             userId: { in: [testUserId1, testUserId2] },
             isEmailEnabled: true,
           },
+          select: {
+            isEmailEnabled: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
         });
-        expect(result).toStrictEqual({ success: true, message: "メール通知を送信しました" });
+        expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
       },
     );
 
@@ -169,9 +190,9 @@ describe("sendEmailNotification", () => {
       const params = { ...baseNotificationParams, sendTiming, sendScheduledDate };
 
       // モックの設定
-      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
-        ReturnType<typeof prismaMock.userSettings.findMany>
-      >);
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: true, user: { email: "test@example.com" } },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
       // 関数を実行と結果検証
       const result = await sendEmailNotification(params);
@@ -181,8 +202,16 @@ describe("sendEmailNotification", () => {
           userId: { in: [testUserId1, testUserId2] },
           isEmailEnabled: true,
         },
+        select: {
+          isEmailEnabled: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
       });
-      expect(result).toStrictEqual({ success: true, message: "メール通知を送信しました" });
+      expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
     });
 
     test.each([
@@ -197,9 +226,9 @@ describe("sendEmailNotification", () => {
       const params = { ...baseNotificationParams, sendMethods };
 
       // モックの設定
-      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
-        ReturnType<typeof prismaMock.userSettings.findMany>
-      >);
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: true, user: { email: "test@example.com" } },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
       // 関数を実行と結果検証
       const result = await sendEmailNotification(params);
@@ -209,8 +238,16 @@ describe("sendEmailNotification", () => {
           userId: { in: [testUserId1, testUserId2] },
           isEmailEnabled: true,
         },
+        select: {
+          isEmailEnabled: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
       });
-      expect(result).toStrictEqual({ success: true, message: "メール通知を送信しました" });
+      expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
     });
   });
 
@@ -225,9 +262,9 @@ describe("sendEmailNotification", () => {
       };
 
       // モックの設定
-      prismaMock.userSettings.findMany.mockResolvedValue([{ isEmailEnabled: true }] as unknown as Awaited<
-        ReturnType<typeof prismaMock.userSettings.findMany>
-      >);
+      prismaMock.userSettings.findMany.mockResolvedValue([
+        { isEmailEnabled: true, user: { email: "test@example.com" } },
+      ] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>);
 
       // 関数を実行と結果検証
       const result = await sendEmailNotification(nullUndefinedParams);
@@ -237,8 +274,16 @@ describe("sendEmailNotification", () => {
           userId: { in: [testUserId1, null as unknown as string, undefined as unknown as string, testUserId2] },
           isEmailEnabled: true,
         },
+        select: {
+          isEmailEnabled: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
       });
-      expect(result).toStrictEqual({ success: true, message: "メール通知を送信しました" });
+      expect(result).toStrictEqual({ success: true, data: null, message: "メール通知を送信しました" });
     });
   });
 
@@ -341,11 +386,14 @@ describe("sendEmailNotification", () => {
       // Arrange
       const params = { ...baseNotificationParams, ...overrides } as NotificationParams;
 
-      // Act
-      const result = await sendEmailNotification(params);
-
-      // Assert
-      expect(result).toStrictEqual({ success: false, message: "必須パラメータが不足しています" });
+      // Act & Assert
+      try {
+        await sendEmailNotification(params);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("必須パラメータが不足しています");
+      }
     });
 
     test("should handle prisma database error", async () => {
@@ -353,15 +401,14 @@ describe("sendEmailNotification", () => {
       const dbError = new Error("Database connection failed");
       prismaMock.userSettings.findMany.mockRejectedValue(dbError);
 
-      // 関数を実行
-      const result = await sendEmailNotification(baseNotificationParams);
-
-      // 結果を検証
-      expect(result).toStrictEqual({ success: false, message: "メール通知を送信できませんでした" });
-      expect(result.message).toBe("メール通知を送信できませんでした");
-
-      // コンソールエラーの呼び出しを検証
-      expect(console.error).toHaveBeenCalledWith("email-notification.ts_sendEmailNotification_error", dbError);
+      // Act & Assert
+      try {
+        await sendEmailNotification(baseNotificationParams);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("Database connection failed");
+      }
     });
 
     test("should handle unexpected error during execution", async () => {
@@ -371,14 +418,14 @@ describe("sendEmailNotification", () => {
         throw unexpectedError;
       });
 
-      // 関数を実行
-      const result = await sendEmailNotification(baseNotificationParams);
-
-      // 結果を検証
-      expect(result).toStrictEqual({ success: false, message: "メール通知を送信できませんでした" });
-
-      // コンソールエラーの呼び出しを検証
-      expect(console.error).toHaveBeenCalledWith("email-notification.ts_sendEmailNotification_error", unexpectedError);
+      // Act & Assert
+      try {
+        await sendEmailNotification(baseNotificationParams);
+        expect.fail("Expected function to throw error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe("Unexpected error");
+      }
     });
   });
 

@@ -108,12 +108,8 @@ describe("bulkUpdateTaskStatus", () => {
 
   describe("異常系", () => {
     test("should handle empty data array", async () => {
-      // Act
-      const result = await bulkUpdateTaskStatus([], testUserId);
-
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("データが指定されていません");
+      // Act & Assert
+      await expect(bulkUpdateTaskStatus([], testUserId)).rejects.toThrow("データが指定されていません");
     });
 
     test("should handle missing task ID", async () => {
@@ -243,12 +239,8 @@ describe("bulkUpdateTaskStatus", () => {
       // Arrange
       const validStatusData = [{ taskId: "task-1", status: TaskStatus.PENDING }];
 
-      // Act
-      const result = await bulkUpdateTaskStatus(validStatusData, "");
-
-      // Assert
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("NEXT_REDIRECT");
+      // Act & Assert
+      await expect(bulkUpdateTaskStatus(validStatusData, "")).rejects.toThrow("NEXT_REDIRECT");
     });
   });
 });

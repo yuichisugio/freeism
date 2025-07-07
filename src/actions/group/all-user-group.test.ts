@@ -517,7 +517,9 @@ describe("getAllUserGroupsCount", () => {
       const result = await getAllUserGroupsCount(params.searchQuery, params.isJoined, params.userId);
 
       // Assert
-      expect(result).toBe(expectedCount);
+      expect(result.success).toBe(true);
+      expect(result.message).toBe("グループ一覧の総数を取得しました");
+      expect(result.data).toBe(expectedCount);
       expect(prismaMock.group.count).toHaveBeenCalledWith({
         where: expectedWhere,
       });
@@ -561,7 +563,11 @@ describe("getAllUserGroupsCount", () => {
       const result = await getAllUserGroupsCount(searchQuery, "all", "test-user-id");
 
       // Assert
-      expect(result).toBe(0);
+      expect(result).toStrictEqual({
+        success: true,
+        message: "グループ一覧の総数を取得しました",
+        data: 0,
+      });
       expect(prismaMock.group.count).toHaveBeenCalledWith({
         where: {
           name: {

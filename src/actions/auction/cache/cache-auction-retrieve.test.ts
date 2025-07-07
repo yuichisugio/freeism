@@ -185,6 +185,10 @@ function createExpectedAuctionWithDetails(overrides = {}) {
   return {
     ...mockPrismaResult,
     status: mockPrismaResult.task.status, // task.statusがauction.statusとしてマージされる
+    createdAt: expect.any(Date) as Date, // 動的に生成されるため
+    updatedAt: expect.any(Date) as Date, // 動的に生成されるため
+    taskId: "task-id", // ハードコードされた値
+    winnerId: null, // デフォルト値
   };
 }
 
@@ -299,7 +303,11 @@ describe("cache-auction-retrieve", () => {
         const result = await getCachedAuctionByAuctionId(CONSTANTS.testAuctionId);
 
         // Assert
-        expect(result).toStrictEqual(createExpectedAuctionWithDetails());
+        expect(result).toStrictEqual({
+          success: true,
+          data: createExpectedAuctionWithDetails(),
+          message: "オークション情報を取得しました",
+        });
         expect(prismaMock.auction.findUnique).toHaveBeenCalledWith({
           where: { id: CONSTANTS.testAuctionId },
           select: expectedSelectObject,
@@ -369,6 +377,7 @@ describe("cache-auction-retrieve", () => {
 
         // Assert
         expect(result).not.toBeNull();
+        expect(result.success).toBe(true);
         assertions(result?.data);
       });
 
@@ -410,6 +419,7 @@ describe("cache-auction-retrieve", () => {
 
         // Assert
         expect(result).not.toBeNull();
+        expect(result.success).toBe(true);
         expect(result?.data?.bidHistories).toHaveLength(2);
         expect(result?.data?.bidHistories[0].amount).toBe(500);
         expect(result?.data?.bidHistories[1].amount).toBe(400);

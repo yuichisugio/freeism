@@ -97,6 +97,7 @@ describe("user-settings.test.ts", () => {
 
         expect(result).toStrictEqual({
           success: true,
+          message: "ユーザー設定を更新しました",
           data: {
             id: updatedSettings.id,
             userId: updatedSettings.userId,
@@ -192,7 +193,8 @@ describe("user-settings.test.ts", () => {
 
         expect(result).toStrictEqual({
           success: true,
-          redirectURL: "/dashboard/grouplist",
+          data: null,
+          message: "ユーザー設定を更新しました",
         });
       });
     });

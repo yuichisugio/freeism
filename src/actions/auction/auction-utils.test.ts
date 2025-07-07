@@ -49,7 +49,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(validExecutor);
 
         // Assert
-        expect(result).toBe(true);
+        expect(result.success).toBe(true);
+        expect(result.data).not.toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
 
       test("null値を含むExecutorJsonItemFromDBに対してtrueを返す", () => {
@@ -66,7 +68,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(executorWithNulls);
 
         // Assert
-        expect(result).toBe(true);
+        expect(result.success).toBe(true);
+        expect(result.data).not.toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
 
       test("各フィールドが正しい型の場合にtrueを返す", () => {
@@ -83,7 +87,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(executor);
 
         // Assert
-        expect(result).toBe(true);
+        expect(result.success).toBe(true);
+        expect(result.data).not.toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
 
       test("文字列フィールドがnullの場合にtrueを返す", () => {
@@ -100,7 +106,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(executor);
 
         // Assert
-        expect(result).toBe(true);
+        expect(result.success).toBe(true);
+        expect(result.data).not.toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
 
       test("ratingがnullの場合にtrueを返す", () => {
@@ -117,7 +125,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(executor);
 
         // Assert
-        expect(result).toBe(true);
+        expect(result.success).toBe(true);
+        expect(result.data).not.toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
     });
 
@@ -127,7 +137,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(null);
 
         // Assert
-        expect(result).toBe(false);
+        expect(result.success).toBe(false);
+        expect(result.data).toBeNull();
+        expect(result.message).toBe("オブジェクトではありません");
       });
 
       test("undefinedに対してfalseを返す", () => {
@@ -135,20 +147,39 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(undefined);
 
         // Assert
-        expect(result).toBe(false);
+        expect(result.success).toBe(false);
+        expect(result.data).toBeNull();
+        expect(result.message).toBe("オブジェクトではありません");
       });
 
       test("オブジェクト以外の型に対してfalseを返す", () => {
         // Arrange & Act & Assert
-        expect(isExecutorObjectFromDB("string")).toBe(false);
-        expect(isExecutorObjectFromDB(123)).toBe(false);
-        expect(isExecutorObjectFromDB(true)).toBe(false);
-        expect(isExecutorObjectFromDB([])).toBe(false);
-        expect(
-          isExecutorObjectFromDB(() => {
-            // 空の関数
-          }),
-        ).toBe(false);
+        const stringResult = isExecutorObjectFromDB("string");
+        expect(stringResult.success).toBe(false);
+        expect(stringResult.data).toBeNull();
+        expect(stringResult.message).toBe("オブジェクトではありません");
+
+        const numberResult = isExecutorObjectFromDB(123);
+        expect(numberResult.success).toBe(false);
+        expect(numberResult.data).toBeNull();
+        expect(numberResult.message).toBe("オブジェクトではありません");
+
+        const booleanResult = isExecutorObjectFromDB(true);
+        expect(booleanResult.success).toBe(false);
+        expect(booleanResult.data).toBeNull();
+        expect(booleanResult.message).toBe("オブジェクトではありません");
+
+        const arrayResult = isExecutorObjectFromDB([]);
+        expect(arrayResult.success).toBe(false);
+        expect(arrayResult.data).toBeNull();
+        expect(arrayResult.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
+
+        const functionResult = isExecutorObjectFromDB(() => {
+          // 空の関数
+        });
+        expect(functionResult.success).toBe(false);
+        expect(functionResult.data).toBeNull();
+        expect(functionResult.message).toBe("オブジェクトではありません");
       });
 
       test("必須フィールドが欠けているオブジェクトに対してfalseを返す", () => {
@@ -193,11 +224,11 @@ describe("cache-auction-listing データ整形ロジック", () => {
         };
 
         // Act & Assert
-        expect(isExecutorObjectFromDB(incompleteObject1)).toBe(false);
-        expect(isExecutorObjectFromDB(incompleteObject2)).toBe(false);
-        expect(isExecutorObjectFromDB(incompleteObject3)).toBe(false);
-        expect(isExecutorObjectFromDB(incompleteObject4)).toBe(false);
-        expect(isExecutorObjectFromDB(incompleteObject5)).toBe(false);
+        expect(isExecutorObjectFromDB(incompleteObject1).success).toBe(false);
+        expect(isExecutorObjectFromDB(incompleteObject2).success).toBe(false);
+        expect(isExecutorObjectFromDB(incompleteObject3).success).toBe(false);
+        expect(isExecutorObjectFromDB(incompleteObject4).success).toBe(false);
+        expect(isExecutorObjectFromDB(incompleteObject5).success).toBe(false);
       });
 
       test("フィールドの型が無効な場合にfalseを返す", () => {
@@ -247,11 +278,11 @@ describe("cache-auction-listing データ整形ロジック", () => {
         };
 
         // Act & Assert
-        expect(isExecutorObjectFromDB(invalidObject1)).toBe(false);
-        expect(isExecutorObjectFromDB(invalidObject2)).toBe(false);
-        expect(isExecutorObjectFromDB(invalidObject3)).toBe(false);
-        expect(isExecutorObjectFromDB(invalidObject4)).toBe(false);
-        expect(isExecutorObjectFromDB(invalidObject5)).toBe(false);
+        expect(isExecutorObjectFromDB(invalidObject1).success).toBe(false);
+        expect(isExecutorObjectFromDB(invalidObject2).success).toBe(false);
+        expect(isExecutorObjectFromDB(invalidObject3).success).toBe(false);
+        expect(isExecutorObjectFromDB(invalidObject4).success).toBe(false);
+        expect(isExecutorObjectFromDB(invalidObject5).success).toBe(false);
       });
 
       test("空のオブジェクトに対してfalseを返す", () => {
@@ -259,7 +290,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB({});
 
         // Assert
-        expect(result).toBe(false);
+        expect(result.success).toBe(false);
+        expect(result.data).toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
 
       test("余分なプロパティを持つが必須フィールドが欠けているオブジェクトに対してfalseを返す", () => {
@@ -278,7 +311,9 @@ describe("cache-auction-listing データ整形ロジック", () => {
         const result = isExecutorObjectFromDB(objectWithExtraProps);
 
         // Assert
-        expect(result).toBe(false);
+        expect(result.success).toBe(false);
+        expect(result.data).toBeNull();
+        expect(result.message).toBe("オブジェクトがExecutorJsonItemFromDB型かどうかを判定しました");
       });
     });
   });

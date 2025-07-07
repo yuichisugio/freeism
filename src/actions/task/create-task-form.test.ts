@@ -114,14 +114,18 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({
-          groups: [
-            { id: testGroup.id, name: testGroup.name },
-            { id: testGroup2.id, name: testGroup2.name },
-          ],
-          users: [
-            { id: testUser.id, name: testUser.name },
-            { id: testUser2.id, name: testUser2.name },
-          ],
+          success: true,
+          message: "タスク作成フォームのデータを返却しました",
+          data: {
+            groups: [
+              { id: testGroup.id, name: testGroup.name },
+              { id: testGroup2.id, name: testGroup2.name },
+            ],
+            users: [
+              { id: testUser.id, name: testUser.name },
+              { id: testUser2.id, name: testUser2.name },
+            ],
+          },
         });
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledTimes(2);
@@ -136,8 +140,12 @@ describe("create-task-form.ts", () => {
 
         // Assert
         expect(result).toStrictEqual({
-          groups: [],
-          users: [],
+          success: false,
+          message: "ユーザーが所属するグループがないため、タスク作成フォームのデータを返却できません",
+          data: {
+            groups: [],
+            users: [],
+          },
         });
         expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
         expect(prismaMock.groupMembership.findMany).toHaveBeenCalledOnce();
@@ -207,7 +215,11 @@ describe("create-task-form.ts", () => {
         const result = await createTask(taskData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "タスクを作成しました",
+          data: null,
+        });
         expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
           where: { id: testGroup.id },
           select: { id: true },
@@ -264,7 +276,11 @@ describe("create-task-form.ts", () => {
         const result = await createTask(rewardTaskData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "タスクを作成しました",
+          data: null,
+        });
         expect(prismaMock.auction.create).toHaveBeenCalledWith({
           data: {
             taskId: createdTask.id,
@@ -301,7 +317,11 @@ describe("create-task-form.ts", () => {
           const result = await createTask(taskData);
 
           // Assert
-          expect(result).toStrictEqual({ success: true });
+          expect(result).toStrictEqual({
+            success: true,
+            message: "タスクを作成しました",
+            data: null,
+          });
           expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
           expect(prismaMock.task.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
@@ -345,7 +365,11 @@ describe("create-task-form.ts", () => {
           const result = await createTask(rewardTaskData);
 
           // Assert
-          expect(result).toStrictEqual({ success: true });
+          expect(result).toStrictEqual({
+            success: true,
+            message: "タスクを作成しました",
+            data: null,
+          });
           expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
           expect(prismaMock.auction.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
@@ -382,7 +406,11 @@ describe("create-task-form.ts", () => {
         const result = await createTask(rewardTaskData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "タスクを作成しました",
+          data: null,
+        });
         expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
         expect(prismaMock.auction.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
@@ -402,9 +430,7 @@ describe("create-task-form.ts", () => {
         );
 
         // Act & Assert
-        await expect(createTask(taskData)).rejects.toThrow(
-          "タスクの作成中にエラーが発生しました: 指定されたグループが見つかりません",
-        );
+        await expect(createTask(taskData)).rejects.toThrow("指定されたグループが見つかりません");
         expect(prismaMock.task.create).not.toHaveBeenCalled();
         expect(mockRevalidatePath).not.toHaveBeenCalled();
       });
@@ -418,7 +444,7 @@ describe("create-task-form.ts", () => {
         mockGetAuthenticatedSessionUserId.mockRejectedValue(new Error("認証エラー"));
 
         // Act & Assert
-        await expect(createTask(taskData)).rejects.toThrow("タスクの作成中にエラーが発生しました: 認証エラー");
+        await expect(createTask(taskData)).rejects.toThrow("認証エラー");
         expect(prismaMock.task.create).not.toHaveBeenCalled();
         expect(mockRevalidatePath).not.toHaveBeenCalled();
         expect(prismaMock.task.create).not.toHaveBeenCalled();
@@ -434,7 +460,7 @@ describe("create-task-form.ts", () => {
         prismaMock.task.create.mockRejectedValue(new Error("データベースエラー"));
 
         // Act & Assert
-        await expect(createTask(taskData)).rejects.toThrow("タスクの作成中にエラーが発生しました: データベースエラー");
+        await expect(createTask(taskData)).rejects.toThrow("データベースエラー");
         expect(mockRevalidatePath).not.toHaveBeenCalled();
       });
 
@@ -456,9 +482,7 @@ describe("create-task-form.ts", () => {
         prismaMock.auction.create.mockRejectedValue(new Error("オークション作成エラー"));
 
         // Act & Assert
-        await expect(createTask(rewardTaskData)).rejects.toThrow(
-          "タスクの作成中にエラーが発生しました: オークション作成エラー",
-        );
+        await expect(createTask(rewardTaskData)).rejects.toThrow("オークション作成エラー");
         expect(mockRevalidatePath).not.toHaveBeenCalled();
         expect(prismaMock.auction.create).toHaveBeenCalled();
       });
@@ -493,7 +517,11 @@ describe("create-task-form.ts", () => {
         const result = await createTask(minimalTaskData);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "タスクを作成しました",
+          data: null,
+        });
         expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
         expect(prismaMock.task.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
@@ -529,7 +557,11 @@ describe("create-task-form.ts", () => {
         const result = await createTask(taskDataWithVariousValues);
 
         // Assert
-        expect(result).toStrictEqual({ success: true });
+        expect(result).toStrictEqual({
+          success: true,
+          message: "タスクを作成しました",
+          data: null,
+        });
         expect(mockRevalidatePath).toHaveBeenCalledWith(`/dashboard/group/${testGroup.id}`);
         expect(prismaMock.task.create).toHaveBeenCalledWith({
           data: expect.objectContaining({

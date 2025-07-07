@@ -33,7 +33,6 @@ describe("completeTaskDelivery", () => {
         success: true,
         message: "タスク完了処理に成功しました",
         data: null,
-        error: null,
       });
 
       // Prismaメソッドが正しく呼ばれたかを検証
@@ -64,7 +63,6 @@ describe("completeTaskDelivery", () => {
         success: true,
         message: "タスク完了処理に成功しました",
         data: null,
-        error: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
         where: {
@@ -92,7 +90,6 @@ describe("completeTaskDelivery", () => {
         success: true,
         message: "タスク完了処理に成功しました",
         data: null,
-        error: null,
       });
       expect(prismaMock.task.update).toHaveBeenCalledWith({
         where: {
@@ -114,14 +111,8 @@ describe("completeTaskDelivery", () => {
       const prismaError = new Error("Record to update not found");
       prismaMock.task.update.mockRejectedValue(prismaError);
 
-      // エラーレスポンスが返されることを検証
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Record to update not found",
-      });
+      // エラーが投げられることを検証
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Record to update not found");
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
       expect(prismaMock.task.update).toHaveBeenCalledWith({
@@ -141,13 +132,7 @@ describe("completeTaskDelivery", () => {
 
       prismaMock.task.update.mockRejectedValue(dbError);
 
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Database connection failed",
-      });
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Database connection failed");
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
     });
@@ -159,13 +144,7 @@ describe("completeTaskDelivery", () => {
 
       prismaMock.task.update.mockRejectedValue(constraintError);
 
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Unique constraint failed",
-      });
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("Unique constraint failed");
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
     });
@@ -176,15 +155,8 @@ describe("completeTaskDelivery", () => {
       // 空文字列のタスクIDでテスト
       const taskId = "";
 
-      // 空文字列の場合は実装内でエラーが投げられる
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        error:
-          "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
-      });
+      // 空文字列の場合は関数内でエラーが投げられる
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("completeTaskDelivery: タスクIDが存在しません");
 
       // 空文字列の場合はPrismaが呼ばれない
       expect(prismaMock.task.update).not.toHaveBeenCalled();
@@ -307,13 +279,7 @@ describe("completeTaskDelivery", () => {
 
         prismaMock.task.update.mockRejectedValue(timeoutError);
 
-        const result = await completeTaskDelivery(taskId);
-
-        expect(result).toStrictEqual({
-          success: false,
-          data: null,
-          message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: Operation timed out",
-        });
+        await expect(completeTaskDelivery(taskId)).rejects.toThrow("Operation timed out");
 
         expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
       });
@@ -340,8 +306,8 @@ describe("completeTaskDelivery", () => {
         expect(Object.keys(result)).toStrictEqual(["success", "message", "data"]);
       });
 
-      test("should return error field in success case", async () => {
-        // 成功時にerrorフィールドがnullで含まれることを確認
+      test("should return correct structure in success case", async () => {
+        // 成功時の戻り値構造を確認
         const taskId = "success-test-task-id";
         const mockTask = taskFactory.build({
           id: taskId,
@@ -366,28 +332,18 @@ describe("completeTaskDelivery", () => {
   describe("引数の検証テスト", () => {
     test("should return error when taskId is null", async () => {
       // nullのタスクIDでテスト
-      const result = await completeTaskDelivery(null as unknown as string);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message:
-          "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
-      });
+      await expect(completeTaskDelivery(null as unknown as string)).rejects.toThrow(
+        "completeTaskDelivery: タスクIDが存在しません",
+      );
 
       expect(prismaMock.task.update).not.toHaveBeenCalled();
     });
 
     test("should return error when taskId is undefined", async () => {
       // undefinedのタスクIDでテスト
-      const result = await completeTaskDelivery(undefined as unknown as string);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        error:
-          "completeTaskDelivery: タスク完了処理アクションに失敗しました: completeTaskDelivery: タスクIDが存在しません",
-      });
+      await expect(completeTaskDelivery(undefined as unknown as string)).rejects.toThrow(
+        "completeTaskDelivery: タスクIDが存在しません",
+      );
 
       expect(prismaMock.task.update).not.toHaveBeenCalled();
     });
@@ -399,13 +355,7 @@ describe("completeTaskDelivery", () => {
 
       prismaMock.task.update.mockRejectedValue(nonErrorObject);
 
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
-      });
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow("文字列エラー");
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
     });
@@ -416,13 +366,7 @@ describe("completeTaskDelivery", () => {
 
       prismaMock.task.update.mockRejectedValue(null);
 
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
-      });
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow();
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
     });
@@ -433,13 +377,7 @@ describe("completeTaskDelivery", () => {
 
       prismaMock.task.update.mockRejectedValue(undefined);
 
-      const result = await completeTaskDelivery(taskId);
-
-      expect(result).toStrictEqual({
-        success: false,
-        data: null,
-        message: "completeTaskDelivery: タスク完了処理アクションに失敗しました: 不明なエラー",
-      });
+      await expect(completeTaskDelivery(taskId)).rejects.toThrow();
 
       expect(prismaMock.task.update).toHaveBeenCalledTimes(1);
     });

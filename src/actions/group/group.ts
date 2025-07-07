@@ -138,7 +138,7 @@ export async function joinGroup(groupId: string): PromiseResult<null> {
    * 既に参加済みかチェック
    */
   const membership = await checkGroupMembership(userId, groupId);
-  if (membership) {
+  if (membership.success && membership.data) {
     return {
       success: false,
       message: "既に参加済みです",
@@ -528,7 +528,7 @@ export async function removeMember(
    * 対象ユーザーのメンバーシップ確認
    */
   const membership = await checkGroupMembership(removeUserId, groupId);
-  if (!membership) {
+  if (!membership.success || !membership.data) {
     return {
       success: false,
       message: "指定されたユーザーはグループに参加していません",

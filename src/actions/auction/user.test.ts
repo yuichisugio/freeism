@@ -28,34 +28,38 @@ describe("user.ts", () => {
       test("should return user groups when user has multiple groups", async () => {
         // Arrange
         const expectedGroups = [
-          {
-            group: { id: testGroup1.id, name: testGroup1.name },
-          },
-          {
-            group: { id: testGroup2.id, name: testGroup2.name },
-          },
+          { id: testGroup1.id, name: testGroup1.name },
+          { id: testGroup2.id, name: testGroup2.name },
         ];
 
-        prismaMock.groupMembership.findMany.mockResolvedValue(
-          expectedGroups as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+        prismaMock.group.findMany.mockResolvedValue(
+          expectedGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
         );
 
         // Act
         const result = await getUserGroups(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual(expectedGroups);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ユーザーの参加グループを取得しました",
+          data: expectedGroups,
+        });
       });
 
       test("should return empty array when user has no groups", async () => {
         // Arrange
-        prismaMock.groupMembership.findMany.mockResolvedValue([]);
+        prismaMock.group.findMany.mockResolvedValue([]);
 
         // Act
         const result = await getUserGroups(testUser.id);
 
         // Assert
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual({
+          success: true,
+          message: "ユーザーの参加グループを取得しました",
+          data: [],
+        });
       });
     });
 
@@ -63,7 +67,7 @@ describe("user.ts", () => {
       test("should throw error when prisma query fails", async () => {
         // Arrange
         const errorMessage = "データベースエラー";
-        prismaMock.groupMembership.findMany.mockRejectedValue(new Error(errorMessage));
+        prismaMock.group.findMany.mockRejectedValue(new Error(errorMessage));
 
         // Act & Assert
         await expect(getUserGroups(testUser.id)).rejects.toThrow(errorMessage);
@@ -88,18 +92,18 @@ describe("user.ts", () => {
         // Arrange
         const timeoutError = new Error("Connection timeout");
         timeoutError.name = "TimeoutError";
-        prismaMock.groupMembership.findMany.mockRejectedValue(timeoutError);
+        prismaMock.group.findMany.mockRejectedValue(timeoutError);
 
         // Act & Assert
         await expect(getUserGroups(testUser.id)).rejects.toThrow("Connection timeout");
-        expect(prismaMock.groupMembership.findMany).toHaveBeenCalledOnce();
+        expect(prismaMock.group.findMany).toHaveBeenCalledOnce();
       });
 
       test("should handle database constraint violation", async () => {
         // Arrange
         const constraintError = new Error("Foreign key constraint failed");
         constraintError.name = "PrismaClientKnownRequestError";
-        prismaMock.groupMembership.findMany.mockRejectedValue(constraintError);
+        prismaMock.group.findMany.mockRejectedValue(constraintError);
 
         // Act & Assert
         await expect(getUserGroups(testUser.id)).rejects.toThrow("Foreign key constraint failed");
@@ -108,14 +112,10 @@ describe("user.ts", () => {
       describe("型安全性テスト", () => {
         test("should return correctly typed result", async () => {
           // Arrange
-          const expectedGroups = [
-            {
-              group: { id: testGroup1.id, name: testGroup1.name },
-            },
-          ];
+          const expectedGroups = [{ id: testGroup1.id, name: testGroup1.name }];
 
-          prismaMock.groupMembership.findMany.mockResolvedValue(
-            expectedGroups as unknown as Awaited<ReturnType<typeof prismaMock.groupMembership.findMany>>,
+          prismaMock.group.findMany.mockResolvedValue(
+            expectedGroups as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
           );
 
           // Act
@@ -123,8 +123,10 @@ describe("user.ts", () => {
 
           // Assert - 型安全性の確認
           expect(typeof result).toBe("object");
-          expect(Array.isArray(result)).toBe(true);
-          if (result.data.length > 0) {
+          expect(result.success).toBe(true);
+          expect(typeof result.message).toBe("string");
+          expect(Array.isArray(result.data)).toBe(true);
+          if (result.data && result.data.length > 0) {
             expect(typeof result.data[0].id).toBe("string");
             expect(typeof result.data[0].name).toBe("string");
             expect(result.data[0].id).toBe(testGroup1.id);

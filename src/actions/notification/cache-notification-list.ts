@@ -100,7 +100,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     /**
      * 共通のWHERE句を取得 (タスク条件を含む)
      */
-    const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
+    const commonWhereClause = (await buildCommonNotificationWhereClause(userId, true)).data;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

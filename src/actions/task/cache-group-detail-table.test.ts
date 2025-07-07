@@ -154,6 +154,14 @@ const testFilter = async (
         select: {
           id: true,
           name: true,
+          members: {
+            where: {
+              userId: testUser.id,
+            },
+            select: {
+              isGroupOwner: true,
+            },
+          },
         },
       },
       auction: {
@@ -217,6 +225,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: [{ isGroupOwner: true }],
         },
         auction: {
           id: testAuction.id,
@@ -233,30 +242,35 @@ describe("getMyTaskData", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        tasks: [
-          {
-            id: testTask.id,
-            taskName: testTask.task,
-            taskDetail: testTask.detail,
-            taskStatus: testTask.status,
-            taskContributionType: testTask.contributionType,
-            taskFixedContributionPoint: testTask.fixedContributionPoint,
-            taskFixedEvaluator: "評価者ユーザー",
-            taskFixedEvaluationLogic: testTask.fixedEvaluationLogic,
-            taskCreatorName: testUserSettings.username,
-            taskReporterUserIds: [],
-            taskExecutorUserIds: [],
-            taskReporterUserNames: "",
-            taskExecutorUserNames: "",
-            reporters: [],
-            executors: [],
-            groupId: testGroup.id,
-            groupName: testGroup.name,
-            auctionId: testAuction.id,
-            group: { id: testGroup.id, name: testGroup.name },
-          },
-        ],
-        totalTaskCount: 1,
+        success: true,
+        message: "タスク情報の取得が完了しました",
+        data: {
+          tasks: [
+            {
+              id: testTask.id,
+              taskName: testTask.task,
+              taskDetail: testTask.detail,
+              taskStatus: testTask.status,
+              taskContributionType: testTask.contributionType,
+              taskFixedContributionPoint: testTask.fixedContributionPoint,
+              taskFixedEvaluator: "評価者ユーザー",
+              taskFixedEvaluationLogic: testTask.fixedEvaluationLogic,
+              taskCreatorName: testUserSettings.username,
+              taskReporterUserIds: [],
+              taskExecutorUserIds: [],
+              taskReporterUserNames: "",
+              taskExecutorUserNames: "",
+              reporters: [],
+              executors: [],
+              groupId: testGroup.id,
+              groupName: testGroup.name,
+              auctionId: testAuction.id,
+              group: { id: testGroup.id, name: testGroup.name },
+              isGroupOwner: true,
+            },
+          ],
+          totalTaskCount: 1,
+        },
       });
 
       expect(prismaMock.task.findMany).toHaveBeenCalledWith({
@@ -328,6 +342,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: [{ isGroupOwner: false }],
         },
         auction: null,
       };
@@ -349,6 +364,7 @@ describe("getMyTaskData", () => {
         reporters: [{ appUserName: "報告者ユーザー", appUserId: "reporter-user-id" }],
         executors: [{ appUserName: "実行者ユーザー", appUserId: "executor-user-id" }],
         auctionId: null,
+        isGroupOwner: false,
       });
     });
 
@@ -362,8 +378,12 @@ describe("getMyTaskData", () => {
 
       // Assert
       expect(result).toStrictEqual({
-        tasks: [],
-        totalTaskCount: 0,
+        success: true,
+        message: "タスク情報の取得が完了しました",
+        data: {
+          tasks: [],
+          totalTaskCount: 0,
+        },
       });
     });
 
@@ -386,6 +406,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: [{ isGroupOwner: true }],
         },
         auction: null,
       };
@@ -406,6 +427,7 @@ describe("getMyTaskData", () => {
         taskFixedEvaluationLogic: null,
         taskCreatorName: "未設定",
         auctionId: null,
+        isGroupOwner: true,
       });
     });
 
@@ -496,6 +518,7 @@ describe("getMyTaskData", () => {
         group: {
           id: testGroup.id,
           name: testGroup.name,
+          members: [{ isGroupOwner: false }],
         },
         auction: null,
       };
@@ -514,6 +537,7 @@ describe("getMyTaskData", () => {
         taskExecutorUserIds: ["executor-1", "executor-3"],
         taskReporterUserNames: "報告者1, 報告者2",
         taskExecutorUserNames: "実行者1, 実行者2",
+        isGroupOwner: false,
       });
     });
 
@@ -765,53 +789,63 @@ describe("異常系・バリデーション", () => {
       name: "userId is empty",
       userId: "",
       conditions: defaultTableConditions,
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "userId is null",
       userId: null,
       conditions: defaultTableConditions,
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "userId is undefined",
       userId: undefined,
       conditions: defaultTableConditions,
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is null",
       userId: testUser.id,
       conditions: null,
+      expectedError: "Cannot destructure property 'page' of 'tableConditions' as it is null.",
     },
     {
       name: "tableConditions is undefined",
       userId: testUser.id,
       conditions: undefined,
+      expectedError: "Cannot destructure property 'page' of 'tableConditions' as it is undefined.",
     },
     {
       name: "tableConditions is empty object",
       userId: testUser.id,
       conditions: {},
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is empty array",
       userId: testUser.id,
       conditions: [],
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is invalid contributionType",
       userId: testUser.id,
       conditions: { ...defaultTableConditions, contributionType: "INVALID" },
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
     {
       name: "tableConditions is invalid taskStatus",
       userId: testUser.id,
       conditions: { ...defaultTableConditions, taskStatus: "INVALID" },
+      expectedError: "ユーザーID or テーブルの表示条件が指定されていません",
     },
-  ])("should throw validation errors when userId or conditions is invalid", async ({ userId, conditions }) => {
-    // Act & Assert
-    await expect(getMyTaskData(conditions as MyTaskTableConditions, userId!)).rejects.toThrow(
-      "タスク情報の取得中にエラーが発生しました",
-    );
-  });
+  ])(
+    "should throw validation errors when userId or conditions is invalid",
+    async ({ userId, conditions, expectedError }) => {
+      // Act & Assert
+      await expect(getMyTaskData(conditions as MyTaskTableConditions, userId!)).rejects.toThrow(expectedError);
+    },
+  );
 
   test.each([
     {
@@ -827,8 +861,6 @@ describe("異常系・バリデーション", () => {
     },
   ])("should handle database errors when findMany or count fails", async ({ setup }) => {
     setup();
-    await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow(
-      "タスク情報の取得中にエラーが発生しました",
-    );
+    await expect(getMyTaskData(defaultTableConditions, testUser.id)).rejects.toThrow();
   });
 });

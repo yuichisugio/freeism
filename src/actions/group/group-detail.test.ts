@@ -38,17 +38,19 @@ describe("getGroupById", () => {
         members: [{ userId: "user-1" }, { userId: "user-2" }, { userId: "user-3" }],
       };
 
-      // Act
-      mockGetCachedGroupById.mockResolvedValue({
+      const expectedResponse = {
         success: true,
         message: "グループ情報を取得しました",
         data: expectedGroup,
-      });
+      };
+
+      // Act
+      mockGetCachedGroupById.mockResolvedValue(expectedResponse);
 
       const result = await getGroupById(mockGroupId);
 
       // Assert
-      expect(result).toStrictEqual(expectedGroup);
+      expect(result).toStrictEqual(expectedResponse);
       expect(mockGetCachedGroupById).toHaveBeenCalledTimes(1);
       expect(mockGetCachedGroupById).toHaveBeenCalledWith(mockGroupId);
     });

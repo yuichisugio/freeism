@@ -164,8 +164,32 @@ describe("EmailNotificationToggle", () => {
       expect(mockMutate).toHaveBeenCalledWith(false);
     });
 
-    test("should display optimistic update state when variables is set", () => {
-      // Arrange - variablesがtrueの場合のモック設定
+    test("should display optimistic update state when variables is set and isPending is true", () => {
+      // Arrange - variablesがtrueでisPendingもtrueの場合のモック設定
+      mockUseMutation.mockReturnValue({
+        mutate: mockMutate,
+        variables: true,
+        isPending: true,
+        isError: false,
+        error: null,
+        data: undefined,
+        reset: vi.fn(),
+      });
+
+      // Act
+      render(
+        <AllTheProviders>
+          <EmailNotificationToggle {...defaultProps} />
+        </AllTheProviders>,
+      );
+
+      // Assert - isPendingがtrueかつvariablesが設定されている場合のみvariablesの値が優先される
+      expect(screen.getByRole("switch")).toBeChecked();
+      expect(screen.getByText("現在：受信中 (更新中...)")).toBeInTheDocument();
+    });
+
+    test("should not use variables when isPending is false", () => {
+      // Arrange - variablesがtrueでもisPendingがfalseの場合のモック設定
       mockUseMutation.mockReturnValue({
         mutate: mockMutate,
         variables: true,
@@ -183,9 +207,9 @@ describe("EmailNotificationToggle", () => {
         </AllTheProviders>,
       );
 
-      // Assert - variablesの値が優先される
-      expect(screen.getByRole("switch")).toBeChecked();
-      expect(screen.getByText("現在：受信中")).toBeInTheDocument();
+      // Assert - isPendingがfalseの場合は元のisEmailEnabledの値が使用される
+      expect(screen.getByRole("switch")).not.toBeChecked();
+      expect(screen.getByText("現在：受信拒否中")).toBeInTheDocument();
     });
 
     test("should display pending state when mutation is in progress", () => {
